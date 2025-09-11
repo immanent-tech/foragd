@@ -150,19 +150,26 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 templ GlobalSearch() {
 	<el-command-palette>
 		<div class="grid grid-cols-1">
-			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="pointer-events-none col-start-1 row-start-1 self-center size-5">
-				<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
-			</svg>
+			// <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="pointer-events-none col-start-1 row-start-1 self-center size-5">
+			// 	<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
+			// </svg>
 			<input
 				id="global-search"
-				type="text"
+				type="search"
 				name="text"
 				hx-push-url="false"
 				placeholder="Search..."
 				class="col-start-1 row-start-1 block size-full outline-hidden pr-4 pl-6 text-base sm:text-sm/6 placeholder:text-base-content/50"
-				hx-on::after-request="if(event.detail.successful) document.getElementById('global-search').value = ''"
 				_="on keyup if the event's key is 'Escape' set my value to '' then add @hidden to #global-search-suggestions then trigger closeSearch"
+				hx-trigger="input changed from:#global-search delay:100ms"
+				hx-get="/search/suggestions"
+				hx-target="#global-search-suggestions"
+				hx-include="[name='text']"
 			/>
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="pointer-events-none col-start-1 row-start-1 self-center size-5">
+				<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
+			</svg>
+			// Clear search button.
 			<button
 				type="button"
 				class="row-start-1 col-start-1 mr-4 self-center justify-self-end"
@@ -179,13 +186,7 @@ templ GlobalSearch() {
 				hx-target={ partials.ContentID.Target() }
 				hx-include="[name='text']"
 				hx-push-url="true"
-			></div>
-			// Trigger suggestion display after delay when search input contains text.
-			<div
-				hx-trigger="input changed from:#global-search delay:100ms"
-				hx-get="/search/suggestions"
-				hx-target="#global-search-suggestions"
-				hx-include="[name='text']"
+				hx-on::after-request="if(event.detail.successful) document.getElementById('global-search').value = ''"
 			></div>
 		</div>
 		<el-command-list

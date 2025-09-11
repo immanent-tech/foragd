@@ -44,13 +44,26 @@ templ (page *SearchResultsPage) Content() {
 		<div id="search-request" class="hidden">
 			<input type="hidden" name="text" value={ page.search.Text }/>
 		</div>
-		<div id="favorite-button" class="flex justify-end">
+		<div id="favorite-button" class="fab">
 			if page.favoriteID != "" {
 				@RemoveFavoriteSearchButton(page.favoriteID)
 			} else {
 				@AddFavoriteSearchButton()
 			}
+			<!-- a focusable div with tabindex is necessary to work on all browsers. role="button" is necessary for accessibility -->
+			// <div tabindex="0" role="button" class="btn btn-lg btn-circle btn-primary">F</div>
+			// <!-- buttons that show up when FAB is open -->
+			// <button class="btn btn-lg btn-circle">A</button>
+			// <button class="btn btn-lg btn-circle">B</button>
+			// <button class="btn btn-lg btn-circle">C</button>
 		</div>
+		// <div id="favorite-button" class="flex justify-end">
+		// 	if page.favoriteID != "" {
+		// 		@RemoveFavoriteSearchButton(page.favoriteID)
+		// 	} else {
+		// 		@AddFavoriteSearchButton()
+		// 	}
+		// </div>
 	</nav>
 	<ul role="list">
 		// Subscription results.
