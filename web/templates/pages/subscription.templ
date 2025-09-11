@@ -219,30 +219,32 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 
 // AddSubscriptionSuccess displays success feedback and navigation options on successful addition of a subscription.
 templ AddSubscriptionSuccess(result *models.AddSubscriptionResult) {
-	<div role="alert" class="alert alert-success alert-outline mt-12">
-		<div class="px-4 py-5 sm:p-6 space-y-4">
-			<span class="space-y-2">
-				<p class="font-semibold text-base">Subscription added!</p>
-				<p class="text-sm">{ result.Subscription.GetTitle() }</p>
-				<p class="text-sm">Articles will be fetched shortly...</p>
-				<div class="flex space-x-4">
-					<a
-						hx-get="/subscriptions"
-						hx-target={ partials.ContentID.Target() }
-						hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
-						hx-push-url="true"
-						role="button"
-						class="btn btn-success btn-soft"
-					>Go to subscriptions</a>
-					<a
-						hx-get="/user/subscription/add"
-						hx-target={ partials.ContentID.Target() }
-						hx-push-url="true"
-						role="button"
-						class="btn btn-success btn-soft"
-					>Add another</a>
-				</div>
-			</span>
+	<div class="text-center">
+		<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-12 mx-auto text-success">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+		</svg>
+		<h3 class="mt-2 text-base font-semibold">Subscription added: { result.Subscription.GetTitle() }</h3>
+		<p class="mt-1 text-sm text-base-content">Articles will be fetched shortly...</p>
+		<div class="mt-6">
+			<button
+				type="button"
+				hx-get="/subscriptions"
+				hx-target={ partials.ContentID.Target() }
+				hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+				hx-push-url="true"
+				class="btn btn-outline hover:bg-accent"
+			>
+				Go to subscriptions
+			</button>
+			<button
+				type="button"
+				hx-get="/user/subscription/add"
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+				class="btn btn-outline hover:bg-accent"
+			>
+				Add another
+			</button>
 		</div>
 	</div>
 }
