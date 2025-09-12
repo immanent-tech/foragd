@@ -11,7 +11,6 @@ import (
 	"slices"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -209,7 +208,6 @@ func (a *API) getSearchResults(ctx context.Context, searchTerms string) ([]*part
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
 		}
-		godump.Dump(subscriptionMatches)
 		// Truncate subscription matches to 3 results.
 		if len(subscriptionMatches) > 3 {
 			subscriptionMatches = subscriptionMatches[:3]
