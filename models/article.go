@@ -14,7 +14,10 @@ import (
 	"time"
 
 	"github.com/go-shiori/go-readability"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/go-feed-me/validation"
 )
@@ -97,6 +100,7 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 	for item := range slices.Values(items) {
 		fav := articleFavorites.Get(item.GetID())
 		article, err := GenerateArticle(item, subscriptions.GetByFeedID(item.GetFeedID()), fav)
+		godump.Dump(item)
 		if err != nil {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not generate article from data.",
 				slog.Any("error", err),
@@ -163,7 +167,12 @@ func (a *Article) ExtractText() (string, error) {
 	return article.TextContent, nil
 }
 
-func (a *Article) GetImage() *RemoteImage {
+// HasImage returns a boolean indicating whether the article has an image.
+func (a *Article) HasImage() bool {
+	return a.Item.GetImage() != nil && a.Item.GetImage().GetURL() != ""
+}
+
+func (a *Article) GetImage() *types.ImageInfo {
 	return a.Item.GetImage()
 }
 

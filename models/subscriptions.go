@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/immanent-tech/go-syndication/types"
+
 	"github.com/immanent-tech/go-feed-me/validation"
 )
 
@@ -87,7 +89,12 @@ func (s *Subscription) GetUpdatedDate() time.Time {
 	return s.Feed.LastFetched
 }
 
-func (s *Subscription) GetImage() *RemoteImage {
+// HasImage returns a boolean indicating whether the subscription has an image.
+func (s *Subscription) HasImage() bool {
+	return s.Feed.GetImage() != nil && s.Feed.GetImage().GetURL() != ""
+}
+
+func (s *Subscription) GetImage() *types.ImageInfo {
 	return s.Feed.GetImage()
 }
 

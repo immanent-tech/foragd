@@ -9,6 +9,7 @@ import (
 	"time"
 
 	feeds "github.com/immanent-tech/go-syndication"
+	"github.com/immanent-tech/go-syndication/types"
 )
 
 // Items is a slice of items.
@@ -104,7 +105,7 @@ func (i *Item) GetCategories() []string {
 }
 
 // GetImage returns an image that can represent the item, if any.
-func (i *Item) GetImage() *RemoteImage {
+func (i *Item) GetImage() *types.ImageInfo {
 	return &i.Image
 }
 
@@ -158,12 +159,12 @@ func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 		Copyright:    source.GetRights(),
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
-		Image: RemoteImage{
-			URL:   source.GetImage().URL(),
-			Title: source.GetImage().String(),
-		},
-		Content:   source.GetContent(),
-		FeedTitle: source.FeedTitle,
+		Content:      source.GetContent(),
+		FeedTitle:    source.FeedTitle,
+	}
+
+	if source.GetImage() != nil {
+		item.Image = *source.GetImage()
 	}
 
 	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.

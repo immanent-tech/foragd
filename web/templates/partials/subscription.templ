@@ -150,14 +150,14 @@ templ (s *Subscription) actionsMenu() {
 
 templ (c *Subscription) image() {
 	// Generate a thumbnail to display next to the title.
-	if c.GetImage().URL != "" {
+	if c.HasImage() {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar">
 			<div class="rounded-box size-12">
 				<img
-					src={ c.GetImage().URL }
-					if c.GetImage().Title != "" {
-						alt={ c.GetImage().Title }
+					src={ c.GetImage().GetURL() }
+					if c.GetImage().GetTitle() != "" {
+						alt={ c.GetImage().GetTitle() }
 					}
 				/>
 			</div>

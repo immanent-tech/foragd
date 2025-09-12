@@ -110,19 +110,6 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         form: 'nickname'
-    RemoteImage:
-      description: >
-        is a link to an image to represent the object.
-      type: object
-      required:
-        - url
-      properties:
-        URL:
-          $ref: '#/components/schemas/URL'
-        title:
-          description: >
-            is a description of the image that could be used as alt text.
-          type: string
     StoredImage:
       description: >
         is an image stored locally (i.e., the binary data to represent the image).
@@ -371,7 +358,7 @@ components:
           type: string
           x-go-type-skip-optional-pointer: true
         image:
-          $ref: '#/components/schemas/RemoteImage'
+          $ref: '../models/feeds/schema/types.yaml#/components/schemas/ImageInfo'
     Feed:
       description: represents a feed object.
       type: object
@@ -485,7 +472,7 @@ components:
           description: >
             is a custom image to represent the object.
           oneOf:
-            - $ref: '#/components/schemas/RemoteImage'
+            - $ref: '../models/feeds/schema/types.yaml#/components/schemas/ImageInfo'
             - $ref: '#/components/schemas/StoredImage'
     SubscriptionSettings:
       description: >

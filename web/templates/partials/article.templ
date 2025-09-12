@@ -31,14 +31,14 @@ templ (a *Article) Card(view models.View) {
 		>
 			// Header.
 			<div class="px-4 py-5 sm:px-6">
-				if a.GetImage().URL != "" {
+				if a.HasImage() {
 					@a.ViewLink() {
 						<div class="relative w-full">
 							<img
 								class="aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"
-								src={ a.GetImage().URL }
-								if a.GetImage().Title != "" {
-									alt={ a.GetImage().Title }
+								src={ a.GetImage().GetURL() }
+								if a.GetImage().GetTitle() != "" {
+									alt={ a.GetImage().GetTitle() }
 								}
 							/>
 							<div class="inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>

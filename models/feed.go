@@ -86,7 +86,7 @@ func (f *Feed) GetCategories() []string {
 	return f.Categories
 }
 
-func (f *Feed) GetImage() *RemoteImage {
+func (f *Feed) GetImage() *types.ImageInfo {
 	return &f.Image
 }
 
@@ -145,7 +145,7 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 
 // NewFeedFromSource converts the raw types.FeedSource into a Feed object.
 func NewFeedFromSource(source *feeds.Feed) *Feed {
-	return &Feed{
+	feed := &Feed{
 		FeedID:       NewID(FeedPFX),
 		CreatedAt:    time.Now().UTC(),
 		LastFetched:  types.UnixEpoch,
@@ -161,9 +161,11 @@ func NewFeedFromSource(source *feeds.Feed) *Feed {
 		Copyright:    source.GetRights(),
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
-		Image: RemoteImage{
-			URL:   source.GetImage().URL(),
-			Title: source.GetImage().String(),
-		},
 	}
+
+	if source.GetImage() != nil {
+		feed.Image = *source.GetImage()
+	}
+
+	return feed
 }

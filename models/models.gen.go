@@ -8,6 +8,7 @@ import (
 	"image"
 	"time"
 
+	externalRef0 "github.com/immanent-tech/go-syndication/types"
 	"github.com/oapi-codegen/runtime"
 )
 
@@ -116,8 +117,8 @@ type ArticleArchive struct {
 	// FeedTitle is the title of the feed to which this item belongs.
 	FeedTitle string `json:"feed_title" validate:"required"`
 
-	// Image is a link to an image to represent the object.
-	Image RemoteImage `json:"image,omitempty,omitzero"`
+	// Image is an abstraction of an Image across different types of specifications.
+	Image externalRef0.ImageInfo `json:"image,omitempty,omitzero" validate:"omitempty"`
 
 	// ItemID is the unique ID of an item.
 	ItemID   ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
@@ -291,9 +292,9 @@ type Feed struct {
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
-	// Image is a link to an image to represent the object.
-	Image    RemoteImage `json:"image,omitempty,omitzero"`
-	Language string      `json:"language,omitempty,omitzero"`
+	// Image is an abstraction of an Image across different types of specifications.
+	Image    externalRef0.ImageInfo `json:"image,omitempty,omitzero" validate:"omitempty"`
+	Language string                 `json:"language,omitempty,omitzero"`
 
 	// LastFetched indicates when new items for the feed were last fetched.
 	LastFetched time.Time `json:"last_fetched"`
@@ -350,8 +351,8 @@ type Item struct {
 	// FeedTitle is the title of the feed to which this item belongs.
 	FeedTitle string `json:"feed_title" validate:"required"`
 
-	// Image is a link to an image to represent the object.
-	Image RemoteImage `json:"image,omitempty,omitzero"`
+	// Image is an abstraction of an Image across different types of specifications.
+	Image externalRef0.ImageInfo `json:"image,omitempty,omitzero" validate:"omitempty"`
 
 	// ItemID is the unique ID of an item.
 	ItemID   ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
@@ -420,9 +421,9 @@ type ObjectCommon struct {
 	// Description is a short summary or description of the feed or item.
 	Description string `json:"description,omitempty,omitzero"`
 
-	// Image is a link to an image to represent the object.
-	Image    RemoteImage `json:"image,omitempty,omitzero"`
-	Language string      `json:"language,omitempty,omitzero"`
+	// Image is an abstraction of an Image across different types of specifications.
+	Image    externalRef0.ImageInfo `json:"image,omitempty,omitzero" validate:"omitempty"`
+	Language string                 `json:"language,omitempty,omitzero"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -442,15 +443,6 @@ type ObjectCommon struct {
 
 // ObjectCommonSourceType indicates what type of source the object came from.
 type ObjectCommonSourceType string
-
-// RemoteImage is a link to an image to represent the object.
-type RemoteImage struct {
-	// URL is a URL.
-	URL URL `json:"url" validate:"omitempty,url"`
-
-	// Title is a description of the image that could be used as alt text.
-	Title string `json:"title,omitempty,omitzero"`
-}
 
 // State Tracks the state of an object.
 type State string
@@ -618,22 +610,22 @@ type UserSettings struct {
 	Theme string `json:"theme,omitempty,omitzero"`
 }
 
-// AsRemoteImage returns the union data inside the EditSubscriptionRequest_Image as a RemoteImage
-func (t EditSubscriptionRequest_Image) AsRemoteImage() (RemoteImage, error) {
-	var body RemoteImage
+// AsExternalRef0ImageInfo returns the union data inside the EditSubscriptionRequest_Image as a externalRef0.ImageInfo
+func (t EditSubscriptionRequest_Image) AsExternalRef0ImageInfo() (externalRef0.ImageInfo, error) {
+	var body externalRef0.ImageInfo
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRemoteImage overwrites any union data inside the EditSubscriptionRequest_Image as the provided RemoteImage
-func (t *EditSubscriptionRequest_Image) FromRemoteImage(v RemoteImage) error {
+// FromExternalRef0ImageInfo overwrites any union data inside the EditSubscriptionRequest_Image as the provided externalRef0.ImageInfo
+func (t *EditSubscriptionRequest_Image) FromExternalRef0ImageInfo(v externalRef0.ImageInfo) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeRemoteImage performs a merge with any union data inside the EditSubscriptionRequest_Image, using the provided RemoteImage
-func (t *EditSubscriptionRequest_Image) MergeRemoteImage(v RemoteImage) error {
+// MergeExternalRef0ImageInfo performs a merge with any union data inside the EditSubscriptionRequest_Image, using the provided externalRef0.ImageInfo
+func (t *EditSubscriptionRequest_Image) MergeExternalRef0ImageInfo(v externalRef0.ImageInfo) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -742,22 +734,22 @@ func (t *Favorite_ObjectData) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsRemoteImage returns the union data inside the SubscriptionCustomisation_Image as a RemoteImage
-func (t SubscriptionCustomisation_Image) AsRemoteImage() (RemoteImage, error) {
-	var body RemoteImage
+// AsExternalRef0ImageInfo returns the union data inside the SubscriptionCustomisation_Image as a externalRef0.ImageInfo
+func (t SubscriptionCustomisation_Image) AsExternalRef0ImageInfo() (externalRef0.ImageInfo, error) {
+	var body externalRef0.ImageInfo
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRemoteImage overwrites any union data inside the SubscriptionCustomisation_Image as the provided RemoteImage
-func (t *SubscriptionCustomisation_Image) FromRemoteImage(v RemoteImage) error {
+// FromExternalRef0ImageInfo overwrites any union data inside the SubscriptionCustomisation_Image as the provided externalRef0.ImageInfo
+func (t *SubscriptionCustomisation_Image) FromExternalRef0ImageInfo(v externalRef0.ImageInfo) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeRemoteImage performs a merge with any union data inside the SubscriptionCustomisation_Image, using the provided RemoteImage
-func (t *SubscriptionCustomisation_Image) MergeRemoteImage(v RemoteImage) error {
+// MergeExternalRef0ImageInfo performs a merge with any union data inside the SubscriptionCustomisation_Image, using the provided externalRef0.ImageInfo
+func (t *SubscriptionCustomisation_Image) MergeExternalRef0ImageInfo(v externalRef0.ImageInfo) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err

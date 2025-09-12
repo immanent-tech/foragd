@@ -7,6 +7,7 @@ import (
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/go-syndication/types"
 	"slices"
 	"time"
 )
@@ -125,7 +126,8 @@ templ RemoveFavoriteSearchButton(id models.FavoriteID) {
 }
 
 type searchResult interface {
-	GetImage() *models.RemoteImage
+	HasImage() bool
+	GetImage() *types.ImageInfo
 	GetTitle() string
 	GetUpdatedDate() time.Time
 	GetDescription() string
@@ -136,13 +138,13 @@ templ showSearchResult(result searchResult) {
 	<li>
 		<div class="flex gap-x-4 py-5">
 			// Show article image or placeholder thumbnail.
-			if result.GetImage().URL != "" {
+			if result.HasImage() {
 				<div class="avatar">
 					<div class="rounded-box size-12">
 						<img
-							src={ result.GetImage().URL }
-							if result.GetImage().Title != "" {
-								alt={ result.GetImage().Title }
+							src={ result.GetImage().GetURL() }
+							if result.GetImage().GetTitle() != "" {
+								alt={ result.GetImage().GetTitle() }
 							}
 						/>
 					</div>

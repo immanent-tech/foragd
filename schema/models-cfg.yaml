@@ -18,4 +18,4 @@ compatibility:
   always-prefix-enum-values: true
 import-mapping:
   api.yaml: '-'
-  ../models/feeds/types.yaml: github.com/immanent-tech/go-syndication/types
+  ../models/feeds/schema/types.yaml: github.com/immanent-tech/go-syndication/types
