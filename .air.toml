@@ -7,7 +7,7 @@ args_bin = [
   "--profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true'",
   "serve",
 ]
-cmd = "go run github.com/a-h/templ/cmd/templ@latest generate && go build -o ./tmp/gowebly_chi ."
+cmd = "go run github.com/a-h/templ/cmd/templ@latest generate -path web && go build -o ./tmp/gowebly_chi ."
 delay = 1000
 exclude_dir = [
   ".parcel-cache",
@@ -30,7 +30,8 @@ poll = false
 poll_interval = 500
 pre_cmd = [
   "step ca renew --ca-url https://stepca:9000 --password-file=.devcontainer/.step.password --force localhost.crt localhost.key",
-  "bun run build:parcel:dev",
+  "bun run build:css",
+  "bun run build:js",
 ]
 rerun = false
 rerun_delay = 500
