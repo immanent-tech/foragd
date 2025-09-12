@@ -235,7 +235,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			renderPartial(partials.NewArticleContent(s[0]).Card(filters.GetView()), "").ServeHTTP(res, req)
 		case "mark_" + request.ItemID:
 			// Swap target is link.
-			renderPartial(partials.NewArticleContent(s[0]).ToggleMark(), "").ServeHTTP(res, req)
+			renderPartial(partials.UpdateViewArticleMark(s[0]), "").ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP

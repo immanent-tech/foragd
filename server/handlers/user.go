@@ -337,11 +337,22 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		article.Favorite = true
-		// Update the content
-		template := templ.Join(
-			partials.NewArticleContent(article).ToggleFavorite(),
-			partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
-		)
+		// Get the display type.
+		display := req.FormValue("display")
+		// Update the content as appropriate.
+		var template templ.Component
+		switch display {
+		case "card":
+			template = templ.Join(
+				partials.NewArticleContent(article).ToggleFavorite(),
+				partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+			)
+		case "content":
+			template = templ.Join(
+				partials.UpdateViewArticleFavorite(article),
+				partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+			)
+		}
 		renderPartial(template, "").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
@@ -396,11 +407,22 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		article := articles[0]
-		// Update the content
-		template := templ.Join(
-			partials.NewArticleContent(article).ToggleFavorite(),
-			partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
-		)
+		// Get the display type.
+		display := req.FormValue("display")
+		// Update the content as appropriate.
+		var template templ.Component
+		switch display {
+		case "card":
+			template = templ.Join(
+				partials.NewArticleContent(article).ToggleFavorite(),
+				partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+			)
+		case "content":
+			template = templ.Join(
+				partials.UpdateViewArticleFavorite(article),
+				partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+			)
+		}
 		renderPartial(template, "").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP

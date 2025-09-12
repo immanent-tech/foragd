@@ -4,6 +4,7 @@
 package partials
 
 import (
+	"fmt"
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/server/session"
 	"strings"
@@ -63,20 +64,69 @@ templ (a *Article) Card(view models.View) {
 			// Body.
 			<div class="px-4 py-5 sm:p-6">
 				if a.GetDescription() != "" {
-					<article class="prose prose-sm prose-img:hidden prose-figure:hidden dark:prose-invert line-clamp-3">
+					<div class="line-clamp-3">
+						// <article class="prose prose-sm prose-img:hidden prose-figure:hidden dark:prose-invert line-clamp-3">
 						@templ.Raw(a.GetDescription())
-					</article>
+						// </article>
+					</div>
 				}
 			</div>
 			// Footer.
 			<div class="px-4 py-4 sm:px-6">
 				<div class="flex">
-					@a.articleInfo()
-					@articleActions(a.Article, view)
+					<div class="flex flex-none text-sm/6 gap-x-4 items-center">
+						<p class="text-base-content/80 capitalize">
+							@ShowTimestamp(a.GetUpdatedDate())
+						</p>
+						<p class="text-base-content/80 italic">
+							{ strings.Join(a.GetAuthors(),",") }
+						</p>
+					</div> @articleActions(a.Article, view)
 				</div>
 			</div>
 		</div>
 	</li>
+}
+
+templ articleActions(article *models.Article, view models.View) {
+	@ContextMenu(article.GetTitle() + " Actions") {
+		// View action.
+		<a href={ article.GetLink() } target="_blank" rel="noopener" class="menu-item">
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path>
+			</svg>
+			Original Article
+		</a>
+		// Find similar action.
+		<a
+			hx-get={ "/subscription/" + article.GetFeedID() + "/article/" + article.GetID() + "/similar" }
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			class="menu-item"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+				<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
+			</svg>
+			Find similar...
+		</a>
+		// Mark action.
+		if view == models.ViewAll {
+			@articleMarkLink(article, "#"+article.GetID(), "outerHTML", "menu-item")
+		} else {
+			@articleMarkLink(article, "#"+article.GetID(), "delete", "menu-item")
+		}
+		// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+		<div id={ "favorite_" + article.GetID() }>
+			@articleFavoriteLink(article, "menu-item")
+		</div>
+		// Share action.
+		@articleShareLink(article, "menu-item") {
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"></path>
+			</svg>
+			Share
+		}
+	}
 }
 
 // ViewArticle renders the complete content of an article.
@@ -145,7 +195,114 @@ templ ViewArticle(article *models.Article) {
 						{ strings.Join(article.GetAuthors(),",") }
 					</p>
 				</div>
-				<div class="flex gap-x-2">
+			</div>
+			<div id="article-text">
+				switch  {
+					case article.GetContent() != "":
+						@templ.Raw(article.GetContent())
+					case article.GetDescription() != "":
+						@templ.Raw(article.GetDescription())
+				}
+			</div>
+		</article>
+	</div>
+	@viewArticleActions(article)
+	// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is read and mark it so.
+	if article.IsUnread() {
+		<div
+			hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + string(models.MarkRead) }
+			hx-target={ "#mark_" + article.GetID() }
+			hx-swap="innerHTML"
+			hx-trigger="intersect once,load delay:10s"
+			hx-push-url="false"
+			_="on htmx:afterRequest remove me"
+		></div>
+	}
+}
+
+// UpdateViewArticleMark updates the mark action when viewing an article.
+templ UpdateViewArticleMark(article *models.Article) {
+	{{ var mark string }}
+	if article.IsUnread() {
+		{{ mark = "read" }}
+	} else {
+		{{ mark = "unread" }}
+	}
+	{ "Mark " + mark }
+	<a
+		role="btn"
+		hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + mark }
+		hx-target={ "#mark_" + article.GetID() }
+		class="btn btn-lg btn-circle"
+	>
+		switch article.IsUnread() {
+			case true:
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M10.125 2.25h-4.5c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125v-9M10.125 2.25h.375a9 9 0 0 1 9 9v.375M10.125 2.25A3.375 3.375 0 0 1 13.5 5.625v1.5c0 .621.504 1.125 1.125 1.125h1.5a3.375 3.375 0 0 1 3.375 3.375M9 15l2.25 2.25L15 12"></path>
+				</svg>
+			case false:
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path>
+				</svg>
+		}
+	</a>
+}
+
+// UpdateViewArticleFavorite updates the favorite action when viewing an article.
+templ UpdateViewArticleFavorite(article *models.Article) {
+	switch article.Favorite {
+		case true:
+			Remove favorite
+		case false:
+			Add favorite
+	}
+	<a
+		if article.Favorite {
+			hx-delete={ "/user/favorite/article/" + article.GetID() }
+		} else {
+			hx-put={ "/user/favorite/article/" + article.GetID() }
+		}
+		hx-target={ "#favorite_" + article.GetID() }
+		hx-vals={ fmt.Sprintf("{%q:%q}", "display", "content") }
+		role="btn"
+		class="btn btn-lg btn-circle btn-primary btn-soft"
+	>
+		switch article.Favorite {
+			case true:
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
+					<path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001article.752.752 0 0 1-.704 0l-.003-.001Z"></path>
+				</svg>
+			case false:
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"></path>
+				</svg>
+		}
+	</a>
+}
+
+// viewArticleActions displays a speed-dial style menu when viewing the article for initiating article actions.
+templ viewArticleActions(article *models.Article) {
+	<div class="toast">
+		<button popovertarget="article-actions" class="btn btn-lg btn-circle btn-primary" type="button">
+			<label class="swap">
+				<input type="checkbox"/>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="swap-off size-6">
+					<path fill-rule="evenodd" d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd"></path>
+				</svg>
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="swap-on size-6">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+				</svg>
+			</label>
+		</button>
+		<el-popover popover id="article-actions" anchor="top end" class="py-4 px-2 bg-primary/75 text-primary-content rounded-box [--anchor-gap:4px] transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in">
+			<div class="flex flex-col space-y-2">
+				// Toggle full content.
+				<div class="flex items-center justify-end gap-x-4">
+					if article.ShowFullContent {
+						Show feed content
+					} else {
+						Show full content
+					}
 					<form
 						hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() }
 						hx-target={ ContentID.Target() }
@@ -159,134 +316,48 @@ templ ViewArticle(article *models.Article) {
 								value="true"
 							}
 						/>
-						<div class="tooltip" data-tip="Toggle full content">
-							<button
-								type="submit"
-								class="btn btn-sm btn-ghost btn-square"
-							>
-								<span class="sr-only">Toggle full content</span>
-								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-article size-4">
-									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-									<path d="M3 4m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path>
-									<path d="M7 8h10"></path><path d="M7 12h10"></path><path d="M7 16h10"></path>
-								</svg>
-							</button>
-						</div>
+						<button
+							type="submit"
+							class="btn btn-lg btn-circle btn-primary btn-soft"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path>
+							</svg>
+						</button>
 					</form>
-					<div class="tooltip" data-tip="Article actions">
-						@ContextMenu(article.GetTitle() + "Actions") {
-							// View action.
-							<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover menu-item">
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path>
-								</svg>
-								Original Article
-							</a>
-							// Mark action.
-							<div id={ "mark_" + article.GetID() }>
-								@articleMarkLink(article, "mark_"+article.GetID(), "innerHTML", "menu-item")
-							</div>
-							// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-							<div id={ "favorite_" + article.GetID() }>
-								@articleFavoriteLink(article, "menu-item")
-							</div>
-							// Share action.
-							@articleShareLink(article, "menu-item") {
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"></path>
-								</svg>
-								Share
-							}
-						}
-					</div>
+				</div>
+				// View original article action.
+				<div class="flex items-center justify-end gap-x-4">
+					Go to article
+					<a role="btn" href={ article.GetLink() } target="_blank" rel="noopener" class="btn btn-lg btn-circle btn-primary btn-soft">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path>
+						</svg>
+					</a>
+				</div>
+				// Mark article action.
+				<div id={ "mark_" + article.GetID() } class="flex items-center justify-end gap-x-4">
+					@UpdateViewArticleMark(article)
+				</div>
+				// Favorite action.
+				<div id={ "favorite_" + article.GetID() } class="flex items-center justify-end gap-x-4">
+					@UpdateViewArticleFavorite(article)
+				</div>
+				// Share action.
+				<div class="flex items-center justify-end gap-x-4">
+					Share...
+					<a
+						role="btn"
+						_={ "on click set currentValue to (my innerHTML) then writeText('" + article.GetLink() + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
+						class="btn btn-lg btn-circle btn-primary btn-soft"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"></path>
+						</svg>
+					</a>
 				</div>
 			</div>
-			<div id="article-text">
-				switch  {
-					case article.GetContent() != "":
-						@templ.Raw(article.GetContent())
-					case article.GetDescription() != "":
-						@templ.Raw(article.GetDescription())
-				}
-			</div>
-		</article>
-	</div>
-	// TODO: display a category cloud of the article's categories underneath it, all linked to categories.
-	// <ul
-	// 	role="list"
-	// 	class="grid grid-cols-6 auto-rows-max justify-center gap-x-4 max-w-prose rounded-xl border border-gray-200 bg-base-200 p-4 mt-2"
-	// >
-	// 	for category := range slices.Values(a.GetCategories()) {
-	// 		<li>
-	// 			if len(category) > 10 {
-	// 				<span class="inline-flex items-center rounded-md bg-accent/30 px-2 py-1 mx-2 my-1 text-xs text-nowrap col-span-2 font-medium">{ category }</span>
-	// 			} else {
-	// 				<span class="inline-flex items-center rounded-md bg-accent/30 px-2 py-1 mx-2 my-1 text-xs text-nowrap font-medium">{ category }</span>
-	// 			}
-	// 		</li>
-	// 	}
-	// </ul>
-	// After a delay or when the user scrolls this div into view, assume the article is read and mark it so.
-	<div
-		hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + string(models.MarkRead) }
-		hx-target={ "#mark_" + article.GetID() }
-		hx-swap="innerHTML"
-		hx-trigger="intersect once,load delay:10s"
-		hx-push-url="false"
-		_="on htmx:afterRequest remove me"
-	></div>
-}
-
-templ articleActions(article *models.Article, view models.View) {
-	@ContextMenu(article.GetTitle() + " Actions") {
-		// View action.
-		<a href={ article.GetLink() } target="_blank" rel="noopener" class="menu-item">
-			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-				<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path>
-			</svg>
-			Original Article
-		</a>
-		// Find similar action.
-		<a
-			hx-get={ "/subscription/" + article.GetFeedID() + "/article/" + article.GetID() + "/similar" }
-			hx-target={ ContentID.Target() }
-			hx-push-url="true"
-			class="menu-item"
-		>
-			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-				<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
-			</svg>
-			Find similar...
-		</a>
-		// Mark action.
-		if view == models.ViewAll {
-			@articleMarkLink(article, "#"+article.GetID(), "outerHTML", "menu-item")
-		} else {
-			@articleMarkLink(article, "#"+article.GetID(), "delete", "menu-item")
-		}
-		// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-		<div id={ "favorite_" + article.GetID() }>
-			@articleFavoriteLink(article, "menu-item")
-		</div>
-		// Share action.
-		@articleShareLink(article, "menu-item") {
-			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-				<path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"></path>
-			</svg>
-			Share
-		}
-	}
-}
-
-// articleInfo renders additional information about the article, ideal to put under the title.
-templ (a *Article) articleInfo() {
-	<div class="flex flex-none text-sm/6 gap-x-4 items-center">
-		<p class="text-base-content/80 capitalize">
-			@ShowTimestamp(a.GetUpdatedDate())
-		</p>
-		<p class="text-base-content/80 italic">
-			{ strings.Join(a.GetAuthors(),",") }
-		</p>
+		</el-popover>
 	</div>
 }
 
@@ -306,11 +377,6 @@ templ (a *Article) ViewLink(classes ...string) {
 	>
 		{ children... }
 	</a>
-}
-
-// ToggleFavorite renders an updated favorite link based on the article favorite status.
-templ (a *Article) ToggleMark() {
-	@articleMarkLink(a.Article, "#mark_"+a.GetID(), "innerHTML", "menu-item")
 }
 
 // markLink generates a link that will toggle the mark status (read/unread) of the subscription.
