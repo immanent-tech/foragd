@@ -166,7 +166,7 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			WithRequestID:    true,
 		}),
 		middlewares.SetupCORS(config.Environment()),
-		// middlewares.CSP(server.ServerConfig.CSP),
+		middlewares.SetupCSP(),
 		middlewares.Etag,
 		middleware.StripSlashes,
 	)
