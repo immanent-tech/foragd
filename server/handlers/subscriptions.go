@@ -628,7 +628,7 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, subscriptionMetad
 		),
 	)
 
-	aggResults, resp := a.DataAPI().ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(subscriptionMetadata)))
+	aggResults, resp := a.DataAPI().ItemsAggregation(ctx, query, 0, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(subscriptionMetadata)))
 	if resp != nil && !resp.IsNotFound() {
 		return nil, resp
 	}

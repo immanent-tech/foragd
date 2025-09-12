@@ -204,7 +204,7 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 
 // ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
 // options. It returns the raw search response.
-func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, *models.Response) {
+func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int, aggregations ...aggregations.Aggregation) (*search.Response, *models.Response) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, ParseError(ErrFetchCtx)
@@ -214,7 +214,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
 		WithIndex[*search.Search, SearchRequest](index),
 		WithQueryOptions[*search.Search, SearchRequest](query),
-		WithSize[*search.Search, SearchRequest](0),
+		WithSize[*search.Search, SearchRequest](size),
 		WithSortOptions[*search.Search, SearchRequest](&DocSorting{}),
 		WithAggregations[*search.Search, SearchRequest](aggregations...),
 	)

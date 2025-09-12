@@ -445,7 +445,7 @@ func (a *API) getItemTopCategories(ctx context.Context, feeds ...models.FeedID) 
 			query.Terms("feed_id", feeds...),
 		),
 	)
-	aggsResult, resp := a.DataAPI().ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
+	aggsResult, resp := a.DataAPI().ItemsAggregation(ctx, query, 0, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
 	if resp != nil {
 		return nil, resp
 	}

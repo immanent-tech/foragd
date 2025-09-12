@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"slices"
@@ -20,6 +21,7 @@ import (
 	"github.com/immanent-tech/go-feed-me/providers/elastic/results"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
+	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
 
 // Home handles displaying the user's home page.
@@ -38,9 +40,17 @@ func (a *API) Home() http.HandlerFunc {
 			renderPage(layouts.Drawer(template), "Home - Go Feed Me").ServeHTTP(res, req)
 			return nil
 		}
-		data, resp := a.getHomePageData(ctx)
-		if resp != nil && !resp.IsNotFound() {
-			return resp.InternalError
+		data, err := a.getHomePageData(ctx)
+		if err != nil {
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to get home page data",
+					"Something went wrong, please try again",
+				),
+			), "")
+			return models.NewAPIError(
+				fmt.Errorf("unable to mark subscription: %w", err),
+				http.StatusInternalServerError)
 		}
 		template := data.Template()
 		renderPage(layouts.Drawer(template), "Home - Go Feed Me").ServeHTTP(res, req)
@@ -51,12 +61,12 @@ func (a *API) Home() http.HandlerFunc {
 // getHomePageData retrieves the data required to construct the homepage content.
 //
 //nolint:funlen // mostly aggregation definitions.
-func (a *API) getHomePageData(ctx context.Context) (*pages.Home, *models.Response) {
+func (a *API) getHomePageData(ctx context.Context) (*pages.Home, error) {
 	data := &pages.Home{}
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return data, models.RespErrUnauthorized()
+		return data, fmt.Errorf("getHomePageData: could not fetch data: %w", ErrNoCtxData)
 	}
 	data.User = user
 	data.Favorites = user.GetFavorites()
@@ -85,9 +95,19 @@ func (a *API) getHomePageData(ctx context.Context) (*pages.Home, *models.Respons
 		),
 	)
 
+	// Fetch latest articles.
+	latestItems, _, err := a.DataAPI().SearchItems(ctx, query, 10, &models.SortLastUpdatedDesc, nil)
+	if err != nil {
+		return nil, fmt.Errorf("getHomePageData: could not fetch latest articles: %w", err)
+	}
+	data.LatestArticles, err = models.GenerateArticles(ctx, latestItems)
+	if err != nil {
+		return nil, fmt.Errorf("getHomePageData: could not fetch latest articles: %w", err)
+	}
+
+	// Fetch aggregation data.
 	var aggs []aggregations.Aggregation
 	TermsField := "categories.raw"
-
 	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
 	SampleField := "feed_id"
 	DefaultMaxDocsPerValue := 10
@@ -139,7 +159,7 @@ func (a *API) getHomePageData(ctx context.Context) (*pages.Home, *models.Respons
 	)
 
 	// Perform the request.
-	queryResult, resp := a.DataAPI().ItemsAggregation(ctx, query, aggs...)
+	queryResult, resp := a.DataAPI().ItemsAggregation(ctx, query, 0, aggs...)
 	if resp != nil {
 		return nil, resp
 	}

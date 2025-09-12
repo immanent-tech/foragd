@@ -6,7 +6,6 @@ package pages
 import (
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/server/session"
-	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 	"slices"
 	"strconv"
@@ -14,6 +13,7 @@ import (
 
 type Home struct {
 	User           *models.User
+	LatestArticles models.Articles
 	Subscriptions  models.SubscriptionsSlice
 	TopCategories  models.CategoryCounts
 	TopArticles    models.Articles
@@ -23,174 +23,235 @@ type Home struct {
 
 // content renders the home page content.
 templ (page *Home) Template() {
-	// Favorites section: links to user favorites.
-	if len(page.Favorites) > 0 {
-		<div class="flex items-center">
+	<main class="pr-4 lg:pr-100 pl-4 pt-8">
+		// Show stats.
+		<header class="flex items-center">
 			<div class="relative flex justify-start">
-				<span class="pr-3 text-base text-nowrap font-semibold">Favorites</span>
+				<span class="pr-3 text-base text-nowrap font-semibold">Stats</span>
 			</div>
 			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
-		</div>
-		if len(page.Favorites.FilterByType(models.FavoriteTypeSearch)) > 0 {
-			<h2 class="text-xs font-medium text-base-content/80 italic my-4">Searches</h2>
-			<ul role="list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
-				for search := range slices.Values(page.Favorites.FilterByType(models.FavoriteTypeSearch)) {
-					<li class="col-span-1 flex rounded-md">
-						{{ fav, err := search.ObjectData.AsFavoriteSearch() }}
-						if err == nil {
-							<a
-								hx-get="/search"
-								hx-target={ partials.ContentID.Target() }
-								hx-vals={ models.GenerateHXVals(map[string]string{"text": fav.Text}) }
-								hx-push-url="true"
-								class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2"
-							>
-								<div class="flex items-center gap-x-2">
-									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-										<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"></path>
-									</svg>
-									<p class="text-sm/6 line-clamp-3 text-ellipsis text-pretty">
-										{ search.String() }
-									</p>
-								</div>
-							</a>
-						}
-					</li>
-				}
-			</ul>
-		}
-		if len(page.Favorites.FilterByType(models.FavoriteTypeSubscription)) > 0 {
-			<h2 class="text-xs font-medium text-base-content/80 italic my-4">Subscriptions</h2>
-			<ul role="list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
-				for subscription := range slices.Values(page.Favorites.FilterByType(models.FavoriteTypeSubscription)) {
-					<li class="col-span-1 flex rounded-md">
-						{{ values := session.ArticleFiltersFromSession(ctx).Parameters() }}
-						{{ values[models.ParamSubscriptions] = subscription.GetID() }}
-						<a
-							hx-get="/articles"
-							hx-target={ partials.ContentID.Target() }
-							hx-vals={ models.GenerateHXVals(values) }
-							hx-push-url="true"
-							_="on click toggle @open on #mobile-sidebar-dialog"
-							class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2"
-						>
-							<div class="flex items-center gap-x-2">
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path>
-								</svg>
-								<p class="text-sm/6 line-clamp-3 text-ellipsis text-pretty">
-									{ subscription.String() }
-								</p>
-							</div>
-						</a>
-					</li>
-				}
-			</ul>
-		}
-	}
-	// Show any top category hits.
-	if len(page.TopCategories) > 0 {
-		<div class="flex items-center mt-8">
-			<div class="relative flex justify-start">
-				<span class="pr-3 text-base text-nowrap font-semibold">Top Categories</span>
+		</header>
+		<dl class="mt-5 flex gap-2 sm:gap-4 justify-center">
+			<div class="px-2 py-4 sm:px-6 sm:py-8">
+				<a
+					hx-get="/subscriptions"
+					hx-target={ partials.ContentID.Target() }
+					hx-push-url="true"
+					hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+					class="link link-hover font-medium hover:text-accent"
+				>
+					<dt>
+						<div class="absolute rounded-md bg-primary p-3">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-primary-content">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path>
+							</svg>
+						</div>
+						<p class="ml-16 text-sm font-medium ">Subscriptions</p>
+					</dt>
+					<dd class="ml-16 flex items-baseline">
+						<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.User.GetSubscriptionMetadata())) }</p>
+					</dd>
+				</a>
 			</div>
-			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
-		</div>
-		<div class="flex justify-center gap-2 p-2 m-2">
-			<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-				for category := range slices.Values(page.TopCategories) {
-					@categoryBadge(category)
-				}
+			<div class="px-2 py-4 sm:px-6 sm:py-8">
+				<a
+					hx-get="/articles"
+					hx-target={ partials.ContentID.Target() }
+					hx-push-url="true"
+					hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
+					class="link link-hover font-medium hover:text-accent"
+				>
+					<dt>
+						<div class="absolute rounded-md bg-primary p-3">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-primary-content">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path>
+							</svg>
+						</div>
+						<p class="ml-16 text-sm font-medium ">Unread Articles</p>
+					</dt>
+					<dd class="ml-16 flex items-baseline">
+						<p class="text-2xl font-semibold">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</p>
+					</dd>
+				</a>
 			</div>
-		</div>
-	}
-	if len(page.TopArticles) > 0 {
-		<div class="flex items-center mt-8">
-			<div class="relative flex justify-start">
-				<span class="pr-3 text-base text-nowrap font-semibold">Top Articles</span>
-			</div>
-			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
-		</div>
-		// Show any top article hits.
-		if len(page.TopArticles) != 0 {
-			@layouts.Grid() {
-				for article := range slices.Values(page.TopArticles) {
-					@partials.NewArticleContent(article).Card(models.ViewUnread)
-				}
-			}
-		}
-	}
-	if len(page.RareCategories) > 0 {
-		// Interesting Picks section: rare/semantic categories and articles.
-		if page.RareCategories != nil {
+		</dl>
+		// Show top categories (if found).
+		if len(page.TopCategories) > 0 {
 			<div class="flex items-center mt-8">
 				<div class="relative flex justify-start">
-					<span class="pr-3 text-base text-nowrap font-semibold">Interesting Picks</span>
+					<span class="pr-3 text-base text-nowrap font-semibold">Top Categories</span>
+				</div>
+				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+			</div>
+			<div class="flex justify-center gap-2 p-2 m-2">
+				<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+					for category := range slices.Values(page.TopCategories) {
+						@categoryBadge(category)
+					}
+				</div>
+			</div>
+		}
+		// Show top articles (if found).
+		if len(page.TopArticles) > 0 {
+			<div class="flex items-center mt-8">
+				<div class="relative flex justify-start">
+					<span class="pr-3 text-base text-nowrap font-semibold">Top Articles</span>
 				</div>
 				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
 			</div>
 			<div class="mt-8">
-				<div class="flex justify-center gap-2 p-4 m-4">
-					<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-						for category := range slices.Values(page.RareCategories) {
-							@categoryBadge(category)
-						}
-					</div>
-				</div>
+				<ul role="list" class="grid grid-cols-1 lg:grid-cols-2">
+					for article := range slices.Values(page.TopArticles) {
+						<li class="py-4 sm:px-4 space-y-2">
+							<div class="sm:flex">
+								if article.HasImage() {
+									<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
+										<img
+											src={ article.GetImage().GetURL() }
+											if article.GetImage().GetTitle() != "" {
+												alt={ article.GetImage().GetTitle() }
+											}
+											class="h-32 sm:w-32 w-full object-cover sm:aspect-2/1 lg:aspect-3/2 rounded-box border border-base-content"
+										/>
+									</div>
+								}
+								<div class="space-y-4">
+									<a
+										hx-get={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() }
+										hx-target={ partials.ContentID.Target() }
+										hx-push-url="true"
+										hx-swap="innerHTML show:top"
+										class={ "link link-hover" }
+									>
+										<h4 class="text-lg font-bold">{ article.GetTitle() }</h4>
+									</a>
+									<div class="flex gap-x-4">
+										<p class="flex-none text-xs text-base-content/80">
+											@partials.ShowTimestamp(article.GetUpdatedDate())
+										</p>
+										<p class="flex-none text-xs text-base-content/80">
+											{ article.GetFeedTitle() }
+										</p>
+									</div>
+									{{ text, err := article.ExtractText() }}
+									if err == nil {
+										<article class="prose prose-sm line-clamp-3">
+											{ text }
+										</article>
+									}
+								</div>
+							</div>
+						</li>
+					}
+				</ul>
 			</div>
 		}
-	}
-	// Stats section: overall user stats.
-	<div class="flex items-center mt-8">
-		<div class="relative flex justify-start">
-			<span class="pr-3 text-base text-nowrap font-semibold">Stats</span>
-		</div>
-		<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
-	</div>
-	<dl class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 justify-center">
-		<div class="px-2 py-4 sm:px-6 sm:py-8">
-			<a
-				hx-get="/subscriptions"
-				hx-target={ partials.ContentID.Target() }
-				hx-push-url="true"
-				hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
-				class="link link-hover font-medium hover:text-accent"
-			>
-				<dt>
-					<div class="absolute rounded-md bg-primary p-3">
-						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-primary-content">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path>
-						</svg>
+		// Interesting Picks section: rare/semantic categories and articles.
+		if len(page.RareCategories) > 0 {
+			if page.RareCategories != nil {
+				<div class="flex items-center mt-8">
+					<div class="relative flex justify-start">
+						<span class="pr-3 text-base text-nowrap font-semibold">Interesting Picks</span>
 					</div>
-					<p class="ml-16 truncate text-sm font-medium ">Subscriptions</p>
-				</dt>
-				<dd class="ml-16 flex items-baseline">
-					<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.User.GetSubscriptionMetadata())) }</p>
-				</dd>
-			</a>
-		</div>
-		<div class="px-2 py-4 sm:px-6 sm:py-8">
-			<a
-				hx-get="/articles"
-				hx-target={ partials.ContentID.Target() }
-				hx-push-url="true"
-				hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
-				class="link link-hover font-medium hover:text-accent"
-			>
-				<dt>
-					<div class="absolute rounded-md bg-primary p-3">
-						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-primary-content">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path>
-						</svg>
+					<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+				</div>
+				<div class="mt-8">
+					<div class="flex justify-center gap-2 p-4 m-4">
+						<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+							for category := range slices.Values(page.RareCategories) {
+								@categoryBadge(category)
+							}
+						</div>
 					</div>
-					<p class="ml-16 truncate text-sm font-medium ">Unread Articles</p>
-				</dt>
-				<dd class="ml-16 flex items-baseline">
-					<p class="text-2xl font-semibold">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</p>
-				</dd>
-			</a>
-		</div>
-	</dl>
+				</div>
+			}
+		}
+	</main>
+	// Latest articles feed.
+	<aside class="lg:fixed lg:top-16 lg:right-0 lg:bottom-0 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-base-content/15 px-4 pt-8">
+		<header class="flex items-center">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base text-nowrap font-semibold">Latest Articles</span>
+			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+		</header>
+		if len(page.LatestArticles) > 0 {
+			<ul role="list" class="divide-y divide-base-content/15">
+				for article := range slices.Values(page.LatestArticles) {
+					<li class="py-4 space-y-2">
+						<div class="flex gap-x-4">
+							// Show article image or placeholder thumbnail.
+							if article.HasImage() {
+								<div class="avatar">
+									<div class="rounded-box size-12">
+										<img
+											src={ article.GetImage().GetURL() }
+											if article.GetImage().GetTitle() != "" {
+												alt={ article.GetImage().GetTitle() }
+											}
+										/>
+									</div>
+								</div>
+							} else {
+								<div class="avatar avatar-placeholder">
+									<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
+										<span class="text-3xl capitalize">{ article.GetTitle()[0:1] }</span>
+									</div>
+								</div>
+							}
+							// Show article title.
+							<div class="flex-auto">
+								<a
+									hx-get={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() }
+									hx-target={ partials.ContentID.Target() }
+									hx-push-url="true"
+									hx-swap="innerHTML show:top"
+									class={ "link link-hover" }
+								>
+									<p class="text-sm/6 font-semibold text-pretty line-clamp-2">{ article.GetTitle() }</p>
+								</a>
+							</div>
+						</div>
+						// Show article timestamp and feed source.
+						<div class="flex items-baseline justify-between gap-x-4">
+							<p class="flex-none text-xs text-base-content/80">
+								@partials.ShowTimestamp(article.GetUpdatedDate())
+							</p>
+							<p class="flex-none text-xs text-base-content/80">
+								{ article.GetFeedTitle() }
+							</p>
+						</div>
+						// Show article description (if exists).
+						if article.GetDescription() != "" {
+							<div class="flex">
+								{{ text, err := article.ExtractText() }}
+								if err == nil {
+									<article class="prose prose-sm line-clamp-2">
+										{ text }
+									</article>
+								}
+							</div>
+						}
+					</li>
+					// <li class="px-4 py-4 sm:px-6 lg:px-8">
+					// 	<div class="flex items-center gap-x-3">
+					// 		<img src="https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" class="size-6 flex-none rounded-full bg-gray-100 outline -outline-offset-1 outline-black/5 dark:bg-gray-800 dark:outline-white/10"/>
+					// 		<h3 class="flex-auto truncate text-sm/6 font-semibold text-gray-900 dark:text-white">Michael Foster</h3>
+					// 		<time datetime="2023-01-23T11:00" class="flex-none text-xs text-gray-500 dark:text-gray-600">1h</time>
+					// 	</div>
+					// 	<p class="mt-3 truncate text-sm text-gray-500">Pushed to <span class="text-gray-700 dark:text-gray-400">ios-app</span> (<span class="font-mono text-gray-700 dark:text-gray-400">2d89f0c8</span> on <span class="text-gray-700 dark:text-gray-400">main</span>)</p>
+					// </li>
+				}
+			</ul>
+		} else {
+			<div class="text-center">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mx-auto size-12">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z"></path>
+				</svg>
+				<h3 class="mt-2 text-sm font-semibold">All caught up!</h3>
+			</div>
+		}
+	</aside>
 }
 
 templ categoryBadge(category models.CategoryCount) {
