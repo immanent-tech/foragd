@@ -30,7 +30,7 @@ RUN curl -fsSL https://get.pulumi.com | sh
 RUN curl -fsSL https://bun.com/install | bash
 
 # Install Go tools.
-set --export PATH "$HOME/go/bin" /go/bin /usr/local/go/bin $PATH
+export PATH="$HOME/go/bin":/go/bin:/usr/local/go/bin:$PATH
 go install github.com/air-verse/air@latest
 go install github.com/a-h/templ/cmd/templ@latest
 
