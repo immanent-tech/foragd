@@ -4,12 +4,14 @@
 package schema
 
 import (
-	"maps"
+	"encoding/json"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/ilm/putlifecycle"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/dynamicmapping"
+
+	"github.com/immanent-tech/go-feed-me/config"
 )
 
 const (
@@ -33,130 +35,162 @@ const (
 	ingestPipelineID = "gofeed"
 )
 
-var EnglishExactAnalyzerName = "english_exact"
-
-var CommonObjectMappings = map[string]types.Property{
-	"published":    types.NewDateNanosProperty(),
-	"updated":      types.NewDateNanosProperty(),
-	"title":        shortTextFieldProperty(),
-	"description":  longTextFieldProperty(),
-	"content":      longTextFieldProperty(),
-	"authors":      shortTextFieldProperty(),
-	"contributors": shortTextFieldProperty(),
-	"categories":   shortTextFieldProperty(),
-	"language":     shortTextFieldProperty(),
-	"copyright":    longTextFieldProperty(),
-	"source_type":  types.NewKeywordProperty(),
-	"url":          types.NewKeywordProperty(),
-	"image": types.ObjectProperty{
-		Properties: map[string]types.Property{
-			"url":   types.NewKeywordProperty(),
-			"title": longTextFieldProperty(),
-		},
-	},
-}
+var (
+	EnglishExactAnalyzerName = "english_exact"
+	// FeedItemCommonMappings are the mappings that are common across both feed and item objects.
+	FeedItemCommonMappings = NewProperties(
+		WithDatetimeMapping("published"),
+		WithDatetimeMapping("updated"),
+		WithTextMapping("title", &types.TextProperty{
+			Type: "text",
+			Fields: map[string]types.Property{
+				"raw": types.NewKeywordProperty(),
+				"exact": types.TextProperty{
+					Analyzer: &EnglishExactAnalyzerName,
+				},
+				"search": types.NewSearchAsYouTypeProperty(),
+			},
+		}),
+		WithTextMapping("description", nil),
+		WithTextMapping("content", nil),
+		WithTextMapping("authors", &types.TextProperty{
+			Type: "text",
+			Fields: map[string]types.Property{
+				"raw": types.NewKeywordProperty(),
+				"exact": types.TextProperty{
+					Analyzer: &EnglishExactAnalyzerName,
+				},
+				"search": types.NewSearchAsYouTypeProperty(),
+			},
+		}),
+		WithTextMapping("contributors", &types.TextProperty{
+			Type: "text",
+			Fields: map[string]types.Property{
+				"raw": types.NewKeywordProperty(),
+				"exact": types.TextProperty{
+					Analyzer: &EnglishExactAnalyzerName,
+				},
+				"search": types.NewSearchAsYouTypeProperty(),
+			},
+		}),
+		WithTextMapping("categories", &types.TextProperty{
+			Type: "text",
+			Fields: map[string]types.Property{
+				"raw": types.NewKeywordProperty(),
+				"exact": types.TextProperty{
+					Analyzer: &EnglishExactAnalyzerName,
+				},
+				"search": types.NewSearchAsYouTypeProperty(),
+			},
+		}),
+		WithKeywordMapping("language"),
+		WithTextMapping("copyright", nil),
+		WithKeywordMapping("source_type"),
+		WithKeywordMapping("url"),
+		WithObjectMapping("image",
+			WithKeywordMapping("url"),
+			WithTextMapping("title", nil),
+		),
+	)
+	// defaultMetadata defines default metadata.
+	defaultMetadata = types.Metadata{
+		"version":    json.RawMessage(config.Version),
+		"created_at": json.RawMessage(time.Now().UTC().String()),
+	}
+)
 
 // Option is a reusable generic function for applying options to a type.
-type Option[T any] func(T) T
+type Option[T any] func(T)
 
-//
-// SESSION
-//
-
-func sessionsComponentTemplate() types.IndexState {
-	return NewIndexState(
-		WithMappings(&types.TypeMapping{
-			Dynamic: &dynamicmapping.False,
-			Properties: map[string]types.Property{
-				"expiry": types.NewDateNanosProperty(),
-				"token":  types.NewKeywordProperty(),
-				"data":   types.NewBinaryProperty(),
-			},
-		}),
-		WithAliases(SessionsSchemaPrefix, types.Alias{}),
+// sessionsComponentTemplate is the template for sessions indices.
+func sessionsComponentTemplate() *Template {
+	return NewTemplate(
+		WithTemplateMapping(
+			WithProperties(
+				WithDatetimeMapping("expiry"),
+				WithKeywordMapping("token"),
+				WithBinaryMapping("data"),
+			),
+			WithMetadata(types.Metadata{
+				"version": json.RawMessage(config.Version),
+			}),
+			WithDynamicProperties(false),
+		),
+		WithAlias(SessionsSchemaPrefix, nil),
 	)
 }
 
-//
-// SCHEDULER
-//
-
-func schedulerJobsComponentTemplate() types.IndexState {
-	return NewIndexState(
-		WithMappings(&types.TypeMapping{
-			Dynamic: &dynamicmapping.False,
-			Properties: map[string]types.Property{
-				"updated_at":       types.NewDateNanosProperty(),
-				"job_options":      types.NewFlattenedProperty(),
-				"job_data":         types.NewFlattenedProperty(),
-				"job_type":         types.NewKeywordProperty(),
-				"job_trigger_type": types.NewKeywordProperty(),
-				"job_trigger":      types.NewFlattenedProperty(),
-				"job_next_run":     types.NewDateNanosProperty(),
-			},
-		}),
-		WithAliases(SchedulerJobsPrefix, types.Alias{}),
+// schedulerJobsComponentTemplate is the template for scheduler jobs indices.
+func schedulerJobsComponentTemplate() *Template {
+	return NewTemplate(
+		WithTemplateMapping(
+			WithProperties(
+				WithDatetimeMapping("updated_at"),
+				WithFlattenedMapping("job_options"),
+				WithFlattenedMapping("job_data"),
+				WithKeywordMapping("job_type"),
+				WithKeywordMapping("job_trigger_type"),
+				WithFlattenedMapping("job_trigger"),
+				WithDatetimeMapping("job_next_run"),
+			),
+			WithDynamicProperties(false),
+		),
+		WithAlias(SchedulerJobsPrefix, nil),
 	)
 }
 
-func schedulerStateComponentTemplate() types.IndexState {
-	return NewIndexState(
-		WithMappings(&types.TypeMapping{
-			Dynamic: &dynamicmapping.False,
-			Properties: map[string]types.Property{
-				"updated_at": types.NewDateNanosProperty(),
-				"job_data":   types.NewFlattenedProperty(),
-			},
-		}),
-		WithAliases(SchedulerStatePrefix, types.Alias{}),
+// schedulerStateComponentTemplate is the template for scheduler state indicies.
+func schedulerStateComponentTemplate() *Template {
+	return NewTemplate(
+		WithTemplateMapping(
+			WithProperties(
+				WithDatetimeMapping("updated_at"),
+				WithFlattenedMapping("job_data"),
+			),
+			WithDynamicProperties(false),
+		),
+		WithAlias(SchedulerStatePrefix, nil),
 	)
 }
 
-//
-// USERS
-//
-
-func userComponentTemplate() types.IndexState {
-	return NewIndexState(
-		WithMappings(&types.TypeMapping{
-			Dynamic: &dynamicmapping.False,
-			Properties: map[string]types.Property{
-				"user_id":          types.NewKeywordProperty(),
-				"nickname":         types.NewKeywordProperty(),
-				"avatar_url":       types.NewKeywordProperty(),
-				"external_user_id": types.NewKeywordProperty(),
-				"provider":         types.NewKeywordProperty(),
-				"created_at":       types.NewDateNanosProperty(),
-				"updated_at":       types.NewDateNanosProperty(),
-				"max_history":      types.NewKeywordProperty(),
-				"settings":         types.NewFlattenedProperty(),
-				"subscriptions":    types.NewFlattenedProperty(),
-				"favorites":        types.NewFlattenedProperty(),
-			},
-		}),
-		WithAliases(UsersSchemaPrefix, types.Alias{}),
+// usersComponentTemplate is the template for users indices.
+func userComponentTemplate() *Template {
+	return NewTemplate(
+		WithTemplateMapping(
+			WithProperties(
+				WithKeywordMapping("user_id"),
+				WithKeywordMapping("nickname"),
+				WithKeywordMapping("avatar_url"),
+				WithKeywordMapping("external_user_id"),
+				WithKeywordMapping("provider"),
+				WithDatetimeMapping("created_at"),
+				WithDatetimeMapping("updated_at"),
+				WithKeywordMapping("max_history"),
+				WithFlattenedMapping("settings"),
+				WithFlattenedMapping("subscriptions"),
+				WithFlattenedMapping("favorites"),
+			),
+			WithDynamicProperties(false),
+		),
+		WithAlias(UsersSchemaPrefix, nil),
 	)
 }
 
-//
-// FEEDS
-//
-
-func feedsComponentTemplate() types.IndexState {
-	mapping := map[string]types.Property{
-		"feed_id":      types.NewKeywordProperty(),
-		"created_at":   types.NewDateNanosProperty(),
-		"last_fetched": types.NewDateNanosProperty(),
-		"source_urls":  types.NewKeywordProperty(),
-	}
-	maps.Copy(mapping, CommonObjectMappings)
-	return NewIndexState(
-		WithMappings(&types.TypeMapping{
-			Dynamic:    &dynamicmapping.False,
-			Properties: mapping,
-		}),
-		WithAliases(FeedsSchemaPrefix, types.Alias{}),
-		WithIndexSettings(
+// feedsComponentTemplate is the template for feeds indices.
+func feedsComponentTemplate() *Template {
+	return NewTemplate(
+		WithTemplateMapping(
+			WithProperties(
+				WithKeywordMapping("feed_id"),
+				WithDatetimeMapping("created_at"),
+				WithDatetimeMapping("last_fetched"),
+				WithKeywordMapping("source_urls"),
+				WithExistingMappings(FeedItemCommonMappings),
+			),
+			WithDynamicProperties(false),
+		),
+		WithAlias(FeedsSchemaPrefix, nil),
+		WithTemplateSettings(
 			WithAnalysis(types.IndexSettingsAnalysis{
 				Analyzer: map[string]types.Analyzer{
 					EnglishExactAnalyzerName: types.CustomAnalyzer{
@@ -169,27 +203,23 @@ func feedsComponentTemplate() types.IndexState {
 	)
 }
 
-//
-// FEED ITEMS
-//
-
-func articleArchiveComponentTemplate() types.IndexState {
-	mapping := map[string]types.Property{
-		"@timestamp":      types.NewDateNanosProperty(),
-		"feed_id":         types.NewKeywordProperty(),
-		"item_id":         types.NewKeywordProperty(),
-		"created":         types.NewDateNanosProperty(),
-		"user_id":         types.NewKeywordProperty(),
-		"subscription_id": types.NewKeywordProperty(),
-	}
-	maps.Copy(mapping, CommonObjectMappings)
-	return NewIndexState(
-		WithMappings(&types.TypeMapping{
-			Dynamic:    &dynamicmapping.False,
-			Properties: mapping,
-		}),
-		WithAliases(ArticleArchiveSchemaPrefix, types.Alias{}),
-		WithIndexSettings(
+// articleArchiveComponentTemplate is the template for article archive indices.
+func articleArchiveComponentTemplate() *Template {
+	return NewTemplate(
+		WithTemplateMapping(
+			WithProperties(
+				WithDatetimeMapping("@timestamp"),
+				WithDatetimeMapping("created"),
+				WithKeywordMapping("feed_id"),
+				WithKeywordMapping("item_id"),
+				WithKeywordMapping("user_id"),
+				WithKeywordMapping("subscription_id"),
+				WithExistingMappings(FeedItemCommonMappings),
+			),
+			WithDynamicProperties(false),
+		),
+		WithAlias(ArticleArchiveSchemaPrefix, nil),
+		WithTemplateSettings(
 			WithAnalysis(types.IndexSettingsAnalysis{
 				Analyzer: map[string]types.Analyzer{
 					EnglishExactAnalyzerName: types.CustomAnalyzer{
@@ -202,21 +232,21 @@ func articleArchiveComponentTemplate() types.IndexState {
 	)
 }
 
-func itemsComponentTemplate() types.IndexState {
-	mapping := map[string]types.Property{
-		"@timestamp": types.NewDateNanosProperty(),
-		"feed_id":    types.NewKeywordProperty(),
-		"item_id":    types.NewKeywordProperty(),
-		"created":    types.NewDateNanosProperty(),
-	}
-	maps.Copy(mapping, CommonObjectMappings)
-	return NewIndexState(
-		WithMappings(&types.TypeMapping{
-			Dynamic:    &dynamicmapping.False,
-			Properties: mapping,
-		}),
-		WithAliases(ItemsSchemaPrefix, types.Alias{}),
-		WithIndexSettings(
+// itemsComponentTemplate is the template for items indices.
+func itemsComponentTemplate() *Template {
+	return NewTemplate(
+		WithTemplateMapping(
+			WithProperties(
+				WithDatetimeMapping("@timestamp"),
+				WithDatetimeMapping("created"),
+				WithKeywordMapping("feed_id"),
+				WithKeywordMapping("item_id"),
+				WithExistingMappings(FeedItemCommonMappings),
+			),
+			WithDynamicProperties(false),
+		),
+		WithAlias(ItemsSchemaPrefix, nil),
+		WithTemplateSettings(
 			WithAnalysis(types.IndexSettingsAnalysis{
 				Analyzer: map[string]types.Analyzer{
 					EnglishExactAnalyzerName: types.CustomAnalyzer{
@@ -259,12 +289,18 @@ func defaultILMPolicy() *putlifecycle.Request {
 	)
 }
 
-func logsComponentTemplate() types.IndexState {
-	return NewIndexState(
-		WithIndexSettings(
+func logsComponentTemplate() *Template {
+	return NewTemplate(
+		WithTemplateMapping(
+			WithMetadata(types.Metadata{
+				"version": json.RawMessage(config.Version),
+			}),
+			WithDynamicProperties(true),
+		),
+		WithAlias(LogsSchemaPrefix, nil),
+		WithTemplateSettings(
 			WithMode("logsdb"),
 		),
-		WithAliases(LogsSchemaPrefix, types.Alias{}),
 	)
 }
 
@@ -277,27 +313,4 @@ func ingestPipelineFeeds() *putpipeline.Request {
 			RemoveIgnoreMissing(true),
 		),
 	)
-}
-
-// shortTextFieldMapping defines a mapping appropriate for fields containing short amounts of text, such as titles and
-// categories.
-func shortTextFieldProperty() types.TextProperty {
-	return types.TextProperty{
-		Type: "text",
-		Fields: map[string]types.Property{
-			"raw": types.NewKeywordProperty(),
-			"exact": types.TextProperty{
-				Analyzer: &EnglishExactAnalyzerName,
-			},
-			"search": types.NewSearchAsYouTypeProperty(),
-		},
-	}
-}
-
-// longTextFieldMapping defines a mapping appropriate for fields containing longer amounts of text, such as
-// descriptions, and full content.
-func longTextFieldProperty() types.TextProperty {
-	return types.TextProperty{
-		Type: "text",
-	}
 }

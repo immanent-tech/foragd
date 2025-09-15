@@ -10,40 +10,35 @@ import (
 
 // RemoveDescription adds the given description to the remove processor.
 func RemoveDescription(description string) Option[*types.RemoveProcessor] {
-	return func(processor *types.RemoveProcessor) *types.RemoveProcessor {
+	return func(processor *types.RemoveProcessor) {
 		processor.Description = &description
-		return processor
 	}
 }
 
 // RemoveFields will mark the given fields to be removed with the remove processor.
 func RemoveFields(fields ...string) Option[*types.RemoveProcessor] {
-	return func(processor *types.RemoveProcessor) *types.RemoveProcessor {
+	return func(processor *types.RemoveProcessor) {
 		processor.Field = fields
-		return processor
 	}
 }
 
 // RemoveIgnoreMissing sets whether the remove processor should ignore missing fields.
 func RemoveIgnoreMissing(value bool) Option[*types.RemoveProcessor] {
-	return func(processor *types.RemoveProcessor) *types.RemoveProcessor {
+	return func(processor *types.RemoveProcessor) {
 		processor.IgnoreMissing = &value
-		return processor
 	}
 }
 
 // WithRemoveProcessor adds the given remove processor configuration to the pipeline.
 func WithRemoveProcessor(options ...Option[*types.RemoveProcessor]) Option[*putpipeline.Request] {
-	return func(pipeline *putpipeline.Request) *putpipeline.Request {
+	return func(pipeline *putpipeline.Request) {
 		remove := &types.RemoveProcessor{}
 
 		for _, option := range options {
-			remove = option(remove)
+			option(remove)
 		}
 
 		pipeline.Processors = append(pipeline.Processors, types.ProcessorContainer{Remove: remove})
-
-		return pipeline
 	}
 }
 
@@ -52,7 +47,7 @@ func NewIngestPipeline(options ...Option[*putpipeline.Request]) *putpipeline.Req
 	pipeline := &putpipeline.Request{}
 
 	for _, option := range options {
-		pipeline = option(pipeline)
+		option(pipeline)
 	}
 
 	return pipeline
