@@ -7,9 +7,11 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"strings"
 	"sync"
 
@@ -42,6 +44,9 @@ var (
 	ErrInvalidConfig = errors.New("invalid config")
 )
 
+// Version is the application/stack version.
+var Version = "_UNKNOWN_"
+
 var configSrc = koanf.New(".")
 
 var appConfig = &Config{
@@ -53,8 +58,23 @@ var appConfig = &Config{
 // values and set up a config backend that other components can use via the Load
 // method. This only happens once.
 var Init = sync.OnceValue(func() error {
+	// Read the version from the release-please manifest.
+	data, err := os.ReadFile("./.release-please-manifest.json")
+	if err != nil {
+		return fmt.Errorf("%w: unable to open release manifest: %w", ErrLoadConfig, err)
+	}
+	var versionInfo map[string]string
+	err = json.Unmarshal(data, &versionInfo)
+	if err != nil {
+		return fmt.Errorf("%w: unable to parse release manifest: %w", ErrLoadConfig, err)
+	}
+	if v, found := versionInfo["."]; !found {
+		return fmt.Errorf("%w: unable to find version in release manifest", ErrLoadConfig)
+	} else {
+		Version = v
+	}
 	// Load config file
-	err := configSrc.Load(file.Provider(ConfigFile), toml.Parser())
+	err = configSrc.Load(file.Provider(ConfigFile), toml.Parser())
 	if err != nil {
 		slog.Warn("No config file found.",
 			slog.Any("error", err),
