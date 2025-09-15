@@ -20,6 +20,7 @@
     "htmx.org": "^2.0.7",
     "hyperscript.org": "^0.9.14",
     "idiomorph": "^0.7.3",
+    "release-please": "^17.1.2",
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
