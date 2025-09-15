@@ -20,7 +20,7 @@
     {
       "label": "run: scheduler",
       "type": "shell",
-      "command": "go run main.go --log-level=debug scheduler",
+      "command": "go run -ldflags=\"-X github.com/immanent-tech/go-feed-me/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug scheduler",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -30,6 +30,6 @@
         "showReuseMessage": true,
         "clear": false
       }
-    },
+    }
   ]
 }
