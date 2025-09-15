@@ -241,6 +241,16 @@ func itemsComponentTemplate() *Template {
 				WithDatetimeMapping("created"),
 				WithKeywordMapping("feed_id"),
 				WithKeywordMapping("item_id"),
+				WithTextMapping("feed_title", &types.TextProperty{
+					Type: "text",
+					Fields: map[string]types.Property{
+						"raw": types.NewKeywordProperty(),
+						"exact": types.TextProperty{
+							Analyzer: &EnglishExactAnalyzerName,
+						},
+						"search": types.NewSearchAsYouTypeProperty(),
+					},
+				}),
 				WithExistingMappings(FeedItemCommonMappings),
 			),
 			WithDynamicProperties(false),
