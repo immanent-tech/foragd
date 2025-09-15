@@ -2,12 +2,12 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
+cmd = 'go build -ldflags="-X github.com/immanent-tech/go-feed-me/config.Version=$(git describe --tags --always --long --dirty)" -o ./tmp/gowebly_chi .'
 bin = "tmp/gowebly_chi"
 args_bin = [
   "--profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true'",
   "serve",
 ]
-cmd = "go run github.com/a-h/templ/cmd/templ@latest generate -path web && go build -o ./tmp/gowebly_chi ."
 delay = 1000
 exclude_dir = [
   ".parcel-cache",
@@ -32,6 +32,7 @@ pre_cmd = [
   "step ca renew --ca-url https://stepca:9000 --password-file=.devcontainer/.step.password --force localhost.crt localhost.key",
   "bun run build:css",
   "bun run build:js",
+  "go run github.com/a-h/templ/cmd/templ@latest generate -path web",
 ]
 rerun = false
 rerun_delay = 500
