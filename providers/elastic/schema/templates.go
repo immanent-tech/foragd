@@ -63,7 +63,9 @@ type SettingsOption Option[*Settings]
 
 // NewSettings creates new settings with the given options.
 func NewSettings(options ...SettingsOption) *Settings {
-	m := &Settings{}
+	m := &Settings{
+		IndexSettings: types.NewIndexSettings(),
+	}
 	for _, option := range options {
 		option(m)
 	}
@@ -101,9 +103,10 @@ type MappingsOption Option[*Mappings]
 
 // NewMappings creates new mappings with the given options.
 func NewMappings(options ...MappingsOption) *Mappings {
-	m := &Mappings{}
-	m.Properties = make(map[string]types.Property)
-	for _, option := range options {
+	m := &Mappings{
+		TypeMapping: types.NewTypeMapping(),
+	}
+	for option := range slices.Values(options) {
 		option(m)
 	}
 	return m
@@ -261,7 +264,8 @@ type IndexTemplateOption Option[*IndexTemplate]
 // NewIndexTemplate creates an index template with the given name and template options.
 func NewIndexTemplate(name string, options ...IndexTemplateOption) *IndexTemplate {
 	template := &IndexTemplate{
-		name: name,
+		name:    name,
+		Request: putindextemplate.NewRequest(),
 	}
 	for option := range slices.Values(options) {
 		option(template)

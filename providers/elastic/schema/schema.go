@@ -5,6 +5,7 @@ package schema
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/ilm/putlifecycle"
@@ -94,8 +95,8 @@ var (
 	)
 	// defaultMetadata defines default metadata.
 	defaultMetadata = types.Metadata{
-		"version":    json.RawMessage(config.Version),
-		"created_at": json.RawMessage(time.Now().UTC().String()),
+		"version":    json.RawMessage(fmt.Sprintf("%q", config.Version)),
+		"created_at": json.RawMessage(fmt.Sprintf("%q", time.Now().UTC().String())),
 	}
 )
 
@@ -111,9 +112,6 @@ func sessionsComponentTemplate() *Template {
 				WithKeywordMapping("token"),
 				WithBinaryMapping("data"),
 			),
-			WithMetadata(types.Metadata{
-				"version": json.RawMessage(config.Version),
-			}),
 			WithDynamicProperties(false),
 		),
 		WithAlias(SessionsSchemaPrefix, nil),
@@ -269,6 +267,19 @@ func itemsComponentTemplate() *Template {
 	)
 }
 
+// logsComponentTemplate is the template for logs indices.
+func logsComponentTemplate() *Template {
+	return NewTemplate(
+		WithTemplateMapping(
+			WithDynamicProperties(true),
+		),
+		WithAlias(LogsSchemaPrefix, nil),
+		WithTemplateSettings(
+			WithMode("logsdb"),
+		),
+	)
+}
+
 // itemsILMPolicy is the ILM policy for feed items indices.
 func itemsILMPolicy() *putlifecycle.Request {
 	return defaultILMPolicy()
@@ -295,21 +306,6 @@ func defaultILMPolicy() *putlifecycle.Request {
 		WithPhase("delete",
 			WithMinAge("735d"),
 			WithActions(WithDelete()),
-		),
-	)
-}
-
-func logsComponentTemplate() *Template {
-	return NewTemplate(
-		WithTemplateMapping(
-			WithMetadata(types.Metadata{
-				"version": json.RawMessage(config.Version),
-			}),
-			WithDynamicProperties(true),
-		),
-		WithAlias(LogsSchemaPrefix, nil),
-		WithTemplateSettings(
-			WithMode("logsdb"),
 		),
 	)
 }
