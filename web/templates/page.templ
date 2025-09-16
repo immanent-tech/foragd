@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"github.com/immanent-tech/go-feed-me/config"
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
@@ -15,7 +16,7 @@ const (
 type FragmentKey string
 
 // DefaultPageTitle is the default <title> tag value if none is set.
-var DefaultPageTitle = "Go Feed Me"
+var DefaultPageTitle = config.AppName + ": " + config.AppDescription
 
 // SetPageTitle sets (or updates) the page's <title></title> tag. If the title is an empty string, a default title will
 // be set instead.

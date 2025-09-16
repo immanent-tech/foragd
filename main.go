@@ -34,8 +34,8 @@ var CLI struct {
 }
 
 func main() {
-	kong.Name("Go Feed Me")
-	kong.Description("Go Feed Me handles feeds.")
+	kong.Name(config.AppName)
+	kong.Description(config.AppDescription)
 
 	ctx := kong.Parse(&CLI, kong.Bind())
 

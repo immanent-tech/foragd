@@ -22,6 +22,8 @@ import (
 const (
 	// AppName is the application name.
 	AppName = "Curately"
+	// AppDescription is the catch-line of the application.
+	AppDescription = "Collect, collate, craft your knowledge."
 	// ConfigEnvPrefix defines the environment variable prefix for reading
 	// server configuration from the environment.
 	ConfigEnvPrefix = "GOFEEDME_"
