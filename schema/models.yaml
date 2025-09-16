@@ -209,6 +209,7 @@ components:
       type: object
       required:
         - max_history
+        - show_onboarding
       properties:
         theme:
           description: >

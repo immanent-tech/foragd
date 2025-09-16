@@ -453,6 +453,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 				result = createResult
 			}
 			template := layouts.AddSubscriptionSuccess(result[request])
+
 			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
 		}
 		return nil
@@ -928,9 +929,15 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 
 	// Add the subscription states.
 	user.AddSubscriptions(allMetadata...)
+	// Disable onboarding once a subscription has been added.
+	settings := user.GetSettings()
+	if settings.ShowOnboarding {
+		settings.ShowOnboarding = false
+	}
 	// Update the user object.
 	err := api.updateUser(ctx, map[string]any{
 		"subscriptions": user.Subscriptions,
+		"settings":      settings,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("createNewSubscriptions: %w", err)

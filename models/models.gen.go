@@ -607,7 +607,7 @@ type UserSettings struct {
 	MaxHistory string `json:"max_history" validate:"required"`
 
 	// ShowOnboarding indicates whether to show onboarding information (i.e., for a new user).
-	ShowOnboarding bool `json:"show_onboarding,omitempty,omitzero"`
+	ShowOnboarding bool `json:"show_onboarding"`
 
 	// Theme the user interface theme chosen by the user.
 	Theme string `json:"theme,omitempty,omitzero"`
