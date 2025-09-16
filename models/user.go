@@ -62,6 +62,16 @@ func (u *User) GetID() UserID {
 	return u.UserID
 }
 
+// GetAvatar retrieves the URL to the image to represent the user.
+func (u *User) GetAvatar() string {
+	return u.AvatarURL
+}
+
+// GetNickname retrieves the nickname of the user.
+func (u *User) GetNickname() string {
+	return u.Nickname
+}
+
 // GetMaxHistory returns a timestamp in the past from which the user can view
 // items.
 func (u *User) GetMaxHistory() time.Time {
