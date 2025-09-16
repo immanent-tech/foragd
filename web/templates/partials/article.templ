@@ -132,91 +132,93 @@ templ articleActions(article *models.Article, view models.View) {
 templ ViewArticle(article *models.Article) {
 	{{ viewSubscriptionVals := session.ArticleFiltersFromSession(ctx).Parameters() }}
 	{{ viewSubscriptionVals[models.ParamSubscriptions] = article.GetSubscriptionID() }}
-	// Mobile breadcrumbs/navigation.
-	<div class="breadcrumbs-mobile">
-		<ul>
-			<li aria-label="Back">
-				<a
-					hx-get="/articles"
-					hx-target={ ContentID.Target() }
-					hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
-					hx-push-url="true"
-					class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0 truncate"
-				>
-					<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1 -ml-1 size-5 shrink-0 text-base-content/50">
-						<path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" fill-rule="evenodd"></path>
-					</svg>
-					Back to articles
+	<main class="px-4 pt-8">
+		// Mobile breadcrumbs/navigation.
+		<div class="breadcrumbs-mobile">
+			<ul>
+				<li aria-label="Back">
+					<a
+						hx-get="/articles"
+						hx-target={ ContentID.Target() }
+						hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
+						hx-push-url="true"
+						class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0 truncate"
+					>
+						<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1 -ml-1 size-5 shrink-0 text-base-content/50">
+							<path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+						</svg>
+						Back to articles
+					</a>
+				</li>
+			</ul>
+		</div>
+		// Desktop breadcrumbs/navigation.
+		<div class="breadcrumbs-desktop">
+			<ul>
+				<li aria-label="Subscriptions">
+					<a
+						hx-get="/subscriptions"
+						hx-target={ ContentID.Target() }
+						hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+						hx-push-url="true"
+						class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
+					>Subscriptions</a>
+				</li>
+				<li aria-label="Articles">
+					<a
+						hx-get="/articles"
+						hx-target={ ContentID.Target() }
+						hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
+						hx-push-url="true"
+						class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0 truncate"
+					>
+						{ article.GetFeedTitle() }
+					</a>
+				</li>
+				<li class="min-w-0">
+					<a href="#" aria-current="page" class="ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"><p class="truncate min-w-0">{ article.GetTitle() }</p></a>
+				</li>
+			</ul>
+		</div>
+		// Article.
+		<div class="flex justify-center">
+			<article id={ article.GetID() } class="prose prose-sm sm:prose-lg w-full dark:prose-invert px-4 py-4 sm:px-6">
+				<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover">
+					<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ article.GetTitle() }</h2>
 				</a>
-			</li>
-		</ul>
-	</div>
-	// Desktop breadcrumbs/navigation.
-	<div class="breadcrumbs-desktop">
-		<ul>
-			<li aria-label="Subscriptions">
-				<a
-					hx-get="/subscriptions"
-					hx-target={ ContentID.Target() }
-					hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
-					hx-push-url="true"
-					class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
-				>Subscriptions</a>
-			</li>
-			<li aria-label="Articles">
-				<a
-					hx-get="/articles"
-					hx-target={ ContentID.Target() }
-					hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
-					hx-push-url="true"
-					class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0 truncate"
-				>
-					{ article.GetFeedTitle() }
-				</a>
-			</li>
-			<li class="min-w-0">
-				<a href="#" aria-current="page" class="ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"><p class="truncate min-w-0">{ article.GetTitle() }</p></a>
-			</li>
-		</ul>
-	</div>
-	// Article.
-	<div class="flex justify-center">
-		<article id={ article.GetID() } class="prose prose-sm sm:prose-lg w-full dark:prose-invert px-4 py-4 sm:px-6">
-			<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover">
-				<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ article.GetTitle() }</h2>
-			</a>
-			<div id="article-info" class="flex items-center justify-between">
-				<div class="flex flex-none text-sm/6 gap-x-4 items-center">
-					<p class="text-base-content/80 capitalize">
-						@ShowTimestamp(article.GetUpdatedDate())
-					</p>
-					<p class="text-base-content/80 italic">
-						{ strings.Join(article.GetAuthors(),",") }
-					</p>
+				<div id="article-info" class="flex items-center justify-between">
+					<div class="flex flex-none text-sm/6 gap-x-4 items-center">
+						<p class="text-base-content/80 capitalize">
+							@ShowTimestamp(article.GetUpdatedDate())
+						</p>
+						<p class="text-base-content/80 italic">
+							{ strings.Join(article.GetAuthors(),",") }
+						</p>
+					</div>
 				</div>
-			</div>
-			<div id="article-text">
-				switch  {
-					case article.GetContent() != "":
-						@templ.Raw(article.GetContent())
-					case article.GetDescription() != "":
-						@templ.Raw(article.GetDescription())
-				}
-			</div>
-		</article>
-	</div>
-	@viewArticleActions(article)
-	// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is read and mark it so.
-	if article.IsUnread() {
-		<div
-			hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + string(models.MarkRead) }
-			hx-target={ "#mark_" + article.GetID() }
-			hx-swap="innerHTML"
-			hx-trigger="intersect once,load delay:10s"
-			hx-push-url="false"
-			_="on htmx:afterRequest remove me"
-		></div>
-	}
+				<div id="article-text">
+					switch  {
+						case article.GetContent() != "":
+							@templ.Raw(article.GetContent())
+						case article.GetDescription() != "":
+							@templ.Raw(article.GetDescription())
+					}
+				</div>
+			</article>
+		</div>
+		@viewArticleActions(article)
+		// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is read and mark it so.
+		if article.IsUnread() {
+			<div
+				hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + string(models.MarkRead) }
+				hx-target={ "#mark_" + article.GetID() }
+				hx-swap="innerHTML"
+				hx-trigger="intersect once,load delay:10s"
+				hx-push-url="false"
+				_="on htmx:afterRequest remove me"
+			></div>
+		}
+	</main>
 }
 
 // UpdateViewArticleMark updates the mark action when viewing an article.
