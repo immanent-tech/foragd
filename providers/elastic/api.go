@@ -51,9 +51,9 @@ func (a *API) GetAPI() *elasticsearch.TypedClient {
 
 // UserExists checks if a user with the given ID exists.
 func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
-	index := UserIndexFromCtx(ctx)
-	if index == "" {
-		return false, ErrFetchCtx
+	index, err := UserIndexFromCtx(ctx)
+	if err != nil {
+		return false, fmt.Errorf("could not check if user exists: %w", err)
 	}
 	found, err := Exists(ctx, a.TypedClient, index, id)
 	if err != nil {
@@ -64,9 +64,9 @@ func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
 
 // GetUser retrieves the user with the given id.
 func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
-	index := UserIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ErrFetchCtx
+	index, err := UserIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("could not get user: %w", err)
 	}
 	user, err := GetDoc[models.UserID, *models.User](ctx, a.GetAPI(), index, id)
 	if err != nil {
@@ -78,11 +78,11 @@ func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, erro
 }
 
 func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
-	index := UserIndexFromCtx(ctx)
-	if index == "" {
-		return ErrFetchCtx
+	index, err := UserIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("could not delete user: %w", err)
 	}
-	err := DeleteDoc(ctx, a.GetAPI(), index, id)
+	err = DeleteDoc(ctx, a.GetAPI(), index, id)
 	if err != nil {
 		slogctx.FromCtx(ctx).WarnContext(ctx, "Failed to delete user.",
 			slog.String("id", id),
@@ -94,9 +94,9 @@ func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
 
 // FindUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
-	index := UserIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ErrFetchCtx
+	index, err := UserIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("could not find user: %w", err)
 	}
 	// Get the user.
 	users, _, err := Search[*models.User](ctx, a.GetAPI(), index, query.Term("external_user_id", externalID), 1)

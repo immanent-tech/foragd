@@ -30,14 +30,13 @@ func (a *API) GetSettings() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			renderPage(layouts.Drawer(partials.Error(models.NewErrorMessage("No user data", ""))), "").ServeHTTP(res, req)
-			return models.ErrUserNotFound
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get user settings: %w", err)
 		}
 		// Render appropriate content.
 		template := layouts.NewSettingsPage(user, &models.EditUserRequest{}).Content()
-		renderPage(layouts.Drawer(template), "Settings - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), "Settings - Go Feed Me").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -90,10 +89,9 @@ func (a *API) AccountSettings() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		_, found := models.UserFromCtx(req.Context())
-		if !found {
-			renderPartial(partials.Notification(models.NewErrorMessage("No user data", "")), "").ServeHTTP(res, req)
-			return models.ErrUserNotFound
+		_, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get account settings: %w", err)
 		}
 		// Extract the search request.
 		switch req.Method {
@@ -141,13 +139,13 @@ func (a *API) SetTheme() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		theme := chi.URLParam(req, "theme")
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			return models.ErrUserNotFound
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to set theme: %w", err)
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
-		err := a.updateUser(req.Context(), map[string]any{
+		err = a.updateUser(req.Context(), map[string]any{
 			"settings":   settings,
 			"updated_at": time.Now().UTC(),
 		})
@@ -158,7 +156,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 			)
 			template := partials.Notification(msg)
 			renderPartial(template, "").ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusInternalServerError)
+			return fmt.Errorf("unable to set theme: %w", err)
 		}
 		renderPartial(layouts.AppSettingsTab(user), "").ServeHTTP(res, req)
 		return nil
@@ -177,8 +175,8 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "User data not found."))
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
@@ -237,8 +235,8 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "User data not found."))
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
@@ -290,8 +288,8 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "User data not found."))
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
@@ -370,8 +368,8 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to process favorite.", "User data not found."))
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
@@ -441,8 +439,8 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Add the favorite.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to process favorite.", "User data not found."))
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
@@ -494,8 +492,8 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to process favorite.", "User data not found."))
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
@@ -536,24 +534,24 @@ func (a *API) DeleteUser() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user account details.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			return models.ErrUserNotFound
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("could not delete user: %w", err)
 		}
 		// Delete account on the backend.
-		err := auth0.Delete(req.Context(), user)
+		err = auth0.Delete(req.Context(), user)
 		if err != nil {
-			return fmt.Errorf("deleteUser: %w", err)
+			return fmt.Errorf("could not delete user: %w", err)
 		}
 		// Delete account locally.
 		err = a.DataAPI().DeleteUser(req.Context(), user.GetID())
 		if err != nil {
-			return fmt.Errorf("deleteUser: %w", err)
+			return fmt.Errorf("could not delete user: %w", err)
 		}
 		// Remove session cookie.
 		err = session.Manager.Destroy(req.Context())
 		if err != nil {
-			return fmt.Errorf("deleteUser: %w", err)
+			return fmt.Errorf("could not delete user: %w", err)
 		}
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return nil
@@ -562,13 +560,16 @@ func (a *API) DeleteUser() http.HandlerFunc {
 
 func (a *API) updateUser(ctx context.Context, updates map[string]any) error {
 	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return models.ErrUserCtx
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("could not update user: %w", err)
 	}
 	updates["updated_at"] = time.Now().UTC()
-	index := elastic.UserIndexFromCtx(ctx)
-	err := elastic.UpdateDoc(ctx, a.DataAPI().GetAPI(), index, user.GetID(), updates,
+	index, err := elastic.UserIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("could not update user: %w", err)
+	}
+	err = elastic.UpdateDoc(ctx, a.DataAPI().GetAPI(), index, user.GetID(), updates,
 		elastic.WithRefresh("true"),
 		elastic.WithRetryOnConflict(5),
 	)

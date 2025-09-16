@@ -155,9 +155,9 @@ func createLocalUser(ctx context.Context, api *elastic.API, externalID string) e
 	if err != nil || !valid {
 		return fmt.Errorf("cannot create local user: %w", err)
 	}
-	index := elastic.UserIndexFromCtx(ctx)
-	if index == "" {
-		return fmt.Errorf("cannot create local user: %w", ErrNoCtxData)
+	index, err := elastic.UserIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("cannot create local user: %w", err)
 	}
 	err = elastic.CreateDoc(ctx, api.GetAPI(), index, user.GetID(), user)
 	if err != nil {

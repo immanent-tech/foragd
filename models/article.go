@@ -86,9 +86,9 @@ func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite
 // GenerateArticles takes a slice of items and creates articles from them, grabbing the necessary data from the user
 // object.
 func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
-	user, found := UserFromCtx(ctx)
-	if !found {
-		return nil, fmt.Errorf("unable to generate articles: %w", ErrNoUserCtx)
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate articles: %w", err)
 	}
 	// Retrieve subscription customisations for feed subscriptions.
 	subscriptions := user.GetSubscriptionMetadata().FilterByFeedIDs(items.GetFeedIDs()...)

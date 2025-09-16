@@ -12,7 +12,7 @@ import (
 
 var sidebarID = "mobile-sidebar"
 
-templ Drawer(content templ.Component) {
+templ Drawer(user *models.User, content templ.Component) {
 	// Mobile: drawer sidebar.
 	<el-dialog id="mobile-sidebar-dialog">
 		<dialog id={ sidebarID } class="backdrop:bg-transparent lg:hidden">
@@ -33,7 +33,7 @@ templ Drawer(content templ.Component) {
 						<div class="relative flex h-16 shrink-0 items-center">
 							@partials.Logo()
 						</div>
-						@DrawerSidebar("relative flex flex-1 flex-col", "mobile")
+						@DrawerSidebar(user, "relative flex flex-1 flex-col", "mobile")
 					</div>
 				</el-dialog-panel>
 			</div>
@@ -46,11 +46,11 @@ templ Drawer(content templ.Component) {
 			<div class="flex h-16 shrink-0 items-center">
 				@partials.Logo()
 			</div>
-			@DrawerSidebar("flex flex-1 flex-col", "desktop")
+			@DrawerSidebar(user, "flex flex-1 flex-col", "desktop")
 		</div>
 	</div>
 	<div class="lg:pl-72">
-		@Header()
+		@Header(user)
 		<div id={ partials.ContentID.String() } class="mx-auto" hx-indicator="#content-loading">
 			@templ.Fragment(templates.FragmentContent) {
 				@content
@@ -68,7 +68,7 @@ templ Drawer(content templ.Component) {
 	</div>
 }
 
-templ DrawerSidebar(classes, layout string) {
+templ DrawerSidebar(user *models.User, classes, layout string) {
 	// <div class="flex h-16 shrink-0 items-center">
 	// 	@partials.partials.NewAction("/home", partials.DisplayActionAsLink,
 	// 		partials.ActionPushURL(),
@@ -76,7 +76,6 @@ templ DrawerSidebar(classes, layout string) {
 	// 		@partials.Logo("h-8 w-auto")
 	// 	}
 	// </div>
-	{{ user, found := models.UserFromCtx(ctx) }}
 	<nav aria-label="Sidebar" class={ classes }>
 		<ul role="list" class="flex flex-1 flex-col gap-y-7">
 			<li>
@@ -135,12 +134,10 @@ templ DrawerSidebar(classes, layout string) {
 					</li>
 				</ul>
 			</li>
-			if found {
-				<li>
-					<div class="text-sm/6 font-semibold text-base-content/80">Favorites</div>
-					@partials.FavoritesList(user.GetFavorites(), models.OOBSwapFalse)
-				</li>
-			}
+			<li>
+				<div class="text-sm/6 font-semibold text-base-content/80">Favorites</div>
+				@partials.FavoritesList(user.GetFavorites(), models.OOBSwapFalse)
+			</li>
 		</ul>
 	</nav>
 }

@@ -47,9 +47,14 @@ func (a *API) GetArticles() http.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("unable to get articles: %w", err)
 		}
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get articles: %w", err)
+		}
 		// Render appropriate content.
 		template := layouts.ArticlesGrid(articles, &filters, pagination)
-		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), "Articles - Go Feed Me").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -169,9 +174,9 @@ func (a *API) MarkArticle() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract user data.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			return models.ErrUserNotFound
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to mark subscription: %w", err)
 		}
 		// Construct the request from parameters.
 		request := &models.MarkArticleRequest{
@@ -273,9 +278,15 @@ func (a *API) MarkAllArticles() http.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("unable to mark subscriptions: %w", err)
 		}
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get articles: %w", err)
+		}
+
 		// Render appropriate content.
 		template := layouts.ArticlesGrid(articles, &filters, pagination)
-		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), "Articles - Go Feed Me").ServeHTTP(res, req)
 
 		SetRedirect(req.Context(), "/subscriptions", res)
 
@@ -320,9 +331,14 @@ func (a *API) ViewArticle() http.HandlerFunc {
 				article.Content = content
 			}
 		}
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get articles: %w", err)
+		}
 		// Render appropriate content.
 		template := partials.ViewArticle(article)
-		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), "Articles - Go Feed Me").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -370,17 +386,22 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 				fmt.Errorf("unable to find similar articles subscription: %w", err),
 				http.StatusUnprocessableEntity)
 		}
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get articles: %w", err)
+		}
 		// Show results.
 		template := pages.SimilarArticles(articles)
-		renderPage(layouts.Drawer(template), "Similar Articles - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), "Similar Articles - Go Feed Me").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
 
 func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters) (models.Articles, models.Pagination, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, "", models.ErrUserCtx
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, "", fmt.Errorf("unable to filter articles: %w", err)
 	}
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
@@ -464,13 +485,13 @@ func (a *API) getItemTopCategories(ctx context.Context, feeds ...models.FeedID) 
 
 // archiveArticle will index an article into the item archive to avoid deletion.
 func (a *API) archiveArticle(ctx context.Context, article *models.Article) error {
-	index := elastic.ArchiveIndexFromCtx(ctx)
-	if index == "" {
-		return fmt.Errorf("unable to archive article: %w", ErrNoCtxData)
+	index, err := elastic.ArchiveIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to archive article: %w", err)
 	}
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return fmt.Errorf("unable to archive article: %w", ErrNoCtxData)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to archive article: %w", err)
 	}
 	archive, err := models.NewArchivedArticle(user.GetID(), article.GetSubscriptionID(), &article.Item)
 	if err != nil {
@@ -485,13 +506,13 @@ func (a *API) archiveArticle(ctx context.Context, article *models.Article) error
 
 // unarchiveArticle will delete an article from the archive.
 func (a *API) unarchiveArticle(ctx context.Context, id models.ItemID) error {
-	index := elastic.ArchiveIndexFromCtx(ctx)
-	if index == "" {
-		return fmt.Errorf("unable to removed archived article: %w", ErrNoCtxData)
+	index, err := elastic.ArchiveIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to removed archived article: %w", err)
 	}
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return fmt.Errorf("unable to remove archived article: %w", ErrNoCtxData)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to remove archived article: %w", err)
 	}
 	// Set up the query to match the user's favorited article.
 	query := query.Bool(
@@ -500,7 +521,7 @@ func (a *API) unarchiveArticle(ctx context.Context, id models.ItemID) error {
 			query.Term("item_id", id),
 		),
 	)
-	err := elastic.DeleteDocs(ctx, a.DataAPI().GetAPI(), index, query)
+	err = elastic.DeleteDocs(ctx, a.DataAPI().GetAPI(), index, query)
 	if err != nil {
 		return fmt.Errorf("unable to remove archived article: %w", err)
 	}
@@ -542,9 +563,9 @@ func saveArticleFilters(next http.Handler) http.Handler {
 }
 
 func generateItemsQuery(ctx context.Context, filters models.Filters, subscriptions ...models.SubscriptionID) (query.Option, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, fmt.Errorf("generateItemsQuery: %w", ErrNoCtxData)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("generateItemsQuery: %w", err)
 	}
 	// Search through items matching any given feeds filters, excluding any read
 	// items.

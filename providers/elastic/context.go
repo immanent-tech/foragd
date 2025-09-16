@@ -6,6 +6,10 @@ package elastic
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net/http"
+
+	"github.com/immanent-tech/go-feed-me/models"
 )
 
 var ErrFetchCtx = errors.New("error fetching context value")
@@ -32,12 +36,12 @@ func UserIndexToCtx(ctx context.Context, index string) context.Context {
 
 // IndexFromCtx retrieves an index name/pattern, used for Elasticsearch
 // requests, from the given context.
-func UserIndexFromCtx(ctx context.Context) string {
+func UserIndexFromCtx(ctx context.Context) (string, error) {
 	if value, ok := ctx.Value(userIndexCtxKey).(string); ok {
-		return value
+		return value, nil
 	}
 
-	return ""
+	return "", models.NewAPIError(fmt.Errorf("%w: user index name not found", ErrFetchCtx), http.StatusNotFound)
 }
 
 // IndexToCtx stores an index name/pattern, used for Elasticsearch requests, in
@@ -103,12 +107,11 @@ func ArchiveIndexToCtx(ctx context.Context, index string) context.Context {
 	return context.WithValue(ctx, archiveCtxKey, index)
 }
 
-func ArchiveIndexFromCtx(ctx context.Context) string {
+func ArchiveIndexFromCtx(ctx context.Context) (string, error) {
 	if value, ok := ctx.Value(archiveCtxKey).(string); ok {
-		return value
+		return value, nil
 	}
-
-	return ""
+	return "", models.NewAPIError(fmt.Errorf("%w: archive index name not found", ErrFetchCtx), http.StatusNotFound)
 }
 
 // IndexToCtx stores an index name/pattern, used for Elasticsearch requests, in

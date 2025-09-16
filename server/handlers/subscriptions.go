@@ -47,9 +47,14 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		if err != nil {
 			return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
 		}
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get subscriptions: %w", err)
+		}
 		// Render appropriate content.
 		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
-		renderPage(layouts.Drawer(template), "Subscriptions - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), "Subscriptions - Go Feed Me").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -218,9 +223,9 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 		// Extract filters from request.
 		filters := subscriptionFiltersFromCtx(req.Context())
 		slogctx.FromCtx(req.Context()).Debug("Marking subscriptions.", slog.String("filters", filters.Query()))
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			return ErrNoCtxData
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to mark all subscriptions: %w", err)
 		}
 		// Set the appropriate mark.
 		var mark models.Mark
@@ -240,7 +245,7 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 			request.Subscriptions = filters.Subscriptions
 		}
 		// Mark subscriptions.
-		err := a.markSubscriptions(req.Context(), request)
+		err = a.markSubscriptions(req.Context(), request)
 		if err != nil {
 			renderPartial(partials.Notification(
 				models.NewErrorMessage(
@@ -249,7 +254,7 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 				),
 			), "")
 			return models.NewAPIError(
-				fmt.Errorf("unable to mark subscription: %w", err),
+				fmt.Errorf("unable to mark all subscriptions: %w", err),
 				http.StatusInternalServerError)
 		}
 		// Get updated subscriptions.
@@ -262,12 +267,12 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 				),
 			), "")
 			return models.NewAPIError(
-				fmt.Errorf("unable to mark subscription: %w", err),
+				fmt.Errorf("unable to mark all subscriptions: %w", err),
 				http.StatusInternalServerError)
 		}
 		// Render appropriate content.
 		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
-		renderPage(layouts.Drawer(template), "Subscriptions - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), "Subscriptions - Go Feed Me").ServeHTTP(res, req)
 
 		// Redirect depending on the current view.
 		switch filters.GetView() {
@@ -289,9 +294,9 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.URLParamSubscription)
 		// Retrieve user object.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			return ErrNoCtxData
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to edit subscription: %w", err)
 		}
 		metadata := user.GetSubscriptionMetadata().GetByID(id)
 		// Convert metadata into edit request data.
@@ -310,7 +315,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		// Generate page template.
 		title := "Editing " + request.GetNickname() + " - Go Feed Me"
 		template := layouts.EditSubscription(request)
-		renderPage(layouts.Drawer(template), title).ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), title).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -321,13 +326,13 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve user object.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			return ErrNoCtxData
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to save subscription: %w", err)
 		}
 		request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
 		if err != nil || !valid {
-			renderPage(layouts.Drawer(layouts.EditSubscription(request)), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, layouts.EditSubscription(request)), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Update the subscription metadata.
@@ -339,7 +344,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		if err != nil {
 			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 			template := templ.Join(layouts.EditSubscription(request), partials.Notification(msg))
-			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Update the user.
@@ -349,11 +354,11 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		if err != nil {
 			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 			template := templ.Join(layouts.EditSubscription(request), partials.Notification(msg))
-			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		template := templ.Join(layouts.EditSubscription(request), layouts.EditSubscriptionSuccessNotification(metadata))
-		renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -364,13 +369,18 @@ func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable show subscription removal confirmation: %w", err)
+		}
 		// Show a modal to confirm unsubscribe request.
 		id := chi.URLParam(req, "subscription")
 		subscriptions, err := a.getSubscriptions(req.Context(), id)
 		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
 			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
 			template := partials.Notification(msg)
-			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		renderPartial(partials.NewSubscriptionContent(subscriptions[0]).UnsubscribeModal(), "").ServeHTTP(res, req)
@@ -386,20 +396,20 @@ func (a *API) ProcessRemoveSubscription() http.HandlerFunc {
 		// Perform unsubscribe action.
 		id := chi.URLParam(req, "subscription")
 		// Retrieve user object.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			return ErrNoCtxData
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to process subscription removal: %w", err)
 		}
 		// Remove metadata for given subscriptions from user.
 		user.RemoveSubscriptions(id)
 		// Update the user.
-		err := a.updateUser(req.Context(), map[string]any{
+		err = a.updateUser(req.Context(), map[string]any{
 			"subscriptions": user.GetSubscriptionMetadata(),
 		})
 		if err != nil {
 			msg := models.NewErrorMessage("Unable to remove subscription", "Please try again.")
 			template := partials.Notification(msg)
-			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Show success notification.
@@ -414,14 +424,19 @@ func (a *API) AddSubscription() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to add subscription: %w", err)
+		}
 		switch req.Method {
 		case http.MethodGet:
 			template := layouts.AddSubscription(&models.SubscriptionRequest{})
-			renderPage(layouts.Drawer(template), "Add Subscription - Go Feed Me").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "Add Subscription - Go Feed Me").ServeHTTP(res, req)
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 			if err != nil || !valid {
-				renderPage(layouts.Drawer(layouts.AddSubscription(request)), "").ServeHTTP(res, req)
+				renderPage(layouts.Drawer(user, layouts.AddSubscription(request)), "").ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			requests := addSubscriptionRequests{
@@ -432,13 +447,13 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			if err != nil {
 				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg))
-				renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+				renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			// If results returned from matching is non-nil, something went wrong.
 			if result[request] != nil {
 				template := layouts.AddSubscription(request)
-				renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+				renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 				res.WriteHeader(http.StatusUnprocessableEntity)
 				return nil
 			}
@@ -447,14 +462,14 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			if err != nil {
 				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg))
-				renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+				renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			} else {
 				result = createResult
 			}
 			template := layouts.AddSubscriptionSuccess(result[request])
 
-			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP
@@ -465,11 +480,16 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to import subscription: %w", err)
+		}
 		switch req.Method {
 		// GET: show import modal.
 		case http.MethodGet:
 			template := layouts.ImportSubscriptions()
-			renderPage(layouts.Drawer(template), "Import Subscriptions - Go Feed Me").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "Import Subscriptions - Go Feed Me").ServeHTTP(res, req)
 		// POST: process import.
 		case http.MethodPost:
 			requests := make(addSubscriptionRequests)
@@ -529,11 +549,16 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to export subscription: %w", err)
+		}
 		switch {
 		// GET: show import modal.
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export":
 			template := layouts.NewExportPage().Content()
-			renderPage(layouts.Drawer(template), "Export Subscriptions - Go Feed Me").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "Export Subscriptions - Go Feed Me").ServeHTTP(res, req)
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":
 			// Get all subscriptions.
 			subscriptions, err := a.getSubscriptions(req.Context())
@@ -606,16 +631,16 @@ func (a *API) AdjustSubscriptionCategories() http.HandlerFunc {
 }
 
 func (a *API) getSubscriptionUnreadCounts(ctx context.Context, subscriptionMetadata models.SubscriptionMetadataSlice) (*aggregations.TermsAggregationResults, error) {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, models.ErrUserCtx
-	}
-
+	// Don't continue if we have no subscriptions to calculate.
 	if len(subscriptionMetadata) == 0 {
 		return &aggregations.TermsAggregationResults{}, nil
 	}
-
+	// Retrieve user object.
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unabel to get subscription unread counts: %w", err)
+	}
+	// Generate unread count query.
 	subscriptionQueries := make([]query.Option, 0, len(subscriptionMetadata))
 	for m := range slices.Values(subscriptionMetadata) {
 		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, m))
@@ -627,15 +652,12 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, subscriptionMetad
 			),
 		),
 	)
-
+	// Perform aggregation.
 	aggResults, resp := a.DataAPI().ItemsAggregation(ctx, query, 0, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(subscriptionMetadata)))
 	if resp != nil && !resp.IsNotFound() {
 		return nil, resp
 	}
-	var (
-		categoryCounts aggregations.TermsAggregationResults
-		err            error
-	)
+	var categoryCounts aggregations.TermsAggregationResults
 	if !resp.IsNotFound() {
 		categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggResults.Aggregations, "UnreadCounts")
 		if err != nil {
@@ -647,9 +669,9 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, subscriptionMetad
 }
 
 func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionsSlice, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, ErrNoCtxData
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
 	allFavorites := user.GetFavorites().FilterByType(models.FavoriteTypeSubscription)
 	// Get the subscription states.
@@ -718,9 +740,9 @@ func (a *API) filterSubscriptions(ctx context.Context, filters *models.Subscript
 }
 
 func (a *API) markSubscriptions(ctx context.Context, request *models.MarkSubscriptionsRequest) error {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return ErrNoCtxData
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("markSubscriptions: %w", err)
 	}
 	// Validate parameters.
 	valid, err := request.Valid()
@@ -757,9 +779,9 @@ func (r addSubscriptionRequests) feedURLs() []string {
 // stores the subscriptions that need new feeds and any with existing feeds in the context for the next handler.
 func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Context, api *API) (layouts.AddSubscriptionResults, error) {
 	// Extract user data.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, fmt.Errorf("matchFeedsToSubscriptions: %w", models.ErrUserCtx)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("matchFeedsToSubscriptions: %w", err)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Matching existing feeds to subscription requests...")
@@ -873,9 +895,9 @@ func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (
 // creating new feeds as necessary and finally creating user subscriptions.
 func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api *API) (layouts.AddSubscriptionResults, error) {
 	// Extract user data.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, fmt.Errorf("createNewSubscriptions: %w", models.ErrUserCtx)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("createNewSubscriptions: %w", err)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Adding new subscriptions.")
@@ -935,7 +957,7 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		settings.ShowOnboarding = false
 	}
 	// Update the user object.
-	err := api.updateUser(ctx, map[string]any{
+	err = api.updateUser(ctx, map[string]any{
 		"subscriptions": user.Subscriptions,
 		"settings":      settings,
 	})

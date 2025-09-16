@@ -61,24 +61,25 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			renderPage(layouts.Drawer(partials.Error(models.NewErrorMessage("No user data", ""))), "").ServeHTTP(res, req)
-			return models.ErrUserNotFound
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to display search results: %w", err)
+			// renderPage(layouts.Drawer(nil, partials.Error(models.NewErrorMessage("No user data", ""))), "").ServeHTTP(res, req)
+			// return models.ErrUserNotFound
 		}
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			msg := models.NewErrorMessage("Invalid search request",
 				"Unable to parse search request. Please check and try again.")
-			renderPage(layouts.Drawer(partials.Error(msg)), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, partials.Error(msg)), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		id := request.ID()
 		if id == "" {
 			msg := models.NewErrorMessage("Invalid search request",
 				"Unable to parse search request. Please check and try again.")
-			renderPage(layouts.Drawer(partials.Error(msg)), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, partials.Error(msg)), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Retrieve favorite data for this search
@@ -89,17 +90,17 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		case err != nil:
 			msg := models.NewErrorMessage("Could not generate search results",
 				"This could be a temporary problem, please try again.")
-			renderPage(layouts.Drawer(partials.Error(msg)), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, partials.Error(msg)), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		case len(subscriptions) > 0 || len(articles) > 0:
 			// Render appropriate content.
 			template := pages.NewSearchResultsPage(fav, request, subscriptions, articles).Content()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
-			renderPage(layouts.Drawer(template), "Search Results - Go Feed Me").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "Search Results - Go Feed Me").ServeHTTP(res, req)
 		default:
 			template := pages.NoSearchResults()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
-			renderPage(layouts.Drawer(template), "Search Results - Go Feed Me").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "Search Results - Go Feed Me").ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP
@@ -107,9 +108,9 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 
 // getSearchSuggestions will find suggestions for the global search from available subscriptions and articles.
 func (a *API) getSearchSuggestions(ctx context.Context, searchTerms string) ([]*partials.Subscription, []*partials.Article, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, nil, models.ErrNoUserCtx
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to generate search suggestions: %w", err)
 	}
 	// Get article suggestions.
 	feedIDs := user.GetSubscriptionMetadata().GetFeedIDs()
@@ -160,9 +161,9 @@ func (a *API) getSearchSuggestions(ctx context.Context, searchTerms string) ([]*
 
 // getSearchResults will find suggestions for the global search from available subscriptions and articles.
 func (a *API) getSearchResults(ctx context.Context, searchTerms string) ([]*partials.Subscription, []*partials.Article, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, nil, models.ErrNoUserCtx
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
 	}
 	// Get article suggestions.
 	feedIDs := user.GetSubscriptionMetadata().GetFeedIDs()
@@ -189,11 +190,11 @@ func (a *API) getSearchResults(ctx context.Context, searchTerms string) ([]*part
 	)
 	itemResults, _, err := a.DataAPI().SearchItems(ctx, itemsQuery, 10, &models.SortLastUpdatedDesc, nil)
 	if err != nil {
-		return nil, nil, fmt.Errorf("findSuggestions: %w", err)
+		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
 	}
 	details, err := models.GenerateArticles(ctx, itemResults)
 	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Error generating articles from items.", slog.Any("error", err))
+		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
 	}
 	articles := make([]*partials.Article, 0, len(itemResults))
 	for article := range slices.Values(details) {
@@ -221,15 +222,15 @@ func (a *API) getSearchResults(ctx context.Context, searchTerms string) ([]*part
 
 func (a *API) findSubscriptions(ctx context.Context, request *models.SearchRequest) (models.SubscriptionsSlice, error) {
 	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, models.ErrNoUserCtx
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find subscriptions: %w", err)
 	}
 	// Find subscriptions matching the search request.
 	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
 	subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
 	if err != nil {
-		return nil, fmt.Errorf("findSubscriptions: %w", err)
+		return nil, fmt.Errorf("unable to find subscriptions: %w", err)
 	}
 	return subscriptionMatches, nil
 }

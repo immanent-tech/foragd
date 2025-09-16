@@ -24,12 +24,8 @@ import (
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
 
-var (
-	// ErrNoCtxData indicates that required data could not be retrieved from context values.
-	ErrNoCtxData = errors.New("missing data in context")
-	// ErrInvalidContent indicates that the content for rendering is invalid.
-	ErrInvalidContent = errors.New("invalid content")
-)
+// ErrInvalidContent indicates that the content for rendering is invalid.
+var ErrInvalidContent = errors.New("invalid content")
 
 // Keys for objects stored within the context and passed between handlers.
 const (

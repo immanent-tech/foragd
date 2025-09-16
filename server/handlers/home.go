@@ -15,6 +15,7 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-feed-me/config"
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
@@ -29,14 +30,14 @@ func (a *API) Home() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		ctx := req.Context()
-		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
-		user, found := models.UserFromCtx(ctx)
-		if !found {
-			return models.ErrUserNotFound
+		ctx = context.WithValue(ctx, titleCtxKey, "Home - "+config.AppName)
+		user, err := models.UserFromCtx(ctx)
+		if err != nil {
+			return fmt.Errorf("unable to serve home page: %w", err)
 		}
 		if user.GetSettings().ShowOnboarding {
 			template := layouts.NewUserHome()
-			renderPage(layouts.Drawer(template), "Home - Go Feed Me").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "Home - "+config.AppName).ServeHTTP(res, req)
 			return nil
 		}
 		data, err := a.getHomePageData(ctx)
@@ -52,7 +53,7 @@ func (a *API) Home() http.HandlerFunc {
 				http.StatusInternalServerError)
 		}
 		template := data.Template()
-		renderPage(layouts.Drawer(template), "Home - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), "Home - "+config.AppName).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -63,9 +64,9 @@ func (a *API) Home() http.HandlerFunc {
 func (a *API) getHomePageData(ctx context.Context) (*layouts.Home, error) {
 	data := &layouts.Home{}
 	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return data, fmt.Errorf("getHomePageData: could not fetch data: %w", ErrNoCtxData)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return data, fmt.Errorf("getHomePageData: could not fetch data: %w", err)
 	}
 	data.User = user
 	data.Favorites = user.GetFavorites()
