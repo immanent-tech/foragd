@@ -26,6 +26,7 @@ templ Grid() {
 // PaginationControl generates an element that will cause a pagination request when scrolled into view.
 templ PaginationControl(ctx context.Context, route string, pagination models.Pagination) {
 	<div
+		class="isolate"
 		hx-post={ route }
 		hx-include="#content-filters"
 		hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
@@ -34,6 +35,7 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 		hx-swap="beforeend"
 		hx-indicator="#content-loading"
 		preload
+		_="on htmx:afterRequest remove me"
 	></div>
 }
 
