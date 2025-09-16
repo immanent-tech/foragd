@@ -444,6 +444,12 @@ type ObjectCommon struct {
 // ObjectCommonSourceType indicates what type of source the object came from.
 type ObjectCommonSourceType string
 
+// SearchRequest represents a search request by the user.
+type SearchRequest struct {
+	// Text is the text to search.
+	Text string `form:"text" json:"text" validate:"omitempty,required"`
+}
+
 // State Tracks the state of an object.
 type State string
 

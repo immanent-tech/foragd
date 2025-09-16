@@ -186,7 +186,8 @@ components:
           description: >
             contains the user favorites.
           type: array
-          x-go-type: '[]*Favorite'
+          items:
+            x-go-type: '*Favorite'
           x-oapi-codegen-extra-tags:
             validate: 'omitempty,dive'
     EditUserRequest:
@@ -724,4 +725,57 @@ components:
           description: >
             is the status code associated with the error. Usually, this is a HTTP status code.
           type: integer
+    SearchRequest:
+      description: >
+        represents a search request by the user.
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          description: >
+            is the text to search.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'text'
+            validate: 'omitempty,required'
+        # categories_include:
+        #   description: >
+        #     a list of categories that must be included in search results.
+        #   type: array
+        #   items:
+        #     $ref: '#/components/schemas/Category'
+        #   x-oapi-codegen-extra-tags:
+        #     form: 'categories_include'
+        #     validate: 'omitempty,dive,unique'
+        # categories_exclude:
+        #   description: >
+        #     a list of categories that must not be included in search results.
+        #   type: array
+        #   items:
+        #     $ref: '#/components/schemas/Category'
+        #   x-go-type-skip-optional-pointer: true
+        #   x-oapi-codegen-extra-tags:
+        #     form: 'categories_exclude'
+        #     validate: 'omitempty,dive,unique'
+        # authors_include:
+        #   description: >
+        #     a list of authors that must be included in search results.
+        #   type: array
+        #   items:
+        #     type: string
+        #   x-go-type-skip-optional-pointer: true
+        #   x-oapi-codegen-extra-tags:
+        #     form: 'authors_include'
+        #     validate: 'omitempty,dive,unique'
+        # authors_exclude:
+        #   description: >
+        #     a list of authors that must not be included in search results.
+        #   type: array
+        #   items:
+        #     type: string
+        #   x-go-type-skip-optional-pointer: true
+        #   x-oapi-codegen-extra-tags:
+        #     form: 'authors_exclude'
+        #     validate: 'omitempty,dive,unique'
 
