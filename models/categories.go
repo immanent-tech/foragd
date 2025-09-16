@@ -8,7 +8,13 @@ import (
 	"sort"
 )
 
-var CommonCategoryFilters = []string{"Post"}
+// CommonCategoryFilters is slice of categories that are so general or inclusive that they are ultimately useless for
+// queries or aggregations.
+//
+// Regular expressions are supported. See:
+//
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/regexp-syntax
+var CommonCategoryFilters = []string{"Post(s)?", "News", "Article(s)?", "Links"}
 
 // Categories is a slice of categories.
 type Categories []Category

@@ -152,6 +152,7 @@ func (a *API) getHomePageData(ctx context.Context) (*layouts.Home, error) {
 				RareTerms: &types.RareTermsAggregation{
 					Field:       &TermsField,
 					MaxDocCount: &MaxDocCount,
+					Exclude:     models.CommonCategoryFilters,
 				},
 			},
 		},
