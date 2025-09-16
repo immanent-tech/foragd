@@ -23,10 +23,14 @@ templ (s *Subscription) Card() {
 		<div class={ "card-base", templ.KV("opacity-50",!s.IsUnread()) }>
 			<div class="flex items-center px-4 py-5 sm:px-6">
 				@s.ViewLink("flex", "flex-1", "items-center", "gap-x-4") {
-					<div class="size-12 flex-none">
-						@s.image()
+					<div class="flex items-center">
+						<div class="mr-4 shrink-0 self-center">
+							@s.image()
+						</div>
+						<div>
+							<h4 class="text-lg font-bold">{ s.GetTitle() }</h4>
+						</div>
 					</div>
-					<h3 class="text-lg/6 font-semibold">{ s.GetTitle() }</h3>
 				}
 				if s.IsUnread() {
 					<div class="ml-4 badge badge-soft">{ s.GetUnreadCount() }</div>
