@@ -20,7 +20,6 @@ import (
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/results"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
-	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
 
@@ -36,7 +35,7 @@ func (a *API) Home() http.HandlerFunc {
 			return models.ErrUserNotFound
 		}
 		if user.GetSettings().ShowOnboarding {
-			template := pages.NewUserHome()
+			template := layouts.NewUserHome()
 			renderPage(layouts.Drawer(template), "Home - Go Feed Me").ServeHTTP(res, req)
 			return nil
 		}
@@ -61,8 +60,8 @@ func (a *API) Home() http.HandlerFunc {
 // getHomePageData retrieves the data required to construct the homepage content.
 //
 //nolint:funlen // mostly aggregation definitions.
-func (a *API) getHomePageData(ctx context.Context) (*pages.Home, error) {
-	data := &pages.Home{}
+func (a *API) getHomePageData(ctx context.Context) (*layouts.Home, error) {
+	data := &layouts.Home{}
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {

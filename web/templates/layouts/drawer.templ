@@ -76,6 +76,7 @@ templ DrawerSidebar(classes, layout string) {
 	// 		@partials.Logo("h-8 w-auto")
 	// 	}
 	// </div>
+	{{ user, found := models.UserFromCtx(ctx) }}
 	<nav aria-label="Sidebar" class={ classes }>
 		<ul role="list" class="flex flex-1 flex-col gap-y-7">
 			<li>
@@ -94,12 +95,16 @@ templ DrawerSidebar(classes, layout string) {
 					</li>
 					<li>
 						<a
-							hx-get="/subscriptions"
-							hx-target={ partials.ContentID.Target() }
-							hx-push-url="true"
-							hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+							if len(user.GetSubscriptionMetadata()) > 0 {
+								hx-get="/subscriptions"
+								hx-target={ partials.ContentID.Target() }
+								hx-push-url="true"
+								hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+								class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
+							} else {
+								class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold opacity-50"
+							}
 							_="on click toggle @open on #mobile-sidebar-dialog"
-							class="group drawer-sidebar-link"
 						>
 							<span class="sr-only">Show all unread subscriptions</span>
 							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 shrink-0 text-current">
@@ -110,12 +115,16 @@ templ DrawerSidebar(classes, layout string) {
 					</li>
 					<li>
 						<a
-							hx-get="/articles"
-							hx-target={ partials.ContentID.Target() }
-							hx-push-url="true"
-							hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
+							if len(user.GetSubscriptionMetadata()) > 0 {
+								hx-get="/articles"
+								hx-target={ partials.ContentID.Target() }
+								hx-push-url="true"
+								hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
+								class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
+							} else {
+								class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold opacity-50"
+							}
 							_="on click toggle @open on #mobile-sidebar-dialog"
-							class="group drawer-sidebar-link"
 						>
 							<span class="sr-only">Show all unread articles</span>
 							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 shrink-0 text-current">
@@ -126,7 +135,6 @@ templ DrawerSidebar(classes, layout string) {
 					</li>
 				</ul>
 			</li>
-			{{ user, found := models.UserFromCtx(ctx) }}
 			if found {
 				<li>
 					<div class="text-sm/6 font-semibold text-base-content/80">Favorites</div>

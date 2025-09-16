@@ -21,7 +21,7 @@ import (
 
 const (
 	// AppName is the application name.
-	AppName = "Curatly"
+	AppName = "Curately"
 	// ConfigEnvPrefix defines the environment variable prefix for reading
 	// server configuration from the environment.
 	ConfigEnvPrefix = "GOFEEDME_"

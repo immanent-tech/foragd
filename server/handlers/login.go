@@ -17,7 +17,7 @@ import (
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/providers/elastic"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
-	"github.com/immanent-tech/go-feed-me/web/templates/pages"
+	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
 
@@ -26,7 +26,7 @@ func LoginSelect() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		page := &pages.Login{}
+		page := &layouts.Login{}
 		renderPage(page.Content(), "Login - Go Feed Me").ServeHTTP(res, req)
 	}).ServeHTTP
 }
