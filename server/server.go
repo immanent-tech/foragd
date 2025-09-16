@@ -186,19 +186,12 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 	router.Get("/login", handlers.LoginSelect())
 	router.Group(func(r chi.Router) {
 		r.Use(
+			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
 		)
 		r.Get("/login/{provider}", handler.Login())
 		r.Get("/login/{provider}/callback", handler.LoginCallback())
 		r.Get("/logout", handlers.Logout())
-	})
-	// Signup routes.
-	router.Group(func(r chi.Router) {
-		r.Use(
-			middlewares.SetupElastic(),
-		)
-		r.Get("/signup", handler.ShowSignup())
-		r.With(middlewares.RequireHTMX).Post("/signup", handler.ProcessSignup())
 	})
 
 	// Authenticated routes.

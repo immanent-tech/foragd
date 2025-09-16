@@ -5,6 +5,8 @@ package handlers
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -14,7 +16,6 @@ import (
 
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
@@ -54,7 +55,7 @@ func (a *API) Login() http.HandlerFunc {
 		}
 		slogctx.FromCtx(req.Context()).Debug("User logged in.")
 		// Sync user data from the backend.
-		a.syncUser(req.Context())
+		a.syncLocalUser(req.Context())
 		req.Header.Add("Content-Type", "")
 		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
 	}).ServeHTTP
@@ -73,30 +74,55 @@ func (a *API) LoginCallback() http.HandlerFunc {
 			renderPage(template, "").ServeHTTP(res, req)
 			return
 		}
-		slogctx.FromCtx(req.Context()).Debug("User logged in.")
+		slogctx.FromCtx(req.Context()).Debug("User logged in to auth backend.")
+		userAuth, found := a.Auth.GetUserAuth(req.Context())
+		if !found {
+			template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
+			renderPage(template, "").ServeHTTP(res, req)
+			return
+		}
+		_, err = a.DataAPI().FindUserByExternalID(req.Context(), userAuth.GetUserID())
+		if err != nil {
+			var apiError models.APIError
+			// If a local user is not found, create one.
+			if errors.As(err, &apiError) {
+				if apiError.StatusCode == http.StatusNotFound {
+					err = createLocalUser(req.Context(), a.DataAPI(), userAuth.GetUserID())
+					if err != nil {
+						template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
+						renderPage(template, "").ServeHTTP(res, req)
+						return
+					}
+					slogctx.FromCtx(req.Context()).Debug("Create new local user.")
+				}
+			} else {
+				template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
+				renderPage(template, "").ServeHTTP(res, req)
+				return
+			}
+		}
 		req.Header.Add("Content-Type", "")
 		// Sync user data from the backend.
-		a.syncUser(req.Context())
+		a.syncLocalUser(req.Context())
 		slogctx.FromCtx(req.Context()).Debug("Redirecting")
 		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
 	}).ServeHTTP
 }
 
-// syncUser tries to sync relevant user data from the auth backend to the local data.
-func (a *API) syncUser(ctx context.Context) {
+// syncLocalUser tries to sync relevant user data from the auth backend to the local data.
+func (a *API) syncLocalUser(ctx context.Context) {
 	// Get the backend data.
 	userAuth, found := a.Auth.GetUserAuth(ctx)
 	if !found {
 		slogctx.FromCtx(ctx).Error("Could not sync user data, user auth not found.")
 		return
 	}
-	// Get the user.
-	users, _, err := elastic.Search[*models.User](ctx, a.DataAPI().GetAPI(), schema.UsersSchemaPrefix, query.Term("external_user_id", userAuth.GetUserID()), 1)
-	if err != nil || len(users) == 0 {
-		slogctx.FromCtx(ctx).Error("Could not sync user data, user not found.")
+	user, err := a.DataAPI().FindUserByExternalID(ctx, userAuth.GetUserID())
+	if err != nil {
+		slogctx.FromCtx(ctx).Error("Could not sync user data.",
+			slog.Any("error", err))
 		return
 	}
-	user := users[0]
 	ctx = models.UserToCtx(ctx, user)
 	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 	// For the following fields, assume that if the backend value is different from the local value, it was updated on
@@ -114,10 +140,28 @@ func (a *API) syncUser(ctx context.Context) {
 		// Update the user object.
 		err := a.updateUser(ctx, updates)
 		if err != nil {
-			slogctx.FromCtx(ctx).Error("Failed to sync user data.",
+			slogctx.FromCtx(ctx).Error("Could not sync user data.",
 				slog.Any("error", err))
 		} else {
 			slogctx.FromCtx(ctx).Debug("User data synced.")
 		}
 	}
+}
+
+// createLocaUser will create a local user for user that has authenticated via the auth backend.
+func createLocalUser(ctx context.Context, api *elastic.API, externalID string) error {
+	user := models.NewUser(externalID, "auth0")
+	valid, err := user.Valid(ctx)
+	if err != nil || !valid {
+		return fmt.Errorf("cannot create local user: %w", err)
+	}
+	index := elastic.UserIndexFromCtx(ctx)
+	if index == "" {
+		return fmt.Errorf("cannot create local user: %w", ErrNoCtxData)
+	}
+	err = elastic.CreateDoc(ctx, api.GetAPI(), index, user.GetID(), user)
+	if err != nil {
+		return fmt.Errorf("cannot create local user: %w", err)
+	}
+	return nil
 }

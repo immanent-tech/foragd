@@ -90,7 +90,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		user, found := models.UserFromCtx(req.Context())
+		_, found := models.UserFromCtx(req.Context())
 		if !found {
 			renderPartial(partials.Notification(models.NewErrorMessage("No user data", "")), "").ServeHTTP(res, req)
 			return models.ErrUserNotFound
@@ -129,7 +129,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 			renderPartial(template, "").ServeHTTP(res, req)
 		}
 		// Update the user in the context.
-		user, _ = a.DataAPI().GetUser(req.Context(), user.UserID)
+		// user, _ = a.DataAPI().GetUser(req.Context(), user.UserID)
 		// ctx := models.UserToCtx(req.Context(), user)
 		return nil
 	})).ServeHTTP

@@ -49,6 +49,19 @@ func (a *API) GetAPI() *elasticsearch.TypedClient {
 	return a.TypedClient
 }
 
+// UserExists checks if a user with the given ID exists.
+func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
+	index := UserIndexFromCtx(ctx)
+	if index == "" {
+		return false, ErrFetchCtx
+	}
+	found, err := Exists(ctx, a.TypedClient, index, id)
+	if err != nil {
+		return false, fmt.Errorf("could not check if user exists: %w", err)
+	}
+	return found, nil
+}
+
 // GetUser retrieves the user with the given id.
 func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
 	index := UserIndexFromCtx(ctx)
@@ -77,6 +90,23 @@ func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
 	return nil
+}
+
+// FindUserByExternalID will search for and return a user that matches the given external ID, if exists.
+func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
+	index := UserIndexFromCtx(ctx)
+	if index == "" {
+		return nil, ErrFetchCtx
+	}
+	// Get the user.
+	users, _, err := Search[*models.User](ctx, a.GetAPI(), index, query.Term("external_user_id", externalID), 1)
+	if err != nil {
+		return nil, toAPIError(err)
+	}
+	if len(users) == 0 {
+		return nil, models.NewAPIError(ErrNoHits, http.StatusNotFound)
+	}
+	return users[0], nil
 }
 
 // GetFeed retrieves a single feed with the given ID.
@@ -503,7 +533,6 @@ func Search[O any](ctx context.Context, api *elasticsearch.TypedClient, index st
 	if err != nil {
 		return nil, nil, fmt.Errorf("search request failed: %w", err)
 	}
-
 	var warnings error
 	var docs []O
 	var newSearchAfter []types.FieldValue
@@ -604,6 +633,14 @@ func ParseError(err error) *models.Response {
 		models.WithResponseStatusCode(http.StatusInternalServerError),
 		models.WithResponseError(errors.New("unknown elastic error")),
 	)
+}
+
+func toAPIError(err error) error {
+	var esErr *types.ElasticsearchError
+	if errors.As(err, &esErr) {
+		return models.NewAPIError(esErr, esErr.Status)
+	}
+	return models.NewAPIError(err, http.StatusInternalServerError)
 }
 
 // paginationValue is a value that can be used as a sort value as a search after option.

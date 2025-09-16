@@ -14,8 +14,6 @@ import (
 
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
 )
 
 // ProtectedRoutes are routes that require user authentication.
@@ -33,16 +31,16 @@ func RequireUserAuth(dataAPI *elastic.API, authAPI models.AuthAPI) func(next htt
 				return
 			}
 			ctx := req.Context()
-			userID := authAPI.GetUserID(ctx)
-			if userID == "" {
+			externalUserID := authAPI.GetUserID(ctx)
+			if externalUserID == "" {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.String("error", "User not found."))
 				http.Redirect(res, req, "/", http.StatusSeeOther)
 				return
 			}
 			// Fetch the user from the user management API.
-			user, _, err := elastic.Search[*models.User](ctx, dataAPI.GetAPI(), schema.UsersSchemaPrefix, query.Term("external_user_id", userID), 1)
-			if err != nil || len(user) == 0 {
+			user, err := dataAPI.FindUserByExternalID(ctx, externalUserID)
+			if err != nil {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.Any("error", err))
 				http.Redirect(res, req, "/", http.StatusSeeOther)
@@ -50,7 +48,7 @@ func RequireUserAuth(dataAPI *elastic.API, authAPI models.AuthAPI) func(next htt
 			}
 			// Else load the user into the context and pass the new context
 			// to the next request.
-			next.ServeHTTP(res, req.WithContext(models.UserToCtx(ctx, user[0])))
+			next.ServeHTTP(res, req.WithContext(models.UserToCtx(ctx, user)))
 		})
 	}
 }

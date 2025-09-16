@@ -31,7 +31,7 @@ templ Drawer(content templ.Component) {
 					<div class="relative flex grow flex-col gap-y-5 overflow-y-auto bg-base-200 px-6 pb-4 ring ring-base-content/10 before:pointer-events-none before:absolute before:inset-0 before:bg-base-200/10">
 						// TODO: replace me!
 						<div class="relative flex h-16 shrink-0 items-center">
-							@partials.Logo("h-8 w-auto")
+							@partials.Logo()
 						</div>
 						@DrawerSidebar("relative flex flex-1 flex-col", "mobile")
 					</div>
@@ -44,7 +44,7 @@ templ Drawer(content templ.Component) {
 		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 bg-base-200/10 px-6 pb-4">
 			// TODO: replace me!
 			<div class="flex h-16 shrink-0 items-center">
-				@partials.Logo("h-8 w-auto")
+				@partials.Logo()
 			</div>
 			@DrawerSidebar("flex flex-1 flex-col", "desktop")
 		</div>
