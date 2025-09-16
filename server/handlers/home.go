@@ -35,7 +35,7 @@ func (a *API) Home() http.HandlerFunc {
 		if !found {
 			return models.ErrUserNotFound
 		}
-		if len(user.GetSubscriptionMetadata()) == 0 {
+		if user.GetSettings().ShowOnboarding {
 			template := pages.NewUserHome()
 			renderPage(layouts.Drawer(template), "Home - Go Feed Me").ServeHTTP(res, req)
 			return nil

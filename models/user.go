@@ -14,7 +14,12 @@ import (
 	"github.com/immanent-tech/go-feed-me/validation"
 )
 
-const DefaultUserTheme = "dracula"
+const (
+	// DefaultUserTheme is dracula.
+	DefaultUserTheme = "dracula"
+	// DefaultMaxHistory for users/objects is 30 days.
+	DefaultMaxHistory = 30 * 24 * time.Hour
+)
 
 var (
 	ErrAddUser               = errors.New("add subscription failed")
@@ -32,10 +37,10 @@ func NewUser(externalID, provider string) *User {
 	return &User{
 		CreatedAt:      ts,
 		UpdatedAt:      ts,
-		MaxHistory:     DefaultMaxHistory.String(),
 		ExternalUserId: externalID,
 		Provider:       provider,
 		UserID:         NewID(UserPFX),
+		Settings:       *NewUserSettings(),
 	}
 }
 
@@ -60,7 +65,7 @@ func (u *User) GetID() UserID {
 // GetMaxHistory returns a timestamp in the past from which the user can view
 // items.
 func (u *User) GetMaxHistory() time.Time {
-	return parseMaxHistory(u.MaxHistory)
+	return parseMaxHistory(u.GetSettings().MaxHistory)
 }
 
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be
@@ -230,7 +235,9 @@ func NewUserSignup() *UserSignupRequest {
 // NewUserSettings returns a new instance of the default user settings.
 func NewUserSettings() *UserSettings {
 	return &UserSettings{
-		Theme: DefaultUserTheme,
+		Theme:          DefaultUserTheme,
+		ShowOnboarding: true,
+		MaxHistory:     DefaultMaxHistory.String(),
 	}
 }
 

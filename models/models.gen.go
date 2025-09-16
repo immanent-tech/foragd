@@ -564,9 +564,6 @@ type User struct {
 	// Favorites contains the user favorites.
 	Favorites []*Favorite `json:"favorites,omitempty,omitzero" validate:"omitempty,dive"`
 
-	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
-	MaxHistory string `json:"max_history" validate:"required"`
-
 	// Nickname is an alias or label the user has given themselves.
 	Nickname UserNickname `form:"nickname" json:"nickname,omitempty,omitzero"`
 
@@ -606,6 +603,12 @@ type UserSession struct {
 
 // UserSettings contains user-specific settings for the application.
 type UserSettings struct {
+	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
+	MaxHistory string `json:"max_history" validate:"required"`
+
+	// ShowOnboarding indicates whether to show onboarding information (i.e., for a new user).
+	ShowOnboarding bool `json:"show_onboarding,omitempty,omitzero"`
+
 	// Theme the user interface theme chosen by the user.
 	Theme string `json:"theme,omitempty,omitzero"`
 }

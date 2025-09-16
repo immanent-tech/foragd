@@ -19,11 +19,6 @@ var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
 
 var UnixEpoch = time.Unix(0, 0)
 
-const (
-	// DefaultMaxHistory for users/objects is 30 days.
-	DefaultMaxHistory = 30 * 24 * time.Hour
-)
-
 // parseMaxHistory will parse the maxHistory string as a time.Duration, subtract it from the current time and return the
 // time.Time value.
 func parseMaxHistory(maxHistory string) time.Time {

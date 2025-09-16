@@ -146,7 +146,6 @@ components:
         - user_id
         - external_user_id
         - provider
-        - max_history
       properties:
         created_at:
           $ref: '#/components/schemas/CreatedAt'
@@ -175,12 +174,6 @@ components:
           x-go-name: AvatarURL
           x-oapi-codegen-extra-tags:
             validate: 'omitempty,url'
-        max_history:
-          description: >
-            is a duration representing the maximum time-frame over which objects contained within are available.
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required'
         settings:
           $ref: '#/components/schemas/UserSettings'
         subscriptions:
@@ -214,12 +207,25 @@ components:
       description: >
         contains user-specific settings for the application.
       type: object
+      required:
+        - max_history
       properties:
         theme:
           description: >
             the user interface theme chosen by the user.
           type: string
           default: dracula
+        show_onboarding:
+          description: >
+            indicates whether to show onboarding information (i.e., for a new user).
+          type: boolean
+          default: true
+        max_history:
+          description: >
+            is a duration representing the maximum time-frame over which objects contained within are available.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
     Favorite:
       description: >
         is an object that the user has marked as a Favorite. Favorites  have higher visibility in the display and
