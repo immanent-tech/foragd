@@ -14,6 +14,13 @@ templ FavoritesList(favorites models.FavoritesSlice, swap models.HTMXFlag) {
 	{{ subscriptions := favorites.FilterByType(models.FavoriteTypeSubscription) }}
 	{{ articles := favorites.FilterByType(models.FavoriteTypeArticle) }}
 	{{ searches := favorites.FilterByType(models.FavoriteTypeSearch) }}
+	// Show a message if user doesn't have any favorites.
+	if len(favorites) == 0 {
+		<div class="text-center">
+			<p class="text-sm/6 text-base-content/80 font-semibold mt-4">No favorites!</p>
+			<p class="text-sm/6 text-base-content/80 text-pretty">Favorite a subscription, article or search...</p>
+		</div>
+	}
 	<ul
 		id="favorites-list"
 		class="-mx-2 mt-2 space-y-1"
