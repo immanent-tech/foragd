@@ -23,6 +23,7 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-feed-me/config"
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/providers/elastic"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
@@ -596,6 +597,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			}
 			// Serve the opml content via http.ServeContent.
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
+			res.Header().Set("Content-Disposition", `attachment; filename="`+config.AppName+`-Export.opml"`)
 			http.ServeContent(res, req, "go-feed-me-export.opml", time.Now(), bytes.NewReader(data))
 		}
 		return nil
