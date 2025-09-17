@@ -12,7 +12,7 @@ var CSPPolicy = []string{
 	`base-uri 'self';`,
 	`default-src 'self';`,
 	`style-src 'self' 'unsafe-inline';`,
-	`script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net;`,
+	`script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net;`,
 	`img-src * data: *;`,
 	`media-src *;`,
 	`font-src 'self';`,
