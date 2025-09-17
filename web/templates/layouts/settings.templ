@@ -21,53 +21,63 @@ func NewSettingsPage(user *models.User, editUser *models.EditUserRequest) *Setti
 }
 
 templ (page *Settings) Content() {
-	<div>
-		<div class="tabs tabs-lift">
+	@partials.MainContainer() {
+		<div class="tabs tabs-border">
 			<input id="subscriptions-tab" type="radio" name="settings" class="tab font-semibold" aria-label="Subscriptions" checked="true"/>
-			<div class="tab-content bg-base-100 border-base-content/10 p-6">
+			<div class="tab-content mt-8">
 				@subscriptionSettingsTab()
 			</div>
 			<input id="app-tab" type="radio" name="settings" class="tab font-semibold" aria-label="App"/>
-			<div class="tab-content bg-base-100 border-base-content/10 p-6">
+			<div class="tab-content mt-8">
 				@AppSettingsTab(page.user)
 			</div>
 			<input id="account-tab" type="radio" name="settings" class="tab font-semibold" aria-label="Account"/>
-			<div class="tab-content bg-base-100 border-base-content/10 p-6">
+			<div class="tab-content mt-8">
 				@accountSettingsTab()
 			</div>
 		</div>
-	</div>
+	}
 }
 
 // subscriptionSettingsTab renders tab content for subscription-related settings.
 templ subscriptionSettingsTab() {
 	<div class="flex flex-col mt-2 gap-y-4">
-		<div>
-			<div class="flex flex-row gap-x-4">
-				<button
-					type="button"
-					class="btn btn-primary btn-sm"
-					hx-get="/user/subscription/add"
-					hx-target={ partials.ContentID.Target() }
-					hx-push-url="true"
-				>Add</button>
-				<button
-					type="button"
-					class="btn btn-primary btn-sm"
-					hx-get="/user/import"
-					hx-target={ partials.ContentID.Target() }
-					hx-push-url="true"
-				>Import</button>
-				<button
-					type="button"
-					class="btn btn-primary btn-sm"
-					hx-get="/user/export"
-					hx-target={ partials.ContentID.Target() }
-					hx-push-url="true"
-				>Export</button>
+		<div class="flex items-center">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base font-semibold ">Actions</span>
 			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/10"></div>
 		</div>
-		<div>
+		<div class="flex gap-x-4 justify-center">
+			<button
+				type="button"
+				class="btn btn-primary btn-sm"
+				hx-get="/user/subscription/add"
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+			>Add</button>
+			<button
+				type="button"
+				class="btn btn-primary btn-sm"
+				hx-get="/user/import"
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+			>Import</button>
+			<button
+				type="button"
+				class="btn btn-primary btn-sm"
+				hx-get="/user/export"
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+			>Export</button>
+		</div>
+		<div class="flex items-center">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base font-semibold ">Management</span>
+			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/10"></div>
+		</div>
+		<div class="flex justify-center">
 			<form
 				hx-post="/user/settings/subscriptions"
 				hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
@@ -76,15 +86,15 @@ templ subscriptionSettingsTab() {
 				hx-push-url="false"
 			>
 				<div class="grid grid-cols-1">
-					<input id="filter-subscriptions" type="text" name="text" placeholder="Filter subscriptions..." class="input input-primary input-sm bg-base-content/10"/>
+					<input id="filter-subscriptions" type="search" name="text" placeholder="Filter subscriptions..." class="input input-primary input-sm bg-base-content/10"/>
 					<span class="htmx-indicator loading loading-spinner loading-sm"></span>
 				</div>
 			</form>
 		</div>
+		<ul id="subscriptions-list" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"></ul>
 	</div>
 	//
 	// class="divide-y divide-base-content/5 max-w-prose"
-	<ul id="subscriptions-list" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"></ul>
 }
 
 // accountSettingsTab renders tab content for account-related settings.
@@ -112,12 +122,15 @@ templ accountSettingsTab() {
 
 // appSettingsTab renders tab content for app-related settings.
 templ AppSettingsTab(user *models.User) {
-	<div id="tab-app-settings" class="divide-y divide-base-content/5">
-		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8">
-			<div class="col-span-full">
-				<h2 class="text-sm/7 font-semibold">Theme</h2>
-				<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
+	<div id="tab-app-settings" class="flex flex-col mt-2 gap-y-4">
+		<div class="flex items-center">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base font-semibold ">Theme</span>
 			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/10"></div>
+		</div>
+		<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
+		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			{{ currentTheme := user.GetSettings().Theme }}
 			@themePreview("light", currentTheme)
 			@themePreview("dark", currentTheme)
