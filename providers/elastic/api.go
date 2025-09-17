@@ -179,10 +179,13 @@ func (e *API) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Fee
 	if index == "" {
 		return nil, fmt.Errorf("GetNewFeedsSince: %w", ErrFetchCtx)
 	}
+	// Generate query. We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
+	// don't have a job scheduled for updating their items.
+	query := query.Term("last_fetched", models.UnixEpoch)
 	var feeds models.Feeds
-	feeds, err := SearchAll[*models.Feed](ctx, e.GetAPI(), index, query.Since("created_at", since), 1000)
+	feeds, err := SearchAll[*models.Feed](ctx, e.GetAPI(), index, query, 1000)
 	if err != nil {
-		return nil, fmt.Errorf("GetNewFeedsSince: %w", err)
+		return nil, fmt.Errorf("GetNewFeedsSince: %w", toAPIError(err))
 	}
 	return feeds, nil
 }
@@ -638,7 +641,8 @@ func ParseError(err error) *models.Response {
 func toAPIError(err error) error {
 	var esErr *types.ElasticsearchError
 	if errors.As(err, &esErr) {
-		return models.NewAPIError(esErr, esErr.Status)
+		msg := fmt.Errorf("%s: %s", esErr.ErrorCause.Type, *esErr.ErrorCause.Reason)
+		return models.NewAPIError(msg, esErr.Status)
 	}
 	return models.NewAPIError(err, http.StatusInternalServerError)
 }
