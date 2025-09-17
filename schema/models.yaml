@@ -1,11 +1,15 @@
-# Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
-# SPDX-License-Identifier: 	AGPL-3.0-or-later
-
 openapi: '3.0.3'
 info:
   version: 1.0.0
   title: Common Models
-  description: Common objects and fields.
+  summary: Common fields and objects for the application.
+  description: >
+    Contains common fields and objects that are shared and reused through the application.
+  license:
+    name: "AGPL 3.0"
+    idenfiier: AGPL-3.0-or-later
+  contact:
+    name: "Immanet Tech"
 components:
   schemas:
     # Common Fields.
@@ -739,43 +743,49 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'text'
             validate: 'omitempty,required'
-        # categories_include:
-        #   description: >
-        #     a list of categories that must be included in search results.
-        #   type: array
-        #   items:
-        #     $ref: '#/components/schemas/Category'
-        #   x-oapi-codegen-extra-tags:
-        #     form: 'categories_include'
-        #     validate: 'omitempty,dive,unique'
-        # categories_exclude:
-        #   description: >
-        #     a list of categories that must not be included in search results.
-        #   type: array
-        #   items:
-        #     $ref: '#/components/schemas/Category'
-        #   x-go-type-skip-optional-pointer: true
-        #   x-oapi-codegen-extra-tags:
-        #     form: 'categories_exclude'
-        #     validate: 'omitempty,dive,unique'
-        # authors_include:
-        #   description: >
-        #     a list of authors that must be included in search results.
-        #   type: array
-        #   items:
-        #     type: string
-        #   x-go-type-skip-optional-pointer: true
-        #   x-oapi-codegen-extra-tags:
-        #     form: 'authors_include'
-        #     validate: 'omitempty,dive,unique'
-        # authors_exclude:
-        #   description: >
-        #     a list of authors that must not be included in search results.
-        #   type: array
-        #   items:
-        #     type: string
-        #   x-go-type-skip-optional-pointer: true
-        #   x-oapi-codegen-extra-tags:
-        #     form: 'authors_exclude'
-        #     validate: 'omitempty,dive,unique'
-
+        categories_include:
+          description: >
+            a list of categories that must be included in search results.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'categories_include'
+        categories_exclude:
+          description: >
+            a list of categories that must not be included in search results.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'categories_exclude'
+        authors_include:
+          description: >
+            a list of authors that must be included in search results.
+          type: string
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            form: 'authors_include'
+        authors_exclude:
+          description: >
+            a list of authors that must not be included in search results.
+          type: string
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            form: 'authors_exclude'
+        published_within:
+          description: >
+            represents a time range within which the objects should be published
+          type: string
+          enum:
+            - last_hour
+            - last_12hours
+            - last_day
+            - last_week
+            - last_month
+            - all_time
+          default: all_time
+          x-oapi-codegen-extra-tags:
+            form: 'published_within'
+        timezone:
+          description: >
+            represents the timezone of the browser (i.e., user), used for calculating published_within offset.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'timezone'

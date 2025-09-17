@@ -53,16 +53,18 @@ type File interface {
 func DecodeForm[T FormInput](req *http.Request) (T, bool, error) {
 	var obj T
 	// Parse form values in request.
-	if err := req.ParseForm(); err != nil {
+	err := req.ParseForm()
+	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Decode the form values.
-	err := decoder.Decode(&obj, req.Form)
+	err = decoder.Decode(&obj, req.Form)
 	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Sanitise the object.
-	if err := obj.Sanitise(); err != nil {
+	err = obj.Sanitise()
+	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrSanitise, err)
 	}
 	// Validate the object.
@@ -80,16 +82,18 @@ func DecodeForm[T FormInput](req *http.Request) (T, bool, error) {
 func DecodeCustom[T FormInput](req *http.Request, decoderFunc func(params url.Values) (T, error)) (T, bool, error) {
 	var obj T
 	// Parse form values in request.
-	if err := req.ParseForm(); err != nil {
+	err := req.ParseForm()
+	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Call the custom decoder function.
-	obj, err := decoderFunc(req.Form)
+	obj, err = decoderFunc(req.Form)
 	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Sanitise the object.
-	if err := obj.Sanitise(); err != nil {
+	err = obj.Sanitise()
+	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrSanitise, err)
 	}
 	// Validate the object.
@@ -105,7 +109,8 @@ func DecodeCustom[T FormInput](req *http.Request, decoderFunc func(params url.Va
 // is returned.
 func DecodeMultipartFile[T File](req *http.Request, field string, file T) (T, bool, error) {
 	// Parse form values in request.
-	if err := req.ParseMultipartForm(defaultMaxSize); err != nil {
+	err := req.ParseMultipartForm(defaultMaxSize)
+	if err != nil {
 		return file, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Decode the form values.
@@ -132,7 +137,8 @@ func DecodeMultipartFile[T File](req *http.Request, field string, file T) (T, bo
 // is returned.
 func DecodeMultipartValue(req *http.Request, field string) (string, error) {
 	// Parse form values in request.
-	if err := req.ParseMultipartForm(defaultMaxSize); err != nil {
+	err := req.ParseMultipartForm(defaultMaxSize)
+	if err != nil {
 		return "", errors.Join(ErrDecode, err)
 	}
 	// Decode the form values.
@@ -142,7 +148,8 @@ func DecodeMultipartValue(req *http.Request, field string) (string, error) {
 // DecodeRequest will decode a request body into the given type.
 func DecodeRequest[T any](req *http.Request) (T, error) {
 	var obj T
-	if err := json.NewDecoder(req.Body).Decode(&obj); err != nil {
+	err := json.NewDecoder(req.Body).Decode(&obj)
+	if err != nil {
 		return obj, errors.Join(ErrDecode, err)
 	}
 
@@ -159,7 +166,8 @@ func DecodeRequest[T any](req *http.Request) (T, error) {
 // error is returned.
 func EncodeForm[T FormInput](obj T) (url.Values, error) {
 	// Sanitise the object.
-	if err := obj.Sanitise(); err != nil {
+	err := obj.Sanitise()
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrSanitise, err)
 	}
 	// Validate the object.

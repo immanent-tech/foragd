@@ -9,8 +9,10 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/angelofallars/htmx-go"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -85,7 +87,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		// Retrieve favorite data for this search
 		fav := user.GetFavorites().FilterByType(models.FavoriteTypeSearch).Get(id)
 		// Find subscriptions and articles that match search request.
-		subscriptions, articles, err := a.getSearchResults(req.Context(), request.Text)
+		subscriptions, articles, err := a.getSearchResults(req.Context(), request)
 		switch {
 		case err != nil:
 			msg := models.NewErrorMessage("Could not generate search results",
@@ -160,32 +162,70 @@ func (a *API) getSearchSuggestions(ctx context.Context, searchTerms string) ([]*
 }
 
 // getSearchResults will find suggestions for the global search from available subscriptions and articles.
-func (a *API) getSearchResults(ctx context.Context, searchTerms string) ([]*partials.Subscription, []*partials.Article, error) {
+func (a *API) getSearchResults(ctx context.Context, request *models.SearchRequest) ([]*partials.Subscription, []*partials.Article, error) {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
 	}
-	// Get article suggestions.
+	// Generate query
+	var loc *time.Location
+	if request.Timezone != "" {
+		loc, err = time.LoadLocation(request.Timezone)
+		if err != nil {
+			slogctx.FromCtx(ctx).Debug("Error parsing timezone in request.",
+				slog.Any("error", err))
+		}
+	} else {
+		loc, _ = time.LoadLocation("UTC")
+	}
+	var since time.Time
+	godump.Dump(request.PublishedWithin)
+	switch request.PublishedWithin {
+	case models.SearchRequestPublishedWithinLastHour:
+		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
+	case models.SearchRequestPublishedWithinLast12hours:
+		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), loc)
+	case models.SearchRequestPublishedWithinLastDay:
+		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), loc)
+		godump.Dump(since, err)
+	case models.SearchRequestPublishedWithinLastWeek:
+		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
+	case models.SearchRequestPublishedWithinLastMonth:
+		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
+	}
 	feedIDs := user.GetSubscriptionMetadata().GetFeedIDs()
 	itemsQuery := query.Bool(
 		query.Filter(
 			query.Terms("feed_id", feedIDs...),
+			query.Bool(
+				query.Should(
+					query.Since("published", since),
+					query.Since("updated", since),
+				),
+			),
 		),
 		// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
 		// search suggestion).
 		query.Must(
-			query.Bool(
-				query.Should(
-					query.MultiMatch(searchTerms, "title", "description", "content", "categories"),
-					query.Bool(
-						query.Should(
-							query.SearchAsYouType(searchTerms, "title"),
-							query.SearchAsYouType(searchTerms, "description"),
-							query.SearchAsYouType(searchTerms, "categories"),
-						),
-					),
-				),
-			),
+			query.SimpleQueryString(request.Text, "", "title", "description", "content", "categories"),
+			// query.Bool(
+			// 	query.Should(
+			// 		query.MultiMatch(request.Text, "title", "description", "content", "categories"),
+			// 		query.Bool(
+			// 			query.Should(
+			// 				query.SearchAsYouType(request.Text, "title"),
+			// 				query.SearchAsYouType(request.Text, "description"),
+			// 				query.SearchAsYouType(request.Text, "categories"),
+			// 			),
+			// 		),
+			// 	),
+			// ),
+			query.SimpleQueryString(request.CategoriesInclude, "OR|AND|PHRASE|PRECEDENCE", "categories"),
+			query.SimpleQueryString(request.AuthorsInclude, "OR|AND|PHRASE|PRECEDENCE", "authors", "contributors"),
+		),
+		query.MustNot(
+			query.SimpleQueryString(request.CategoriesExclude, "OR|AND|PHRASE|PRECEDENCE", "categories"),
+			query.SimpleQueryString(request.AuthorsExclude, "OR|AND|PHRASE|PRECEDENCE", "authors", "contributors"),
 		),
 	)
 	itemResults, _, err := a.DataAPI().SearchItems(ctx, itemsQuery, 10, &models.SortLastUpdatedDesc, nil)
@@ -203,7 +243,7 @@ func (a *API) getSearchResults(ctx context.Context, searchTerms string) ([]*part
 
 	// Generate subscriptions from data sources.
 	subscriptions := make([]*partials.Subscription, 0)
-	metadataMatches := user.GetSubscriptionMetadata().Search(searchTerms)
+	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
 	if len(metadataMatches) > 0 {
 		subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
 		if err != nil {

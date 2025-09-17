@@ -53,6 +53,16 @@ const (
 	ObjectCommonSourceTypeRSS      ObjectCommonSourceType = "RSS"
 )
 
+// Defines values for SearchRequestPublishedWithin.
+const (
+	SearchRequestPublishedWithinAllTime     SearchRequestPublishedWithin = "all_time"
+	SearchRequestPublishedWithinLast12hours SearchRequestPublishedWithin = "last_12hours"
+	SearchRequestPublishedWithinLastDay     SearchRequestPublishedWithin = "last_day"
+	SearchRequestPublishedWithinLastHour    SearchRequestPublishedWithin = "last_hour"
+	SearchRequestPublishedWithinLastMonth   SearchRequestPublishedWithin = "last_month"
+	SearchRequestPublishedWithinLastWeek    SearchRequestPublishedWithin = "last_week"
+)
+
 // Defines values for State.
 const (
 	StateRead   State = "read"
@@ -446,9 +456,30 @@ type ObjectCommonSourceType string
 
 // SearchRequest represents a search request by the user.
 type SearchRequest struct {
+	// AuthorsExclude a list of authors that must not be included in search results.
+	AuthorsExclude string `form:"authors_exclude" json:"authors_exclude,omitempty,omitzero"`
+
+	// AuthorsInclude a list of authors that must be included in search results.
+	AuthorsInclude string `form:"authors_include" json:"authors_include,omitempty,omitzero"`
+
+	// CategoriesExclude a list of categories that must not be included in search results.
+	CategoriesExclude string `form:"categories_exclude" json:"categories_exclude,omitempty,omitzero"`
+
+	// CategoriesInclude a list of categories that must be included in search results.
+	CategoriesInclude string `form:"categories_include" json:"categories_include,omitempty,omitzero"`
+
+	// PublishedWithin represents a time range within which the objects should be published
+	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within,omitempty,omitzero"`
+
 	// Text is the text to search.
 	Text string `form:"text" json:"text" validate:"omitempty,required"`
+
+	// Timezone represents the timezone of the browser (i.e., user), used for calculating published_within offset.
+	Timezone string `form:"timezone" json:"timezone,omitempty,omitzero"`
 }
+
+// SearchRequestPublishedWithin represents a time range within which the objects should be published
+type SearchRequestPublishedWithin string
 
 // State Tracks the state of an object.
 type State string

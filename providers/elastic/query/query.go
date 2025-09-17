@@ -19,9 +19,6 @@ type Option func(*types.Query)
 // NumberRangeOption is a functional option for a number range query.
 type NumberRangeOption func(*types.NumberRangeQuery)
 
-// BoolOption is a functional option for a boolean query.
-type BoolOption func(*types.BoolQuery)
-
 // MatchAll adds a "Match All" clause.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-all-query.html
@@ -177,34 +174,73 @@ func IntLessThan(value int64) NumberRangeOption {
 func NumberRange(field string, options ...NumberRangeOption) Option {
 	return func(query *types.Query) {
 		rangeQuery := &types.NumberRangeQuery{}
-
-		for _, option := range options {
+		for option := range slices.Values(options) {
 			option(rangeQuery)
 		}
-
 		if !reflect.DeepEqual(rangeQuery, &types.NumberRangeQuery{}) {
 			if query.Range == nil {
 				query.Range = make(map[string]types.RangeQuery)
 			}
-
 			query.Range[field] = rangeQuery
 		}
 	}
 }
 
-func SearchAsYouType(query string, field string) Option {
-	return func(q *types.Query) {
+// SimpleQueryString constructs a simple query string query and adds it to the query.
+//
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-simple-query-string-query
+func SimpleQueryString(text, flags string, fields ...string) Option {
+	return func(query *types.Query) {
+		// Don't add the query if the text is the zero value.
+		if text == "" {
+			return
+		}
+		query.SimpleQueryString = types.NewSimpleQueryStringQuery()
+		query.SimpleQueryString.Fields = fields
+		query.SimpleQueryString.Query = text
+		if flags != "" {
+			query.SimpleQueryString.Flags = flags
+		}
+	}
+}
+
+// SearchAsYouType constructs a search-as-you-type query for suggesting text as the user types.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/search-as-you-type
+func SearchAsYouType(text string, field string) Option {
+	return func(query *types.Query) {
 		mmq := types.NewMultiMatchQuery()
-		mmq.Query = query
+		mmq.Query = text
 		mmq.Type = &textquerytype.Boolprefix
 		mmq.Fields = []string{
 			field + ".search",
 			field + ".search._2gram",
 			field + ".search._3gram",
 		}
-		q.MultiMatch = mmq
+		query.MultiMatch = mmq
 	}
 }
+
+// Bool constructs a bool query with the given query options and adds it to
+// the query.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html
+func Bool(options ...BoolOption) Option {
+	return func(query *types.Query) {
+		boolQuery := &types.BoolQuery{}
+
+		for _, option := range options {
+			option(boolQuery)
+		}
+
+		if !reflect.DeepEqual(boolQuery, &types.BoolQuery{}) {
+			query.Bool = boolQuery
+		}
+	}
+}
+
+// BoolOption is a functional option for a boolean query.
+type BoolOption func(*types.BoolQuery)
 
 // Filter sets the given query options as the "filter" clause of the bool query.
 func Filter(queryOptions ...Option) BoolOption {
@@ -299,24 +335,6 @@ func BoolQueryName(name string) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		if name != "" {
 			boolQueryClause.QueryName_ = &name
-		}
-	}
-}
-
-// Bool constructs a bool query with the given query options and adds it to
-// the query.
-//
-// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html
-func Bool(options ...BoolOption) Option {
-	return func(query *types.Query) {
-		boolQuery := &types.BoolQuery{}
-
-		for _, option := range options {
-			option(boolQuery)
-		}
-
-		if !reflect.DeepEqual(boolQuery, &types.BoolQuery{}) {
-			query.Bool = boolQuery
 		}
 	}
 }

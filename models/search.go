@@ -26,6 +26,10 @@ func (r *SearchRequest) Valid() (bool, error) {
 // Sanitise will sanitise the search request data.
 func (r *SearchRequest) Sanitise() error {
 	r.Text = sanitization.SanitizeString(r.Text)
+	r.AuthorsExclude = sanitization.SanitizeString(r.AuthorsExclude)
+	r.AuthorsInclude = sanitization.SanitizeString(r.AuthorsInclude)
+	r.CategoriesExclude = sanitization.SanitizeString(r.CategoriesExclude)
+	r.CategoriesInclude = sanitization.SanitizeString(r.CategoriesInclude)
 	return nil
 }
 
