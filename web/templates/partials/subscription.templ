@@ -41,15 +41,11 @@ templ (s *Subscription) Card() {
 					</div>
 				</div>
 			</div>
-			<div class="px-4 py-5 sm:p-6">
-				if s.GetDescription() != "" {
+			if s.GetDescription() != "" {
+				<div class="px-4 py-5 sm:p-6">
 					<p class="text-sm/6 text-ellipsis text-pretty line-clamp-2 sm:line-clamp-4">{ s.GetDescription() }</p>
-				}
-			</div>
-			<div class="px-4 py-4 sm:px-6 text-base-content/80 text-sm/6">
-				Updated&nbsp;
-				@ShowTimestamp(s.GetUpdatedDate())
-			</div>
+				</div>
+			}
 		</div>
 	</li>
 }
