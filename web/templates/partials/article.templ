@@ -62,6 +62,11 @@ templ (a *Article) Card(view models.View) {
 				}
 			</div>
 			// Body.
+			<div class="px-4 sm:px-6">
+				<p class="text-xs/4 text-base-content/80 italic text-ellipsis">
+					{ strings.Join(a.GetAuthors(),",") }
+				</p>
+			</div>
 			<div class="px-4 py-5 sm:p-6">
 				{{ text, err := a.ExtractText() }}
 				if err == nil {
@@ -72,15 +77,15 @@ templ (a *Article) Card(view models.View) {
 			</div>
 			// Footer.
 			<div class="px-4 py-4 sm:px-6">
-				<div class="flex">
-					<div class="flex flex-none text-sm/6 gap-x-4 items-center">
-						<p class="text-base-content/80 capitalize">
+				<div class="flex items-center">
+					<div class="flex flex-1">
+						<p class="text-xs/4 text-base-content/80 capitalize">
 							@ShowTimestamp(a.GetUpdatedDate())
 						</p>
-						<p class="text-base-content/80 italic">
-							{ strings.Join(a.GetAuthors(),",") }
-						</p>
-					</div> @articleActions(a.Article, view)
+					</div>
+					<div class="flex flex-1">
+						@articleActions(a.Article, view)
+					</div>
 				</div>
 			</div>
 		</div>
@@ -191,7 +196,7 @@ templ ViewArticle(article *models.Article) {
 						<p class="text-base-content/80 capitalize">
 							@ShowTimestamp(article.GetUpdatedDate())
 						</p>
-						<p class="text-base-content/80 italic">
+						<p class="text-base-content/80 truncate italic">
 							{ strings.Join(article.GetAuthors(),",") }
 						</p>
 					</div>
