@@ -91,13 +91,6 @@
   .input-hint-error {
     @apply text-error py-2 text-xs/4 font-semibold;
   }
-  /* input-text is the style applied to input boxes */
-  .input-text {
-    @apply input input-primary bg-base-content/10;
-  }
-  .input-text-error {
-    @apply input input-error bg-base-content/10;
-  }
 
   .card-base {
     @apply bg-base-200 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border shadow-sm dark:shadow-none;

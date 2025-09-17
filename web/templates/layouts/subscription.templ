@@ -72,7 +72,15 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 					<label for="username" class="block text-sm/6 font-medium">Nickname</label>
 					<div class="mt-2 sm:col-span-2 sm:mt-0">
-						<input id="nickname" required type="text" name="user_nickname" value={ request.GetNickname() } placeholder="My Subscription" class="input-text"/>
+						<input
+							id="nickname"
+							required
+							type="text"
+							name="user_nickname"
+							value={ request.GetNickname() }
+							placeholder="My Subscription"
+							class="input input-primary bg-base-content/10"
+						/>
 					</div>
 				</div>
 			</form>
@@ -156,7 +164,15 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 						<p id="url-hint" class="mt-3 text-sm/6 text-base-content/60">Required. The feed's URL or website.</p>
 					</div>
 					<div class="mt-2 sm:col-span-2 sm:mt-0">
-						<input id="url" required type="url" name="url" value={ request.URL } placeholder="https://my-favorite-site/feed" class="input-text w-full"/>
+						<input
+							id="url"
+							required
+							type="url"
+							name="url"
+							value={ request.URL }
+							placeholder="https://my-favorite-site/feed"
+							class="input input-primary bg-base-content/10 w-full"
+						/>
 						if request.URLErr != nil {
 							<p class="text-error py-2 text-xs/4 font-semibold">Error: { request.URLErr.Error() }</p>
 						}
@@ -168,7 +184,14 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 						<p id="nickname-hint" class="mt-3 text-sm/6 text-base-content/60">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
 					</div>
 					<div class="mt-2 sm:col-span-2 sm:mt-0">
-						<input id="nickname" type="text" name="user_nickname" value={ request.Nickname } placeholder="My cool subscription" class={ templ.KV("input-text",request.NicknameErr == nil), templ.KV("input-text-error",request.NicknameErr !=nil) }/>
+						<input
+							id="nickname"
+							type="text"
+							name="user_nickname"
+							value={ request.Nickname }
+							placeholder="My cool subscription"
+							class={ templ.KV("input input-primary bg-base-content/10",request.NicknameErr == nil), templ.KV("input input-error bg-base-content/10",request.NicknameErr !=nil) }
+						/>
 						if request.NicknameErr != nil {
 							<p class="text-error py-2 text-xs/4 font-semibold">{ request.NicknameErr.Error() }</p>
 						}
