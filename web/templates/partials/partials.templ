@@ -18,6 +18,7 @@ templ ShowTimestamp(timestamp time.Time) {
 	<human-time datetime={ timestamp.Format("2006-01-02T15:04:05-0700") }>{ timestamp.Format("2006-01-02 15:04:05 -0700") }</human-time>
 }
 
+// PageHeader renders the given title in a style appropriate for the page header.
 templ PageHeader(title string) {
 	<div class="md:flex md:items-center md:justify-between">
 		<div class="min-w-0 flex-1">
@@ -29,4 +30,11 @@ templ PageHeader(title string) {
 			// <button type="button" class="ml-3 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:shadow-none dark:hover:bg-indigo-400 dark:focus-visible:outline-indigo-400">Publish</button>
 		</div>
 	</div>
+}
+
+// PageDescription renders the given description in a style appropriate to use as a description on the page.
+templ PageDescription(description string) {
+	<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+		{ description }
+	</p>
 }

@@ -557,8 +557,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 		switch {
 		// GET: show import modal.
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export":
-			template := layouts.NewExportPage().Content()
-			renderPage(layouts.Drawer(user, template), "Export Subscriptions - Go Feed Me").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, layouts.ExportSubscriptions()), "Export Subscriptions - Go Feed Me").ServeHTTP(res, req)
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":
 			// Get all subscriptions.
 			subscriptions, err := a.getSubscriptions(req.Context())

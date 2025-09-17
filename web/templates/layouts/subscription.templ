@@ -12,106 +12,100 @@ import (
 )
 
 templ EditSubscription(request *models.EditSubscriptionRequest) {
-	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-		<div class="mx-auto max-w-3xl">
-			<div class="space-y-12 sm:space-y-16">
-				<div>
-					<h2 class="text-base/7 font-semibold">Editing subscription: { request.GetNickname() }</h2>
-					if request.HasError() {
-						<div role="alert" class="alert alert-error alert-outline mt-12">
-							<div class="px-4 py-5 sm:p-6 space-y-4">
-								<span class="gap-y-2">
-									<p class="font-semibold text-base">Invalid Details</p>
-									<p class="text-sm">There is a problem with the details. Please check and try again.</p>
-								</span>
-							</div>
+	@partials.MainContainer() {
+		@partials.PageHeader("Editing Subscription")
+		if request.HasError() {
+			<div role="alert" class="alert alert-error alert-outline mt-12">
+				<div class="px-4 py-5 sm:p-6 space-y-4">
+					<span class="gap-y-2">
+						<p class="font-semibold text-base">Invalid Details</p>
+						<p class="text-sm">There is a problem with the details. Please check and try again.</p>
+					</span>
+				</div>
+			</div>
+		}
+		<fieldset class="fieldset border-base-300 rounded-box border p-4">
+			<legend class="fieldset-legend text-base/7">Settings</legend>
+			<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
+				<div class="flex items-center">
+					<label class="block text-sm/6 font-medium">
+						<input
+							type="checkbox"
+							if request.ShowFullArticleContent {
+								checked="checked"
+							}
+							name="show_full_article_content"
+							class="toggle toggle-sm toggle-primary"
+						/>
+						Always show full article content
+					</label>
+					<div class="dropdown dropdown-end">
+						<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-info">
+								<path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"></path>
+							</svg>
 						</div>
-					}
-					<fieldset class="fieldset border-base-300 rounded-box border p-4">
-						<legend class="fieldset-legend text-base/7">Settings</legend>
-						<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
-							<div class="flex items-center">
-								<label class="label input-label">
-									<input
-										type="checkbox"
-										if request.ShowFullArticleContent {
-											checked="checked"
-										}
-										name="show_full_article_content"
-										class="toggle toggle-sm toggle-primary"
-									/>
-									Always show full article content
-								</label>
-								<div class="dropdown dropdown-end">
-									<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info">
-										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-info">
-											<path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"></path>
-										</svg>
-									</div>
-									<div
-										tabindex="0"
-										class="card card-sm dropdown-content bg-base-100 rounded-box z-1 w-64 shadow-sm"
-									>
-										<div tabindex="0" class="card-body">
-											<p>If articles in the subscription are only showing a summary, set this toggle to attempt to fetch the full content from the website.</p>
-											<p>Note: fetching full content is based on a heuristic that tries to locate the article content on the page. It does not always produce optimal results.</p>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</fieldset>
-					<fieldset class="fieldset border-base-300 rounded-box border p-4">
-						<legend class="fieldset-legend text-base/7">Customisation</legend>
-						<form
-							id="edit-subscription"
-							hx-put={ "/user/subscription/edit/" + request.GetID() }
-							hx-include="[name='user_categories'],[name='show_full_article_content']"
-							hx-target={ partials.ContentID.Target() }
-							hx-target-error={ partials.ContentID.Target() }
-							hx-indicator="#processing"
+						<div
+							tabindex="0"
+							class="card card-sm dropdown-content bg-base-100 rounded-box z-1 w-64 shadow-sm"
 						>
-							<input type="hidden" name="subscription_id" value={ request.GetID() }/>
-							<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-								<label for="username" class="input-label">Nickname</label>
-								<div class="mt-2 sm:col-span-2 sm:mt-0">
-									<input id="nickname" required type="text" name="user_nickname" value={ request.GetNickname() } placeholder="My Subscription" class="input-text"/>
-								</div>
-							</div>
-						</form>
-						<div>
-							@partials.AddCategoryForm(request.SuggestedCategories, templ.Attributes{
-								"hx-post":     "/user/subscription/category",
-								"hx-push-url": "false",
-								"hx-target":   "#current-categories",
-								"hx-swap":     "beforeend",
-								"hx-trigger":  "change,submit",
-							})
-							// Show current categories.
-							<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-								<label class="input-label">Current Categories</label>
-								<div class="mt-2 sm:col-span-2 sm:mt-0">
-									@partials.ManageCategories(request.GetCategories())
-								</div>
+							<div tabindex="0" class="card-body">
+								<p>If articles in the subscription are only showing a summary, set this toggle to attempt to fetch the full content from the website.</p>
+								<p>Note: fetching full content is based on a heuristic that tries to locate the article content on the page. It does not always produce optimal results.</p>
 							</div>
 						</div>
-					</fieldset>
+					</div>
 				</div>
 			</div>
-			<div class="mt-6 flex items-center justify-end gap-x-6">
-				<div id="processing" class="htmx-indicator">
-					Processing...
-					<span class="loading loading-spinner loading-md"></span>
+		</fieldset>
+		<fieldset class="fieldset border-base-300 rounded-box border p-4">
+			<legend class="fieldset-legend text-base/7">Customisation</legend>
+			<form
+				id="edit-subscription"
+				hx-put={ "/user/subscription/edit/" + request.GetID() }
+				hx-include="[name='user_categories'],[name='show_full_article_content']"
+				hx-target={ partials.ContentID.Target() }
+				hx-target-error={ partials.ContentID.Target() }
+				hx-indicator="#processing"
+			>
+				<input type="hidden" name="subscription_id" value={ request.GetID() }/>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+					<label for="username" class="block text-sm/6 font-medium">Nickname</label>
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						<input id="nickname" required type="text" name="user_nickname" value={ request.GetNickname() } placeholder="My Subscription" class="input-text"/>
+					</div>
 				</div>
-				<button type="button" onclick="history.back()" class="btn btn-primary">Back</button>
-				<button
-					type="submit"
-					form="edit-subscription"
-					class="btn btn-primary"
-				>Save</button>
+			</form>
+			<div>
+				@partials.AddCategoryForm(request.SuggestedCategories, templ.Attributes{
+					"hx-post":     "/user/subscription/category",
+					"hx-push-url": "false",
+					"hx-target":   "#current-categories",
+					"hx-swap":     "beforeend",
+					"hx-trigger":  "change,submit",
+				})
+				// Show current categories.
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+					<label class="input-label">Current Categories</label>
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						@partials.ManageCategories(request.GetCategories())
+					</div>
+				</div>
 			</div>
+		</fieldset>
+		<div class="mt-6 flex items-center justify-end gap-x-6">
+			<div id="processing" class="htmx-indicator">
+				Processing...
+				<span class="loading loading-spinner loading-md"></span>
+			</div>
+			<button type="button" onclick="history.back()" class="btn btn-primary">Back</button>
+			<button
+				type="submit"
+				form="edit-subscription"
+				class="btn btn-primary"
+			>Save</button>
 		</div>
-	</main>
+	}
 }
 
 templ EditSubscriptionSuccessNotification(metadata *models.SubscriptionMetadata) {
@@ -135,89 +129,85 @@ templ EditSubscriptionSuccessNotification(metadata *models.SubscriptionMetadata)
 
 // AddSubscription is a page for adding a new subscription.
 templ AddSubscription(request *models.SubscriptionRequest) {
-	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-16">
-		<div class="space-y-12 sm:space-y-16 pb-16">
-			<div>
-				@partials.PageHeader("Add a subscription")
-				if request.HasError() {
-					<div role="alert" class="alert alert-error alert-outline mt-12">
-						<div class="px-4 py-5 sm:p-6 space-y-4">
-							<span class="gap-y-2">
-								<p class="font-semibold text-base">Invalid Details</p>
-								<p class="text-sm">There is a problem with the details. Please check and try again.</p>
-							</span>
-						</div>
-					</div>
-				}
-				<fieldset class="fieldset border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0">
-					<form
-						id="add-subscription"
-						hx-post="/user/subscription/add"
-						hx-target={ partials.ContentID.Target() }
-						hx-include="[name='user_categories']"
-						hx-indicator="#processing"
-						hx-on::after-request="if(event.detail.successful) this.reset()"
-					>
-						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
-							<div>
-								<label for="username" class="block text-sm/6 font-medium">URL</label>
-								<p id="url-hint" class="mt-3 text-sm/6 text-base-content/60">Required. The feed's URL or website.</p>
-							</div>
-							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input id="url" required type="url" name="url" value={ request.URL } placeholder="https://my-favorite-site/feed" class="input-text w-full"/>
-								if request.URLErr != nil {
-									<p class="text-error py-2 text-xs/4 font-semibold">Error: { request.URLErr.Error() }</p>
-								}
-							</div>
-						</div>
-						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
-							<div>
-								<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
-								<p id="nickname-hint" class="mt-3 text-sm/6 text-base-content/60">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
-							</div>
-							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input id="nickname" type="text" name="user_nickname" value={ request.Nickname } placeholder="My cool subscription" class={ templ.KV("input-text",request.NicknameErr == nil), templ.KV("input-text-error",request.NicknameErr !=nil) }/>
-								if request.NicknameErr != nil {
-									<p class="text-error py-2 text-xs/4 font-semibold">{ request.NicknameErr.Error() }</p>
-								}
-							</div>
-						</div>
-					</form>
-					<div>
-						@partials.AddCategoryForm(nil, templ.Attributes{
-							"hx-post":     "/user/subscription/category",
-							"hx-push-url": "false",
-							"hx-target":   "#current-categories",
-							"hx-swap":     "beforeend",
-							"hx-trigger":  "change,submit",
-						})
-						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
-							<label class="block text-sm/6 font-medium">Current Categories</label>
-							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								@partials.ManageCategories(request.Categories)
-							</div>
-						</div>
-					</div>
-				</fieldset>
-				<div class="flex items-center justify-end gap-x-6">
-					<div id="processing" class="htmx-indicator">
-						Processing...
-						<span class="loading loading-spinner loading-md"></span>
-					</div>
-					<button
-						type="button"
-						onclick="history.back()"
-						class="btn btn-primary"
-					>Back</button>
-					<button
-						type="submit"
-						form="add-subscription"
-						class="btn btn-primary"
-					>Add</button>
+	@partials.MainContainer() {
+		@partials.PageHeader("Add a subscription")
+		if request.HasError() {
+			<div role="alert" class="alert alert-error alert-outline mt-12">
+				<div class="px-4 py-5 sm:p-6 space-y-4">
+					<span class="gap-y-2">
+						<p class="font-semibold text-base">Invalid Details</p>
+						<p class="text-sm">There is a problem with the details. Please check and try again.</p>
+					</span>
 				</div>
 			</div>
+		}
+		<fieldset class="fieldset border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0">
+			<form
+				id="add-subscription"
+				hx-post="/user/subscription/add"
+				hx-target={ partials.ContentID.Target() }
+				hx-include="[name='user_categories']"
+				hx-indicator="#processing"
+				hx-on::after-request="if(event.detail.successful) this.reset()"
+			>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
+					<div>
+						<label for="username" class="block text-sm/6 font-medium">URL</label>
+						<p id="url-hint" class="mt-3 text-sm/6 text-base-content/60">Required. The feed's URL or website.</p>
+					</div>
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						<input id="url" required type="url" name="url" value={ request.URL } placeholder="https://my-favorite-site/feed" class="input-text w-full"/>
+						if request.URLErr != nil {
+							<p class="text-error py-2 text-xs/4 font-semibold">Error: { request.URLErr.Error() }</p>
+						}
+					</div>
+				</div>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
+					<div>
+						<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
+						<p id="nickname-hint" class="mt-3 text-sm/6 text-base-content/60">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
+					</div>
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						<input id="nickname" type="text" name="user_nickname" value={ request.Nickname } placeholder="My cool subscription" class={ templ.KV("input-text",request.NicknameErr == nil), templ.KV("input-text-error",request.NicknameErr !=nil) }/>
+						if request.NicknameErr != nil {
+							<p class="text-error py-2 text-xs/4 font-semibold">{ request.NicknameErr.Error() }</p>
+						}
+					</div>
+				</div>
+			</form>
+			<div>
+				@partials.AddCategoryForm(nil, templ.Attributes{
+					"hx-post":     "/user/subscription/category",
+					"hx-push-url": "false",
+					"hx-target":   "#current-categories",
+					"hx-swap":     "beforeend",
+					"hx-trigger":  "change,submit",
+				})
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
+					<label class="block text-sm/6 font-medium">Current Categories</label>
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						@partials.ManageCategories(request.Categories)
+					</div>
+				</div>
+			</div>
+		</fieldset>
+		<div class="flex items-center justify-end gap-x-6">
+			<div id="processing" class="htmx-indicator">
+				Processing...
+				<span class="loading loading-spinner loading-md"></span>
+			</div>
+			<button
+				type="button"
+				onclick="history.back()"
+				class="btn btn-primary"
+			>Back</button>
+			<button
+				type="submit"
+				form="add-subscription"
+				class="btn btn-primary"
+			>Add</button>
 		</div>
-	</main>
+	}
 }
 
 // AddSubscriptionSuccess displays success feedback and navigation options on successful addition of a subscription.
@@ -254,47 +244,45 @@ templ AddSubscriptionSuccess(result *models.AddSubscriptionResult) {
 
 // ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
 templ ImportSubscriptions() {
-	<div class="space-y-12 sm:space-y-16">
-		<div>
-			<h2 class="text-base/7 font-semibold">Import subscriptions</h2>
-			<p class="mt-1 max-w-2xl text-sm/6 text-base-content/80">You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.</p>
-			<div class="form-fieldset">
-				<form
-					id="import"
-					hx-encoding="multipart/form-data"
-					hx-post="/user/import"
-					hx-target="#import-results"
-					hx-indicator="#processing"
-				>
-					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-						<label for="source" class="input-label">OPML file</label>
-						<div class="mt-2 sm:col-span-2 sm:mt-0">
-							<fieldset class="fieldset">
-								<input id="source" type="file" required name="source" class="file-input file-input-primary"/>
-								<span class="validator-hint hidden">Make sure the file is a valid OPML file.</span>
-							</fieldset>
-						</div>
+	@partials.MainContainer() {
+		@partials.PageHeader("Import Subscriptions")
+		@partials.PageDescription("You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.")
+		<div class="form-fieldset">
+			<form
+				id="import"
+				hx-encoding="multipart/form-data"
+				hx-post="/user/import"
+				hx-target="#import-results"
+				hx-indicator="#processing"
+			>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+					<label for="source" class="block text-sm/6 font-medium">OPML file</label>
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						<fieldset class="fieldset">
+							<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10"/>
+							<span class="validator-hint hidden">Make sure the file is a valid OPML file.</span>
+						</fieldset>
 					</div>
-					<div class="mt-6 flex items-center justify-end gap-x-6">
-						<div id="processing" class="htmx-indicator">
-							Processing...
-							<span class="loading loading-spinner loading-md"></span>
-						</div>
-						<button type="button" onclick="history.back()" class="btn btn-primary">
-							Back
-						</button>
-						<button
-							type="submit"
-							class="btn btn-primary"
-						>
-							Import
-						</button>
+				</div>
+				<div class="mt-6 flex items-center justify-end gap-x-6">
+					<div id="processing" class="htmx-indicator">
+						Processing...
+						<span class="loading loading-spinner loading-md"></span>
 					</div>
-				</form>
-			</div>
+					<button type="button" onclick="history.back()" class="btn btn-primary">
+						Back
+					</button>
+					<button
+						type="submit"
+						class="btn btn-primary"
+					>
+						Import
+					</button>
+				</div>
+			</form>
 		</div>
-	</div>
-	<div id="import-results" class="space-y-4"></div>
+		<div id="import-results" class="space-y-4"></div>
+	}
 }
 
 type AddSubscriptionResults map[*models.SubscriptionRequest]*models.AddSubscriptionResult
@@ -315,8 +303,8 @@ func (r AddSubscriptionResults) GetFailed() []*models.AddSubscriptionResult {
 templ ImportResults(results AddSubscriptionResults) {
 	{{ successfulResults := results.GetSuccessful() }}
 	{{ failedResults := results.GetFailed() }}
-	<h2 class="text-base/7 font-semibold">Import Results</h2>
-	<p class="text-sm italic">Imported: { strconv.Itoa(len(successfulResults)) } Failed: { strconv.Itoa(len(failedResults)) }</p>
+	@partials.PageHeader("Import Results")
+	@partials.PageDescription("Imported: " + strconv.Itoa(len(successfulResults)) + " Failed: " + strconv.Itoa(len(failedResults)))
 	<button
 		class="btn btn-primary"
 		hx-get="/subscriptions"
@@ -369,37 +357,28 @@ templ ImportResults(results AddSubscriptionResults) {
 	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" href="#">Back to top</button>
 }
 
-// ExportPage is a page for exporting subscriptions via an OPML file.
-type ExportPage struct{}
-
-func NewExportPage() *ExportPage {
-	return &ExportPage{}
-}
-
-templ (page *ExportPage) Content() {
-	<div class="mt-8 max-w-prose">
-		<div class="space-y-12 sm:space-y-16">
-			<div>
-				<h2 class="text-base/7 font-semibold">Export subscriptions</h2>
-				<p class="mt-1 text-sm/6">You can export your current subscription to an OPML file, which all good feed readers can import.</p>
-				<div class="mt-10 space-y-8">
-					<div class="mt-6 flex items-center justify-end gap-x-6">
-						<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
-						<a
-							role="button"
-							class="btn btn-primary"
-							href="/user/export/opml"
-							download
-						>
-							Export
-						</a>
-					</div>
-				</div>
+templ ExportSubscriptions() {
+	@partials.MainContainer() {
+		@partials.PageHeader("Export subscriptions")
+		@partials.PageDescription("You can export your current subscription to an OPML file, which all good feed readers can import.")
+		<div class="mt-10 space-y-8">
+			<div class="mt-6 flex items-center justify-end gap-x-6">
+				<button type="button" onclick="history.back()" class="btn btn-primary">
+					Back
+				</button>
+				<a
+					role="button"
+					class="btn btn-primary"
+					href="/user/export/opml"
+					download
+				>
+					Export
+				</a>
 			</div>
 		</div>
 		<center id="processing" class="htmx-indicator">
 			Processing, this could take a few minutes...
 			<span class="loading loading-spinner loading-md"></span>
 		</center>
-	</div>
+	}
 }
