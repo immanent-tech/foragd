@@ -34,7 +34,7 @@ func (f *OPMLFile) Valid() (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("%w: %w", ErrInvalidMimeType, err)
 	}
-	if mediaType != types.MimeTypeOPML {
+	if mediaType != types.MimeTypeOPML && mediaType != "application/octet-stream" {
 		return false, fmt.Errorf("%w: got %s, want "+types.MimeTypeOPML, ErrInvalidMimeType, mediaType)
 	}
 	return true, nil
