@@ -18,6 +18,11 @@ type FragmentKey string
 // DefaultPageTitle is the default <title> tag value if none is set.
 var DefaultPageTitle = config.AppName + ": " + config.AppDescription
 
+// GeneratePageTitle generates an appropriate page title string by combining the input with the app name.
+func GeneratePageTitle(title string) string {
+	return title + " " + config.AppName
+}
+
 // SetPageTitle sets (or updates) the page's <title></title> tag. If the title is an empty string, a default title will
 // be set instead.
 templ SetPageTitle(title string) {

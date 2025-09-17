@@ -31,6 +31,7 @@ import (
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 	"github.com/immanent-tech/go-feed-me/server/forms"
 	"github.com/immanent-tech/go-feed-me/server/session"
+	"github.com/immanent-tech/go-feed-me/web/templates"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
@@ -558,7 +559,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 		switch {
 		// GET: show import modal.
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export":
-			renderPage(layouts.Drawer(user, layouts.ExportSubscriptions()), "Export Subscriptions - Go Feed Me").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, layouts.ExportSubscriptions()), templates.GeneratePageTitle("Export Subscriptions")).ServeHTTP(res, req)
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":
 			// Get all subscriptions.
 			subscriptions, err := a.getSubscriptions(req.Context())
@@ -580,8 +581,9 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 				))
 			}
 			// Generate the opml file from the outlines.
+			title := config.AppName + " subscriptions export for " + user.GetNickname()
 			opmlExport := opml.NewOPML(
-				opml.WithTitle("Go Feed Me Export"),
+				opml.WithTitle(title),
 				opml.WithOutlines(outlines...),
 			)
 			// Marshal the opml file and convert to a byte reader.
@@ -597,8 +599,9 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			}
 			// Serve the opml content via http.ServeContent.
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
-			res.Header().Set("Content-Disposition", `attachment; filename="`+config.AppName+`-Export.opml"`)
-			http.ServeContent(res, req, "go-feed-me-export.opml", time.Now(), bytes.NewReader(data))
+			filename := config.AppName + "-Export.opml"
+			res.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
+			http.ServeContent(res, req, filename, time.Now(), bytes.NewReader(data))
 		}
 		return nil
 	})).ServeHTTP
