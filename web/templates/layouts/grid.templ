@@ -40,7 +40,7 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 }
 
 templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination) {
-	<main class="px-4 pt-8">
+	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 		// Hidden content filters.
 		<div id="content-filters" class="hidden">
 			for name, value := range filters.Parameters() {
@@ -102,7 +102,7 @@ templ SubscriptionsList(subscriptions models.SubscriptionsSlice, filters *models
 }
 
 templ ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pagination models.Pagination) {
-	<main class="px-4 pt-8">
+	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 		<div id="content-filters" class="hidden">
 			for name, value := range filters.Parameters() {
 				<input type="hidden" name={ name } value={ value }/>

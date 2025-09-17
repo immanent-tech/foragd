@@ -51,7 +51,7 @@ templ Drawer(user *models.User, content templ.Component) {
 	</div>
 	<div class="lg:pl-72">
 		@Header(user)
-		<div id={ partials.ContentID.String() } class="mx-auto" hx-indicator="#content-loading">
+		<div id={ partials.ContentID.String() } hx-indicator="#content-loading">
 			@templ.Fragment(templates.FragmentContent) {
 				@content
 			}
