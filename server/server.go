@@ -25,7 +25,6 @@ import (
 	"github.com/immanent-tech/go-feed-me/config"
 	"github.com/immanent-tech/go-feed-me/providers/auth0"
 	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/server/auth"
 	"github.com/immanent-tech/go-feed-me/server/handlers"
 	"github.com/immanent-tech/go-feed-me/server/middlewares"
 	"github.com/immanent-tech/go-feed-me/server/session"
@@ -43,7 +42,8 @@ const (
 type Server struct {
 	*http.Server
 
-	static embed.FS
+	static  embed.FS
+	authAPI *auth0.Authenticator
 }
 
 // NewServer sets up a new server.
@@ -64,13 +64,19 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 
 		ServerConfig.Secret = secret
 	}
+	// Set up authenticator
+	authapi, err := auth0.New(ctx)
+	if err != nil {
+		return svr, fmt.Errorf("unable start server: %w", err)
+	}
+	svr.authAPI = authapi
 	// Set up handlers api.
 	api, err := setupAPI(ctx)
 	if err != nil {
 		return svr, fmt.Errorf("unable to set up handlers api: %w", err)
 	}
 	// Set up routes.
-	router := setupRoutes(api, static)
+	router := svr.setupRoutes(api, static)
 
 	svr.Server = &http.Server{
 		Handler:           router,
@@ -126,11 +132,6 @@ func (s *Server) Start(ctx context.Context) error {
 
 // SetupAPI creates the object containing the various backend APIs needed by handlers.
 func setupAPI(ctx context.Context) (*handlers.API, error) {
-	// Load the auth0UserAPI backend.
-	auth0UserAPI, err := auth0.NewUserAPI(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to set up auth0 api: %w", err)
-	}
 	// Load the Elastic backend
 	elasticAPI, err := elastic.Connect(ctx)
 	if err != nil {
@@ -141,20 +142,13 @@ func setupAPI(ctx context.Context) (*handlers.API, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to set up session api: %w", err)
 	}
-	// Set up authentication manager.
-	authAPI, err := auth.NewAuthenticator(ctx, ServerConfig.Host, ServerConfig.Port)
-	if err != nil {
-		return nil, fmt.Errorf("unable to set up authentication api: %w", err)
-	}
 	return &handlers.API{
-		User:    auth0UserAPI,
 		Elastic: elasticAPI,
-		Auth:    authAPI,
 	}, nil
 }
 
 //nolint:funlen
-func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
+func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 	// Set up a new chi router.
 	router := chi.NewRouter()
 	router.Use(
@@ -189,9 +183,9 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
 		)
-		r.Get("/login/{provider}", handler.Login())
-		r.Get("/login/{provider}/callback", handler.LoginCallback())
-		r.Get("/logout", handlers.Logout())
+		r.Get("/login/{provider}", handlers.Login(s.authAPI))
+		r.Get("/login/{provider}/callback", handlers.LoginCallback(s.authAPI, handler.Elastic))
+		r.Get("/logout", handlers.Logout(s.authAPI))
 	})
 
 	// Authenticated routes.
@@ -200,7 +194,7 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			middlewares.SetupHTMX,
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
-			middlewares.RequireUserAuth(handler.DataAPI(), handler.AuthAPI()),
+			middlewares.RequireUserAuth(handler.DataAPI()),
 		)
 		r.Get("/home", handler.Home())
 		r.With(middlewares.RequireHTMX).Get("/search/suggestions", handler.GetSearchSuggestions())

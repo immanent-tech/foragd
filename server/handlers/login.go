@@ -5,18 +5,24 @@ package handlers
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
+	"golang.org/x/oauth2"
 
 	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/providers/auth0"
 	"github.com/immanent-tech/go-feed-me/providers/elastic"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
+	"github.com/immanent-tech/go-feed-me/server/session"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
@@ -31,63 +37,81 @@ func LoginSelect() http.HandlerFunc {
 	}).ServeHTTP
 }
 
+type authAPI interface {
+	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
+	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
+	VerifyIDToken(ctx context.Context, token *oauth2.Token) (*oidc.IDToken, error)
+}
+
 // Login handles login requests.
-func (a *API) Login() http.HandlerFunc {
+func Login(authAPI authAPI) http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		provider := chi.URLParam(req, "provider")
-		a.Auth.SetProviderName(req.Context(), provider)
-		err := a.Auth.CompleteUserAuth(res, req)
+		state, err := generateRandomState()
 		if err != nil {
-			url, err := a.Auth.GetAuthURL(req)
-			if err != nil {
-				template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
-				renderPage(template, "").ServeHTTP(res, req)
-				return
-			}
-			slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
-				slog.String("provider", provider),
-				slog.String("url", url),
-			)
-			http.Redirect(res, req, url, http.StatusTemporaryRedirect)
+			template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
+			renderPage(template, "").ServeHTTP(res, req)
 			return
 		}
-		slogctx.FromCtx(req.Context()).Debug("User logged in.")
-		// Sync user data from the backend.
-		a.syncLocalUser(req.Context())
-		req.Header.Add("Content-Type", "")
-		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
+		session.Manager.Put(req.Context(), "state", state)
+		slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
+			slog.String("provider", provider),
+			slog.String("url", authAPI.AuthCodeURL(state)),
+		)
+		http.Redirect(res, req, authAPI.AuthCodeURL(state), http.StatusTemporaryRedirect)
 	}).ServeHTTP
 }
 
 // LoginCallback handles processing the response from a login provider.
-func (a *API) LoginCallback() http.HandlerFunc {
+func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		provider := chi.URLParam(req, "provider")
-		a.Auth.SetProviderName(req.Context(), provider)
-		err := a.Auth.CompleteUserAuth(res, req)
+		// provider := chi.URLParam(req, "provider")
+
+		state := req.FormValue("state")
+		if state != session.Manager.GetString(req.Context(), "state") {
+			template := partials.Error(models.NewErrorMessage("Unable to log in.", "Invalid state parameter"))
+			renderPage(template, "").ServeHTTP(res, req)
+			return
+		}
+
+		// Exchange an authorization code for a token.
+		code := req.FormValue("code")
+		token, err := authAPI.Exchange(req.Context(), code)
 		if err != nil {
-			template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
+			template := partials.Error(models.NewErrorMessage("Unable to log in.", "Failed to exchange an authorization code for a token."))
 			renderPage(template, "").ServeHTTP(res, req)
 			return
 		}
-		slogctx.FromCtx(req.Context()).Debug("User logged in to auth backend.")
-		userAuth, found := a.Auth.GetUserAuth(req.Context())
-		if !found {
-			template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
+
+		idToken, err := authAPI.VerifyIDToken(req.Context(), token)
+		if err != nil {
+			template := partials.Error(models.NewErrorMessage("Unable to log in.", "Failed to verify ID Token."))
 			renderPage(template, "").ServeHTTP(res, req)
 			return
 		}
-		_, err = a.DataAPI().FindUserByExternalID(req.Context(), userAuth.GetUserID())
+
+		var profile auth0.UserProfile
+		err = idToken.Claims(&profile)
+		if err != nil {
+			template := partials.Error(models.NewErrorMessage("Unable to log in.", err.Error()))
+			renderPage(template, "").ServeHTTP(res, req)
+			return
+		}
+
+		session.Manager.Put(req.Context(), "access_token", token.AccessToken)
+		session.Manager.Put(req.Context(), "profile", profile)
+
+		_, err = storeAPI.FindUserByExternalID(req.Context(), profile.GetID())
 		if err != nil {
 			var apiError models.APIError
 			// If a local user is not found, create one.
 			if errors.As(err, &apiError) {
 				if apiError.StatusCode == http.StatusNotFound {
-					err = createLocalUser(req.Context(), a.DataAPI(), userAuth.GetUserID())
+					err = createLocalUser(req.Context(), storeAPI, profile.GetID())
 					if err != nil {
 						template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
 						renderPage(template, "").ServeHTTP(res, req)
@@ -101,23 +125,16 @@ func (a *API) LoginCallback() http.HandlerFunc {
 				return
 			}
 		}
-		req.Header.Add("Content-Type", "")
 		// Sync user data from the backend.
-		a.syncLocalUser(req.Context())
-		slogctx.FromCtx(req.Context()).Debug("Redirecting")
+		syncLocalUser(req.Context(), storeAPI, profile)
+		// slogctx.FromCtx(req.Context()).Debug("Redirecting")
 		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
 	}).ServeHTTP
 }
 
 // syncLocalUser tries to sync relevant user data from the auth backend to the local data.
-func (a *API) syncLocalUser(ctx context.Context) {
-	// Get the backend data.
-	userAuth, found := a.Auth.GetUserAuth(ctx)
-	if !found {
-		slogctx.FromCtx(ctx).Error("Could not sync user data, user auth not found.")
-		return
-	}
-	user, err := a.DataAPI().FindUserByExternalID(ctx, userAuth.GetUserID())
+func syncLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProfile) {
+	user, err := api.FindUserByExternalID(ctx, profile.GetID())
 	if err != nil {
 		slogctx.FromCtx(ctx).Error("Could not sync user data.",
 			slog.Any("error", err))
@@ -129,16 +146,16 @@ func (a *API) syncLocalUser(ctx context.Context) {
 	// the backend. In such cases, replace the local value.
 	updates := make(map[string]any)
 	// Overwrite local avatar with remote avatar if different
-	if user.AvatarURL != userAuth.AvatarURL {
-		updates["avatar_url"] = userAuth.AvatarURL
+	if user.AvatarURL != profile.Picture {
+		updates["avatar_url"] = profile.Picture
 	}
 	// Overwrite local nickname with remote nickname if different
-	if user.Nickname != userAuth.NickName {
-		updates["nickname"] = userAuth.NickName
+	if user.Nickname != profile.Nickname {
+		updates["nickname"] = profile.Nickname
 	}
 	if len(updates) > 0 {
 		// Update the user object.
-		err := a.updateUser(ctx, updates)
+		err := api.UpdateUser(ctx, updates)
 		if err != nil {
 			slogctx.FromCtx(ctx).Error("Could not sync user data.",
 				slog.Any("error", err))
@@ -164,4 +181,16 @@ func createLocalUser(ctx context.Context, api *elastic.API, externalID string) e
 		return fmt.Errorf("cannot create local user: %w", err)
 	}
 	return nil
+}
+
+func generateRandomState() (string, error) {
+	b := make([]byte, 32)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", fmt.Errorf("unable to generate random state: %w", err)
+	}
+
+	state := base64.StdEncoding.EncodeToString(b)
+
+	return state, nil
 }

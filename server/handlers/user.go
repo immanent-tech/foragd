@@ -4,7 +4,6 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"slices"
@@ -16,7 +15,6 @@ import (
 
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/providers/auth0"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
 	"github.com/immanent-tech/go-feed-me/server/forms"
 	"github.com/immanent-tech/go-feed-me/server/session"
 	"github.com/immanent-tech/go-feed-me/validation"
@@ -109,7 +107,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			// Apply updates.
-			err = a.updateUser(req.Context(), map[string]any{
+			err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 				"nickname": request.Nickname,
 			})
 			if err != nil {
@@ -145,7 +143,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
-		err = a.updateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"settings":   settings,
 			"updated_at": time.Now().UTC(),
 		})
@@ -191,7 +189,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		err = a.updateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -242,7 +240,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user.RemoveFavorite(id)
-		err = a.updateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -317,7 +315,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		err = a.updateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -375,7 +373,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user.RemoveFavorite(id)
-		err = a.updateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -452,7 +450,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			renderPartial(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		err = a.updateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -508,7 +506,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 		}
 		// Remove the favorite.
 		user.RemoveFavorite(id)
-		err = a.updateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -556,25 +554,4 @@ func (a *API) DeleteUser() http.HandlerFunc {
 		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return nil
 	})).ServeHTTP
-}
-
-func (a *API) updateUser(ctx context.Context, updates map[string]any) error {
-	// Retrieve user object.
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("could not update user: %w", err)
-	}
-	updates["updated_at"] = time.Now().UTC()
-	index, err := elastic.UserIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("could not update user: %w", err)
-	}
-	err = elastic.UpdateDoc(ctx, a.DataAPI().GetAPI(), index, user.GetID(), updates,
-		elastic.WithRefresh("true"),
-		elastic.WithRetryOnConflict(5),
-	)
-	if err != nil {
-		return fmt.Errorf("could not update user: %w", err)
-	}
-	return nil
 }

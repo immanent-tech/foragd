@@ -205,7 +205,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 		)
 		user.MarkItems(request.Mark, request.SubscriptionID, request.ItemID)
 		// Update the user object.
-		err = a.updateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"subscriptions": user.Subscriptions,
 		})
 		if err != nil {

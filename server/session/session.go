@@ -9,22 +9,19 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/markbates/goth/gothic"
 
+	"github.com/immanent-tech/go-feed-me/config"
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/providers/elastic"
 	"github.com/immanent-tech/go-feed-me/server/session/store"
 )
 
 const (
-	sessionLifetime = 24 * time.Hour
-	sessionName     = gothic.SessionName
-)
-
-const (
+	sessionLifetime               = 24 * time.Hour
 	subscriptionFiltersSessionKey = "subscription_filters"
 	articleFiltersSessionKey      = "article_filters"
 )
@@ -48,7 +45,7 @@ func NewSessionManager(ctx context.Context, api *elastic.API) error {
 	Manager = scs.New()
 	Manager.Store = sessionStore
 	Manager.Lifetime = sessionLifetime
-	Manager.Cookie.Name = sessionName
+	Manager.Cookie.Name = strings.ToLower(config.AppName) + "_session"
 	Manager.Cookie.Secure = true
 	Manager.Cookie.HttpOnly = true
 	Manager.Cookie.SameSite = http.SameSiteLaxMode

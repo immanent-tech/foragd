@@ -4,31 +4,28 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-feed-me/providers/auth0"
 	"github.com/immanent-tech/go-feed-me/server/session"
 )
 
 // Logout handles logout requests.
-func Logout() http.HandlerFunc {
+func Logout(authAPI *auth0.Authenticator) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Delete the session cookie.
 		err := session.Manager.Destroy(req.Context())
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Logout failed.",
-				slog.Any("error", err))
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		// Generate logout URL.
-		logoutURL, err := auth0.GenerateLogoutURL(req)
+		logoutURL, err := authAPI.GenerateLogoutURL(req)
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Logout failed.",
-				slog.Any("error", err))
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		// Redirect user to logout URL.
-		http.Redirect(res, req, logoutURL, http.StatusTemporaryRedirect)
+		http.Redirect(res, req, logoutURL.String(), http.StatusTemporaryRedirect)
 	}
 }

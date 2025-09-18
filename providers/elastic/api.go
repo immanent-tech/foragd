@@ -92,6 +92,28 @@ func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
 	return nil
 }
 
+// UpdateUser will apply the given updates to the user.
+func (a *API) UpdateUser(ctx context.Context, updates map[string]any) error {
+	// Retrieve user object.
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("could not update user: %w", err)
+	}
+	updates["updated_at"] = time.Now().UTC()
+	index, err := UserIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("could not update user: %w", err)
+	}
+	err = UpdateDoc(ctx, a.GetAPI(), index, user.GetID(), updates,
+		WithRefresh("true"),
+		WithRetryOnConflict(5),
+	)
+	if err != nil {
+		return fmt.Errorf("could not update user: %w", err)
+	}
+	return nil
+}
+
 // FindUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
 	index, err := UserIndexFromCtx(ctx)

@@ -13,14 +13,16 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/providers/auth0"
 	"github.com/immanent-tech/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/go-feed-me/server/session"
 )
 
 // ProtectedRoutes are routes that require user authentication.
 var ProtectedRoutes = []string{"/home", "/subscription", "/article", "/settings", "/search", "/user", "/view"}
 
 // RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
-func RequireUserAuth(dataAPI *elastic.API, authAPI models.AuthAPI) func(next http.Handler) http.Handler {
+func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			routePattern := chi.RouteContext(req.Context()).RoutePattern()
@@ -31,15 +33,15 @@ func RequireUserAuth(dataAPI *elastic.API, authAPI models.AuthAPI) func(next htt
 				return
 			}
 			ctx := req.Context()
-			externalUserID := authAPI.GetUserID(ctx)
-			if externalUserID == "" {
+			profile, ok := session.Manager.Get(req.Context(), "profile").(auth0.UserProfile)
+			if !ok {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
-					slog.String("error", "User not found."))
+					slog.String("error", "Invalid user data."))
 				http.Redirect(res, req, "/", http.StatusSeeOther)
 				return
 			}
 			// Fetch the user from the user management API.
-			user, err := dataAPI.FindUserByExternalID(ctx, externalUserID)
+			user, err := dataAPI.FindUserByExternalID(ctx, profile.GetID())
 			if err != nil {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.Any("error", err))

@@ -350,7 +350,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Update the user.
-		err = a.updateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"subscriptions": user.GetSubscriptionMetadata(),
 		})
 		if err != nil {
@@ -405,7 +405,7 @@ func (a *API) ProcessRemoveSubscription() http.HandlerFunc {
 		// Remove metadata for given subscriptions from user.
 		user.RemoveSubscriptions(id)
 		// Update the user.
-		err = a.updateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"subscriptions": user.GetSubscriptionMetadata(),
 		})
 		if err != nil {
@@ -756,7 +756,7 @@ func (a *API) markSubscriptions(ctx context.Context, request *models.MarkSubscri
 	// Mark user subscriptions.
 	user.MarkSubscriptions(request.Mark, request.Subscriptions...)
 	// Update the user.
-	err = a.updateUser(ctx, map[string]any{
+	err = a.DataAPI().UpdateUser(ctx, map[string]any{
 		"subscriptions": user.GetSubscriptionMetadata(),
 	})
 	if err != nil {
@@ -961,7 +961,7 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		settings.ShowOnboarding = false
 	}
 	// Update the user object.
-	err = api.updateUser(ctx, map[string]any{
+	err = api.DataAPI().UpdateUser(ctx, map[string]any{
 		"subscriptions": user.Subscriptions,
 		"settings":      settings,
 	})

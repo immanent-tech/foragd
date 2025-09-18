@@ -23,6 +23,7 @@ type Config struct {
 	Domain       string `toml:"domain" validate:"required"`
 	ClientID     string `toml:"client_id" validate:"required"`
 	ClientSecret string `toml:"client_secret" validate:"required"`
+	CallbackURL  string `toml:"callback_url" validate:"required,url"`
 }
 
 // loadConfigOnce loads the auth0 configuration and ensures this is only done
