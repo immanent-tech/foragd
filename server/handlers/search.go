@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -179,7 +178,6 @@ func (a *API) getSearchResults(ctx context.Context, request *models.SearchReques
 		loc, _ = time.LoadLocation("UTC")
 	}
 	var since time.Time
-	godump.Dump(request.PublishedWithin)
 	switch request.PublishedWithin {
 	case models.SearchRequestPublishedWithinLastHour:
 		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
@@ -187,7 +185,6 @@ func (a *API) getSearchResults(ctx context.Context, request *models.SearchReques
 		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), loc)
 	case models.SearchRequestPublishedWithinLastDay:
 		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), loc)
-		godump.Dump(since, err)
 	case models.SearchRequestPublishedWithinLastWeek:
 		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
 	case models.SearchRequestPublishedWithinLastMonth:

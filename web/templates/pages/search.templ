@@ -32,71 +32,66 @@ func NewSearchResultsPage(fav *models.Favorite, search *models.SearchRequest, su
 }
 
 templ (page *SearchResultsPage) Content() {
-	<nav class="relative flex mt-8 items-center">
-		// Show jump links if both subscription and article results are available.
-		<div class="flex flex-1">
-			if len(page.subscriptions) > 0 && len(page.articles) > 0 {
-				<div class="text-sm font-medium px-1 py-2">Jump to:</div>
-				<a href="#subscription-results" class="link link-hover rounded-md px-1 py-2 text-sm font-medium hover:bg-accent/5 hover:text-accent-content">Subscriptions</a>
-				<a href="#article-results" class="link link-hover rounded-md px-1 py-2 text-sm font-medium hover:bg-accent/5 hover:text-accent-content">Articles</a>
-			}
-		</div>
-		// Show button to toggle favorite status of search.
-		<div id="search-request" class="hidden">
-			<input type="hidden" name="text" value={ page.search.Text }/>
-		</div>
-		<div id="favorite-button" class="fab">
-			if page.favoriteID != "" {
-				@RemoveFavoriteSearchButton(page.favoriteID)
-			} else {
-				@AddFavoriteSearchButton()
-			}
-			<!-- a focusable div with tabindex is necessary to work on all browsers. role="button" is necessary for accessibility -->
-			// <div tabindex="0" role="button" class="btn btn-lg btn-circle btn-primary">F</div>
-			// <!-- buttons that show up when FAB is open -->
-			// <button class="btn btn-lg btn-circle">A</button>
-			// <button class="btn btn-lg btn-circle">B</button>
-			// <button class="btn btn-lg btn-circle">C</button>
-		</div>
-		// <div id="favorite-button" class="flex justify-end">
-		// 	if page.favoriteID != "" {
-		// 		@RemoveFavoriteSearchButton(page.favoriteID)
-		// 	} else {
-		// 		@AddFavoriteSearchButton()
-		// 	}
-		// </div>
-	</nav>
-	<ul role="list">
-		// Subscription results.
-		if len(page.subscriptions) > 0 {
-			<div class="flex items-center mt-8">
-				<div class="relative flex justify-start">
-					<span class="pr-3 text-base font-semibold text-base-content">Subscriptions</span>
-				</div>
-				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+	@partials.MainContainer() {
+		@partials.PageHeader("Search Results")
+		<nav class="relative flex items-center">
+			// Show button to toggle favorite status of search.
+			<div id="search-request" class="hidden">
+				<input type="hidden" name="text" value={ page.search.Text }/>
 			</div>
-			<ul id="subscription-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-3">
-				for subscription := range slices.Values(page.subscriptions) {
-					@showSearchResult(subscription)
+			<div id="favorite-button" class="fab">
+				if page.favoriteID != "" {
+					@RemoveFavoriteSearchButton(page.favoriteID)
+				} else {
+					@AddFavoriteSearchButton()
 				}
-			</ul>
-		}
-		// Article results.
-		if len(page.articles) > 0 {
-			<div class="flex items-center mt-8">
-				<div class="relative flex justify-start">
-					<span class="pr-3 text-base font-semibold text-base-content">Articles</span>
-				</div>
-				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+				<!-- a focusable div with tabindex is necessary to work on all browsers. role="button" is necessary for accessibility -->
+				// <div tabindex="0" role="button" class="btn btn-lg btn-circle btn-primary">F</div>
+				// <!-- buttons that show up when FAB is open -->
+				// <button class="btn btn-lg btn-circle">A</button>
+				// <button class="btn btn-lg btn-circle">B</button>
+				// <button class="btn btn-lg btn-circle">C</button>
 			</div>
-			<ul id="article-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-				for article := range slices.Values(page.articles) {
-					@showSearchResult(article)
-				}
-			</ul>
-		}
-	</ul>
-	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
+			// <div id="favorite-button" class="flex justify-end">
+			// 	if page.favoriteID != "" {
+			// 		@RemoveFavoriteSearchButton(page.favoriteID)
+			// 	} else {
+			// 		@AddFavoriteSearchButton()
+			// 	}
+			// </div>
+		</nav>
+		<ul role="list">
+			// Subscription results.
+			if len(page.subscriptions) > 0 {
+				<div class="flex items-center mt-8">
+					<div class="relative flex justify-start">
+						<span class="pr-3 text-base font-semibold text-base-content">Subscriptions</span>
+					</div>
+					<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+				</div>
+				<ul id="subscription-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+					for subscription := range slices.Values(page.subscriptions) {
+						@showSearchResult(subscription)
+					}
+				</ul>
+			}
+			// Article results.
+			if len(page.articles) > 0 {
+				<div class="flex items-center mt-8">
+					<div class="relative flex justify-start">
+						<span class="pr-3 text-base font-semibold text-base-content">Articles</span>
+					</div>
+					<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+				</div>
+				<ul id="article-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+					for article := range slices.Values(page.articles) {
+						@showSearchResult(article)
+					}
+				</ul>
+			}
+		</ul>
+		<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
+	}
 }
 
 templ AddFavoriteSearchButton() {
