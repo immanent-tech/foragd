@@ -12,10 +12,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/models"
-	"github.com/immanent-tech/go-feed-me/providers/auth0"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/server/session"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/server/session"
 )
 
 // ProtectedRoutes are routes that require user authentication.

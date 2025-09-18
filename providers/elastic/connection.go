@@ -13,7 +13,7 @@ import (
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
 
-	"github.com/immanent-tech/go-feed-me/config"
+	"github.com/immanent-tech/foragd/config"
 )
 
 const (

@@ -11,7 +11,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/immanent-tech/go-feed-me/config"
+	"github.com/immanent-tech/foragd/config"
 )
 
 const (

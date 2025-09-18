@@ -11,7 +11,7 @@ import (
 	"github.com/gohugoio/hashstructure"
 	"github.com/immanent-tech/go-syndication/sanitization"
 
-	"github.com/immanent-tech/go-feed-me/validation"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 // Valid returns a boolean indicating whether the search request data is valid.

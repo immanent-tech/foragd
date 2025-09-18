@@ -9,7 +9,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
-	"github.com/immanent-tech/go-feed-me/providers/elastic/results"
+	"github.com/immanent-tech/foragd/providers/elastic/results"
 )
 
 // SearchResponse represents a response from the `_search` API endpoint.

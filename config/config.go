@@ -21,12 +21,14 @@ import (
 
 const (
 	// AppName is the application name.
-	AppName = "Curately"
+	AppName = "Foragd"
+	// AppID is the application name formatted for use as an ID.
+	AppID = "foragd-app"
 	// AppDescription is the catch-line of the application.
-	AppDescription = "Collect, collate, craft your knowledge."
+	AppDescription = "Gather the information important to you"
 	// ConfigEnvPrefix defines the environment variable prefix for reading
 	// server configuration from the environment.
-	ConfigEnvPrefix = "GOFEEDME_"
+	ConfigEnvPrefix = "FORAGD_"
 	// ConfigPrefix defines the prefix used in the configuration file to find
 	// global (app) config.
 	ConfigPrefix = "app"
@@ -127,7 +129,7 @@ func Load(configPrefix, envPrefix string, cfg any) error {
 		)
 	}
 	// Unmarshal config, overwriting defaults.
-	err = configSrc.UnmarshalWithConf(configPrefix, cfg, koanf.UnmarshalConf{Tag: "toml"})
+	err = configSrc.UnmarshalWithConf(configPrefix, &cfg, koanf.UnmarshalConf{Tag: "toml"})
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}

@@ -1,7 +1,7 @@
 {
-  "name": "go-feed-me",
+  "name": "foragd",
   "version": "0.0.0",
-  "description": "A place for all your feeds",
+  "description": "Gather the information important to you",
   "license": "AGPL-3.0-or-later",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {

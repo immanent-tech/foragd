@@ -20,7 +20,7 @@
     {
       "label": "run: scheduler",
       "type": "shell",
-      "command": "go run -ldflags=\"-X github.com/immanent-tech/go-feed-me/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug scheduler",
+      "command": "export $(grep -v '^#' .devcontainer/.env | xargs) && go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug scheduler",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -29,6 +29,12 @@
         "panel": "dedicated",
         "showReuseMessage": true,
         "clear": false
+      },
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": ["-c"]
+        }
       }
     }
   ]

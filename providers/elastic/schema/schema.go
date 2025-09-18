@@ -12,7 +12,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
-	"github.com/immanent-tech/go-feed-me/config"
+	"github.com/immanent-tech/foragd/config"
 )
 
 const (

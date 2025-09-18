@@ -6,9 +6,9 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/immanent-tech/go-feed-me/config"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
+	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 // SetupElastic sets up handlers with the necessary data for backend

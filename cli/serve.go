@@ -12,7 +12,7 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/server"
+	"github.com/immanent-tech/foragd/server"
 )
 
 // ServeCmd defines the `server` command for running the server.

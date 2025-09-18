@@ -13,14 +13,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
-	"github.com/immanent-tech/go-feed-me/models"
-	"github.com/immanent-tech/go-feed-me/providers/auth0"
-	"github.com/immanent-tech/go-feed-me/server/forms"
-	"github.com/immanent-tech/go-feed-me/server/session"
-	"github.com/immanent-tech/go-feed-me/validation"
-	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
-	"github.com/immanent-tech/go-feed-me/web/templates/pages"
-	"github.com/immanent-tech/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/layouts"
+	"github.com/immanent-tech/foragd/web/templates/pages"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // GetSettings handles retrieving and rendering the user settings page.
@@ -34,7 +35,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		template := layouts.NewSettingsPage(user, &models.EditUserRequest{}).Content()
-		renderPage(layouts.Drawer(user, template), "Settings - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Settings")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

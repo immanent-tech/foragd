@@ -10,13 +10,14 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/web/templates"
-	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
+	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/layouts"
 )
 
 // Landing handles displaying the landing page of the site.
 func Landing() http.HandlerFunc {
-	template := templates.Page("Go Feed Me", layouts.Landing())
+	template := templates.Page(config.AppName, layouts.Landing())
 	return alice.New(
 		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {

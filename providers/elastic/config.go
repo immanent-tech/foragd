@@ -10,9 +10,9 @@ import (
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
 
-	"github.com/immanent-tech/go-feed-me/validation"
+	"github.com/immanent-tech/foragd/validation"
 
-	"github.com/immanent-tech/go-feed-me/config"
+	"github.com/immanent-tech/foragd/config"
 )
 
 const (
@@ -20,38 +20,20 @@ const (
 	elasticConfigPrefix    = "elastic"
 )
 
-var developmentConfig = &DevelopmentConfig{
-	CAFile:   "deployments/certs/ca/ca.crt",
-	URLs:     []string{"https://es01:9200"},
-	Username: "elastic",
-	Password: "gofeedme",
-}
-
 // Define default server configuration options.
 var elasticConfig = &Config{
-	Development: developmentConfig,
-}
-
-// DevelopmentConfig are the configuration options for elastic in production
-// deployments.
-type DevelopmentConfig struct {
-	CAFile   string   `toml:"ca_file" validate:"required"`
-	Username string   `toml:"username" validate:"required"`
-	Password string   `toml:"password" validate:"required"`
-	URLs     []string `toml:"urls" validate:"required,unique"`
-}
-
-// ProductionConfig are the configuration options for elastic in production
-// deployments.
-type ProductionConfig struct {
-	CloudID string `toml:"cloud_id"`
-	APIKey  string `toml:"api_key"`
+	CAFile: "deployments/certs/ca/ca.crt",
+	URLs:   []string{"https://es01:9200"},
 }
 
 // Config contains the server configuration options.
 type Config struct {
-	Development *DevelopmentConfig
-	Production  *ProductionConfig
+	CAFile   string   `toml:"ca_file" validate:"required"`
+	Username string   `toml:"username" validate:"required"`
+	Password string   `toml:"password" validate:"required"`
+	URLs     []string `toml:"urls" validate:"required,unique"`
+	CloudID  string   `toml:"cloud_id"`
+	APIKey   string   `toml:"api_key"`
 }
 
 // loadConfigOnce loads the elasticsearch configuration and ensures this is done
@@ -83,25 +65,25 @@ func genConfig(environment string) (*elasticsearch.Config, error) {
 
 	switch environment {
 	case "development":
-		caFileData, err := os.ReadFile(elasticConfig.Development.CAFile)
+		caFileData, err := os.ReadFile(elasticConfig.CAFile)
 		if err != nil {
 			return nil, fmt.Errorf("could not retrieve CA certificate file: %w", err)
 		}
 
 		generated = &elasticsearch.Config{
-			Addresses: elasticConfig.Development.URLs,
+			Addresses: elasticConfig.URLs,
 			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
 			// Logger:    &Logger{EnableResponseBody: true, EnableRequestBody: true},
-			Username:  elasticConfig.Development.Username,
-			Password:  elasticConfig.Development.Password,
+			Username:  elasticConfig.Username,
+			Password:  elasticConfig.Password,
 			CACert:    caFileData,
 			Transport: defaultTransportConfig,
 		}
 	case "production":
 		generated = &elasticsearch.Config{
 			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
-			CloudID:   elasticConfig.Production.CloudID,
-			APIKey:    elasticConfig.Production.APIKey,
+			CloudID:   elasticConfig.CloudID,
+			APIKey:    elasticConfig.APIKey,
 			Transport: defaultTransportConfig,
 		}
 	default:

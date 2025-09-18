@@ -14,9 +14,9 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 
-	"github.com/immanent-tech/go-feed-me/models"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
 const (

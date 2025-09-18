@@ -23,17 +23,17 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/config"
-	"github.com/immanent-tech/go-feed-me/models"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/bulk"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
-	"github.com/immanent-tech/go-feed-me/server/forms"
-	"github.com/immanent-tech/go-feed-me/server/session"
-	"github.com/immanent-tech/go-feed-me/web/templates"
-	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
-	"github.com/immanent-tech/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/layouts"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // GetSubscriptions handles showing a filtered collection of subscriptions as cards.
@@ -56,7 +56,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
-		renderPage(layouts.Drawer(user, template), "Subscriptions - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -274,7 +274,7 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
-		renderPage(layouts.Drawer(user, template), "Subscriptions - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
 
 		// Redirect depending on the current view.
 		switch filters.GetView() {
@@ -315,9 +315,8 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			request.SuggestedCategories = categories
 		}
 		// Generate page template.
-		title := "Editing " + request.GetNickname() + " - Go Feed Me"
 		template := layouts.EditSubscription(request)
-		renderPage(layouts.Drawer(user, template), title).ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Editing "+request.GetNickname())).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -434,7 +433,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			template := layouts.AddSubscription(&models.SubscriptionRequest{})
-			renderPage(layouts.Drawer(user, template), "Add Subscription - Go Feed Me").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Add Subscription")).ServeHTTP(res, req)
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 			if err != nil || !valid {
@@ -491,7 +490,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 		// GET: show import modal.
 		case http.MethodGet:
 			template := layouts.ImportSubscriptions()
-			renderPage(layouts.Drawer(user, template), "Import Subscriptions - Go Feed Me").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Import Subscriptions")).ServeHTTP(res, req)
 		// POST: process import.
 		case http.MethodPost:
 			requests := make(addSubscriptionRequests)

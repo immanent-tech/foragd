@@ -10,10 +10,10 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 
-	"github.com/immanent-tech/go-feed-me/models"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 var sessionCtx context.Context

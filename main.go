@@ -12,11 +12,11 @@ import (
 	"github.com/alecthomas/kong"
 	slogelasticsearch "github.com/immanent-tech/slog-elasticsearch"
 
-	"github.com/immanent-tech/go-feed-me/cli"
-	"github.com/immanent-tech/go-feed-me/config"
-	"github.com/immanent-tech/go-feed-me/logging"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
+	"github.com/immanent-tech/foragd/cli"
+	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/logging"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 //go:embed all:web/content

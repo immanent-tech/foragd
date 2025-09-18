@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/foragd/models"
 )
 
 var ErrFetchCtx = errors.New("error fetching context value")

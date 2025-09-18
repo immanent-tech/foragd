@@ -1,4 +1,4 @@
-module github.com/immanent-tech/go-feed-me
+module github.com/immanent-tech/foragd
 
 go 1.25.0
 

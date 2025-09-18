@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/immanent-tech/go-feed-me/models"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.

@@ -18,13 +18,14 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/oauth2"
 
-	"github.com/immanent-tech/go-feed-me/models"
-	"github.com/immanent-tech/go-feed-me/providers/auth0"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
-	"github.com/immanent-tech/go-feed-me/server/session"
-	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
-	"github.com/immanent-tech/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
+	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/layouts"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // LoginSelect handles showing options for logging in with different providers.
@@ -33,7 +34,7 @@ func LoginSelect() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		page := &layouts.Login{}
-		renderPage(page.Content(), "Login - Go Feed Me").ServeHTTP(res, req)
+		renderPage(page.Content(), templates.GeneratePageTitle("Login")).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 

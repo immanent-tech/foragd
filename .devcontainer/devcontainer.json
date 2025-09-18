@@ -5,8 +5,7 @@
   "postCreateCommand": "bash .devcontainer/postcreate.sh",
   "containerUser": "vscode",
   "containerEnv": {
-    "HOME": "/home/vscode",
-    "GOFEEDME_LOGLEVEL": "debug"
+    "HOME": "/home/vscode"
   },
   "remoteEnv": {
     "PODMAN_COMPOSE_WARNING_LOGS": "false",

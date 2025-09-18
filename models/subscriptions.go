@@ -15,7 +15,7 @@ import (
 
 	"github.com/immanent-tech/go-syndication/types"
 
-	"github.com/immanent-tech/go-feed-me/validation"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 var ErrInvalidSubscriptionState = errors.New("invalid subscription state")

@@ -7,8 +7,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/deletebyquery"
 
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
 type DeleteByQueryOption elastic.Option[*deletebyquery.DeleteByQuery]

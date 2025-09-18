@@ -6,8 +6,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/immanent-tech/go-feed-me/providers/auth0"
-	"github.com/immanent-tech/go-feed-me/server/session"
+	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/server/session"
 )
 
 // Logout handles logout requests.

@@ -21,13 +21,15 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 
-	"github.com/immanent-tech/go-feed-me/config"
-	"github.com/immanent-tech/go-feed-me/providers/auth0"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/server/handlers"
-	"github.com/immanent-tech/go-feed-me/server/middlewares"
-	"github.com/immanent-tech/go-feed-me/server/session"
+	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/server/handlers"
+	"github.com/immanent-tech/foragd/server/middlewares"
+	"github.com/immanent-tech/foragd/server/session"
 )
 
 const (
@@ -78,13 +80,19 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 	// Set up routes.
 	router := svr.setupRoutes(api, static)
 
+	h2s := &http2.Server{}
 	svr.Server = &http.Server{
-		Handler:           router,
+		Handler:           h2c.NewHandler(router, h2s),
 		Addr:              net.JoinHostPort(ServerConfig.Host, strconv.Itoa(ServerConfig.Port)),
 		ReadTimeout:       0,
 		WriteTimeout:      0,
 		IdleTimeout:       0,
 		ReadHeaderTimeout: ServerReadTimeout,
+	}
+
+	err = http2.ConfigureServer(svr.Server, h2s)
+	if err != nil {
+		return svr, fmt.Errorf("unable to configure server for H2C: %w", err)
 	}
 
 	return svr, nil
@@ -119,7 +127,12 @@ func (s *Server) Start(ctx context.Context) error {
 	}()
 
 	// And we serve HTTP until the world ends.
-	err := s.ListenAndServeTLS(ServerConfig.CertFile, ServerConfig.KeyFile)
+	var err error
+	if ServerConfig.CertFile != "" && ServerConfig.KeyFile != "" {
+		err = s.ListenAndServeTLS(ServerConfig.CertFile, ServerConfig.KeyFile)
+	} else {
+		err = s.ListenAndServe()
+	}
 	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
 		slogctx.FromCtx(ctx).Info("commencing server shutdown...")
 		wg.Wait()

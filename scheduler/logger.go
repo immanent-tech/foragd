@@ -6,7 +6,7 @@ package scheduler
 import (
 	"log/slog"
 
-	"github.com/immanent-tech/go-feed-me/logging"
+	"github.com/immanent-tech/foragd/logging"
 )
 
 type logger struct {

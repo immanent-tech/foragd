@@ -18,10 +18,10 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/server/session"
-	"github.com/immanent-tech/go-feed-me/web/templates"
-	"github.com/immanent-tech/go-feed-me/web/templates/pages"
-	"github.com/immanent-tech/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/pages"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // ErrInvalidContent indicates that the content for rendering is invalid.

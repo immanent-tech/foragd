@@ -17,10 +17,10 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/logging"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
+	"github.com/immanent-tech/foragd/logging"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 // Make sure out jobQueue implementation satisfies quartz.JobQueue.

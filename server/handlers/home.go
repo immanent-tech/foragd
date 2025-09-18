@@ -15,13 +15,13 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/config"
-	"github.com/immanent-tech/go-feed-me/models"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/results"
-	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
-	"github.com/immanent-tech/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/results"
+	"github.com/immanent-tech/foragd/web/templates/layouts"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // Home handles displaying the user's home page.

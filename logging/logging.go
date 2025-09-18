@@ -34,8 +34,8 @@ var LevelNames = map[slog.Leveler]string{
 
 // Options are options for controlling logging.
 type Options struct {
-	LogLevel  string `env:"GOFEEDME_LOGLEVEL" name:"log-level" enum:"info,debug,trace" default:"info" help:"Set logging level."`
-	NoLogFile bool   `env:"GOFEEDME_NOLOGFILE" name:"no-log-file" help:"Don't write to a log file." default:"false"`
+	LogLevel  string `env:"FORAGD_LOGLEVEL" name:"log-level" enum:"info,debug,trace" default:"info" help:"Set logging level."`
+	NoLogFile bool   `env:"FORAGD_NOLOGFILE" name:"no-log-file" help:"Don't write to a log file." default:"false"`
 	Handlers  []slog.Handler
 }
 

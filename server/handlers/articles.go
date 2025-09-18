@@ -20,16 +20,17 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/models"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
-	"github.com/immanent-tech/go-feed-me/server/forms"
-	"github.com/immanent-tech/go-feed-me/server/session"
-	"github.com/immanent-tech/go-feed-me/validation"
-	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
-	"github.com/immanent-tech/go-feed-me/web/templates/pages"
-	"github.com/immanent-tech/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/validation"
+	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/layouts"
+	"github.com/immanent-tech/foragd/web/templates/pages"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // GetArticles handles showing a filtered collection of articles as cards.
@@ -54,7 +55,7 @@ func (a *API) GetArticles() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		template := layouts.ArticlesGrid(articles, &filters, pagination)
-		renderPage(layouts.Drawer(user, template), "Articles - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -286,7 +287,7 @@ func (a *API) MarkAllArticles() http.HandlerFunc {
 
 		// Render appropriate content.
 		template := layouts.ArticlesGrid(articles, &filters, pagination)
-		renderPage(layouts.Drawer(user, template), "Articles - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req)
 
 		SetRedirect(req.Context(), "/subscriptions", res)
 
@@ -338,7 +339,7 @@ func (a *API) ViewArticle() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		template := partials.ViewArticle(article)
-		renderPage(layouts.Drawer(user, template), "Articles - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -393,7 +394,7 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 		}
 		// Show results.
 		template := pages.SimilarArticles(articles)
-		renderPage(layouts.Drawer(user, template), "Similar Articles - Go Feed Me").ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

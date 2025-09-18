@@ -17,7 +17,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/logging"
+	"github.com/immanent-tech/foragd/logging"
 )
 
 var (

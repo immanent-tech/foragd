@@ -18,7 +18,7 @@ import (
 
 	"github.com/immanent-tech/go-syndication/types"
 
-	"github.com/immanent-tech/go-feed-me/validation"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 // Articles is a slices of individual articles.

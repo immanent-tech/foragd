@@ -9,7 +9,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
-	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/foragd/models"
 )
 
 const (

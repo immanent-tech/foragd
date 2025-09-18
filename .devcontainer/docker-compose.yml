@@ -23,7 +23,7 @@ services:
       - seccomp:unconfined
     hostname: devcontainer
     ports:
-      - $GOFEEDME_server_port:$GOFEEDME_server_port
+      - $FORAGD_server_port:$FORAGD_server_port
     ulimits:
       nofile:
         soft: 65535
@@ -38,7 +38,7 @@ services:
     volumes:
       - ../deployments/stepca:/home/step
     environment:
-      - DOCKER_STEPCA_INIT_NAME=gofeedme-dev
+      - DOCKER_STEPCA_INIT_NAME=foragd-dev
       - DOCKER_STEPCA_INIT_DNS_NAMES=localhost,stepca
       - DOCKER_STEPCA_INIT_REMOTE_MANAGEMENT=true
       - DOCKER_STEPCA_INIT_PASSWORD=$STEPCA_INIT_PASSWORD
@@ -97,7 +97,7 @@ services:
         echo "Waiting for Elasticsearch availability";
         until curl -s --cacert config/certs/ca/ca.crt https://es01:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:$${ELASTICSEARCH_PASSWORD:-gofeedme}" -H "Content-Type: application/json" https://es01:9200/_security/user/kibana_system/_password -d "{\"password\":\"$${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:$${ELASTICSEARCH_PASSWORD:-foragd}" -H "Content-Type: application/json" https://es01:9200/_security/user/kibana_system/_password -d "{\"password\":\"$${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
         echo "All done!";
       '
     healthcheck:
@@ -121,7 +121,7 @@ services:
       - $ELASTICSEARCH_PORT:9200
     environment:
       - node.name=es01
-      - cluster.name=gofeedme-dev
+      - cluster.name=foragd-dev
       - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
       - cluster.initial_master_nodes=es01,es02,es03
       - discovery.seed_hosts=es02,es03
@@ -171,7 +171,7 @@ services:
       - es02data:/usr/share/elasticsearch/data
     environment:
       - node.name=es02
-      - cluster.name=gofeedme-dev
+      - cluster.name=foragd-dev
       - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
       - cluster.initial_master_nodes=es01,es02,es03
       - discovery.seed_hosts=es01,es03
@@ -221,7 +221,7 @@ services:
       - .env
     environment:
       - node.name=es03
-      - cluster.name=gofeedme-dev
+      - cluster.name=foragd-dev
       - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
       - cluster.initial_master_nodes=es01,es02,es03
       - discovery.seed_hosts=es01,es02

@@ -4,7 +4,7 @@
 package handlers
 
 import (
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
 // API contains the various API backends used by handlers.
