@@ -30,6 +30,9 @@ import (
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/session"
+
+	"github.com/didip/tollbooth/v8"
+	"github.com/realclientip/realclientip-go"
 )
 
 // Server represents the application server. It contains the underlying server object, the handlers, and embedded FS
@@ -158,6 +161,13 @@ func setupAPI(ctx context.Context) (*handlers.API, error) {
 }
 
 func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
+	// Set up rate-limiting.
+	strat, err := realclientip.NewRightmostNonPrivateStrategy("X-Forwarded-For")
+	if err != nil {
+		panic("realclientip.NewRightmostNonPrivateStrategy returned error (bad input)")
+	}
+	lmt := tollbooth.NewLimiter(1, nil)
+
 	// Set up a new chi router.
 	router := chi.NewRouter()
 	router.Use(
@@ -174,6 +184,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
 		middleware.NoCache,
+		middlewares.RateLimiter(strat, lmt),
 	)
 
 	// Routes.
