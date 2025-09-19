@@ -325,8 +325,6 @@ components:
           description: >
             is the title of the feed or item.
           type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required'
         description:
           description: >
             is a short summary or description of the feed or item.

@@ -144,7 +144,7 @@ type ArticleArchive struct {
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// Title is the title of the feed or item.
-	Title string `json:"title" validate:"required"`
+	Title string `json:"title"`
 
 	// Updated is the datetime at which the feed or item was updated.
 	Updated time.Time `json:"updated,omitempty,omitzero"`
@@ -319,7 +319,7 @@ type Feed struct {
 	SourceURLs []URL `json:"source_urls" validate:"required,dive,url"`
 
 	// Title is the title of the feed or item.
-	Title string `json:"title" validate:"required"`
+	Title string `json:"title"`
 
 	// Updated is the datetime at which the feed or item was updated.
 	Updated time.Time `json:"updated,omitempty,omitzero"`
@@ -375,7 +375,7 @@ type Item struct {
 	SourceType ItemSourceType `json:"source_type"`
 
 	// Title is the title of the feed or item.
-	Title string `json:"title" validate:"required"`
+	Title string `json:"title"`
 
 	// Updated is the datetime at which the feed or item was updated.
 	Updated time.Time `json:"updated,omitempty,omitzero"`
@@ -442,7 +442,7 @@ type ObjectCommon struct {
 	SourceType ObjectCommonSourceType `json:"source_type"`
 
 	// Title is the title of the feed or item.
-	Title string `json:"title" validate:"required"`
+	Title string `json:"title"`
 
 	// Updated is the datetime at which the feed or item was updated.
 	Updated time.Time `json:"updated,omitempty,omitzero"`
