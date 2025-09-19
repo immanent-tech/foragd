@@ -46,5 +46,18 @@ func (r *SearchRequest) ID() string {
 func (r *SearchRequest) Query() string {
 	params := make(url.Values)
 	params.Set("text", r.Text)
+	if r.AuthorsExclude != "" {
+		params.Set("authors_exclude", r.AuthorsExclude)
+	}
+	if r.AuthorsInclude != "" {
+		params.Set("authors_include", r.AuthorsInclude)
+	}
+	if r.CategoriesExclude != "" {
+		params.Set("categories_exclude", r.CategoriesExclude)
+	}
+	if r.CategoriesInclude != "" {
+		params.Set("categories_include", r.CategoriesInclude)
+	}
+	params.Set("published_within", string(r.PublishedWithin))
 	return params.Encode()
 }
