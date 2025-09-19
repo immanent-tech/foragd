@@ -7,11 +7,13 @@
     synthwave,
     lofi,
     black,
-    dracula --prefersdark,
+    forest --prefersdark,
+    dracula,
     business,
     night,
     dim,
-    nord --default;
+    nord,
+    garden --default;
 }
 
 /* Inter font styling */

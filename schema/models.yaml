@@ -220,7 +220,7 @@ components:
           description: >
             the user interface theme chosen by the user.
           type: string
-          default: dracula
+          default: forest
         show_onboarding:
           description: >
             indicates whether to show onboarding information (i.e., for a new user).

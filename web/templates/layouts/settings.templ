@@ -136,6 +136,8 @@ templ AppSettingsTab(user *models.User) {
 			{{ currentTheme := user.GetSettings().Theme }}
 			@themePreview("light", currentTheme)
 			@themePreview("dark", currentTheme)
+			@themePreview("forest", currentTheme)
+			@themePreview("garden", currentTheme)
 			@themePreview("synthwave", currentTheme)
 			@themePreview("lofi", currentTheme)
 			@themePreview("black", currentTheme)

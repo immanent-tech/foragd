@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	// DefaultUserTheme is dracula.
-	DefaultUserTheme = "dracula"
+	// DefaultUserTheme is the default theme for the app.
+	DefaultUserTheme = "forest"
 	// DefaultMaxHistory for users/objects is 30 days.
 	DefaultMaxHistory = 30 * 24 * time.Hour
 )
