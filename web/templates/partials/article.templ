@@ -225,6 +225,7 @@ templ ViewArticle(article *models.Article) {
 			<div
 				hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + string(models.MarkRead) }
 				hx-target={ "#mark_" + article.GetID() }
+				hx-include="[name='csrf_token']"
 				hx-swap="innerHTML"
 				hx-trigger="intersect once,load delay:10s"
 				hx-push-url="false"
