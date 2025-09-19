@@ -37,13 +37,12 @@ var ServerConfig = &Config{
 	Host: "",
 	// Port is the port to listen on.
 	Port: 7000,
-	// CertFile points to the file containing a server certificate.
-	CertFile: "localhost.crt",
-	// KeyFile points to the file containing a server key.
-	KeyFile:      "localhost.key",
+	CSP:  defaultCSP,
+	// https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/
+	// https://blog.cloudflare.com/exposing-go-on-the-internet/
 	ReadTimeout:  5 * time.Second,
 	WriteTimeout: 10 * time.Second,
-	CSP:          defaultCSP,
+	IdleTimeout:  120 * time.Second,
 }
 
 var ErrLoadConfig = errors.New("error loading config")
@@ -51,22 +50,22 @@ var ErrLoadConfig = errors.New("error loading config")
 // Config contains the server configuration options.
 type Config struct {
 	Secret       string        `toml:"app_secret"`
-	CSP          []string      `toml:"server_csp"`
-	Port         int           `toml:"server_port"`
-	Host         string        `toml:"server_host"`
-	CertFile     string        `toml:"server_crt"`
-	KeyFile      string        `toml:"server_key"`
-	ReadTimeout  time.Duration `toml:"server_read_timeout"`
-	WriteTimeout time.Duration `toml:"server_write_timeout"`
+	CSP          []string      `toml:"csp"`
+	Port         int           `toml:"port"`
+	Host         string        `toml:"host"`
+	CertFile     string        `toml:"crt"`
+	KeyFile      string        `toml:"key"`
+	ReadTimeout  time.Duration `toml:"read_timeout"`
+	WriteTimeout time.Duration `toml:"write_timeout"`
+	IdleTimeout  time.Duration `toml:"idle_timeout"`
 }
 
 func randomBase16String(length int) (string, error) {
 	buf := make([]byte, int(math.Ceil(float64(length)/2)))
-	if _, err := rand.Read(buf); err != nil {
+	_, err := rand.Read(buf)
+	if err != nil {
 		return "", fmt.Errorf("unable to read from random source: %w", err)
 	}
-
 	str := hex.EncodeToString(buf)
-
 	return str[:length], nil // strip 1 extra character we get from odd length results
 }

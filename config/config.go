@@ -29,9 +29,6 @@ const (
 	// ConfigEnvPrefix defines the environment variable prefix for reading
 	// server configuration from the environment.
 	ConfigEnvPrefix = "FORAGD_"
-	// ConfigPrefix defines the prefix used in the configuration file to find
-	// global (app) config.
-	ConfigPrefix = "app"
 	// ConfigFile is the location of the server configuration file.
 	ConfigFile = "server.toml"
 )

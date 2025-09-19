@@ -15,7 +15,6 @@ import (
 	"os/signal"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -30,13 +29,6 @@ import (
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/session"
-)
-
-const (
-	// ServerReadTimeout is the default read timeout for the server.
-	ServerReadTimeout = 5 * time.Second
-	// ServerWriteTimeout is the default write timeout for the server.
-	ServerWriteTimeout = 10 * time.Second
 )
 
 // Server represents the application server. It contains the underlying server object, the handlers, and embedded FS
@@ -82,12 +74,11 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 
 	h2s := &http2.Server{}
 	svr.Server = &http.Server{
-		Handler:           h2c.NewHandler(router, h2s),
-		Addr:              net.JoinHostPort(ServerConfig.Host, strconv.Itoa(ServerConfig.Port)),
-		ReadTimeout:       0,
-		WriteTimeout:      0,
-		IdleTimeout:       0,
-		ReadHeaderTimeout: ServerReadTimeout,
+		Handler:      h2c.NewHandler(router, h2s),
+		Addr:         net.JoinHostPort(ServerConfig.Host, strconv.Itoa(ServerConfig.Port)),
+		ReadTimeout:  ServerConfig.ReadTimeout,
+		WriteTimeout: ServerConfig.WriteTimeout,
+		IdleTimeout:  ServerConfig.IdleTimeout,
 	}
 
 	err = http2.ConfigureServer(svr.Server, h2s)
@@ -129,8 +120,13 @@ func (s *Server) Start(ctx context.Context) error {
 	// And we serve HTTP until the world ends.
 	var err error
 	if ServerConfig.CertFile != "" && ServerConfig.KeyFile != "" {
+		slogctx.FromCtx(ctx).Info("Using https.",
+			slog.String("certificate file", ServerConfig.CertFile),
+			slog.String("key file", ServerConfig.KeyFile),
+		)
 		err = s.ListenAndServeTLS(ServerConfig.CertFile, ServerConfig.KeyFile)
 	} else {
+		slogctx.FromCtx(ctx).Info("Using http.")
 		err = s.ListenAndServe()
 	}
 	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
@@ -160,7 +156,6 @@ func setupAPI(ctx context.Context) (*handlers.API, error) {
 	}, nil
 }
 
-//nolint:funlen
 func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 	// Set up a new chi router.
 	router := chi.NewRouter()
