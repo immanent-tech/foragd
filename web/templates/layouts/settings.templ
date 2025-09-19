@@ -158,6 +158,7 @@ templ themePreview(theme string, currentTheme string) {
 		_="on click set #page-theme.value to @data-set-theme"
 		hx-trigger="click"
 		hx-put={ "/user/settings/theme/" + theme }
+		hx-include="[name='csrf_token']"
 		hx-swap="outerHTML"
 		hx-target="#tab-app-settings"
 		id={ "theme-preview-" + theme }
