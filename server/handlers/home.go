@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
@@ -49,13 +48,11 @@ func (a *API) Home() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to get home page data",
 					"Something went wrong, please try again",
-				),
-			), "")
+				)))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark subscription: %w", err),
 				http.StatusInternalServerError)
 		}
-		godump.Dump(ctx)
 		template := data.Template()
 		renderPage(layouts.Drawer(user, template), "Home - "+config.AppName).ServeHTTP(res, req.WithContext(ctx))
 		return nil

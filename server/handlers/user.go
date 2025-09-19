@@ -55,7 +55,7 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 				template := partials.Notification(
 					models.NewErrorMessage("Unable to filter subscriptions", ""),
 				)
-				renderPartial(template, "").ServeHTTP(res, req)
+				renderPartial(template).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			// Find matching subscriptions.
@@ -69,7 +69,7 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 				template := partials.Notification(
 					models.NewErrorMessage("Unable to filter subscriptions", ""),
 				)
-				renderPartial(template, "").ServeHTTP(res, req)
+				renderPartial(template).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
 			settings := make([]templ.Component, 0, len(subscriptions))
@@ -80,7 +80,7 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 			// case http.MethodGet:
 			// 	template = pages.NewSettingsPage("subscriptions", nil, nil).Template(req)
 		}
-		renderPartial(template, "").ServeHTTP(res, req)
+		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -106,7 +106,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 					"There are problems with the input. Please check and try again.",
 				)
 				template := partials.Notification(msg)
-				renderPartial(template, "").ServeHTTP(res, req)
+				renderPartial(template).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			// Apply updates.
@@ -119,13 +119,13 @@ func (a *API) AccountSettings() http.HandlerFunc {
 					"There was a problem editing account settings. Please try again.",
 				)
 				template := partials.Notification(msg)
-				renderPartial(template, "").ServeHTTP(res, req)
+				renderPartial(template).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
 			// Report success.
 			msg := models.NewSuccessMessage("Account edits saved.", "")
 			template := partials.Notification(msg)
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 		}
 		// Update the user in the context.
 		// user, _ = a.DataAPI().GetUser(req.Context(), user.UserID)
@@ -156,10 +156,10 @@ func (a *API) SetTheme() http.HandlerFunc {
 				"There was a problem editing account settings. Please try again.",
 			)
 			template := partials.Notification(msg)
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return fmt.Errorf("unable to set theme: %w", err)
 		}
-		renderPartial(layouts.AppSettingsTab(user), "").ServeHTTP(res, req)
+		renderPartial(layouts.AppSettingsTab(user)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -173,13 +173,13 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
 		if !valid || err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "Data is invalid."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "User data not found."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Get the subscription state.
@@ -189,7 +189,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
@@ -198,7 +198,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Update the favorite button.
@@ -212,14 +212,14 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		template = templ.Join(
 			partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite(),
 			partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 		)
-		renderPartial(template, "").ServeHTTP(res, req)
+		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -233,13 +233,13 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
 		if !valid || err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "Data is invalid."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "User data not found."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user.RemoveFavorite(id)
@@ -249,7 +249,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Update the favorite button.
@@ -265,14 +265,14 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		template = templ.Join(
 			partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite(),
 			partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 		)
-		renderPartial(template, "").ServeHTTP(res, req)
+		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -286,13 +286,13 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
 		if !valid || err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "Data is invalid."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "User data not found."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Get the article details.
@@ -300,13 +300,13 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		if len(articles) != 1 {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		article := articles[0]
@@ -315,7 +315,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
@@ -324,7 +324,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Archive the article.
@@ -332,7 +332,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		article.Favorite = true
@@ -352,7 +352,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 				partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 			)
 		}
-		renderPartial(template, "").ServeHTTP(res, req)
+		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -366,13 +366,13 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
 		if !valid || err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to process favorite.", "Data is invalid."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to process favorite.", "User data not found."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user.RemoveFavorite(id)
@@ -382,27 +382,27 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		err = a.unarchiveArticle(req.Context(), id)
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		articles, err := a.getArticles(req.Context(), id)
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		if len(articles) != 1 {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		article := articles[0]
@@ -422,7 +422,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 				partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 			)
 		}
-		renderPartial(template, "").ServeHTTP(res, req)
+		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -436,21 +436,21 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			template := partials.Notification(models.NewErrorMessage("Unable to process favorite.", "Data is invalid."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Add the favorite.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to process favorite.", "User data not found."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		err = user.AddFavoriteSearch("Search: "+request.Text, request)
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
@@ -459,7 +459,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Update the favorite button.
@@ -467,7 +467,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 		if id == "" {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		fav := user.GetFavorites().Get(id)
@@ -476,7 +476,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			pages.RemoveFavoriteSearchButton(fav.GetID()),
 			partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 		)
-		renderPartial(template, "").ServeHTTP(res, req)
+		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -490,13 +490,13 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			template := partials.Notification(models.NewErrorMessage("Unable to process favorite.", "Data is invalid."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to process favorite.", "User data not found."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Derive the favorite id.
@@ -504,7 +504,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 		if id == "" {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Remove the favorite.
@@ -515,7 +515,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."))
-			renderPartial(template, "").ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Update the favorite button and list of favorites.
@@ -523,7 +523,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 			pages.AddFavoriteSearchButton(),
 			partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 		)
-		renderPartial(template, "").ServeHTTP(res, req)
+		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

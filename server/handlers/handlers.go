@@ -178,15 +178,8 @@ func renderPage(template templ.Component, title string) http.Handler {
 }
 
 // renderPartial will render the given template, optionally updating the page title if one is given.
-func renderPartial(template templ.Component, title string) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if title != "" {
-			// Update the page title if set.
-			template = templ.Join(template, templates.SetPageTitle(title))
-		}
-		template = templ.Join(template, templates.UpdateCSRFToken())
-		templ.Handler(template).ServeHTTP(res, req)
-	})
+func renderPartial(template templ.Component) http.Handler {
+	return templ.Handler(templ.Join(template, templates.UpdateCSRFToken()))
 }
 
 func IsHTMX(req *http.Request) bool {

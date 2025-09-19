@@ -51,7 +51,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 		}
 		if len(subscriptions) > 0 || len(articles) > 0 {
 			// Render suggestions.
-			renderPartial(layouts.SearchSuggestions(request, subscriptions, articles), "").ServeHTTP(res, req)
+			renderPartial(layouts.SearchSuggestions(request, subscriptions, articles)).ServeHTTP(res, req)
 		} else {
 			// No suggestions, indicate no change.
 			res.WriteHeader(http.StatusNoContent)

@@ -164,7 +164,7 @@ func (a *API) PaginateArticles() http.HandlerFunc {
 			return
 		}
 		if len(articles) > 0 {
-			renderPartial(layouts.ArticlesList(articles, &filters, pagination), "").ServeHTTP(res, req)
+			renderPartial(layouts.ArticlesList(articles, &filters, pagination)).ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
 		}
@@ -194,8 +194,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to mark subscription",
 					"The request looks invalid. Please check and try again.",
-				),
-			), "")
+				)))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark subscription: %w", err),
 				http.StatusUnprocessableEntity)
@@ -216,8 +215,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to mark subscription",
 					"Could not update user data.",
-				),
-			), "")
+				)))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark subscription: %w", err),
 				http.StatusUnprocessableEntity)
@@ -229,8 +227,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to mark subscription",
 					"Could not refresh articles.",
-				),
-			), "")
+				)))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark subscription: %w", err),
 				http.StatusUnprocessableEntity)
@@ -240,10 +237,10 @@ func (a *API) MarkArticle() http.HandlerFunc {
 		case request.ItemID:
 			// Swap target is card.
 			filters := session.ArticleFiltersFromSession(req.Context())
-			renderPartial(partials.NewArticleContent(s[0]).Card(filters.GetView()), "").ServeHTTP(res, req)
+			renderPartial(partials.NewArticleContent(s[0]).Card(filters.GetView())).ServeHTTP(res, req)
 		case "mark_" + request.ItemID:
 			// Swap target is link.
-			renderPartial(partials.UpdateViewArticleMark(s[0]), "").ServeHTTP(res, req)
+			renderPartial(partials.UpdateViewArticleMark(s[0])).ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP
@@ -309,7 +306,7 @@ func (a *API) ViewArticle() http.HandlerFunc {
 		if err != nil {
 			renderPartial(partials.Error(
 				models.NewErrorMessage("Unable to fetch article content", ""),
-			), "").ServeHTTP(res, req)
+			)).ServeHTTP(res, req)
 			return fmt.Errorf("unable to view article: %w", err)
 		}
 		article := articles[0]
@@ -329,7 +326,7 @@ func (a *API) ViewArticle() http.HandlerFunc {
 			if err != nil {
 				renderPartial(partials.Notification(
 					models.NewErrorMessage("Unable to fetch article remote content", ""),
-				), "").ServeHTTP(res, req)
+				)).ServeHTTP(res, req)
 				article.ShowFullContent = false
 			} else {
 				article.Content = content
@@ -373,7 +370,7 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 					"Unable to find similar articles",
 					"The backend reported an issue. Please try again.",
 				),
-			), "")
+			))
 			return models.NewAPIError(
 				fmt.Errorf("unable to find similar articles subscription: %w", err),
 				http.StatusUnprocessableEntity)
@@ -386,7 +383,7 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 					"Unable to find similar articles",
 					"The backend reported an issue. Please try again.",
 				),
-			), "")
+			))
 			return models.NewAPIError(
 				fmt.Errorf("unable to find similar articles subscription: %w", err),
 				http.StatusUnprocessableEntity)
