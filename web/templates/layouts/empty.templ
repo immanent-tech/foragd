@@ -3,11 +3,6 @@
 
 package layouts
 
-import (
-	"github.com/immanent-tech/foragd/server/session"
-	"github.com/immanent-tech/foragd/web/templates/partials"
-)
-
 templ EmptyContent() {
 	<div class="text-center">
 		<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mx-auto size-12 text-base-content">
@@ -15,26 +10,26 @@ templ EmptyContent() {
 		</svg>
 		<h3 class="mt-2 text-base font-semibold">Nothing to show</h3>
 		<p class="mt-1 text-sm text-base-content">Try adjusting your filters/search, or maybe you are all caught up?</p>
-		<div class="mt-6">
-			<button
-				type="button"
-				hx-get="/home"
-				hx-push-url="true"
-				hx-target={ partials.ContentID.Target() }
-				class="btn btn-outline hover:bg-accent"
-			>
-				Home
-			</button>
-			<button
-				type="button"
-				hx-get="/subscriptions"
-				hx-push-url="true"
-				hx-target={ partials.ContentID.Target() }
-				hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
-				class="btn btn-outline hover:bg-accent"
-			>
-				Subscriptions
-			</button>
-		</div>
+		// <div class="mt-6">
+		// 	<button
+		// 		type="button"
+		// 		hx-get="/home"
+		// 		hx-push-url="true"
+		// 		hx-target={ partials.ContentID.Target() }
+		// 		class="btn btn-outline hover:bg-accent"
+		// 	>
+		// 		Home
+		// 	</button>
+		// 	<button
+		// 		type="button"
+		// 		hx-get="/subscriptions"
+		// 		hx-push-url="true"
+		// 		hx-target={ partials.ContentID.Target() }
+		// 		hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+		// 		class="btn btn-outline hover:bg-accent"
+		// 	>
+		// 		Subscriptions
+		// 	</button>
+		// </div>
 	</div>
 }
