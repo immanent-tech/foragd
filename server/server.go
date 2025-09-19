@@ -173,6 +173,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 		middlewares.Etag,
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
+		middleware.NoCache,
 	)
 
 	// Routes.
