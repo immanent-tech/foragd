@@ -12,6 +12,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
+	"github.com/justinas/nosurf"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
@@ -35,7 +36,8 @@ func (a *API) GetSettings() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		template := layouts.NewSettingsPage(user, &models.EditUserRequest{}).Content()
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Settings")).ServeHTTP(res, req)
+		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Settings")).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }

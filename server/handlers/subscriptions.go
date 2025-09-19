@@ -21,6 +21,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
+	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
@@ -316,7 +317,8 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		}
 		// Generate page template.
 		template := layouts.EditSubscription(request)
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Editing "+request.GetNickname())).ServeHTTP(res, req)
+		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Editing "+request.GetNickname())).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }

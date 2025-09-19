@@ -12,7 +12,9 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
+	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
@@ -31,13 +33,14 @@ func (a *API) Home() http.HandlerFunc {
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		ctx := req.Context()
 		ctx = context.WithValue(ctx, titleCtxKey, "Home - "+config.AppName)
+		ctx = models.CSRFTokenToCtx(ctx, nosurf.Token(req))
 		user, err := models.UserFromCtx(ctx)
 		if err != nil {
 			return fmt.Errorf("unable to serve home page: %w", err)
 		}
 		if user.GetSettings().ShowOnboarding {
 			template := layouts.NewUserHome()
-			renderPage(layouts.Drawer(user, template), "Home - "+config.AppName).ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), "Home - "+config.AppName).ServeHTTP(res, req.WithContext(ctx))
 			return nil
 		}
 		data, err := a.getHomePageData(ctx)
@@ -52,8 +55,9 @@ func (a *API) Home() http.HandlerFunc {
 				fmt.Errorf("unable to mark subscription: %w", err),
 				http.StatusInternalServerError)
 		}
+		godump.Dump(ctx)
 		template := data.Template()
-		renderPage(layouts.Drawer(user, template), "Home - "+config.AppName).ServeHTTP(res, req)
+		renderPage(layouts.Drawer(user, template), "Home - "+config.AppName).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }

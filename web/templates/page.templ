@@ -33,6 +33,10 @@ templ SetPageTitle(title string) {
 	}
 }
 
+templ UpdateCSRFToken() {
+	<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+}
+
 // Page renders a full HTML page with the given body content and title.
 templ Page(title string, body templ.Component) {
 	<!DOCTYPE html>
@@ -77,13 +81,8 @@ templ Page(title string, body templ.Component) {
 			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
 			hx-target-404={ partials.ContentID.Target() }
 		>
-			<input
-				id="page-theme"
-				type="checkbox"
-				value={ models.GetUserTheme(ctx) }
-				class="toggle theme-controller hidden"
-				checked="checked"
-			/>
+			<input id="page-theme" type="checkbox" value={ models.GetUserTheme(ctx) } class="toggle theme-controller hidden" checked="checked"/>
+			<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 			<div id={ partials.ModalContainerID.String() } hx-target-error="#modal-errors"></div>
 			if body != nil {
 				@body

@@ -18,6 +18,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-shiori/go-readability"
 	"github.com/justinas/alice"
+	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -55,7 +56,8 @@ func (a *API) GetArticles() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		template := layouts.ArticlesGrid(articles, &filters, pagination)
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req)
+		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -287,9 +289,10 @@ func (a *API) MarkAllArticles() http.HandlerFunc {
 
 		// Render appropriate content.
 		template := layouts.ArticlesGrid(articles, &filters, pagination)
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req)
+		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
 
-		SetRedirect(req.Context(), "/subscriptions", res)
+		SetRedirect(ctx, "/subscriptions", res)
 
 		return nil
 	})).ServeHTTP
@@ -339,7 +342,8 @@ func (a *API) ViewArticle() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		template := partials.ViewArticle(article)
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req)
+		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -394,7 +398,8 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 		}
 		// Show results.
 		template := pages.SimilarArticles(articles)
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
+		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }

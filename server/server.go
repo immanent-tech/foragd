@@ -18,6 +18,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/justinas/nosurf"
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/net/http2"
@@ -74,7 +75,7 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 
 	h2s := &http2.Server{}
 	svr.Server = &http.Server{
-		Handler:      h2c.NewHandler(router, h2s),
+		Handler:      h2c.NewHandler(nosurf.New(router), h2s),
 		Addr:         net.JoinHostPort(ServerConfig.Host, strconv.Itoa(ServerConfig.Port)),
 		ReadTimeout:  ServerConfig.ReadTimeout,
 		WriteTimeout: ServerConfig.WriteTimeout,
@@ -171,6 +172,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 		middlewares.SetupCSP(),
 		middlewares.Etag,
 		middleware.StripSlashes,
+		middlewares.SaveCSRFToken,
 	)
 
 	// Routes.
@@ -205,7 +207,8 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			middlewares.RequireUserAuth(handler.DataAPI()),
 		)
 		r.Get("/home", handler.Home())
-		r.With(middlewares.RequireHTMX).Get("/search/suggestions", handler.GetSearchSuggestions())
+		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handler.GetSearchSuggestions())
+		r.With(middlewares.RequireHTMX).Post("/search", handler.GetSearchResults())
 		r.Get("/search", handler.GetSearchResults())
 		// Subscription routes.
 		r.Route("/subscriptions", func(r chi.Router) {
@@ -241,7 +244,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 				r.With(middlewares.RequireHTMX).Post("/add", handler.AddSubscription())
 				// Edit subscription.
 				r.Get("/edit/{subscription}", handler.EditSubscription())
-				r.With(middlewares.RequireHTMX).Put("/edit/{subscription}", handler.SaveSubscription())
+				r.With(middlewares.RequireHTMX).Post("/edit/{subscription}", handler.SaveSubscription())
 				// Remove subscription (unsubscribe).
 				r.Get("/remove/{subscription}", handler.GetRemoveSubscriptionConfirmation())
 				r.With(middlewares.RequireHTMX).Post("/remove/{subscription}", handler.ProcessRemoveSubscription())

@@ -16,9 +16,9 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="search-group-label">
 		<a
 			href="#"
-			hx-get="/search"
+			hx-post="/search"
 			hx-target={ partials.ContentID.Target() }
-			hx-include="[name='text']"
+			hx-include="[name='text'],[name='csrf_token']"
 			hx-push-url="true"
 			hidden
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content text-sm"
@@ -150,12 +150,13 @@ templ SearchFilters() {
 	// Search form.
 	<div class="mx-auto max-w-3xl mt-4">
 		<form
-			hx-get="/search"
+			hx-post="/search"
 			hx-target={ partials.ContentID.Target() }
 			hx-push-url="true"
 			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
 			_="on htmx:afterRequest if event.detail.successful then toggle .hidden on #search-filters"
 		>
+			<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 			<div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
 				<div class="col-span-full">
 					<label for="text" class="block text-sm/6 font-medium">Includes the words</label>
@@ -311,9 +312,9 @@ templ GlobalSearch() {
 				class="col-start-1 row-start-1 block size-full outline-hidden pr-4 pl-6 text-base sm:text-sm/6 placeholder:text-base-content/50"
 				_="on keyup if the event's key is 'Escape' set my value to '' then add @hidden to #global-search-suggestions then trigger closeSearch"
 				hx-trigger="input changed from:#global-search delay:100ms"
-				hx-get="/search/suggestions"
+				hx-post="/search/suggestions"
 				hx-target="#global-search-suggestions"
-				hx-include="[name='text']"
+				hx-include="[name='text'],[name='csrf_token']"
 			/>
 			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="pointer-events-none col-start-1 row-start-1 self-center size-5">
 				<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>

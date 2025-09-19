@@ -62,12 +62,13 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			<legend class="fieldset-legend text-base/7">Customisation</legend>
 			<form
 				id="edit-subscription"
-				hx-put={ "/user/subscription/edit/" + request.GetID() }
+				hx-post={ "/user/subscription/edit/" + request.GetID() }
 				hx-include="[name='user_categories'],[name='show_full_article_content']"
 				hx-target={ partials.ContentID.Target() }
 				hx-target-error={ partials.ContentID.Target() }
 				hx-indicator="#processing"
 			>
+				<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 				<input type="hidden" name="subscription_id" value={ request.GetID() }/>
 				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 					<label for="username" class="block text-sm/6 font-medium">Nickname</label>
@@ -158,6 +159,7 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 				hx-indicator="#processing"
 				hx-on::after-request="if(event.detail.successful) this.reset()"
 			>
+				<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
 					<div>
 						<label for="username" class="block text-sm/6 font-medium">URL</label>
@@ -278,6 +280,7 @@ templ ImportSubscriptions() {
 				hx-target="#import-results"
 				hx-indicator="#processing"
 			>
+				<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 					<label for="source" class="block text-sm/6 font-medium">OPML file</label>
 					<div class="mt-2 sm:col-span-2 sm:mt-0">

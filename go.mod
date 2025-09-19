@@ -120,6 +120,7 @@ require (
 	github.com/immanent-tech/slog-elasticsearch v0.0.0
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/justinas/alice v1.2.0
+	github.com/justinas/nosurf v1.2.0
 	github.com/knadh/koanf/maps v0.1.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.3 // indirect

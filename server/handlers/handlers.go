@@ -159,6 +159,7 @@ func renderPage(template templ.Component, title string) http.Handler {
 				// Update the page title if set.
 				template = templ.Join(template, templates.SetPageTitle(title))
 			}
+			template = templ.Join(template, templates.UpdateCSRFToken())
 			target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget))
 			if target == "" {
 				target = templates.FragmentContent
@@ -183,6 +184,7 @@ func renderPartial(template templ.Component, title string) http.Handler {
 			// Update the page title if set.
 			template = templ.Join(template, templates.SetPageTitle(title))
 		}
+		template = templ.Join(template, templates.UpdateCSRFToken())
 		templ.Handler(template).ServeHTTP(res, req)
 	})
 }

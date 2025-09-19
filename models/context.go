@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	userCtxKey contextKey = "user"
+	userCtxKey      contextKey = "user"
+	csrfTokenCtxKey contextKey = "csrfToken"
 )
 
 type contextKey string
@@ -25,4 +26,15 @@ func UserFromCtx(ctx context.Context) (*User, error) {
 		return nil, ErrUserNotFound
 	}
 	return user, nil
+}
+
+func CSRFTokenToCtx(ctx context.Context, token string) context.Context {
+	return context.WithValue(ctx, csrfTokenCtxKey, token)
+}
+
+func CSRFTokenFromCtx(ctx context.Context) string {
+	if token, ok := ctx.Value(csrfTokenCtxKey).(string); ok {
+		return token
+	}
+	return ""
 }

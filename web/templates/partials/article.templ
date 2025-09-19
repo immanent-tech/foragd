@@ -313,6 +313,7 @@ templ viewArticleActions(article *models.Article) {
 						hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() }
 						hx-target={ ContentID.Target() }
 					>
+						<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 						<input
 							type="hidden"
 							name={ models.ParamFullArticleContent }

@@ -13,6 +13,7 @@ import (
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
+	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -64,6 +65,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		user, err := models.UserFromCtx(req.Context())
+		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 		if err != nil {
 			return fmt.Errorf("unable to display search results: %w", err)
 			// renderPage(layouts.Drawer(nil, partials.Error(models.NewErrorMessage("No user data", ""))), "").ServeHTTP(res, req)
@@ -74,14 +76,14 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		if err != nil || !valid {
 			msg := models.NewErrorMessage("Invalid search request",
 				"Unable to parse search request. Please check and try again.")
-			renderPage(layouts.Drawer(user, partials.Error(msg)), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, partials.Error(msg)), "").ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		id := request.ID()
 		if id == "" {
 			msg := models.NewErrorMessage("Invalid search request",
 				"Unable to parse search request. Please check and try again.")
-			renderPage(layouts.Drawer(user, partials.Error(msg)), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, partials.Error(msg)), "").ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Retrieve favorite data for this search
@@ -92,17 +94,17 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		case err != nil:
 			msg := models.NewErrorMessage("Could not generate search results",
 				"This could be a temporary problem, please try again.")
-			renderPage(layouts.Drawer(user, partials.Error(msg)), "").ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, partials.Error(msg)), "").ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		case len(subscriptions) > 0 || len(articles) > 0:
 			// Render appropriate content.
 			template := pages.NewSearchResultsPage(fav, request, subscriptions, articles).Content()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
-			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		default:
 			template := pages.NoSearchResults()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
-			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req)
+			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		}
 		return nil
 	})).ServeHTTP

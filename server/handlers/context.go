@@ -6,42 +6,13 @@ package handlers
 import (
 	"context"
 
-	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
-
 	"github.com/immanent-tech/foragd/models"
 )
 
 const (
-	htmxRespCtxKey            contextKey = "htmxResp"
 	subscriptionFiltersCtxKey contextKey = "subscriptionFilters"
 	articleFiltersCtxKey      contextKey = "articleFilters"
-	templateCtxKey            contextKey = "template"
 )
-
-// htmxRespToCtx adds the given htmx.Response object to the context.
-func htmxRespToCtx(ctx context.Context, resp htmx.Response) context.Context {
-	return context.WithValue(ctx, htmxRespCtxKey, resp)
-}
-
-// htmxRespFromCtx retrieves a htmx.Response object from the context. If none is found, it returns a new object.
-func htmxRespFromCtx(ctx context.Context) htmx.Response {
-	if resp, ok := ctx.Value(htmxRespCtxKey).(htmx.Response); ok {
-		return resp
-	}
-	return htmx.NewResponse()
-}
-
-func templateToCtx(ctx context.Context, template templ.Component) context.Context {
-	return context.WithValue(ctx, templateCtxKey, template)
-}
-
-func templateFromCtx(ctx context.Context) templ.Component {
-	if template, ok := ctx.Value(templateCtxKey).(templ.Component); ok {
-		return template
-	}
-	return nil
-}
 
 func subscriptionFiltersToCtx(ctx context.Context, filters models.SubscriptionFilters) context.Context {
 	return context.WithValue(ctx, subscriptionFiltersCtxKey, filters)
