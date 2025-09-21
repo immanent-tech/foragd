@@ -11,7 +11,7 @@
     "build:css": "bunx tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
   },
   "dependencies": {
-    "daisyui": "^5.1.12",
+    "daisyui": "^5.1.13",
     "date-fns": "^4.1.0",
     "htmx-ext-ajax-header": "^2.0.2",
     "htmx-ext-preload": "^2.1.1",
@@ -24,18 +24,18 @@
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
-    "@eslint/js": "^9.35.0",
+    "@eslint/js": "^9.36.0",
     "@prettier/plugin-xml": "^3.4.2",
     "@tailwindcss/cli": "^4.1.13",
-    "esbuild": "^0.25.9",
+    "esbuild": "^0.25.10",
     "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
-    "@tailwindcss/typography": "^0.5.16",
-    "eslint": "^9.35.0",
+    "@tailwindcss/typography": "^0.5.18",
+    "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.4.0",
     "htmx-ext-debug": "^2.0.1",
     "prettier": "^3.6.2",
-    "prettier-plugin-organize-imports": "^4.2.0",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "prettier-plugin-toml": "^2.0.6"
   }
