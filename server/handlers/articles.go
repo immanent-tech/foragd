@@ -413,18 +413,26 @@ func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters
 		subscriptions = subscriptions.FilterByIDs(filters.Subscriptions...)
 	}
 	query := query.Bool(
-		query.BoolQueryName("item-filters-"+filters.Query()),
 		query.Filter(
-			// Must match any of the given feed IDs.
-			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
-			// Must match any of the given categories.
-			query.Terms("categories.raw", filters.GetCategories()...),
-			// And should match one feed clause.
 			query.Bool(
 				query.Should(buildSubscriptionQueries(user, filters.GetView(), subscriptions...)...),
 			),
 		),
 	)
+
+	// query := query.Bool(
+	// 	query.BoolQueryName("item-filters-"+filters.Query()),
+	// 	query.Filter(
+	// 		// Must match any of the given feed IDs.
+	// 		query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+	// 		// Must match any of the given categories.
+	// 		query.Terms("categories.raw", filters.GetCategories()...),
+	// 		// And should match one feed clause.
+	// 		query.Bool(
+	// 			query.Should(buildSubscriptionQueries(user, filters.GetView(), subscriptions...)...),
+	// 		),
+	// 	),
+	// )
 	sort := filters.GetSort()
 
 	// Find items matching filters.
