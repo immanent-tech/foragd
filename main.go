@@ -29,7 +29,6 @@ var CLI struct {
 	Serve        cli.ServeCmd         `cmd:"" help:"Run server."`
 	Migrate      cli.MigrateCmd       `cmd:"" help:"Run backend migrations."`
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
-	Prune        cli.PruneCmd         `cmd:"" help:"Run pruning."`
 	ProfileFlags logging.ProfileFlags `name:"profile" help:"Set profiling flags."`
 }
 

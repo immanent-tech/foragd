@@ -19,7 +19,7 @@ const (
 	// FeedsSchemaPrefix is a prefix used for feed related index/mapping/settings.
 	FeedsSchemaPrefix = "feeds"
 	// ItemsSchemaPrefix is a prefix used for item related index/mapping/settings.
-	ItemsSchemaPrefix = "feeditems"
+	ItemsSchemaPrefix = "items"
 	// ArticleArchiveSchemaPrefix is a prefix used for item archive related index/mapping/settings.
 	ArticleArchiveSchemaPrefix = "article_archive"
 	// UsersSchemaPrefix is a prefix used for user related index/mapping/settings.

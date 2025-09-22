@@ -288,9 +288,11 @@ func WithIndexPatterns(patterns ...string) IndexTemplateOption {
 }
 
 // AsDatastream option will ensure the indicies using this template will be treated as a datastream.
-func AsDatastream() IndexTemplateOption {
+func AsDatastream(value bool) IndexTemplateOption {
 	return func(it *IndexTemplate) {
-		it.DataStream = types.NewDataStreamVisibility()
+		if value {
+			it.DataStream = types.NewDataStreamVisibility()
+		}
 	}
 }
 

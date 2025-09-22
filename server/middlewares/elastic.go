@@ -6,9 +6,7 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 // SetupElastic sets up handlers with the necessary data for backend
@@ -17,10 +15,7 @@ func SetupElastic() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
-			ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
-			ctx = elastic.ItemsIndexToCtx(ctx, schema.ItemsSchemaPrefix+"_"+config.Environment())
-			ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
-			ctx = elastic.ArchiveIndexToCtx(ctx, schema.ArticleArchiveSchemaPrefix)
+			ctx = elastic.SetupIndexAliases(ctx)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

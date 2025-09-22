@@ -21,7 +21,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
@@ -142,7 +141,7 @@ func syncLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProf
 		return
 	}
 	ctx = models.UserToCtx(ctx, user)
-	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
+	ctx = elastic.SetupIndexAliases(ctx)
 	// For the following fields, assume that if the backend value is different from the local value, it was updated on
 	// the backend. In such cases, replace the local value.
 	updates := make(map[string]any)
@@ -173,7 +172,7 @@ func createLocalUser(ctx context.Context, api *elastic.API, externalID string) e
 	if err != nil || !valid {
 		return fmt.Errorf("cannot create local user: %w", err)
 	}
-	index, err := elastic.UserIndexFromCtx(ctx)
+	index, err := elastic.UserWriteIndexFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot create local user: %w", err)
 	}

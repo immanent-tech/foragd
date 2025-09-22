@@ -9,6 +9,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/reindex"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/optype"
 )
 
 // Option is a functional option for a reindex operation.
@@ -36,6 +37,7 @@ func NewSource(src string) *types.ReindexSource {
 // NewDest sets up a new reindex destination.
 func NewDest(dest string) *types.ReindexDestination {
 	return &types.ReindexDestination{
-		Index: dest,
+		Index:  dest,
+		OpType: &optype.Create,
 	}
 }

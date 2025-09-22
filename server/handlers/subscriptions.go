@@ -638,7 +638,7 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, subscriptionMetad
 	// Retrieve user object.
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unabel to get subscription unread counts: %w", err)
+		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
 	}
 	// Generate unread count query.
 	subscriptionQueries := make([]query.Option, 0, len(subscriptionMetadata))
@@ -661,7 +661,7 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, subscriptionMetad
 	if !resp.IsNotFound() {
 		categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggResults.Aggregations, "UnreadCounts")
 		if err != nil {
-			return nil, fmt.Errorf("getSubscriptionUnreadCounts: %w", err)
+			return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
 		}
 	}
 
@@ -686,6 +686,7 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	if err != nil {
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
+	slog.Info("here")
 	// Get feed data for subscriptions.
 	feeds, err := a.DataAPI().GetFeeds(ctx, allMetadata.GetFeedIDs()...)
 	if err != nil {
@@ -862,9 +863,9 @@ func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (
 	// return results, nil
 
 	// Add the new feeds.
-	index := elastic.FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, models.ErrNoUserCtx
+	index, err := elastic.FeedsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("createNewFeeds: %w", err)
 	}
 	addFeedsResults, err := elastic.BulkAdd(ctx, api.DataAPI(), index, slices.Collect(maps.Values(r))...)
 	if err != nil && !errors.Is(err, bulk.ErrBulkHasErrors) {

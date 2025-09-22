@@ -14,10 +14,8 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 const (
@@ -43,9 +41,7 @@ func Run(ctx context.Context) error {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
 
-	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
-	ctx = elastic.ItemsIndexToCtx(ctx, schema.ItemsSchemaPrefix+"_"+config.Environment())
-	ctx = elastic.JobStateIndexToCtx(ctx, schema.SchedulerStatePrefix+"_"+config.Environment())
+	ctx = elastic.SetupIndexAliases(ctx)
 
 	jobQueue, err := NewJobQueue(ctx, esClient)
 	if err != nil {

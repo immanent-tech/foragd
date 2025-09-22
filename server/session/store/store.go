@@ -11,9 +11,6 @@ import (
 	"github.com/alexedwards/scs/v2"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 var sessionCtx context.Context
@@ -25,16 +22,21 @@ var (
 )
 
 type Store struct {
-	client *elastic.API
-	index  string
+	data Datastore
+}
+
+type Datastore interface {
+	GetSession(ctx context.Context, token string) (*models.UserSession, error)
+	DeleteSession(ctx context.Context, token string) error
+	UpdateSession(ctx context.Context, token string, data map[string]any) error
+	FindAllSessions(ctx context.Context) ([]models.UserSession, error)
 }
 
 // NewSessionStore sets up a new session store for use by the server.
-func NewSessionStore(ctx context.Context, client *elastic.API) (*Store, error) {
+func NewSessionStore(ctx context.Context, client Datastore) (*Store, error) {
 	sessionCtx = ctx
 	return &Store{
-		client: client,
-		index:  schema.SessionsSchemaPrefix,
+		data: client,
 	}, nil
 }
 
@@ -42,11 +44,10 @@ func NewSessionStore(ctx context.Context, client *elastic.API) (*Store, error) {
 // session store. If the token does not exist then Delete should be a no-op
 // and return nil (not an error).
 func (s *Store) Delete(token string) error {
-	err := elastic.DeleteDoc(sessionCtx, s.client.GetAPI(), s.index, token)
+	err := s.data.DeleteSession(sessionCtx, token)
 	if err != nil {
-		return fmt.Errorf("delete session failed: %w", err)
+		return fmt.Errorf("could not delete session: %w", err)
 	}
-
 	return nil
 }
 
@@ -56,7 +57,7 @@ func (s *Store) Delete(token string) error {
 // or malformed tokens should result in a found return value of false and a
 // nil err value. The err return value should be used for system errors only.
 func (s *Store) Find(token string) ([]byte, bool, error) {
-	session, err := elastic.GetDoc[string, models.UserSession](sessionCtx, s.client.GetAPI(), s.index, token)
+	session, err := s.data.GetSession(sessionCtx, token)
 	if err != nil {
 		return nil, false, fmt.Errorf("could not find a valid session: %w", err)
 	}
@@ -72,16 +73,12 @@ func (s *Store) Find(token string) ([]byte, bool, error) {
 // expiry time. If the session token already exists, then the data and
 // expiry time should be overwritten.
 func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
-	err := elastic.UpdateDoc(sessionCtx, s.client.GetAPI(), s.index,
-		token,
-		map[string]any{
-			"token":      token,
-			"data":       b,
-			"expiry":     expiry,
-			"updated_at": time.Now().UTC(),
-		},
-		elastic.UpdateDocAsUpsert(),
-	)
+	err := s.data.UpdateSession(sessionCtx, token, map[string]any{
+		"token":      token,
+		"data":       b,
+		"expiry":     expiry,
+		"updated_at": time.Now().UTC(),
+	})
 	if err != nil {
 		return fmt.Errorf("could not commit session: %w", err)
 	}
@@ -95,10 +92,9 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 // sessions exist this should return an empty (not nil) map.
 func (s *Store) All() (map[string][]byte, error) {
 	data := make(map[string][]byte)
-
-	sessions, err := elastic.SearchAll[models.UserSession](sessionCtx, s.client.GetAPI(), s.index, query.Since("expiry", time.Now().UTC()), 1000)
+	sessions, err := s.data.FindAllSessions(sessionCtx)
 	if err != nil {
-		return nil, fmt.Errorf("could not retrieve active sessions: %w", err)
+		return nil, fmt.Errorf("unable to find active sessions: %w", err)
 	}
 
 	for _, session := range sessions {

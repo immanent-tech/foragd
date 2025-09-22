@@ -33,15 +33,65 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
+	"github.com/immanent-tech/foragd/server/session/store"
 )
 
 var ErrNotFound = errors.New("not found")
 
-var _ types.FieldValueVariant = (*paginationValue[types.FieldValue])(nil)
+var (
+	_ store.Datastore = (*API)(nil)
+
+	_ types.FieldValueVariant = (*paginationValue[types.FieldValue])(nil)
+)
 
 // API is an object that provides access to the Elasticsearch API.
 type API struct {
 	*elasticsearch.TypedClient
+}
+
+// GetSession retrieves session data with the given token.
+func (a *API) GetSession(ctx context.Context, token string) (*models.UserSession, error) {
+	index := schema.SessionsSchemaPrefix + schema.IndexReadSuffix
+	session, err := GetDoc[string, models.UserSession](ctx, a.GetAPI(), index, token)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve session: %w", err)
+	}
+	return &session, nil
+}
+
+// DeleteSession removes the session data for the given token.
+func (a *API) DeleteSession(ctx context.Context, token string) error {
+	index := schema.SessionsSchemaPrefix + schema.IndexWriteSuffix
+	err := DeleteDoc(ctx, a.GetAPI(), index, token)
+	if err != nil {
+		return fmt.Errorf("unable to delete session: %w", err)
+	}
+	return nil
+}
+
+// UpdateSession updates the session data.
+func (a *API) UpdateSession(ctx context.Context, token string, data map[string]any) error {
+	index := schema.SessionsSchemaPrefix + schema.IndexWriteSuffix
+	err := UpdateDoc(ctx, a.GetAPI(), index,
+		token,
+		data,
+		UpdateDocAsUpsert(),
+	)
+	if err != nil {
+		return fmt.Errorf("unable to update session: %w", err)
+	}
+	return nil
+}
+
+// FindAllSessions returns all active (non-expired) sessions.
+func (a *API) FindAllSessions(ctx context.Context) ([]models.UserSession, error) {
+	index := schema.SessionsSchemaPrefix + schema.IndexReadSuffix
+	sessions, err := SearchAll[models.UserSession](ctx, a.GetAPI(), index, query.Since("expiry", time.Now().UTC()), 1000)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve active sessions: %w", err)
+	}
+	return sessions, nil
 }
 
 // GetAPI returns the raw API object.
@@ -51,7 +101,7 @@ func (a *API) GetAPI() *elasticsearch.TypedClient {
 
 // UserExists checks if a user with the given ID exists.
 func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
-	index, err := UserIndexFromCtx(ctx)
+	index, err := UserReadIndexFromCtx(ctx)
 	if err != nil {
 		return false, fmt.Errorf("could not check if user exists: %w", err)
 	}
@@ -64,7 +114,7 @@ func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
 
 // GetUser retrieves the user with the given id.
 func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
-	index, err := UserIndexFromCtx(ctx)
+	index, err := UserReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not get user: %w", err)
 	}
@@ -78,7 +128,7 @@ func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, erro
 }
 
 func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
-	index, err := UserIndexFromCtx(ctx)
+	index, err := UserWriteIndexFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("could not delete user: %w", err)
 	}
@@ -100,7 +150,7 @@ func (a *API) UpdateUser(ctx context.Context, updates map[string]any) error {
 		return fmt.Errorf("could not update user: %w", err)
 	}
 	updates["updated_at"] = time.Now().UTC()
-	index, err := UserIndexFromCtx(ctx)
+	index, err := UserWriteIndexFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("could not update user: %w", err)
 	}
@@ -116,7 +166,7 @@ func (a *API) UpdateUser(ctx context.Context, updates map[string]any) error {
 
 // FindUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
-	index, err := UserIndexFromCtx(ctx)
+	index, err := UserReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not find user: %w", err)
 	}
@@ -133,9 +183,9 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 
 // GetFeed retrieves a single feed with the given ID.
 func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ErrFetchCtx
+	index, err := FeedsReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("could not get feed: %w", err)
 	}
 	feed, err := GetDoc[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, id)
 	if err != nil {
@@ -148,9 +198,9 @@ func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, erro
 
 // GetFeeds retrieves the feeds with the given IDs.
 func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ErrFetchCtx
+	index, err := FeedsReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("could not get feeds: %w", err)
 	}
 
 	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, ids...)
@@ -164,9 +214,9 @@ func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds,
 // SearchFeeds will search the feeds index for feed matching the given query. Count, sort and pagination values are
 // optional.
 func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
+	index, err := FeedsReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, "", fmt.Errorf("could not search feeds: %w", err)
 	}
 
 	searchAfter, err := decodePagination(pagination)
@@ -197,15 +247,15 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 // GetNewFeedsSince will return a slice of all feeds that have been created since the given timestamp.
 func (e *API) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error) {
 	// Get all new feeds created since last checkpoint.
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
+	index, err := FeedsReadIndexFromCtx(ctx)
+	if err != nil {
 		return nil, fmt.Errorf("GetNewFeedsSince: %w", ErrFetchCtx)
 	}
 	// Generate query. We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
 	// don't have a job scheduled for updating their items.
 	query := query.Term("last_fetched", models.UnixEpoch)
 	var feeds models.Feeds
-	feeds, err := SearchAll[*models.Feed](ctx, e.GetAPI(), index, query, 1000)
+	feeds, err = SearchAll[*models.Feed](ctx, e.GetAPI(), index, query, 1000)
 	if err != nil {
 		return nil, fmt.Errorf("GetNewFeedsSince: %w", toAPIError(err))
 	}
@@ -215,14 +265,14 @@ func (e *API) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Fee
 // UpdateFeed will update the feed with the given id, using the new feed information provided.
 func (e *API) UpdateFeed(ctx context.Context, id models.FeedID, updated *feeds.Feed) error {
 	// Update the feed timestamp.
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
+	index, err := FeedsWriteIndexFromCtx(ctx)
+	if err != nil {
 		return fmt.Errorf("UpdateFeed: %w", ErrFetchCtx)
 	}
 	updates := map[string]any{
 		"last_fetched": time.Now().UTC(),
 	}
-	err := UpdateDoc(ctx, e.GetAPI(), index, id, updates)
+	err = UpdateDoc(ctx, e.GetAPI(), index, id, updates)
 	if err != nil {
 		return fmt.Errorf("UpdateFeed: %w", err)
 	}
@@ -232,14 +282,14 @@ func (e *API) UpdateFeed(ctx context.Context, id models.FeedID, updated *feeds.F
 // SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
 // optional.
 func (e *API) SearchItems(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Items, models.Pagination, error) {
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
+	index, err := ItemsReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, "", fmt.Errorf("unable to search items: %w", err)
 	}
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
-		return nil, "", fmt.Errorf("%w: %w", ErrSearchFailed, err)
+		return nil, "", fmt.Errorf("unable to search items: %w", err)
 	}
 	// Perform search.
 	items, newSearchAfter, err := Search[*models.Item](ctx, e.GetAPI(), index, query, count,
@@ -247,12 +297,12 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 	)
 	if err != nil {
-		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+		return nil, "", fmt.Errorf("unable to search items: %w", err)
 	}
 	// Parse last search after value into pagination.
 	newPagination, err := encodePagination(newSearchAfter)
 	if err != nil {
-		return nil, "", errors.Join(ErrSearchFailed, err)
+		return nil, "", fmt.Errorf("unable to search items: %w", err)
 	}
 	return items, newPagination, nil
 }
@@ -260,9 +310,9 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 // ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
 // options. It returns the raw search response.
 func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int, aggregations ...aggregations.Aggregation) (*search.Response, *models.Response) {
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ParseError(ErrFetchCtx)
+	index, err := ItemsReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, ParseError(err)
 	}
 
 	req := NewSearchRequest(e.GetAPI(),
@@ -283,14 +333,14 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int
 
 // CountItems returns a count of items that match the given query.
 func (e *API) CountItems(ctx context.Context, query query.Option) (int64, error) {
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return 0, fmt.Errorf("CountNewItems: %w", ErrFetchCtx)
+	index, err := ItemsReadIndexFromCtx(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("unable to count items: %w", err)
 	}
 
 	count, err := Count(ctx, e.GetAPI(), index, query)
 	if err != nil {
-		return 0, fmt.Errorf("CountNewItems: %w", ErrFetchCtx)
+		return 0, fmt.Errorf("unable to count items: %w", err)
 	}
 
 	return count, nil
@@ -298,17 +348,17 @@ func (e *API) CountItems(ctx context.Context, query query.Option) (int64, error)
 
 // AddItems will bulk index the given items.
 func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.ItemID]*bulk.OperationResponse, error) {
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ErrFetchCtx
+	index, err := ItemsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to add items: %w", err)
 	}
 	return BulkAdd(ctx, e, index, items...)
 }
 
 func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
-	index := JobStateIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ErrFetchCtx
+	index, err := JobStateReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read job state: %w", err)
 	}
 	state, err := GetDoc[string, *models.JobState](ctx, a.GetAPI(), index, id)
 	if err != nil {
@@ -318,9 +368,9 @@ func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, err
 }
 
 func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
-	index := JobStateIndexFromCtx(ctx)
-	if index == "" {
-		return ErrFetchCtx
+	index, err := JobStateWriteIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to update job state: %w", err)
 	}
 	updates["updated_at"] = time.Now().UTC()
 	return UpdateDoc(ctx, a.GetAPI(), index, id, updates,
@@ -615,14 +665,14 @@ func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index
 
 // MultiSearch performs an msearch request.
 func MultiSearch(ctx context.Context, api *elasticsearch.TypedClient, searches ...*query.MsearchSearch) (results.MSearchResults, error) {
-	subscriptionsIndex := FeedsIndexFromCtx(ctx)
-	if subscriptionsIndex == "" {
-		return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
-	}
-	itemsIndex := ItemsIndexFromCtx(ctx)
-	if itemsIndex == "" {
-		return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
-	}
+	// subscriptionsIndex, err := FeedsReadIndexFromCtx(ctx)
+	// if err != nil {
+	// 	return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
+	// }
+	// itemsIndex, err := ItemsReadIndexFromCtx(ctx)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("unable to perform multi-search: %w", err)
+	// }
 
 	options := make([]Option[MsearchRequest], 0, len(searches)+1)
 	options = append(options, WithRequestID[*msearch.Msearch, MsearchRequest](middleware.GetReqID(ctx)))
