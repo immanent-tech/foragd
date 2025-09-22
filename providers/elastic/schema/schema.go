@@ -114,7 +114,6 @@ func sessionsComponentTemplate() *Template {
 			),
 			WithDynamicProperties(false),
 		),
-		WithAlias(SessionsSchemaPrefix, nil),
 	)
 }
 
@@ -133,7 +132,6 @@ func schedulerJobsComponentTemplate() *Template {
 			),
 			WithDynamicProperties(false),
 		),
-		WithAlias(SchedulerJobsPrefix, nil),
 	)
 }
 
@@ -147,7 +145,6 @@ func schedulerStateComponentTemplate() *Template {
 			),
 			WithDynamicProperties(false),
 		),
-		WithAlias(SchedulerStatePrefix, nil),
 	)
 }
 
@@ -170,7 +167,6 @@ func userComponentTemplate() *Template {
 			),
 			WithDynamicProperties(false),
 		),
-		WithAlias(UsersSchemaPrefix, nil),
 	)
 }
 
@@ -187,7 +183,6 @@ func feedsComponentTemplate() *Template {
 			),
 			WithDynamicProperties(false),
 		),
-		WithAlias(FeedsSchemaPrefix, nil),
 		WithTemplateSettings(
 			WithAnalysis(types.IndexSettingsAnalysis{
 				Analyzer: map[string]types.Analyzer{
@@ -216,7 +211,6 @@ func articleArchiveComponentTemplate() *Template {
 			),
 			WithDynamicProperties(false),
 		),
-		WithAlias(ArticleArchiveSchemaPrefix, nil),
 		WithTemplateSettings(
 			WithAnalysis(types.IndexSettingsAnalysis{
 				Analyzer: map[string]types.Analyzer{

@@ -18,11 +18,9 @@ const (
 	userIndexCtxKey     contextKey = "users"
 	feedsIndexCtxKey    contextKey = "feeds"
 	itemsIndexCtxKey    contextKey = "items"
-	subscriptionsCtxKey contextKey = "subscriptions"
 	archiveCtxKey       contextKey = "archive"
 	jobsIndexCtxKey     contextKey = "jobs"
 	jobStateIndexCtxKey contextKey = "job_state"
-	sessionIndexCtxKey  contextKey = "session"
 	pipelineIndexCtxKey contextKey = "pipeline"
 )
 

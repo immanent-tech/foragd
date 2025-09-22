@@ -11,9 +11,11 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v9"
 	slogctx "github.com/veqryn/slog-context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/reindex"
 )
 
 var validMigrations = []string{"users", "feeds", "items", "scheduler", "sessions", "logs", "ingest"}
@@ -25,33 +27,48 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 		migrations = validMigrations
 	}
 
+	migrationJobs, ctx := errgroup.WithContext(ctx)
+
 	// Perform requested migrations.
 	for migration := range slices.Values(migrations) {
-		var err error
-
 		switch migration {
 		case "users":
-			err = indexMigration(ctx, api, UsersSchemaPrefix, userComponentTemplate(), destructive)
+			migrationJobs.Go(func() error {
+				return indexMigration(ctx, api, UsersSchemaPrefix, userComponentTemplate(), destructive)
+			})
 		case "feeds":
-			err = indexMigration(ctx, api, FeedsSchemaPrefix, feedsComponentTemplate(), destructive)
+			migrationJobs.Go(func() error {
+				return indexMigration(ctx, api, FeedsSchemaPrefix, feedsComponentTemplate(), destructive)
+			})
 		case "items":
-			err = migrateFeedItems(ctx, api, destructive)
+			migrationJobs.Go(func() error {
+				return migrateFeedItems(ctx, api, destructive)
+			})
 		case "scheduler":
-			err = indexMigration(ctx, api, SchedulerJobsPrefix, schedulerJobsComponentTemplate(), destructive)
-			if err == nil {
-				err = indexMigration(ctx, api, SchedulerStatePrefix, schedulerStateComponentTemplate(), destructive)
-			}
+			migrationJobs.Go(func() error {
+				return indexMigration(ctx, api, SchedulerJobsPrefix, schedulerJobsComponentTemplate(), destructive)
+			})
+			migrationJobs.Go(func() error {
+				return indexMigration(ctx, api, SchedulerStatePrefix, schedulerStateComponentTemplate(), destructive)
+			})
 		case "sessions":
-			err = indexMigration(ctx, api, SessionsSchemaPrefix, sessionsComponentTemplate(), destructive)
+			migrationJobs.Go(func() error {
+				return indexMigration(ctx, api, SessionsSchemaPrefix, sessionsComponentTemplate(), destructive)
+			})
 		case "logs":
-			err = migrateLogs(ctx, api, destructive)
+			migrationJobs.Go(func() error {
+				return migrateLogs(ctx, api, destructive)
+			})
 		case "ingest":
-			err = migrateIngest(ctx, api)
+			migrationJobs.Go(func() error {
+				return migrateIngest(ctx, api)
+			})
 		}
+	}
 
-		if err != nil {
-			return fmt.Errorf("failed running migration: %w", err)
-		}
+	err := migrationJobs.Wait()
+	if err != nil {
+		return fmt.Errorf("migration failed: %w", err)
 	}
 
 	return nil
@@ -59,32 +76,23 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 
 // indexMigration performs a migration of a standard index, including component & index templates as well as the index
 // itself.
+//
+//nolint:gocognit,funlen
 func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix string, schema *Template, destructive bool) error {
 	schemaPrefix := prefix
 
-	slogctx.FromCtx(ctx).Debug("Performing appropriate migrations...",
+	slogctx.FromCtx(ctx).Info("Performing appropriate migrations...",
 		slog.String("schema", schemaPrefix))
 
 	componentTemplateName := schemaPrefix + "_component_template"
 	indexTemplateName := schemaPrefix + "_index_template"
-	indexName := schemaPrefix + "_" + config.Environment()
+	indexName := schemaPrefix + "_" + config.Version
 
-	if destructive {
-		slogctx.FromCtx(ctx).Debug("Deleting existing schemas...",
+	if destructive { //nolint:nestif
+		slogctx.FromCtx(ctx).Info("Deleting existing templates...",
 			slog.String("schema", schemaPrefix))
-		// Check for and delete the index.
-		found, err := api.Indices.Exists(indexName).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("could not determine %s index state: %w", indexName, err)
-		}
-		if found {
-			_, err := api.Indices.Delete(indexName).Do(ctx)
-			if err != nil {
-				return fmt.Errorf("could not delete index %s: %w", indexName, err)
-			}
-		}
 		// Check for and delete the index template.
-		found, err = api.Indices.ExistsIndexTemplate(indexTemplateName).Do(ctx)
+		found, err := api.Indices.ExistsIndexTemplate(indexTemplateName).Do(ctx)
 		if err != nil {
 			return fmt.Errorf("could not determine %s index template state: %w", indexTemplateName, err)
 		}
@@ -113,7 +121,7 @@ func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix 
 		return fmt.Errorf("could not determine %s component template state: %w", componentTemplateName, err)
 	}
 	if !found {
-		slogctx.FromCtx(ctx).Debug("Creating component template...",
+		slogctx.FromCtx(ctx).Info("Creating component template...",
 			slog.String("name", componentTemplateName))
 		componentTemplate := NewComponentTemplate(componentTemplateName, schema,
 			WithComponentTemplateMetadata(defaultMetadata),
@@ -130,7 +138,7 @@ func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix 
 		return fmt.Errorf("could not determine %s index template state: %w", indexTemplateName, err)
 	}
 	if !found {
-		slogctx.FromCtx(ctx).Debug("Creating index template...",
+		slogctx.FromCtx(ctx).Info("Creating index template...",
 			slog.String("name", indexTemplateName))
 		indexTemplate := NewIndexTemplate(indexTemplateName,
 			WithComponentTemplates(componentTemplateName),
@@ -149,11 +157,53 @@ func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix 
 		return fmt.Errorf("could not determine %s index state: %w", indexName, err)
 	}
 	if !found {
-		slogctx.FromCtx(ctx).Debug("Creating index...",
+		slogctx.FromCtx(ctx).Info("Creating new index...",
 			slog.String("name", indexName))
 		_, err = api.Indices.Create(indexName).Do(ctx)
 		if err != nil {
 			return fmt.Errorf("could not create index %s: %w", indexName, err)
+		}
+	}
+
+	// Reindex.
+	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(prefix), reindex.NewDest(indexName)).WaitForCompletion(true).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("could not reindex: %w", err)
+	}
+	slogctx.FromCtx(ctx).Info("Reindex completed.",
+		slog.String("src", prefix),
+		slog.String("dest", indexName),
+		slog.Int64("took", *reindexResp.Took),
+	)
+
+	// Update the alias with the new index.
+	_, err = api.Indices.PutAlias(indexName, prefix).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("could not update alias: %w", err)
+	}
+	slogctx.FromCtx(ctx).Info("Index alias updated.")
+	// Remove old indices from the alias.
+	aliasesResp, err := api.Indices.GetAlias().Index(prefix).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("migration failed: %w", err)
+	}
+	for aliasedIndex := range aliasesResp {
+		if aliasedIndex != indexName {
+			// Close the old index so writes don't happen.
+			_, err := api.Indices.Close(aliasedIndex).Do(ctx)
+			if err != nil {
+				slogctx.FromCtx(ctx).Warn("Could not close old index for alias removal.",
+					slog.String("index", aliasedIndex),
+					slog.Any("error", err))
+				continue
+			}
+			// Remove the old index from the alias.
+			_, err = api.Indices.DeleteAlias(aliasedIndex, prefix).Do(ctx)
+			if err != nil {
+				slogctx.FromCtx(ctx).Warn("Could not remove old index from alias.",
+					slog.String("index", aliasedIndex),
+					slog.Any("error", err))
+			}
 		}
 	}
 

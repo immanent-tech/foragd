@@ -63,13 +63,13 @@ type SettingsOption Option[*Settings]
 
 // NewSettings creates new settings with the given options.
 func NewSettings(options ...SettingsOption) *Settings {
-	m := &Settings{
+	settings := &Settings{
 		IndexSettings: types.NewIndexSettings(),
 	}
 	for _, option := range options {
-		option(m)
+		option(settings)
 	}
-	return m
+	return settings
 }
 
 // WithAnalysis option will apply the provided analysis settings.
@@ -103,13 +103,13 @@ type MappingsOption Option[*Mappings]
 
 // NewMappings creates new mappings with the given options.
 func NewMappings(options ...MappingsOption) *Mappings {
-	m := &Mappings{
+	mappings := &Mappings{
 		TypeMapping: types.NewTypeMapping(),
 	}
 	for option := range slices.Values(options) {
-		option(m)
+		option(mappings)
 	}
-	return m
+	return mappings
 }
 
 // WithProperties option sets field properties in the mapping.
