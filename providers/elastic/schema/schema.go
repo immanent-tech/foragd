@@ -261,6 +261,7 @@ func itemsComponentTemplate() *Template {
 					},
 				},
 			}),
+			WithLifecycle(ItemsSchemaPrefix),
 		),
 	)
 }

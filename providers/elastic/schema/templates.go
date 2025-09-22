@@ -86,6 +86,13 @@ func WithMode(mode string) SettingsOption {
 	}
 }
 
+func WithLifecycle(name string) SettingsOption {
+	return func(s *Settings) {
+		s.Lifecycle = types.NewIndexSettingsLifecycle()
+		s.Lifecycle.Name = &name
+	}
+}
+
 // WithTemplateMapping option applies the given mapping options to the template.
 func WithTemplateMapping(options ...MappingsOption) TemplateOption {
 	return func(t *Template) {

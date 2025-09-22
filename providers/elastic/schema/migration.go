@@ -5,23 +5,19 @@ package schema
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v9"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/reindex"
 )
 
-var validMigrations = []string{"users", "feeds", "items", "scheduler", "sessions", "logs", "ingest"}
+var validMigrations = []string{"users", "feeds", "items", "scheduler", "sessions", "logs", "ingest", "archive"}
 
 // Migration will create all necessary index templates settings and policies.
 func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive bool, migrations ...string) error {
@@ -47,9 +43,10 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 			migrationJobs.Go(func() error {
 				return migrateFeedItems(ctx, api)
 			})
-			// migrationJobs.Go(func() error {
-			// 	return indexMigration(ctx, api, ArticleArchiveSchemaPrefix, articleArchiveComponentTemplate())
-			// })
+		case "archive":
+			migrationJobs.Go(func() error {
+				return indexMigration(ctx, api, ArticleArchiveSchemaPrefix, articleArchiveComponentTemplate())
+			})
 		case "scheduler":
 			migrationJobs.Go(func() error {
 				return indexMigration(ctx, api, SchedulerJobsPrefix, schedulerJobsComponentTemplate())
@@ -167,7 +164,6 @@ func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient) error
 	if err != nil {
 		return fmt.Errorf("unable to migrate items datastream: %w", err)
 	}
-	slogctx.FromCtx(ctx).Info("Updated items datastream templates.")
 
 	// Create datastream.
 	_, err = api.Indices.CreateDataStream(datastreamName).Do(ctx)
@@ -295,77 +291,29 @@ func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias stri
 
 func updateTemplates(ctx context.Context, api *elasticsearch.TypedClient, prefix string, schema *Template, datastream bool) error {
 	componentTemplateName := prefix + "_component_template"
-	indexTemplateName := prefix + "_index_template"
+	indexTemplateName := prefix + "_" + config.Version + "_index_template"
 
-	slogctx.FromCtx(ctx).Info("Deleting existing templates...",
-		slog.String("schema", prefix))
-	// Check for and delete the index template.
-	found, err := api.Indices.ExistsIndexTemplate(indexTemplateName).Do(ctx)
+	slogctx.FromCtx(ctx).Info("Creating component template...",
+		slog.String("name", componentTemplateName))
+	componentTemplate := NewComponentTemplate(componentTemplateName, schema,
+		WithComponentTemplateMetadata(defaultMetadata),
+	)
+	err := componentTemplate.Put(ctx, api)
 	if err != nil {
-		return fmt.Errorf("could not determine %s index template state: %w", indexTemplateName, err)
-	}
-	if found {
-		_, err := api.Indices.DeleteIndexTemplate(indexTemplateName).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("could not delete component template %s: %w", indexTemplateName, err)
-		}
-	}
-	// Check for and delete the component template.
-	found, err = api.Cluster.ExistsComponentTemplate(componentTemplateName).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not determine %s component template state: %w", componentTemplateName, err)
-	}
-	if found {
-		_, err := api.Cluster.DeleteComponentTemplate(componentTemplateName).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("could not delete component template %s: %w", componentTemplateName, err)
-		}
+		return fmt.Errorf("could not create component template %s: %w", componentTemplateName, err)
 	}
 
-	// Create component template.
-	found, err = api.Cluster.ExistsComponentTemplate(componentTemplateName).Do(ctx)
+	slogctx.FromCtx(ctx).Info("Creating index template...",
+		slog.String("name", indexTemplateName))
+	indexTemplate := NewIndexTemplate(indexTemplateName,
+		WithComponentTemplates(componentTemplateName),
+		WithIndexPatterns(prefix+"_"+config.Version),
+		WithIndexTemplateMetadata(defaultMetadata),
+		AsDatastream(datastream),
+	)
+	err = indexTemplate.Put(ctx, api)
 	if err != nil {
-		return fmt.Errorf("could not determine %s component template state: %w", componentTemplateName, err)
-	}
-	if !found {
-		slogctx.FromCtx(ctx).Info("Creating component template...",
-			slog.String("name", componentTemplateName))
-		componentTemplate := NewComponentTemplate(componentTemplateName, schema,
-			WithComponentTemplateMetadata(defaultMetadata),
-		)
-		err = componentTemplate.Put(ctx, api)
-		if err != nil {
-			return fmt.Errorf("could not create component template %s: %w", componentTemplateName, err)
-		}
-	}
-
-	// Create index template.
-	found, err = api.Indices.ExistsIndexTemplate(indexTemplateName).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not determine %s index template state: %w", indexTemplateName, err)
-	}
-	if !found {
-		slogctx.FromCtx(ctx).Info("Creating index template...",
-			slog.String("name", indexTemplateName))
-		indexTemplate := NewIndexTemplate(indexTemplateName,
-			WithComponentTemplates(componentTemplateName),
-			WithIndexPatterns(prefix+"_"+config.Version),
-			WithIndexTemplateMetadata(defaultMetadata),
-			AsDatastream(datastream),
-		)
-		err = indexTemplate.Put(ctx, api)
-		if err != nil {
-			return fmt.Errorf("could not create index template %s: %w", indexTemplateName, err)
-		}
+		return fmt.Errorf("could not create index template %s: %w", indexTemplateName, err)
 	}
 	return nil
-}
-
-func toAPIError(err error) error {
-	var esErr *types.ElasticsearchError
-	if errors.As(err, &esErr) {
-		msg := fmt.Errorf("%s: %s", esErr.ErrorCause.Type, *esErr.ErrorCause.Reason)
-		return models.NewAPIError(msg, esErr.Status)
-	}
-	return models.NewAPIError(err, http.StatusInternalServerError)
 }
