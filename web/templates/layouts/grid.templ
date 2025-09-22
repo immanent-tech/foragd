@@ -28,7 +28,7 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 	<div
 		class="isolate"
 		hx-post={ route }
-		hx-include="#content-filters"
+		hx-include="#content-filters,[name='csrf_token']"
 		hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
 		hx-trigger="intersect once"
 		hx-target="#grid-objects"
