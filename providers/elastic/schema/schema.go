@@ -34,6 +34,11 @@ const (
 	LogsSchemaPrefix = "application_logs"
 
 	ingestPipelineID = "gofeed"
+
+	// IndexWriteSuffix is the suffix appended to indicies that are used for write (indexing) operations.
+	IndexWriteSuffix = "_rw"
+	// IndexReadSuffix is the suffix appended to indicies that are used for read (search, get) operations.
+	IndexReadSuffix = "_ro"
 )
 
 var (
@@ -247,7 +252,6 @@ func itemsComponentTemplate() *Template {
 			),
 			WithDynamicProperties(false),
 		),
-		WithAlias(ItemsSchemaPrefix, nil),
 		WithTemplateSettings(
 			WithAnalysis(types.IndexSettingsAnalysis{
 				Analyzer: map[string]types.Analyzer{

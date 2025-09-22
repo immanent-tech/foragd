@@ -77,7 +77,7 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 // indexMigration performs a migration of a standard index, including component & index templates as well as the index
 // itself.
 //
-//nolint:gocognit,funlen
+//nolint:funlen
 func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix string, schema *Template, destructive bool) error {
 	schemaPrefix := prefix
 
@@ -87,6 +87,8 @@ func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix 
 	componentTemplateName := schemaPrefix + "_component_template"
 	indexTemplateName := schemaPrefix + "_index_template"
 	indexName := schemaPrefix + "_" + config.Version
+	writeAlias := indexName + IndexWriteSuffix
+	readAlias := indexName + IndexReadSuffix
 
 	if destructive { //nolint:nestif
 		slogctx.FromCtx(ctx).Info("Deleting existing templates...",
@@ -165,8 +167,15 @@ func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix 
 		}
 	}
 
+	// Update the write alias.
+	err = updateAlias(ctx, api, writeAlias, indexName)
+	if err != nil {
+		return fmt.Errorf("migration failed: %w", err)
+	}
+	slogctx.FromCtx(ctx).Info("Write alias updated.")
+
 	// Reindex.
-	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(prefix), reindex.NewDest(indexName)).WaitForCompletion(true).Do(ctx)
+	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(indexName)).WaitForCompletion(true).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("could not reindex: %w", err)
 	}
@@ -176,36 +185,12 @@ func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix 
 		slog.Int64("took", *reindexResp.Took),
 	)
 
-	// Update the alias with the new index.
-	_, err = api.Indices.PutAlias(indexName, prefix).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not update alias: %w", err)
-	}
-	slogctx.FromCtx(ctx).Info("Index alias updated.")
-	// Remove old indices from the alias.
-	aliasesResp, err := api.Indices.GetAlias().Index(prefix).Do(ctx)
+	// Update the read alias.
+	err = updateAlias(ctx, api, readAlias, indexName)
 	if err != nil {
 		return fmt.Errorf("migration failed: %w", err)
 	}
-	for aliasedIndex := range aliasesResp {
-		if aliasedIndex != indexName {
-			// Close the old index so writes don't happen.
-			_, err := api.Indices.Close(aliasedIndex).Do(ctx)
-			if err != nil {
-				slogctx.FromCtx(ctx).Warn("Could not close old index for alias removal.",
-					slog.String("index", aliasedIndex),
-					slog.Any("error", err))
-				continue
-			}
-			// Remove the old index from the alias.
-			_, err = api.Indices.DeleteAlias(aliasedIndex, prefix).Do(ctx)
-			if err != nil {
-				slogctx.FromCtx(ctx).Warn("Could not remove old index from alias.",
-					slog.String("index", aliasedIndex),
-					slog.Any("error", err))
-			}
-		}
-	}
+	slogctx.FromCtx(ctx).Info("Read alias updated.")
 
 	return nil
 }
@@ -214,15 +199,16 @@ func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix 
 func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
 	componentTemplateName := ItemsSchemaPrefix + "_component_template"
 	indexTemplateName := ItemsSchemaPrefix + "_index_template"
+	// datastreamName := ItemsSchemaPrefix + "_" + config.Version
 
 	slogctx.FromCtx(ctx).Debug("Migrating items datastream...")
 	// Create the items datastream.
 	if destructive {
-		_, err := api.Indices.DeleteDataStream(ItemsSchemaPrefix + "_" + config.Environment()).Do(ctx)
-		if err != nil && !elastic.ParseError(err).IsNotFound() {
-			return fmt.Errorf("unable to migrate items datastream: %w", err)
-		}
-		_, err = api.Ilm.DeleteLifecycle(ItemsSchemaPrefix).Do(ctx)
+		// _, err := api.Indices.DeleteDataStream(ItemsSchemaPrefix + "_" + config.Environment()).Do(ctx)
+		// if err != nil && !elastic.ParseError(err).IsNotFound() {
+		// 	return fmt.Errorf("unable to migrate items datastream: %w", err)
+		// }
+		_, err := api.Ilm.DeleteLifecycle(ItemsSchemaPrefix).Do(ctx)
 		if err != nil && !elastic.ParseError(err).IsNotFound() {
 			return fmt.Errorf("unable to migrate items datastream: %w", err)
 		}
@@ -316,5 +302,36 @@ func migrateIngest(ctx context.Context, api *elasticsearch.TypedClient) error {
 	}
 	slogctx.FromCtx(ctx).Debug("Added ingest pipeline.")
 
+	return nil
+}
+
+// updateAlias performs a swap of an alias to the given index. It adds the given index to the alias, sets it as the
+// write destination, then removes any existing aliased indicies so the index remains as the only aliased one.
+func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias string, index string) error {
+	_, err := api.Indices.PutAlias(index, alias).IsWriteIndex(true).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("could not update alias %s to add index %s: %w", alias, index, err)
+	}
+	aliasesResp, err := api.Indices.GetAlias().Index(alias).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("could not retrieve indices associated with alias %s: %w", alias, err)
+	}
+	for aliasedIndex := range aliasesResp {
+		if aliasedIndex != index {
+			// // Close the old index so writes don't happen.
+			// _, err := api.Indices.Close(aliasedIndex).Do(ctx)
+			// if err != nil {
+			// 	slogctx.FromCtx(ctx).Warn("Could not close old index for alias removal.",
+			// 		slog.String("index", aliasedIndex),
+			// 		slog.Any("error", err))
+			// 	continue
+			// }
+			// Remove the old index from the alias.
+			_, err = api.Indices.DeleteAlias(aliasedIndex, alias).Do(ctx)
+			if err != nil {
+				return fmt.Errorf("unable to remove index %s from alias %s: %w", aliasedIndex, alias, err)
+			}
+		}
+	}
 	return nil
 }
