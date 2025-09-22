@@ -101,7 +101,7 @@ templ (s *Subscription) actionsMenu() {
 			hx-post={ "/subscription/" + s.GetID() + "/mark/" + mark }
 			hx-target={ "#" + s.GetID() }
 			hx-swap="outerHTML"
-			hx-include="[name='view']"
+			hx-include="[name='view'],[name='csrf_token']"
 			class="link link-hover menu-item"
 		>
 			switch s.IsUnread() {
@@ -186,6 +186,7 @@ templ (s *Subscription) favoriteLink(classes ...string) {
 			hx-put={ "/user/favorite/subscription/" + s.GetID() }
 		}
 		hx-target={ "#favorite_" + s.GetID() }
+		hx-include="[name='csrf_token']"
 		class={ "link link-hover", classes }
 	>
 		switch s.Favorite {
