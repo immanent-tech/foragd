@@ -16,8 +16,7 @@ import (
 
 // MigrateCmd defines the `migrate` command, which performs data-store migrations for schema changes.
 type MigrateCmd struct {
-	Migrations  []string `arg:"" default:"all" enum:"all,feeds,items,users,scheduler,sessions,logs,archive" help:"Components to migrate."`
-	Destructive bool     `help:"Delete existing indicies and datastreams before migrating."`
+	Migrations []string `arg:"" default:"all" enum:"all,feeds,items,users,scheduler,sessions,logs,archive" help:"Components to migrate."`
 }
 
 // Run contains the logic for performing the migrate command.
@@ -31,7 +30,7 @@ func (r *MigrateCmd) Run(_ *Arguments) error {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}
 	// Perform migrations.
-	err = schema.Migration(ctx, elasticClient.GetAPI(), r.Destructive, r.Migrations...)
+	err = schema.Migration(ctx, elasticClient.GetAPI(), r.Migrations...)
 	if err != nil {
 		return fmt.Errorf("unable to perform Elastic migration: %w", err)
 	}

@@ -78,11 +78,11 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 
 	h2s := &http2.Server{}
 	svr.Server = &http.Server{
-		Handler:      h2c.NewHandler(nosurf.New(router), h2s),
-		Addr:         net.JoinHostPort(ServerConfig.Host, strconv.Itoa(ServerConfig.Port)),
-		ReadTimeout:  ServerConfig.ReadTimeout,
-		WriteTimeout: ServerConfig.WriteTimeout,
-		IdleTimeout:  ServerConfig.IdleTimeout,
+		Handler:     h2c.NewHandler(nosurf.New(router), h2s),
+		Addr:        net.JoinHostPort(ServerConfig.Host, strconv.Itoa(ServerConfig.Port)),
+		ReadTimeout: ServerConfig.ReadTimeout,
+		// WriteTimeout: ServerConfig.WriteTimeout,
+		IdleTimeout: ServerConfig.IdleTimeout,
 	}
 
 	err = http2.ConfigureServer(svr.Server, h2s)

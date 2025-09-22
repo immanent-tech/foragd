@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/ilm/putlifecycle"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
 	"github.com/immanent-tech/foragd/config"
@@ -32,9 +31,6 @@ const (
 	SessionsSchemaPrefix = "sessions"
 	// LogsSchemaPrefix is a prefix used for application logs related index/mapping/settings.
 	LogsSchemaPrefix = "application_logs"
-
-	ingestPipelineID = "gofeed"
-
 	// IndexWriteSuffix is the suffix appended to indicies that are used for write (indexing) operations.
 	IndexWriteSuffix = "_rw"
 	// IndexReadSuffix is the suffix appended to indicies that are used for read (search, get) operations.
@@ -275,6 +271,7 @@ func logsComponentTemplate() *Template {
 		WithAlias(LogsSchemaPrefix, nil),
 		WithTemplateSettings(
 			WithMode("logsdb"),
+			WithLifecycle(LogsSchemaPrefix),
 		),
 	)
 }
@@ -305,17 +302,6 @@ func defaultILMPolicy() *putlifecycle.Request {
 		WithPhase("delete",
 			WithMinAge("735d"),
 			WithActions(WithDelete()),
-		),
-	)
-}
-
-// ingestPipelineFeeds is an ingest pipeline to clean-up feed and item data.
-func ingestPipelineFeeds() *putpipeline.Request {
-	return NewIngestPipeline(
-		WithRemoveProcessor(
-			RemoveDescription("Remove deprecated and/or unneeded fields"),
-			RemoveFields("author", "published", "updated", "items"),
-			RemoveIgnoreMissing(true),
 		),
 	)
 }

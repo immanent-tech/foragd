@@ -17,10 +17,10 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/reindex"
 )
 
-var validMigrations = []string{"users", "feeds", "items", "scheduler", "sessions", "logs", "ingest", "archive"}
+var validMigrations = []string{"users", "feeds", "items", "scheduler", "sessions", "logs", "archive"}
 
 // Migration will create all necessary index templates settings and policies.
-func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive bool, migrations ...string) error {
+func Migration(ctx context.Context, api *elasticsearch.TypedClient, migrations ...string) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(migrations, "all") {
 		migrations = validMigrations
@@ -60,11 +60,7 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 			})
 		case "logs":
 			migrationJobs.Go(func() error {
-				return migrateLogs(ctx, api, destructive)
-			})
-		case "ingest":
-			migrationJobs.Go(func() error {
-				return migrateIngest(ctx, api)
+				return migrateLogs(ctx, api)
 			})
 		}
 	}
@@ -142,7 +138,7 @@ func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient) error
 	writeAlias := ItemsSchemaPrefix + IndexWriteSuffix
 	readAlias := ItemsSchemaPrefix + IndexReadSuffix
 
-	slogctx.FromCtx(ctx).Debug("Migrating items datastream...")
+	slogctx.FromCtx(ctx).Info("Migrating items datastream...")
 
 	resp, err := api.Ilm.GetLifecycle().Do(ctx)
 	if err != nil {
@@ -198,62 +194,62 @@ func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient) error
 }
 
 // migrateLogs contains migration actions for migrating logs (datastream).
-func migrateLogs(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
-	componentTemplateName := LogsSchemaPrefix + "_component_template"
-	indexTemplateName := LogsSchemaPrefix + "_index_template"
+func migrateLogs(ctx context.Context, api *elasticsearch.TypedClient) error {
+	datastreamName := LogsSchemaPrefix + "_" + config.Version
+	writeAlias := LogsSchemaPrefix + IndexWriteSuffix
+	readAlias := LogsSchemaPrefix + IndexReadSuffix
 
-	slogctx.FromCtx(ctx).Debug("Migrating logs datastream...")
-	// Create the logs datastream.
-	if destructive {
-		_, err := api.Indices.DeleteDataStream(LogsSchemaPrefix + "_" + config.Environment()).Do(ctx)
+	slogctx.FromCtx(ctx).Info("Migrating logs datastream...")
+
+	resp, err := api.Ilm.GetLifecycle().Do(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to migrate logs datastream: %w", err)
+	}
+	if _, found := resp[LogsSchemaPrefix]; found {
+		_, err := api.Ilm.DeleteLifecycle(LogsSchemaPrefix).Do(ctx)
 		if err != nil {
-			return fmt.Errorf("unable to migrate items datastream: %w", err)
-		}
-		_, err = api.Ilm.DeleteLifecycle(LogsSchemaPrefix).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("unable to migrate items datastream: %w", err)
+			return fmt.Errorf("unable to migrate logs datastream: %w", err)
 		}
 	}
-	_, err := api.Ilm.PutLifecycle(LogsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx)
+	_, err = api.Ilm.PutLifecycle(LogsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx)
 	if err != nil {
-		return fmt.Errorf("unable to migrate items datastream: %w", err)
+		return fmt.Errorf("unable to migrate logs datastream: %w", err)
 	}
-	componentTemplate := NewComponentTemplate(componentTemplateName, logsComponentTemplate(),
-		WithComponentTemplateMetadata(defaultMetadata),
+	slogctx.FromCtx(ctx).Info("Updated logs datastream lifecycle policy.")
+
+	err = updateTemplates(ctx, api, LogsSchemaPrefix, logsComponentTemplate(), true)
+	if err != nil {
+		return fmt.Errorf("unable to migrate logs datastream: %w", err)
+	}
+
+	// Create datastream.
+	_, err = api.Indices.CreateDataStream(datastreamName).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to create new datastream %s: %w", datastreamName, err)
+	}
+
+	// Update the write alias.
+	err = updateAlias(ctx, api, writeAlias, datastreamName)
+	if err != nil {
+		return fmt.Errorf("unable to update logs datastream write alias: %w", err)
+	}
+	slogctx.FromCtx(ctx).Info("Updated logs datastream write alias.")
+
+	// Reindex.
+	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(datastreamName)).WaitForCompletion(true).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("could not reindex: %w", err)
+	}
+	slogctx.FromCtx(ctx).Info("Completed logs datastream reindex.",
+		slog.Int64("took", *reindexResp.Took),
 	)
-	err = componentTemplate.Put(ctx, api)
-	if err != nil {
-		return fmt.Errorf("unable to migrate items datastream: %w", err)
-	}
-	indexTemplate := NewIndexTemplate(indexTemplateName,
-		WithComponentTemplates(componentTemplateName),
-		WithIndexPatterns(LogsSchemaPrefix+"_*"),
-		AsDatastream(true),
-		WithIndexTemplateMetadata(defaultMetadata),
-	)
-	err = indexTemplate.Put(ctx, api)
-	if err != nil {
-		return fmt.Errorf("unable to migrate items datastream: %w", err)
-	}
 
-	return nil
-}
-
-// migrateIngest will migrate the ingest pipelines.
-func migrateIngest(ctx context.Context, api *elasticsearch.TypedClient) error {
-	slogctx.FromCtx(ctx).Debug("Migrating ingest pipeline...")
-
-	_, err := api.Ingest.DeletePipeline(ingestPipelineID).Do(ctx)
+	// Update the read alias.
+	err = updateAlias(ctx, api, readAlias, datastreamName)
 	if err != nil {
-		return fmt.Errorf("could not delete ingest pipeline: %w", err)
+		return fmt.Errorf("migration failed: %w", err)
 	}
-	slogctx.FromCtx(ctx).Debug("Deleted existing ingest pipeline.")
-
-	_, err = api.Ingest.PutPipeline(ingestPipelineID).Request(ingestPipelineFeeds()).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not create ingest pipeline: %w", err)
-	}
-	slogctx.FromCtx(ctx).Debug("Added ingest pipeline.")
+	slogctx.FromCtx(ctx).Info("Updated logs datastream read alias.")
 
 	return nil
 }
