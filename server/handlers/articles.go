@@ -414,6 +414,8 @@ func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters
 	}
 	query := query.Bool(
 		query.Filter(
+			// Must match any of the given categories.
+			query.Terms("categories.raw", filters.GetCategories()...),
 			query.Bool(
 				query.Should(buildSubscriptionQueries(user, filters.GetView(), subscriptions...)...),
 			),
