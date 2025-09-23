@@ -194,7 +194,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to mark subscription",
 					"The request looks invalid. Please check and try again.",
-				)))
+				), 0))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark subscription: %w", err),
 				http.StatusUnprocessableEntity)
@@ -215,7 +215,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to mark subscription",
 					"Could not update user data.",
-				)))
+				), 0))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark subscription: %w", err),
 				http.StatusUnprocessableEntity)
@@ -227,7 +227,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to mark subscription",
 					"Could not refresh articles.",
-				)))
+				), 0))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark subscription: %w", err),
 				http.StatusUnprocessableEntity)
@@ -325,10 +325,15 @@ func (a *API) ViewArticle() http.HandlerFunc {
 			content, err := fetchArticleRemoteContent(article.GetLink())
 			if err != nil {
 				renderPartial(partials.Notification(
-					models.NewErrorMessage("Unable to fetch article remote content", ""),
+					models.NewErrorMessage("Unable to fetch article remote content", ""), 0,
 				)).ServeHTTP(res, req)
 				article.ShowFullContent = false
 			} else {
+				if content == article.Content {
+					renderPartial(partials.Notification(
+						models.NewWarningMessage("Could not fetch full article content", "Page returned existing content."), 10*time.Second,
+					)).ServeHTTP(res, req)
+				}
 				article.Content = content
 			}
 		}
@@ -369,7 +374,7 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to find similar articles",
 					"The backend reported an issue. Please try again.",
-				),
+				), 0,
 			))
 			return models.NewAPIError(
 				fmt.Errorf("unable to find similar articles subscription: %w", err),
@@ -382,7 +387,7 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to find similar articles",
 					"The backend reported an issue. Please try again.",
-				),
+				), 0,
 			))
 			return models.NewAPIError(
 				fmt.Errorf("unable to find similar articles subscription: %w", err),

@@ -48,7 +48,7 @@ func (a *API) Home() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to get home page data",
 					"Something went wrong, please try again",
-				)))
+				), 0))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark subscription: %w", err),
 				http.StatusInternalServerError)

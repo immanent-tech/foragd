@@ -189,7 +189,7 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to mark subscription",
 					"Something went wrong, please try again",
-				)))
+				), 0))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark subscription: %w", err),
 				http.StatusInternalServerError)
@@ -202,7 +202,7 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 					models.NewErrorMessage(
 						"Unable to refresh subscription",
 						"Something went wrong, please try again",
-					)))
+					), 0))
 				return models.NewAPIError(
 					fmt.Errorf("unable to mark subscription: %w", err),
 					http.StatusInternalServerError)
@@ -252,7 +252,7 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to mark subscriptions",
 					"Something went wrong, please try again",
-				)))
+				), 0))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark all subscriptions: %w", err),
 				http.StatusInternalServerError)
@@ -264,7 +264,7 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 				models.NewErrorMessage(
 					"Unable to refresh subscriptions",
 					"Something went wrong, please try again",
-				)))
+				), 0))
 			return models.NewAPIError(
 				fmt.Errorf("unable to mark all subscriptions: %w", err),
 				http.StatusInternalServerError)
@@ -342,7 +342,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		err = user.UpdateSubscription(metadata)
 		if err != nil {
 			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
-			template := templ.Join(layouts.EditSubscription(request), partials.Notification(msg))
+			template := templ.Join(layouts.EditSubscription(request), partials.Notification(msg, 0))
 			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
@@ -352,7 +352,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		})
 		if err != nil {
 			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
-			template := templ.Join(layouts.EditSubscription(request), partials.Notification(msg))
+			template := templ.Join(layouts.EditSubscription(request), partials.Notification(msg, 0))
 			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
@@ -378,7 +378,7 @@ func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
 		subscriptions, err := a.getSubscriptions(req.Context(), id)
 		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
 			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
-			template := partials.Notification(msg)
+			template := partials.Notification(msg, 0)
 			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
@@ -407,13 +407,13 @@ func (a *API) ProcessRemoveSubscription() http.HandlerFunc {
 		})
 		if err != nil {
 			msg := models.NewErrorMessage("Unable to remove subscription", "Please try again.")
-			template := partials.Notification(msg)
+			template := partials.Notification(msg, 0)
 			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Show success notification.
 		msg := models.NewSuccessMessage("Unsubscribed!", "")
-		renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
+		renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -445,7 +445,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			result, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a.Elastic)
 			if err != nil {
 				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
-				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg))
+				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg, 0))
 				renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
@@ -460,7 +460,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			createResult, err := requests.createNewSubscriptions(req.Context(), a.Elastic)
 			if err != nil {
 				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
-				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg))
+				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg, 0))
 				renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			} else {
@@ -498,7 +498,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				msg := models.NewErrorMessage(
 					"Failed to read OPML file",
 					"The OPML could not be read. Is it a valid OPML file? Please check the contents, correct any issues and try again.")
-				renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
+				renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			r, err := opmlFile.GenerateRequests()
@@ -507,7 +507,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					"Failed to extract subscriptions from OPML file.",
 					"There was a problem reading the individual feed entries in the OPML file. Please check the contents, correct any issues and try again.",
 				)
-				renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
+				renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			for newRequest := range slices.Values(r) {
@@ -519,7 +519,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					"Error processing OPML file.",
 					"The backend had issues processing the OPML file and adding subscriptions, please try again.",
 				)
-				renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
+				renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			createResults, err := requests.createNewSubscriptions(req.Context(), a.Elastic)
@@ -528,14 +528,14 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					"Error processing OPML file.",
 					"The backend had issues processing the OPML file and adding subscriptions, please try again.",
 				)
-				renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
+				renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			maps.Copy(createResults, matchResults)
 			msg := models.NewInfoMessage(
 				"OPML import complete.", "Please consult the results and check for any issues.",
 			)
-			template := templ.Join(layouts.ImportResults(createResults), partials.Notification(msg))
+			template := templ.Join(layouts.ImportResults(createResults), partials.Notification(msg, 0))
 			renderPartial(template).ServeHTTP(res, req)
 		}
 		return nil

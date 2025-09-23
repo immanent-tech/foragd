@@ -9,6 +9,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 	"strconv"
+	"time"
 )
 
 templ EditSubscription(request *models.EditSubscriptionRequest) {
@@ -121,7 +122,7 @@ templ EditSubscriptionSuccessNotification(metadata *models.SubscriptionMetadata)
 	@partials.Notification(&models.UserMessage{
 		Status:  models.UserMessageStatusSuccess,
 		Summary: metadata.Customisation.Nickname + " updated",
-	}) {
+	}, 15*time.Second) {
 		<div class="mt-3 flex space-x-7">
 			<button
 				type="button"
