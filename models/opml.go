@@ -12,6 +12,8 @@ import (
 
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/types"
+
+	"github.com/immanent-tech/foragd/validation"
 )
 
 // OPMLFile represents an OPML file.
@@ -46,7 +48,7 @@ func (f *OPMLFile) GenerateRequests() (SubscriptionRequests, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not generate requests from opml file: %w", err)
 	}
-	requests := generateRequestsFromOutlines(importfile.Body...)
+	requests := GenerateRequestsFromOutlines(importfile.Body...)
 	return requests, nil
 }
 
@@ -65,15 +67,39 @@ func (f *OPMLFile) parse() (*opml.OPML, error) {
 	return opmlImport, nil
 }
 
-func generateRequestsFromOutlines(outlines ...opml.Outline) SubscriptionRequests {
+func GenerateRequestsFromOutlines(outlines ...opml.Outline) SubscriptionRequests {
 	requests := make(SubscriptionRequests, 0, len(outlines))
 	for outline := range slices.Values(outlines) {
 		if outline.Type == "rss" {
 			requests = append(requests, &SubscriptionRequest{URL: outline.XMLURL})
 		}
 		if len(outline.Outlines) > 0 {
-			requests = append(requests, generateRequestsFromOutlines(outline.Outlines...)...)
+			requests = append(requests, GenerateRequestsFromOutlines(outline.Outlines...)...)
 		}
 	}
 	return requests
+}
+
+// Valid returns a boolean indicating whether the SubscriptionRequest is valid,
+// and any validation errors if applicable.
+func (r *AddFeedsetRequest) Valid() (bool, error) {
+	valid, err := validation.ValidateStruct(r)
+	if err != nil {
+		return false, fmt.Errorf("add feedset validation error: %w", err)
+	}
+	if !valid {
+		return false, nil
+	}
+	return true, nil
+}
+
+// Sanitise will sanitise the input values of the SubscriptionRequest.
+func (r *AddFeedsetRequest) Sanitise() error {
+	sets := make([]string, 0, len(r.Feedset))
+	for set := range slices.Values(r.Feedset) {
+		set = validation.SanitizeString(set)
+		sets = append(sets, set)
+	}
+	r.Feedset = sets
+	return nil
 }

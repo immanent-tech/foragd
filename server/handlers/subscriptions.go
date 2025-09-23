@@ -442,7 +442,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 				request: &models.Feed{},
 			}
 			// Match the request to either and existing or new feed.
-			result, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
+			result, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a.Elastic)
 			if err != nil {
 				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg))
@@ -457,7 +457,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 				return nil
 			}
 			// Create the new subscription.
-			createResult, err := requests.createNewSubscriptions(req.Context(), a)
+			createResult, err := requests.createNewSubscriptions(req.Context(), a.Elastic)
 			if err != nil {
 				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg))
@@ -513,7 +513,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 			for newRequest := range slices.Values(r) {
 				requests[newRequest] = &models.Feed{}
 			}
-			matchResults, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
+			matchResults, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a.Elastic)
 			if err != nil {
 				msg := models.NewErrorMessage(
 					"Error processing OPML file.",
@@ -522,7 +522,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
-			createResults, err := requests.createNewSubscriptions(req.Context(), a)
+			createResults, err := requests.createNewSubscriptions(req.Context(), a.Elastic)
 			if err != nil {
 				msg := models.NewErrorMessage(
 					"Error processing OPML file.",
@@ -778,7 +778,7 @@ func (r addSubscriptionRequests) feedURLs() []string {
 // matchFeedsToSubscriptionRequests takes a list of subscription requests, extracts the URLs in each and attempt to
 // match them to existing feeds. Where there is no existing feed, it will attempt to generate new feed data. It then
 // stores the subscriptions that need new feeds and any with existing feeds in the context for the next handler.
-func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Context, api *API) (layouts.AddSubscriptionResults, error) {
+func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Context, api *elastic.API) (layouts.AddSubscriptionResults, error) {
 	// Extract user data.
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
@@ -794,7 +794,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 	)
 	for {
 		count := 100
-		feeds, nextResults, err := api.DataAPI().SearchFeeds(ctx, query.Terms("source_urls", r.feedURLs()...), count, nil, feedPagination)
+		feeds, nextResults, err := api.SearchFeeds(ctx, query.Terms("source_urls", r.feedURLs()...), count, nil, feedPagination)
 		if err != nil {
 			return nil, fmt.Errorf("matchFeedsToSubscriptions: %w", err)
 		}
@@ -855,7 +855,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 	return results, nil
 }
 
-func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (layouts.AddSubscriptionResults, error) {
+func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *elastic.API) (layouts.AddSubscriptionResults, error) {
 	slogctx.FromCtx(ctx).Debug("Adding new feeds for subscriptions.")
 	results := make(layouts.AddSubscriptionResults)
 
@@ -867,7 +867,7 @@ func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (
 	if err != nil {
 		return nil, fmt.Errorf("createNewFeeds: %w", err)
 	}
-	addFeedsResults, err := elastic.BulkAdd(ctx, api.DataAPI(), index, slices.Collect(maps.Values(r))...)
+	addFeedsResults, err := elastic.BulkAdd(ctx, api, index, slices.Collect(maps.Values(r))...)
 	if err != nil && !errors.Is(err, bulk.ErrBulkHasErrors) {
 		return nil, fmt.Errorf("createNewFeeds: %w", err)
 	}
@@ -894,7 +894,7 @@ func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (
 // AddSubscriptions handles adding new subscription via either the add or import user functionality. It
 // handles: matching and filtering out requests against existing subscriptions, matching requests to existing feeds,
 // creating new feeds as necessary and finally creating user subscriptions.
-func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api *API) (layouts.AddSubscriptionResults, error) {
+func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api *elastic.API) (layouts.AddSubscriptionResults, error) {
 	// Extract user data.
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
@@ -958,7 +958,7 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		settings.ShowOnboarding = false
 	}
 	// Update the user object.
-	err = api.DataAPI().UpdateUser(ctx, map[string]any{
+	err = api.UpdateUser(ctx, map[string]any{
 		"subscriptions": user.Subscriptions,
 		"settings":      settings,
 	})

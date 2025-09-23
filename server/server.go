@@ -264,6 +264,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 				r.With(middlewares.RequireHTMX).Post("/category", handler.AdjustSubscriptionCategories())
 				r.With(middlewares.RequireHTMX).Delete("/category", handler.AdjustSubscriptionCategories())
 			})
+			r.Post("/feedset", handlers.AddFeedset(handler.Elastic, static))
 			// Import/export.
 			r.Get("/import", handler.ImportSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/import", handler.ImportSubscriptions())

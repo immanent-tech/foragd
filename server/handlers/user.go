@@ -4,18 +4,26 @@
 package handlers
 
 import (
+	"embed"
 	"fmt"
+	"log/slog"
+	"maps"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
+	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/go-syndication/opml"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/validation"
@@ -555,6 +563,80 @@ func (a *API) DeleteUser() http.HandlerFunc {
 			return fmt.Errorf("could not delete user: %w", err)
 		}
 		http.Redirect(res, req, "/", http.StatusSeeOther)
+		return nil
+	})).ServeHTTP
+}
+
+func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		request, valid, err := forms.DecodeForm[*models.AddFeedsetRequest](req)
+		if err != nil || !valid {
+			msg := models.NewErrorMessage("An error occurred reading feed sets.", "Please try again.")
+			renderPartial(partials.Notification(msg))
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+		}
+		slogctx.FromCtx(req.Context()).Debug("Processing feedsets.",
+			slog.String("feedsets", strings.Join(request.Feedset, ",")))
+		// Process requested feedsets and generate subscription requests.
+		var subscriptionRequests models.SubscriptionRequests
+		for set := range slices.Values(request.Feedset) {
+			var (
+				data []byte
+				err  error
+			)
+			switch set {
+			case "enlightened":
+				data, err = static.ReadFile("web/content/opml/enlightened.opml")
+			case "informed":
+				data, err = static.ReadFile("web/content/opml/informed.opml")
+			case "inspired":
+				data, err = static.ReadFile("web/content/opml/inspired.opml")
+			default:
+				slogctx.FromCtx(req.Context()).Warn("Unknown feedset.",
+					slog.String("set", set))
+				continue
+			}
+			if err != nil {
+				msg := models.NewErrorMessage("An error occurred reading feed sets.", "Please try again.")
+				renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
+			}
+			opmlImport, err := opml.NewOPMLFromBytes(data)
+			if err != nil {
+				msg := models.NewErrorMessage("An error occurred reading feed sets.", "Please try again.")
+				renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
+			}
+			subscriptionRequests = append(subscriptionRequests, models.GenerateRequestsFromOutlines(opmlImport.Body...)...)
+		}
+		// Process subscription requests.
+		subscriptionProcessing := make(addSubscriptionRequests)
+		for r := range slices.Values(subscriptionRequests) {
+			subscriptionProcessing[r] = &models.Feed{}
+		}
+		matchResults, err := subscriptionProcessing.matchFeedsToSubscriptionRequests(req.Context(), storeAPI)
+		if err != nil {
+			msg := models.NewErrorMessage(
+				"Error processing feed sets.",
+				"The backend had issues processing the request and adding subscriptions, please try again.",
+			)
+			renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+		}
+		createResults, err := subscriptionProcessing.createNewSubscriptions(req.Context(), storeAPI)
+		if err != nil {
+			msg := models.NewErrorMessage(
+				"Error processing feed sets.",
+				"The backend had issues processing the request and adding subscriptions, please try again.",
+			)
+			renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+		}
+		maps.Copy(createResults, matchResults)
+		msg := models.NewSuccessMessage("Added sets", "Request sets added to your subscriptions.")
+		renderPartial(partials.Notification(msg)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

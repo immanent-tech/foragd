@@ -79,6 +79,11 @@ type APIError struct {
 	StatusCode int `json:"status_code,omitempty,omitzero"`
 }
 
+// AddFeedsetRequest is a request from a user to add one or more feed sets as subscriptions.
+type AddFeedsetRequest struct {
+	Feedset []string `form:"feedset,unique" json:"feedset,omitempty,omitzero"`
+}
+
 // Article defines model for Article.
 type Article struct {
 	// Content contains the full article content, when it has been fetched from the origin link.

@@ -787,3 +787,14 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'timezone'
+    AddFeedsetRequest:
+      description: >
+        is a request from a user to add one or more feed sets as subscriptions.
+      type: object
+      properties:
+        feedset:
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            form: 'feedset,unique'
