@@ -42,7 +42,7 @@ templ Header(user *models.User) {
 }
 
 templ HeaderUserMenu(user *models.User) {
-	<el-dropdown id="header-user-menu" class="relative" hx-swap-oob="true">
+	<el-dropdown id="header-user-menu" class="relative">
 		<button id="header-menu-button" class="btn btn-ghost btn-square hover:text-primary">
 			<span class="sr-only">Open user menu</span>
 			<img src={ user.GetAvatar() } alt={ user.GetNickname() } class="size-8 rounded-full outline -outline-offset-1 outline-base-content/10"/>
