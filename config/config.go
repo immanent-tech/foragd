@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/knadh/koanf/parsers/toml"
+	"github.com/knadh/koanf/parsers/toml/v2"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"

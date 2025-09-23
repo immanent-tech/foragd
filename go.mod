@@ -14,10 +14,9 @@ require (
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.27.0
-	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/providers/env v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.0
-	github.com/knadh/koanf/v2 v2.2.2
+	github.com/knadh/koanf/v2 v2.3.0
 	github.com/lmittmann/tint v1.1.2
 	github.com/mattn/go-isatty v0.0.20
 	github.com/oapi-codegen/runtime v1.1.2
@@ -65,6 +64,7 @@ require (
 	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
 	github.com/package-url/packageurl-go v0.1.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/recoilme/pudge v1.0.3 // indirect
 	github.com/rhysd/go-github-selfupdate v1.2.3 // indirect
@@ -113,7 +113,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/go-shiori/go-readability v0.0.0-20250217085726-9f5bf5ca7612
-	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goforj/godump v1.6.0
 	github.com/gohugoio/hashstructure v0.5.0
@@ -124,6 +124,7 @@ require (
 	github.com/justinas/alice v1.2.0
 	github.com/justinas/nosurf v1.2.0
 	github.com/knadh/koanf/maps v0.1.2 // indirect
+	github.com/knadh/koanf/parsers/toml/v2 v2.2.0
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.3 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
@@ -141,7 +142,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/realclientip/realclientip-go v1.0.0
-	github.com/reugn/go-quartz v0.15.1
+	github.com/reugn/go-quartz v0.15.2
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
@@ -153,8 +154,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.37.0 // indirect
 	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/net v0.42.0
+	golang.org/x/sync v0.16.0
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
