@@ -133,4 +133,44 @@
       }
     }
   }
+
+  .logo-landing {
+    @apply fill-base-content stroke-base-content;
+    .leaf-left {
+      path {
+        @apply fill-primary;
+      }
+    }
+    .leaf-center {
+      path {
+        @apply fill-secondary;
+      }
+    }
+    .leaf-right {
+      path {
+        @apply fill-accent;
+      }
+    }
+    path {
+      @apply fill-base-content stroke-base-content;
+    }
+    ellipse {
+      @apply stroke-base-content;
+    }
+    circle {
+      @apply stroke-base-content;
+    }
+  }
+  .logo-drawer {
+    @apply fill-base-content stroke-base-content;
+    path {
+      @apply fill-base-content stroke-base-content;
+    }
+    ellipse {
+      @apply stroke-base-content;
+    }
+    circle {
+      @apply stroke-base-content;
+    }
+  }
 }

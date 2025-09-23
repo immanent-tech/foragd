@@ -5,13 +5,6 @@ package partials
 
 import "time"
 
-templ Logo() {
-	// <img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" alt={ config.AppName } class="mx-auto h-10 w-auto"/>
-	<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mx-auto size-12">
-		<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path>
-	</svg>
-}
-
 // ShowTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time
 // passes.
 templ ShowTimestamp(timestamp time.Time) {
