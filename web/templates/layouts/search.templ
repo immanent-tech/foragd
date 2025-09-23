@@ -148,7 +148,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 
 templ SearchFilters() {
 	// Search form.
-	<div class="mx-auto max-w-3xl mt-4">
+	<div class="mx-auto max-w-3xl mt-4 p-4">
 		<form
 			hx-post="/search"
 			hx-target={ partials.ContentID.Target() }
@@ -161,36 +161,36 @@ templ SearchFilters() {
 				<div class="col-span-full">
 					<label for="text" class="block text-sm/6 font-medium">Includes the words</label>
 					<div class="mt-2">
-						<input id="text" type="text" name="text" class="input input-sm w-full"/>
+						<input id="text" type="text" name="text" class="input input-sm w-full bg-base-content/10"/>
 					</div>
 				</div>
 				<div class="sm:col-span-3">
 					<label form="categories_include" class="block text-sm/6 font-medium">Include categories</label>
 					<div class="mt-2">
-						<input id="categories_include" type="text" name="categories_include" class="input input-sm"/>
+						<input id="categories_include" type="text" name="categories_include" class="input input-sm bg-base-content/10"/>
 					</div>
 				</div>
 				<div class="sm:col-span-3">
 					<label for="categories_exclude" class="block text-sm/6 font-medium">Excludes categories</label>
 					<div class="mt-2">
-						<input id="categories_exclude" type="text" name="categories_exclude" class="input input-sm"/>
+						<input id="categories_exclude" type="text" name="categories_exclude" class="input input-sm bg-base-content/10"/>
 					</div>
 				</div>
 				<div class="sm:col-span-3">
 					<label for="authors_include" class="block text-sm/6 font-medium">Include authors</label>
 					<div class="mt-2">
-						<input id="authors_include" type="text" name="authors_include" class="input input-sm"/>
+						<input id="authors_include" type="text" name="authors_include" class="input input-sm bg-base-content/10"/>
 					</div>
 				</div>
 				<div class="sm:col-span-3">
 					<label for="authors_exclude" class="block text-sm/6 font-medium">Excludes authors</label>
 					<div class="mt-2">
-						<input id="authors_exclude" type="text" name="authors_exclude" class="input input-sm"/>
+						<input id="authors_exclude" type="text" name="authors_exclude" class="input input-sm bg-base-content/10"/>
 					</div>
 				</div>
 				<div class="sm:col-span-3">
 					<label for="published_within" class="block text-sm/6 font-medium">Published within</label>
-					<select id="published_within" name="published_within" class="select select-sm my-2">
+					<select id="published_within" name="published_within" class="select select-sm my-2 bg-base-content/10">
 						<option value="last_hour">Last hour</option>
 						<option value="last_half_day">Last 12 hours</option>
 						<option value="last_day">Last day</option>
@@ -309,14 +309,14 @@ templ GlobalSearch() {
 				name="text"
 				hx-push-url="false"
 				placeholder="Search..."
-				class="col-start-1 row-start-1 block size-full outline-hidden pr-4 pl-6 text-base sm:text-sm/6 placeholder:text-base-content/50"
+				class="col-start-1 row-start-1 block size-full outline-hidden pr-4 pl-10 text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10 rounded-box py-2"
 				_="on keyup if the event's key is 'Escape' set my value to '' then add @hidden to #global-search-suggestions then trigger closeSearch"
 				hx-trigger="input changed from:#global-search delay:100ms"
 				hx-post="/search/suggestions"
 				hx-target="#global-search-suggestions"
 				hx-include="[name='text'],[name='csrf_token']"
 			/>
-			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="pointer-events-none col-start-1 row-start-1 self-center size-5">
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="pointer-events-none col-start-1 row-start-1 self-center size-5 ml-4">
 				<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
 			</svg>
 			// Filters button.
