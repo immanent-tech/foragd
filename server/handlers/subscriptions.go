@@ -535,7 +535,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 			msg := models.NewInfoMessage(
 				"OPML import complete.", "Please consult the results and check for any issues.",
 			)
-			template := templ.Join(layouts.ImportResults(createResults), partials.Notification(msg, 0))
+			template := templ.Join(layouts.ImportResults(createResults), partials.Notification(msg, 10*time.Second))
 			renderPartial(template).ServeHTTP(res, req)
 		}
 		return nil
