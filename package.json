@@ -11,7 +11,7 @@
     "build:css": "bunx tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
   },
   "dependencies": {
-    "daisyui": "^5.1.13",
+    "daisyui": "^5.1.14",
     "date-fns": "^4.1.0",
     "htmx-ext-ajax-header": "^2.0.2",
     "htmx-ext-preload": "^2.1.1",
