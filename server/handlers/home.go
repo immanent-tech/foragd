@@ -31,7 +31,6 @@ func (a *API) Home() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		ctx := req.Context()
-		ctx = context.WithValue(ctx, titleCtxKey, "Home - "+config.AppName)
 		ctx = models.CSRFTokenToCtx(ctx, nosurf.Token(req))
 		user, err := models.UserFromCtx(ctx)
 		if err != nil {
