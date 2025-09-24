@@ -32,7 +32,8 @@
     "middlewares",
     "assets",
     "config",
-    "auth0"
+    "auth0",
+    "feeds/extensions"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
