@@ -36,9 +36,7 @@ templ (s *Subscription) Card() {
 					<div class="ml-4 badge badge-soft">{ s.GetUnreadCount() }</div>
 				}
 				<div class="flex flex-none">
-					<div class="tooltip" data-tip="Subscription actions">
-						@s.actionsMenu()
-					</div>
+					@s.actionsMenu()
 				</div>
 			</div>
 			if s.GetDescription() != "" {
