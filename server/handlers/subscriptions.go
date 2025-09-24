@@ -32,6 +32,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -466,6 +467,12 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			} else {
 				result = createResult
 			}
+			if result[request].Message.Status != models.UserMessageStatusSuccess {
+				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
+				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg, 0))
+				renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+				return models.NewAPIError(errors.New(result[request].Message.String()), http.StatusUnprocessableEntity)
+			}
 			template := layouts.AddSubscriptionSuccess(result[request])
 
 			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
@@ -823,6 +830,13 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 				results[request] = models.NewSubscriptionResult(nil, models.NewErrorMessage(msg, ""))
 				continue
 			}
+			valid, err := validation.ValidateStruct(newFeed)
+			if !valid || err != nil {
+				msg := fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL())
+				request.URLErr = errors.New(msg)
+				results[request] = models.NewSubscriptionResult(nil, models.NewErrorMessage(msg, ""))
+				continue
+			}
 			feedsNeeded[request] = newFeed
 			slogctx.FromCtx(ctx).Debug("New feed needed for subscription.",
 				slog.String("url", request.GetURL()),
@@ -951,19 +965,21 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 	// return results, nil
 
 	// Add the subscription states.
-	user.AddSubscriptions(allMetadata...)
-	// Disable onboarding once a subscription has been added.
-	settings := user.GetSettings()
-	if settings.ShowOnboarding {
-		settings.ShowOnboarding = false
-	}
-	// Update the user object.
-	err = api.UpdateUser(ctx, map[string]any{
-		"subscriptions": user.Subscriptions,
-		"settings":      settings,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("createNewSubscriptions: %w", err)
+	if len(allMetadata) > 0 {
+		user.AddSubscriptions(allMetadata...)
+		// Disable onboarding once a subscription has been added.
+		settings := user.GetSettings()
+		if settings.ShowOnboarding {
+			settings.ShowOnboarding = false
+		}
+		// Update the user object.
+		err = api.UpdateUser(ctx, map[string]any{
+			"subscriptions": user.Subscriptions,
+			"settings":      settings,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("createNewSubscriptions: %w", err)
+		}
 	}
 	return results, nil
 }
