@@ -174,7 +174,7 @@ templ (c ListControls) Template() {
 									type="button"
 									class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
 									hx-put="/articles"
-									hx-include="#content-filters"
+									hx-include="#content-filters,[name='csrf_token']"
 									hx-target={ ContentID.Target() }
 								>
 									<span class="sr-only">Mark all { mark }</span>
@@ -185,7 +185,7 @@ templ (c ListControls) Template() {
 									type="button"
 									class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
 									hx-put="/subscriptions"
-									hx-include="#content-filters"
+									hx-include="#content-filters,[name='csrf_token']"
 									hx-target={ ContentID.Target() }
 								>
 									<span class="sr-only">Mark all { mark }</span>
