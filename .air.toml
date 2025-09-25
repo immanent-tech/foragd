@@ -2,16 +2,15 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-cmd = 'go build -ldflags="-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)" -o ./tmp/gowebly_chi .'
-bin = "tmp/gowebly_chi"
-full_bin = "export $(grep -v '^#' .devcontainer/.env | xargs) && tmp/gowebly_chi"
+cmd = 'go build -ldflags="-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)" -o ./tmp/foragd .'
+bin = "tmp/foragd"
+full_bin = "export $(grep -v '^#' .devcontainer/.env | xargs) && tmp/foragd"
 args_bin = [
   "--profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true'",
   "serve",
 ]
 delay = 1000
 exclude_dir = [
-  ".parcel-cache",
   "bin",
   "dist",
   "node_modules",
