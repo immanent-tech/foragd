@@ -1,6 +1,6 @@
 [submodule "models/feeds"]
-	path = models/feeds
+	path = pkg/go-syndication
 	url = git@github.com:immanent-tech/go-syndication.git
 [submodule "logging/slog-elasticsearch"]
-	path = logging/slog-elasticsearch
+	path = pkg/slog-elasticsearch
 	url = git@github.com:immanent-tech/slog-elasticsearch.git

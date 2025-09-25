@@ -2,7 +2,8 @@ module github.com/immanent-tech/foragd
 
 go 1.25.0
 
-replace github.com/immanent-tech/go-syndication v0.0.0 => ./models/feeds
+replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
+replace github.com/immanent-tech/slog-elasticsearch v0.0.0 => ./pkg/slog-elasticsearch
 
 
 require (
