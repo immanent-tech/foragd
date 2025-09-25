@@ -7,6 +7,8 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -29,7 +31,6 @@ var ErrInvalidContent = errors.New("invalid content")
 
 // Keys for objects stored within the context and passed between handlers.
 const (
-	titleCtxKey contextKey = "title"
 	// defaultUpdateInterval is the default interval for checking for updates (i.e., for update notifications).
 	defaultUpdateInterval = time.Minute
 )
@@ -57,6 +58,29 @@ func StaticFileServerHandler(fs http.FileSystem) http.Handler {
 		// File is found, return to standard http.FileServer.
 		http.FileServer(fs).ServeHTTP(res, req)
 	})
+}
+
+func ImageProxy() http.HandlerFunc {
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		url := chi.URLParam(req, "*")
+		// image := filepath.Base(url)
+		// host := filepath.Dir(url)
+		resp, err := http.Get("https://fly.webp.se/image?url=https://" + url)
+		if err != nil {
+			res.WriteHeader(resp.StatusCode)
+			return fmt.Errorf("unable to proxy image: %w", err)
+		}
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			return fmt.Errorf("unable to proxy image: %w", err)
+		}
+		res.WriteHeader(http.StatusOK)
+		res.Write(b)
+		return nil
+	})).ServeHTTP
 }
 
 // routeLogger decorates the logger in the request context with routing information.

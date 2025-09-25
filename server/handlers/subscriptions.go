@@ -693,7 +693,6 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	if err != nil {
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
-	slog.Info("here")
 	// Get feed data for subscriptions.
 	feeds, err := a.DataAPI().GetFeeds(ctx, allMetadata.GetFeedIDs()...)
 	if err != nil {

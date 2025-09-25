@@ -177,6 +177,9 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			ClientErrorLevel: slog.LevelWarn,
 			ServerErrorLevel: slog.LevelError,
 			WithRequestID:    true,
+			Filters: []slogchi.Filter{
+				slogchi.IgnorePathContains("/web/content"),
+			},
 		}),
 		middlewares.SetupCORS(config.Environment()),
 		middlewares.SetupCSP(),
@@ -193,6 +196,9 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 	router.Group(func(r chi.Router) {
 		r.Handle("/web/content/*", handlers.StaticFileServerHandler(http.FS(static)))
 	})
+
+	router.Get("/img-proxy/*", handlers.ImageProxy())
+
 	// Error handling.
 	router.NotFound(handlers.NotFound())
 

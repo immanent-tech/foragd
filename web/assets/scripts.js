@@ -15,3 +15,4 @@ _hyperscript.browserInit()
 import './timestamps.js'
 // tailwindplus
 // import '@tailwindplus/elements';
+import './imgproxy.js'
