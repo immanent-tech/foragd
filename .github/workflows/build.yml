@@ -128,7 +128,9 @@ jobs:
           annotations: ${{ steps.docker_metadata.outputs.annotations }}
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE }}-${{ matrix.service }},push-by-digest=true,name-canonical=true,push=true
-          build-args: "APPVERSION=${{ env.APPVERSION }}"
+          build-args: |
+            APPVERSION=${{ env.APPVERSION }}
+            GOVERSION=${{ env.GOVERSION }}
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
