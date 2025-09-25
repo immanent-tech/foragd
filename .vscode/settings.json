@@ -33,7 +33,8 @@
     "assets",
     "config",
     "auth0",
-    "feeds/extensions"
+    "feeds/extensions",
+    "gcp"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
