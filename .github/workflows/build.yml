@@ -138,7 +138,7 @@ jobs:
           done
           cosign sign --yes --key cosign.key ${images}
         env:
-          TAGS: ${{ steps.docker_meta.outputs.tags }}
+          TAGS: ${{ steps.docker_metadata.outputs.tags }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
           DIGEST: ${{ steps.build_and_push.outputs.digest }}
 
