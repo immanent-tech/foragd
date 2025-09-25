@@ -3,6 +3,12 @@
 
 FROM golang:1.25.1-alpine AS builder
 
+LABEL org.opencontainers.image.source=https://github.com/immanent-tech/foragd
+LABEL org.opencontainers.image.url=https://foragd.app
+LABEL org.opencontainers.image.title="Foragd Scheduler"
+LABEL org.opencontainers.image.description="Foragd Scheduler Component"
+LABEL org.opencontainers.image.licenses=AGPL-3.0-or-later
+
 ARG APPVERSION="unknown"
 
 # Move to working directory (/build).

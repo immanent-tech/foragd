@@ -34,7 +34,8 @@
     "config",
     "auth0",
     "feeds/extensions",
-    "gcp"
+    "gcp",
+    "container"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
