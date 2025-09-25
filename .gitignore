@@ -23,7 +23,6 @@ web/content/*.js.map
 web/content/*.woff2
 web/content/*.ttf
 web/content/fontawesome
-*_templ.go
 
 # Node modules.
 node_modules/
