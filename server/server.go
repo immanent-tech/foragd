@@ -49,18 +49,18 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 	var svr Server
 	svr.static = static
 	// Load the server config.
-	err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, ServerConfig)
+	err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, cfg)
 	if err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
 	// If no secret is set, create a new secret.
-	if ServerConfig.Secret == "" {
+	if cfg.Secret == "" {
 		secret, err := randomBase16String(32)
 		if err != nil {
 			return svr, fmt.Errorf("unable to generate server secret: %w", err)
 		}
 
-		ServerConfig.Secret = secret
+		cfg.Secret = secret
 	}
 	// Set up authenticator
 	authapi, err := auth0.New(ctx)
@@ -79,10 +79,10 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 	h2s := &http2.Server{}
 	svr.Server = &http.Server{
 		Handler:     h2c.NewHandler(nosurf.New(router), h2s),
-		Addr:        net.JoinHostPort(ServerConfig.Host, strconv.Itoa(ServerConfig.Port)),
-		ReadTimeout: ServerConfig.ReadTimeout,
+		Addr:        net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
+		ReadTimeout: cfg.ReadTimeout,
 		// WriteTimeout: ServerConfig.WriteTimeout,
-		IdleTimeout: ServerConfig.IdleTimeout,
+		IdleTimeout: cfg.IdleTimeout,
 	}
 
 	err = http2.ConfigureServer(svr.Server, h2s)
@@ -123,12 +123,12 @@ func (s *Server) Start(ctx context.Context) error {
 
 	// And we serve HTTP until the world ends.
 	var err error
-	if ServerConfig.CertFile != "" && ServerConfig.KeyFile != "" {
+	if cfg.CertFile != "" && cfg.KeyFile != "" {
 		slogctx.FromCtx(ctx).Info("Using https.",
-			slog.String("certificate file", ServerConfig.CertFile),
-			slog.String("key file", ServerConfig.KeyFile),
+			slog.String("certificate file", cfg.CertFile),
+			slog.String("key file", cfg.KeyFile),
 		)
-		err = s.ListenAndServeTLS(ServerConfig.CertFile, ServerConfig.KeyFile)
+		err = s.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile)
 	} else {
 		slogctx.FromCtx(ctx).Info("Using http.")
 		err = s.ListenAndServe()

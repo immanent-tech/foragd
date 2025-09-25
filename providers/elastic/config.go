@@ -22,7 +22,7 @@ const (
 
 // Define default server configuration options.
 var elasticConfig = &Config{
-	CAFile: "ca.crt",
+	CAFile: "/app/elastic/ca.crt",
 	URLs:   []string{"https://es01:9200"},
 }
 

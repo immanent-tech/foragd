@@ -41,7 +41,7 @@ type Options struct {
 
 // DefaultLogFile is the default log file location.
 var (
-	DefaultLogFile = "/var/log/foragd.log"
+	DefaultLogFile = "/app/foragd.log"
 	Level          slog.Level
 )
 

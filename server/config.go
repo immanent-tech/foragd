@@ -31,10 +31,9 @@ var defaultCSP = []string{
 	"upgrade-insecure-requests;",
 }
 
-// Define default server configuration options.
-var ServerConfig = &Config{
+var cfg = &Config{
 	// Host is the hostname to listen on.
-	Host: "",
+	Host: "localhost",
 	// Port is the port to listen on.
 	Port: 7000,
 	CSP:  defaultCSP,
