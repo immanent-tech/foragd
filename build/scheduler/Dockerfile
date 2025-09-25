@@ -3,25 +3,27 @@
 
 FROM golang:1.25.0-alpine AS builder
 
+ARG APPVERSION
+
 # Move to working directory (/build).
-WORKDIR /build
+WORKDIR build
 
 # Copy and download dependency using go mod.
-COPY go.mod go.sum ./
+COPY ../../go.mod ../../go.sum ./
 RUN go mod download
 
 # Copy your code into the container.
-COPY . .
+COPY ../../ .
 
 # Set necessary environment variables and build your project.
 ENV CGO_ENABLED=0
-RUN go build -ldflags="-s -w" -o go_feed_me
+RUN go build -ldflags="-s -w -X github.com/immanent-tech/foragd/config.Version=$APPVERSION" -o foragd
 
 FROM scratch
 
 # Copy project's binary and templates from /build to the scratch container.
-COPY --from=builder /build/go_feed_me /
+COPY --from=builder build/foragd /
 
 # Set entry point.
-ENTRYPOINT ["/go_feed_me"]
+ENTRYPOINT ["/foragd"]
 CMD ["scheduler"]
