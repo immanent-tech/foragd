@@ -11,7 +11,7 @@
     "build:css": "bunx tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
   },
   "dependencies": {
-    "daisyui": "^5.1.14",
+    "daisyui": "^5.1.23",
     "date-fns": "^4.1.0",
     "htmx-ext-ajax-header": "^2.0.2",
     "htmx-ext-preload": "^2.1.1",
@@ -29,7 +29,7 @@
     "@tailwindcss/cli": "^4.1.13",
     "esbuild": "^0.25.10",
     "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
-    "@tailwindcss/typography": "^0.5.18",
+    "@tailwindcss/typography": "^0.5.19",
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.4.0",

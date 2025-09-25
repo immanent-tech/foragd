@@ -1,6 +1,6 @@
 module github.com/immanent-tech/foragd
 
-go 1.25.0
+go 1.25.1
 
 replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 
