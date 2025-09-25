@@ -1,19 +1,20 @@
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-FROM golang:1.25.0-alpine AS builder
+ARG GOVERSION
+FROM golang:$GOVERSION-alpine AS builder
 
 ARG APPVERSION
 
 # Move to working directory (/build).
-WORKDIR build
+WORKDIR /build
 
 # Copy and download dependency using go mod.
-COPY ../../go.mod ../../go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy your code into the container.
-COPY ../../ .
+COPY . .
 
 # Set necessary environment variables and build your project.
 ENV CGO_ENABLED=0

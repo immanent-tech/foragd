@@ -119,7 +119,8 @@ jobs:
         id: build_image
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v5
         with:
-          context: build/${{ matrix.service }}
+          file: build/${{ matrix.service }}/Dockerfile
+          context: .
           labels: ${{ steps.docker_metadata.outputs.labels }}
           annotations: ${{ steps.docker_metadata.outputs.annotations }}
           platforms: ${{ matrix.platform }}
