@@ -107,7 +107,7 @@ jobs:
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE }}-${{ matrix.service }}
           tags: |
-            tags: type=sha,format=long
+            type=sha,format=long
             type=raw,value=${{ env.APPVERSION }}
 
       - name: Set up QEMU
@@ -126,7 +126,7 @@ jobs:
           labels: ${{ steps.docker_metadata.outputs.labels }}
           annotations: ${{ steps.docker_metadata.outputs.annotations }}
           tags: ${{ steps.docker_metadata.outputs.tags }}
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE }}-${{ matrix.service }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE }}-${{ matrix.service }},push=true
           build-args: |
             APPVERSION=${{ env.APPVERSION }}
 
