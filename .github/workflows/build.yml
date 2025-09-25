@@ -140,5 +140,5 @@ jobs:
         env:
           TAGS: ${{ steps.docker_meta.outputs.tags }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+          DIGEST: ${{ steps.build_and_push.outputs.digest }}
 
