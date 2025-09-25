@@ -3,12 +3,6 @@
 
 FROM golang:1.25.1-alpine AS builder
 
-LABEL org.opencontainers.image.source=https://github.com/immanent-tech/foragd
-LABEL org.opencontainers.image.url=https://foragd.app
-LABEL org.opencontainers.image.title="Foragd Server"
-LABEL org.opencontainers.image.description="Server service for Foragd app is responsible for handling all web requests."
-LABEL org.opencontainers.image.licenses=AGPL-3.0-or-later
-
 ARG APPVERSION
 
 # Move to working directory (/build).
@@ -27,11 +21,21 @@ RUN go mod download
 ENV CGO_ENABLED=0
 RUN go build -ldflags="-s -w -X github.com/immanent-tech/foragd/config.Version=$APPVERSION" -o foragd
 
-FROM scratch
+FROM docker.io/alpine AS server
+
+# Add labels.
+LABEL org.opencontainers.image.source=https://github.com/immanent-tech/foragd
+LABEL org.opencontainers.image.url=https://foragd.app
+LABEL org.opencontainers.image.title="Foragd Server"
+LABEL org.opencontainers.image.description="Server service for Foragd app is responsible for handling all web requests."
+LABEL org.opencontainers.image.licenses=AGPL-3.0-or-later
+
+# Install CA certificates.
+RUN apk add ca-certificates
 
 # Copy project's binary and templates from /build to the scratch container.
 COPY --from=builder /build/foragd /
 
 # Set entry point.
 ENTRYPOINT ["/foragd"]
-CMD ["serve"]
+CMD ["serve", "--no-log-file"]
