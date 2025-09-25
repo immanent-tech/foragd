@@ -12,6 +12,9 @@ on:
   #     - completed
   workflow_dispatch:
 
+env:
+  GOVERSION: 1.25.1
+
 permissions:
   contents: read
 

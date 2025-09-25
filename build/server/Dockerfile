@@ -9,12 +9,15 @@ ARG APPVERSION
 # Move to working directory (/build).
 WORKDIR /build
 
-# Copy and download dependency using go mod.
-COPY go.mod go.sum ./
-RUN go mod download
+RUN apk add git
+
 
 # Copy your code into the container.
 COPY . .
+
+# Copy and download dependency using go mod.
+COPY go.mod go.sum ./
+RUN go mod download
 
 # Set necessary environment variables and build your project.
 ENV CGO_ENABLED=0
