@@ -6,10 +6,10 @@ FROM golang:1.25.1-alpine AS builder
 LABEL org.opencontainers.image.source=https://github.com/immanent-tech/foragd
 LABEL org.opencontainers.image.url=https://foragd.app
 LABEL org.opencontainers.image.title="Foragd Server"
-LABEL org.opencontainers.image.description="Foragd Server Component"
+LABEL org.opencontainers.image.description="Server service for Foragd app is responsible for handling all web requests."
 LABEL org.opencontainers.image.licenses=AGPL-3.0-or-later
 
-ARG APPVERSION="unknown"
+ARG APPVERSION
 
 # Move to working directory (/build).
 WORKDIR /build
