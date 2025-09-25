@@ -1,16 +1,14 @@
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-ARG GOVERSION
-FROM golang:$GOVERSION-alpine AS builder
+FROM golang:1.25.1-alpine AS builder
 
-ARG APPVERSION
+ARG APPVERSION="unknown"
 
 # Move to working directory (/build).
 WORKDIR /build
 
 RUN apk add git
-
 
 # Copy your code into the container.
 COPY . .
