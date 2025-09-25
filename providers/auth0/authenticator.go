@@ -25,23 +25,23 @@ type Authenticator struct {
 
 // New instantiates the *Authenticator.
 func New(ctx context.Context) (*Authenticator, error) {
-	err := loadConfigOnce()
+	err := LoadConfigOnce()
 	if err != nil {
 		return nil, fmt.Errorf("unable to create authenticator: %w", err)
 	}
 
 	provider, err := oidc.NewProvider(
 		ctx,
-		"https://"+auth0Config.Domain+"/",
+		"https://"+cfg.Domain+"/",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create authenticator: %w", err)
 	}
 
 	conf := oauth2.Config{
-		ClientID:     auth0Config.ClientID,
-		ClientSecret: auth0Config.ClientSecret,
-		RedirectURL:  auth0Config.CallbackURL,
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
+		RedirectURL:  cfg.CallbackURL,
 		Endpoint:     provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, "profile"},
 	}
@@ -70,7 +70,7 @@ func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) 
 
 // GenerateLogoutURL generates URL to log the user out from the auth backend.
 func (a *Authenticator) GenerateLogoutURL(req *http.Request) (*url.URL, error) {
-	logoutURL, err := url.Parse("https://" + auth0Config.Domain + "/v2/logout")
+	logoutURL, err := url.Parse("https://" + cfg.Domain + "/v2/logout")
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate logout url: %w", err)
 	}
@@ -86,7 +86,7 @@ func (a *Authenticator) GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 
 	parameters := url.Values{}
 	parameters.Add("returnTo", returnTo.String())
-	parameters.Add("client_id", auth0Config.ClientID)
+	parameters.Add("client_id", cfg.ClientID)
 	logoutURL.RawQuery = parameters.Encode()
 
 	return logoutURL, nil

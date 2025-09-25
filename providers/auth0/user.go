@@ -63,11 +63,11 @@ type ManagementAPI struct {
 // NewManagementAPI creates a new management API connection.
 func NewManagementAPI() (*ManagementAPI, error) {
 	api, err := management.New(
-		auth0Config.Domain,
+		cfg.Domain,
 		management.WithClientCredentials(
 			context.Background(),
-			auth0Config.ClientID,
-			auth0Config.ClientSecret,
+			cfg.ClientID,
+			cfg.ClientSecret,
 		),
 	)
 	if err != nil {

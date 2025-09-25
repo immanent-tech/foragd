@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	auth0ConfigEnvPrefix = config.ConfigEnvPrefix + "AUTH0_"
-	auth0ConfigPrefix    = "auth0"
+	ConfigEnvPrefix = config.ConfigEnvPrefix + "AUTH0_"
+	ConfigPrefix    = "auth0"
 )
 
-var auth0Config = &Config{}
+var cfg = &Config{}
 
 // Config structure.
 type Config struct {
@@ -26,16 +26,16 @@ type Config struct {
 	CallbackURL  string `toml:"callback_url" validate:"required,url"`
 }
 
-// loadConfigOnce loads the auth0 configuration and ensures this is only done
+// LoadConfigOnce loads the auth0 configuration and ensures this is only done
 // one time, no matter how many times it is called.
-var loadConfigOnce = sync.OnceValue(loadConfig)
+var LoadConfigOnce = sync.OnceValue(loadConfig)
 
 func loadConfig() error {
-	err := config.Load(auth0ConfigPrefix, auth0ConfigEnvPrefix, auth0Config)
+	err := config.Load(ConfigPrefix, ConfigEnvPrefix, cfg)
 	if err != nil {
 		return fmt.Errorf("auth0: unable to load config: %w", err)
 	}
-	valid, err := validation.ValidateStruct(auth0Config)
+	valid, err := validation.ValidateStruct(cfg)
 	if err != nil || !valid {
 		return fmt.Errorf("auth0: unable to validate config: %w", err)
 	}
