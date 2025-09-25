@@ -87,7 +87,7 @@ require (
 	github.com/spf13/viper v1.7.1 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
-	github.com/ulikunitz/xz v0.5.9 // indirect
+	github.com/ulikunitz/xz v0.5.14 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
@@ -119,7 +119,6 @@ require (
 	github.com/go-shiori/go-readability v0.0.0-20250217085726-9f5bf5ca7612
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
-	github.com/goforj/godump v1.6.0
 	github.com/gohugoio/hashstructure v0.5.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
