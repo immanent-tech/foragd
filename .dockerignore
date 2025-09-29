@@ -5,6 +5,7 @@
 .git/
 .github/
 .vscode/
+.devcontainer
 .idea/
 node_modules/
 bin/
@@ -23,7 +24,6 @@ LICENSE
 Dockerfile
 **/*.templ
 **/*_test.go
-package.json
 *-lock.json
 *.lockb
 *.config.*
