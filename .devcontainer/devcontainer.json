@@ -1,5 +1,5 @@
 {
-  "name": "Curately",
+  "name": "foragd",
   "dockerComposeFile": "docker-compose.yml",
   "service": "devcontainer",
   "postCreateCommand": "bash .devcontainer/postcreate.sh",
