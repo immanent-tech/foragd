@@ -12,19 +12,27 @@ COPY --from=docker.io/golang:1.25.1-alpine /usr/local/go/ /usr/local/go/
 # Update $PATH.
 ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
 
+# Install tools.
+RUN apk add upx
+
 # Move to working directory (/build).
 WORKDIR /build
 
-# Copy your code into the container.
-COPY . .
-
 # Copy and download dependency using go mod.
 COPY go.mod go.sum ./
+COPY pkg/go-syndication/go.mod pkg/go-syndication/go.sum ./pkg/go-syndication
+COPY pkg/slog-elasticsearch/go.mod pkg/slog-elasticsearch/go.sum ./pkg/slog-elasticsearch
 RUN go mod download
+
+# Copy source.
+COPY . .
 
 # Set necessary environment variables and build your project.
 ENV CGO_ENABLED=0
 RUN go build -ldflags="-s -w -X github.com/immanent-tech/foragd/config.Version=$APPVERSION" -o foragd
+
+# compress binary with upx
+RUN upx --best --lzma foragd
 
 FROM docker.io/alpine AS scheduler
 

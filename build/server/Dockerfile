@@ -16,9 +16,16 @@ COPY --from=docker.io/oven/bun:1.2.23-alpine /usr/local/bin/bun /usr/local/bin/b
 # Update $PATH.
 ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
 
-RUN apk add git libstdc++
+# Install tools.
+RUN apk add libstdc++ upx
 
-# Copy your code into the container.
+# Copy and download dependency using go mod.
+COPY go.mod go.sum ./
+COPY pkg/go-syndication/go.mod pkg/go-syndication/go.sum ./pkg/go-syndication
+COPY pkg/slog-elasticsearch/go.mod pkg/slog-elasticsearch/go.sum ./pkg/slog-elasticsearch
+RUN go mod download
+
+# Copy source.
 COPY . .
 
 # install and build/bundle frontend assets
@@ -28,14 +35,12 @@ bun x esbuild ./web/assets/scripts.js --bundle --minify --outdir=./web/content/
 bun x tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify
 EOF
 
-
-# Copy and download dependency using go mod.
-COPY go.mod go.sum ./
-RUN go mod download
-
 # Set necessary environment variables and build your project.
 ENV CGO_ENABLED=0
 RUN go build -ldflags="-s -w -X github.com/immanent-tech/foragd/config.Version=$APPVERSION" -o foragd
+
+# compress binary with upx
+RUN upx --best --lzma foragd
 
 FROM docker.io/alpine AS server
 
