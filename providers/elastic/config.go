@@ -22,34 +22,66 @@ const (
 
 // Define default server configuration options.
 var cfg = &Config{
-	URLs: []string{"http://localhost:9200"},
+	Development: ConfigDevelopment{
+		URLs: []string{"http://localhost:9200"},
+	},
+	Production: ConfigProduction{},
 }
 
-// Config contains the server configuration options.
+// Config is the elastic configuration. It varies depending on the environment.
 type Config struct {
-	CAFile   string   `toml:"ca_file" validate:"required"`
+	Development ConfigDevelopment
+	Production  ConfigProduction
+}
+
+// ConfigDevelopment are the config options for a development environment.
+type ConfigDevelopment struct {
+	CAFile   string   `toml:"ca_file"`
 	Username string   `toml:"username" validate:"required"`
 	Password string   `toml:"password" validate:"required"`
-	URLs     []string `toml:"urls" validate:"required,unique"`
-	CloudID  string   `toml:"cloud_id"`
-	APIKey   string   `toml:"api_key"`
+	URLs     []string `toml:"urls" validate:"required"`
+}
+
+// ConfigProduction are the config options for a production environment.
+type ConfigProduction struct {
+	CloudID string `toml:"cloud_id" validate:"required"`
+	APIKey  string `toml:"api_key" validate:"required"`
 }
 
 // loadConfigOnce loads the elasticsearch configuration and ensures this is done
 // one-time only, no matter how many times it is called.
 func loadConfigOnce(environment string) (*elasticsearch.Config, error) {
 	return sync.OnceValues(func() (*elasticsearch.Config, error) {
-		err := config.Load(elasticConfigPrefix, elasticConfigEnvPrefix, cfg)
-		if err != nil {
-			return nil, fmt.Errorf("elastic: unable to load config: %w", err)
+		var err error
+		switch environment {
+		case "development":
+			c := &ConfigDevelopment{}
+			err = config.Load(elasticConfigPrefix, elasticConfigEnvPrefix, c)
+			if err != nil {
+				return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
+			}
+			cfg.Development = *c
+		case "production":
+			c := &ConfigProduction{}
+			err = config.Load(elasticConfigPrefix, elasticConfigEnvPrefix, c)
+			if err != nil {
+				return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
+			}
+			cfg.Production = *c
 		}
 		clientConfig, err := genConfig(environment)
 		if err != nil {
-			return nil, fmt.Errorf("elastic: unable to load config: %w", err)
+			return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
 		}
-		valid, err := validation.ValidateStruct(cfg)
+		var valid bool
+		switch environment {
+		case "development":
+			valid, err = validation.ValidateStruct(cfg.Development)
+		case "production":
+			valid, err = validation.ValidateStruct(cfg.Production)
+		}
 		if err != nil || !valid {
-			return nil, fmt.Errorf("elastic: unable to validate config: %w", err)
+			return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
 		}
 
 		return clientConfig, nil
@@ -64,17 +96,16 @@ func genConfig(environment string) (*elasticsearch.Config, error) {
 
 	switch environment {
 	case "development":
-
 		generated = &elasticsearch.Config{
-			Addresses: cfg.URLs,
+			Addresses: cfg.Development.URLs,
 			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
 			// Logger:    &Logger{EnableResponseBody: true, EnableRequestBody: true},
-			Username:  cfg.Username,
-			Password:  cfg.Password,
+			Username:  cfg.Development.Username,
+			Password:  cfg.Development.Password,
 			Transport: defaultTransportConfig,
 		}
-		if cfg.CAFile != "" {
-			caFileData, err := os.ReadFile(cfg.CAFile)
+		if cfg.Development.CAFile != "" {
+			caFileData, err := os.ReadFile(cfg.Development.CAFile)
 			if err != nil {
 				return nil, fmt.Errorf("could not retrieve CA certificate file: %w", err)
 			}
@@ -83,8 +114,8 @@ func genConfig(environment string) (*elasticsearch.Config, error) {
 	case "production":
 		generated = &elasticsearch.Config{
 			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
-			CloudID:   cfg.CloudID,
-			APIKey:    cfg.APIKey,
+			CloudID:   cfg.Production.CloudID,
+			APIKey:    cfg.Production.APIKey,
 			Transport: defaultTransportConfig,
 		}
 	default:
