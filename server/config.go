@@ -33,7 +33,7 @@ var defaultCSP = []string{
 
 var cfg = &Config{
 	// Host is the hostname to listen on.
-	Host: "localhost",
+	Host: "",
 	// Port is the port to listen on.
 	Port: 7000,
 	CSP:  defaultCSP,
