@@ -87,7 +87,7 @@ require (
 	github.com/spf13/viper v1.7.1 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
-	github.com/ulikunitz/xz v0.5.9 // indirect
+	github.com/ulikunitz/xz v0.5.14 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
