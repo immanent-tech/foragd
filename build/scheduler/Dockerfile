@@ -20,6 +20,7 @@ WORKDIR /build
 
 # Copy and download dependency using go mod.
 COPY go.mod go.sum ./
+RUN mkdir -p pkg/go-syndication pkg/slog-elasticsearch
 COPY pkg/go-syndication/go.mod pkg/go-syndication/go.sum ./pkg/go-syndication
 COPY pkg/slog-elasticsearch/go.mod pkg/slog-elasticsearch/go.sum ./pkg/slog-elasticsearch
 RUN go mod download
