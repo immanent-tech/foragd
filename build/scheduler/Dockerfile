@@ -1,8 +1,10 @@
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-FROM golang:1.25.1-alpine AS builder
+FROM --platform=$BUILDPLATFORM docker.io/alpine:3.22.1 AS builder
 
+ARG TARGETOS
+ARG TARGETARCH
 ARG APPVERSION
 
 # Move to working directory (/build).
