@@ -21,9 +21,8 @@ const (
 )
 
 // Define default server configuration options.
-var elasticConfig = &Config{
-	CAFile: "/app/elastic/ca.crt",
-	URLs:   []string{"https://es01:9200"},
+var cfg = &Config{
+	URLs: []string{"http://localhost:9200"},
 }
 
 // Config contains the server configuration options.
@@ -40,7 +39,7 @@ type Config struct {
 // one-time only, no matter how many times it is called.
 func loadConfigOnce(environment string) (*elasticsearch.Config, error) {
 	return sync.OnceValues(func() (*elasticsearch.Config, error) {
-		err := config.Load(elasticConfigPrefix, elasticConfigEnvPrefix, elasticConfig)
+		err := config.Load(elasticConfigPrefix, elasticConfigEnvPrefix, cfg)
 		if err != nil {
 			return nil, fmt.Errorf("elastic: unable to load config: %w", err)
 		}
@@ -48,7 +47,7 @@ func loadConfigOnce(environment string) (*elasticsearch.Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("elastic: unable to load config: %w", err)
 		}
-		valid, err := validation.ValidateStruct(elasticConfig)
+		valid, err := validation.ValidateStruct(cfg)
 		if err != nil || !valid {
 			return nil, fmt.Errorf("elastic: unable to validate config: %w", err)
 		}
@@ -65,29 +64,31 @@ func genConfig(environment string) (*elasticsearch.Config, error) {
 
 	switch environment {
 	case "development":
-		caFileData, err := os.ReadFile(elasticConfig.CAFile)
-		if err != nil {
-			return nil, fmt.Errorf("could not retrieve CA certificate file: %w", err)
-		}
 
 		generated = &elasticsearch.Config{
-			Addresses: elasticConfig.URLs,
+			Addresses: cfg.URLs,
 			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
 			// Logger:    &Logger{EnableResponseBody: true, EnableRequestBody: true},
-			Username:  elasticConfig.Username,
-			Password:  elasticConfig.Password,
-			CACert:    caFileData,
+			Username:  cfg.Username,
+			Password:  cfg.Password,
 			Transport: defaultTransportConfig,
+		}
+		if cfg.CAFile != "" {
+			caFileData, err := os.ReadFile(cfg.CAFile)
+			if err != nil {
+				return nil, fmt.Errorf("could not retrieve CA certificate file: %w", err)
+			}
+			generated.CACert = caFileData
 		}
 	case "production":
 		generated = &elasticsearch.Config{
 			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
-			CloudID:   elasticConfig.CloudID,
-			APIKey:    elasticConfig.APIKey,
+			CloudID:   cfg.CloudID,
+			APIKey:    cfg.APIKey,
 			Transport: defaultTransportConfig,
 		}
 	default:
-		return nil, config.ErrInvalidConfig
+		return nil, fmt.Errorf("%w: could not determine environment to apply config", config.ErrInvalidConfig)
 	}
 
 	return generated, nil
