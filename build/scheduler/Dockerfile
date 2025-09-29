@@ -7,6 +7,11 @@ ARG TARGETOS
 ARG TARGETARCH
 ARG APPVERSION
 
+# Copy go from official image.
+COPY --from=docker.io/golang:1.25.1-alpine /usr/local/go/ /usr/local/go/
+# Update $PATH.
+ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
+
 # Move to working directory (/build).
 WORKDIR /build
 
