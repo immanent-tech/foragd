@@ -50,6 +50,16 @@ RUN apk add ca-certificates
 # Copy project's binary and templates from /build to the scratch container.
 COPY --from=builder /build/foragd /
 
+# Allow custom uid and gid
+ARG UID=1000
+ARG GID=1000
+
+# Add user
+RUN addgroup --gid "${GID}" foragd && \
+    adduser --disabled-password --gecos "" --ingroup foragd \
+    --uid "${UID}" foragd
+USER foragd
+
 # Set entry point.
 ENTRYPOINT ["/foragd"]
 CMD ["scheduler", "--no-log-file"]

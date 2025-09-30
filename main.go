@@ -8,6 +8,7 @@ import (
 	"embed"
 	"log/slog"
 	"os"
+	"syscall"
 
 	"github.com/alecthomas/kong"
 	slogelasticsearch "github.com/immanent-tech/slog-elasticsearch"
@@ -30,6 +31,21 @@ var CLI struct {
 	Migrate      cli.MigrateCmd       `cmd:"" help:"Run backend migrations."`
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
 	ProfileFlags logging.ProfileFlags `name:"profile" help:"Set profiling flags."`
+}
+
+func init() {
+	// Following is copied from https://git.kernel.org/pub/scm/libs/libcap/libcap.git/tree/goapps/web/web.go
+	// ensureNotEUID aborts the program if it is running setuid something,
+	// or being invoked by root.
+	euid := syscall.Geteuid()
+	uid := syscall.Getuid()
+	egid := syscall.Getegid()
+	gid := syscall.Getgid()
+
+	if uid != euid || gid != egid || uid == 0 {
+		slog.Error("foragd should not be run with additional privileges or as root.")
+		os.Exit(-1)
+	}
 }
 
 func main() {
