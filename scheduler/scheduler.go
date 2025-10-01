@@ -8,12 +8,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 )
@@ -36,6 +43,12 @@ var manager *Manager
 
 // Run starts the scheduler manager.
 func Run(ctx context.Context, env string) error {
+	// Load the config.
+	err := config.Load(configPrefix, configEnvPrefix, cfg)
+	if err != nil {
+		return fmt.Errorf("unable to load config: %w", err)
+	}
+
 	esClient, err := elastic.Connect(ctx, env)
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
@@ -84,7 +97,42 @@ func Run(ctx context.Context, env string) error {
 	}
 
 	scheduler.Start(ctx)
+
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler started.")
+
+	// Start a webserver for health probes.
+	svr := &http.Server{
+		Addr:        net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
+		ReadTimeout: cfg.ReadTimeout,
+		// WriteTimeout: ServerConfig.WriteTimeout,
+		IdleTimeout: cfg.IdleTimeout,
+	}
+	http.HandleFunc("/startupProbe", func(res http.ResponseWriter, req *http.Request) {
+		fmt.Fprint(res, "Started.")
+	})
+	var wg sync.WaitGroup
+	wg.Add(1)
+	// Listen for shutdown events and process them.
+	go func() {
+		wg.Done()
+		stop := make(chan os.Signal, 1)
+		signal.Notify(stop, os.Interrupt)
+		<-stop
+		err := svr.Shutdown(context.Background())
+		// Can't do much here except for logging any errors
+		if err != nil {
+			slog.Error("Error occurred when trying to shut down server.",
+				slog.Any("error", err),
+			)
+		}
+	}()
+	err = svr.ListenAndServe()
+	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
+		wg.Wait()
+	} else if err != nil {
+		return fmt.Errorf("error shutting down server: %w", err)
+	}
+
 	<-ctx.Done()
 	scheduler.Stop()
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler stopped.")
