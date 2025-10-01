@@ -4,20 +4,16 @@
 package main
 
 import (
-	"context"
 	"embed"
 	"log/slog"
 	"os"
 	"syscall"
 
 	"github.com/alecthomas/kong"
-	slogelasticsearch "github.com/immanent-tech/slog-elasticsearch"
 
 	"github.com/immanent-tech/foragd/cli"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/logging"
-	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 //go:embed all:web/content
@@ -61,16 +57,16 @@ func main() {
 		os.Exit(-1)
 	}
 
-	// Load the Elastic backend
-	esapi, err := elastic.RawConnection(context.Background(), CLI.Environment)
-	if err != nil {
-		slog.Error("Could not initialize config.",
-			slog.Any("error", err))
-		os.Exit(-1)
-	}
-	esLogHandler := slogelasticsearch.Option{Level: slog.LevelDebug, Conn: esapi, Index: schema.LogsSchemaPrefix}.NewElasticsearchHandler(context.Background())
-
-	logger := logging.New(logging.Options{LogLevel: CLI.LogLevel, NoLogFile: CLI.NoLogFile, Handlers: []slog.Handler{esLogHandler}})
+	// // Load the Elastic backend
+	// esapi, err := elastic.RawConnection(context.Background(), CLI.Environment)
+	// if err != nil {
+	// 	slog.Error("Could not initialize config.",
+	// 		slog.Any("error", err))
+	// 	os.Exit(-1)
+	// }
+	// esLogHandler := slogelasticsearch.Option{Level: slog.LevelDebug, Conn: esapi, Index: schema.LogsSchemaPrefix}.NewElasticsearchHandler(context.Background())
+	// logger := logging.New(logging.Options{LogLevel: CLI.LogLevel, NoLogFile: CLI.NoLogFile, Handlers: []slog.Handler{esLogHandler}})
+	logger := logging.New(logging.Options{LogLevel: CLI.LogLevel, NoLogFile: CLI.NoLogFile})
 
 	// Enable profiling if requested.
 	if CLI.ProfileFlags != nil {
