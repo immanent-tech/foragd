@@ -52,7 +52,7 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		l.EnableRequestBody = true
 		l.EnableResponseBody = true
 	default:
-		level = logging.LevelTrace
+		level = slog.LevelDebug
 	}
 	// Set base/common attributes.
 	baseAttributes := []slog.Attr{}
