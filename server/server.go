@@ -180,7 +180,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			ServerErrorLevel: slog.LevelError,
 			WithRequestID:    true,
 			Filters: []slogchi.Filter{
-				slogchi.IgnorePathContains("/web/content"),
+				slogchi.IgnorePathContains("/web/content", "/favicon"),
 			},
 		}),
 		middlewares.SetupCORS(s.environment),
@@ -194,6 +194,11 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 
 	// Routes.
 	//
+	// Liveness probe.
+	router.HandleFunc("/livenessProbe", func(res http.ResponseWriter, req *http.Request) {
+		fmt.Fprint(res, "I'm alive!")
+	})
+
 	// Static content.
 	router.Group(func(r chi.Router) {
 		r.Handle("/web/content/*", handlers.StaticFileServerHandler(http.FS(static)))
