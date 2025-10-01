@@ -27,9 +27,7 @@ import (
 
 // Home handles displaying the user's home page.
 func (a *API) Home() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		ctx := req.Context()
 		ctx = models.CSRFTokenToCtx(ctx, nosurf.Token(req))
 		user, err := models.UserFromCtx(ctx)

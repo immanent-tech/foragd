@@ -29,9 +29,7 @@ import (
 
 // LoginSelect handles showing options for logging in with different providers.
 func LoginSelect() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		page := &layouts.Login{}
 		renderPage(page.Content(), templates.GeneratePageTitle("Login")).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -45,9 +43,7 @@ type authAPI interface {
 
 // Login handles login requests.
 func Login(authAPI authAPI) http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		provider := chi.URLParam(req, "provider")
 		state, err := generateRandomState()
 		if err != nil {
@@ -66,9 +62,7 @@ func Login(authAPI authAPI) http.HandlerFunc {
 
 // LoginCallback handles processing the response from a login provider.
 func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// provider := chi.URLParam(req, "provider")
 
 		state := req.FormValue("state")

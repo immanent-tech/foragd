@@ -37,13 +37,11 @@ import (
 // GetArticles handles showing a filtered collection of articles as cards.
 func (a *API) GetArticles() http.HandlerFunc {
 	return alice.New(
-		routeLogger,
 		decodeArticleFilters,
 		saveArticleFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract filters from request.
 		filters := articleFiltersFromCtx(req.Context())
-		slogctx.FromCtx(req.Context()).Debug("Showing articles.", slog.String("filters", filters.Query()))
 		// Get articles matching filters.
 		articles, pagination, err := a.filterArticles(req.Context(), &filters)
 		if err != nil {
@@ -67,7 +65,6 @@ func (a *API) GetArticles() http.HandlerFunc {
 //nolint:gocognit
 func (a *API) GetArticleUpdates() http.HandlerFunc {
 	return alice.New(
-		routeLogger,
 		decodeArticleFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "text/event-stream")
@@ -104,12 +101,10 @@ func (a *API) GetArticleUpdates() http.HandlerFunc {
 		for {
 			select {
 			case <-req.Context().Done():
-				slogctx.FromCtx(req.Context()).Debug("Stopping article updates.")
 				res.Header().Set("Connection", "close")
 				res.WriteHeader(http.StatusRequestTimeout)
 				return
 			default:
-				slogctx.FromCtx(req.Context()).Debug("Checking for article updates.", slog.String("filters", filters.Query()))
 				currentCount, err = a.DataAPI().CountItems(req.Context(), query)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
@@ -152,7 +147,6 @@ func (a *API) GetArticleUpdates() http.HandlerFunc {
 // PaginateArticles handles showing the next set of articles.
 func (a *API) PaginateArticles() http.HandlerFunc {
 	return alice.New(
-		routeLogger,
 		decodeArticleFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get filters and generate query.
@@ -173,9 +167,7 @@ func (a *API) PaginateArticles() http.HandlerFunc {
 
 // MarkArticle handles marking a articles as read or unread.
 func (a *API) MarkArticle() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract user data.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -249,7 +241,6 @@ func (a *API) MarkArticle() http.HandlerFunc {
 // MarkAllArticles handles marking all articles in a subscription as appropriate.
 func (a *API) MarkAllArticles() http.HandlerFunc {
 	return alice.New(
-		routeLogger,
 		decodeArticleFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract filters from request.
@@ -297,9 +288,7 @@ func (a *API) MarkAllArticles() http.HandlerFunc {
 
 // ViewArticle handles viewing the content of an article.
 func (a *API) ViewArticle() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// subscriptionID := chi.URLParam(req, "subscription")
 		itemID := chi.URLParam(req, "item")
 		articles, err := a.getArticles(req.Context(), itemID)
@@ -352,9 +341,7 @@ func (a *API) ViewArticle() http.HandlerFunc {
 
 // FindSimilarArticles handles finding other articles that are "similar" to a set of given articles.
 func (a *API) FindSimilarArticles() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		itemID := chi.URLParam(req, "item")
 		// Build the More Like This query.
 		// TODO: tweak values and fields for optimum results matching...

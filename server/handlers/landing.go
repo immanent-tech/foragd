@@ -18,9 +18,7 @@ import (
 // Landing handles displaying the landing page of the site.
 func Landing() http.HandlerFunc {
 	template := templates.Page(config.AppName, layouts.Landing())
-	return alice.New(
-		routeLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		err := template.Render(req.Context(), res)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to render page.", slog.Any("error", err))

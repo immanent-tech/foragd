@@ -27,9 +27,7 @@ import (
 
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func (a *API) GetSearchSuggestions() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			slogctx.FromCtx(req.Context()).Debug("Invalid search suggestion input.",
@@ -61,9 +59,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 
 // GetSearchResults performs a search with the user input and renders a page with the search results.
 func (a *API) GetSearchResults() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		user, err := models.UserFromCtx(req.Context())
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 		if err != nil {

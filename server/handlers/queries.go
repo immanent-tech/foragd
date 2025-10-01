@@ -4,9 +4,6 @@
 package handlers
 
 import (
-	"log/slog"
-	"strings"
-
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
@@ -39,11 +36,6 @@ func buildSubscriptionQueries(user *models.User, view models.View, subscriptions
 
 // queryReadItems generates a query for finding read items for the given subscription.
 func queryReadItems(user *models.User, subscription *models.SubscriptionMetadata) query.Option {
-	slog.Debug("Adding subscription query for read items.",
-		slog.String("subscription", subscription.Customisation.Nickname),
-		slog.Time("since", subscription.MarkedReadAt),
-		slog.String("excluding", strings.Join(subscription.GetUnreadItems(), ",")),
-	)
 	return query.Bool(
 		query.BoolQueryName(subscription.GetFeedID()+"_read_items"),
 		query.Filter(
@@ -67,11 +59,6 @@ func queryReadItems(user *models.User, subscription *models.SubscriptionMetadata
 
 // QueryUnreadItems generates a query for finding unread items for the given subscription.
 func queryUnreadItems(user *models.User, subscription *models.SubscriptionMetadata) query.Option {
-	slog.Debug("Adding subscription query for unread items.",
-		slog.String("subscription", subscription.Customisation.Nickname),
-		slog.Time("since", subscription.MarkedReadAt),
-		slog.String("excluding", strings.Join(subscription.GetUnreadItems(), ",")),
-	)
 	return query.Bool(
 		query.BoolQueryName(subscription.GetFeedID()+"_unread_items"),
 		query.Filter(

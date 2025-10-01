@@ -16,7 +16,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -39,9 +38,7 @@ type contextKey string
 
 // NotFound handles showing a page for a 404 response.
 func NotFound() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).Then(renderPage(pages.NotFound(), "Not Found")).ServeHTTP
+	return alice.New().Then(renderPage(pages.NotFound(), "Not Found")).ServeHTTP
 }
 
 // StaticFileServerHandler handles serving content from the embedded filesystem containing static assets (i.e., images,
@@ -61,9 +58,7 @@ func StaticFileServerHandler(fs http.FileSystem) http.Handler {
 }
 
 func ImageProxy() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		url := chi.URLParam(req, "*")
 		// image := filepath.Base(url)
 		// host := filepath.Dir(url)
@@ -81,18 +76,6 @@ func ImageProxy() http.HandlerFunc {
 		res.Write(b)
 		return nil
 	})).ServeHTTP
-}
-
-// routeLogger decorates the logger in the request context with routing information.
-func routeLogger(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := slogctx.With(req.Context(),
-			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
-			slog.String("method", req.Method),
-		)
-		ctx = slogctx.With(ctx, slog.Group("req", slog.String("id", middleware.GetReqID(ctx))))
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
 }
 
 func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {

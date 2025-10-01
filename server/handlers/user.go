@@ -35,9 +35,7 @@ import (
 
 // GetSettings handles retrieving and rendering the user settings page.
 func (a *API) GetSettings() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			return fmt.Errorf("unable to get user settings: %w", err)
@@ -52,9 +50,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 
 // SubscriptionsSettings shows a table of subscriptions, optionally filtered, with settings controls.
 func (a *API) SubscriptionsSettings() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		var template templ.Component
 		switch req.Method {
 		case http.MethodPost:
@@ -95,9 +91,7 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 
 // AccountSettings handles managing user account settings.
 func (a *API) AccountSettings() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		_, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			return fmt.Errorf("unable to get account settings: %w", err)
@@ -144,9 +138,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 
 // SetTheme handles setting a theme selected by the user.
 func (a *API) SetTheme() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		theme := chi.URLParam(req, "theme")
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -174,9 +166,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 
 // AddFavoriteSubscription handles adding a new favorite subscription for a user.
 func (a *API) AddFavoriteSubscription() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, "subscription")
 		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
 		if !valid || err != nil {
@@ -234,9 +224,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 
 // RemoveFavoriteSubscription handles removing a favorite subscription for a user.
 func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, "subscription")
 		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
 		if !valid || err != nil {
@@ -287,9 +275,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 
 // AddFavoriteArticle handles adding a new favorite article for a user.
 func (a *API) AddFavoriteArticle() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, "item")
 		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
 		if !valid || err != nil {
@@ -367,9 +353,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 
 // RemoveFavoriteArticle handles removing a favorite article for a user.
 func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, "item")
 		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
 		if !valid || err != nil {
@@ -437,9 +421,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 
 // AddFavoriteSearch handles adding a new favorite search for a user.
 func (a *API) AddFavoriteSearch() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve the search details.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -491,9 +473,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 
 // RemoveFavoriteSearch handles removing a favorite article for a user.
 func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve the search details.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -539,9 +519,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 // DeleteUser handles removing a user account from the local and backend databases. Once the account is removed, any
 // active session is destroyed and the browser is redirected back to the landing page.
 func (a *API) DeleteUser() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user account details.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -568,9 +546,7 @@ func (a *API) DeleteUser() http.HandlerFunc {
 }
 
 func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		request, valid, err := forms.DecodeForm[*models.AddFeedsetRequest](req)
 		if err != nil || !valid {
 			msg := models.NewErrorMessage("An error occurred reading feed sets.", "Please try again.")

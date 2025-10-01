@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -73,6 +74,11 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 	requestAttributes := []slog.Attr{
 		slog.String("method", method),
 		slog.String("path", path),
+	}
+	if route := chi.RouteContext(req.Context()).RoutePattern(); route != "" {
+		requestAttributes = append(requestAttributes,
+			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
+		)
 	}
 	if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil && req.Body != http.NoBody {
 		var buf bytes.Buffer

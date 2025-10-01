@@ -41,7 +41,6 @@ import (
 // GetSubscriptions handles showing a filtered collection of subscriptions as cards.
 func (a *API) GetSubscriptions() http.HandlerFunc {
 	return alice.New(
-		routeLogger,
 		decodeSubscriptionFilters,
 		saveSubscriptionFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
@@ -69,7 +68,6 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 //nolint:gocognit
 func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 	return alice.New(
-		routeLogger,
 		decodeSubscriptionFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "text/event-stream")
@@ -106,12 +104,10 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 		for {
 			select {
 			case <-req.Context().Done():
-				slogctx.FromCtx(req.Context()).Debug("Stopping subscription updates.")
 				res.Header().Set("Connection", "close")
 				res.WriteHeader(http.StatusRequestTimeout)
 				return
 			default:
-				slogctx.FromCtx(req.Context()).Debug("Checking for subscription updates...", slog.String("filters", filters.Query()))
 				currentCount, err = a.DataAPI().CountItems(req.Context(), query)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
@@ -153,7 +149,6 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 // PaginateSubscriptions handles showing the next set of subscriptions.
 func (a *API) PaginateSubscriptions() http.HandlerFunc {
 	return alice.New(
-		routeLogger,
 		decodeSubscriptionFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := subscriptionFiltersFromCtx(req.Context())
@@ -174,9 +169,7 @@ func (a *API) PaginateSubscriptions() http.HandlerFunc {
 
 // MarkSubscription handles marking a subscription as read or unread.
 func (a *API) MarkSubscription() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Construct the request from parameters.
 		request := &models.MarkSubscriptionsRequest{
 			Mark:          models.Mark(chi.URLParam(req, "mark")),
@@ -219,7 +212,6 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 // MarkAllSubscriptions handles marking all subscriptions as read or unread.
 func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 	return alice.New(
-		routeLogger,
 		decodeSubscriptionFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract filters from request.
@@ -288,9 +280,7 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 
 // EditSubscription handles presenting the user with a form for editing a subscription.
 func (a *API) EditSubscription() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.URLParamSubscription)
 		// Retrieve user object.
@@ -322,9 +312,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 
 // SaveSubscription handles saving the edits made by a user to a subscription.
 func (a *API) SaveSubscription() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve user object.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -366,9 +354,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 // GetRemoveSubscriptionConfirmation handles showing a confirmation dialog for removing (unsubscribing) from a
 // subscription.
 func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -390,9 +376,7 @@ func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
 
 // ProcessRemoveSubscription handles processing a remove (unsubscribe) subscription request.
 func (a *API) ProcessRemoveSubscription() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Perform unsubscribe action.
 		id := chi.URLParam(req, "subscription")
 		// Retrieve user object.
@@ -421,9 +405,7 @@ func (a *API) ProcessRemoveSubscription() http.HandlerFunc {
 
 // AddSubscription handles adding a new subscription requested by the user.
 func (a *API) AddSubscription() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -483,9 +465,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 
 // ImportSubscriptions handles assisting the user with importing subscriptions from an external source.
 func (a *API) ImportSubscriptions() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -551,9 +531,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 
 // ExportSubscriptions handles configuring and performing an export of user subscriptions.
 func (a *API) ExportSubscriptions() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -613,9 +591,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 // AdjustSubscriptionCategories handles adding and removing categories from a subscription, either when editing or
 // adding.
 func (a *API) AdjustSubscriptionCategories() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		case http.MethodPost:
 			// Add a category.
