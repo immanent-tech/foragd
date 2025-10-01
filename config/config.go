@@ -137,11 +137,6 @@ func Load(configPrefix, envPrefix string, cfg any) error {
 	return nil
 }
 
-// Environment returns the app environment.
-func Environment() string {
-	return appConfig.Environment
-}
-
 // LogLevel returns the app logging level.
 func LogLevel() string {
 	return appConfig.LogLevel

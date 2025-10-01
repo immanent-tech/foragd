@@ -20,12 +20,12 @@ type MigrateCmd struct {
 }
 
 // Run contains the logic for performing the migrate command.
-func (r *MigrateCmd) Run(_ *Arguments) error {
+func (r *MigrateCmd) Run(opts *Arguments) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	// Load the Elastic backend
-	elasticClient, err := elastic.Connect(ctx)
+	elasticClient, err := elastic.Connect(ctx, opts.Environment)
 	if err != nil {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}

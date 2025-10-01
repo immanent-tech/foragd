@@ -16,6 +16,8 @@ type Arguments struct {
 	Logger *slog.Logger
 	// StaticContent is an embedded filesystem containing static files.
 	StaticContent embed.FS
+	// Environment is the running environment for the application.
+	Environment string
 }
 
 // Option is a functional option for the command-line.
@@ -43,6 +45,14 @@ func WithStaticContent(content embed.FS) Option {
 func WithLogger(logger *slog.Logger) Option {
 	return func(ctx *Arguments) *Arguments {
 		ctx.Logger = logger
+		return ctx
+	}
+}
+
+// WithEnvironment option sets the environment for the command.
+func WithEnvironment(env string) Option {
+	return func(ctx *Arguments) *Arguments {
+		ctx.Environment = env
 		return ctx
 	}
 }

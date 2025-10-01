@@ -31,6 +31,7 @@ var CLI struct {
 	Migrate      cli.MigrateCmd       `cmd:"" help:"Run backend migrations."`
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
 	ProfileFlags logging.ProfileFlags `name:"profile" help:"Set profiling flags."`
+	Environment  string               `env:"FORAGD_ENVIRONMENT" name:"environment" help:"Set the running environment." required:"true" default:"development" enum:"development,production"`
 }
 
 func init() {
@@ -61,7 +62,7 @@ func main() {
 	}
 
 	// Load the Elastic backend
-	esapi, err := elastic.RawConnection(context.Background())
+	esapi, err := elastic.RawConnection(context.Background(), CLI.Environment)
 	if err != nil {
 		slog.Error("Could not initialize config.",
 			slog.Any("error", err))
@@ -82,6 +83,7 @@ func main() {
 	if err := ctx.Run(cli.AddArguments(
 		cli.WithLogger(logger),
 		cli.WithStaticContent(static),
+		cli.WithEnvironment(CLI.Environment),
 	)); err != nil {
 		logger.Error("Command failed.",
 			slog.String("command", ctx.Command()),

@@ -27,7 +27,7 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 	ctx = slogctx.NewCtx(ctx, opts.Logger)
 
 	// Set up a new server interface.
-	svr, err := server.NewServer(ctx, opts.StaticContent)
+	svr, err := server.NewServer(ctx, opts.StaticContent, opts.Environment)
 	if err != nil {
 		return fmt.Errorf("could not start server: %w", err)
 	}

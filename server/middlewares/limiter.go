@@ -10,14 +10,12 @@ import (
 	"github.com/didip/tollbooth/v8/limiter"
 	"github.com/realclientip/realclientip-go"
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/immanent-tech/foragd/config"
 )
 
-func RateLimiter(strat realclientip.RightmostNonPrivateStrategy, lmt *limiter.Limiter) func(next http.Handler) http.Handler {
+func RateLimiter(strat realclientip.RightmostNonPrivateStrategy, lmt *limiter.Limiter, env string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			if config.Environment() == "development" {
+			if env == "development" {
 				next.ServeHTTP(res, req)
 				return
 			}

@@ -25,7 +25,7 @@ func (r *SchedulerCmd) Run(opts *Arguments) error {
 	defer cancelFunc()
 	ctx = slogctx.NewCtx(ctx, opts.Logger)
 	// Run scheduler.
-	err := scheduler.Run(ctx)
+	err := scheduler.Run(ctx, opts.Environment)
 	if err != nil {
 		return fmt.Errorf("could not run scheduler: %w", err)
 	}

@@ -12,8 +12,6 @@ import (
 	"time"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
-
-	"github.com/immanent-tech/foragd/config"
 )
 
 const (
@@ -32,8 +30,8 @@ var defaultTransportConfig = &http.Transport{
 
 // Connect will connect to Elasticsearch using the config in the server configuration file or environment variables and
 // return an API object that can be used to issue requests.
-func Connect(ctx context.Context) (*API, error) {
-	clientConfig, err := loadConfigOnce(config.Environment())
+func Connect(ctx context.Context, env string) (*API, error) {
+	clientConfig, err := loadConfigOnce(env)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
@@ -46,8 +44,8 @@ func Connect(ctx context.Context) (*API, error) {
 	return &API{TypedClient: esclient}, nil
 }
 
-func RawConnection(ctx context.Context) (*elasticsearch.Client, error) {
-	clientConfig, err := loadConfigOnce(config.Environment())
+func RawConnection(ctx context.Context, env string) (*elasticsearch.Client, error) {
+	clientConfig, err := loadConfigOnce(env)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}

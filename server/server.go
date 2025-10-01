@@ -40,14 +40,16 @@ import (
 type Server struct {
 	*http.Server
 
-	static  embed.FS
-	authAPI *auth0.Authenticator
+	static      embed.FS
+	authAPI     *auth0.Authenticator
+	environment string
 }
 
 // NewServer sets up a new server.
-func NewServer(ctx context.Context, static embed.FS) (Server, error) {
+func NewServer(ctx context.Context, static embed.FS, env string) (Server, error) {
 	var svr Server
 	svr.static = static
+	svr.environment = env
 	// Load the server config.
 	err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, cfg)
 	if err != nil {
@@ -69,7 +71,7 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 	}
 	svr.authAPI = authapi
 	// Set up handlers api.
-	api, err := setupAPI(ctx)
+	api, err := svr.setupAPI(ctx)
 	if err != nil {
 		return svr, fmt.Errorf("unable to set up handlers api: %w", err)
 	}
@@ -98,7 +100,7 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 func (s *Server) Start(ctx context.Context) error {
 	slogctx.FromCtx(ctx).Info("Starting server...",
 		slog.String("address", s.Addr),
-		slog.String("environment", config.Environment()))
+		slog.String("environment", s.environment))
 
 	var wg sync.WaitGroup
 
@@ -144,9 +146,9 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 // SetupAPI creates the object containing the various backend APIs needed by handlers.
-func setupAPI(ctx context.Context) (*handlers.API, error) {
+func (s *Server) setupAPI(ctx context.Context) (*handlers.API, error) {
 	// Load the Elastic backend
-	elasticAPI, err := elastic.Connect(ctx)
+	elasticAPI, err := elastic.Connect(ctx, s.environment)
 	if err != nil {
 		return nil, fmt.Errorf("unable to set up elastic api: %w", err)
 	}
@@ -181,13 +183,13 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 				slogchi.IgnorePathContains("/web/content"),
 			},
 		}),
-		middlewares.SetupCORS(config.Environment()),
+		middlewares.SetupCORS(s.environment),
 		middlewares.SetupCSP(),
 		middlewares.Etag,
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
 		middleware.NoCache,
-		middlewares.RateLimiter(strat, lmt),
+		middlewares.RateLimiter(strat, lmt, s.environment),
 	)
 
 	// Routes.

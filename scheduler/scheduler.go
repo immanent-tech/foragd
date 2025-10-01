@@ -35,8 +35,8 @@ type Manager struct {
 var manager *Manager
 
 // Run starts the scheduler manager.
-func Run(ctx context.Context) error {
-	esClient, err := elastic.Connect(ctx)
+func Run(ctx context.Context, env string) error {
+	esClient, err := elastic.Connect(ctx, env)
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
