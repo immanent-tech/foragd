@@ -37,6 +37,8 @@ RUN upx --best --lzma foragd
 
 FROM docker.io/alpine AS scheduler
 
+ENV FORAGD_CONTAINER=1
+
 # Add labels.
 LABEL org.opencontainers.image.source=https://github.com/immanent-tech/foragd
 LABEL org.opencontainers.image.url=https://foragd.app

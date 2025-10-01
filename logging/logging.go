@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/go-json-experiment/json"
+	"github.com/go-json-experiment/json/jsontext"
 	"github.com/lmittmann/tint"
 	"github.com/mattn/go-isatty"
 	slogmulti "github.com/samber/slog-multi"
@@ -69,9 +71,16 @@ func New(options Options) *slog.Logger {
 		logFile = DefaultLogFile
 	}
 
-	handlers = append(handlers,
-		tint.NewHandler(os.Stderr, generateConsoleOptions(Level, os.Stderr.Fd())),
-	)
+	// When logging in a conainer, use json output, otherwise, use colourful output.
+	if os.Getenv("FORAGD_CONTAINER") == "1" {
+		handlers = append(handlers,
+			slogjson.NewHandler(os.Stderr, containerConsoleOptions(Level)),
+		)
+	} else {
+		handlers = append(handlers,
+			tint.NewHandler(os.Stderr, consoleOptions(Level, os.Stderr.Fd())),
+		)
+	}
 	// Unless no log file was requested, set up file logging.
 	if logFile != "" {
 		logFH, err := openLogFile(logFile)
@@ -95,7 +104,26 @@ func New(options Options) *slog.Logger {
 	return logger
 }
 
-func generateConsoleOptions(level slog.Level, fd uintptr) *tint.Options {
+func containerConsoleOptions(level slog.Level) *slogjson.HandlerOptions {
+	opts := &slogjson.HandlerOptions{
+		AddSource:   false,
+		Level:       level,
+		ReplaceAttr: fileLevelReplacer,
+		JSONOptions: json.JoinOptions(
+			json.Deterministic(true),
+			jsontext.EscapeForJS(false),
+			jsontext.EscapeForHTML(true),
+			jsontext.SpaceAfterColon(true),
+			jsontext.SpaceAfterComma(true),
+		),
+	}
+	if level == LevelTrace {
+		opts.AddSource = true
+	}
+	return opts
+}
+
+func consoleOptions(level slog.Level, fd uintptr) *tint.Options {
 	opts := &tint.Options{
 		Level:       level,
 		NoColor:     !isatty.IsTerminal(fd),
