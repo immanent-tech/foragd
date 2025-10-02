@@ -25,7 +25,7 @@ templ Header(user *models.User) {
 		<div aria-hidden="true" class="h-6 w-px bg-base-content/10 lg:hidden"></div>
 		<div class="flex flex-1 gap-x-4 self-stretch items-center lg:gap-x-6">
 			<div class="sm:relative grid flex-1 grid-cols-1 mx-auto sm:max-w-3xl">
-				@GlobalSearch()
+				@GlobalSearch(user)
 			</div>
 			<div class="flex items-center gap-x-4 lg:gap-x-6">
 				// <button type="button" class="-m-2.5 p-2.5 btn btn-ghost btn-square hover:text-primary">

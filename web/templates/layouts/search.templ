@@ -146,7 +146,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 	</el-command-group>
 }
 
-templ SearchFilters() {
+templ SearchFilters(user *models.User) {
 	// Search form.
 	<div class="mx-auto max-w-3xl mt-4 p-4">
 		<form
@@ -187,6 +187,24 @@ templ SearchFilters() {
 					<div class="mt-2">
 						<input id="authors_exclude" type="text" name="authors_exclude" class="input input-sm bg-base-content/10"/>
 					</div>
+				</div>
+				<div class="sm:col-span-3">
+					<label for="subscriptions" class="block text-sm/6 font-medium">Subscriptions</label>
+					<select id="subscriptions" name="subscriptions" class="select select-sm my-2 bg-base-content/10" multiple>
+						for subscription := range slices.Values(user.GetSubscriptionMetadata()) {
+							<option
+								value={ subscription.GetID() }
+								class="group/option relative block cursor-default py-2 pr-9 pl-3 select-none focus:bg-primary focus:text-primary-content focus:outline-hidden active:bg-primary active:text-primary-content active:outline-hidden"
+							>
+								<span class="block truncate font-normal group-aria-selected/option:font-semibold">{ subscription.Customisation.Nickname }</span>
+								// <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-primary group-not-aria-selected/option:hidden group-focus/option:text-primary-content in-[el-selectedcontent]:hidden">
+								// 	<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5">
+								// 		<path d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+								// 	</svg>
+								// </span>
+							</option>
+						}
+					</select>
 				</div>
 				<div class="sm:col-span-3">
 					<label for="published_within" class="block text-sm/6 font-medium">Published within</label>
@@ -243,7 +261,7 @@ templ SearchFilters() {
 }
 
 // GlobalSearch renders a command palette element for powering global search within the app.
-templ GlobalSearch() {
+templ GlobalSearch(user *models.User) {
 	<el-command-palette>
 		<div class="grid grid-cols-1">
 			<input
@@ -287,8 +305,8 @@ templ GlobalSearch() {
 			class="absolute w-full left-0 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6"
 			_="on keyup['Escape'] set #global-search.value to '' then add @hidden to #global-search-suggestions"
 		></el-command-list>
-		<div id="search-filters" class="hidden absolute w-full left-0 sm:w-(--input-width) h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2">
-			@SearchFilters()
+		<div id="search-filters" class="hidden absolute w-full left-0 sm:w-(--input-width) scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2">
+			@SearchFilters(user)
 		</div>
 	</el-command-palette>
 }

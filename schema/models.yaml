@@ -2,7 +2,6 @@ openapi: '3.0.3'
 info:
   version: 1.0.0
   title: Common Models
-  summary: Common fields and objects for the application.
   description: >
     Contains common fields and objects that are shared and reused through the application.
   license:
@@ -767,6 +766,17 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             form: 'authors_exclude'
+        subscriptions:
+          description: >
+            is a list of subscription IDs.
+          type: array
+          items:
+            type: string
+            # $ref: '#/components/schemas/SubscriptionID' #why doesn't this work?!
+          x-oapi-codegen-extra-tags:
+            json: 'subscriptions'
+            form: 'subscriptions'
+            validate: 'omitnil,unique,dive,startswith=sub_'
         published_within:
           description: >
             represents a time range within which the objects should be published

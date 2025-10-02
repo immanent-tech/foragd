@@ -189,7 +189,12 @@ func (a *API) getSearchResults(ctx context.Context, request *models.SearchReques
 	case models.SearchRequestPublishedWithinLastMonth:
 		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
 	}
-	feedIDs := user.GetSubscriptionMetadata().GetFeedIDs()
+	var feedIDs []models.FeedID
+	if len(request.Subscriptions) > 0 {
+		feedIDs = user.GetSubscriptionMetadata().FilterByIDs(request.Subscriptions...).GetFeedIDs()
+	} else {
+		feedIDs = user.GetSubscriptionMetadata().GetFeedIDs()
+	}
 	itemsQuery := query.Bool(
 		query.Filter(
 			query.Terms("feed_id", feedIDs...),

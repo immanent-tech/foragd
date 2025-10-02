@@ -188,7 +188,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions []*partials.
 	})
 }
 
-func SearchFilters() templ.Component {
+func SearchFilters(user *models.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -235,7 +235,43 @@ func SearchFilters() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><div class=\"grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full\"><label for=\"text\" class=\"block text-sm/6 font-medium\">Includes the words</label><div class=\"mt-2\"><input id=\"text\" type=\"text\" name=\"text\" class=\"input input-sm w-full bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label form=\"categories_include\" class=\"block text-sm/6 font-medium\">Include categories</label><div class=\"mt-2\"><input id=\"categories_include\" type=\"text\" name=\"categories_include\" class=\"input input-sm bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label for=\"categories_exclude\" class=\"block text-sm/6 font-medium\">Excludes categories</label><div class=\"mt-2\"><input id=\"categories_exclude\" type=\"text\" name=\"categories_exclude\" class=\"input input-sm bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label for=\"authors_include\" class=\"block text-sm/6 font-medium\">Include authors</label><div class=\"mt-2\"><input id=\"authors_include\" type=\"text\" name=\"authors_include\" class=\"input input-sm bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label for=\"authors_exclude\" class=\"block text-sm/6 font-medium\">Excludes authors</label><div class=\"mt-2\"><input id=\"authors_exclude\" type=\"text\" name=\"authors_exclude\" class=\"input input-sm bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label for=\"published_within\" class=\"block text-sm/6 font-medium\">Published within</label> <select id=\"published_within\" name=\"published_within\" class=\"select select-sm my-2 bg-base-content/10\"><option value=\"last_hour\">Last hour</option> <option value=\"last_half_day\">Last 12 hours</option> <option value=\"last_day\">Last day</option> <option value=\"last_week\">Last week</option> <option value=\"last_month\">Last month</option> <option value=\"all_time\" selected>All time</option></select></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6\"><button type=\"button\" class=\"btn btn-sm btn-outline\" _=\"on click toggle .hidden on #search-filters\">Cancel</button> <button type=\"submit\" class=\"btn btn-sm btn-primary\">Search</button></div></form></div><button type=\"button\" command=\"show-modal\" commandfor=\"search-filters-help\" class=\"btn btn-sm btn-ghost btn-square absolute right-2 top-2\"><span class=\"sr-only\">Search filters help</span> <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-6 text-info\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z\"></path></svg></button> <el-dialog><dialog id=\"search-filters-help\" aria-labelledby=\"dialog-title\" class=\"fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent\"><el-dialog-backdrop class=\"fixed inset-0 bg-base-100/80 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in\"></el-dialog-backdrop><div tabindex=\"0\" class=\"flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0\"><el-dialog-panel class=\"relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-sm sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95\"><div><div class=\"mt-3 sm:mt-5\"><h3 id=\"dialog-title\" class=\"text-base font-semibold\">Search Help</h3><div class=\"mt-2 text-sm space-y-2\"><p>By default words are matched with OR (i.e., cats OR dogs). The following operators can be used for more refined searches:</p><ul class=\"gap-y-2\"><li>+ signifies AND operation (i.e., food AND beverages)</li><li>| signifies OR operation (i.e., food OR beverages)</li><li>- negates a the word (i.e., NOT alcoholic)</li><li>\"\" represents an exact phrase match (i.e., \"rum-based drinks\")</li><li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li></ul></div></div></div><div class=\"mt-5 sm:mt-6 text-center\"><button type=\"button\" command=\"close\" commandfor=\"search-filters-help\" class=\"btn btn-wide btn-outline\">Close</button></div></el-dialog-panel></div></dialog></el-dialog>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><div class=\"grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full\"><label for=\"text\" class=\"block text-sm/6 font-medium\">Includes the words</label><div class=\"mt-2\"><input id=\"text\" type=\"text\" name=\"text\" class=\"input input-sm w-full bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label form=\"categories_include\" class=\"block text-sm/6 font-medium\">Include categories</label><div class=\"mt-2\"><input id=\"categories_include\" type=\"text\" name=\"categories_include\" class=\"input input-sm bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label for=\"categories_exclude\" class=\"block text-sm/6 font-medium\">Excludes categories</label><div class=\"mt-2\"><input id=\"categories_exclude\" type=\"text\" name=\"categories_exclude\" class=\"input input-sm bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label for=\"authors_include\" class=\"block text-sm/6 font-medium\">Include authors</label><div class=\"mt-2\"><input id=\"authors_include\" type=\"text\" name=\"authors_include\" class=\"input input-sm bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label for=\"authors_exclude\" class=\"block text-sm/6 font-medium\">Excludes authors</label><div class=\"mt-2\"><input id=\"authors_exclude\" type=\"text\" name=\"authors_exclude\" class=\"input input-sm bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label for=\"subscriptions\" class=\"block text-sm/6 font-medium\">Subscriptions</label> <select id=\"subscriptions\" name=\"subscriptions\" class=\"select select-sm my-2 bg-base-content/10\" multiple>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for subscription := range slices.Values(user.GetSubscriptionMetadata()) {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<option value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var14 string
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetID())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/search.templ`, Line: 196, Col: 36}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"group/option relative block cursor-default py-2 pr-9 pl-3 select-none focus:bg-primary focus:text-primary-content focus:outline-hidden active:bg-primary active:text-primary-content active:outline-hidden\"><span class=\"block truncate font-normal group-aria-selected/option:font-semibold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var15 string
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.Customisation.Nickname)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/search.templ`, Line: 199, Col: 127}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span></option>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</select></div><div class=\"sm:col-span-3\"><label for=\"published_within\" class=\"block text-sm/6 font-medium\">Published within</label> <select id=\"published_within\" name=\"published_within\" class=\"select select-sm my-2 bg-base-content/10\"><option value=\"last_hour\">Last hour</option> <option value=\"last_half_day\">Last 12 hours</option> <option value=\"last_day\">Last day</option> <option value=\"last_week\">Last week</option> <option value=\"last_month\">Last month</option> <option value=\"all_time\" selected>All time</option></select></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6\"><button type=\"button\" class=\"btn btn-sm btn-outline\" _=\"on click toggle .hidden on #search-filters\">Cancel</button> <button type=\"submit\" class=\"btn btn-sm btn-primary\">Search</button></div></form></div><button type=\"button\" command=\"show-modal\" commandfor=\"search-filters-help\" class=\"btn btn-sm btn-ghost btn-square absolute right-2 top-2\"><span class=\"sr-only\">Search filters help</span> <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-6 text-info\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z\"></path></svg></button> <el-dialog><dialog id=\"search-filters-help\" aria-labelledby=\"dialog-title\" class=\"fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent\"><el-dialog-backdrop class=\"fixed inset-0 bg-base-100/80 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in\"></el-dialog-backdrop><div tabindex=\"0\" class=\"flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0\"><el-dialog-panel class=\"relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-sm sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95\"><div><div class=\"mt-3 sm:mt-5\"><h3 id=\"dialog-title\" class=\"text-base font-semibold\">Search Help</h3><div class=\"mt-2 text-sm space-y-2\"><p>By default words are matched with OR (i.e., cats OR dogs). The following operators can be used for more refined searches:</p><ul class=\"gap-y-2\"><li>+ signifies AND operation (i.e., food AND beverages)</li><li>| signifies OR operation (i.e., food OR beverages)</li><li>- negates a the word (i.e., NOT alcoholic)</li><li>\"\" represents an exact phrase match (i.e., \"rum-based drinks\")</li><li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li></ul></div></div></div><div class=\"mt-5 sm:mt-6 text-center\"><button type=\"button\" command=\"close\" commandfor=\"search-filters-help\" class=\"btn btn-wide btn-outline\">Close</button></div></el-dialog-panel></div></dialog></el-dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -244,7 +280,7 @@ func SearchFilters() templ.Component {
 }
 
 // GlobalSearch renders a command palette element for powering global search within the app.
-func GlobalSearch() templ.Component {
+func GlobalSearch(user *models.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -260,33 +296,33 @@ func GlobalSearch() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var14 == nil {
-			templ_7745c5c3_Var14 = templ.NopComponent
+		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var16 == nil {
+			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<el-command-palette><div class=\"grid grid-cols-1\"><input id=\"global-search\" type=\"search\" name=\"text\" hx-push-url=\"false\" placeholder=\"Search...\" class=\"col-start-1 row-start-1 block size-full outline-hidden pr-4 pl-10 text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10 rounded-box py-2\" _=\"on keyup if the event's key is 'Escape' set my value to '' then add @hidden to #global-search-suggestions then trigger closeSearch\" hx-trigger=\"input changed from:#global-search delay:100ms\" hx-post=\"/search/suggestions\" hx-target=\"#global-search-suggestions\" hx-include=\"[name='text'],[name='csrf_token']\"> <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"pointer-events-none col-start-1 row-start-1 self-center size-5 ml-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z\"></path></svg><button type=\"button\" class=\"row-start-1 col-start-1 mr-4 self-center justify-self-end\" _=\"on click toggle .hidden on #search-filters\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-5\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5\"></path></svg></button><div hx-trigger=\"keyup[Enter] from:#global-search\" hx-get=\"/search\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<el-command-palette><div class=\"grid grid-cols-1\"><input id=\"global-search\" type=\"search\" name=\"text\" hx-push-url=\"false\" placeholder=\"Search...\" class=\"col-start-1 row-start-1 block size-full outline-hidden pr-4 pl-10 text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10 rounded-box py-2\" _=\"on keyup if the event's key is 'Escape' set my value to '' then add @hidden to #global-search-suggestions then trigger closeSearch\" hx-trigger=\"input changed from:#global-search delay:100ms\" hx-post=\"/search/suggestions\" hx-target=\"#global-search-suggestions\" hx-include=\"[name='text'],[name='csrf_token']\"> <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"pointer-events-none col-start-1 row-start-1 self-center size-5 ml-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z\"></path></svg><button type=\"button\" class=\"row-start-1 col-start-1 mr-4 self-center justify-self-end\" _=\"on click toggle .hidden on #search-filters\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-5\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5\"></path></svg></button><div hx-trigger=\"keyup[Enter] from:#global-search\" hx-get=\"/search\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var15 string
-		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
+		var templ_7745c5c3_Var17 string
+		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/search.templ`, Line: 279, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/search.templ`, Line: 297, Col: 43}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" hx-include=\"[name='text']\" hx-push-url=\"true\" hx-on::after-request=\"if(event.detail.successful) document.getElementById('global-search').value = ''\"></div></div><el-command-list id=\"global-search-suggestions\" class=\"absolute w-full left-0 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6\" _=\"on keyup['Escape'] set #global-search.value to '' then add @hidden to #global-search-suggestions\"></el-command-list><div id=\"search-filters\" class=\"hidden absolute w-full left-0 sm:w-(--input-width) h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = SearchFilters().Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" hx-include=\"[name='text']\" hx-push-url=\"true\" hx-on::after-request=\"if(event.detail.successful) document.getElementById('global-search').value = ''\"></div></div><el-command-list id=\"global-search-suggestions\" class=\"absolute w-full left-0 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6\" _=\"on keyup['Escape'] set #global-search.value to '' then add @hidden to #global-search-suggestions\"></el-command-list><div id=\"search-filters\" class=\"hidden absolute w-full left-0 sm:w-(--input-width) scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div></el-command-palette>")
+		templ_7745c5c3_Err = SearchFilters(user).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></el-command-palette>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
