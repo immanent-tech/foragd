@@ -101,7 +101,7 @@ services:
         echo "All done!";
       '
     healthcheck:
-      test: ['CMD-SHELL', '[ -f config/certs/es01/es01.crt ]']
+      test: ["CMD-SHELL", "[ -f config/certs/es01/es01.crt ]"]
       interval: 1s
       timeout: 5s
       retries: 120
@@ -149,7 +149,7 @@ services:
     healthcheck:
       test:
         [
-          'CMD-SHELL',
+          "CMD-SHELL",
           "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
         ]
       interval: 10s
@@ -199,7 +199,7 @@ services:
     healthcheck:
       test:
         [
-          'CMD-SHELL',
+          "CMD-SHELL",
           "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
         ]
       interval: 10s
@@ -249,7 +249,7 @@ services:
     healthcheck:
       test:
         [
-          'CMD-SHELL',
+          "CMD-SHELL",
           "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
         ]
       interval: 10s
@@ -286,7 +286,7 @@ services:
     healthcheck:
       test:
         [
-          'CMD-SHELL',
+          "CMD-SHELL",
           "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'",
         ]
       interval: 10s
@@ -330,11 +330,18 @@ services:
     volumes:
       - ../deployments/certs:/usr/share/filebeat/config/certs
       - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - './filebeat_ingest_data/:/usr/share/filebeat/ingest_data/'
-      - '../../../.local/share/containers:/var/lib/docker/containers:ro'
+      - "./filebeat_ingest_data/:/usr/share/filebeat/ingest_data/"
+      - "../../../.local/share/containers:/var/lib/docker/containers:ro"
       - /run/user/1000/podman/podman.sock:/var/run/docker.sock
     environment:
       - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
     command:
       - --strict.perms=false
+
+  imgproxy:
+    image: ghcr.io/willnorris/imageproxy:0.13.0
+    volumes:
+      - ../deployments/imgproxy:/tmp/imageproxy
+    environment:
+      - IMAGEPROXY_CACHE=/tmp/imageproxy

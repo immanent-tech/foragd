@@ -2,7 +2,7 @@
 
 (function () {
   // CDN domains that commonly implement anti-hotlinking
-  const BLOCKED_DOMAINS = ["cdn-p.smehost.net","www.redditstatic.com","lh3.googleusercontent.com"];
+  const BLOCKED_DOMAINS = ["cdn-p.smehost.net","www.redditstatic.com","lh3.googleusercontent.com","media.pichfork.com"];
 
   function convertExternalImages() {
     const selector = BLOCKED_DOMAINS.map((domain) => `img[src*="${domain}"]:not([data-converted])`).join(",");

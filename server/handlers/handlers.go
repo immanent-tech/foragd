@@ -62,7 +62,7 @@ func ImageProxy() http.HandlerFunc {
 		url := chi.URLParam(req, "*")
 		// image := filepath.Base(url)
 		// host := filepath.Dir(url)
-		resp, err := http.Get("https://fly.webp.se/image?url=https://" + url)
+		resp, err := http.Get("http://imgproxy:8080/https://" + url)
 		if err != nil {
 			res.WriteHeader(resp.StatusCode)
 			return fmt.Errorf("unable to proxy image: %w", err)
