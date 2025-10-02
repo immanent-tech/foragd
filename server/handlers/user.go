@@ -167,7 +167,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 // AddFavoriteSubscription handles adding a new favorite subscription for a user.
 func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		id := chi.URLParam(req, "subscription")
+		id := chi.URLParam(req, models.ParamSubscriptionID)
 		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
 		if !valid || err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "Data is invalid."), 0)
@@ -225,7 +225,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 // RemoveFavoriteSubscription handles removing a favorite subscription for a user.
 func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		id := chi.URLParam(req, "subscription")
+		id := chi.URLParam(req, models.ParamSubscriptionID)
 		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
 		if !valid || err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "Data is invalid."), 0)
@@ -276,7 +276,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 // AddFavoriteArticle handles adding a new favorite article for a user.
 func (a *API) AddFavoriteArticle() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		id := chi.URLParam(req, "item")
+		id := chi.URLParam(req, models.ParamItemID)
 		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
 		if !valid || err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to add favorite.", "Data is invalid."), 0)
@@ -354,7 +354,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 // RemoveFavoriteArticle handles removing a favorite article for a user.
 func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		id := chi.URLParam(req, "item")
+		id := chi.URLParam(req, models.ParamItemID)
 		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
 		if !valid || err != nil {
 			template := partials.Notification(models.NewErrorMessage("Unable to process favorite.", "Data is invalid."), 0)

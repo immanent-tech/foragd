@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
@@ -25,6 +26,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/validation"
@@ -175,9 +177,9 @@ func (a *API) MarkArticle() http.HandlerFunc {
 		}
 		// Construct the request from parameters.
 		request := &models.MarkArticleRequest{
-			SubscriptionID: chi.URLParam(req, "subscription"),
-			Mark:           models.Mark(chi.URLParam(req, "mark")),
-			ItemID:         chi.URLParam(req, "item"),
+			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
+			Mark:           models.Mark(chi.URLParam(req, models.ParamMark)),
+			ItemID:         chi.URLParam(req, models.ParamItemID),
 		}
 		// Validate parameters.
 		valid, err := request.Valid()
@@ -289,8 +291,7 @@ func (a *API) MarkAllArticles() http.HandlerFunc {
 // ViewArticle handles viewing the content of an article.
 func (a *API) ViewArticle() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// subscriptionID := chi.URLParam(req, "subscription")
-		itemID := chi.URLParam(req, "item")
+		itemID := chi.URLParam(req, models.ParamItemID)
 		articles, err := a.getArticles(req.Context(), itemID)
 		if err != nil {
 			renderPartial(partials.Error(
@@ -342,7 +343,7 @@ func (a *API) ViewArticle() http.HandlerFunc {
 // FindSimilarArticles handles finding other articles that are "similar" to a set of given articles.
 func (a *API) FindSimilarArticles() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		itemID := chi.URLParam(req, "item")
+		itemID := chi.URLParam(req, models.ParamItemID)
 		// Build the More Like This query.
 		// TODO: tweak values and fields for optimum results matching...
 		var (
@@ -389,6 +390,83 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 		template := pages.SimilarArticles(articles)
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req.WithContext(ctx))
+		return nil
+	})).ServeHTTP
+}
+
+// GetArticleIssues handles presenting a form for the user to submit details about subscription issues.
+func GetArticleIssues(api *API) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		id := chi.URLParam(req, models.ParamItemID)
+		i, err := api.getArticles(req.Context(), id)
+		if err != nil || len(i) == 0 {
+			msg := models.NewErrorMessage(
+				"Unable to create report form.",
+				"The backend had issues generating the report form. Please try again.",
+			)
+			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get subscriptions: %w", err)
+		}
+		template := layouts.ReportArticleIssue(i[0], &models.ArticleIssue{})
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+// SubmitSubscriptionIssues handles processing the user submitted subscription issues form.
+func SubmitArticleIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get articles: %w", err)
+		}
+		// Validate the subscription issue request.
+		request, valid, err := forms.DecodeForm[*models.ArticleIssue](req)
+		if err != nil || !valid {
+			msg := models.NewErrorMessage(
+				"Unable to submit issue.",
+				"The backend had issues submitting the report. Please try again.",
+			)
+			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+		}
+		// Get subscription details.
+		id := chi.URLParam(req, models.ParamItemID)
+		i, err := esapi.getArticles(req.Context(), id)
+		if err != nil || len(i) == 0 {
+			msg := models.NewErrorMessage(
+				"Unable to get subscription details.",
+				"The backend had issues processing the data. Please try again.",
+			)
+			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Create the issue in Github.
+		err = ghapi.CreateArticleIssue(req.Context(), i[0], request)
+		if err != nil {
+			msg := models.NewErrorMessage(
+				"Unable to submit issue.",
+				"The backend had issues submitting the report. Please try again.",
+			)
+			template := templ.Join(
+				layouts.ReportArticleIssue(i[0], request),
+				partials.ServerErrorNotification(msg),
+			)
+			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Force refresh of page.
+		msg := models.NewErrorMessage(
+			"Thanks for reporting the issue!",
+			"We will look into it and implement fixes as appropriate.",
+		)
+		renderPage(layouts.Drawer(user, partials.IssueReportedConfirmation(msg)), templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

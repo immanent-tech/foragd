@@ -392,3 +392,18 @@ func NewSubscriptionResult(subscription *Subscription, msg *UserMessage) *AddSub
 		Message:      msg,
 	}
 }
+
+// Valid returns a boolean indicating whether the data for the subscription issue is valid.
+func (r *SubscriptionIssue) Valid() (bool, error) {
+	valid, err := validation.ValidateStruct(r)
+	if !valid || err != nil {
+		return false, fmt.Errorf("request is invalid: %w", err)
+	}
+	return true, nil
+}
+
+// Sanitise will clean the data in the subscription issue.
+func (r *SubscriptionIssue) Sanitise() error {
+	r.Details = validation.SanitizeString(r.Details)
+	return nil
+}

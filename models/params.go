@@ -3,9 +3,7 @@
 
 package models
 
-// Defines values for Param.
 const (
-	// Request Parameters.
 	ParamCategories         = "categories"
 	ParamCount              = "count"
 	ParamFeeds              = "feeds"
@@ -15,11 +13,11 @@ const (
 	ParamSortBy             = "sort_by"
 	ParamSortOrder          = "sort_order"
 	ParamView               = "view"
+	ParamMark               = "mark"
 	ParamFeedID             = "feed_id"
 	ParamItemID             = "item_id"
+	ParamSubscriptionID     = "subscription_id"
 	ParamRedirect           = "redirect"
 	ParamArticles           = "articles"
 	ParamFullArticleContent = "show_full_content"
-	// URLParamSubscription represents a subscription ID.
-	URLParamSubscription = "subscription"
 )

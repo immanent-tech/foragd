@@ -368,7 +368,7 @@ components:
           type: string
           x-go-type-skip-optional-pointer: true
         image:
-          $ref: '../models/feeds/schema/types.yaml#/components/schemas/ImageInfo'
+          $ref: '../pkg/go-syndication/schema/types.yaml#/components/schemas/ImageInfo'
     Feed:
       description: represents a feed object.
       type: object
@@ -482,7 +482,7 @@ components:
           description: >
             is a custom image to represent the object.
           oneOf:
-            - $ref: '../models/feeds/schema/types.yaml#/components/schemas/ImageInfo'
+            - $ref: '../pkg/go-syndication/schema/types.yaml#/components/schemas/ImageInfo'
             - $ref: '#/components/schemas/StoredImage'
     SubscriptionSettings:
       description: >
@@ -798,3 +798,45 @@ components:
             type: string
           x-oapi-codegen-extra-tags:
             form: 'feedset,unique'
+    SubscriptionIssue:
+      description: >
+        contains details about issues with a subscription.
+      type: object
+      properties:
+        missing_image:
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: 'missing_image'
+        missing_description:
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: 'missing_description'
+        mangled_text:
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: 'mangled_text'
+        details:
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'details'
+    ArticleIssue:
+      description: >
+        contains details about issues with an article.
+      type: object
+      properties:
+        missing_image:
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: 'missing_image'
+        missing_content:
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: 'missing_description'
+        mangled_text:
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: 'mangled_text'
+        details:
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'details'

@@ -410,3 +410,96 @@ templ ExportSubscriptions() {
 		</center>
 	}
 }
+
+// ReportSubscriptionIssue renders a form for reporting issues with a subscription.
+templ ReportSubscriptionIssue(subscription *models.Subscription, details *models.SubscriptionIssue) {
+	@partials.MainContainer() {
+		@partials.PageHeader("Report an issue")
+		@partials.PageDescription("Use this form to report an issue with " + subscription.GetTitle() + ". We will look into it and get back to you as soon as we can.")
+		<form
+			id="report-subscription-issue"
+			hx-post={ "/subscription/" + subscription.GetID() + "/issue" }
+			hx-target={ partials.ContentID.Target() }
+			hx-target-error={ partials.ContentID.Target() }
+			hx-indicator="#processing"
+			hx-include="[name='csrf_token']"
+		>
+			<fieldset class="fieldset p-4">
+				<legend class="fieldset-legend text-base/7">Issues</legend>
+				<p class="mt-1 text-sm/6 text-base-content/80">Select all that apply.</p>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
+					<div class="flex items-center">
+						<div class="flex items-center gap-x-3">
+							<input
+								id="missing-description"
+								type="checkbox"
+								name="missing_description"
+								if details.MissingDescription {
+									checked
+								}
+								class="checkbox checkbox-sm"
+							/>
+							<label for="missing-description" class="block text-sm/6 font-medium">Missing description</label>
+						</div>
+					</div>
+					<div class="flex items-center">
+						<div class="flex items-center gap-x-3">
+							<input
+								id="missing-image"
+								type="checkbox"
+								name="missing_image"
+								if details.MissingImage {
+									checked
+								}
+								class="checkbox checkbox-sm"
+							/>
+							<label for="missing-image" class="block text-sm/6 font-medium">Missing image</label>
+						</div>
+					</div>
+					<div class="flex items-center">
+						<div class="flex items-center gap-x-3">
+							<input
+								id="mangled-text"
+								type="checkbox"
+								name="mangled_text"
+								if details.MangledText {
+									checked
+								}
+								class="checkbox checkbox-sm"
+							/>
+							<label for="mangled-text" class="block text-sm/6 font-medium">Mangled text</label>
+						</div>
+					</div>
+				</div>
+			</fieldset>
+			<fieldset class="fieldset p-4">
+				<legend class="fieldset-legend text-base/7">Details</legend>
+				<p class="mt-1 text-sm/6 text-base-content/80">Add any other details you think are relevant.</p>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
+					<div class="flex items-center col-span-full">
+						<textarea
+							id="details"
+							name="details"
+							class="textarea w-full"
+							placeholder="What was expected, what is missing, etc."
+							if details.Details != "" {
+								value={ details.Details }
+							}
+						></textarea>
+					</div>
+				</div>
+			</fieldset>
+			<div class="mt-6 flex items-center justify-end gap-x-6">
+				<div id="processing" class="htmx-indicator">
+					Processing...
+					<span class="loading loading-spinner loading-md"></span>
+				</div>
+				<button type="button" hx-get="#" class="btn btn-primary">Back</button>
+				<button
+					type="submit"
+					class="btn btn-primary"
+				>Submit</button>
+			</div>
+		</form>
+	}
+}

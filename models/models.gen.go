@@ -164,6 +164,14 @@ type ArticleArchive struct {
 // ArticleArchiveSourceType indicates what type of source the object came from.
 type ArticleArchiveSourceType string
 
+// ArticleIssue contains details about issues with an article.
+type ArticleIssue struct {
+	Details        string `form:"details" json:"details,omitempty,omitzero"`
+	MangledText    bool   `form:"mangled_text" json:"mangled_text,omitempty,omitzero"`
+	MissingContent bool   `form:"missing_description" json:"missing_content,omitempty,omitzero"`
+	MissingImage   bool   `form:"missing_image" json:"missing_image,omitempty,omitzero"`
+}
+
 // ArticleMetadata contains the stored data that represents an article.
 type ArticleMetadata struct {
 	// State tracks the state of an article.
@@ -528,6 +536,14 @@ type SubscriptionCustomisation_Image struct {
 
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
+
+// SubscriptionIssue contains details about issues with a subscription.
+type SubscriptionIssue struct {
+	Details            string `form:"details" json:"details,omitempty,omitzero"`
+	MangledText        bool   `form:"mangled_text" json:"mangled_text,omitempty,omitzero"`
+	MissingDescription bool   `form:"missing_description" json:"missing_description,omitempty,omitzero"`
+	MissingImage       bool   `form:"missing_image" json:"missing_image,omitempty,omitzero"`
+}
 
 // SubscriptionMetadata contains the stored data that represents a subscription
 type SubscriptionMetadata struct {

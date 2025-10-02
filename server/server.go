@@ -27,12 +27,10 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/session"
-
-	"github.com/didip/tollbooth/v8"
-	"github.com/realclientip/realclientip-go"
 )
 
 // Server represents the application server. It contains the underlying server object, the handlers, and embedded FS
@@ -41,15 +39,22 @@ type Server struct {
 	*http.Server
 
 	static      embed.FS
-	authAPI     *auth0.Authenticator
+	apis        *APIs
 	environment string
+}
+
+type APIs struct {
+	auth   *auth0.Authenticator
+	github *github.Client
 }
 
 // NewServer sets up a new server.
 func NewServer(ctx context.Context, static embed.FS, env string) (Server, error) {
-	var svr Server
-	svr.static = static
-	svr.environment = env
+	svr := Server{
+		static:      static,
+		environment: env,
+		apis:        &APIs{},
+	}
 	// Load the server config.
 	err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, cfg)
 	if err != nil {
@@ -64,12 +69,18 @@ func NewServer(ctx context.Context, static embed.FS, env string) (Server, error)
 
 		cfg.Secret = secret
 	}
-	// Set up authenticator
+	// Set up auth0 api.
 	authapi, err := auth0.New(ctx)
 	if err != nil {
 		return svr, fmt.Errorf("unable start server: %w", err)
 	}
-	svr.authAPI = authapi
+	svr.apis.auth = authapi
+	// Set up github api.
+	ghapi, err := github.NewClient(ctx)
+	if err != nil {
+		return svr, fmt.Errorf("unable start server: %w", err)
+	}
+	svr.apis.github = ghapi
 	// Set up handlers api.
 	api, err := svr.setupAPI(ctx)
 	if err != nil {
@@ -163,13 +174,7 @@ func (s *Server) setupAPI(ctx context.Context) (*handlers.API, error) {
 }
 
 func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
-	// Set up rate-limiting.
-	strat, err := realclientip.NewRightmostNonPrivateStrategy("X-Forwarded-For")
-	if err != nil {
-		panic("realclientip.NewRightmostNonPrivateStrategy returned error (bad input)")
-	}
-	lmt := tollbooth.NewLimiter(1, nil)
-
+	rl := middlewares.NewRateLimiter()
 	// Set up a new chi router.
 	router := chi.NewRouter()
 	router.Use(
@@ -189,7 +194,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
 		middleware.NoCache,
-		middlewares.RateLimiter(strat, lmt, s.environment),
+		middlewares.RateLimit(rl, s.environment),
 	)
 
 	// Routes.
@@ -218,9 +223,9 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
 		)
-		r.Get("/login/{provider}", handlers.Login(s.authAPI))
-		r.Get("/login/{provider}/callback", handlers.LoginCallback(s.authAPI, handler.Elastic))
-		r.Get("/logout", handlers.Logout(s.authAPI))
+		r.Get("/login/{provider}", handlers.Login(s.apis.auth))
+		r.Get("/login/{provider}/callback", handlers.LoginCallback(s.apis.auth, handler.Elastic))
+		r.Get("/logout", handlers.Logout(s.apis.auth))
 	})
 
 	// Authenticated routes.
@@ -243,9 +248,11 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			r.Get("/updates", handler.GetSubscriptionUpdates())
 		})
 		// Subscription route.
-		r.Route("/subscription/{subscription}", func(r chi.Router) {
+		r.Route("/subscription/{subscription_id}", func(r chi.Router) {
 			// r.Get("/", handler.GetSubscriptionArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkSubscription())
+			r.Get("/issue", handlers.GetSubscriptionIssues(handler))
+			r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitSubscriptionIssues(handler, s.apis.github))
 		})
 		// Article routes.
 		r.Route("/articles", func(r chi.Router) {
@@ -254,11 +261,13 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Post("/", handler.PaginateArticles())
 			r.Get("/updates", handler.GetArticleUpdates())
 		})
-		r.Route("/subscription/{subscription}/article/{item}", func(r chi.Router) {
+		r.Route("/subscription/{subscription_id}/article/{item_id}", func(r chi.Router) {
 			r.Get("/", handler.ViewArticle())
 			r.With(middlewares.RequireHTMX).Post("/", handler.ViewArticle())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkArticle())
 			r.Get("/similar", handler.FindSimilarArticles())
+			r.Get("/issue", handlers.GetArticleIssues(handler))
+			r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitArticleIssues(handler, s.apis.github))
 		})
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
@@ -268,11 +277,11 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 				r.Get("/add", handler.AddSubscription())
 				r.With(middlewares.RequireHTMX).Post("/add", handler.AddSubscription())
 				// Edit subscription.
-				r.Get("/edit/{subscription}", handler.EditSubscription())
-				r.With(middlewares.RequireHTMX).Post("/edit/{subscription}", handler.SaveSubscription())
+				r.Get("/edit/{subscription_id}", handler.EditSubscription())
+				r.With(middlewares.RequireHTMX).Post("/edit/{subscription_id}", handler.SaveSubscription())
 				// Remove subscription (unsubscribe).
-				r.Get("/remove/{subscription}", handler.GetRemoveSubscriptionConfirmation())
-				r.With(middlewares.RequireHTMX).Post("/remove/{subscription}", handler.ProcessRemoveSubscription())
+				r.Get("/remove/{subscription_id}", handler.GetRemoveSubscriptionConfirmation())
+				r.With(middlewares.RequireHTMX).Post("/remove/{subscription_id}", handler.ProcessRemoveSubscription())
 				// Category management for add/edit subscription.
 				r.With(middlewares.RequireHTMX).Post("/category", handler.AdjustSubscriptionCategories())
 				r.With(middlewares.RequireHTMX).Delete("/category", handler.AdjustSubscriptionCategories())
@@ -285,10 +294,10 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			r.Get("/export/opml", handler.ExportSubscriptions())
 			// Favorites.
 			r.Route("/favorite", func(r chi.Router) {
-				r.Put("/subscription/{subscription}", handler.AddFavoriteSubscription())
-				r.Delete("/subscription/{subscription}", handler.RemoveFavoriteSubscription())
-				r.Put("/article/{item}", handler.AddFavoriteArticle())
-				r.Delete("/article/{item}", handler.RemoveFavoriteArticle())
+				r.Put("/subscription/{subscription_id}", handler.AddFavoriteSubscription())
+				r.Delete("/subscription/{subscription_id}", handler.RemoveFavoriteSubscription())
+				r.Put("/article/{item_id}", handler.AddFavoriteArticle())
+				r.Delete("/article/{item_id}", handler.RemoveFavoriteArticle())
 				r.Put("/search", handler.AddFavoriteSearch())
 				r.Delete("/search", handler.RemoveFavoriteSearch())
 			})

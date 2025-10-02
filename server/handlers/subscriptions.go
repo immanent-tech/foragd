@@ -30,6 +30,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/validation"
@@ -172,8 +173,8 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Construct the request from parameters.
 		request := &models.MarkSubscriptionsRequest{
-			Mark:          models.Mark(chi.URLParam(req, "mark")),
-			Subscriptions: []models.SubscriptionID{chi.URLParam(req, "subscription")},
+			Mark:          models.Mark(chi.URLParam(req, models.ParamMark)),
+			Subscriptions: []models.SubscriptionID{chi.URLParam(req, models.ParamSubscriptionID)},
 		}
 		view := models.View(req.FormValue("view"))
 		// Mark subscription.
@@ -282,7 +283,7 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 func (a *API) EditSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve the subscription ID from the URL parameter.
-		id := chi.URLParam(req, models.URLParamSubscription)
+		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Retrieve user object.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -361,7 +362,7 @@ func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
 			return fmt.Errorf("unable show subscription removal confirmation: %w", err)
 		}
 		// Show a modal to confirm unsubscribe request.
-		id := chi.URLParam(req, "subscription")
+		id := chi.URLParam(req, models.ParamSubscriptionID)
 		subscriptions, err := a.getSubscriptions(req.Context(), id)
 		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
 			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
@@ -378,7 +379,7 @@ func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
 func (a *API) ProcessRemoveSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Perform unsubscribe action.
-		id := chi.URLParam(req, "subscription")
+		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Retrieve user object.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -609,6 +610,83 @@ func (a *API) AdjustSubscriptionCategories() http.HandlerFunc {
 			// Unsupported, do nothing.
 			res.WriteHeader(http.StatusNoContent)
 		}
+		return nil
+	})).ServeHTTP
+}
+
+// GetSubscriptionIssues handles presenting a form for the user to submit details about subscription issues.
+func GetSubscriptionIssues(api *API) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		id := chi.URLParam(req, models.ParamSubscriptionID)
+		s, err := api.getSubscriptions(req.Context(), id)
+		if err != nil || len(s) == 0 {
+			msg := models.NewErrorMessage(
+				"Unable to create report form.",
+				"The backend had issues generating the report form. Please try again.",
+			)
+			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get subscriptions: %w", err)
+		}
+		template := layouts.ReportSubscriptionIssue(s[0], &models.SubscriptionIssue{})
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+// SubmitSubscriptionIssues handles processing the user submitted subscription issues form.
+func SubmitSubscriptionIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get subscriptions: %w", err)
+		}
+		// Validate the subscription issue request.
+		request, valid, err := forms.DecodeForm[*models.SubscriptionIssue](req)
+		if err != nil || !valid {
+			msg := models.NewErrorMessage(
+				"Unable to submit issue.",
+				"The backend had issues submitting the report. Please try again.",
+			)
+			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+		}
+		// Get subscription details.
+		id := chi.URLParam(req, models.ParamSubscriptionID)
+		s, err := esapi.getSubscriptions(req.Context(), id)
+		if err != nil || len(s) == 0 {
+			msg := models.NewErrorMessage(
+				"Unable to get subscription details.",
+				"The backend had issues processing the data. Please try again.",
+			)
+			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Create the issue in Github.
+		err = ghapi.CreateSubscriptionIssue(req.Context(), s[0], request)
+		if err != nil {
+			msg := models.NewErrorMessage(
+				"Unable to submit issue.",
+				"The backend had issues submitting the report. Please try again.",
+			)
+			template := templ.Join(
+				layouts.ReportSubscriptionIssue(s[0], request),
+				partials.ServerErrorNotification(msg),
+			)
+			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Force refresh of page.
+		msg := models.NewErrorMessage(
+			"Thanks for reporting the issue!",
+			"We will look into it and implement fixes as appropriate.",
+		)
+		renderPage(layouts.Drawer(user, partials.IssueReportedConfirmation(msg)), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

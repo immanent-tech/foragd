@@ -112,6 +112,20 @@ templ ServerErrorNotification(msg *models.UserMessage) {
 	}
 }
 
+// IssueReportedConfirmation will show feedback to a user that the issue they reported has been recorded.
+templ IssueReportedConfirmation(msg *models.UserMessage) {
+	@MainContainer() {
+		@PageHeader(msg.Summary)
+		@PageDescription(msg.Details)
+		<button
+			type="button"
+			class="bg-neutral/80 hover:bg-neutral focus-visible:outline-neutral text-neutral-content block rounded-md px-3 py-2 text-center text-xs shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2"
+			hx-get="#"
+			hx-target={ ContentID.Target() }
+		>Back to content <span aria-hidden="true">&rarr;</span></button>
+	}
+}
+
 // UpdatesToast renders a toast notification to inform the user that updated content is available.
 templ UpdatesToast() {
 	<div

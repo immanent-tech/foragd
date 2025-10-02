@@ -1,7 +1,7 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package auth0
+package github
 
 import (
 	"fmt"
@@ -13,19 +13,18 @@ import (
 
 const (
 	// ConfigEnvPrefix is the prefix applied to environment variables for configuring Auth0.
-	ConfigEnvPrefix = config.ConfigEnvPrefix + "AUTH0_"
+	ConfigEnvPrefix = config.ConfigEnvPrefix + "GITHUB_"
 	// ConfigPrefix is the prefix in the configuration file under which Auth0 configuration is stored.
-	ConfigPrefix = "auth0"
+	ConfigPrefix = "github"
 )
 
 var cfg = &Config{}
 
 // Config structure.
 type Config struct {
-	Domain       string `toml:"domain" validate:"required"`
-	ClientID     string `toml:"client_id" validate:"required"`
-	ClientSecret string `toml:"client_secret" validate:"required"`
-	CallbackURL  string `toml:"callback_url" validate:"required,url"`
+	Key            string `toml:"private_key" validate:"required"`
+	ClientID       string `toml:"client_id" validate:"required"`
+	InstallationID int    `toml:"installation_id"`
 }
 
 // LoadConfigOnce loads the auth0 configuration and ensures this is only done
@@ -35,11 +34,11 @@ var LoadConfigOnce = sync.OnceValue(loadConfig)
 func loadConfig() error {
 	err := config.Load(ConfigPrefix, ConfigEnvPrefix, cfg)
 	if err != nil {
-		return fmt.Errorf("auth0: unable to load config: %w", err)
+		return fmt.Errorf("github: unable to load config: %w", err)
 	}
 	valid, err := validation.ValidateStruct(cfg)
 	if err != nil || !valid {
-		return fmt.Errorf("auth0: unable to validate config: %w", err)
+		return fmt.Errorf("github: unable to validate config: %w", err)
 	}
 	return nil
 }

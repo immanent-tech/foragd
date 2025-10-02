@@ -12,7 +12,28 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 )
 
-func RateLimiter(strat realclientip.RightmostNonPrivateStrategy, lmt *limiter.Limiter, env string) func(next http.Handler) http.Handler {
+// RateLimiter holds options for controlling a rate limiter middleware.
+type RateLimiter struct {
+	strategy realclientip.RightmostNonPrivateStrategy
+	limiter  *limiter.Limiter
+}
+
+// NewRateLimiter initialises data for a rate limiter middleware.
+func NewRateLimiter() RateLimiter {
+	// Set up rate-limiting.
+	strategy, err := realclientip.NewRightmostNonPrivateStrategy("X-Forwarded-For")
+	if err != nil {
+		panic("realclientip.NewRightmostNonPrivateStrategy returned error (bad input)")
+	}
+	limiter := tollbooth.NewLimiter(1, nil)
+	return RateLimiter{
+		strategy: strategy,
+		limiter:  limiter,
+	}
+}
+
+// RateLimit middleware will try to rate limit incoming requests with a pre-defined strategy.
+func RateLimit(ratelimiter RateLimiter, env string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			if env == "development" {
@@ -20,7 +41,7 @@ func RateLimiter(strat realclientip.RightmostNonPrivateStrategy, lmt *limiter.Li
 				return
 			}
 			// Find the client IP.
-			clientIP := strat.ClientIP(req.Header, req.RemoteAddr)
+			clientIP := ratelimiter.strategy.ClientIP(req.Header, req.RemoteAddr)
 			if clientIP == "" {
 				slogctx.FromCtx(req.Context()).Error("Unable to determine client IP.")
 				http.Error(res, "I don't know who you are", http.StatusForbidden)
@@ -29,7 +50,8 @@ func RateLimiter(strat realclientip.RightmostNonPrivateStrategy, lmt *limiter.Li
 			// We don't want to include the zone in our limiter key
 			clientIP, _ = realclientip.SplitHostZone(clientIP)
 
-			if httpErr := tollbooth.LimitByKeys(lmt, []string{clientIP}); httpErr != nil {
+			httpErr := tollbooth.LimitByKeys(ratelimiter.limiter, []string{clientIP})
+			if httpErr != nil {
 				http.Error(res, httpErr.Message, httpErr.StatusCode)
 				return
 			}
