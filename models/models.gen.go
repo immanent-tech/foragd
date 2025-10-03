@@ -84,6 +84,15 @@ type AddFeedsetRequest struct {
 	Feedset []string `form:"feedset,unique" json:"feedset,omitempty,omitzero"`
 }
 
+// AppIssue contains details about issues with the app.
+type AppIssue struct {
+	// Details is the user-submitted text about the issue.
+	Details string `form:"details" json:"details,omitempty,omitzero"`
+
+	// PageUrl is the URL of the page on which the user selected the report issue action.
+	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
+}
+
 // Article defines model for Article.
 type Article struct {
 	// Content contains the full article content, when it has been fetched from the origin link.
@@ -164,12 +173,15 @@ type ArticleArchive struct {
 // ArticleArchiveSourceType indicates what type of source the object came from.
 type ArticleArchiveSourceType string
 
-// ArticleIssue contains details about issues with an article.
+// ArticleIssue defines model for ArticleIssue.
 type ArticleIssue struct {
-	Details        string `form:"details" json:"details,omitempty,omitzero"`
-	MangledText    bool   `form:"mangled_text" json:"mangled_text,omitempty,omitzero"`
-	MissingContent bool   `form:"missing_description" json:"missing_content,omitempty,omitzero"`
-	MissingImage   bool   `form:"missing_image" json:"missing_image,omitempty,omitzero"`
+	Details string `form:"details" json:"details,omitempty,omitzero"`
+
+	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
+	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
+
+	// MissingImage indicates the object is expected to have an image, but it is missing.
+	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
 }
 
 // ArticleMetadata contains the stored data that represents an article.
@@ -467,6 +479,15 @@ type ObjectCommon struct {
 // ObjectCommonSourceType indicates what type of source the object came from.
 type ObjectCommonSourceType string
 
+// ObjectCommonIssues contains common issues encountered with objects.
+type ObjectCommonIssues struct {
+	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
+	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
+
+	// MissingImage indicates the object is expected to have an image, but it is missing.
+	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
+}
+
 // SearchRequest represents a search request by the user.
 type SearchRequest struct {
 	// AuthorsExclude a list of authors that must not be included in search results.
@@ -540,12 +561,15 @@ type SubscriptionCustomisation_Image struct {
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
 
-// SubscriptionIssue contains details about issues with a subscription.
+// SubscriptionIssue defines model for SubscriptionIssue.
 type SubscriptionIssue struct {
-	Details            string `form:"details" json:"details,omitempty,omitzero"`
-	MangledText        bool   `form:"mangled_text" json:"mangled_text,omitempty,omitzero"`
-	MissingDescription bool   `form:"missing_description" json:"missing_description,omitempty,omitzero"`
-	MissingImage       bool   `form:"missing_image" json:"missing_image,omitempty,omitzero"`
+	Details string `form:"details" json:"details,omitempty,omitzero"`
+
+	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
+	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
+
+	// MissingImage indicates the object is expected to have an image, but it is missing.
+	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
 }
 
 // SubscriptionMetadata contains the stored data that represents a subscription

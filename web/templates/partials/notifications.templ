@@ -117,12 +117,14 @@ templ IssueReportedConfirmation(msg *models.UserMessage) {
 	@MainContainer() {
 		@PageHeader(msg.Summary)
 		@PageDescription(msg.Details)
-		<button
-			type="button"
-			class="bg-neutral/80 hover:bg-neutral focus-visible:outline-neutral text-neutral-content block rounded-md px-3 py-2 text-center text-xs shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2"
-			hx-get="#"
-			hx-target={ ContentID.Target() }
-		>Back to content <span aria-hidden="true">&rarr;</span></button>
+		<div class="mt-3 flex space-x-7">
+			<button
+				type="button"
+				class="bg-neutral/80 hover:bg-neutral focus-visible:outline-neutral text-neutral-content block rounded-md px-3 py-2 text-center text-xs shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2"
+				hx-get="#"
+				hx-target={ ContentID.Target() }
+			>Back to content <span aria-hidden="true">&rarr;</span></button>
+		</div>
 	}
 }
 

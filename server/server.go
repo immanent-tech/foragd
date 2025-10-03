@@ -251,7 +251,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 		r.Route("/subscription/{subscription_id}", func(r chi.Router) {
 			// r.Get("/", handler.GetSubscriptionArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkSubscription())
-			r.Get("/issue", handlers.GetSubscriptionIssues(handler))
+			r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetSubscriptionIssues(handler))
 			r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitSubscriptionIssues(handler, s.apis.github))
 		})
 		// Article routes.
@@ -266,11 +266,13 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Post("/", handler.ViewArticle())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkArticle())
 			r.Get("/similar", handler.FindSimilarArticles())
-			r.Get("/issue", handlers.GetArticleIssues(handler))
+			r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetArticleIssues(handler))
 			r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitArticleIssues(handler, s.apis.github))
 		})
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
+			r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetAppIssues(handler))
+			r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitAppIssues(handler, s.apis.github))
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
 				// Add subscription.

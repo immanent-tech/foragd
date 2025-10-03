@@ -1,0 +1,58 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package layouts
+
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+)
+
+// ReportAppIssue renders a form for reporting issues with the app.
+templ ReportAppIssue(currentURL string, details *models.AppIssue) {
+	@partials.MainContainer() {
+		@partials.PageHeader("Report an issue with Foragd")
+		@partials.PageDescription("Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.")
+		@partials.PageDescription("") {
+			You can also provide general feedback and comments to us via <a class="link" href="mailto:feedback@immanent.tech&subject=Foragd Feedback">email.</a>
+		}
+		<form
+			id="report-app-issue"
+			hx-post={ "/user/issue" }
+			hx-target={ partials.ContentID.Target() }
+			hx-target-error={ partials.ContentID.Target() }
+			hx-indicator="#processing"
+			hx-include="[name='csrf_token']"
+		>
+			<input type="hidden" name="page_url" value={ currentURL }/>
+			<fieldset class="fieldset p-4">
+				<legend class="fieldset-legend text-base/7">Issue Details</legend>
+				<p class="mt-1 text-sm/6 text-base-content/80">Add any other details you think are relevant.</p>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
+					<div class="flex items-center col-span-full">
+						<textarea
+							id="details"
+							name="details"
+							class="textarea w-full"
+							placeholder="What was expected, what is missing, etc."
+							if details.Details != "" {
+								value={ details.Details }
+							}
+						></textarea>
+					</div>
+				</div>
+			</fieldset>
+			<div class="mt-6 flex items-center justify-end gap-x-6">
+				<div id="processing" class="htmx-indicator">
+					Processing...
+					<span class="loading loading-spinner loading-md"></span>
+				</div>
+				<button type="button" hx-get="#" class="btn btn-primary">Back</button>
+				<button
+					type="submit"
+					class="btn btn-primary"
+				>Submit</button>
+			</div>
+		</form>
+	}
+}

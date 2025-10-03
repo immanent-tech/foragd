@@ -48,6 +48,7 @@ templ HeaderUserMenu(user *models.User) {
 			<img src={ user.GetAvatar() } alt={ user.GetNickname() } class="size-8 rounded-full outline -outline-offset-1 outline-base-content/10"/>
 		</button>
 		<el-menu id="header-menu" anchor="bottom end" popover class="w-32 origin-top-right rounded-md bg-base-300 py-2 outline-1 -outline-offset-1 outline-base-content/10 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+			// Open settings menu.
 			<a
 				class="menu-item"
 				hx-get="/user/settings"
@@ -62,6 +63,18 @@ templ HeaderUserMenu(user *models.User) {
 					Settings
 				</div>
 			</a>
+			// Report issue.
+			<a
+				hx-get={ "/user/issue" }
+				hx-target={ partials.ContentID.Target() }
+				class="link link-hover menu-item"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5"></path>
+				</svg>
+				Report an issue
+			</a>
+			// Logout
 			<a href="/logout" class="menu-item">
 				<div class="flex flex-1 items-center gap-x-2">
 					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">

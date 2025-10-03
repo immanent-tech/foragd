@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
@@ -24,6 +25,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/validation"
@@ -613,6 +615,73 @@ func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
 		maps.Copy(createResults, matchResults)
 		msg := models.NewSuccessMessage("Added sets", "Request sets added to your subscriptions.")
 		renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+// GetAppIssues handles presenting a form for the user to submit issues about the app.
+func GetAppIssues(api *API) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get subscriptions: %w", err)
+		}
+		// Get the current URL on which the issue is being reported.
+		currentURL, found := htmx.GetCurrentURL(req)
+		if !found {
+			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
+		}
+		// Display the report issue form.
+		template := layouts.ReportAppIssue(currentURL, &models.AppIssue{})
+		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+// SubmitAppIssues handles processing the user submitted subscription issues form.
+func SubmitAppIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get subscriptions: %w", err)
+		}
+		// Get the current URL on which the issue is being reported.
+		currentURL, found := htmx.GetCurrentURL(req)
+		if !found {
+			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
+		}
+		// Validate the subscription issue request.
+		request, valid, err := forms.DecodeForm[*models.AppIssue](req)
+		if err != nil || !valid {
+			msg := models.NewErrorMessage(
+				"Unable to submit issue.",
+				"The backend had issues submitting the report. Please try again.",
+			)
+			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+		}
+		// Create the issue in Github.
+		err = ghapi.CreateAppIssue(req.Context(), request)
+		if err != nil {
+			msg := models.NewErrorMessage(
+				"Unable to submit issue.",
+				"The backend had issues submitting the report. Please try again.",
+			)
+			template := templ.Join(
+				layouts.ReportAppIssue(currentURL, request),
+				partials.ServerErrorNotification(msg),
+			)
+			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Force refresh of page.
+		msg := models.NewErrorMessage(
+			"Thanks for reporting the issue!",
+			"We will look into it and implement fixes as appropriate.",
+		)
+		renderPage(layouts.Drawer(user, partials.IssueReportedConfirmation(msg)), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

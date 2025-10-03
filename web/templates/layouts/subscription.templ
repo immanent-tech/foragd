@@ -431,20 +431,6 @@ templ ReportSubscriptionIssue(subscription *models.Subscription, details *models
 					<div class="flex items-center">
 						<div class="flex items-center gap-x-3">
 							<input
-								id="missing-description"
-								type="checkbox"
-								name="missing_description"
-								if details.MissingDescription {
-									checked
-								}
-								class="checkbox checkbox-sm"
-							/>
-							<label for="missing-description" class="block text-sm/6 font-medium">Missing description</label>
-						</div>
-					</div>
-					<div class="flex items-center">
-						<div class="flex items-center gap-x-3">
-							<input
 								id="missing-image"
 								type="checkbox"
 								name="missing_image"
@@ -462,7 +448,7 @@ templ ReportSubscriptionIssue(subscription *models.Subscription, details *models
 								id="mangled-text"
 								type="checkbox"
 								name="mangled_text"
-								if details.MangledText {
+								if details.MangledContent {
 									checked
 								}
 								class="checkbox checkbox-sm"
