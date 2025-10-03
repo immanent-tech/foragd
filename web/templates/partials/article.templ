@@ -210,24 +210,18 @@ templ ViewArticle(article *models.Article) {
 				<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover">
 					<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ article.GetTitle() }</h2>
 				</a>
-				<div id="article-info" class="flex items-center justify-between">
-					<div class="flex flex-none text-sm/6 gap-x-4 items-center">
-						<p class="text-base-content/80 capitalize">
-							@ShowTimestamp(article.GetUpdatedDate())
-						</p>
-						<p class="text-base-content/80 truncate italic">
-							{ strings.Join(article.GetAuthors(),",") }
-						</p>
-					</div>
-				</div>
-				<div id="article-text">
-					switch  {
-						case article.GetContent() != "":
-							@templ.Raw(article.GetContent())
-						case article.GetDescription() != "":
-							@templ.Raw(article.GetDescription())
-					}
-				</div>
+				<p class="text-base-content/80 text-wrap italic">
+					{ strings.Join(article.GetAuthors(),",") }
+				</p>
+				<p class="text-base-content/80 capitalize">
+					@ShowTimestamp(article.GetUpdatedDate())
+				</p>
+				switch  {
+					case article.GetContent() != "":
+						@templ.Raw(article.GetContent())
+					case article.GetDescription() != "":
+						@templ.Raw(article.GetDescription())
+				}
 			</article>
 		</div>
 		@viewArticleActions(article)
