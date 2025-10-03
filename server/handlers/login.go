@@ -23,17 +23,8 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
-
-// LoginSelect handles showing options for logging in with different providers.
-func LoginSelect() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		page := &layouts.Login{}
-		renderPage(page.Content(), templates.GeneratePageTitle("Login")).ServeHTTP(res, req)
-	}).ServeHTTP
-}
 
 type authAPI interface {
 	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
@@ -47,8 +38,13 @@ func Login(authAPI authAPI) http.HandlerFunc {
 		provider := chi.URLParam(req, "provider")
 		state, err := generateRandomState()
 		if err != nil {
-			template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
-			renderPage(template, "").ServeHTTP(res, req)
+			template := templates.Page("Foragd", partials.Error(models.NewErrorMessage("Unable to log in.", "")))
+			err := template.Render(req.Context(), res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 		session.Manager.Put(req.Context(), "state", state)
@@ -67,8 +63,13 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 
 		state := req.FormValue("state")
 		if state != session.Manager.GetString(req.Context(), "state") {
-			template := partials.Error(models.NewErrorMessage("Unable to log in.", "Invalid state parameter"))
-			renderPage(template, "").ServeHTTP(res, req)
+			template := templates.Page("Foragd", partials.Error(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")))
+			err := template.Render(req.Context(), res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 
@@ -76,8 +77,13 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 		code := req.FormValue("code")
 		token, err := authAPI.Exchange(req.Context(), code)
 		if err != nil {
-			template := partials.Error(models.NewErrorMessage("Unable to log in.", "Failed to exchange an authorization code for a token."))
-			renderPage(template, "").ServeHTTP(res, req)
+			template := templates.Page("Foragd", partials.Error(models.NewErrorMessage("Unable to log in.", "Failed to exchange an authorization code for a token.")))
+			err := template.Render(req.Context(), res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 
@@ -91,8 +97,13 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 		var profile auth0.UserProfile
 		err = idToken.Claims(&profile)
 		if err != nil {
-			template := partials.Error(models.NewErrorMessage("Unable to log in.", err.Error()))
-			renderPage(template, "").ServeHTTP(res, req)
+			template := templates.Page("Foragd", partials.Error(models.NewErrorMessage("Unable to log in.", err.Error())))
+			err := template.Render(req.Context(), res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 
@@ -107,15 +118,25 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 				if apiError.StatusCode == http.StatusNotFound {
 					err = createLocalUser(req.Context(), storeAPI, profile.GetID())
 					if err != nil {
-						template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
-						renderPage(template, "").ServeHTTP(res, req)
+						template := templates.Page("Foragd", partials.Error(models.NewErrorMessage("Unable to log in.", err.Error())))
+						err := template.Render(req.Context(), res)
+						if err != nil {
+							slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+							http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+							return
+						}
 						return
 					}
 					slogctx.FromCtx(req.Context()).Debug("Create new local user.")
 				}
 			} else {
-				template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
-				renderPage(template, "").ServeHTTP(res, req)
+				template := templates.Page("Foragd", partials.Error(models.NewErrorMessage("Unable to log in.", err.Error())))
+				err := template.Render(req.Context(), res)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+					http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+					return
+				}
 				return
 			}
 		}
