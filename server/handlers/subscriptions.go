@@ -51,14 +51,9 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		if err != nil {
 			return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
 		}
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get subscriptions: %w", err)
-		}
 		// Render appropriate content.
 		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
+		renderPage(template, templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -265,7 +260,7 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
+		renderPage(template, templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
 
 		// Redirect depending on the current view.
 		switch filters.GetView() {
@@ -306,7 +301,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		// Generate page template.
 		template := layouts.EditSubscription(request)
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Editing "+request.GetNickname())).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(template, templates.GeneratePageTitle("Editing "+request.GetNickname())).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -321,7 +316,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		}
 		request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
 		if err != nil || !valid {
-			renderPage(layouts.Drawer(user, layouts.EditSubscription(request)), "").ServeHTTP(res, req)
+			renderPage(layouts.EditSubscription(request), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Update the subscription metadata.
@@ -333,7 +328,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		if err != nil {
 			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 			template := templ.Join(layouts.EditSubscription(request), partials.Notification(msg, 0))
-			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+			renderPage(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Update the user.
@@ -343,11 +338,11 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		if err != nil {
 			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 			template := templ.Join(layouts.EditSubscription(request), partials.Notification(msg, 0))
-			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+			renderPage(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		template := templ.Join(layouts.EditSubscription(request), layouts.EditSubscriptionSuccessNotification(metadata))
-		renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+		renderPage(template, "").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -356,18 +351,13 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 // subscription.
 func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable show subscription removal confirmation: %w", err)
-		}
 		// Show a modal to confirm unsubscribe request.
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		subscriptions, err := a.getSubscriptions(req.Context(), id)
 		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
 			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
 			template := partials.Notification(msg, 0)
-			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+			renderPage(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		renderPartial(partials.NewSubscriptionContent(subscriptions[0]).UnsubscribeModal()).ServeHTTP(res, req)
@@ -394,7 +384,7 @@ func (a *API) ProcessRemoveSubscription() http.HandlerFunc {
 		if err != nil {
 			msg := models.NewErrorMessage("Unable to remove subscription", "Please try again.")
 			template := partials.Notification(msg, 0)
-			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+			renderPage(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Show success notification.
@@ -407,19 +397,14 @@ func (a *API) ProcessRemoveSubscription() http.HandlerFunc {
 // AddSubscription handles adding a new subscription requested by the user.
 func (a *API) AddSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to add subscription: %w", err)
-		}
 		switch req.Method {
 		case http.MethodGet:
 			template := layouts.AddSubscription(&models.SubscriptionRequest{})
-			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Add Subscription")).ServeHTTP(res, req)
+			renderPage(template, templates.GeneratePageTitle("Add Subscription")).ServeHTTP(res, req)
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 			if err != nil || !valid {
-				renderPage(layouts.Drawer(user, layouts.AddSubscription(request)), "").ServeHTTP(res, req)
+				renderPage(layouts.AddSubscription(request), "").ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			requests := addSubscriptionRequests{
@@ -430,13 +415,13 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			if err != nil {
 				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg, 0))
-				renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+				renderPage(template, "").ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			// If results returned from matching is non-nil, something went wrong.
 			if result[request] != nil {
 				template := layouts.AddSubscription(request)
-				renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+				renderPage(template, "").ServeHTTP(res, req)
 				res.WriteHeader(http.StatusUnprocessableEntity)
 				return nil
 			}
@@ -445,7 +430,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			if err != nil {
 				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg, 0))
-				renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+				renderPage(template, "").ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			} else {
 				result = createResult
@@ -453,12 +438,12 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			if result[request].Message.Status != models.UserMessageStatusSuccess {
 				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 				template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg, 0))
-				renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+				renderPage(template, "").ServeHTTP(res, req)
 				return models.NewAPIError(errors.New(result[request].Message.String()), http.StatusUnprocessableEntity)
 			}
 			template := layouts.AddSubscriptionSuccess(result[request])
 
-			renderPage(layouts.Drawer(user, template), "").ServeHTTP(res, req)
+			renderPage(template, "").ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP
@@ -467,16 +452,11 @@ func (a *API) AddSubscription() http.HandlerFunc {
 // ImportSubscriptions handles assisting the user with importing subscriptions from an external source.
 func (a *API) ImportSubscriptions() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to import subscription: %w", err)
-		}
 		switch req.Method {
 		// GET: show import modal.
 		case http.MethodGet:
 			template := layouts.ImportSubscriptions()
-			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Import Subscriptions")).ServeHTTP(res, req)
+			renderPage(template, templates.GeneratePageTitle("Import Subscriptions")).ServeHTTP(res, req)
 		// POST: process import.
 		case http.MethodPost:
 			requests := make(addSubscriptionRequests)
@@ -541,7 +521,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 		switch {
 		// GET: show import modal.
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export":
-			renderPage(layouts.Drawer(user, layouts.ExportSubscriptions()), templates.GeneratePageTitle("Export Subscriptions")).ServeHTTP(res, req)
+			renderPage(layouts.ExportSubscriptions(), templates.GeneratePageTitle("Export Subscriptions")).ServeHTTP(res, req)
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":
 			// Get all subscriptions.
 			subscriptions, err := a.getSubscriptions(req.Context())
@@ -627,13 +607,8 @@ func GetSubscriptionIssues(api *API) http.HandlerFunc {
 			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get subscriptions: %w", err)
-		}
 		template := layouts.ReportSubscriptionIssue(s[0], &models.SubscriptionIssue{})
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+		renderPage(template, templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -641,11 +616,6 @@ func GetSubscriptionIssues(api *API) http.HandlerFunc {
 // SubmitSubscriptionIssues handles processing the user submitted subscription issues form.
 func SubmitSubscriptionIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get subscriptions: %w", err)
-		}
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeForm[*models.SubscriptionIssue](req)
 		if err != nil || !valid {
@@ -678,7 +648,7 @@ func SubmitSubscriptionIssues(esapi *API, ghapi *github.Client) http.HandlerFunc
 				layouts.ReportSubscriptionIssue(s[0], request),
 				partials.ServerErrorNotification(msg),
 			)
-			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+			renderPage(template, templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Force refresh of page.
@@ -686,7 +656,7 @@ func SubmitSubscriptionIssues(esapi *API, ghapi *github.Client) http.HandlerFunc
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
-		renderPage(layouts.Drawer(user, partials.IssueReportedConfirmation(msg)), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+		renderPage(partials.IssueReportedConfirmation(msg), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

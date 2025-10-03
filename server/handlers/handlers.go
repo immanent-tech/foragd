@@ -19,8 +19,10 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/pages"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
@@ -152,17 +154,25 @@ func SetRedirect(ctx context.Context, path string, res http.ResponseWriter) {
 // appropriate full or partial HTML response as appropriate.
 func renderPage(template templ.Component, title string) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get the user details.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+			http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+		}
 		if template == nil {
 			// If there is no response, return 204: No Content.
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
+		template = layouts.Drawer(user, template)
 		// Write the response template.
 		if IsHTMX(req) {
 			if IsHistoryRestoreRequest(req) {
 				templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
 				return
-			} else if title != "" {
+			}
+			if title != "" {
 				// Update the page title if set.
 				template = templ.Join(template, templates.SetPageTitle(title))
 			}

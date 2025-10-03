@@ -36,7 +36,7 @@ func (a *API) Home() http.HandlerFunc {
 		}
 		if user.GetSettings().ShowOnboarding {
 			template := layouts.NewUserHome()
-			renderPage(layouts.Drawer(user, template), "Home - "+config.AppName).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(template, "Home - "+config.AppName).ServeHTTP(res, req.WithContext(ctx))
 			return nil
 		}
 		data, err := a.getHomePageData(ctx)
@@ -51,7 +51,7 @@ func (a *API) Home() http.HandlerFunc {
 				http.StatusInternalServerError)
 		}
 		template := data.Template()
-		renderPage(layouts.Drawer(user, template), "Home - "+config.AppName).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(template, "Home - "+config.AppName).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }

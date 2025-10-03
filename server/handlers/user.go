@@ -45,7 +45,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 		// Render appropriate content.
 		template := layouts.NewSettingsPage(user, &models.EditUserRequest{}).Content()
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Settings")).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(template, templates.GeneratePageTitle("Settings")).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -622,11 +622,6 @@ func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
 // GetAppIssues handles presenting a form for the user to submit issues about the app.
 func GetAppIssues(api *API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get subscriptions: %w", err)
-		}
 		// Get the current URL on which the issue is being reported.
 		currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
@@ -634,7 +629,7 @@ func GetAppIssues(api *API) http.HandlerFunc {
 		}
 		// Display the report issue form.
 		template := layouts.ReportAppIssue(currentURL, &models.AppIssue{})
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+		renderPage(template, templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -642,11 +637,6 @@ func GetAppIssues(api *API) http.HandlerFunc {
 // SubmitAppIssues handles processing the user submitted subscription issues form.
 func SubmitAppIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get subscriptions: %w", err)
-		}
 		// Get the current URL on which the issue is being reported.
 		currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
@@ -673,7 +663,7 @@ func SubmitAppIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 				layouts.ReportAppIssue(currentURL, request),
 				partials.ServerErrorNotification(msg),
 			)
-			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+			renderPage(template, templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Force refresh of page.
@@ -681,7 +671,7 @@ func SubmitAppIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
-		renderPage(layouts.Drawer(user, partials.IssueReportedConfirmation(msg)), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+		renderPage(partials.IssueReportedConfirmation(msg), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

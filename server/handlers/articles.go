@@ -49,15 +49,10 @@ func (a *API) GetArticles() http.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("unable to get articles: %w", err)
 		}
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get articles: %w", err)
-		}
 		// Render appropriate content.
 		template := layouts.ArticlesGrid(articles, &filters, pagination)
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -271,16 +266,10 @@ func (a *API) MarkAllArticles() http.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("unable to mark subscriptions: %w", err)
 		}
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get articles: %w", err)
-		}
-
 		// Render appropriate content.
 		template := layouts.ArticlesGrid(articles, &filters, pagination)
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
 
 		SetRedirect(ctx, "/subscriptions", res)
 
@@ -327,15 +316,10 @@ func (a *API) ViewArticle() http.HandlerFunc {
 				article.Content = content
 			}
 		}
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get articles: %w", err)
-		}
 		// Render appropriate content.
 		template := partials.ViewArticle(article)
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -381,15 +365,10 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 				fmt.Errorf("unable to find similar articles subscription: %w", err),
 				http.StatusUnprocessableEntity)
 		}
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get articles: %w", err)
-		}
 		// Show results.
 		template := pages.SimilarArticles(articles)
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(template, templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -407,13 +386,8 @@ func GetArticleIssues(api *API) http.HandlerFunc {
 			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get subscriptions: %w", err)
-		}
 		template := layouts.ReportArticleIssue(i[0], &models.ArticleIssue{})
-		renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
+		renderPage(template, templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -421,11 +395,6 @@ func GetArticleIssues(api *API) http.HandlerFunc {
 // SubmitSubscriptionIssues handles processing the user submitted subscription issues form.
 func SubmitArticleIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get articles: %w", err)
-		}
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeForm[*models.ArticleIssue](req)
 		if err != nil || !valid {
@@ -458,7 +427,7 @@ func SubmitArticleIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 				layouts.ReportArticleIssue(i[0], request),
 				partials.ServerErrorNotification(msg),
 			)
-			renderPage(layouts.Drawer(user, template), templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
+			renderPage(template, templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Force refresh of page.
@@ -466,7 +435,7 @@ func SubmitArticleIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
-		renderPage(layouts.Drawer(user, partials.IssueReportedConfirmation(msg)), templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
+		renderPage(partials.IssueReportedConfirmation(msg), templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
