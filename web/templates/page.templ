@@ -48,9 +48,10 @@ templ Page(title string, body templ.Component) {
 			<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
 			<link rel="manifest" href="/web/content/manifest.json"/>
 			<link rel="apple-touch-icon" href="/web/content/apple-touch-icon.png"/>
-			<link rel="shortcut icon" href="/web/content/favicon.ico" type="image/x-icon"/>
 			<link rel="icon" href="/web/content/favicon.svg" type="image/svg+xml"/>
-			<link rel="icon" href="/web/content/favicon.png" sizes="any"/>
+			<link rel="icon" href="/web/content/favicon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>
+			<link rel="icon" href="/web/content/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>
+			<link rel="shortcut icon" href="/web/content/favicon.ico" type="image/x-icon"/>
 			<link href="/web/content/fonts/inter/inter.css" rel="stylesheet"/>
 			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 			<script src="/web/content/scripts.js"></script>

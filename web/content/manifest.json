@@ -1,9 +1,9 @@
 {
-    "name": "My PWA Project",
-    "short_name": "Project",
-    "description": "The PWA (Progressive Web App) part of the gowebly project.",
-    "background_color": "#FEFEF5",
-    "theme_color": "#FEFEF5",
+    "name": "Foragd",
+    "short_name": "Foragd",
+    "description": "Gather what is important to you.",
+    "background_color": "#CDD3D1",
+    "theme_color": "#1EB88E",
     "display": "standalone",
     "orientation": "portrait",
     "start_url": ".",
@@ -16,18 +16,18 @@
     ],
     "screenshots": [
         {
-            "src": "manifest-desktop-screenshot.jpg",
+            "src": "manifest-desktop-screenshot.png",
             "sizes": "1280x720",
             "type": "image/jpeg",
             "form_factor": "wide",
-            "label": "Desktop homescreen of My PWA Project"
+            "label": "Desktop homescreen of Foragd"
         },
         {
-            "src": "manifest-mobile-screenshot.jpg",
+            "src": "manifest-mobile-screenshot.png",
             "sizes": "720x1280",
             "type": "image/jpeg",
             "form_factor": "narrow",
-            "label": "Mobile homescreen of My PWA Project"
+            "label": "Mobile homescreen of Foragd"
         }
     ]
 }

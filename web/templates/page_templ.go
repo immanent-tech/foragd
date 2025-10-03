@@ -160,7 +160,7 @@ func Page(title string, body templ.Component) templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<!doctype html><html lang=\"en\" class=\"h-full\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\"><meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\"><link rel=\"manifest\" href=\"/web/content/manifest.json\"><link rel=\"apple-touch-icon\" href=\"/web/content/apple-touch-icon.png\"><link rel=\"shortcut icon\" href=\"/web/content/favicon.ico\" type=\"image/x-icon\"><link rel=\"icon\" href=\"/web/content/favicon.svg\" type=\"image/svg+xml\"><link rel=\"icon\" href=\"/web/content/favicon.png\" sizes=\"any\"><link href=\"/web/content/fonts/inter/inter.css\" rel=\"stylesheet\"><script src=\"https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1\" type=\"module\"></script><script src=\"/web/content/scripts.js\"></script><link href=\"/web/content/styles.css\" rel=\"stylesheet\"><meta name=\"htmx-config\" content='{\n\t\t\t\t\"selfRequestsOnly\":true,\n\t\t\t\t\"allowNestedOobSwaps\":true,\n\t\t\t\t\"historyRestoreAsHxRequest\":false,\n\t\t\t\t\"historyCacheSize\":0,\n\t\t\t\t\"responseHandling\":[\n            \t\t{\"code\":\"204\", \"swap\": false},\n            \t\t{\"code\":\"[23]..\", \"swap\": true},\n            \t\t{\"code\":\"422\", \"swap\": true},\n            \t\t{\"code\":\"500\", \"swap\": true},\n            \t\t{\"code\":\"[45]..\", \"swap\": false, \"error\":true},\n            \t\t{\"code\":\"...\", \"swap\": true}\n        \t\t]\n\t\t\t}'>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<!doctype html><html lang=\"en\" class=\"h-full\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\"><meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\"><link rel=\"manifest\" href=\"/web/content/manifest.json\"><link rel=\"apple-touch-icon\" href=\"/web/content/apple-touch-icon.png\"><link rel=\"icon\" href=\"/web/content/favicon.svg\" type=\"image/svg+xml\"><link rel=\"icon\" href=\"/web/content/favicon-light.svg\" type=\"image/svg+xml\" media=\"(prefers-color-scheme: light)\"><link rel=\"icon\" href=\"/web/content/favicon-dark.svg\" type=\"image/svg+xml\" media=\"(prefers-color-scheme: dark)\"><link rel=\"shortcut icon\" href=\"/web/content/favicon.ico\" type=\"image/x-icon\"><link href=\"/web/content/fonts/inter/inter.css\" rel=\"stylesheet\"><script src=\"https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1\" type=\"module\"></script><script src=\"/web/content/scripts.js\"></script><link href=\"/web/content/styles.css\" rel=\"stylesheet\"><meta name=\"htmx-config\" content='{\n\t\t\t\t\"selfRequestsOnly\":true,\n\t\t\t\t\"allowNestedOobSwaps\":true,\n\t\t\t\t\"historyRestoreAsHxRequest\":false,\n\t\t\t\t\"historyCacheSize\":0,\n\t\t\t\t\"responseHandling\":[\n            \t\t{\"code\":\"204\", \"swap\": false},\n            \t\t{\"code\":\"[23]..\", \"swap\": true},\n            \t\t{\"code\":\"422\", \"swap\": true},\n            \t\t{\"code\":\"500\", \"swap\": true},\n            \t\t{\"code\":\"[45]..\", \"swap\": false, \"error\":true},\n            \t\t{\"code\":\"...\", \"swap\": true}\n        \t\t]\n\t\t\t}'>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -175,7 +175,7 @@ func Page(title string, body templ.Component) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 82, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 83, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -188,7 +188,7 @@ func Page(title string, body templ.Component) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(models.GetUserTheme(ctx))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 84, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 85, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -201,7 +201,7 @@ func Page(title string, body templ.Component) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(models.CSRFTokenFromCtx(ctx))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 85, Col: 94}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 86, Col: 94}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -214,7 +214,7 @@ func Page(title string, body templ.Component) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ModalContainerID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 86, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 87, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -241,7 +241,7 @@ func Page(title string, body templ.Component) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(partials.NotificationsID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 93, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/page.templ`, Line: 94, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
