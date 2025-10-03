@@ -296,12 +296,12 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			r.Get("/export/opml", handler.ExportSubscriptions())
 			// Favorites.
 			r.Route("/favorite", func(r chi.Router) {
-				r.Put("/subscription/{subscription_id}", handler.AddFavoriteSubscription())
-				r.Delete("/subscription/{subscription_id}", handler.RemoveFavoriteSubscription())
-				r.Put("/article/{item_id}", handler.AddFavoriteArticle())
-				r.Delete("/article/{item_id}", handler.RemoveFavoriteArticle())
-				r.Put("/search", handler.AddFavoriteSearch())
-				r.Delete("/search", handler.RemoveFavoriteSearch())
+				r.Post("/add/subscription/{subscription_id}", handler.AddFavoriteSubscription())
+				r.Post("/remove/subscription/{subscription_id}", handler.RemoveFavoriteSubscription())
+				r.Post("/add/article/{item_id}", handler.AddFavoriteArticle())
+				r.Post("/remove/article/{item_id}", handler.RemoveFavoriteArticle())
+				r.Post("/add/search", handler.AddFavoriteSearch())
+				r.Post("/remove/search", handler.RemoveFavoriteSearch())
 			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {

@@ -253,6 +253,7 @@ templ UpdateViewArticleMark(article *models.Article) {
 		role="btn"
 		hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + mark }
 		hx-target={ "#mark_" + article.GetID() }
+		hx-include="[name='csrf_token']"
 		class="btn btn-circle btn-primary btn-soft"
 	>
 		switch article.IsUnread() {
@@ -278,12 +279,13 @@ templ UpdateViewArticleFavorite(article *models.Article) {
 	}
 	<a
 		if article.Favorite {
-			hx-delete={ "/user/favorite/article/" + article.GetID() }
+			hx-post={ "/user/favorite/remove/article/" + article.GetID() }
 		} else {
-			hx-put={ "/user/favorite/article/" + article.GetID() }
+			hx-post={ "/user/favorite/add/article/" + article.GetID() }
 		}
 		hx-target={ "#favorite_" + article.GetID() }
 		hx-vals={ fmt.Sprintf("{%q:%q}", "display", "content") }
+		hx-include="[name='csrf_token']"
 		role="btn"
 		class="btn btn-circle btn-primary btn-soft"
 	>
@@ -326,8 +328,8 @@ templ viewArticleActions(article *models.Article) {
 					<form
 						hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() }
 						hx-target={ ContentID.Target() }
+						hx-include="[name='csrf_token']"
 					>
-						<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 						<input
 							type="hidden"
 							name={ models.ParamFullArticleContent }
@@ -433,11 +435,12 @@ templ articleMarkLink(article *models.Article, target, swap string, classes ...s
 templ articleFavoriteLink(article *models.Article, classes ...string) {
 	<a
 		if article.Favorite {
-			hx-delete={ "/user/favorite/article/" + article.GetID() }
+			hx-post={ "/user/favorite/remove/article/" + article.GetID() }
 		} else {
-			hx-put={ "/user/favorite/article/" + article.GetID() }
+			hx-post={ "/user/favorite/add/article/" + article.GetID() }
 		}
 		hx-target={ "#favorite_" + article.GetID() }
+		hx-include="[name='csrf_token']"
 		class={ "link link-hover", classes }
 	>
 		switch article.Favorite {

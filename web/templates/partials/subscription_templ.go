@@ -703,9 +703,9 @@ func (s *Subscription) favoriteLink(classes ...string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var33 string
-			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs("/user/favorite/subscription/" + s.GetID())
+			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs("/user/favorite/remove/subscription/" + s.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/subscription.templ`, Line: 193, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/subscription.templ`, Line: 193, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 			if templ_7745c5c3_Err != nil {
@@ -721,9 +721,9 @@ func (s *Subscription) favoriteLink(classes ...string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var34 string
-			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs("/user/favorite/subscription/" + s.GetID())
+			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs("/user/favorite/add/subscription/" + s.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/subscription.templ`, Line: 195, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/subscription.templ`, Line: 195, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {

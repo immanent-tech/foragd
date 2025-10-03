@@ -190,9 +190,9 @@ templ (s *Subscription) ToggleFavorite() {
 templ (s *Subscription) favoriteLink(classes ...string) {
 	<a
 		if s.Favorite {
-			hx-delete={ "/user/favorite/subscription/" + s.GetID() }
+			hx-delete={ "/user/favorite/remove/subscription/" + s.GetID() }
 		} else {
-			hx-put={ "/user/favorite/subscription/" + s.GetID() }
+			hx-put={ "/user/favorite/add/subscription/" + s.GetID() }
 		}
 		hx-target={ "#favorite_" + s.GetID() }
 		hx-include="[name='csrf_token']"

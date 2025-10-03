@@ -95,7 +95,7 @@
   }
 
   .card-base {
-    @apply bg-base-200 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border shadow-sm dark:shadow-none;
+    @apply bg-base-100 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border shadow-sm dark:shadow-none;
   }
 
   .responsive-img {
