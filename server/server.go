@@ -5,7 +5,6 @@ package server
 
 import (
 	"context"
-	"embed"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -31,6 +30,7 @@ import (
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/web"
 )
 
 // Server represents the application server. It contains the underlying server object, the handlers, and embedded FS
@@ -38,7 +38,6 @@ import (
 type Server struct {
 	*http.Server
 
-	static      embed.FS
 	apis        *APIs
 	environment string
 }
@@ -49,9 +48,8 @@ type APIs struct {
 }
 
 // NewServer sets up a new server.
-func NewServer(ctx context.Context, static embed.FS, env string) (Server, error) {
+func NewServer(ctx context.Context, env string) (Server, error) {
 	svr := Server{
-		static:      static,
 		environment: env,
 		apis:        &APIs{},
 	}
@@ -87,7 +85,7 @@ func NewServer(ctx context.Context, static embed.FS, env string) (Server, error)
 		return svr, fmt.Errorf("unable to set up handlers api: %w", err)
 	}
 	// Set up routes.
-	router := svr.setupRoutes(api, static)
+	router := svr.setupRoutes(api)
 
 	h2s := &http2.Server{}
 	svr.Server = &http.Server{
@@ -173,7 +171,7 @@ func (s *Server) setupAPI(ctx context.Context) (*handlers.API, error) {
 	}, nil
 }
 
-func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
+func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 	rl := middlewares.NewRateLimiter()
 	// Set up a new chi router.
 	router := chi.NewRouter()
@@ -185,7 +183,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 			ServerErrorLevel: slog.LevelError,
 			WithRequestID:    true,
 			Filters: []slogchi.Filter{
-				slogchi.IgnorePathContains("/web/content", "/favicon"),
+				slogchi.IgnorePathContains("/content", "/favicon"),
 			},
 		}),
 		middlewares.SetupCORS(s.environment),
@@ -206,7 +204,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 
 	// Static content.
 	router.Group(func(r chi.Router) {
-		r.Handle("/web/content/*", handlers.StaticFileServerHandler(http.FS(static)))
+		r.Handle("/content/*", handlers.StaticFileServerHandler(http.FS(web.StaticContent)))
 	})
 
 	router.Get("/img-proxy/*", handlers.ImageProxy())
@@ -288,7 +286,7 @@ func (s *Server) setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 				r.With(middlewares.RequireHTMX).Post("/category", handler.AdjustSubscriptionCategories())
 				r.With(middlewares.RequireHTMX).Delete("/category", handler.AdjustSubscriptionCategories())
 			})
-			r.Post("/feedset", handlers.AddFeedset(handler.Elastic, static))
+			r.Post("/feedset", handlers.AddFeedset(handler.Elastic, web.StaticContent))
 			// Import/export.
 			r.Get("/import", handler.ImportSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/import", handler.ImportSubscriptions())

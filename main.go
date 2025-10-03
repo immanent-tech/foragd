@@ -4,7 +4,6 @@
 package main
 
 import (
-	"embed"
 	"log/slog"
 	"os"
 	"syscall"
@@ -15,9 +14,6 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/logging"
 )
-
-//go:embed all:web/content
-var static embed.FS
 
 // CLI contains all of the commands and common options.
 var CLI struct {
@@ -78,7 +74,6 @@ func main() {
 	// Run the requested command with the provided options.
 	if err := ctx.Run(cli.AddArguments(
 		cli.WithLogger(logger),
-		cli.WithStaticContent(static),
 		cli.WithEnvironment(CLI.Environment),
 	)); err != nil {
 		logger.Error("Command failed.",

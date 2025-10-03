@@ -33,14 +33,6 @@ func AddArguments(options ...Option) *Arguments {
 	return commandOptions
 }
 
-// WithStaticContent defines a location for embedding static content. Used by the server command.
-func WithStaticContent(content embed.FS) Option {
-	return func(ctx *Arguments) *Arguments {
-		ctx.StaticContent = content
-		return ctx
-	}
-}
-
 // WithLogger defines a logger for a command.
 func WithLogger(logger *slog.Logger) Option {
 	return func(ctx *Arguments) *Arguments {
