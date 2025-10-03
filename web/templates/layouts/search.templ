@@ -148,7 +148,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 
 templ SearchFilters(user *models.User) {
 	// Search form.
-	<div class="mx-auto max-w-3xl mt-4 p-4">
+	<div class="mx-auto max-w-3xl mt-4 p-4 overflow-y-auto">
 		<form
 			hx-post="/search"
 			hx-target={ partials.ContentID.Target() }
@@ -157,7 +157,7 @@ templ SearchFilters(user *models.User) {
 			_="on htmx:afterRequest if event.detail.successful then toggle .hidden on #search-filters"
 		>
 			<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-			<div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
+			<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
 				<div class="col-span-full">
 					<label for="text" class="block text-sm/6 font-medium">Includes the words</label>
 					<div class="mt-2">
@@ -305,7 +305,7 @@ templ GlobalSearch(user *models.User) {
 			class="absolute w-full left-0 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6"
 			_="on keyup['Escape'] set #global-search.value to '' then add @hidden to #global-search-suggestions"
 		></el-command-list>
-		<div id="search-filters" class="hidden absolute w-full left-0 sm:w-(--input-width) scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2">
+		<div id="search-filters" class="hidden absolute w-full h-auto lg:max-h-160 left-0 sm:w-(--input-width) scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2">
 			@SearchFilters(user)
 		</div>
 	</el-command-palette>

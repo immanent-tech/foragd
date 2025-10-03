@@ -47,7 +47,7 @@ templ HeaderUserMenu(user *models.User) {
 			<span class="sr-only">Open user menu</span>
 			<img src={ user.GetAvatar() } alt={ user.GetNickname() } class="size-8 rounded-full outline -outline-offset-1 outline-base-content/10"/>
 		</button>
-		<el-menu id="header-menu" anchor="bottom end" popover class="w-32 origin-top-right rounded-md bg-base-300 py-2 outline-1 -outline-offset-1 outline-base-content/10 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+		<el-menu id="header-menu" anchor="bottom end" popover class="origin-top-right rounded-md bg-base-300 py-2 outline-1 -outline-offset-1 outline-base-content/10 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 			// Open settings menu.
 			<a
 				class="menu-item"
