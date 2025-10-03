@@ -9,7 +9,9 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
+	"os"
 	"strings"
 	"sync"
 
@@ -111,19 +113,18 @@ var Init = sync.OnceValue(func() error {
 func Load(configPrefix, envPrefix string, cfg any) error {
 	// Load config file
 	err := configSrc.Load(file.Provider(ConfigFile), toml.Parser())
-	if err != nil {
-		slog.Warn("No config file found.",
-			slog.Any("error", err),
-		)
+	pathErr := &fs.PathError{}
+	if errors.As(err, &pathErr) {
+		if !errors.Is(pathErr, os.ErrNotExist) {
+			return fmt.Errorf("unable to load config: %w", err)
+		}
 	}
 	// Merge config with any environment variables.
 	err = configSrc.Load(env.Provider(envPrefix, ".", func(s string) string {
 		return strings.Replace(strings.ToLower(strings.TrimPrefix(s, envPrefix)), "_", ".", 1)
 	}), nil)
 	if err != nil {
-		slog.Warn("No environment variables loaded.",
-			slog.Any("error", err),
-		)
+		return fmt.Errorf("unable to load config: %w", err)
 	}
 	// Unmarshal config, overwriting defaults.
 	err = configSrc.UnmarshalWithConf(configPrefix, &cfg, koanf.UnmarshalConf{Tag: "toml"})
