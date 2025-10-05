@@ -1,7 +1,7 @@
+package pages
+
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
-
-package pages
 
 import (
 	"github.com/immanent-tech/foragd/models"
@@ -90,7 +90,7 @@ templ (page *SearchResultsPage) Content() {
 				</ul>
 			}
 		</ul>
-		<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
+		<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href={ partials.ContentID.Target() }>Back to top</button>
 	}
 }
 
@@ -190,7 +190,7 @@ templ SimilarArticles(articles models.Articles) {
 				}
 			</ul>
 		</ul>
-		<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
+		<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href={ partials.ContentID.Target() }>Back to top</button>
 	} else {
 		@layouts.EmptyContent()
 	}
