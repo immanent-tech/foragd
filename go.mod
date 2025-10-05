@@ -10,10 +10,12 @@ require (
 	github.com/a-h/templ v0.3.943
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
-	github.com/auth0/go-auth0 v1.28.0
+	github.com/auth0/go-auth0 v1.29.0
 	github.com/go-chi/chi/v5 v5.2.3
+	github.com/go-json-experiment/json v0.0.0-20250714165856-be8212f5270d
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.27.0
+	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/knadh/koanf/providers/env v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.0
 	github.com/knadh/koanf/v2 v2.3.0
@@ -40,10 +42,8 @@ require (
 	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
-	github.com/go-json-experiment/json v0.0.0-20250714165856-be8212f5270d // indirect
 	github.com/go-pkgz/expirable-cache/v3 v3.0.0 // indirect
 	github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c // indirect
-	github.com/gofri/go-github-ratelimit/v2 v2.0.2 // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/golang/dep v0.5.4 // indirect
@@ -124,11 +124,9 @@ require (
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goforj/godump v1.6.0
 	github.com/gohugoio/hashstructure v0.5.0
-	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
-	github.com/immanent-tech/slog-elasticsearch v0.0.0
 	github.com/jferrl/go-githubauth v1.4.2
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/justinas/alice v1.2.0
