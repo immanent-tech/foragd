@@ -124,6 +124,8 @@ func (c *Client) CreateArticleIssue(ctx context.Context, article *models.Article
 	labels := []string{"subscription"}
 	// Build issue body.
 	var bodyBuilder strings.Builder
+	bodyBuilder.WriteString("Page URL: " + details.PageUrl)
+	bodyBuilder.WriteRune('\n')
 	bodyBuilder.WriteString("Subscription ID: " + article.GetSubscriptionID())
 	bodyBuilder.WriteRune('\n')
 	bodyBuilder.WriteString("Item ID: " + article.GetID())
@@ -174,8 +176,8 @@ func (c *Client) CreateArticleIssue(ctx context.Context, article *models.Article
 	return nil
 }
 
-// CreateAppIssue creates a new issue in Github about problems with the app reported by a user.
-func (c *Client) CreateAppIssue(ctx context.Context, details *models.AppIssue) error {
+// CreatePageIssue creates a new issue in Github about problems with the app reported by a user.
+func (c *Client) CreatePageIssue(ctx context.Context, details *models.PageIssue) error {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to create app issue: %w", err)

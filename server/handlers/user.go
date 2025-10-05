@@ -619,8 +619,8 @@ func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// GetAppIssues handles presenting a form for the user to submit issues about the app.
-func GetAppIssues(api *API) http.HandlerFunc {
+// GetPageIssues handles presenting a form for the user to submit issues about the app.
+func GetPageIssues(api *API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the current URL on which the issue is being reported.
 		currentURL, found := htmx.GetCurrentURL(req)
@@ -628,22 +628,17 @@ func GetAppIssues(api *API) http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
 		}
 		// Display the report issue form.
-		template := layouts.ReportAppIssue(currentURL, &models.AppIssue{})
+		template := layouts.ReportPageIssue(&models.PageIssue{PageUrl: currentURL})
 		renderPage(template, templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
 
-// SubmitAppIssues handles processing the user submitted subscription issues form.
-func SubmitAppIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
+// SubmitPageIssues handles processing the user submitted subscription issues form.
+func SubmitPageIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Get the current URL on which the issue is being reported.
-		currentURL, found := htmx.GetCurrentURL(req)
-		if !found {
-			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
-		}
 		// Validate the subscription issue request.
-		request, valid, err := forms.DecodeForm[*models.AppIssue](req)
+		request, valid, err := forms.DecodeForm[*models.PageIssue](req)
 		if err != nil || !valid {
 			msg := models.NewErrorMessage(
 				"Unable to submit issue.",
@@ -653,14 +648,14 @@ func SubmitAppIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Create the issue in Github.
-		err = ghapi.CreateAppIssue(req.Context(), request)
+		err = ghapi.CreatePageIssue(req.Context(), request)
 		if err != nil {
 			msg := models.NewErrorMessage(
 				"Unable to submit issue.",
 				"The backend had issues submitting the report. Please try again.",
 			)
 			template := templ.Join(
-				layouts.ReportAppIssue(currentURL, request),
+				layouts.ReportPageIssue(request),
 				partials.ServerErrorNotification(msg),
 			)
 			renderPage(template, templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)

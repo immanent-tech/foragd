@@ -10,7 +10,7 @@ import (
 
 templ Header(user *models.User) {
 	<div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-base-content/10 bg-base-200 px-4 sm:gap-x-6 sm:px-6 lg:px-8">
-		<button type="button" command="show-modal" commandfor={ sidebarID } class="-m-2.5 p-2.5 btn btn-ghost btn-square hover:text-primary lg:hidden">
+		<button type="button" command="show-modal" commandfor="mobile-sidebar" class="-m-2.5 p-2.5 btn btn-ghost btn-square hover:text-primary lg:hidden">
 			<span class="sr-only">Open sidebar</span>
 			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
 				<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5"></path>

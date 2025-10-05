@@ -84,15 +84,6 @@ type AddFeedsetRequest struct {
 	Feedset []string `form:"feedset,unique" json:"feedset,omitempty,omitzero"`
 }
 
-// AppIssue contains details about issues with the app.
-type AppIssue struct {
-	// Details is the user-submitted text about the issue.
-	Details string `form:"details" json:"details,omitempty,omitzero"`
-
-	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
-}
-
 // Article defines model for Article.
 type Article struct {
 	// Content contains the full article content, when it has been fetched from the origin link.
@@ -175,6 +166,7 @@ type ArticleArchiveSourceType string
 
 // ArticleIssue defines model for ArticleIssue.
 type ArticleIssue struct {
+	// Details is the user-submitted text about the issue.
 	Details string `form:"details" json:"details,omitempty,omitzero"`
 
 	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
@@ -182,6 +174,9 @@ type ArticleIssue struct {
 
 	// MissingImage indicates the object is expected to have an image, but it is missing.
 	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
+
+	// PageUrl is the URL of the page on which the user selected the report issue action.
+	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
 }
 
 // ArticleMetadata contains the stored data that represents an article.
@@ -479,13 +474,22 @@ type ObjectCommon struct {
 // ObjectCommonSourceType indicates what type of source the object came from.
 type ObjectCommonSourceType string
 
-// ObjectCommonIssues contains common issues encountered with objects.
-type ObjectCommonIssues struct {
+// ObjectIssue contains common issues encountered with objects.
+type ObjectIssue struct {
 	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
 	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
 
 	// MissingImage indicates the object is expected to have an image, but it is missing.
 	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
+}
+
+// PageIssue contains details about issues with a page.
+type PageIssue struct {
+	// Details is the user-submitted text about the issue.
+	Details string `form:"details" json:"details,omitempty,omitzero"`
+
+	// PageUrl is the URL of the page on which the user selected the report issue action.
+	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
 }
 
 // SearchRequest represents a search request by the user.
@@ -563,6 +567,7 @@ type SubscriptionID = string
 
 // SubscriptionIssue defines model for SubscriptionIssue.
 type SubscriptionIssue struct {
+	// Details is the user-submitted text about the issue.
 	Details string `form:"details" json:"details,omitempty,omitzero"`
 
 	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
@@ -570,6 +575,9 @@ type SubscriptionIssue struct {
 
 	// MissingImage indicates the object is expected to have an image, but it is missing.
 	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
+
+	// PageUrl is the URL of the page on which the user selected the report issue action.
+	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
 }
 
 // SubscriptionMetadata contains the stored data that represents a subscription

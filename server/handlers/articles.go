@@ -376,6 +376,12 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 // GetArticleIssues handles presenting a form for the user to submit details about subscription issues.
 func GetArticleIssues(api *API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Get the current URL on which the issue is being reported.
+		currentURL, found := htmx.GetCurrentURL(req)
+		if !found {
+			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
+		}
+		// Get the item ID.
 		id := chi.URLParam(req, models.ParamItemID)
 		i, err := api.getArticles(req.Context(), id)
 		if err != nil || len(i) == 0 {
@@ -386,8 +392,8 @@ func GetArticleIssues(api *API) http.HandlerFunc {
 			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		template := layouts.ReportArticleIssue(i[0], &models.ArticleIssue{})
-		renderPage(template, templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
+		template := layouts.ReportArticleIssue(i[0], &models.ArticleIssue{PageUrl: currentURL})
+		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -427,7 +433,7 @@ func SubmitArticleIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 				layouts.ReportArticleIssue(i[0], request),
 				partials.ServerErrorNotification(msg),
 			)
-			renderPage(template, templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
+			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Force refresh of page.
@@ -435,7 +441,7 @@ func SubmitArticleIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
-		renderPage(partials.IssueReportedConfirmation(msg), templates.GeneratePageTitle("Report article issue")).ServeHTTP(res, req)
+		renderPartial(partials.IssueReportedConfirmation(msg)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

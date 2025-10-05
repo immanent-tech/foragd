@@ -8,8 +8,8 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
-// ReportAppIssue renders a form for reporting issues with the app.
-templ ReportAppIssue(currentURL string, details *models.AppIssue) {
+// ReportPageIssue renders a form for reporting issues with the app.
+templ ReportPageIssue(details *models.PageIssue) {
 	@partials.MainContainer() {
 		@partials.PageHeader("Report an issue with Foragd")
 		@partials.PageDescription("Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.")
@@ -24,7 +24,7 @@ templ ReportAppIssue(currentURL string, details *models.AppIssue) {
 			hx-indicator="#processing"
 			hx-include="[name='csrf_token']"
 		>
-			<input type="hidden" name="page_url" value={ currentURL }/>
+			<input type="hidden" name="page_url" value={ details.PageUrl }/>
 			<fieldset class="fieldset p-4">
 				<legend class="fieldset-legend text-base/7">Issue Details</legend>
 				<p class="mt-1 text-sm/6 text-base-content/80">Add any other details you think are relevant.</p>
@@ -47,7 +47,12 @@ templ ReportAppIssue(currentURL string, details *models.AppIssue) {
 					Processing...
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
-				<button type="button" hx-get="#" class="btn btn-primary">Back</button>
+				<button
+					type="button"
+					hx-get={ details.PageUrl }
+					hx-target={ partials.ContentID.Target() }
+					class="btn btn-primary"
+				>Back</button>
 				<button
 					type="submit"
 					class="btn btn-primary"

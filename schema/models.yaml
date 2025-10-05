@@ -808,7 +808,7 @@ components:
             type: string
           x-oapi-codegen-extra-tags:
             form: 'feedset,unique'
-    ObjectCommonIssues:
+    ObjectIssue:
       description: >
         contains common issues encountered with objects.
       type: object
@@ -825,33 +825,9 @@ components:
           type: boolean
           x-oapi-codegen-extra-tags:
             form: 'mangled_content'
-    SubscriptionIssue:
+    PageIssue:
       description: >
-        contains details about issues with a subscription.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/ObjectCommonIssues'
-        - type: object
-          properties:
-            details:
-              type: string
-              x-oapi-codegen-extra-tags:
-                form: 'details'
-    ArticleIssue:
-      description: >
-        contains details about issues with an article.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/ObjectCommonIssues'
-        - type: object
-          properties:
-            details:
-              type: string
-              x-oapi-codegen-extra-tags:
-                form: 'details'
-    AppIssue:
-      description: >
-        contains details about issues with the app.
+        contains details about issues with a page.
       type: object
       properties:
         page_url:
@@ -867,3 +843,17 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'details'
+    SubscriptionIssue:
+      description: >
+        contains details about issues with a subscription.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ObjectIssue'
+        - $ref: '#/components/schemas/PageIssue'
+    ArticleIssue:
+      description: >
+        contains details about issues with an article.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ObjectIssue'
+        - $ref: '#/components/schemas/PageIssue'

@@ -290,3 +290,23 @@ templ (c *Subscription) UnsubscribeModal() {
 		</dialog>
 	</el-dialog>
 }
+
+templ ViewSubscriptionLink(subscription *models.Subscription, classes ...string) {
+	{{ overrides := map[string]string{models.ParamSortBy: string(models.SortByLastUpdated), "subscriptions": subscription.GetID()} }}
+	if subscription.IsUnread() {
+		{{ overrides[models.ParamView] = string(models.ViewUnread) }}
+	} else {
+		{{ overrides[models.ParamView] = string(models.ViewRead) }}
+	}
+	<a
+		hx-get="/articles"
+		hx-include="#content-filters"
+		hx-vals={ models.GenerateHXVals(overrides) }
+		hx-target={ ContentID.Target() }
+		hx-push-url="true"
+		hx-swap="innerHTML show:top"
+		class={ "link link-hover", classes }
+	>
+		{ children... }
+	</a>
+}

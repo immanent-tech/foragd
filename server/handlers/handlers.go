@@ -165,10 +165,11 @@ func renderPage(template templ.Component, title string) http.Handler {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		template = layouts.Drawer(user, template)
 		// Write the response template.
 		if IsHTMX(req) {
 			if IsHistoryRestoreRequest(req) {
+				slogctx.FromCtx(req.Context()).Debug("History restore request")
+				template = layouts.Drawer(layouts.DrawerData{User: user}, template)
 				templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
 				return
 			}
@@ -176,13 +177,17 @@ func renderPage(template templ.Component, title string) http.Handler {
 				// Update the page title if set.
 				template = templ.Join(template, templates.SetPageTitle(title))
 			}
+			slogctx.FromCtx(req.Context()).Debug("Partial request")
 			template = templ.Join(template, templates.UpdateCSRFToken())
 			target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget))
-			if target == "" {
-				target = templates.FragmentContent
+			if target != "" && target != templates.FragmentContent {
+				templ.Handler(template, templ.WithFragments(target)).ServeHTTP(res, req)
+			} else {
+				templ.Handler(template).ServeHTTP(res, req)
 			}
-			templ.Handler(template, templ.WithFragments(target)).ServeHTTP(res, req)
 		} else {
+			slogctx.FromCtx(req.Context()).Debug("Non htmx request")
+			template = layouts.Drawer(layouts.DrawerData{User: user}, template)
 			template = templates.Page(title, template)
 			err := template.Render(req.Context(), res)
 			if err != nil {

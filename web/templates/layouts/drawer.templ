@@ -8,19 +8,23 @@ import (
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"slices"
 )
 
-var sidebarID = "mobile-sidebar"
+type DrawerData struct {
+	Subscriptions models.SubscriptionsSlice
+	User          *models.User
+}
 
-templ Drawer(user *models.User, content templ.Component) {
+templ Drawer(data DrawerData, content templ.Component) {
 	// Mobile: drawer sidebar.
 	<el-dialog id="mobile-sidebar-dialog">
-		<dialog id={ sidebarID } class="backdrop:bg-transparent lg:hidden">
+		<dialog id="mobile-sidebar" class="backdrop:bg-transparent lg:hidden">
 			<el-dialog-backdrop class="drawer-backdrop"></el-dialog-backdrop>
 			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
 				<el-dialog-panel class="group/dialog-panel relative mr-16 flex w-full max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full">
 					<div class="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out group-data-closed/dialog-panel:opacity-0">
-						<button type="button" command="close" commandfor={ sidebarID } class="-m-2.5 p-2.5">
+						<button type="button" command="close" commandfor="mobile-sidebar" class="-m-2.5 p-2.5">
 							<span class="sr-only">Close sidebar</span>
 							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 text-base-content">
 								<path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -33,7 +37,7 @@ templ Drawer(user *models.User, content templ.Component) {
 							@partials.Logo("logo-drawer size-12")
 							Foragd
 						</div>
-						@DrawerSidebar(user, "relative flex flex-1 flex-col", "mobile")
+						@DrawerSidebar(data.Subscriptions, data.User.GetFavorites(), "relative flex flex-1 flex-col", "mobile")
 					</div>
 				</el-dialog-panel>
 			</div>
@@ -46,11 +50,11 @@ templ Drawer(user *models.User, content templ.Component) {
 				@partials.Logo("logo-drawer size-12")
 				Foragd
 			</div>
-			@DrawerSidebar(user, "flex flex-1 flex-col", "desktop")
+			@DrawerSidebar(data.Subscriptions, data.User.GetFavorites(), "flex flex-1 flex-col", "desktop")
 		</div>
 	</div>
 	<div class="lg:pl-72">
-		@Header(user)
+		@Header(data.User)
 		<div id={ partials.ContentID.String() } hx-indicator="#content-loading">
 			@templ.Fragment(templates.FragmentContent) {
 				@content
@@ -65,7 +69,7 @@ templ Drawer(user *models.User, content templ.Component) {
 	</div>
 }
 
-templ DrawerSidebar(user *models.User, classes, layout string) {
+templ DrawerSidebar(subscriptions models.SubscriptionsSlice, favorites models.FavoritesSlice, classes, layout string) {
 	// <div class="flex h-16 shrink-0 items-center">
 	// 	@partials.partials.NewAction("/home", partials.DisplayActionAsLink,
 	// 		partials.ActionPushURL(),
@@ -91,7 +95,7 @@ templ DrawerSidebar(user *models.User, classes, layout string) {
 					</li>
 					<li>
 						<a
-							if len(user.GetSubscriptionMetadata()) > 0 {
+							if len(subscriptions) > 0 {
 								hx-get="/subscriptions"
 								hx-target={ partials.ContentID.Target() }
 								hx-push-url="true"
@@ -111,7 +115,7 @@ templ DrawerSidebar(user *models.User, classes, layout string) {
 					</li>
 					<li>
 						<a
-							if len(user.GetSubscriptionMetadata()) > 0 {
+							if len(subscriptions) > 0 {
 								hx-get="/articles"
 								hx-target={ partials.ContentID.Target() }
 								hx-push-url="true"
@@ -133,8 +137,16 @@ templ DrawerSidebar(user *models.User, classes, layout string) {
 			</li>
 			<li>
 				<div class="text-sm/6 font-semibold text-base-content/80">Favorites</div>
-				@partials.FavoritesList(user.GetFavorites(), models.OOBSwapFalse)
+				@partials.FavoritesList(favorites, models.OOBSwapFalse)
 			</li>
+			if len(subscriptions) > 0 {
+				<li>
+					<div class="text-sm/6 font-semibold text-base-content/80">Subscriptions</div>
+					for subscription := range slices.Values(subscriptions) {
+						@partials.ViewSubscriptionLink(subscription)
+					}
+				</li>
+			}
 		</ul>
 	</nav>
 }

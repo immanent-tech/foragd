@@ -21,6 +21,7 @@ templ ReportArticleIssue(article *models.Article, details *models.ArticleIssue) 
 			hx-indicator="#processing"
 			hx-include="[name='csrf_token']"
 		>
+			<input type="hidden" name="page_url" value={ details.PageUrl }/>
 			<fieldset class="fieldset p-4">
 				<legend class="fieldset-legend text-base/7">Issues</legend>
 				<p class="mt-1 text-sm/6 text-base-content/80">Select all that apply.</p>
@@ -77,7 +78,12 @@ templ ReportArticleIssue(article *models.Article, details *models.ArticleIssue) 
 					Processing...
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
-				<button type="button" hx-get="#" class="btn btn-primary">Back</button>
+				<button
+					type="button"
+					hx-get={ details.PageUrl }
+					hx-target={ partials.ContentID.Target() }
+					class="btn btn-primary"
+				>Back</button>
 				<button
 					type="submit"
 					class="btn btn-primary"

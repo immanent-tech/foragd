@@ -268,8 +268,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		})
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
-			r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetAppIssues(handler))
-			r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitAppIssues(handler, s.apis.github))
+			r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues(handler))
+			r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues(handler, s.apis.github))
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
 				// Add subscription.
