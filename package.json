@@ -30,7 +30,7 @@
     "esbuild": "^0.25.10",
     "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
     "@tailwindcss/typography": "^0.5.19",
-    "eslint": "^9.36.0",
+    "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.4.0",
     "htmx-ext-debug": "^2.0.1",
