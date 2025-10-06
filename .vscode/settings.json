@@ -38,7 +38,8 @@
     "container",
     "logging",
     "github",
-    "rss"
+    "rss",
+    "atom"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
