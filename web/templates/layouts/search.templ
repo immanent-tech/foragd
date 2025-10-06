@@ -156,58 +156,60 @@ templ SearchFilters(user *models.User) {
 			hx-target={ partials.ContentID.Target() }
 			hx-push-url="true"
 			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
-			_="on htmx:afterRequest if event.detail.successful then toggle .hidden on #search-filters"
 		>
 			<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 			<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
+				// Full text search filter.
 				<div class="col-span-full">
 					<label for="text" class="block text-sm/6 font-medium">Includes the words</label>
 					<div class="mt-2">
-						<input id="text" type="text" name="text" class="input input-sm w-full bg-base-content/10"/>
+						<input id="text" type="text" name="text" required class="input input-sm w-full bg-base-content/10"/>
 					</div>
 				</div>
+				// Include categories filter.
 				<div class="sm:col-span-3">
 					<label form="categories_include" class="block text-sm/6 font-medium">Include categories</label>
 					<div class="mt-2">
 						<input id="categories_include" type="text" name="categories_include" class="input input-sm bg-base-content/10"/>
 					</div>
 				</div>
+				// Exclude categories filter.
 				<div class="sm:col-span-3">
 					<label for="categories_exclude" class="block text-sm/6 font-medium">Excludes categories</label>
 					<div class="mt-2">
 						<input id="categories_exclude" type="text" name="categories_exclude" class="input input-sm bg-base-content/10"/>
 					</div>
 				</div>
+				// Include authors filter.
 				<div class="sm:col-span-3">
 					<label for="authors_include" class="block text-sm/6 font-medium">Include authors</label>
 					<div class="mt-2">
 						<input id="authors_include" type="text" name="authors_include" class="input input-sm bg-base-content/10"/>
 					</div>
 				</div>
+				// Exclude authors filter.
 				<div class="sm:col-span-3">
 					<label for="authors_exclude" class="block text-sm/6 font-medium">Excludes authors</label>
 					<div class="mt-2">
 						<input id="authors_exclude" type="text" name="authors_exclude" class="input input-sm bg-base-content/10"/>
 					</div>
 				</div>
-				<div class="sm:col-span-3">
-					<label for="subscriptions" class="block text-sm/6 font-medium">Subscriptions</label>
-					<select id="subscriptions" name="subscriptions" class="select select-sm my-2 bg-base-content/10" multiple>
-						for subscription := range slices.Values(user.GetSubscriptionMetadata()) {
-							<option
-								value={ subscription.GetID() }
-								class="group/option relative block cursor-default py-2 pr-9 pl-3 select-none focus:bg-primary focus:text-primary-content focus:outline-hidden active:bg-primary active:text-primary-content active:outline-hidden"
-							>
-								<span class="block truncate font-normal group-aria-selected/option:font-semibold">{ subscription.Customisation.Nickname }</span>
-								// <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-primary group-not-aria-selected/option:hidden group-focus/option:text-primary-content in-[el-selectedcontent]:hidden">
-								// 	<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5">
-								// 		<path d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" fill-rule="evenodd"></path>
-								// 	</svg>
-								// </span>
-							</option>
+				// Include subscriptions filter.
+				<div class="sm:col-span-full">
+					<label for="subscriptions-filter-select" class="block text-sm/6 font-medium">In subscriptions</label>
+					<select id="subscriptions-filter-select" hx-post="/search/filter/subscription" hx-target="#subscription-filters" hx-swap="beforeend" hx-push-url="false" name="subscription-filter-select" class="select select-sm w-full bg-base-content/10">
+						<option disabled selected>Choose...</option>
+						for s := range slices.Values(user.GetSubscriptionMetadata()) {
+							<option value={ s.GetID() + "|" + s.Customisation.Nickname }>{ s.Customisation.Nickname }</option>
 						}
 					</select>
+					<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
+						<div class="mt-2 sm:mt-0">
+							<div id="subscription-filters" class="-m-1 flex flex-wrap items-center"></div>
+						</div>
+					</div>
 				</div>
+				// Date range filter.
 				<div class="sm:col-span-3">
 					<label for="published_within" class="block text-sm/6 font-medium">Published within</label>
 					<select id="published_within" name="published_within" class="select select-sm my-2 bg-base-content/10">
@@ -222,7 +224,7 @@ templ SearchFilters(user *models.User) {
 			</div>
 			<div class="mt-6 flex items-center justify-end gap-x-6">
 				<button type="button" class="btn btn-sm btn-outline" _="on click toggle .hidden on #search-filters">Cancel</button>
-				<button type="submit" class="btn btn-sm btn-primary">Search</button>
+				<button type="submit" class="btn btn-sm btn-primary" _="on click toggle .hidden on #search-filters">Search</button>
 			</div>
 		</form>
 	</div>
@@ -260,6 +262,19 @@ templ SearchFilters(user *models.User) {
 			</div>
 		</dialog>
 	</el-dialog>
+}
+
+templ SubscriptionFilter(id, name string) {
+	<span id={ id } class="m-1 inline-flex items-center rounded-full border border-base-content/90 bg-base-300 py-1.5 pr-2 pl-3 text-sm font-medium text-base-content">
+		<span>{ name }</span>
+		<input type="hidden" name="subscriptions" value={ id }/>
+		<button type="button" _={ "on click remove #" + id } class="ml-1 inline-flex size-4 shrink-0 rounded-full p-1">
+			<span class="sr-only">Remove filter for { name }</span>
+			<svg viewBox="0 0 8 8" fill="none" stroke="currentColor" class="size-2">
+				<path d="M1 1l6 6m0-6L1 7" stroke-width="1.5" stroke-linecap="round"></path>
+			</svg>
+		</button>
+	</span>
 }
 
 // GlobalSearch renders a command palette element for powering global search within the app.

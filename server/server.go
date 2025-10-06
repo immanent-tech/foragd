@@ -237,6 +237,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handler.GetSearchSuggestions())
 		r.With(middlewares.RequireHTMX).Post("/search", handler.GetSearchResults())
 		r.Get("/search", handler.GetSearchResults())
+		r.With(middlewares.RequireHTMX).Post("/search/filter/subscription", handlers.AddSubscriptionFilter())
+
 		// Subscription routes.
 		r.Route("/subscriptions", func(r chi.Router) {
 			r.Get("/", handler.GetSubscriptions())

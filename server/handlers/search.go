@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/angelofallars/htmx-go"
@@ -102,6 +103,19 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		}
+		return nil
+	})).ServeHTTP
+}
+
+// GetSearchResults performs a search with the user input and renders a page with the search results.
+func AddSubscriptionFilter() http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		data := req.FormValue("subscription-filter-select")
+		if data != "" {
+			values := strings.Split(data, "|")
+			renderPartial(layouts.SubscriptionFilter(values[0], values[1])).ServeHTTP(res, req)
+		}
+		res.WriteHeader(http.StatusOK)
 		return nil
 	})).ServeHTTP
 }

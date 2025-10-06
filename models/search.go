@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/gohugoio/hashstructure"
 	"github.com/immanent-tech/go-syndication/sanitization"
@@ -57,6 +58,9 @@ func (r *SearchRequest) Query() string {
 	}
 	if r.CategoriesInclude != "" {
 		params.Set("categories_include", r.CategoriesInclude)
+	}
+	if len(r.Subscriptions) > 0 {
+		params.Set("subscriptions", strings.Join(r.Subscriptions, ","))
 	}
 	params.Set("published_within", string(r.PublishedWithin))
 	return params.Encode()
