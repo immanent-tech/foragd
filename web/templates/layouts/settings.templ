@@ -83,9 +83,9 @@ templ subscriptionSettingsTab() {
 				hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
 				hx-target="#subscriptions-list"
 				hx-indicator=".htmx-indicator"
+				hx-include="[name='csrf_token']"
 				hx-push-url="false"
 			>
-				<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 				<div class="grid grid-cols-1">
 					<input id="filter-subscriptions" type="search" name="text" placeholder="Filter subscriptions..." class="input input-primary input-sm bg-base-content/10"/>
 					<span class="htmx-indicator loading loading-spinner loading-sm"></span>
