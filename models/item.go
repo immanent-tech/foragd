@@ -137,9 +137,9 @@ func (i *Item) GetTimestamp() time.Time {
 }
 
 // IsNewer returns a boolean indicating whether this item has been updated or
-// published after the given time.
+// published after the given time and before now (to ignore potentially incorrect dates in the future).
 func (i *Item) IsNewer(since time.Time) bool {
-	return i.GetTimestamp().After(since)
+	return i.GetTimestamp().After(since) && i.GetTimestamp().Before(time.Now().UTC())
 }
 
 // NewItemFromSource generates an Item from the underlying feed data.
