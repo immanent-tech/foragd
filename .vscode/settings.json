@@ -37,7 +37,8 @@
     "gcp",
     "container",
     "logging",
-    "github"
+    "github",
+    "rss"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
