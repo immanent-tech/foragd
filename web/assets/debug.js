@@ -3,18 +3,16 @@
 
 // Allow event logging.
 
-// htmx.logger = function (elt, event, data) {
-//   if (console) {
-//     console.log(event, elt, data)
-//   }
-// }
+htmx.logger = function (elt, event, data) {
+  if (console) {
+    console.log(event, elt, data)
+  }
+}
 
 // Log all events.
 //
 // https://v1.htmx.org/docs/#debugging
-// htmx.logAll()
+htmx.logAll()
 
-// Action: history restore events.
-window.addEventListener('htmx:historyRestore', (event) => {
-  console.log('restored history.')
-})
+for (const key in document)
+  if (key.startsWith('on')) document.addEventListener(key.slice(2), console.log)
