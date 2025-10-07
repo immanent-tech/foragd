@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
 	"io"
@@ -17,8 +18,10 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
+	"github.com/russross/blackfriday/v2"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -209,4 +212,25 @@ func IsHTMX(req *http.Request) bool {
 
 func IsHistoryRestoreRequest(req *http.Request) bool {
 	return req.Header.Get("HX-History-Restore-Request") == "true"
+}
+
+// PrivacyPolicy handles displaying the privacy policy document.
+func PrivacyPolicy(fs embed.FS) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		data, err := fs.Open("content/docs/privacy.md")
+		if err != nil {
+			return fmt.Errorf("unable to read privacy policy doc: %w", err)
+		}
+		policy, err := io.ReadAll(data)
+		if err != nil {
+			return fmt.Errorf("unable to read privacy policy doc: %w", err)
+		}
+		output := blackfriday.Run(policy)
+		template := templates.Page("Privacy Policy - "+config.AppName, partials.Document(output))
+		err = template.Render(req.Context(), res)
+		if err != nil {
+			return fmt.Errorf("unable to render privacy policy doc: %w", err)
+		}
+		return nil
+	})).ServeHTTP
 }

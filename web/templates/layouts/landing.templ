@@ -4,71 +4,10 @@
 package layouts
 
 import "github.com/immanent-tech/foragd/web/templates/partials"
-import "github.com/immanent-tech/foragd/config"
 
 // Landing is the landing page layout.
 templ Landing() {
 	<div class="bg-base-100">
-		<header class="absolute inset-x-0 top-0 z-50">
-			<nav aria-label="Global" class="flex items-center justify-between p-6 lg:px-8">
-				<div class="flex lg:flex-1">
-					<a href="#" class="-m-1.5 p-1.5">
-						<span class="sr-only">{ config.AppName }</span>
-						@partials.Logo()
-					</a>
-				</div>
-				<div class="flex lg:hidden">
-					<button type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 inline-flex items-center justify-center btn btn-primary btn-square">
-						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"></path>
-						</svg>
-						<span class="sr-only">Open main menu</span>
-					</button>
-				</div>
-				<div class="hidden lg:flex lg:gap-x-12">
-					// <a href="#" class="text-sm/6 font-semibold">Product</a>
-					<a href="#features" class="text-sm/6 font-semibold">Features</a>
-					// <a href="#" class="text-sm/6 font-semibold">Marketplace</a>
-					// <a href="#" class="text-sm/6 font-semibold">Company</a>
-				</div>
-				<div class="hidden lg:flex lg:flex-1 lg:justify-end">
-					<a href="/login/auth0" class="link link-hover text-sm/6 text-base-content hover:text-secondary font-semibold">Log in <span aria-hidden="true">&rarr;</span></a>
-				</div>
-			</nav>
-			<el-dialog>
-				<dialog id="mobile-menu" class="backdrop:bg-transparent lg:hidden">
-					<div tabindex="0" class="fixed inset-0 focus:outline-none">
-						<el-dialog-panel class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-200 p-6 sm:max-w-sm sm:ring-1 sm:ring-base-content/10">
-							<div class="flex items-center justify-between">
-								<a href="#" class="-m-1.5 p-1.5">
-									<span class="sr-only">{ config.AppName }</span>
-									@partials.Logo()
-								</a>
-								<button type="button" command="close" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-neutral">
-									<span class="sr-only">Close menu</span>
-									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-										<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-									</svg>
-								</button>
-							</div>
-							<div class="mt-6 flow-root">
-								<div class="-my-6 divide-y divide-base-content/25">
-									<div class="space-y-2 py-6">
-										// 	<a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-accent/5">Product</a>
-										// 	<a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-accent/5">Marketplace</a>
-										// 	<a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-accent/5">Company</a>
-									</div>
-									<div class="py-6">
-										<a href="#features" _="on click add @hidden to #mobile-menu" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold hover:bg-accent/5">Features</a>
-										<a href="/login/auth0" class="link link-hover -mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-base-content hover:text-accent">Log in <span aria-hidden="true">&rarr;</span></a>
-									</div>
-								</div>
-							</div>
-						</el-dialog-panel>
-					</div>
-				</dialog>
-			</el-dialog>
-		</header>
 		<main class="isolate bg-base-100">
 			<div class="relative pt-14">
 				<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
@@ -85,6 +24,9 @@ templ Landing() {
 							<div class="mt-10 flex items-center justify-center gap-x-6">
 								<a href="#" role="button" class="btn btn-primary">Sign up</a>
 								<a href="#features" class="link link-hover text-sm/6 font-semibold text-base-content/80">Features <span aria-hidden="true">→</span></a>
+							</div>
+							<div class="text-sm/6 font-semibold text-base-content/80 mt-5">
+								Already have an account?<a href="/login/auth0" class="link ">&nbsp;Log in</a>
 							</div>
 						</div>
 					</div>
@@ -403,7 +345,7 @@ templ Landing() {
 					<a href="#" class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">
 						Terms of Service
 					</a>
-					<a href="#" class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">
+					<a href="/privacy" class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">
 						Privacy Policy
 					</a>
 				</div>

@@ -151,6 +151,7 @@ require (
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/realclientip/realclientip-go v1.0.0
 	github.com/reugn/go-quartz v0.15.2
+	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
