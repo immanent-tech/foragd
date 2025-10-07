@@ -31,7 +31,6 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
-	"github.com/immanent-tech/foragd/web/templates/pages"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
@@ -465,7 +464,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 		fav := user.GetFavorites().Get(id)
 		// Update the favorite button and list of favorites.
 		template := templ.Join(
-			pages.RemoveFavoriteSearchButton(fav.GetID()),
+			layouts.RemoveFavoriteSearchButton(fav.GetID()),
 			partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 		)
 		renderPartial(template).ServeHTTP(res, req)
@@ -510,7 +509,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 		}
 		// Update the favorite button and list of favorites.
 		template := templ.Join(
-			pages.AddFavoriteSearchButton(),
+			layouts.AddFavoriteSearchButton(),
 			partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 		)
 		renderPartial(template).ServeHTTP(res, req)

@@ -32,7 +32,6 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
-	"github.com/immanent-tech/foragd/web/templates/pages"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
@@ -366,7 +365,7 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 				http.StatusUnprocessableEntity)
 		}
 		// Show results.
-		template := pages.SimilarArticles(articles)
+		template := layouts.SimilarArticles(articles)
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 		renderPage(template, templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req.WithContext(ctx))
 		return nil

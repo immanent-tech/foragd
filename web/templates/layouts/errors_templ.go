@@ -5,7 +5,7 @@
 
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package pages
+package layouts
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 

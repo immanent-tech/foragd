@@ -23,7 +23,6 @@ import (
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
-	"github.com/immanent-tech/foragd/web/templates/pages"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
@@ -40,7 +39,7 @@ type contextKey string
 
 // NotFound handles showing a page for a 404 response.
 func NotFound() http.HandlerFunc {
-	return alice.New().Then(renderPage(pages.NotFound(), "Not Found")).ServeHTTP
+	return alice.New().Then(renderPage(layouts.NotFound(), "Not Found")).ServeHTTP
 }
 
 // StaticFileServerHandler handles serving content from the embedded filesystem containing static assets (i.e., images,

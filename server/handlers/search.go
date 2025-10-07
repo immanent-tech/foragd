@@ -22,7 +22,6 @@ import (
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
-	"github.com/immanent-tech/foragd/web/templates/pages"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
@@ -95,11 +94,11 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		case len(subscriptions) > 0 || len(articles) > 0:
 			// Render appropriate content.
-			template := pages.NewSearchResultsPage(fav, request, subscriptions, articles).Content()
+			template := layouts.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		default:
-			template := pages.NoSearchResults()
+			template := layouts.NoSearchResults()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		}

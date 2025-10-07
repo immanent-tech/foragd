@@ -62,6 +62,8 @@ func (r *SearchRequest) Query() string {
 	if len(r.Subscriptions) > 0 {
 		params.Set("subscriptions", strings.Join(r.Subscriptions, ","))
 	}
-	params.Set("published_within", string(r.PublishedWithin))
+	if r.PublishedWithin != "" {
+		params.Set("published_within", string(r.PublishedWithin))
+	}
 	return params.Encode()
 }
