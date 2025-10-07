@@ -215,7 +215,9 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 	// Front page.
 	router.Get("/", handlers.Landing())
 	// Privacy policy.
-	router.Get("/privacy", handlers.PrivacyPolicy(web.StaticContent))
+	router.Get("/policies/privacy", handlers.Document(web.StaticContent, "content/docs/privacy.md"))
+	// Terms of Service.
+	router.Get("/tos", handlers.Document(web.StaticContent, "content/docs/tos.md"))
 	// Access routes.
 	router.Group(func(r chi.Router) {
 		r.Use(

@@ -214,22 +214,22 @@ func IsHistoryRestoreRequest(req *http.Request) bool {
 	return req.Header.Get("HX-History-Restore-Request") == "true"
 }
 
-// PrivacyPolicy handles displaying the privacy policy document.
-func PrivacyPolicy(fs embed.FS) http.HandlerFunc {
+// Document handles displaying a document, such as the privacy policy or terms of service..
+func Document(fs embed.FS, file string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		data, err := fs.Open("content/docs/privacy.md")
+		data, err := fs.Open(file)
 		if err != nil {
-			return fmt.Errorf("unable to read privacy policy doc: %w", err)
+			return fmt.Errorf("unable to open document %s: %w", file, err)
 		}
 		policy, err := io.ReadAll(data)
 		if err != nil {
-			return fmt.Errorf("unable to read privacy policy doc: %w", err)
+			return fmt.Errorf("unable to read document %s: %w", file, err)
 		}
-		output := blackfriday.Run(policy)
+		output := blackfriday.Run(policy, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
 		template := templates.Page("Privacy Policy - "+config.AppName, partials.Document(output))
 		err = template.Render(req.Context(), res)
 		if err != nil {
-			return fmt.Errorf("unable to render privacy policy doc: %w", err)
+			return fmt.Errorf("unable to render document %s: %w", file, err)
 		}
 		return nil
 	})).ServeHTTP

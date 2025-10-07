@@ -92,5 +92,8 @@
   "terminal.integrated.scrollback": 10000,
   "conventionalCommits.promptBody": false,
   "tailwindCSS.emmetCompletions": true,
-  "prettier.singleAttributePerLine": true
+  "prettier.singleAttributePerLine": true,
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
