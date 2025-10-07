@@ -23,7 +23,7 @@ templ (c ListControls) Template() {
 		// Mobile filter dialog.
 		<el-dialog>
 			<dialog id="mobile-filters" class="overflow-hidden backdrop:bg-transparent sm:hidden">
-				<el-dialog-backdrop class="drawer-backdrop"></el-dialog-backdrop>
+				<el-dialog-backdrop class="bg-base-100/80 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0"></el-dialog-backdrop>
 				<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
 					<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl transition duration-300 ease-in-out data-closed:translate-x-full">
 						<div class="flex items-center justify-between px-4">
@@ -68,7 +68,7 @@ templ (c ListControls) Template() {
 													<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
 														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
 													</svg>
-													<p class="ml-3 controls-label">Clear</p>
+													<p class="ml-3 text-sm font-medium capitalize hover:underline">Clear</p>
 												</div>
 											</a>
 										</div>
@@ -224,7 +224,7 @@ templ (c ListControls) Template() {
 													<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
 														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
 													</svg>
-													<p class="ml-3 controls-label">Clear</p>
+													<p class="ml-3 text-sm font-medium capitalize hover:underline">Clear</p>
 												</div>
 											</a>
 										</div>
@@ -291,7 +291,7 @@ templ viewFilter(id string, view models.View, current models.View) {
 			}
 			hx-vals={ models.GenerateHXVals(map[string]string{models.ParamView: string(view)}) }
 		/>
-		<label for={ id } class="ml-3 controls-label">{ string(view) }</label>
+		<label for={ id } class="ml-3 text-sm font-medium capitalize hover:underline">{ string(view) }</label>
 	</div>
 }
 
@@ -311,7 +311,7 @@ templ categoryFilter(id string, category models.CategoryCount, current models.Ca
 			}
 			class={ "radio radio-sm", templ.KV("radio-accent",current.HasCategory(category.Category)) }
 		/>
-		<label for={ id } class="ml-3 controls-label">{ category.Category }</label>
+		<label for={ id } class="ml-3 text-sm font-medium capitalize hover:underline">{ category.Category }</label>
 	</div>
 }
 
@@ -331,7 +331,7 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ models.GenerateHXVals(map[string]string{models.ParamSortBy: string(sort.SortBy), models.ParamSortOrder: string(sort.SortOrder)}) }
 		/>
-		<label for={ sort.ID() } class="ml-3 controls-label">
+		<label for={ sort.ID() } class="ml-3 text-sm font-medium capitalize hover:underline">
 			{ sort.String() }
 		</label>
 	</div>

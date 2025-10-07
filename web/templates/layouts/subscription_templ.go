@@ -170,7 +170,7 @@ func EditSubscription(request *models.EditSubscriptionRequest) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6\"><label class=\"input-label\">Current Categories</label><div class=\"mt-2 sm:col-span-2 sm:mt-0\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6\"><label class=\"label block text-sm/6 font-medium sm:pt-1.5\">Current Categories</label><div class=\"mt-2 sm:col-span-2 sm:mt-0\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -613,7 +613,7 @@ func ImportSubscriptions() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, " <div class=\"form-fieldset\"><form id=\"import\" hx-encoding=\"multipart/form-data\" hx-post=\"/user/import\" hx-target=\"#import-results\" hx-indicator=\"#processing\"><input id=\"csrf_token\" type=\"hidden\" name=\"csrf_token\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, " <div class=\"border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0\"><form id=\"import\" hx-encoding=\"multipart/form-data\" hx-post=\"/user/import\" hx-target=\"#import-results\" hx-indicator=\"#processing\"><input id=\"csrf_token\" type=\"hidden\" name=\"csrf_token\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

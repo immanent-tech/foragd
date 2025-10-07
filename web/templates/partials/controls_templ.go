@@ -48,7 +48,7 @@ func (c ListControls) Template() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div><el-dialog><dialog id=\"mobile-filters\" class=\"overflow-hidden backdrop:bg-transparent sm:hidden\"><el-dialog-backdrop class=\"drawer-backdrop\"></el-dialog-backdrop><div tabindex=\"0\" class=\"fixed inset-0 flex focus:outline-none\"><el-dialog-panel class=\"relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl transition duration-300 ease-in-out data-closed:translate-x-full\"><div class=\"flex items-center justify-between px-4\"><h2 class=\"text-lg font-medium\">Filters</h2><button type=\"button\" command=\"close\" commandfor=\"mobile-filters\" class=\"relative -mr-2 flex size-10 items-center justify-center rounded-md p-2 text-base-content hover:text-base-content/50 focus:ring-2 focus:ring-accent focus:outline-hidden\"><span class=\"absolute -inset-0.5\"></span> <span class=\"sr-only\">Close menu</span> <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-6\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18 18 6M6 6l12 12\"></path></svg></button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div><el-dialog><dialog id=\"mobile-filters\" class=\"overflow-hidden backdrop:bg-transparent sm:hidden\"><el-dialog-backdrop class=\"bg-base-100/80 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0\"></el-dialog-backdrop><div tabindex=\"0\" class=\"fixed inset-0 flex focus:outline-none\"><el-dialog-panel class=\"relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl transition duration-300 ease-in-out data-closed:translate-x-full\"><div class=\"flex items-center justify-between px-4\"><h2 class=\"text-lg font-medium\">Filters</h2><button type=\"button\" command=\"close\" commandfor=\"mobile-filters\" class=\"relative -mr-2 flex size-10 items-center justify-center rounded-md p-2 text-base-content hover:text-base-content/50 focus:ring-2 focus:ring-accent focus:outline-hidden\"><span class=\"absolute -inset-0.5\"></span> <span class=\"sr-only\">Close menu</span> <svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-6\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18 18 6M6 6l12 12\"></path></svg></button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -118,7 +118,7 @@ func (c ListControls) Template() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><div class=\"flex items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18 18 6M6 6l12 12\"></path></svg><p class=\"ml-3 controls-label\">Clear</p></div></a></div></el-disclosure></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><div class=\"flex items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18 18 6M6 6l12 12\"></path></svg><p class=\"ml-3 text-sm font-medium capitalize hover:underline\">Clear</p></div></a></div></el-disclosure></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -471,7 +471,7 @@ func (c ListControls) Template() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\"><div class=\"flex items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18 18 6M6 6l12 12\"></path></svg><p class=\"ml-3 controls-label\">Clear</p></div></a></div></el-popover></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\"><div class=\"flex items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"size-4\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18 18 6M6 6l12 12\"></path></svg><p class=\"ml-3 text-sm font-medium capitalize hover:underline\">Clear</p></div></a></div></el-popover></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -818,14 +818,14 @@ func viewFilter(id string, view models.View, current models.View) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\" class=\"ml-3 controls-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 64, "\" class=\"ml-3 text-sm font-medium capitalize hover:underline\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var45 string
 		templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(string(view))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/controls.templ`, Line: 294, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/controls.templ`, Line: 294, Col: 94}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 		if templ_7745c5c3_Err != nil {
@@ -963,14 +963,14 @@ func categoryFilter(id string, category models.CategoryCount, current models.Cat
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "\" class=\"ml-3 controls-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "\" class=\"ml-3 text-sm font-medium capitalize hover:underline\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var54 string
 		templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(category.Category)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/controls.templ`, Line: 314, Col: 67}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/controls.templ`, Line: 314, Col: 99}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 		if templ_7745c5c3_Err != nil {
@@ -1103,7 +1103,7 @@ func sortOption(path string, sort models.Sort, current models.Sort) templ.Compon
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "\" class=\"ml-3 controls-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "\" class=\"ml-3 text-sm font-medium capitalize hover:underline\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

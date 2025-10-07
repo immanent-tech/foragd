@@ -96,7 +96,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				})
 				// Show current categories.
 				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-					<label class="input-label">Current Categories</label>
+					<label class="label block text-sm/6 font-medium sm:pt-1.5">Current Categories</label>
 					<div class="mt-2 sm:col-span-2 sm:mt-0">
 						@partials.ManageCategories(request.GetCategories())
 					</div>
@@ -273,7 +273,7 @@ templ ImportSubscriptions() {
 	@partials.MainContainer() {
 		@partials.PageHeader("Import Subscriptions")
 		@partials.PageDescription("You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.")
-		<div class="form-fieldset">
+		<div class="border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0">
 			<form
 				id="import"
 				hx-encoding="multipart/form-data"
