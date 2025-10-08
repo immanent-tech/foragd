@@ -221,6 +221,9 @@ type DeletedAt = time.Time
 
 // EditSubscriptionRequest defines model for EditSubscriptionRequest.
 type EditSubscriptionRequest struct {
+	// ArticleFilters holds filters to apply to the articles within a subscription.
+	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters,omitempty,omitzero"`
+
 	// Categories is a custom list of categories for an object.
 	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
 
@@ -539,8 +542,20 @@ type Subscription struct {
 	UnreadCount int `json:"-" validate:"gte=0"`
 }
 
+// SubscriptionArticleFilters holds filters to apply to the articles within a subscription.
+type SubscriptionArticleFilters struct {
+	// Authors is the author filters to apply.
+	Authors string `form:"authors" json:"authors,omitempty,omitzero"`
+
+	// Categories is the category filters to apply.
+	Categories string `form:"categories" json:"categories,omitempty,omitzero"`
+}
+
 // SubscriptionCustomisation contains object fields that can be customised (overridden) by a user
 type SubscriptionCustomisation struct {
+	// ArticleFilters holds filters to apply to the articles within a subscription.
+	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters,omitempty,omitzero"`
+
 	// Categories is a custom list of categories for an object.
 	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
 

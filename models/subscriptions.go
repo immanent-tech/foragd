@@ -333,6 +333,8 @@ func (s *EditSubscriptionRequest) Sanitise() error {
 		categories = append(categories, category)
 	}
 	s.Categories = categories
+	s.ArticleFilters.Authors = validation.SanitizeString(s.ArticleFilters.Authors)
+	s.ArticleFilters.Categories = validation.SanitizeString(s.ArticleFilters.Categories)
 	return nil
 }
 

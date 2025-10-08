@@ -4,6 +4,7 @@
 package layouts
 
 import (
+	"fmt"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
@@ -12,7 +13,7 @@ import (
 templ ReportArticleIssue(article *models.Article, details *models.ArticleIssue) {
 	@partials.MainContainer() {
 		@partials.PageHeader("Report an issue")
-		@partials.PageDescription("Use this form to report an issue with " + article.GetTitle() + ". We will look into it and get back to you as soon as we can.")
+		@partials.PageDescription(fmt.Sprintf("Use this form to report an issue with the article %q (subscription: %q). We will look into it and get back to you as soon as we can.", article.GetTitle(), article.GetFeedTitle()))
 		<form
 			id="report-subscription-issue"
 			hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/issue" }

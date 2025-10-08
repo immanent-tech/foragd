@@ -209,6 +209,28 @@ func (u *User) AddFavoriteSearch(nickname string, search *SearchRequest) error {
 	return nil
 }
 
+func (u *User) UpdateFavoriteSearch(nickname string, search *SearchRequest) error {
+	id := search.ID()
+	if id == "" {
+		return fmt.Errorf("%w: cannot generate search id", ErrUpdateUser)
+	}
+	// Find the index of the existing favorite search entry in the user favorites.
+	idx := slices.IndexFunc(u.GetFavorites(), func(f *Favorite) bool {
+		return f.GetID() == id
+	})
+	// Replace the existing favorite entry.
+	if idx != -1 {
+		fav := newFavorite(FavoriteTypeSearch, nickname)
+		fav.SetID(id)
+		err := fav.ObjectData.FromFavoriteSearch(*search)
+		if err != nil {
+			return fmt.Errorf("could not create favorite search: %w", err)
+		}
+		u.Favorites[idx] = fav
+	}
+	return nil
+}
+
 // RemoveFavorite removes the favorite with the given id from the user.
 func (u *User) RemoveFavorite(id string) {
 	favorites := slices.DeleteFunc(u.Favorites, func(f *Favorite) bool {

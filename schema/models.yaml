@@ -483,6 +483,8 @@ components:
           oneOf:
             - $ref: '../pkg/go-syndication/schema/types.yaml#/components/schemas/ImageInfo'
             - $ref: '#/components/schemas/StoredImage'
+        article_filters:
+          $ref: '#/components/schemas/SubscriptionArticleFilters'
     SubscriptionSettings:
       description: >
         contains options that control how the subscription is stored/displayed.
@@ -519,6 +521,25 @@ components:
           type: boolean
           x-oapi-codegen-extra-tags:
             json: '-'
+    SubscriptionArticleFilters:
+      description: >
+        holds filters to apply to the articles within a subscription.
+      type: object
+      properties:
+        categories:
+          description: >
+            is the category filters to apply.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'categories'
+        authors:
+          description: >
+            is the author filters to apply.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'authors'
+      x-oapi-codegen-extra-tags:
+        form: 'article_filters'
     SubscriptionRequest:
       description: >
         represents a request to create a subscription.

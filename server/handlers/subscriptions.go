@@ -19,6 +19,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
@@ -291,6 +292,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			Nickname:               metadata.Customisation.Nickname,
 			Categories:             metadata.Customisation.Categories,
 			ShowFullArticleContent: metadata.Settings.ShowFullArticleContent,
+			ArticleFilters:         metadata.Customisation.ArticleFilters,
 		}
 		// Get top categories across items in subscription feed and add as suggested categories for the
 		// subscription.
@@ -319,11 +321,14 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			renderPage(layouts.EditSubscription(request), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
+		godump.Dump(request)
 		// Update the subscription metadata.
 		metadata := user.GetSubscriptionMetadata().GetByID(request.SubscriptionID)
 		metadata.Customisation.Nickname = request.GetNickname()
 		metadata.Customisation.Categories = request.GetCategories()
 		metadata.Settings.ShowFullArticleContent = request.ShowFullArticleContent
+		metadata.Customisation.ArticleFilters.Authors = request.ArticleFilters.Authors
+		metadata.Customisation.ArticleFilters.Categories = request.ArticleFilters.Categories
 		err = user.UpdateSubscription(metadata)
 		if err != nil {
 			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")

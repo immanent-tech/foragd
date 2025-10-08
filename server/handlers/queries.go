@@ -54,6 +54,11 @@ func queryReadItems(user *models.User, subscription *models.SubscriptionMetadata
 				),
 			),
 		),
+		// User-specified field-level filtering.
+		query.Must(
+			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Categories, "", "categories"),
+		),
 	)
 }
 
@@ -76,6 +81,11 @@ func queryUnreadItems(user *models.User, subscription *models.SubscriptionMetada
 				),
 			),
 		),
+		// User-specified field-level filtering.
+		query.Must(
+			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Categories, "", "categories"),
+		),
 	)
 }
 
@@ -94,6 +104,11 @@ func queryAllItems(user *models.User, subscription *models.SubscriptionMetadata)
 					query.Since("updated", maxHistory),
 				),
 			),
+		),
+		// User-specified field-level filtering.
+		query.Must(
+			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Categories, "", "categories"),
 		),
 	)
 }
