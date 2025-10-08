@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -35,6 +36,9 @@ func (r *SearchRequest) Sanitise() error {
 
 // ID generates an ID (hash) from the search data.
 func (r *SearchRequest) ID() string {
+	if reflect.ValueOf(r).IsZero() {
+		return "invalid"
+	}
 	hash, err := hashstructure.Hash(r, nil)
 	if err != nil {
 		return ""

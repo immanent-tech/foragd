@@ -84,6 +84,24 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		}
 		// Retrieve favorite data for this search
 		fav := user.GetFavorites().FilterByType(models.FavoriteTypeSearch).Get(id)
+		// Check if the favorite needs to be updated.
+		if fav != nil && req.FormValue("update_favorite_search") == "true" {
+			err := user.UpdateFavoriteSearch(fav.Nickname, request)
+			if err != nil {
+				template := partials.Notification(
+					models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."), 0)
+				renderPartial(template).ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusInternalServerError)
+			}
+			err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+				"favorites": user.Favorites,
+			})
+			if err != nil {
+				template := partials.Notification(
+					models.NewWarningMessage("Unable to update favorite.", "Temporary backend issue, please try again."), 5*time.Second)
+				renderPartial(template).ServeHTTP(res, req)
+			}
+		}
 		// Find subscriptions and articles that match search request.
 		subscriptions, articles, err := a.getSearchResults(req.Context(), request)
 		switch {

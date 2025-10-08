@@ -161,11 +161,11 @@ templ SearchFilters(user *models.User, request *models.SearchRequest) {
 			hx-post="/search"
 			hx-target={ partials.ContentID.Target() }
 			hx-push-url="true"
+			hx-include="[name='csrf_token']"
 			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
 			hx-params="not #current-search-filters"
 			_="on htmx:afterRequest(successful) if successful add .hidden to #search-filters"
 		>
-			<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 			<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
 				// Full text search filter.
 				<div class="col-span-full">
@@ -434,7 +434,8 @@ templ (page *SearchResultsPage) Content() {
 			<el-disclosure id="faq-0" hidden class="contents">
 				<dd id="current-search-filters" class="mt-2 pr-12">
 					@SearchFilters(page.user, page.search) {
-						<button type="submit" class="btn btn-sm btn-primary">Search</button>
+						<input type="hidden" name="update_favorite_search" value="true"/>
+						<button type="submit" class="btn btn-sm btn-primary">Update</button>
 					}
 				</dd>
 			</el-disclosure>
