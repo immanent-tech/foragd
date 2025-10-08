@@ -96,12 +96,14 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			</div>
 		</fieldset>
 		<fieldset class="fieldset border-base-300 rounded-box border p-4">
-			<legend class="fieldset-legend text-base/7">Article Filtering</legend>
+			<legend class="fieldset-legend text-base/7">
+				Article Filtering
+			</legend>
 			<div class="flex items-center space-x-2">
-				<p class="mt-1 text-sm/6 text-neutral-content">Filter the articles within the subscription by the value of various fields.</p>
+				<p class="mt-1 text-sm/6 text-base-content">Filter the articles within the subscription by the value of various fields.</p>
 				@partials.HelpPopover("filter-operators-help") {
 					<div tabindex="0" class="card-body card-sm">
-						<p>By default words are matched with OR (i.e., cats OR dogs). The following operators can be used for more refined searches:</p>
+						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 						<ul class="gap-y-2">
 							<li>+ signifies AND operation (i.e., food AND beverages)</li>
 							<li>| signifies OR operation (i.e., food OR beverages)</li>
