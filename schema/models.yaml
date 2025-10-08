@@ -740,32 +740,18 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'text'
             validate: 'omitempty,required'
-        categories_include:
+        categories:
           description: >
-            a list of categories that must be included in search results.
+            a list of search terms for categories.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'categories_include'
-        categories_exclude:
+            form: 'categories'
+        authors:
           description: >
-            a list of categories that must not be included in search results.
+            a list of search terms for authors.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'categories_exclude'
-        authors_include:
-          description: >
-            a list of authors that must be included in search results.
-          type: string
-          x-go-type-skip-optional-pointer: true
-          x-oapi-codegen-extra-tags:
-            form: 'authors_include'
-        authors_exclude:
-          description: >
-            a list of authors that must not be included in search results.
-          type: string
-          x-go-type-skip-optional-pointer: true
-          x-oapi-codegen-extra-tags:
-            form: 'authors_exclude'
+            form: 'authors'
         subscriptions:
           description: >
             is a list of subscription IDs.

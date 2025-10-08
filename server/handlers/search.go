@@ -93,7 +93,6 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			renderPage(partials.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		case len(subscriptions) > 0 || len(articles) > 0:
-			// Render appropriate content.
 			template := layouts.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
@@ -106,7 +105,6 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// GetSearchResults performs a search with the user input and renders a page with the search results.
 func AddSubscriptionFilter() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		data := req.FormValue("subscription-filter-select")
@@ -173,7 +171,7 @@ func (a *API) getSearchSuggestions(ctx context.Context, searchTerms string) ([]*
 }
 
 // getSearchResults will find suggestions for the global search from available subscriptions and articles.
-func (a *API) getSearchResults(ctx context.Context, request *models.SearchRequest) ([]*partials.Subscription, []*partials.Article, error) {
+func (a *API) getSearchResults(ctx context.Context, request *models.SearchRequest) (models.SubscriptionsSlice, []*models.Article, error) {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
@@ -234,42 +232,42 @@ func (a *API) getSearchResults(ctx context.Context, request *models.SearchReques
 			// 		),
 			// 	),
 			// ),
-			query.SimpleQueryString(request.CategoriesInclude, "OR|AND|PHRASE|PRECEDENCE", "categories"),
-			query.SimpleQueryString(request.AuthorsInclude, "OR|AND|PHRASE|PRECEDENCE", "authors", "contributors"),
+			query.SimpleQueryString(request.Categories, "", "categories"),
+			query.SimpleQueryString(request.Authors, "", "authors", "contributors"),
 		),
-		query.MustNot(
-			query.SimpleQueryString(request.CategoriesExclude, "OR|AND|PHRASE|PRECEDENCE", "categories"),
-			query.SimpleQueryString(request.AuthorsExclude, "OR|AND|PHRASE|PRECEDENCE", "authors", "contributors"),
-		),
+		// query.MustNot(
+		// 	query.SimpleQueryString(request.CategoriesExclude, "OR|AND|PHRASE|PRECEDENCE", "categories"),
+		// 	query.SimpleQueryString(request.AuthorsExclude, "OR|AND|PHRASE|PRECEDENCE", "authors", "contributors"),
+		// ),
 	)
 	itemResults, _, err := a.DataAPI().SearchItems(ctx, itemsQuery, 10, &models.SortLastUpdatedDesc, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
 	}
-	details, err := models.GenerateArticles(ctx, itemResults)
+	articles, err := models.GenerateArticles(ctx, itemResults)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
 	}
-	articles := make([]*partials.Article, 0, len(itemResults))
-	for article := range slices.Values(details) {
-		articles = append(articles, partials.NewArticleContent(article))
-	}
+	// articles := make([]*partials.Article, 0, len(itemResults))
+	// for article := range slices.Values(details) {
+	// 	articles = append(articles, partials.NewArticleContent(article))
+	// }
 
 	// Generate subscriptions from data sources.
-	subscriptions := make([]*partials.Subscription, 0)
+	subscriptions := make(models.SubscriptionsSlice, 0)
 	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
 	if len(metadataMatches) > 0 {
-		subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
+		subscriptions, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
 		}
 		// Truncate subscription matches to 3 results.
-		if len(subscriptionMatches) > 3 {
-			subscriptionMatches = subscriptionMatches[:3]
+		if len(subscriptions) > 3 {
+			subscriptions = subscriptions[:3]
 		}
-		for s := range slices.Values(subscriptionMatches) {
-			subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
-		}
+		// for s := range slices.Values(subscriptionMatches) {
+		// 	subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
+		// }
 	}
 	return subscriptions, articles, nil
 }

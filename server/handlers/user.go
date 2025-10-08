@@ -430,6 +430,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
+		name := req.FormValue("search_name")
 		// Add the favorite.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -437,13 +438,14 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
-		err = user.AddFavoriteSearch("Search: "+request.Text, request)
+		err = user.AddFavoriteSearch(name, request)
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."), 0)
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
+		slog.Info("here")
 		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})

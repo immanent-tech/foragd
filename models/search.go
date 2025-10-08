@@ -27,10 +27,8 @@ func (r *SearchRequest) Valid() (bool, error) {
 // Sanitise will sanitise the search request data.
 func (r *SearchRequest) Sanitise() error {
 	r.Text = sanitization.SanitizeString(r.Text)
-	r.AuthorsExclude = sanitization.SanitizeString(r.AuthorsExclude)
-	r.AuthorsInclude = sanitization.SanitizeString(r.AuthorsInclude)
-	r.CategoriesExclude = sanitization.SanitizeString(r.CategoriesExclude)
-	r.CategoriesInclude = sanitization.SanitizeString(r.CategoriesInclude)
+	r.Authors = sanitization.SanitizeString(r.Authors)
+	r.Categories = sanitization.SanitizeString(r.Categories)
 	return nil
 }
 
@@ -47,17 +45,11 @@ func (r *SearchRequest) ID() string {
 func (r *SearchRequest) Query() string {
 	params := make(url.Values)
 	params.Set("text", r.Text)
-	if r.AuthorsExclude != "" {
-		params.Set("authors_exclude", r.AuthorsExclude)
+	if r.Authors != "" {
+		params.Set("authors", r.Authors)
 	}
-	if r.AuthorsInclude != "" {
-		params.Set("authors_include", r.AuthorsInclude)
-	}
-	if r.CategoriesExclude != "" {
-		params.Set("categories_exclude", r.CategoriesExclude)
-	}
-	if r.CategoriesInclude != "" {
-		params.Set("categories_include", r.CategoriesInclude)
+	if r.Categories != "" {
+		params.Set("categories", r.Categories)
 	}
 	if len(r.Subscriptions) > 0 {
 		params.Set("subscriptions", strings.Join(r.Subscriptions, ","))

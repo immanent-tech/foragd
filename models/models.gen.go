@@ -494,17 +494,11 @@ type PageIssue struct {
 
 // SearchRequest represents a search request by the user.
 type SearchRequest struct {
-	// AuthorsExclude a list of authors that must not be included in search results.
-	AuthorsExclude string `form:"authors_exclude" json:"authors_exclude,omitempty,omitzero"`
+	// Authors a list of search terms for authors.
+	Authors string `form:"authors" json:"authors,omitempty,omitzero"`
 
-	// AuthorsInclude a list of authors that must be included in search results.
-	AuthorsInclude string `form:"authors_include" json:"authors_include,omitempty,omitzero"`
-
-	// CategoriesExclude a list of categories that must not be included in search results.
-	CategoriesExclude string `form:"categories_exclude" json:"categories_exclude,omitempty,omitzero"`
-
-	// CategoriesInclude a list of categories that must be included in search results.
-	CategoriesInclude string `form:"categories_include" json:"categories_include,omitempty,omitzero"`
+	// Categories a list of search terms for categories.
+	Categories string `form:"categories" json:"categories,omitempty,omitzero"`
 
 	// PublishedWithin represents a time range within which the objects should be published
 	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within,omitempty,omitzero"`

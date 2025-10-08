@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sort"
 	"strings"
 	"time"
 
@@ -508,6 +509,12 @@ func (s SubscriptionMetadataSlice) GetByFeedID(id FeedID) *SubscriptionMetadata 
 		return s[idx]
 	}
 	return nil
+}
+
+// SortByTitle sorts the slice of subscriptions by their title.
+func (s SubscriptionMetadataSlice) SortByTitle() SubscriptionMetadataSlice {
+	sort.Slice(s, func(i, j int) bool { return s[i].Customisation.Nickname < s[j].Customisation.Nickname })
+	return s
 }
 
 // Valid returns a boolean indicating whether the data for the subscription issue is valid.
