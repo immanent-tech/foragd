@@ -335,39 +335,53 @@ templ SearchFilters(user *models.User, request *models.SearchRequest) {
 		</form>
 	</div>
 	// Help dialog.
-	<button type="button" command="show-modal" commandfor="search-filters-help" class="btn btn-sm btn-ghost btn-square absolute right-2 top-2">
-		<span class="sr-only">Search filters help</span>
-		<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-info">
-			<path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"></path>
-		</svg>
-	</button>
-	<el-dialog>
-		<dialog id="search-filters-help" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
-			<el-dialog-backdrop class="fixed inset-0 bg-base-100/80 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
-			<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
-				<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-sm sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
-					<div>
-						<div class="mt-3 sm:mt-5">
-							<h3 id="dialog-title" class="text-base font-semibold">Search Help</h3>
-							<div class="mt-2 text-sm space-y-2">
-								<p>By default words are matched with OR (i.e., cats OR dogs). The following operators can be used for more refined searches:</p>
-								<ul class="gap-y-2">
-									<li>+ signifies AND operation (i.e., food AND beverages)</li>
-									<li>| signifies OR operation (i.e., food OR beverages)</li>
-									<li>- negates a the word (i.e., NOT alcoholic)</li>
-									<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
-									<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-					<div class="mt-5 sm:mt-6 text-center">
-						<button type="button" command="close" commandfor="search-filters-help" class="btn btn-wide btn-outline">Close</button>
-					</div>
-				</el-dialog-panel>
+	<div class="absolute right-2 top-2">
+		@partials.HelpPopover("filter-operators-help", "bottom end") {
+			<div tabindex="0" class="card-body card-sm bg-base-300">
+				<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+				<ul class="gap-y-2">
+					<li>+ signifies AND operation (i.e., food AND beverages)</li>
+					<li>| signifies OR operation (i.e., food OR beverages)</li>
+					<li>- negates a the word (i.e., NOT alcoholic)</li>
+					<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
+					<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
+				</ul>
 			</div>
-		</dialog>
-	</el-dialog>
+		}
+	</div>
+	// <button type="button" command="show-modal" commandfor="search-filters-help" class="btn btn-sm btn-ghost btn-square absolute right-2 top-2">
+	// 	<span class="sr-only">Search filters help</span>
+	// 	<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-info">
+	// 		<path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"></path>
+	// 	</svg>
+	// </button>
+	// <el-dialog>
+	// 	<dialog id="search-filters-help" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
+	// 		<el-dialog-backdrop class="fixed inset-0 bg-base-100/80 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
+	// 		<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
+	// 			<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-sm sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
+	// 				<div>
+	// 					<div class="mt-3 sm:mt-5">
+	// 						<h3 id="dialog-title" class="text-base font-semibold">Search Help</h3>
+	// 						<div class="mt-2 text-sm space-y-2">
+	// 							<p>By default words are matched with OR (i.e., cats OR dogs). The following operators can be used for more refined searches:</p>
+	// 							<ul class="gap-y-2">
+	// 								<li>+ signifies AND operation (i.e., food AND beverages)</li>
+	// 								<li>| signifies OR operation (i.e., food OR beverages)</li>
+	// 								<li>- negates a the word (i.e., NOT alcoholic)</li>
+	// 								<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
+	// 								<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
+	// 							</ul>
+	// 						</div>
+	// 					</div>
+	// 				</div>
+	// 				<div class="mt-5 sm:mt-6 text-center">
+	// 					<button type="button" command="close" commandfor="search-filters-help" class="btn btn-wide btn-outline">Close</button>
+	// 				</div>
+	// 			</el-dialog-panel>
+	// 		</div>
+	// 	</dialog>
+	// </el-dialog>
 }
 
 templ SubscriptionFilter(id, name string) {

@@ -40,7 +40,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 						/>
 						Always show full article content
 					</label>
-					@partials.HelpPopover("show-full-article-help") {
+					@partials.HelpPopover("show-full-article-help", "top end") {
 						<div tabindex="0" class="card-body card-sm">
 							<div tabindex="0" class="card-body">
 								<p>If articles in the subscription are only showing a summary, set this toggle to attempt to fetch the full content from the website.</p>
@@ -101,8 +101,8 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			</legend>
 			<div class="flex items-center space-x-2">
 				<p class="mt-1 text-sm/6 text-base-content">Filter the articles within the subscription by the value of various fields.</p>
-				@partials.HelpPopover("filter-operators-help") {
-					<div tabindex="0" class="card-body card-sm">
+				@partials.HelpPopover("filter-operators-help", "top end") {
+					<div tabindex="0" class="card-body card-sm bg-base-300">
 						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 						<ul class="gap-y-2">
 							<li>+ signifies AND operation (i.e., food AND beverages)</li>
