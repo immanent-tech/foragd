@@ -163,7 +163,6 @@ templ SearchFilters(user *models.User, request *models.SearchRequest) {
 			hx-push-url="true"
 			hx-include="[name='csrf_token']"
 			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
-			hx-params="not #current-search-filters"
 			_="on htmx:afterRequest(successful) if successful add .hidden to #search-filters"
 		>
 			<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
@@ -218,7 +217,7 @@ templ SearchFilters(user *models.User, request *models.SearchRequest) {
 					<select
 						id="subscriptions-filter-select"
 						hx-post="/search/filter/subscription"
-						hx-target="#subscription-filters"
+						hx-target="next #subscription-filters"
 						hx-swap="beforeend"
 						hx-push-url="false"
 						name="subscription-filter-select"
@@ -241,6 +240,53 @@ templ SearchFilters(user *models.User, request *models.SearchRequest) {
 							</div>
 						</div>
 					</div>
+				</div>
+				// View filter.
+				<div class="sm:col-span-3">
+					<fieldset>
+						<legend class="text-sm/6 font-medium">View</legend>
+						<div>
+							<div class="flex items-center gap-x-3">
+								<input
+									id="view_unread"
+									type="radio"
+									name="view"
+									value="unread"
+									if request.View == models.ViewUnread {
+										checked
+									}
+									class="radio radio-sm"
+								/>
+								<label for="view_unread" class="block text-sm/6 font-medium">Unread</label>
+							</div>
+							<div class="flex items-center gap-x-3">
+								<input
+									id="view_read"
+									type="radio"
+									name="view"
+									value="read"
+									if request.View == models.ViewRead {
+										checked
+									}
+									class="radio radio-sm"
+								/>
+								<label for="view_read" class="block text-sm/6 font-medium">Read</label>
+							</div>
+							<div class="flex items-center gap-x-3">
+								<input
+									id="view_all"
+									type="radio"
+									name="view"
+									value="all"
+									if request.View == models.ViewAll {
+										checked
+									}
+									class="radio radio-sm"
+								/>
+								<label for="view_all" class="block text-sm/6 font-medium">All</label>
+							</div>
+						</div>
+					</fieldset>
 				</div>
 				// Date range filter.
 				<div class="sm:col-span-3">
@@ -382,7 +428,7 @@ templ GlobalSearch(user *models.User) {
 			class="hidden absolute w-full h-auto lg:max-h-160 left-0 sm:w-(--input-width) scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2"
 			_="on keydown[key is 'Escape'] from body add .hidden"
 		>
-			@SearchFilters(user, &models.SearchRequest{}) {
+			@SearchFilters(user, models.NewSearchRequest()) {
 				<div class="mt-6 flex items-center justify-end gap-x-6">
 					<button type="button" class="btn btn-sm btn-outline" _="on click add .hidden to #search-filters">Cancel</button>
 					<button type="submit" class="btn btn-sm btn-primary">Search</button>
@@ -434,7 +480,7 @@ templ (page *SearchResultsPage) Content() {
 			<el-disclosure id="faq-0" hidden class="contents">
 				<dd id="current-search-filters" class="mt-2 pr-12">
 					@SearchFilters(page.user, page.search) {
-						<input type="hidden" name="update_favorite_search" value="true"/>
+						<input type="hidden" name="search_id" value={ page.search.ID() }/>
 						<button type="submit" class="btn btn-sm btn-primary">Update</button>
 					}
 				</dd>

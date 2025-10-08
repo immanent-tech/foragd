@@ -40,7 +40,8 @@
     "github",
     "rss",
     "atom",
-    "css"
+    "css",
+    "search"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

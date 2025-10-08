@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
@@ -75,17 +76,20 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			renderPage(partials.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
-		id := request.ID()
-		if id == "" {
-			msg := models.NewErrorMessage("Invalid search request",
-				"Unable to parse search request. Please check and try again.")
-			renderPage(partials.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+		favoriteID := req.FormValue("search_id")
+		if favoriteID == "" {
+			favoriteID = request.ID()
+			if favoriteID == "" {
+				msg := models.NewErrorMessage("Invalid search request",
+					"Unable to parse search request. Please check and try again.")
+				renderPage(partials.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
+			}
 		}
 		// Retrieve favorite data for this search
-		fav := user.GetFavorites().FilterByType(models.FavoriteTypeSearch).Get(id)
+		fav := user.GetFavorites().FilterByType(models.FavoriteTypeSearch).Get(favoriteID)
 		// Check if the favorite needs to be updated.
-		if fav != nil && req.FormValue("update_favorite_search") == "true" {
+		if fav != nil {
 			err := user.UpdateFavoriteSearch(fav.Nickname, request)
 			if err != nil {
 				template := partials.Notification(
@@ -111,7 +115,16 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			renderPage(partials.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		case len(subscriptions) > 0 || len(articles) > 0:
-			template := layouts.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content()
+			slog.Info("templated")
+			var template templ.Component
+			if IsHTMX(req) {
+				template = templ.Join(
+					layouts.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content(),
+					partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+				)
+			} else {
+				template = layouts.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content()
+			}
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		default:
@@ -194,71 +207,7 @@ func (a *API) getSearchResults(ctx context.Context, request *models.SearchReques
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
 	}
-	// Generate query
-	var loc *time.Location
-	if request.Timezone != "" {
-		loc, err = time.LoadLocation(request.Timezone)
-		if err != nil {
-			slogctx.FromCtx(ctx).Debug("Error parsing timezone in request.",
-				slog.Any("error", err))
-		}
-	} else {
-		loc, _ = time.LoadLocation("UTC")
-	}
-	var since time.Time
-	switch request.PublishedWithin {
-	case models.SearchRequestPublishedWithinLastHour:
-		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
-	case models.SearchRequestPublishedWithinLast12hours:
-		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), loc)
-	case models.SearchRequestPublishedWithinLastDay:
-		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), loc)
-	case models.SearchRequestPublishedWithinLastWeek:
-		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
-	case models.SearchRequestPublishedWithinLastMonth:
-		since, err = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
-	}
-	var feedIDs []models.FeedID
-	if len(request.Subscriptions) > 0 {
-		feedIDs = user.GetSubscriptionMetadata().FilterByIDs(request.Subscriptions...).GetFeedIDs()
-	} else {
-		feedIDs = user.GetSubscriptionMetadata().GetFeedIDs()
-	}
-	itemsQuery := query.Bool(
-		query.Filter(
-			query.Terms("feed_id", feedIDs...),
-			query.Bool(
-				query.Should(
-					query.Since("published", since),
-					query.Since("updated", since),
-				),
-			),
-		),
-		// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
-		// search suggestion).
-		query.Must(
-			query.SimpleQueryString(request.Text, "", "title", "description", "content", "categories"),
-			// query.Bool(
-			// 	query.Should(
-			// 		query.MultiMatch(request.Text, "title", "description", "content", "categories"),
-			// 		query.Bool(
-			// 			query.Should(
-			// 				query.SearchAsYouType(request.Text, "title"),
-			// 				query.SearchAsYouType(request.Text, "description"),
-			// 				query.SearchAsYouType(request.Text, "categories"),
-			// 			),
-			// 		),
-			// 	),
-			// ),
-			query.SimpleQueryString(request.Categories, "", "categories"),
-			query.SimpleQueryString(request.Authors, "", "authors", "contributors"),
-		),
-		// query.MustNot(
-		// 	query.SimpleQueryString(request.CategoriesExclude, "OR|AND|PHRASE|PRECEDENCE", "categories"),
-		// 	query.SimpleQueryString(request.AuthorsExclude, "OR|AND|PHRASE|PRECEDENCE", "authors", "contributors"),
-		// ),
-	)
-	itemResults, _, err := a.DataAPI().SearchItems(ctx, itemsQuery, 10, &models.SortLastUpdatedDesc, nil)
+	itemResults, _, err := a.DataAPI().SearchItems(ctx, buildSearchQuery(user, request), 10, &models.SortLastUpdatedDesc, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
 	}
@@ -288,6 +237,67 @@ func (a *API) getSearchResults(ctx context.Context, request *models.SearchReques
 		// }
 	}
 	return subscriptions, articles, nil
+}
+
+func buildSearchQuery(user *models.User, request *models.SearchRequest) query.Option {
+	// var err error
+	var loc *time.Location
+	if request.Timezone != "" {
+		loc, _ = time.LoadLocation(request.Timezone)
+		// if err != nil {
+		// 	slogctx.FromCtx(ctx).Debug("Error parsing timezone in request.",
+		// 		slog.Any("error", err))
+		// }
+	} else {
+		loc, _ = time.LoadLocation("UTC")
+	}
+	var since time.Time
+	switch request.PublishedWithin {
+	case models.SearchRequestPublishedWithinLastHour:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
+	case models.SearchRequestPublishedWithinLast12hours:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), loc)
+	case models.SearchRequestPublishedWithinLastDay:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), loc)
+	case models.SearchRequestPublishedWithinLastWeek:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
+	case models.SearchRequestPublishedWithinLastMonth:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
+	}
+
+	subscriptions := user.GetSubscriptionMetadata()
+	if len(request.Subscriptions) > 0 {
+		subscriptions = subscriptions.FilterByIDs(request.Subscriptions...)
+	}
+
+	return query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(buildSubscriptionQueries(user, request.View, subscriptions...)...),
+			),
+			query.Bool(
+				query.Should(
+					query.Since("published", since),
+					query.Since("updated", since),
+				),
+			),
+		),
+		// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
+		// search suggestion).
+		query.Must(
+			// Search across title, description and content fields, with preference for match in that order (via field
+			// boosting).
+			query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
+			// query.Bool(
+			// 	query.Should(
+			// 		query.MultiMatch(request.Text, "title", "description", "content"),
+			// 		query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
+			// 	),
+			// ),
+			query.SimpleQueryString(request.Categories, "", "categories"),
+			query.SimpleQueryString(request.Authors, "", "authors", "contributors"),
+		),
+	)
 }
 
 func (a *API) findSubscriptions(ctx context.Context, request *models.SearchRequest) (models.SubscriptionsSlice, error) {

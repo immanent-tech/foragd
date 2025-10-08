@@ -514,6 +514,9 @@ type SearchRequest struct {
 
 	// Timezone represents the timezone of the browser (i.e., user), used for calculating published_within offset.
 	Timezone string `form:"timezone" json:"timezone" validate:"required,timezone"`
+
+	// View The state of objects to view.
+	View View `form:"view" json:"view,omitempty,omitzero" validate:"oneof=read unread all"`
 }
 
 // SearchRequestPublishedWithin represents a time range within which the objects should be published

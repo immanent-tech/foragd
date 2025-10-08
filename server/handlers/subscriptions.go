@@ -19,7 +19,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
@@ -321,7 +320,6 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			renderPage(layouts.EditSubscription(request), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
-		godump.Dump(request)
 		// Update the subscription metadata.
 		metadata := user.GetSubscriptionMetadata().GetByID(request.SubscriptionID)
 		metadata.Customisation.Nickname = request.GetNickname()

@@ -17,6 +17,14 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
+// NewSearchRequest creates a new SearchRequest object with default values.
+func NewSearchRequest() *SearchRequest {
+	return &SearchRequest{
+		PublishedWithin: SearchRequestPublishedWithinAllTime,
+		View:            ViewUnread,
+	}
+}
+
 // Valid returns a boolean indicating whether the search request data is valid.
 func (r *SearchRequest) Valid() (bool, error) {
 	valid, err := validation.ValidateStruct(r)
@@ -72,11 +80,8 @@ func (r *SearchRequest) params() url.Values {
 	if len(r.Subscriptions) > 0 {
 		params.Set("subscriptions", strings.Join(r.Subscriptions, ","))
 	}
-	if r.PublishedWithin != "" {
-		params.Set("published_within", string(r.PublishedWithin))
-	}
-	if r.Timezone != "" {
-		params.Set("timezone", r.Timezone)
-	}
+	params.Set("view", string(r.View))
+	params.Set("published_within", string(r.PublishedWithin))
+	params.Set("timezone", r.Timezone)
 	return params
 }

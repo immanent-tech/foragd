@@ -280,7 +280,7 @@ components:
         is a search that the user has marked as a Favorite.
       type: object
       allOf:
-        - $ref: 'api.yaml#/components/schemas/SearchRequest'
+        - $ref: '#/components/schemas/SearchRequest'
     UserSession:
       description: tracks a user session.
       type: object
@@ -774,6 +774,8 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'authors'
+        view:
+          $ref: 'api.yaml#/components/schemas/View'
         subscriptions:
           description: >
             is a list of subscription IDs.

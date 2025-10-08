@@ -102,7 +102,7 @@ func FavoritesList(favorites models.FavoritesSlice, swap models.HTMXFlag) templ.
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fav.String())
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fav.Nickname)
 				if templ_7745c5c3_Err != nil {
 					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/favorites.templ`, Line: 50, Col: 22}
 				}
@@ -155,7 +155,7 @@ func FavoritesList(favorites models.FavoritesSlice, swap models.HTMXFlag) templ.
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var7 string
-					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fav.String())
+					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fav.Nickname)
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/favorites.templ`, Line: 75, Col: 23}
 					}
@@ -213,7 +213,7 @@ func FavoritesList(favorites models.FavoritesSlice, swap models.HTMXFlag) templ.
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var10 string
-					templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fav.String())
+					templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(fav.Nickname)
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/favorites.templ`, Line: 102, Col: 23}
 					}
