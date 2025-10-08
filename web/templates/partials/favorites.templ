@@ -89,7 +89,7 @@ templ FavoritesList(favorites models.FavoritesSlice, swap models.HTMXFlag) {
 						<a
 							hx-get="/search"
 							hx-target={ ContentID.Target() }
-							hx-vals={ models.GenerateHXVals(map[string]string{"text": search.Text}) }
+							hx-vals={ search.HXVals() }
 							hx-push-url="true"
 							_="on click toggle @open on #mobile-sidebar-dialog"
 							class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2"

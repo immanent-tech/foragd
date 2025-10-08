@@ -445,7 +445,6 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		slog.Info("here")
 		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})

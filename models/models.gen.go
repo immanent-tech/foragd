@@ -501,16 +501,16 @@ type SearchRequest struct {
 	Categories string `form:"categories" json:"categories,omitempty,omitzero"`
 
 	// PublishedWithin represents a time range within which the objects should be published
-	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within,omitempty,omitzero"`
+	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within" validate:"required,oneof=all_time last_hour last_12hours last_day last_week last_month"`
 
 	// Subscriptions is a list of subscription IDs.
-	Subscriptions []string `form:"subscriptions" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
+	Subscriptions []string `form:"subscriptions" json:"subscriptions,omitempty,omitzero" validate:"omitempty,unique,dive,startswith=sub_"`
 
 	// Text is the text to search.
-	Text string `form:"text" json:"text" validate:"omitempty,required"`
+	Text string `form:"text" json:"text,omitempty,omitzero" validate:"omitempty,required"`
 
 	// Timezone represents the timezone of the browser (i.e., user), used for calculating published_within offset.
-	Timezone string `form:"timezone" json:"timezone,omitempty,omitzero"`
+	Timezone string `form:"timezone" json:"timezone" validate:"required,timezone"`
 }
 
 // SearchRequestPublishedWithin represents a time range within which the objects should be published

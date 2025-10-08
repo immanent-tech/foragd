@@ -200,9 +200,9 @@ func FavoritesList(favorites models.FavoritesSlice, swap models.HTMXFlag) templ.
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var9 string
-					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(models.GenerateHXVals(map[string]string{"text": search.Text}))
+					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(search.HXVals())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/favorites.templ`, Line: 92, Col: 78}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/favorites.templ`, Line: 92, Col: 32}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 					if templ_7745c5c3_Err != nil {

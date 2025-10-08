@@ -731,7 +731,8 @@ components:
         represents a search request by the user.
       type: object
       required:
-        - text
+        - published_within
+        - timezone
       properties:
         text:
           description: >
@@ -760,9 +761,8 @@ components:
             type: string
             # $ref: '#/components/schemas/SubscriptionID' #why doesn't this work?!
           x-oapi-codegen-extra-tags:
-            json: 'subscriptions'
             form: 'subscriptions'
-            validate: 'omitnil,unique,dive,startswith=sub_'
+            validate: 'omitempty,unique,dive,startswith=sub_'
         published_within:
           description: >
             represents a time range within which the objects should be published
@@ -777,12 +777,14 @@ components:
           default: all_time
           x-oapi-codegen-extra-tags:
             form: 'published_within'
+            validate: 'required,oneof=all_time last_hour last_12hours last_day last_week last_month'
         timezone:
           description: >
             represents the timezone of the browser (i.e., user), used for calculating published_within offset.
           type: string
           x-oapi-codegen-extra-tags:
             form: 'timezone'
+            validate: 'required,timezone'
     AddFeedsetRequest:
       description: >
         is a request from a user to add one or more feed sets as subscriptions.

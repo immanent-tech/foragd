@@ -4,6 +4,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -43,6 +44,19 @@ func (r *SearchRequest) ID() string {
 
 // Query returns a string that represents the search as query parameters.
 func (r *SearchRequest) Query() string {
+	return r.params().Encode()
+}
+
+// HXVals returns a string that represents the search as hx-vals.
+func (r *SearchRequest) HXVals() string {
+	data, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
+func (r *SearchRequest) params() url.Values {
 	params := make(url.Values)
 	params.Set("text", r.Text)
 	if r.Authors != "" {
@@ -57,5 +71,8 @@ func (r *SearchRequest) Query() string {
 	if r.PublishedWithin != "" {
 		params.Set("published_within", string(r.PublishedWithin))
 	}
-	return params.Encode()
+	if r.Timezone != "" {
+		params.Set("timezone", r.Timezone)
+	}
+	return params
 }
