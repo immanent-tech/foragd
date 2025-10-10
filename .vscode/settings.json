@@ -41,7 +41,8 @@
     "rss",
     "atom",
     "css",
-    "search"
+    "search",
+    "pkg"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

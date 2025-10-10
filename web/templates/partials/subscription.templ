@@ -3,7 +3,10 @@
 
 package partials
 
-import "github.com/immanent-tech/foragd/models"
+import (
+	"github.com/dustin/go-humanize"
+	"github.com/immanent-tech/foragd/models"
+)
 
 type Subscription struct {
 	*models.Subscription
@@ -21,7 +24,7 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 templ (s *Subscription) Card() {
 	<li id={ s.GetID() }>
 		<div class={ "card-base", templ.KV("opacity-50",!s.IsUnread()) }>
-			<div class="flex items-center px-4 py-5 sm:px-6">
+			<div class="flex items-center card-section">
 				@s.ViewLink("flex", "flex-1", "items-center", "gap-x-4") {
 					<div class="flex items-center">
 						<div class="mr-4 shrink-0 self-center">
@@ -32,18 +35,20 @@ templ (s *Subscription) Card() {
 						</div>
 					</div>
 				}
-				if s.IsUnread() {
-					<div class="ml-4 badge badge-soft">{ s.GetUnreadCount() }</div>
-				}
 				<div class="flex flex-none">
 					@s.actionsMenu()
 				</div>
 			</div>
-			if s.GetDescription() != "" {
-				<div class="px-4 py-5 sm:p-6">
-					<p class="text-sm/6 text-ellipsis text-pretty line-clamp-2 sm:line-clamp-4">{ s.GetDescription() }</p>
+			<dl class="-my-3 px-6 py-4 text-sm/6">
+				<div class="flex justify-between gap-x-4 py-3">
+					<dt class="">Unread Count</dt>
+					<dd class="text-base-content/90">{ s.GetUnreadCount() }</dd>
 				</div>
-			}
+				<div class="flex justify-between gap-x-4 py-3">
+					<dt class="">Last update</dt>
+					<dd class="text-base-content/90">{ humanize.Time(s.GetUpdatedDate()) }</dd>
+				</div>
+			</dl>
 		</div>
 	</li>
 }

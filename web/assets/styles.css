@@ -51,6 +51,9 @@
 
   .card-base {
     @apply bg-base-100 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border shadow-sm dark:shadow-none;
+    .card-section {
+      @apply px-4 py-4 sm:px-6;
+    }
   }
 
   .responsive-img {
