@@ -241,7 +241,7 @@ func (f SubscriptionFilters) Query() string {
 
 func NewArticleFilters() ArticleFilters {
 	return ArticleFilters{
-		SortBy:    SortByUnreadCount,
+		SortBy:    SortByLastUpdated,
 		SortOrder: SortOrderDesc,
 		Count:     DefaultCount,
 		View:      DefaultView,
