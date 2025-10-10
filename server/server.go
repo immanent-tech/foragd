@@ -310,7 +310,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handler.GetSettings())
 				// r.Get("/subscriptions", handler.SubscriptionsSettings())
-				r.With(middlewares.RequireHTMX).Post("/subscriptions", handler.SubscriptionsSettings())
+				r.With(middlewares.RequireHTMX).Post("/subscriptions", handler.GetSubscriptionsSettings())
 				// r.Get("/account", handler.AccountSettings())
 				// r.With(middlewares.RequireHTMX).Post("/account", handler.AccountSettings())
 				// r.Get("/app", handler.AppSettings())

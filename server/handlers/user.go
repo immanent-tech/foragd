@@ -49,42 +49,34 @@ func (a *API) GetSettings() http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// SubscriptionsSettings shows a table of subscriptions, optionally filtered, with settings controls.
-func (a *API) SubscriptionsSettings() http.HandlerFunc {
+// GetSubscriptionsSettings shows a table of subscriptions, optionally filtered, with settings controls.
+func (a *API) GetSubscriptionsSettings() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		var template templ.Component
-		switch req.Method {
-		case http.MethodPost:
-			request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
-			if err != nil || !valid {
-				template := partials.Notification(
-					models.NewErrorMessage("Unable to filter subscriptions", ""), 0,
-				)
-				renderPartial(template).ServeHTTP(res, req)
-				return models.NewAPIError(err, http.StatusUnprocessableEntity)
-			}
-			// Find matching subscriptions.
-			var subscriptions models.SubscriptionsSlice
-			if request.Text != "" {
-				subscriptions, err = a.findSubscriptions(req.Context(), request)
-			} else {
-				subscriptions, err = a.getSubscriptions(req.Context())
-			}
-			if err != nil {
-				template := partials.Notification(
-					models.NewErrorMessage("Unable to filter subscriptions", ""), 0,
-				)
-				renderPartial(template).ServeHTTP(res, req)
-				return models.NewAPIError(err, http.StatusInternalServerError)
-			}
-			settings := make([]templ.Component, 0, len(subscriptions))
-			for subscription := range slices.Values(subscriptions) {
-				settings = append(settings, partials.NewSubscriptionContent(subscription).Settings())
-			}
-			template = templ.Join(settings...)
-			// case http.MethodGet:
-			// 	template = pages.NewSettingsPage("subscriptions", nil, nil).Template(req)
+		text := req.FormValue("text")
+		request := models.NewSearchRequest()
+		request.Text = text
+		// Find matching subscriptions.
+		var (
+			subscriptions models.SubscriptionsSlice
+			err           error
+		)
+		if request.Text != "" {
+			subscriptions, err = a.findSubscriptions(req.Context(), request)
+		} else {
+			subscriptions, err = a.getSubscriptions(req.Context())
 		}
+		if err != nil {
+			template := partials.Notification(
+				models.NewErrorMessage("Unable to filter subscriptions", ""), 0,
+			)
+			renderPartial(template).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		settings := make([]templ.Component, 0, len(subscriptions))
+		for subscription := range slices.Values(subscriptions) {
+			settings = append(settings, partials.NewSubscriptionContent(subscription).Settings())
+		}
+		template := templ.Join(settings...)
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
