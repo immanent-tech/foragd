@@ -74,11 +74,21 @@ func (s *Subscription) GetDescription() string {
 	return s.Feed.GetDescription()
 }
 
-func (s *Subscription) GetCategories() []Category {
+func (s *Subscription) GetCategories(max int) []Category {
+	var all []Category
 	if s.Metadata.Customisation.Categories != nil {
-		return slices.Compact(slices.Concat(s.Metadata.Customisation.Categories, s.Feed.GetCategories()))
+		all = slices.Compact(slices.Concat(s.Metadata.Customisation.Categories, s.Feed.GetCategories()))
+	} else {
+		all = s.Feed.GetCategories()
 	}
-	return s.Feed.GetCategories()
+	if max != 0 {
+		if len(all) > max {
+			return all[:max]
+		} else {
+			return all
+		}
+	}
+	return all
 }
 
 func (s *Subscription) GetAuthors() []string {
@@ -119,7 +129,7 @@ func (s SubscriptionsSlice) FilterByCategories(categories ...Category) Subscript
 	}
 	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
 		for category := range slices.Values(categories) {
-			return slices.Contains(subscription.GetCategories(), category)
+			return slices.Contains(subscription.GetCategories(0), category)
 		}
 		return false
 	}))
@@ -194,7 +204,7 @@ func (s SubscriptionsSlice) GetTotalUnreadCount() int {
 func (s SubscriptionsSlice) GetCategoryCounts() CategoryCounts {
 	countsMap := make(map[Category]int)
 	for object := range slices.Values(s) {
-		for category := range slices.Values(object.GetCategories()) {
+		for category := range slices.Values(object.GetCategories(0)) {
 			countsMap[category]++
 		}
 	}

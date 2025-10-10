@@ -6,6 +6,8 @@ package partials
 import (
 	"github.com/dustin/go-humanize"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/session"
+	"slices"
 )
 
 type Subscription struct {
@@ -39,6 +41,17 @@ templ (s *Subscription) Card() {
 					@s.actionsMenu()
 				</div>
 			</div>
+			// Display up to 5 of the subscription categories.
+			if len(s.GetCategories(0)) > 0 {
+				<div class="flex justify-center card-section">
+					<div class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+						for category := range slices.Values(s.GetCategories(5)) {
+							@subscriptionCategoryBadge(category)
+						}
+					</div>
+				</div>
+			}
+			// Display some subscription metrics.
 			<dl class="-my-3 px-6 py-4 text-sm/6">
 				<div class="flex justify-between gap-x-4 py-3">
 					<dt class="">Unread Count</dt>
@@ -275,6 +288,22 @@ templ (c *Subscription) UnsubscribeModal() {
 			>Cancel</button>
 		</div>
 	}
+}
+
+templ subscriptionCategoryBadge(category models.Category) {
+	{{ params := session.SubscriptionFiltersFromSession(ctx).Parameters() }}
+	{{ params[models.ParamCategories] = category }}
+	<a
+		hx-get="/subscriptions"
+		hx-push-url="true"
+		hx-target={ ContentID.Target() }
+		hx-vals={ models.GenerateHXVals(params) }
+		class="link link-hover"
+	>
+		<div class="flex gap-2 text-sm capitalize">
+			<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{ category } </span>
+		</div>
+	</a>
 }
 
 templ ViewSubscriptionLink(subscription *models.Subscription, classes ...string) {
