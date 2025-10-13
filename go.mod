@@ -26,7 +26,7 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-chi v1.16.1
 	github.com/samber/slog-multi v1.5.0
-	golang.org/x/oauth2 v0.31.0
+	golang.org/x/oauth2 v0.32.0
 )
 
 require (
