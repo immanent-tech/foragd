@@ -104,44 +104,7 @@ templ (page *Home) Template() {
 				<ul role="list" class="grid grid-cols-1 xl:grid-cols-2">
 					for article := range slices.Values(page.TopArticles) {
 						<li class="py-4 sm:px-4 space-y-2">
-							<div class="sm:flex">
-								if img := article.GetImage(); img != nil {
-									<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
-										<img
-											src={ img.GetURL() }
-											if img.GetTitle() != "" {
-												alt={ article.GetImage().GetTitle() }
-											}
-											class="h-32 sm:w-32 w-full object-cover sm:aspect-2/1 lg:aspect-3/2 rounded-box border border-base-content"
-										/>
-									</div>
-								}
-								<div class="space-y-4">
-									<a
-										hx-get={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() }
-										hx-target={ partials.ContentID.Target() }
-										hx-push-url="true"
-										hx-swap="innerHTML show:top"
-										class={ "link link-hover" }
-									>
-										<h4 class="text-lg font-bold">{ article.GetTitle() }</h4>
-									</a>
-									<div class="flex gap-x-4">
-										<p class="flex-none text-xs text-base-content/80">
-											@partials.ShowTimestamp(article.GetUpdatedDate())
-										</p>
-										<p class="flex-none text-xs text-base-content/80">
-											{ article.GetFeedTitle() }
-										</p>
-									</div>
-									{{ text, err := article.ExtractText() }}
-									if err == nil {
-										<article class="prose prose-sm line-clamp-3">
-											{ text }
-										</article>
-									}
-								</div>
-							</div>
+							@partials.ArticleSummary(article)
 						</li>
 					}
 				</ul>
@@ -180,68 +143,8 @@ templ (page *Home) Template() {
 			<ul role="list" class="divide-y divide-base-content/15">
 				for article := range slices.Values(page.LatestArticles) {
 					<li class="py-4 space-y-2">
-						<div class="flex gap-x-4">
-							// Show article image or placeholder thumbnail.
-							if img := article.GetImage(); img != nil {
-								<div class="avatar">
-									<div class="rounded-box size-12">
-										<img
-											src={ img.GetURL() }
-											if img.GetTitle() != "" {
-												alt={ img.GetTitle() }
-											}
-										/>
-									</div>
-								</div>
-							} else {
-								<div class="avatar avatar-placeholder">
-									<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
-										<span class="text-3xl capitalize">{ article.GetTitle()[0:1] }</span>
-									</div>
-								</div>
-							}
-							// Show article title.
-							<div class="flex-auto">
-								<a
-									hx-get={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() }
-									hx-target={ partials.ContentID.Target() }
-									hx-push-url="true"
-									hx-swap="innerHTML show:top"
-									class={ "link link-hover" }
-								>
-									<p class="text-sm/6 font-semibold text-pretty line-clamp-2">{ article.GetTitle() }</p>
-								</a>
-							</div>
-						</div>
-						// Show article timestamp and feed source.
-						<div class="flex items-baseline justify-between gap-x-4">
-							<p class="flex-none text-xs text-base-content/80">
-								@partials.ShowTimestamp(article.GetUpdatedDate())
-							</p>
-							<p class="flex-1 text-xs text-base-content/80 truncate">
-								{ article.GetFeedTitle() }
-							</p>
-						</div>
-						// Show article description (if exists).
-						if article.GetDescription() != "" {
-							<div class="flex">
-								{{ text, err := article.ExtractText() }}
-								if err == nil {
-									<article class="prose prose-sm line-clamp-2">
-										{ text }
-									</article>
-								}
-							</div>
-						}
+						@partials.ArticleSummary(article)
 					</li>
-					// <li class="px-4 py-4 sm:px-6 lg:px-8">
-					// 	<div class="flex items-center gap-x-3">
-					// 		<img src="https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" class="size-6 flex-none rounded-full bg-gray-100 outline -outline-offset-1 outline-black/5 dark:bg-gray-800 dark:outline-white/10"/>
-					// 		<h3 class="flex-auto truncate text-sm/6 font-semibold text-gray-900 dark:text-white">Michael Foster</h3>
-					// 		<time datetime="2023-01-23T11:00" class="flex-none text-xs text-gray-500 dark:text-gray-600">1h</time>
-					// 	</div>
-					// 	<p class="mt-3 truncate text-sm text-gray-500">Pushed to <span class="text-gray-700 dark:text-gray-400">ios-app</span> (<span class="font-mono text-gray-700 dark:text-gray-400">2d89f0c8</span> on <span class="text-gray-700 dark:text-gray-400">main</span>)</p>
-					// </li>
 				}
 			</ul>
 		} else {

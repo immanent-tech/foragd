@@ -10,10 +10,8 @@ import (
 	"log/slog"
 	"maps"
 	"slices"
-	"strings"
 	"time"
 
-	"github.com/go-shiori/go-readability"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-syndication/types"
@@ -152,17 +150,6 @@ func (a *Article) GetContent() string {
 	default:
 		return a.Item.GetDescription()
 	}
-}
-
-// ExtractText attempts to extract the textual representation of the article content using the readability package. If
-// it fails, it will return an empty string and a non-nill error.
-func (a *Article) ExtractText() (string, error) {
-	txt := strings.NewReader(a.GetContent())
-	article, err := readability.FromReader(txt, nil)
-	if err != nil {
-		return "", fmt.Errorf("could not extract article (%s) content as text: %w", a.GetID(), err)
-	}
-	return article.TextContent, nil
 }
 
 func (a *Article) GetImage() *types.ImageInfo {

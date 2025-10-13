@@ -316,7 +316,7 @@ func (a *API) ViewArticle() http.HandlerFunc {
 			}
 		}
 		// Render appropriate content.
-		template := partials.ViewArticle(article)
+		template := partials.ArticleContent(article)
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 		renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
 		return nil

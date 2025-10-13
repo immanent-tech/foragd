@@ -12,7 +12,10 @@ import (
 	"maps"
 	"net/url"
 	"slices"
+	"strings"
 	"time"
+
+	"github.com/go-shiori/go-readability"
 )
 
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
@@ -181,4 +184,15 @@ func GenerateHXVals(values map[string]string) string {
 		return ""
 	}
 	return string(data)
+}
+
+// ExtractText attempts to extract the textual representation of the article content using the readability package. If
+// it fails, it will return an empty string and a non-nill error.
+func ExtractText(content string) (string, error) {
+	txt := strings.NewReader(content)
+	article, err := readability.FromReader(txt, nil)
+	if err != nil {
+		return "", fmt.Errorf("could not extract content as text: %w", err)
+	}
+	return article.TextContent, nil
 }
