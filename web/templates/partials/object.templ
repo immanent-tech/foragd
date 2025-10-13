@@ -91,6 +91,11 @@ templ FavoriteObjectLink(obj Object, classes ...string) {
 	</a>
 }
 
+// ToggleFavorite renders an updated favorite link based on the object's favorite status.
+templ ToggleFavorite(obj Object) {
+	@FavoriteObjectLink(obj, "menu-item")
+}
+
 // MarkObjectLink will render a link for toggling the mark status of the object.
 templ MarkObjectLink(obj Object, target, swap string, classes ...string) {
 	{{ var mark models.Mark }}
@@ -119,9 +124,4 @@ templ MarkObjectLink(obj Object, target, swap string, classes ...string) {
 				Mark Unread
 		}
 	</a>
-}
-
-// ToggleFavorite renders an updated favorite link based on the object's favorite status.
-templ ToggleFavorite(obj Object) {
-	@FavoriteObjectLink(obj, "menu-item")
 }
