@@ -264,10 +264,35 @@ func NewUserSignup() *UserSignupRequest {
 // NewUserSettings returns a new instance of the default user settings.
 func NewUserSettings() *UserSettings {
 	return &UserSettings{
-		Theme:          DefaultUserTheme,
-		ShowOnboarding: true,
-		MaxHistory:     DefaultMaxHistory.String(),
+		Theme:            DefaultUserTheme,
+		ShowOnboarding:   true,
+		ShowUnreadCounts: true,
+		MaxHistory:       DefaultMaxHistory.String(),
 	}
+}
+
+// Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
+// (false) a non-nil error is also returned which contains validation issues.
+func (s *UserSettings) Valid() (bool, error) {
+	valid, err := validation.ValidateStruct(s)
+	if err != nil || !valid {
+		return false, fmt.Errorf("%w: %w", ErrInvalidUser, err)
+	}
+	// Make sure max history is a valid duration value.
+	maxHistory, err := time.ParseDuration(s.MaxHistory)
+	if err != nil {
+		return false, fmt.Errorf("%w: max history is invalid", ErrInvalidUser)
+	}
+	// Make sure max history is not greater than default max history.
+	if maxHistory > DefaultMaxHistory {
+		return false, fmt.Errorf("%w: max history is invalid", ErrInvalidUser)
+	}
+	return true, nil
+}
+
+// Sanitise will sanitise UserSettings values.
+func (s *UserSettings) Sanitise() error {
+	return nil
 }
 
 // GetUserTheme returns the current user's theme or the default theme if no user theme is set.

@@ -220,17 +220,32 @@ components:
             the user interface theme chosen by the user.
           type: string
           default: forest
+          x-oapi-codegen-extra-tags:
+            form: '-'
         show_onboarding:
           description: >
             indicates whether to show onboarding information (i.e., for a new user).
           type: boolean
           default: true
+          x-oapi-codegen-extra-tags:
+            form: '-'
+          x-omitzero: false
+          x-omitempty: false
         max_history:
           description: >
             is a duration representing the maximum time-frame over which objects contained within are available.
           type: string
           x-oapi-codegen-extra-tags:
-            validate: 'required'
+            form: '-'
+        show_unread_counts:
+          description: >
+            indicates whether unread counts should be shown when viewing subscriptions.
+          type: boolean
+          default: true
+          x-oapi-codegen-extra-tags:
+            form: 'show_unread_counts'
+          x-omitzero: false
+          x-omitempty: false
     Favorite:
       description: >
         is an object that the user has marked as a Favorite. Favorites  have higher visibility in the display and

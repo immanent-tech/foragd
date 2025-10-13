@@ -709,13 +709,16 @@ type UserSession struct {
 // UserSettings contains user-specific settings for the application.
 type UserSettings struct {
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
-	MaxHistory string `json:"max_history" validate:"required"`
+	MaxHistory string `form:"-" json:"max_history"`
 
 	// ShowOnboarding indicates whether to show onboarding information (i.e., for a new user).
-	ShowOnboarding bool `json:"show_onboarding"`
+	ShowOnboarding bool `form:"-" json:"show_onboarding"`
+
+	// ShowUnreadCounts indicates whether unread counts should be shown when viewing subscriptions.
+	ShowUnreadCounts bool `form:"show_unread_counts" json:"show_unread_counts"`
 
 	// Theme the user interface theme chosen by the user.
-	Theme string `json:"theme,omitempty,omitzero"`
+	Theme string `form:"-" json:"theme,omitempty,omitzero"`
 }
 
 // AsExternalRef0ImageInfo returns the union data inside the EditSubscriptionRequest_Image as a externalRef0.ImageInfo

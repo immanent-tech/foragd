@@ -24,6 +24,7 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 
 // Card renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
 templ (s *Subscription) Card() {
+	{{ user, _ := models.UserFromCtx(ctx) }}
 	<li id={ s.GetID() }>
 		<div class={ "card-base", templ.KV("opacity-50",!s.IsUnread()) }>
 			<div class="flex items-center card-section">
@@ -53,10 +54,12 @@ templ (s *Subscription) Card() {
 			}
 			// Display some subscription metrics.
 			<dl class="-my-3 px-6 py-4 text-sm/6">
-				<div class="flex justify-between gap-x-4 py-3">
-					<dt class="">Unread Count</dt>
-					<dd class="text-base-content/90">{ s.GetUnreadCount() }</dd>
-				</div>
+				if user.GetSettings().ShowUnreadCounts {
+					<div class="flex justify-between gap-x-4 py-3">
+						<dt class="">Unread Count</dt>
+						<dd class="text-base-content/90">{ s.GetUnreadCount() }</dd>
+					</div>
+				}
 				<div class="flex justify-between gap-x-4 py-3">
 					<dt class="">Last update</dt>
 					<dd class="text-base-content/90">{ humanize.Time(s.GetUpdatedDate()) }</dd>

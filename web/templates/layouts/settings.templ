@@ -4,6 +4,7 @@
 package layouts
 
 import (
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
@@ -125,28 +126,56 @@ templ accountSettingsTab() {
 // appSettingsTab renders tab content for app-related settings.
 templ AppSettingsTab(user *models.User) {
 	<div id="tab-app-settings" class="flex flex-col mt-2 gap-y-4">
-		<div class="flex items-center">
-			<div class="relative flex justify-start">
-				<span class="pr-3 text-base font-semibold ">Theme</span>
+		<form hx-post="/user/settings" hx-include="[name='csrf_token']" hx-swap="none">
+			<fieldset class="fieldset">
+				<legend class="fieldset-legend text-base/7">Settings</legend>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
+					<div class="flex items-center col-span-full space-x-2">
+						<label class="block text-sm/6 font-medium">
+							{{ godump.Dump(user.GetSettings()) }}
+							<input
+								type="checkbox"
+								if user.GetSettings().ShowUnreadCounts {
+									checked="checked"
+								}
+								name="show_unread_counts"
+								class="toggle toggle-sm toggle-primary"
+							/>
+							Show unread counts on subscriptions.
+						</label>
+						@partials.HelpPopover("show-full-article-help", "top end") {
+							<div tabindex="0" class="card-body card-sm">
+								<div tabindex="0" class="card-body">
+									<p>Toggles whether to show unread counts on subscriptions.</p>
+								</div>
+							</div>
+						}
+					</div>
+					<div class="mt-6 flex items-center justify-end gap-x-6 col-span-full">
+						<button type="submit" class="btn btn-primary">Save</button>
+					</div>
+				</div>
+			</fieldset>
+		</form>
+		<fieldset class="fieldset">
+			<legend class="fieldset-legend text-base/7">Theme</legend>
+			<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
+			<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8">
+				{{ currentTheme := user.GetSettings().Theme }}
+				@themePreview("light", currentTheme)
+				@themePreview("dark", currentTheme)
+				@themePreview("forest", currentTheme)
+				@themePreview("garden", currentTheme)
+				@themePreview("synthwave", currentTheme)
+				@themePreview("lofi", currentTheme)
+				@themePreview("black", currentTheme)
+				@themePreview("dracula", currentTheme)
+				@themePreview("business", currentTheme)
+				@themePreview("night", currentTheme)
+				@themePreview("dim", currentTheme)
+				@themePreview("nord", currentTheme)
 			</div>
-			<div aria-hidden="true" class="w-full border-t border-base-content/10"></div>
-		</div>
-		<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
-		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8">
-			{{ currentTheme := user.GetSettings().Theme }}
-			@themePreview("light", currentTheme)
-			@themePreview("dark", currentTheme)
-			@themePreview("forest", currentTheme)
-			@themePreview("garden", currentTheme)
-			@themePreview("synthwave", currentTheme)
-			@themePreview("lofi", currentTheme)
-			@themePreview("black", currentTheme)
-			@themePreview("dracula", currentTheme)
-			@themePreview("business", currentTheme)
-			@themePreview("night", currentTheme)
-			@themePreview("dim", currentTheme)
-			@themePreview("nord", currentTheme)
-		</div>
+		</fieldset>
 	</div>
 }
 

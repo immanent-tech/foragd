@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/goforj/godump"
 	feeds "github.com/immanent-tech/go-syndication"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -150,6 +151,7 @@ func (a *API) UpdateUser(ctx context.Context, updates map[string]any) error {
 		return fmt.Errorf("could not update user: %w", err)
 	}
 	updates["updated_at"] = time.Now().UTC()
+	godump.Dump(updates)
 	index, err := UserWriteIndexFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("could not update user: %w", err)

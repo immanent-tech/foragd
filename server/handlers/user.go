@@ -11,11 +11,11 @@ import (
 	"net/http"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
@@ -45,6 +45,41 @@ func (a *API) GetSettings() http.HandlerFunc {
 		template := layouts.NewSettingsPage(user, &models.EditUserRequest{}).Content()
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 		renderPage(template, templates.GeneratePageTitle("Settings")).ServeHTTP(res, req.WithContext(ctx))
+		return nil
+	})).ServeHTTP
+}
+
+// SaveSettings handles saving user settings after user submitted changes.
+func SaveSettings(api *elastic.API) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get user settings: %w", err)
+		}
+		settings := user.GetSettings()
+		// Parse show_unread_counts setting.
+		show_unread_counts := req.FormValue("show_unread_counts")
+		switch show_unread_counts {
+		case "on":
+			settings.ShowUnreadCounts = true
+		case "":
+			settings.ShowUnreadCounts = false
+		}
+		godump.Dump(settings)
+		// Update user object with new settings.
+		err = api.UpdateUser(req.Context(), map[string]any{"settings": settings})
+		if err != nil {
+			template := partials.Notification(
+				models.NewErrorMessage("Unable save settings", "This might be a temporary issue, please try again"), 0,
+			)
+			renderPartial(template).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Show success notification.
+		template := partials.Notification(
+			models.NewSuccessMessage("Settings saved", ""), 0,
+		)
+		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -140,8 +175,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 		settings := user.GetSettings()
 		settings.Theme = theme
 		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
-			"settings":   settings,
-			"updated_at": time.Now().UTC(),
+			"settings": settings,
 		})
 		if err != nil {
 			msg := models.NewErrorMessage(
