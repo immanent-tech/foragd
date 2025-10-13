@@ -198,6 +198,10 @@ func (a *Article) ViewURL() string {
 	return "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID()
 }
 
+func (a *Article) MarkURL(mark Mark) string {
+	return "/subscription/" + string(a.GetSubscriptionID()) + "/article/" + a.GetID() + "/mark/" + string(mark)
+}
+
 // Sanitise will sanitise the input values.
 func (r *MarkArticleRequest) Sanitise() error {
 	return nil

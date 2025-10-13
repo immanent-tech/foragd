@@ -126,33 +126,7 @@ templ actionsMenu(s *models.Subscription) {
 			Feed Website
 		</a>
 		// Mark action.
-		// markLink generates a link that will toggle the mark status (read/unread) of the subscription.
-		{{ var mark string }}
-		if s.IsUnread() {
-			{{ mark = "read" }}
-		} else {
-			{{ mark = "unread" }}
-		}
-		<a
-			hx-post={ "/subscription/" + s.GetID() + "/mark/" + mark }
-			hx-target={ "#" + s.GetID() }
-			hx-swap="outerHTML"
-			hx-include="[name='view'],[name='csrf_token']"
-			class="link link-hover menu-item"
-		>
-			switch s.IsUnread() {
-				case true:
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path>
-					</svg>
-					Mark Read
-				case false:
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path>
-					</svg>
-					Mark Unread
-			}
-		</a>
+		@MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "menu-item")
 		// Edit action.
 		<a
 			hx-get={ "/user/subscription/edit/" + s.GetID() }
