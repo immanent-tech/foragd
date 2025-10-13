@@ -31,7 +31,7 @@ templ (s *Subscription) Card() {
 				@s.ViewLink("flex", "flex-1", "items-center", "gap-x-4") {
 					<div class="flex items-center">
 						<div class="mr-4 shrink-0 self-center">
-							@s.image()
+							@GenerateAvatar(s)
 						</div>
 						<div>
 							<h4 class="text-lg font-bold">{ s.GetTitle() }</h4>

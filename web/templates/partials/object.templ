@@ -6,7 +6,8 @@ package partials
 import "github.com/immanent-tech/go-syndication/types"
 
 type Object interface {
-	types.ObjectCommon
+	GetImage() *types.ImageInfo
+	GetTitle() string
 }
 
 // GenerateAvatar will render an image appropriate to use as an "avatar" for the object.
