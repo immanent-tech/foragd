@@ -4,7 +4,6 @@
 package partials
 
 import (
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/go-syndication/types"
 	"time"
@@ -66,7 +65,6 @@ templ ViewObjectLink(obj Object, vals map[string]string, classes ...string) {
 
 // FavoriteObjectLink will render a link for toggling the favorite status of the object.
 templ FavoriteObjectLink(obj Object, classes ...string) {
-	{{ godump.Dump(obj) }}
 	<a
 		if obj.IsFavorite() {
 			hx-post={ "/user/favorite/remove/" + obj.Type() + "/" + obj.GetID() }

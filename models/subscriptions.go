@@ -100,13 +100,12 @@ func (s *Subscription) GetUpdatedDate() time.Time {
 	return s.Feed.LastFetched
 }
 
-// HasImage returns a boolean indicating whether the subscription has an image.
-func (s *Subscription) HasImage() bool {
-	return s.Feed.GetImage() != nil && s.Feed.GetImage().GetURL() != ""
-}
-
+// GetImage retrieves the image that represents the subscription, or nil if no image is available.
 func (s *Subscription) GetImage() *types.ImageInfo {
-	return s.Feed.GetImage()
+	if s.Feed.GetImage() != nil && s.Feed.GetImage().GetURL() != "" {
+		return s.Feed.GetImage()
+	}
+	return nil
 }
 
 func (s *Subscription) GetUnreadCount() int {

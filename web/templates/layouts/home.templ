@@ -105,11 +105,11 @@ templ (page *Home) Template() {
 					for article := range slices.Values(page.TopArticles) {
 						<li class="py-4 sm:px-4 space-y-2">
 							<div class="sm:flex">
-								if article.HasImage() {
+								if img := article.GetImage(); img != nil {
 									<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
 										<img
-											src={ article.GetImage().GetURL() }
-											if article.GetImage().GetTitle() != "" {
+											src={ img.GetURL() }
+											if img.GetTitle() != "" {
 												alt={ article.GetImage().GetTitle() }
 											}
 											class="h-32 sm:w-32 w-full object-cover sm:aspect-2/1 lg:aspect-3/2 rounded-box border border-base-content"
@@ -182,13 +182,13 @@ templ (page *Home) Template() {
 					<li class="py-4 space-y-2">
 						<div class="flex gap-x-4">
 							// Show article image or placeholder thumbnail.
-							if article.HasImage() {
+							if img := article.GetImage(); img != nil {
 								<div class="avatar">
 									<div class="rounded-box size-12">
 										<img
-											src={ article.GetImage().GetURL() }
-											if article.GetImage().GetTitle() != "" {
-												alt={ article.GetImage().GetTitle() }
+											src={ img.GetURL() }
+											if img.GetTitle() != "" {
+												alt={ img.GetTitle() }
 											}
 										/>
 									</div>

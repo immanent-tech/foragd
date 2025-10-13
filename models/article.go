@@ -165,13 +165,11 @@ func (a *Article) ExtractText() (string, error) {
 	return article.TextContent, nil
 }
 
-// HasImage returns a boolean indicating whether the article has an image.
-func (a *Article) HasImage() bool {
-	return a.Item.GetImage() != nil && a.Item.GetImage().GetURL() != ""
-}
-
 func (a *Article) GetImage() *types.ImageInfo {
-	return a.Item.GetImage()
+	if a.Item.GetImage() != nil && a.Item.GetImage().GetURL() != "" {
+		return a.Item.GetImage()
+	}
+	return nil
 }
 
 func (a *Article) GetAuthors() []string {

@@ -15,7 +15,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
@@ -65,7 +64,6 @@ func SaveSettings(api *elastic.API) http.HandlerFunc {
 		case "":
 			settings.ShowUnreadCounts = false
 		}
-		godump.Dump(settings)
 		// Update user object with new settings.
 		err = api.UpdateUser(req.Context(), map[string]any{"settings": settings})
 		if err != nil {

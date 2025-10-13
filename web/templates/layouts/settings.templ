@@ -4,7 +4,6 @@
 package layouts
 
 import (
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
@@ -132,7 +131,6 @@ templ AppSettingsTab(user *models.User) {
 				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
 					<div class="flex items-center col-span-full space-x-2">
 						<label class="block text-sm/6 font-medium">
-							{{ godump.Dump(user.GetSettings()) }}
 							<input
 								type="checkbox"
 								if user.GetSettings().ShowUnreadCounts {

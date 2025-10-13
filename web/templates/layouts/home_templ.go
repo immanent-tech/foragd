@@ -161,15 +161,15 @@ func (page *Home) Template() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if article.HasImage() {
+				if img := article.GetImage(); img != nil {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"mb-4 shrink-0 sm:mr-4 sm:mb-0\"><img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var8 string
-					templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetImage().GetURL())
+					templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/home.templ`, Line: 111, Col: 44}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/home.templ`, Line: 111, Col: 29}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 					if templ_7745c5c3_Err != nil {
@@ -179,7 +179,7 @@ func (page *Home) Template() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					if article.GetImage().GetTitle() != "" {
+					if img.GetTitle() != "" {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " alt=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
@@ -351,15 +351,15 @@ func (page *Home) Template() templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if article.HasImage() {
+				if img := article.GetImage(); img != nil {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<div class=\"avatar\"><div class=\"rounded-box size-12\"><img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var17 string
-					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetImage().GetURL())
+					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/home.templ`, Line: 189, Col: 44}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/home.templ`, Line: 189, Col: 29}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 					if templ_7745c5c3_Err != nil {
@@ -369,15 +369,15 @@ func (page *Home) Template() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					if article.GetImage().GetTitle() != "" {
+					if img.GetTitle() != "" {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, " alt=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var18 string
-						templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetImage().GetTitle())
+						templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/home.templ`, Line: 191, Col: 47}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/home.templ`, Line: 191, Col: 32}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 						if templ_7745c5c3_Err != nil {

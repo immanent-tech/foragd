@@ -13,7 +13,6 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/go-syndication/types"
 	"time"
@@ -61,7 +60,7 @@ func GenerateAvatar(obj Object) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 33, Col: 23}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 32, Col: 23}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -79,7 +78,7 @@ func GenerateAvatar(obj Object) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 35, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 34, Col: 26}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -102,7 +101,7 @@ func GenerateAvatar(obj Object) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(obj.GetTitle()[0:1])
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 44, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 43, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -151,7 +150,7 @@ func ViewObjectLink(obj Object, vals map[string]string, classes ...string) templ
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(obj.ViewURL())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 53, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 52, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -169,7 +168,7 @@ func ViewObjectLink(obj Object, vals map[string]string, classes ...string) templ
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(models.GenerateHXVals(vals))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 56, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 55, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -187,7 +186,7 @@ func ViewObjectLink(obj Object, vals map[string]string, classes ...string) templ
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 58, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 57, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -244,7 +243,6 @@ func FavoriteObjectLink(obj Object, classes ...string) templ.Component {
 			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		godump.Dump(obj)
 		var templ_7745c5c3_Var12 = []any{"link link-hover", classes}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var12...)
 		if templ_7745c5c3_Err != nil {
@@ -262,7 +260,7 @@ func FavoriteObjectLink(obj Object, classes ...string) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("/user/favorite/remove/" + obj.Type() + "/" + obj.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 72, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 70, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -280,7 +278,7 @@ func FavoriteObjectLink(obj Object, classes ...string) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("/user/favorite/add/" + obj.Type() + "/" + obj.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 74, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 72, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -298,7 +296,7 @@ func FavoriteObjectLink(obj Object, classes ...string) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs("#favorite_" + obj.GetID())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 76, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/object.templ`, Line: 74, Col: 40}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {

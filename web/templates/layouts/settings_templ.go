@@ -13,7 +13,6 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
@@ -130,7 +129,7 @@ func subscriptionSettingsTab() templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 57, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 56, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -143,7 +142,7 @@ func subscriptionSettingsTab() templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 64, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 63, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -156,7 +155,7 @@ func subscriptionSettingsTab() templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 71, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 70, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -199,7 +198,7 @@ func accountSettingsTab() templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(models.CSRFTokenFromCtx(ctx))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 118, Col: 94}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 117, Col: 94}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -235,22 +234,17 @@ func AppSettingsTab(user *models.User) templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div id=\"tab-app-settings\" class=\"flex flex-col mt-2 gap-y-4\"><form hx-post=\"/user/settings\" hx-include=\"[name='csrf_token']\" hx-swap=\"none\"><fieldset class=\"fieldset\"><legend class=\"fieldset-legend text-base/7\">Settings</legend><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full space-x-2\"><label class=\"block text-sm/6 font-medium\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		godump.Dump(user.GetSettings())
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<input type=\"checkbox\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div id=\"tab-app-settings\" class=\"flex flex-col mt-2 gap-y-4\"><form hx-post=\"/user/settings\" hx-include=\"[name='csrf_token']\" hx-swap=\"none\"><fieldset class=\"fieldset\"><legend class=\"fieldset-legend text-base/7\">Settings</legend><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full space-x-2\"><label class=\"block text-sm/6 font-medium\"><input type=\"checkbox\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if user.GetSettings().ShowUnreadCounts {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " checked=\"checked\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " checked=\"checked\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " name=\"show_unread_counts\" class=\"toggle toggle-sm toggle-primary\"> Show unread counts on subscriptions.</label>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " name=\"show_unread_counts\" class=\"toggle toggle-sm toggle-primary\"> Show unread counts on subscriptions.</label>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -266,7 +260,7 @@ func AppSettingsTab(user *models.User) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div tabindex=\"0\" class=\"card-body card-sm\"><div tabindex=\"0\" class=\"card-body\"><p>Toggles whether to show unread counts on subscriptions.</p></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div tabindex=\"0\" class=\"card-body card-sm\"><div tabindex=\"0\" class=\"card-body\"><p>Toggles whether to show unread counts on subscriptions.</p></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -276,7 +270,7 @@ func AppSettingsTab(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div><div class=\"mt-6 flex items-center justify-end gap-x-6 col-span-full\"><button type=\"submit\" class=\"btn btn-primary\">Save</button></div></div></fieldset></form><fieldset class=\"fieldset\"><legend class=\"fieldset-legend text-base/7\">Theme</legend><p class=\"text-sm/6\">Choose a theme from the selection below. It will be applied instantly.</p><div class=\"grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div><div class=\"mt-6 flex items-center justify-end gap-x-6 col-span-full\"><button type=\"submit\" class=\"btn btn-primary\">Save</button></div></div></fieldset></form><fieldset class=\"fieldset\"><legend class=\"fieldset-legend text-base/7\">Theme</legend><p class=\"text-sm/6\">Choose a theme from the selection below. It will be applied instantly.</p><div class=\"grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -329,7 +323,7 @@ func AppSettingsTab(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></fieldset></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div></fieldset></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -358,59 +352,59 @@ func themePreview(theme string, currentTheme string) templ.Component {
 			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border outline-2 outline-offset-2 outline-transparent\" data-act-class=\"outline-base-content!\" data-set-theme=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div class=\"border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border outline-2 outline-offset-2 outline-transparent\" data-act-class=\"outline-base-content!\" data-set-theme=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 186, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 184, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" _=\"on click set #page-theme.value to @data-set-theme\" hx-trigger=\"click\" hx-put=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" _=\"on click set #page-theme.value to @data-set-theme\" hx-trigger=\"click\" hx-put=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("/user/settings/theme/" + theme)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 189, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 187, Col: 42}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" hx-include=\"[name='csrf_token']\" hx-swap=\"outerHTML\" hx-target=\"#tab-app-settings\" id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" hx-include=\"[name='csrf_token']\" hx-swap=\"outerHTML\" hx-target=\"#tab-app-settings\" id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("theme-preview-" + theme)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 193, Col: 31}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 191, Col: 31}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"><div class=\"bg-base-100 text-base-content w-full cursor-pointer font-sans\" data-theme=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"><div class=\"bg-base-100 text-base-content w-full cursor-pointer font-sans\" data-theme=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 195, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 193, Col: 95}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"><div class=\"grid grid-cols-5 grid-rows-3\"><div class=\"bg-base-200 col-start-1 row-span-2 row-start-1\"></div><div class=\"bg-base-300 col-start-1 row-start-3\"></div><div class=\"bg-base-100 col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 p-2\"><div class=\"font-bold capitalize\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"><div class=\"grid grid-cols-5 grid-rows-3\"><div class=\"bg-base-200 col-start-1 row-span-2 row-start-1\"></div><div class=\"bg-base-300 col-start-1 row-start-3\"></div><div class=\"bg-base-100 col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 p-2\"><div class=\"font-bold capitalize\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -418,13 +412,13 @@ func themePreview(theme string, currentTheme string) templ.Component {
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 202, Col: 14}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 200, Col: 14}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " (current)")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " (current)")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -432,14 +426,14 @@ func themePreview(theme string, currentTheme string) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 204, Col: 14}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/settings.templ`, Line: 202, Col: 14}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div><div class=\"flex flex-wrap gap-1\"><div class=\"bg-primary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-primary-content text-sm font-bold\">A</div></div><div class=\"bg-secondary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-secondary-content text-sm font-bold\">A</div></div><div class=\"bg-accent flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-accent-content text-sm font-bold\">A</div></div><div class=\"bg-neutral flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-neutral-content text-sm font-bold\">A</div></div></div></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div><div class=\"flex flex-wrap gap-1\"><div class=\"bg-primary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-primary-content text-sm font-bold\">A</div></div><div class=\"bg-secondary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-secondary-content text-sm font-bold\">A</div></div><div class=\"bg-accent flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-accent-content text-sm font-bold\">A</div></div><div class=\"bg-neutral flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-neutral-content text-sm font-bold\">A</div></div></div></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
