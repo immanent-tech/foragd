@@ -18,6 +18,8 @@ var (
 	ErrConvertFieldValue = errors.New("could not convert field value")
 )
 
+type Aggs map[string]types.Aggregations
+
 // Aggregation represents a named aggregation definition in a search query.
 type Aggregation struct {
 	Name       string

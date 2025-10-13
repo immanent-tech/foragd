@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -51,7 +52,7 @@ func (s *Subscription) Valid() (bool, error) {
 // 	return s.GetTitle()
 // }
 
-func (s *Subscription) GetID() SubscriptionID {
+func (s *Subscription) GetID() string {
 	return s.Metadata.GetID()
 }
 
@@ -119,6 +120,20 @@ func (s *Subscription) SetUnreadCount(count int) {
 // IsUnread returns a boolean indicating whether the subscription is considered unread.
 func (s *Subscription) IsUnread() bool {
 	return s.UnreadCount > 0
+}
+
+// IsFavorite returns a boolean indicating whether the subscription has been favorited.
+func (s *Subscription) IsFavorite() bool {
+	return s.Favorite
+}
+
+// Type returns the type of the object, in this case, "subscription".
+func (s *Subscription) Type() string {
+	return "subscription"
+}
+
+func (s *Subscription) ViewURL() string {
+	return "/articles"
 }
 
 type SubscriptionsSlice []*Subscription
@@ -418,4 +433,8 @@ func (r *SubscriptionIssue) Valid() (bool, error) {
 func (r *SubscriptionIssue) Sanitise() error {
 	r.Details = validation.SanitizeString(r.Details)
 	return nil
+}
+
+func (s *SubscriptionStats) GetDailyUpdates() int {
+	return int(math.Round(s.AvgDailyUpdates))
 }

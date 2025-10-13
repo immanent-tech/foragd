@@ -20,9 +20,6 @@ func NewArticleContent(article *models.Article) *Article {
 	}
 }
 
-// templ.KV("row-span-1", a.GetImage().URL == ""), templ.KV("md:row-span-2 md:col-span-1", a.GetImage().URL != ""),
-// 	templ.KV("opacity-50",!a.IsUnread()) }
-
 // Card renders an article as a card, for displaying in a list.
 templ (a *Article) Card(view models.View) {
 	<li id={ a.GetID() }>
@@ -31,14 +28,14 @@ templ (a *Article) Card(view models.View) {
 		>
 			// Header.
 			<div class="px-4 py-5 sm:px-6">
-				if a.HasImage() {
-					@a.ViewLink() {
+				if img := a.GetImage(); img != nil {
+					@ViewObjectLink(a, nil) {
 						<div class="relative w-full">
 							<img
 								class="aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"
-								src={ a.GetImage().GetURL() }
-								if a.GetImage().GetTitle() != "" {
-									alt={ a.GetImage().GetTitle() }
+								src={ img.GetURL() }
+								if img.GetTitle() != "" {
+									alt={ img.GetTitle() }
 								}
 							/>
 							<div class="inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
@@ -56,7 +53,7 @@ templ (a *Article) Card(view models.View) {
 						</div>
 					}
 				} else {
-					@a.ViewLink() {
+					@ViewObjectLink(a, nil) {
 						<div class="group relative grow">
 							<h3 class="mt-3 text-lg/6 font-semibold text-pretty">
 								if a.GetTitle() != "" {
@@ -128,9 +125,12 @@ templ articleActions(article *models.Article, view models.View) {
 			@articleMarkLink(article, "#"+article.GetID(), "delete", "menu-item")
 		}
 		// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-		<div id={ "favorite_" + article.GetID() }>
-			@articleFavoriteLink(article, "menu-item")
-		</div>
+		<form>
+			<input type="hidden" name="display" value="card"/>
+			<div id={ "favorite_" + article.GetID() }>
+				@FavoriteObjectLink(article, "menu-item")
+			</div>
+		</form>
 		// Share action.
 		@articleShareLink(article, "menu-item") {
 			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
@@ -363,9 +363,12 @@ templ viewArticleActions(article *models.Article) {
 					@UpdateViewArticleMark(article)
 				</div>
 				// Favorite action.
-				<div id={ "favorite_" + article.GetID() } class="flex items-center justify-end gap-x-4">
-					@UpdateViewArticleFavorite(article)
-				</div>
+				<form>
+					<input type="hidden" name="display" value="content"/>
+					<div id={ "favorite_" + article.GetID() } class="flex items-center justify-end gap-x-4">
+						@UpdateViewArticleFavorite(article)
+					</div>
+				</form>
 				// Share action.
 				<div class="flex items-center justify-end gap-x-4">
 					Share...
@@ -382,24 +385,6 @@ templ viewArticleActions(article *models.Article) {
 			</div>
 		</el-popover>
 	</div>
-}
-
-// ToggleFavorite renders an updated favorite link based on the article favorite status.
-templ (a *Article) ToggleFavorite() {
-	@articleFavoriteLink(a.Article, "menu-item")
-}
-
-// viewLink generates a link for viewing the article.
-templ (a *Article) ViewLink(classes ...string) {
-	<a
-		hx-get={ "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID() }
-		hx-target={ ContentID.Target() }
-		hx-push-url="true"
-		hx-swap="innerHTML show:top"
-		class={ "link link-hover", classes }
-	>
-		{ children... }
-	</a>
 }
 
 // markLink generates a link that will toggle the mark status (read/unread) of the subscription.
@@ -427,33 +412,6 @@ templ articleMarkLink(article *models.Article, target, swap string, classes ...s
 					<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path>
 				</svg>
 				Mark Unread
-		}
-	</a>
-}
-
-// favoriteLink generates a link that will toggle the favorite status of the subscription.
-templ articleFavoriteLink(article *models.Article, classes ...string) {
-	<a
-		if article.Favorite {
-			hx-post={ "/user/favorite/remove/article/" + article.GetID() }
-		} else {
-			hx-post={ "/user/favorite/add/article/" + article.GetID() }
-		}
-		hx-target={ "#favorite_" + article.GetID() }
-		hx-include="[name='csrf_token']"
-		class={ "link link-hover", classes }
-	>
-		switch article.Favorite {
-			case true:
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
-					<path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001article.752.752 0 0 1-.704 0l-.003-.001Z"></path>
-				</svg>
-				Remove Favorite
-			case false:
-				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"></path>
-				</svg>
-				Add Favorite
 		}
 	</a>
 }

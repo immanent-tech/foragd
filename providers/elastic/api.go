@@ -333,6 +333,28 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int
 	return resp, nil
 }
 
+func (e *API) ItemsAggregation2(ctx context.Context, query query.Option, size int, aggregations aggregations.Aggs) (*search.Response, *models.Response) {
+	index, err := ItemsReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, ParseError(err)
+	}
+
+	req := NewSearchRequest(e.GetAPI(),
+		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
+		WithIndex[*search.Search, SearchRequest](index),
+		WithQueryOptions[*search.Search, SearchRequest](query),
+		WithSize[*search.Search, SearchRequest](size),
+		WithSortOptions[*search.Search, SearchRequest](&DocSorting{}),
+		WithAggregations2[*search.Search, SearchRequest](aggregations),
+	)
+	resp, err := req.Do(ctx)
+	if err != nil {
+		return nil, ParseError(err)
+	}
+
+	return resp, nil
+}
+
 // CountItems returns a count of items that match the given query.
 func (e *API) CountItems(ctx context.Context, query query.Option) (int64, error) {
 	index, err := ItemsReadIndexFromCtx(ctx)

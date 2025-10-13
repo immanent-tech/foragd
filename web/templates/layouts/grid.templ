@@ -39,7 +39,7 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 	></div>
 }
 
-templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination) {
+templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination, stats map[models.SubscriptionID]models.SubscriptionStats) {
 	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 		// Hidden content filters.
 		<div id="content-filters" class="hidden">
@@ -83,7 +83,7 @@ templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models
 		}.Template()
 		if len(subscriptions) >0 {
 			@Grid() {
-				@SubscriptionsList(subscriptions, filters, pagination)
+				@SubscriptionsList(subscriptions, filters, pagination, stats)
 			}
 		} else {
 			@EmptyContent()
@@ -91,9 +91,14 @@ templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models
 	</main>
 }
 
-templ SubscriptionsList(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination) {
+templ SubscriptionsList(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination, stats map[models.SubscriptionID]models.SubscriptionStats) {
 	for subscription := range slices.Values(subscriptions) {
-		@partials.NewSubscriptionContent(subscription).Card()
+		{{ subscriptionStats, found := stats[subscription.GetID()] }}
+		if found {
+			@partials.NewSubscriptionContent(subscription, &subscriptionStats).Card()
+		} else {
+			@partials.NewSubscriptionContent(subscription, nil).Card()
+		}
 	}
 	if pagination != "" && len(subscriptions) == filters.GetCount() {
 		// Add pagination htmx props to last article.

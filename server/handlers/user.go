@@ -109,7 +109,7 @@ func (a *API) GetSubscriptionsSettings() http.HandlerFunc {
 		}
 		settings := make([]templ.Component, 0, len(subscriptions))
 		for subscription := range slices.Values(subscriptions) {
-			settings = append(settings, partials.NewSubscriptionContent(subscription).Settings())
+			settings = append(settings, partials.SubscriptionSettings(subscription))
 		}
 		template := templ.Join(settings...)
 		renderPartial(template).ServeHTTP(res, req)
@@ -241,7 +241,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		template = templ.Join(
-			partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite(),
+			partials.ToggleFavorite(subscriptions[0]),
 			partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 		)
 		renderPartial(template).ServeHTTP(res, req)
@@ -292,7 +292,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		template = templ.Join(
-			partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite(),
+			partials.ToggleFavorite(subscriptions[0]),
 			partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 		)
 		renderPartial(template).ServeHTTP(res, req)
@@ -364,7 +364,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 		switch display {
 		case "card":
 			template = templ.Join(
-				partials.NewArticleContent(article).ToggleFavorite(),
+				partials.ToggleFavorite(article),
 				partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 			)
 		case "content":
@@ -432,7 +432,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 		switch display {
 		case "card":
 			template = templ.Join(
-				partials.NewArticleContent(article).ToggleFavorite(),
+				partials.ToggleFavorite(article),
 				partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 			)
 		case "content":

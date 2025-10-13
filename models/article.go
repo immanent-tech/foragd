@@ -121,7 +121,7 @@ func (a *Article) Valid() (bool, error) {
 	return true, nil
 }
 
-func (a *Article) GetID() ItemID {
+func (a *Article) GetID() string {
 	return a.Item.GetID()
 }
 
@@ -197,6 +197,20 @@ func (a *Article) GetFeedTitle() string {
 // IsUnread returns a boolean indicating whether the user has not read this article.
 func (a *Article) IsUnread() bool {
 	return !a.State.Read
+}
+
+// IsFavorite returns a boolean indicating whether the article has been favorited.
+func (s *Article) IsFavorite() bool {
+	return s.Favorite
+}
+
+// Type returns the type of the object, in this case, "article".
+func (a *Article) Type() string {
+	return "article"
+}
+
+func (a *Article) ViewURL() string {
+	return "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID()
 }
 
 // Sanitise will sanitise the input values.

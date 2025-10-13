@@ -7,9 +7,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-syndication/types"
 	"slices"
-	"time"
 )
 
 // SearchSuggestions will render suggestions for a given search.
@@ -602,26 +600,17 @@ templ RemoveFavoriteSearchButton(id models.FavoriteID) {
 	</button>
 }
 
-type searchResult interface {
-	HasImage() bool
-	GetImage() *types.ImageInfo
-	GetTitle() string
-	GetUpdatedDate() time.Time
-	GetDescription() string
-	ViewLink(classes ...string) templ.Component
-}
-
-templ showSearchResult(result searchResult) {
+templ showSearchResult(result partials.Object) {
 	<li>
 		<div class="flex gap-x-4 py-5">
 			// Show article image or placeholder thumbnail.
-			if result.HasImage() {
+			if img := result.GetImage(); img != nil {
 				<div class="avatar">
 					<div class="rounded-box size-12">
 						<img
-							src={ result.GetImage().GetURL() }
-							if result.GetImage().GetTitle() != "" {
-								alt={ result.GetImage().GetTitle() }
+							src={ img.GetURL() }
+							if img.GetTitle() != "" {
+								alt={ img.GetTitle() }
 							}
 						/>
 					</div>
@@ -636,7 +625,7 @@ templ showSearchResult(result searchResult) {
 			<div class="flex-auto">
 				// Show article title.
 				<div class="flex items-baseline justify-between gap-x-4">
-					@result.ViewLink() {
+					@partials.ViewObjectLink(result, nil) {
 						<p class="text-sm/6 font-semibold text-pretty line-clamp-2">{ result.GetTitle() }</p>
 					}
 					<p class="flex-none text-xs text-base-content/80">

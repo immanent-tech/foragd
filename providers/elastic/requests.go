@@ -66,6 +66,13 @@ func WithAggregations[T any, R RequestWithAggregations[T]](definitions ...aggreg
 	}
 }
 
+// WithAggregations adds the given aggregation definitions to the search.
+func WithAggregations2[T any, R RequestWithAggregations[T]](aggs aggregations.Aggs) Option[R] {
+	return func(req R) {
+		req.Aggregations(aggs)
+	}
+}
+
 type RequestWithIndex[T any] interface {
 	Index(index string) T
 }

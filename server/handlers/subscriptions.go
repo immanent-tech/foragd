@@ -18,6 +18,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
@@ -51,8 +52,13 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		if err != nil {
 			return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
 		}
+		// Get subscription stats.
+		stats, err := a.getSubscriptionStats(req.Context(), &filters)
+		if err != nil {
+			return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
+		}
 		// Render appropriate content.
-		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
+		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination, stats)
 		renderPage(template, templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
@@ -154,9 +160,15 @@ func (a *API) PaginateSubscriptions() http.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		// Get subscription stats.
+		stats, err := a.getSubscriptionStats(req.Context(), &filters)
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		// Render appropriate content.
 		if len(subscriptions) > 0 {
-			renderPartial(layouts.SubscriptionsList(subscriptions, &filters, pagination)).ServeHTTP(res, req)
+			renderPartial(layouts.SubscriptionsList(subscriptions, &filters, pagination, stats)).ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
 		}
@@ -197,7 +209,21 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 					fmt.Errorf("unable to mark subscription: %w", err),
 					http.StatusInternalServerError)
 			}
-			renderPartial(partials.NewSubscriptionContent(s[0]).Card()).ServeHTTP(res, req)
+			// Get subscription stats.
+			filters := session.SubscriptionFiltersFromSession(req.Context())
+			stats, err := a.getSubscriptionStats(req.Context(), &filters)
+			if err != nil {
+				renderPartial(partials.Notification(
+					models.NewErrorMessage(
+						"Unable to refresh subscription",
+						"Something went wrong, please try again",
+					), 0))
+				return models.NewAPIError(
+					fmt.Errorf("unable to mark subscription: %w", err),
+					http.StatusInternalServerError)
+			}
+			subscriptionStats := stats[s[0].GetID()]
+			renderPartial(partials.NewSubscriptionContent(s[0], &subscriptionStats).Card()).ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusOK)
 		}
@@ -258,8 +284,19 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 				fmt.Errorf("unable to mark all subscriptions: %w", err),
 				http.StatusInternalServerError)
 		}
+		stats, err := a.getSubscriptionStats(req.Context(), &filters)
+		if err != nil {
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to refresh subscription",
+					"Something went wrong, please try again",
+				), 0))
+			return models.NewAPIError(
+				fmt.Errorf("unable to mark subscription: %w", err),
+				http.StatusInternalServerError)
+		}
 		// Render appropriate content.
-		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
+		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination, stats)
 		renderPage(template, templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
 
 		// Redirect depending on the current view.
@@ -363,7 +400,20 @@ func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
 			renderPage(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		renderPartial(partials.NewSubscriptionContent(subscriptions[0]).UnsubscribeModal()).ServeHTTP(res, req)
+		filters := session.SubscriptionFiltersFromSession(req.Context())
+		stats, err := a.getSubscriptionStats(req.Context(), &filters)
+		if err != nil {
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to refresh subscription",
+					"Something went wrong, please try again",
+				), 0))
+			return models.NewAPIError(
+				fmt.Errorf("unable to mark subscription: %w", err),
+				http.StatusInternalServerError)
+		}
+		subscriptionStats := stats[subscriptions[0].GetID()]
+		renderPartial(partials.NewSubscriptionContent(subscriptions[0], &subscriptionStats).UnsubscribeModal()).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -771,6 +821,93 @@ func (a *API) filterSubscriptions(ctx context.Context, filters *models.Subscript
 	}
 	subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
 	return subscriptions, pagination, nil
+}
+
+func (a *API) getSubscriptionStats(ctx context.Context, filters *models.SubscriptionFilters) (map[models.SubscriptionID]models.SubscriptionStats, error) {
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getFeedStats: %w", err)
+	}
+
+	// Get the subscription metadata.
+	var metadata models.SubscriptionMetadataSlice
+	if len(filters.Subscriptions) > 0 {
+		metadata = user.GetSubscriptionMetadata().FilterByIDs(filters.Subscriptions...)
+	} else {
+		metadata = user.GetSubscriptionMetadata()
+	}
+	// Build query.
+	query := query.Bool(
+		query.BoolQueryName("feed_stats_query"),
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", filters.Subscriptions...),
+			query.Since("@timestamp", time.Now().UTC().Add(-24*30*time.Hour)),
+			query.Bool(
+				query.Should(buildSubscriptionQueries(user, filters.GetView(), metadata...)...),
+			),
+		),
+	)
+	// Build aggregations.
+	termsField := "feed_id"
+	termsCount := len(metadata)
+	dateHistoField := "@timestamp"
+	dateFormat := "yyyy-MM-dd"
+	aggs := aggregations.Aggs{
+		"feed": types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+			Aggregations: map[string]types.Aggregations{
+				"updates_per_day": {
+					DateHistogram: &types.DateHistogramAggregation{
+						Field:            &dateHistoField,
+						CalendarInterval: &calendarinterval.Day,
+						Format:           &dateFormat,
+					},
+				},
+				"avg_daily_updates": {
+					AvgBucket: &types.AverageBucketAggregation{
+						BucketsPath: "updates_per_day._count",
+					},
+				},
+			},
+		},
+	}
+
+	results, resp := a.DataAPI().ItemsAggregation2(ctx, query, len(metadata), aggs)
+	if resp != nil && !resp.IsNotFound() {
+		return nil, resp
+	}
+	feedStats, ok := results.Aggregations["feed"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
+	}
+	feedStatsBuckets, ok := feedStats.Buckets.([]types.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
+	}
+
+	stats := make(map[models.FeedID]models.SubscriptionStats)
+
+	for feed := range slices.Values(feedStatsBuckets) {
+		feedID, ok := feed.Key.(string)
+		if !ok {
+			slogctx.FromCtx(ctx).Debug("Unable to extract feed ID for aggregation", slog.Any("feed_id", feed.Key))
+			continue
+		}
+		updatesResult, ok := feed.Aggregations["avg_daily_updates"].(*types.SimpleValueAggregate)
+		if !ok {
+			slogctx.FromCtx(ctx).Debug("Unable to extract avg_daily_updates agg for subscription", slog.String("subscription", user.GetSubscriptionMetadata().GetByFeedID(feedID).GetID()))
+			continue
+		}
+
+		stats[user.GetSubscriptionMetadata().GetByFeedID(feedID).GetID()] = models.SubscriptionStats{
+			AvgDailyUpdates: float64(*updatesResult.Value),
+		}
+	}
+	return stats, nil
 }
 
 func (a *API) markSubscriptions(ctx context.Context, request *models.MarkSubscriptionsRequest) error {

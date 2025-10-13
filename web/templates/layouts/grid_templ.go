@@ -115,7 +115,7 @@ func PaginationControl(ctx context.Context, route string, pagination models.Pagi
 	})
 }
 
-func SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination) templ.Component {
+func SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination, stats map[models.SubscriptionID]models.SubscriptionStats) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -236,7 +236,7 @@ func SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models.
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = SubscriptionsList(subscriptions, filters, pagination).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = SubscriptionsList(subscriptions, filters, pagination, stats).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -260,7 +260,7 @@ func SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models.
 	})
 }
 
-func SubscriptionsList(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination) templ.Component {
+func SubscriptionsList(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination, stats map[models.SubscriptionID]models.SubscriptionStats) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -282,9 +282,17 @@ func SubscriptionsList(subscriptions models.SubscriptionsSlice, filters *models.
 		}
 		ctx = templ.ClearChildren(ctx)
 		for subscription := range slices.Values(subscriptions) {
-			templ_7745c5c3_Err = partials.NewSubscriptionContent(subscription).Card().Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
+			subscriptionStats, found := stats[subscription.GetID()]
+			if found {
+				templ_7745c5c3_Err = partials.NewSubscriptionContent(subscription, &subscriptionStats).Card().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = partials.NewSubscriptionContent(subscription, nil).Card().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
 		}
 		if pagination != "" && len(subscriptions) == filters.GetCount() {
@@ -334,7 +342,7 @@ func ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pagi
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 108, Col: 36}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 113, Col: 36}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -347,7 +355,7 @@ func ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pagi
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(value)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 108, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 113, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -365,7 +373,7 @@ func ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pagi
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 117, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 122, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
@@ -378,7 +386,7 @@ func ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pagi
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 118, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 123, Col: 95}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -391,7 +399,7 @@ func ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pagi
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 136, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 141, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -404,7 +412,7 @@ func ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pagi
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 137, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 142, Col: 95}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -422,7 +430,7 @@ func ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pagi
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(articles[0].GetFeedTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 145, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 150, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -440,7 +448,7 @@ func ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pagi
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("/articles/updates?" + filters.Query())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 151, Col: 85}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/grid.templ`, Line: 156, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {

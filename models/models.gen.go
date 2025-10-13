@@ -646,6 +646,12 @@ type SubscriptionSettings struct {
 	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content,omitempty,omitzero"`
 }
 
+// SubscriptionStats contains stats about a subscription.
+type SubscriptionStats struct {
+	// AvgDailyUpdates is the avergage number of updates per day.
+	AvgDailyUpdates float64 `json:"avg_daily_updates,omitempty,omitzero"`
+}
+
 // Timestamp is when the document was created.
 type Timestamp = time.Time
 

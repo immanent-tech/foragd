@@ -511,6 +511,16 @@ components:
           type: boolean
           x-oapi-codegen-extra-tags:
             form: "show_full_article_content"
+    SubscriptionStats:
+      description: >
+        contains stats about a subscription.
+      type: object
+      properties:
+        avg_daily_updates:
+          description: >
+            is the avergage number of updates per day.
+          x-go-type: float64
+
     Subscription:
       description: >
         represents a feed a user has subscribed to.
