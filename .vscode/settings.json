@@ -100,5 +100,7 @@
   },
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "xmlTools.splitAttributesOnFormat": true,
+  "xmlTools.enforcePrettySelfClosingTagOnFormat": true
 }
