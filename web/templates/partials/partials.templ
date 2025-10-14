@@ -38,7 +38,7 @@ templ PageDescription(description string) {
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
 templ Document(data []byte) {
-	<main class="prose">
+	<main class="prose m-4">
 		@templ.Raw(string(data))
 	</main>
 }
