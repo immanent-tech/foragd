@@ -95,15 +95,11 @@ templ DrawerSidebar(subscriptions models.SubscriptionsSlice, favorites models.Fa
 					</li>
 					<li>
 						<a
-							if len(subscriptions) > 0 {
-								hx-get="/subscriptions"
-								hx-target={ partials.ContentID.Target() }
-								hx-push-url="true"
-								hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
-								class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
-							} else {
-								class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold opacity-50"
-							}
+							hx-get="/subscriptions"
+							hx-target={ partials.ContentID.Target() }
+							hx-push-url="true"
+							hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+							class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
 							_="on click toggle @open on #mobile-sidebar-dialog"
 						>
 							<span class="sr-only">Show all unread subscriptions</span>
@@ -115,15 +111,11 @@ templ DrawerSidebar(subscriptions models.SubscriptionsSlice, favorites models.Fa
 					</li>
 					<li>
 						<a
-							if len(subscriptions) > 0 {
-								hx-get="/articles"
-								hx-target={ partials.ContentID.Target() }
-								hx-push-url="true"
-								hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
-								class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
-							} else {
-								class="group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold opacity-50"
-							}
+							hx-get="/articles"
+							hx-target={ partials.ContentID.Target() }
+							hx-push-url="true"
+							hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
+							class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
 							_="on click toggle @open on #mobile-sidebar-dialog"
 						>
 							<span class="sr-only">Show all unread articles</span>

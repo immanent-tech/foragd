@@ -861,6 +861,12 @@ components:
           type: boolean
           x-oapi-codegen-extra-tags:
             form: 'mangled_content'
+        duplicate:
+          description: >
+            indicates that the object has a duplicate.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: 'duplicate'
     PageIssue:
       description: >
         contains details about issues with a page.

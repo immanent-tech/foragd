@@ -55,6 +55,20 @@ templ ReportArticleIssue(article *models.Article, details *models.ArticleIssue) 
 							<label for="mangled-text" class="block text-sm/6 font-medium">Mangled text</label>
 						</div>
 					</div>
+					<div class="flex items-center">
+						<div class="flex items-center gap-x-3">
+							<input
+								id="mangled-text"
+								type="checkbox"
+								name="mangled_text"
+								if details.Duplicate {
+									checked
+								}
+								class="checkbox checkbox-sm"
+							/>
+							<label for="mangled-text" class="block text-sm/6 font-medium">Duplicated article</label>
+						</div>
+					</div>
 				</div>
 			</fieldset>
 			<fieldset class="fieldset p-4">

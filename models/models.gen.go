@@ -169,6 +169,9 @@ type ArticleIssue struct {
 	// Details is the user-submitted text about the issue.
 	Details string `form:"details" json:"details,omitempty,omitzero"`
 
+	// Duplicate indicates that the object has a duplicate.
+	Duplicate bool `form:"duplicate" json:"duplicate,omitempty,omitzero"`
+
 	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
 	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
 
@@ -479,6 +482,9 @@ type ObjectCommonSourceType string
 
 // ObjectIssue contains common issues encountered with objects.
 type ObjectIssue struct {
+	// Duplicate indicates that the object has a duplicate.
+	Duplicate bool `form:"duplicate" json:"duplicate,omitempty,omitzero"`
+
 	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
 	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
 
@@ -581,6 +587,9 @@ type SubscriptionID = string
 type SubscriptionIssue struct {
 	// Details is the user-submitted text about the issue.
 	Details string `form:"details" json:"details,omitempty,omitzero"`
+
+	// Duplicate indicates that the object has a duplicate.
+	Duplicate bool `form:"duplicate" json:"duplicate,omitempty,omitzero"`
 
 	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
 	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
