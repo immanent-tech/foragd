@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <opml version="2.0">
     <body>
-        <outline description="All Ars Technica stories" htmlUrl="https://arstechnica.com" text="Ars Technica - All content" title="Ars Technica - All content" type="rss" xmlUrl="http://feeds.arstechnica.com/arstechnica/index/"></outline>
+        <outline description="All Ars Technica stories"
+            htmlUrl="https://arstechnica.com"
+            text="Ars Technica - All content"
+            title="Ars Technica - All content"
+            type="rss"
+            xmlUrl="http://feeds.arstechnica.com/arstechnica/index/"></outline>
+        <outline description="Latest World news news, comment and analysis from the Guardian, the world's leading liberal voice"
+            htmlUrl="https://www.theguardian.com/world"
+            text="World news | The Guardian"
+            title="World news | The Guardian"
+            type="rss"
+            xmlUrl="https://www.theguardian.com/world/rss"></outline>
     </body>
     <head>
         <dateCreated>2025-09-23T09:21:01.533444703+10:00</dateCreated>
