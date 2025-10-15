@@ -575,6 +575,7 @@ func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		request, valid, err := forms.DecodeForm[*models.AddFeedsetRequest](req)
 		if err != nil || !valid {
+			res.Header().Add(htmx.HeaderReswap, "none")
 			msg := models.NewErrorMessage("An error occurred reading feed sets.", "Please try again.")
 			renderPartial(partials.Notification(msg, 0))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
@@ -590,23 +591,25 @@ func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
 			)
 			switch set {
 			case "enlightened":
-				data, err = static.ReadFile("web/content/opml/enlightened.opml")
+				data, err = static.ReadFile("content/opml/enlightened.opml")
 			case "informed":
-				data, err = static.ReadFile("web/content/opml/informed.opml")
+				data, err = static.ReadFile("content/opml/informed.opml")
 			case "inspired":
-				data, err = static.ReadFile("web/content/opml/inspired.opml")
+				data, err = static.ReadFile("content/opml/inspired.opml")
 			default:
 				slogctx.FromCtx(req.Context()).Warn("Unknown feedset.",
 					slog.String("set", set))
 				continue
 			}
 			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
 				msg := models.NewErrorMessage("An error occurred reading feed sets.", "Please try again.")
 				renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			opmlImport, err := opml.NewOPMLFromBytes(data)
 			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
 				msg := models.NewErrorMessage("An error occurred reading feed sets.", "Please try again.")
 				renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
@@ -620,6 +623,7 @@ func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
 		}
 		matchResults, err := subscriptionProcessing.matchFeedsToSubscriptionRequests(req.Context(), storeAPI)
 		if err != nil {
+			res.Header().Add(htmx.HeaderReswap, "none")
 			msg := models.NewErrorMessage(
 				"Error processing feed sets.",
 				"The backend had issues processing the request and adding subscriptions, please try again.",
@@ -629,6 +633,7 @@ func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
 		}
 		createResults, err := subscriptionProcessing.createNewSubscriptions(req.Context(), storeAPI)
 		if err != nil {
+			res.Header().Add(htmx.HeaderReswap, "none")
 			msg := models.NewErrorMessage(
 				"Error processing feed sets.",
 				"The backend had issues processing the request and adding subscriptions, please try again.",

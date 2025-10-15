@@ -276,6 +276,7 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 
 // AddSubscriptionSuccess displays success feedback and navigation options on successful addition of a subscription.
 templ AddSubscriptionSuccess(result *models.AddSubscriptionResult) {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
 	<div class="text-center">
 		<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-12 mx-auto text-success">
 			<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
@@ -285,9 +286,9 @@ templ AddSubscriptionSuccess(result *models.AddSubscriptionResult) {
 		<div class="mt-6">
 			<button
 				type="button"
-				hx-get="/subscriptions"
+				hx-get="/list/subscriptions"
 				hx-target={ partials.ContentID.Target() }
-				hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+				hx-vals={ models.GenerateHXVals(filters.Values()) }
 				hx-push-url="true"
 				class="btn btn-outline hover:bg-accent"
 			>

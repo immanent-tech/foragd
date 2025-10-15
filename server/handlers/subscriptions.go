@@ -257,6 +257,9 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			}
 			// If results returned from matching is non-nil, something went wrong.
 			if result[request] != nil {
+				request.URLErr = errors.New("unable to find a feed at given URL")
+				// msg := models.NewErrorMessage("Unable to find a feed!", "Please try again with a different URL.")
+				// template := templ.Join(layouts.AddSubscription(request), partials.Notification(msg, 0))
 				template := layouts.AddSubscription(request)
 				renderPage(template, "").ServeHTTP(res, req)
 				res.WriteHeader(http.StatusUnprocessableEntity)
