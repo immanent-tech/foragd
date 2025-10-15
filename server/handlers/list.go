@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -30,6 +31,8 @@ const (
 )
 
 // ShowList handles displaying or paginating a list of objects (subscriptions/articles) as cards in a grid layout.
+//
+//nolint:gocognit
 func ShowList(api *elastic.API) http.HandlerFunc {
 	return alice.New(
 		decodeListFilters,
@@ -40,7 +43,11 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 		pagination := req.FormValue("pagination")
 		// Redirect to include query parameters in address bar.
 		if len(req.URL.Query()) == 0 {
-			http.Redirect(res, req, req.URL.Path+"?"+filters.QueryParams().Encode(), http.StatusSeeOther)
+			if IsHTMX(req) {
+				res.Header().Add(htmx.HeaderReplaceUrl, req.URL.Path+"?"+filters.QueryString())
+			} else {
+				http.Redirect(res, req, req.URL.Path+"?"+filters.QueryParams().Encode(), http.StatusSeeOther)
+			}
 			return nil
 		}
 		var (
