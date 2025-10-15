@@ -80,3 +80,18 @@ func ArticleFiltersFromSession(ctx context.Context) models.ArticleFilters {
 	}
 	return *value
 }
+
+// SaveToSession saves the given object to the session storage with the given key.
+func SaveToSession[T any](ctx context.Context, key string, obj T) {
+	Manager.Put(ctx, key, obj)
+}
+
+// RestoreFromSession retrieves an object from the session storage with the given key. If the object cannot be
+// retrieved, then the defaultFunc is used to generate a new default value.
+func RestoreFromSession[T any](ctx context.Context, key string, defaultFunc func() T) T {
+	value, ok := Manager.Get(ctx, articleFiltersSessionKey).(T)
+	if !ok {
+		return defaultFunc()
+	}
+	return value
+}

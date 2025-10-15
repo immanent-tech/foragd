@@ -4,6 +4,7 @@
 package models
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,10 @@ import (
 
 	"github.com/immanent-tech/foragd/validation"
 )
+
+func init() {
+	gob.Register(ListDisplayFilters{})
+}
 
 var ErrParseFilters = errors.New("error parsing filters")
 
@@ -98,8 +103,8 @@ type Filters interface {
 	GetCount() int
 	GetView() View
 	GetCategories() []Category
-	Parameters() map[string]string
-	Query() string
+	Values() map[string]string
+	QueryString() string
 }
 
 func FiltersFromParams[F Filters](params any) (F, error) {
@@ -121,6 +126,98 @@ func FiltersFromParams[F Filters](params any) (F, error) {
 	}
 
 	return filters, nil
+}
+
+func NewListDisplayFilters() ListDisplayFilters {
+	return ListDisplayFilters{
+		SortBy:    SortByLastUpdated,
+		SortOrder: SortOrderDesc,
+		Count:     DefaultCount,
+		View:      DefaultView,
+	}
+}
+
+func (f ListDisplayFilters) GetSubscriptions() []SubscriptionID {
+	return f.Subscriptions
+}
+
+func (f *ListDisplayFilters) Sanitise() error {
+	if f == nil {
+		newFilters := NewListDisplayFilters()
+		f = &newFilters
+		return nil
+	}
+	// Set required filters to valid values as necessary.
+	f.SortBy = setValidSortBy(f.SortBy)
+	f.SortOrder = setValidSortOrder(f.SortOrder)
+	f.Count = setValidCount(f.Count)
+	f.View = setValidView(f.View)
+	return nil
+}
+
+// Valid will return a boolean indicating whether the filters are valid and a
+// non-nil error with details if not.
+func (f *ListDisplayFilters) Valid() (bool, error) {
+	return validation.ValidateStruct(f)
+}
+
+// Sort returns the Sort object for the Filters.
+func (f ListDisplayFilters) GetSort() Sort {
+	return Sort{
+		SortBy:    f.SortBy,
+		SortOrder: f.SortOrder,
+	}
+}
+
+// GetCount returns the count value (encoded as a string in the filters) as an int.
+func (f ListDisplayFilters) GetCount() int {
+	value, err := strconv.Atoi(f.Count)
+	if err != nil {
+		return 10
+	}
+	return value
+}
+
+func (f ListDisplayFilters) GetView() View {
+	return f.View
+}
+
+func (f ListDisplayFilters) GetCategories() []Category {
+	return f.Categories
+}
+
+func (f ListDisplayFilters) QueryParams() url.Values {
+	params := make(url.Values)
+	if len(f.Subscriptions) > 0 {
+		params.Set(ParamSubscriptions, strings.Join(f.Subscriptions, ","))
+	}
+	if len(f.Categories) > 0 {
+		params.Set(ParamCategories, strings.Join(f.Categories, ","))
+	}
+	params.Set(ParamSortBy, string(f.SortBy))
+	params.Set(ParamSortOrder, string(f.SortOrder))
+	params.Set(ParamView, string(f.View))
+	params.Set(ParamCount, f.Count)
+	return params
+}
+
+func (f ListDisplayFilters) QueryString() string {
+	return f.QueryParams().Encode()
+}
+
+func (f ListDisplayFilters) Values() map[string]string {
+	params := make(map[string]string)
+	if len(f.Subscriptions) > 0 {
+		params[ParamSubscriptions] = strings.Join(f.Subscriptions, ",")
+	}
+	if len(f.Categories) > 0 {
+		params[ParamCategories] = strings.Join(f.Categories, ",")
+	}
+	params[ParamSortBy] = string(f.SortBy)
+	params[ParamSortOrder] = string(f.SortOrder)
+	params[ParamView] = string(f.View)
+	params[ParamCount] = f.Count
+	return params
 }
 
 func NewSubscriptionFilters() SubscriptionFilters {

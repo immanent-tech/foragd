@@ -4,6 +4,7 @@
 package partials
 
 import (
+	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/foragd/models"
 	"strconv"
 )
@@ -141,7 +142,7 @@ templ (c ListControls) Template() {
 								<button
 									type="button"
 									class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
-									hx-put="/articles"
+									hx-post="/list/articles/mark"
 									hx-include="#content-filters,[name='csrf_token']"
 									hx-target={ ContentID.Target() }
 								>
@@ -152,7 +153,7 @@ templ (c ListControls) Template() {
 								<button
 									type="button"
 									class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
-									hx-put="/subscriptions"
+									hx-post="/list/subscriptions/mark"
 									hx-include="#content-filters,[name='csrf_token']"
 									hx-target={ ContentID.Target() }
 								>
@@ -173,7 +174,7 @@ templ (c ListControls) Template() {
 								<button
 									type="button"
 									class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
-									hx-put="/articles"
+									hx-post="/list/articles/mark"
 									hx-include="#content-filters,[name='csrf_token']"
 									hx-target={ ContentID.Target() }
 								>
@@ -184,7 +185,7 @@ templ (c ListControls) Template() {
 								<button
 									type="button"
 									class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
-									hx-put="/subscriptions"
+									hx-post="/list/subscriptions/mark"
 									hx-include="#content-filters,[name='csrf_token']"
 									hx-target={ ContentID.Target() }
 								>
@@ -256,6 +257,241 @@ templ (c ListControls) Template() {
 			</div>
 		</div>
 	</div>
+}
+
+templ ListDisplayFilters(categories models.CategoryCounts, filters models.ListDisplayFilters) {
+	{{ var path string }}
+	switch chi.RouteContext(ctx).URLParam("list") {
+		case "subscriptions":
+			{{ path = "/list/subscriptions" }}
+		case "articles":
+			{{ path = "/list/articles" }}
+	}
+	<div>
+		// Mobile filter dialog.
+		<el-dialog>
+			<dialog id="mobile-filters" class="overflow-hidden backdrop:bg-transparent sm:hidden">
+				<el-dialog-backdrop class="bg-base-100/80 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0"></el-dialog-backdrop>
+				<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
+					<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl transition duration-300 ease-in-out data-closed:translate-x-full">
+						<div class="flex items-center justify-between px-4">
+							<h2 class="text-lg font-medium">Filters</h2>
+							<button type="button" command="close" commandfor="mobile-filters" class="relative -mr-2 flex size-10 items-center justify-center rounded-md p-2 text-base-content hover:text-base-content/50 focus:ring-2 focus:ring-accent focus:outline-hidden">
+								<span class="absolute -inset-0.5"></span>
+								<span class="sr-only">Close menu</span>
+								@CloseIcon("size-6")
+							</button>
+						</div>
+						@listDisplayFiltersForm(path, filters, "mt-4") {
+							// Category Filters (mobile).
+							if len(categories.GetTopCategories(10)) > 0 {
+								<div class="border-t border-base-content/10 px-4 py-6">
+									<h3 class="-mx-2 -my-3 flow-root">
+										<button type="button" command="--toggle" commandfor="filter-section-category" class="flex w-full items-center justify-between px-2 py-3 text-sm">
+											<span class="font-medium">Category</span>
+											<span class="ml-6 flex items-center">
+												<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
+													<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+												</svg>
+											</span>
+										</button>
+									</h3>
+									<el-disclosure id="filter-section-category" hidden class="block pt-6">
+										<div class="space-y-6">
+											// Top 10 categories only.
+											for idx, category := range categories.GetTopCategories(10) {
+												@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
+											}
+											<a
+												class="link link-hover"
+												hx-get={ path }
+												hx-push-url="true"
+												hx-target={ ContentID.Target() }
+												hx-include="#content-filters"
+												hx-params={ "not " + models.ParamCategories }
+											>
+												<div class="flex items-center">
+													<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+													</svg>
+													<p class="ml-3 text-sm font-medium capitalize hover:underline">Clear</p>
+												</div>
+											</a>
+										</div>
+									</el-disclosure>
+								</div>
+							}
+							// View Filters (mobile).
+							<div class="border-t border-base-content/10 px-4 py-6">
+								<h3 class="-mx-2 -my-3 flow-root">
+									<button type="button" command="--toggle" commandfor="filter-section-view" class="flex w-full items-center justify-between px-2 py-3 text-sm">
+										<span class="font-medium">View</span>
+										<span class="ml-6 flex items-center">
+											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
+												<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+											</svg>
+										</span>
+									</button>
+								</h3>
+								<el-disclosure id="filter-section-view" hidden class="block pt-6">
+									<div class="space-y-6">
+										@viewFilter("filter-mobile-view-unread", models.ViewUnread, filters.GetView())
+										@viewFilter("filter-mobile-view-read", models.ViewRead, filters.GetView())
+										@viewFilter("filter-mobile-view-all", models.ViewAll, filters.GetView())
+									</div>
+								</el-disclosure>
+							</div>
+						}
+					</el-dialog-panel>
+				</div>
+			</dialog>
+		</el-dialog>
+		<div>
+			<div class="py-6">
+				<div class="flex items-center justify-between">
+					// Sort Options.
+					<div class="group inline-block">
+						<button
+							class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
+							popovertarget="sort-menu"
+							type="button"
+						>
+							<span class="sr-only">Sort options</span>
+							Sort
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
+								<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+							</svg>
+						</button>
+						<el-popover popover id="sort-menu" anchor="bottom start" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+							<fieldset>
+								<div class="space-y-4">
+									@sortOption(path, models.SortLastUpdatedDesc, filters.GetSort())
+									@sortOption(path, models.SortLastUpdatedAsc, filters.GetSort())
+									if path == "/subscriptions" {
+										@sortOption(path, models.SortUnreadCountDesc, filters.GetSort())
+										@sortOption(path, models.SortUnreadCountAsc, filters.GetSort())
+									}
+								</div>
+							</fieldset>
+						</el-popover>
+					</div>
+					{{ var mark string }}
+					if filters.GetView() == models.ViewUnread {
+						{{ mark = "read" }}
+					} else {
+						{{ mark = "unread" }}
+					}
+					<div class="sm:hidden space-x-4">
+						<button
+							type="button"
+							class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
+							hx-post={ path + "/mark" }
+							hx-include="#content-filters,[name='csrf_token']"
+							hx-target={ ContentID.Target() }
+						>
+							<span class="sr-only">Mark all { mark }</span>
+							Mark all { mark }
+						</button>
+						// Button to reveal filters sidebar on mobile.
+						<button type="button" command="show-modal" commandfor="mobile-filters" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
+							<span class="sr-only">Filter options</span>
+							Filters
+						</button>
+					</div>
+					// Desktop Filters.
+					<el-popover-group class="hidden sm:flex sm:items-baseline sm:space-x-8">
+						<button
+							type="button"
+							class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
+							hx-post={ path + "/mark" }
+							hx-include="#content-filters,[name='csrf_token']"
+							hx-target={ ContentID.Target() }
+						>
+							<span class="sr-only">Mark all { mark }</span>
+							Mark all { mark }
+						</button>
+						// Category Filters (desktop).
+						if len(categories.GetTopCategories(10)) > 0 {
+							<div class="relative inline-block text-left">
+								<div class="group">
+									<button popovertarget="desktop-menu-category" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
+										<span class="sr-only">Category filters</span>
+										<span>Category</span>
+										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
+											<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+										</svg>
+									</button>
+									<el-popover id="desktop-menu-category" anchor="bottom end" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+										<div class="space-y-4">
+											@listDisplayFiltersForm(path, filters, "space-y-4") {
+												<input type="hidden" name={ models.ParamView } value={ string(filters.GetView()) }/>
+												// Top 10 categories only.
+												for idx, category := range categories.GetTopCategories(10) {
+													@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
+												}
+											}
+											<a
+												class="link link-hover"
+												hx-get={ path }
+												hx-push-url="true"
+												hx-target={ ContentID.Target() }
+												hx-include="#content-filters"
+												hx-params={ "not " + models.ParamCategories }
+											>
+												<div class="flex items-center">
+													<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+													</svg>
+													<p class="ml-3 text-sm font-medium capitalize hover:underline">Clear</p>
+												</div>
+											</a>
+										</div>
+									</el-popover>
+								</div>
+							</div>
+						}
+						// View Filters (desktop).
+						<div class="relative inline-block text-left">
+							<div class="group">
+								<button popovertarget="desktop-menu-view" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
+									<span class="sr-only">View filters</span>
+									<span>View</span>
+									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
+										<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+									</svg>
+								</button>
+								<el-popover id="desktop-menu-view" anchor="bottom end" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+									@listDisplayFiltersForm(path, filters, "space-y-4") {
+										@viewFilter("filter-view-unread", models.ViewUnread, filters.GetView())
+										@viewFilter("filter-view-read", models.ViewRead, filters.GetView())
+										@viewFilter("filter-view-all", models.ViewAll, filters.GetView())
+									}
+								</el-popover>
+							</div>
+						</div>
+					</el-popover-group>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+// controlForm wraps controls in a form that will handle applying the given controls.
+templ listDisplayFiltersForm(path string, filters models.ListDisplayFilters, classes ...string) {
+	<form
+		hx-get={ path }
+		hx-push-url="true"
+		hx-target={ ContentID.Target() }
+		class={ classes }
+		hx-trigger="change,selectionchange"
+		hx-include="#content-filters,[name='subscriptions'],[name='csrf_token']"
+	>
+		// // Add other filters.
+		// <input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
+		// <input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
+		// <input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+		{ children... }
+	</form>
 }
 
 // controlForm wraps controls in a form that will handle applying the given controls.

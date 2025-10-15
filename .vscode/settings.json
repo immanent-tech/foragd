@@ -103,7 +103,7 @@
   },
   "xmlTools.splitAttributesOnFormat": true,
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
-  "editor.wordWrap": "wordWrapColumn",
-  "editor.wordWrapColumn": 120,
+  // "editor.wordWrap": "wordWrapColumn",
+  // "editor.wordWrapColumn": 120,
   "rewrap.wrappingColumn": 120
 }

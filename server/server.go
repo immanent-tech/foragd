@@ -243,26 +243,22 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.Get("/search", handler.GetSearchResults())
 		r.With(middlewares.RequireHTMX).Post("/search/filter/subscription", handlers.AddSubscriptionFilter())
 
-		// Subscription routes.
-		r.Route("/subscriptions", func(r chi.Router) {
-			r.Get("/", handler.GetSubscriptions())
-			r.With(middlewares.RequireHTMX).Put("/", handler.MarkAllSubscriptions())
-			r.With(middlewares.RequireHTMX).Post("/", handler.PaginateSubscriptions())
-			r.Get("/updates", handler.GetSubscriptionUpdates())
+		r.Route("/list", func(r chi.Router) {
+			r.Get("/{list}", handlers.ShowList(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/{list}/paginate", handlers.ShowList(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/{list}/mark", handlers.MarkList(handler.Elastic))
+			r.Get("/updates", handlers.WatchList(handler.Elastic))
 		})
+		r.Route("/view", func(r chi.Router) {
+			r.Get("/{object}", func(w http.ResponseWriter, r *http.Request) {})
+		})
+
 		// Subscription route.
 		r.Route("/subscription/{subscription_id}", func(r chi.Router) {
 			// r.Get("/", handler.GetSubscriptionArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkSubscription())
 			r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetSubscriptionIssues(handler))
 			r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitSubscriptionIssues(handler, s.apis.github))
-		})
-		// Article routes.
-		r.Route("/articles", func(r chi.Router) {
-			r.Get("/", handler.GetArticles())
-			r.With(middlewares.RequireHTMX).Put("/", handler.MarkAllArticles())
-			r.With(middlewares.RequireHTMX).Post("/", handler.PaginateArticles())
-			r.Get("/updates", handler.GetArticleUpdates())
 		})
 		r.Route("/subscription/{subscription_id}/article/{item_id}", func(r chi.Router) {
 			r.Get("/", handler.ViewArticle())

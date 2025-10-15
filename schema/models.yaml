@@ -899,3 +899,50 @@ components:
       allOf:
         - $ref: '#/components/schemas/ObjectIssue'
         - $ref: '#/components/schemas/PageIssue'
+    CommonDisplayFilters:
+      description: >
+        contains filters for altering the display of objects.
+      type: object
+      required:
+        - view
+        - count
+        - sort_by
+        - sort_order
+      properties:
+        count:
+          $ref: 'api.yaml#/components/schemas/Count'
+        view:
+          $ref: 'api.yaml#/components/schemas/View'
+        sort_by:
+          $ref: 'api.yaml#/components/schemas/SortBy'
+        sort_order:
+          $ref: 'api.yaml#/components/schemas/SortOrder'
+        categories:
+          description: is a list of categories.
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            json: 'categories'
+            form: 'categories'
+            validate: 'omitnil,unique,dive,url_encoded'
+          x-go-type-skip-optional-pointer: true
+    ListDisplayFilters:
+      description: >
+        contains filter parameters that apply to subscriptions.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CommonDisplayFilters'
+        - type: object
+          properties:
+            subscriptions:
+              description: >
+                is a list of subscription IDs.
+              type: array
+              items:
+                $ref: '#/components/schemas/SubscriptionID'
+              x-oapi-codegen-extra-tags:
+                json: 'subscriptions'
+                form: 'subscriptions'
+                validate: 'omitnil,unique,dive,startswith=sub_'
+              x-go-type-skip-optional-pointer: true

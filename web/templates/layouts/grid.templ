@@ -7,9 +7,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
+	"strings"
 )
 
 // Grid layout renders children in a responsive grid.
@@ -39,12 +39,20 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 	></div>
 }
 
-templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination, stats map[models.SubscriptionID]models.SubscriptionStats) {
+templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, stats map[models.SubscriptionID]models.SubscriptionStats, pagination models.Pagination) {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
 	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 		// Hidden content filters.
 		<div id="content-filters" class="hidden">
-			for name, value := range filters.Parameters() {
-				<input type="hidden" name={ name } value={ value }/>
+			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+			<input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
+			<input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
+			if len(filters.GetCategories()) > 0 {
+				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>
+			}
+			if len(filters.GetSubscriptions()) > 0 {
+				<input type="hidden" name={ models.ParamSubscriptions } value={ strings.Join(filters.GetSubscriptions(), ",") }/>
 			}
 		</div>
 		// Mobile breadcrumbs/navigation.
@@ -75,15 +83,11 @@ templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models
 				</li>
 			</ul>
 		</div>
-		<div id="update-notifications" sse-connect={ "/subscriptions/updates?" + filters.Query() } sse-swap="message" class="toast toast-center z-50"></div>
-		@partials.ListControls{
-			Path:       "/subscriptions",
-			Filters:    filters,
-			Categories: subscriptions.GetCategoryCounts(),
-		}.Template()
+		<div id="update-notifications" sse-connect={ "/list/subscriptions/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
+		@partials.ListDisplayFilters(subscriptions.GetCategoryCounts(), filters)
 		if len(subscriptions) >0 {
 			@Grid() {
-				@SubscriptionsList(subscriptions, filters, pagination, stats)
+				@SubscriptionsList(subscriptions, stats, pagination)
 			}
 		} else {
 			@EmptyContent()
@@ -91,7 +95,8 @@ templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models
 	</main>
 }
 
-templ SubscriptionsList(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination, stats map[models.SubscriptionID]models.SubscriptionStats) {
+templ SubscriptionsList(subscriptions models.SubscriptionsSlice, stats map[models.SubscriptionID]models.SubscriptionStats, pagination models.Pagination) {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
 	for subscription := range slices.Values(subscriptions) {
 		{{ subscriptionStats, found := stats[subscription.GetID()] }}
 		if found {
@@ -102,15 +107,23 @@ templ SubscriptionsList(subscriptions models.SubscriptionsSlice, filters *models
 	}
 	if pagination != "" && len(subscriptions) == filters.GetCount() {
 		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/subscriptions", pagination)
+		@PaginationControl(ctx, "/list/subscriptions", pagination)
 	}
 }
 
-templ ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pagination models.Pagination) {
+templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
 	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 		<div id="content-filters" class="hidden">
-			for name, value := range filters.Parameters() {
-				<input type="hidden" name={ name } value={ value }/>
+			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+			<input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
+			<input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
+			if len(filters.GetCategories()) > 0 {
+				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>
+			}
+			if len(filters.GetSubscriptions()) > 0 {
+				<input type="hidden" name={ models.ParamSubscriptions } value={ strings.Join(filters.GetSubscriptions(), ",") }/>
 			}
 		</div>
 		// Mobile breadcrumbs/navigation.
@@ -118,9 +131,10 @@ templ ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pag
 			<ul>
 				<li aria-label="Back">
 					<a
-						hx-get="/subscriptions"
+						hx-get="/list/subscriptions"
 						hx-target={ partials.ContentID.Target() }
-						hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+						hx-vals={ models.GenerateHXVals(filters.Values()) }
+						hx-params={ "not " + models.ParamSubscriptions }
 						hx-push-url="true"
 						class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
 					>
@@ -137,9 +151,10 @@ templ ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pag
 			<ul>
 				<li aria-label="Subscriptions">
 					<a
-						hx-get="/subscriptions"
+						hx-get="/list/subscriptions"
 						hx-target={ partials.ContentID.Target() }
-						hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+						hx-vals={ models.GenerateHXVals(filters.Values()) }
+						hx-params={ "not " + models.ParamSubscriptions }
 						hx-push-url="true"
 						class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
 					>Subscriptions</a>
@@ -153,15 +168,11 @@ templ ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pag
 				}
 			</ul>
 		</div>
-		<div id="update-notifications" sse-connect={ "/articles/updates?" + filters.Query() } sse-swap="message" class="toast toast-center z-50"></div>
-		@partials.ListControls{
-			Path:       "/articles",
-			Filters:    filters,
-			Categories: articles.GetCategoryCounts(),
-		}.Template()
+		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
+		@partials.ListDisplayFilters(articles.GetCategoryCounts(), filters)
 		if len(articles) > 0 {
 			@Grid() {
-				@ArticlesList(articles, filters, pagination)
+				@ArticlesList(articles, pagination)
 			}
 		} else {
 			@EmptyContent()
@@ -169,13 +180,14 @@ templ ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pag
 	</main>
 }
 
-templ ArticlesList(articles models.Articles, filters *models.ArticleFilters, pagination models.Pagination) {
+templ ArticlesList(articles models.Articles, pagination models.Pagination) {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
 	for article := range slices.Values(articles) {
 		@partials.NewArticleContent(article).Card(filters.GetView())
 	}
 	// Add pagination element if pagination is required.
 	if pagination != "" && len(articles) == filters.GetCount() {
 		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/articles", pagination)
+		@PaginationControl(ctx, "/list/articles", pagination)
 	}
 }

@@ -4,8 +4,6 @@
 package handlers
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"fmt"
 	"log/slog"
@@ -34,132 +32,6 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
-
-// GetArticles handles showing a filtered collection of articles as cards.
-func (a *API) GetArticles() http.HandlerFunc {
-	return alice.New(
-		decodeArticleFilters,
-		saveArticleFilters,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Extract filters from request.
-		filters := articleFiltersFromCtx(req.Context())
-		// Get articles matching filters.
-		articles, pagination, err := a.filterArticles(req.Context(), &filters)
-		if err != nil {
-			return fmt.Errorf("unable to get articles: %w", err)
-		}
-		// Render appropriate content.
-		template := layouts.ArticlesGrid(articles, &filters, pagination)
-		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
-		return nil
-	})).ServeHTTP
-}
-
-// GetArticleUpdates handles showing a notification when new article content is available.
-//
-//nolint:gocognit
-func (a *API) GetArticleUpdates() http.HandlerFunc {
-	return alice.New(
-		decodeArticleFilters,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Content-Type", "text/event-stream")
-		res.Header().Set("Cache-Control", "no-cache")
-		res.Header().Set("Connection", "keep-alive")
-		if f, ok := res.(http.Flusher); ok {
-			f.Flush()
-		} else {
-			slogctx.FromCtx(req.Context()).Warn("Cannot flush update stream!")
-			res.WriteHeader(http.StatusNoContent)
-		}
-		// Get filters and generate query.
-		filters := articleFiltersFromCtx(req.Context())
-		query, err := generateItemsQuery(req.Context(), &filters, filters.Subscriptions...)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
-				slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		var (
-			currentCount int64
-			prevCount    int64
-		)
-		prevCount, err = a.DataAPI().CountItems(req.Context(), query)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
-				slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		for {
-			select {
-			case <-req.Context().Done():
-				res.Header().Set("Connection", "close")
-				res.WriteHeader(http.StatusRequestTimeout)
-				return
-			default:
-				currentCount, err = a.DataAPI().CountItems(req.Context(), query)
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
-						slog.Any("error", err))
-					continue
-				}
-				// Show updates toast if new items found.
-				if currentCount > prevCount {
-					slogctx.FromCtx(req.Context()).Debug("Article updates found.")
-					var b bytes.Buffer
-					template := bufio.NewWriter(&b)
-					err := partials.UpdatesToast().Render(req.Context(), template)
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
-							slog.Any("error", err))
-						continue
-					}
-					err = template.Flush()
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
-							slog.Any("error", err))
-					}
-					_, err = fmt.Fprintf(res, "data: %s\n\n", b.String())
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
-							slog.Any("error", err))
-						continue
-					}
-					if f, ok := res.(http.Flusher); ok {
-						f.Flush()
-					}
-				}
-				prevCount = currentCount
-				time.Sleep(defaultUpdateInterval)
-			}
-		}
-	}).ServeHTTP
-}
-
-// PaginateArticles handles showing the next set of articles.
-func (a *API) PaginateArticles() http.HandlerFunc {
-	return alice.New(
-		decodeArticleFilters,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Get filters and generate query.
-		filters := articleFiltersFromCtx(req.Context())
-		// Get articles matching filters.
-		articles, pagination, err := a.filterArticles(req.Context(), &filters)
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		if len(articles) > 0 {
-			renderPartial(layouts.ArticlesList(articles, &filters, pagination)).ServeHTTP(res, req)
-		} else {
-			res.WriteHeader(http.StatusNoContent)
-		}
-	}).ServeHTTP
-}
 
 // MarkArticle handles marking a articles as read or unread.
 func (a *API) MarkArticle() http.HandlerFunc {
@@ -239,38 +111,38 @@ func (a *API) MarkAllArticles() http.HandlerFunc {
 	return alice.New(
 		decodeArticleFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Extract filters from request.
-		filters := articleFiltersFromCtx(req.Context())
-		slogctx.FromCtx(req.Context()).Debug("Marking articles.", slog.String("filters", filters.Query()))
-		// Set the appropriate mark.
-		var mark models.Mark
-		switch filters.GetView() {
-		case models.ViewUnread:
-			mark = models.MarkRead
-		default:
-			mark = models.MarkUnread
-		}
-		// Construct the request from parameters.
-		request := &models.MarkSubscriptionsRequest{
-			Mark:          mark,
-			Subscriptions: filters.Subscriptions,
-		}
-		// Mark subscriptions.
-		err := a.markSubscriptions(req.Context(), request)
-		if err != nil {
-			return fmt.Errorf("unable to mark subscriptions: %w", err)
-		}
-		// Get articles matching filters.
-		articles, pagination, err := a.filterArticles(req.Context(), &filters)
-		if err != nil {
-			return fmt.Errorf("unable to mark subscriptions: %w", err)
-		}
-		// Render appropriate content.
-		template := layouts.ArticlesGrid(articles, &filters, pagination)
-		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
+		// // Extract filters from request.
+		// filters := articleFiltersFromCtx(req.Context())
+		// slogctx.FromCtx(req.Context()).Debug("Marking articles.", slog.String("filters", filters.Query()))
+		// // Set the appropriate mark.
+		// var mark models.Mark
+		// switch filters.GetView() {
+		// case models.ViewUnread:
+		// 	mark = models.MarkRead
+		// default:
+		// 	mark = models.MarkUnread
+		// }
+		// // Construct the request from parameters.
+		// request := &models.MarkSubscriptionsRequest{
+		// 	Mark:          mark,
+		// 	Subscriptions: filters.Subscriptions,
+		// }
+		// // Mark subscriptions.
+		// err := a.markSubscriptions(req.Context(), request)
+		// if err != nil {
+		// 	return fmt.Errorf("unable to mark subscriptions: %w", err)
+		// }
+		// // Get articles matching filters.
+		// articles, pagination, err := a.filterArticles(req.Context(), &filters)
+		// if err != nil {
+		// 	return fmt.Errorf("unable to mark subscriptions: %w", err)
+		// }
+		// // Render appropriate content.
+		// template := layouts.ArticlesGrid(articles, &filters, pagination)
+		// ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
+		// renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
 
-		SetRedirect(ctx, "/subscriptions", res)
+		// SetRedirect(ctx, "/subscriptions", res)
 
 		return nil
 	})).ServeHTTP

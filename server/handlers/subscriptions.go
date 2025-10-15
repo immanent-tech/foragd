@@ -4,7 +4,6 @@
 package handlers
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/xml"
@@ -39,141 +38,6 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
-
-// GetSubscriptions handles showing a filtered collection of subscriptions as cards.
-func (a *API) GetSubscriptions() http.HandlerFunc {
-	return alice.New(
-		decodeSubscriptionFilters,
-		saveSubscriptionFilters,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		filters := subscriptionFiltersFromCtx(req.Context())
-		// Get subscriptions matching filters.
-		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
-		if err != nil {
-			return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
-		}
-		// Get subscription stats.
-		stats, err := a.getSubscriptionStats(req.Context(), &filters)
-		if err != nil {
-			return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
-		}
-		// Render appropriate content.
-		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination, stats)
-		renderPage(template, templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
-// GetSubscriptionUpdates handles checking for updates to subscriptions and showing a notification to the user to
-// refresh the content.
-//
-//nolint:gocognit
-func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
-	return alice.New(
-		decodeSubscriptionFilters,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Content-Type", "text/event-stream")
-		res.Header().Set("Cache-Control", "no-cache")
-		res.Header().Set("Connection", "keep-alive")
-		if f, ok := res.(http.Flusher); ok {
-			f.Flush()
-		} else {
-			slogctx.FromCtx(req.Context()).Warn("Cannot flush update stream!")
-			res.WriteHeader(http.StatusNoContent)
-		}
-		// Get filters and generate query.
-		filters := subscriptionFiltersFromCtx(req.Context())
-		query, err := generateItemsQuery(req.Context(), &filters)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
-				slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		var (
-			currentCount int64
-			prevCount    int64
-		)
-		prevCount, err = a.DataAPI().CountItems(req.Context(), query)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
-				slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		for {
-			select {
-			case <-req.Context().Done():
-				res.Header().Set("Connection", "close")
-				res.WriteHeader(http.StatusRequestTimeout)
-				return
-			default:
-				currentCount, err = a.DataAPI().CountItems(req.Context(), query)
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
-						slog.Any("error", err))
-					continue
-				}
-				// Show updates toast if new items found.
-				if currentCount > prevCount {
-					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
-					var b bytes.Buffer //nolint:varnamelen
-					template := bufio.NewWriter(&b)
-					err := partials.UpdatesToast().Render(req.Context(), template)
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
-							slog.Any("error", err))
-						continue
-					}
-					err = template.Flush()
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Error("Failed to flush SSE message buffer.",
-							slog.Any("error", err))
-					}
-					_, err = fmt.Fprintf(res, "data: %s\n\n", b.String())
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Error("Failed to send update SSE message.",
-							slog.Any("error", err))
-					}
-					if f, ok := res.(http.Flusher); ok {
-						f.Flush()
-					}
-				}
-				prevCount = currentCount
-				time.Sleep(defaultUpdateInterval)
-			}
-		}
-	}).ServeHTTP
-}
-
-// PaginateSubscriptions handles showing the next set of subscriptions.
-func (a *API) PaginateSubscriptions() http.HandlerFunc {
-	return alice.New(
-		decodeSubscriptionFilters,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		filters := subscriptionFiltersFromCtx(req.Context())
-		// Get subscriptions matching filters.
-		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		// Get subscription stats.
-		stats, err := a.getSubscriptionStats(req.Context(), &filters)
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		// Render appropriate content.
-		if len(subscriptions) > 0 {
-			renderPartial(layouts.SubscriptionsList(subscriptions, &filters, pagination, stats)).ServeHTTP(res, req)
-		} else {
-			res.WriteHeader(http.StatusNoContent)
-		}
-	}).ServeHTTP
-}
 
 // MarkSubscription handles marking a subscription as read or unread.
 func (a *API) MarkSubscription() http.HandlerFunc {
@@ -227,86 +91,6 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 		} else {
 			res.WriteHeader(http.StatusOK)
 		}
-		return nil
-	})).ServeHTTP
-}
-
-// MarkAllSubscriptions handles marking all subscriptions as read or unread.
-func (a *API) MarkAllSubscriptions() http.HandlerFunc {
-	return alice.New(
-		decodeSubscriptionFilters,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Extract filters from request.
-		filters := subscriptionFiltersFromCtx(req.Context())
-		slogctx.FromCtx(req.Context()).Debug("Marking subscriptions.", slog.String("filters", filters.Query()))
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to mark all subscriptions: %w", err)
-		}
-		// Set the appropriate mark.
-		var mark models.Mark
-		switch filters.GetView() {
-		case models.ViewUnread:
-			mark = models.MarkRead
-		default:
-			mark = models.MarkUnread
-		}
-		// Construct the request from parameters.
-		request := &models.MarkSubscriptionsRequest{
-			Mark: mark,
-		}
-		if len(filters.Subscriptions) == 0 {
-			request.Subscriptions = user.GetSubscriptionMetadata().GetIDs()
-		} else {
-			request.Subscriptions = filters.Subscriptions
-		}
-		// Mark subscriptions.
-		err = a.markSubscriptions(req.Context(), request)
-		if err != nil {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to mark subscriptions",
-					"Something went wrong, please try again",
-				), 0))
-			return models.NewAPIError(
-				fmt.Errorf("unable to mark all subscriptions: %w", err),
-				http.StatusInternalServerError)
-		}
-		// Get updated subscriptions.
-		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
-		if err != nil {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to refresh subscriptions",
-					"Something went wrong, please try again",
-				), 0))
-			return models.NewAPIError(
-				fmt.Errorf("unable to mark all subscriptions: %w", err),
-				http.StatusInternalServerError)
-		}
-		stats, err := a.getSubscriptionStats(req.Context(), &filters)
-		if err != nil {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to refresh subscription",
-					"Something went wrong, please try again",
-				), 0))
-			return models.NewAPIError(
-				fmt.Errorf("unable to mark subscription: %w", err),
-				http.StatusInternalServerError)
-		}
-		// Render appropriate content.
-		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination, stats)
-		renderPage(template, templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
-
-		// Redirect depending on the current view.
-		switch filters.GetView() {
-		case models.ViewRead, models.ViewUnread:
-			SetRedirect(req.Context(), "/home", res)
-		case models.ViewAll:
-			SetRedirect(req.Context(), "/subscriptions", res)
-		}
-
 		return nil
 	})).ServeHTTP
 }
@@ -803,26 +587,6 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	return subscriptions, nil
 }
 
-func (a *API) filterSubscriptions(ctx context.Context, filters *models.SubscriptionFilters) (models.SubscriptionsSlice, models.Pagination, error) {
-	// Get subscriptions by ID.
-	subscriptions, err := a.getSubscriptions(ctx, filters.Subscriptions...)
-	if err != nil {
-		return nil, "", fmt.Errorf("filterSubscriptions: %w", err)
-	}
-	// Filter subscriptions.
-	sort := filters.GetSort()
-	subscriptions = subscriptions.FilterByCategories(filters.Categories...).
-		FilterByView(filters.View).
-		Sort(&sort)
-	// Set up pagination.
-	var pagination string
-	if filters.Pagination != "" {
-		pagination = filters.Pagination
-	}
-	subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
-	return subscriptions, pagination, nil
-}
-
 func (a *API) getSubscriptionStats(ctx context.Context, filters *models.SubscriptionFilters) (map[models.SubscriptionID]models.SubscriptionStats, error) {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
@@ -876,9 +640,9 @@ func (a *API) getSubscriptionStats(ctx context.Context, filters *models.Subscrip
 		},
 	}
 
-	results, resp := a.DataAPI().ItemsAggregation2(ctx, query, len(metadata), aggs)
-	if resp != nil && !resp.IsNotFound() {
-		return nil, resp
+	results, err := a.DataAPI().ItemsAggregation2(ctx, query, len(metadata), aggs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
 	}
 	feedStats, ok := results.Aggregations["feed"].(*types.StringTermsAggregate)
 	if !ok {

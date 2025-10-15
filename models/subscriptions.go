@@ -132,7 +132,7 @@ func (s *Subscription) Type() string {
 }
 
 func (s *Subscription) ViewURL() string {
-	return "/articles"
+	return "/list/articles"
 }
 
 func (s *Subscription) MarkURL(mark Mark) string {

@@ -331,7 +331,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int
 	return resp, nil
 }
 
-func (e *API) ItemsAggregation2(ctx context.Context, query query.Option, size int, aggregations aggregations.Aggs) (*search.Response, *models.Response) {
+func (e *API) ItemsAggregation2(ctx context.Context, query query.Option, size int, aggregations aggregations.Aggs) (*search.Response, error) {
 	index, err := ItemsReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, ParseError(err)

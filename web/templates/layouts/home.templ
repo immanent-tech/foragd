@@ -24,6 +24,7 @@ type Home struct {
 
 // content renders the home page content.
 templ (page *Home) Template() {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
 	<main class="pr-4 lg:pr-100 pl-4 pt-8">
 		// Show stats.
 		<header class="flex items-center">
@@ -35,10 +36,10 @@ templ (page *Home) Template() {
 		<dl class="mt-5 flex gap-2 sm:gap-4 justify-center">
 			<div class="px-2 py-4 sm:px-6 sm:py-8">
 				<a
-					hx-get="/subscriptions"
+					hx-get="/list/subscriptions"
 					hx-target={ partials.ContentID.Target() }
 					hx-push-url="true"
-					hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+					hx-vals={ models.GenerateHXVals(filters.Values()) }
 					class="link link-hover font-medium hover:text-accent"
 				>
 					<dt>
@@ -56,10 +57,10 @@ templ (page *Home) Template() {
 			</div>
 			<div class="px-2 py-4 sm:px-6 sm:py-8">
 				<a
-					hx-get="/articles"
+					hx-get="/list/articles"
 					hx-target={ partials.ContentID.Target() }
 					hx-push-url="true"
-					hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
+					hx-vals={ models.GenerateHXVals(filters.Values()) }
 					class="link link-hover font-medium hover:text-accent"
 				>
 					<dt>

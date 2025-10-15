@@ -95,7 +95,7 @@ templ DrawerSidebar(subscriptions models.SubscriptionsSlice, favorites models.Fa
 					</li>
 					<li>
 						<a
-							hx-get="/subscriptions"
+							hx-get="/list/subscriptions"
 							hx-target={ partials.ContentID.Target() }
 							hx-push-url="true"
 							hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
@@ -111,7 +111,7 @@ templ DrawerSidebar(subscriptions models.SubscriptionsSlice, favorites models.Fa
 					</li>
 					<li>
 						<a
-							hx-get="/articles"
+							hx-get="/list/articles"
 							hx-target={ partials.ContentID.Target() }
 							hx-push-url="true"
 							hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }

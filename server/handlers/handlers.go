@@ -23,7 +23,6 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -112,36 +111,20 @@ func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.Han
 }
 
 // SetRedirect sets headers for performing a HTMX redirect to the given path.
-func SetRedirect(ctx context.Context, path string, res http.ResponseWriter) {
-	var route string
-	var values map[string]string
-	var pushURLPath string
-	switch path {
-	case "/subscriptions":
-		route = path
-		filters := session.SubscriptionFiltersFromSession(ctx)
-		values = filters.Parameters()
-		pushURLPath = route + "?" + filters.Query()
-	case "/articles":
-		route = path
-		filters := session.ArticleFiltersFromSession(ctx)
-		values = filters.Parameters()
-		pushURLPath = route + "?" + filters.Query()
-	default:
-		route = "/home"
-		pushURLPath = route
+func SetRedirect(ctx context.Context, path string, filters models.Filters, res http.ResponseWriter) {
+	pushURLPath := path
+	locCtx := htmx.LocationContext{
+		Target: partials.ContentID.Target(),
 	}
-	// Set-up client-side redirect to view.
-	htmxResp := htmx.NewResponse().LocationWithContext(
-		route,
-		htmx.LocationContext{
-			Target: partials.ContentID.Target(),
-			Values: values,
-		})
+	if filters != nil {
+		locCtx.Values = filters.Values()
+		pushURLPath = path + "?" + filters.QueryString()
+	}
+	htmxResp := htmx.NewResponse().LocationWithContext(path, locCtx)
 	htmxResp = htmxResp.PushURL(pushURLPath)
 	slogctx.FromCtx(ctx).Debug("Redirecting.",
 		slog.String("path", pushURLPath),
-		slog.Any("parameters", values),
+		slog.Any("parameters", filters.QueryString()),
 	)
 	err := htmxResp.Write(res)
 	if err != nil {

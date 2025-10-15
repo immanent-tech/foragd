@@ -216,6 +216,24 @@ type CategoryCount struct {
 	Count    int      `json:"count"`
 }
 
+// CommonDisplayFilters contains filters for altering the display of objects.
+type CommonDisplayFilters struct {
+	// Categories is a list of categories.
+	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
+
+	// Count is the count of items to retrieve with a request.
+	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
+
+	// SortBy represents the selected field to sort on.
+	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
+
+	// SortOrder represents the order for sorting the selected field.
+	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
+
+	// View The state of objects to view.
+	View View `form:"view" json:"view" validate:"oneof=read unread all"`
+}
+
 // CreatedAt records when the object was created in the database.
 type CreatedAt = time.Time
 
@@ -422,6 +440,27 @@ type JobState struct {
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+}
+
+// ListDisplayFilters defines model for ListDisplayFilters.
+type ListDisplayFilters struct {
+	// Categories is a list of categories.
+	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
+
+	// Count is the count of items to retrieve with a request.
+	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
+
+	// SortBy represents the selected field to sort on.
+	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
+
+	// SortOrder represents the order for sorting the selected field.
+	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
+
+	// Subscriptions is a list of subscription IDs.
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
+
+	// View The state of objects to view.
+	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
 // Mark applies the given mark action to objects.
