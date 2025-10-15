@@ -250,7 +250,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			r.Get("/updates", handlers.WatchList(handler.Elastic))
 		})
 		r.Route("/view", func(r chi.Router) {
-			r.Get("/{object}", func(w http.ResponseWriter, r *http.Request) {})
+			r.Get("/{object}/{id}", func(w http.ResponseWriter, r *http.Request) {})
 		})
 
 		// Subscription route.

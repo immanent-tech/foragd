@@ -549,7 +549,7 @@ func ListDisplayFilters(categories models.CategoryCounts, filters *models.ListDi
 		}
 		ctx = templ.ClearChildren(ctx)
 		var path string
-		switch chi.RouteContext(ctx).URLParam("list") {
+		switch chi.RouteContext(ctx).URLParam(models.ParamListType) {
 		case "subscriptions":
 			path = "/list/subscriptions"
 		case "articles":

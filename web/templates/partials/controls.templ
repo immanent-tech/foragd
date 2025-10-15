@@ -261,7 +261,7 @@ templ (c ListControls) Template() {
 
 templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListDisplayFilters, showMarkButton bool) {
 	{{ var path string }}
-	switch chi.RouteContext(ctx).URLParam("list") {
+	switch chi.RouteContext(ctx).URLParam(models.ParamListType) {
 		case "subscriptions":
 			{{ path = "/list/subscriptions" }}
 		case "articles":

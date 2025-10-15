@@ -38,9 +38,9 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 		decodeListFilters,
 		// saveListFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		listType := chi.RouteContext(req.Context()).URLParam("list")
+		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
 		filters := models.ListFiltersFromCtx(req.Context())
-		pagination := req.FormValue("pagination")
+		pagination := req.FormValue(models.ParamPagination)
 		// Redirect to include query parameters in address bar.
 		if len(req.URL.Query()) == 0 {
 			if IsHTMX(req) {
@@ -54,6 +54,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			template  templ.Component
 			pageTitle string
 		)
+		// Render list based on type.
 		switch listType {
 		case "subscriptions":
 			// Get subscriptions matching filters.
@@ -97,6 +98,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				}
 			}
 		}
+		// Choose rendering method based on method (get = page, post = partial).
 		switch req.Method {
 		case http.MethodGet:
 			renderPage(template, templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
@@ -123,7 +125,6 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Warn("Cannot flush update stream!")
 			res.WriteHeader(http.StatusNoContent)
 		}
-		// listType := chi.RouteContext(req.Context()).URLParam("list")
 		filters := models.ListFiltersFromCtx(req.Context())
 		query, err := models.BuildItemsQuery(req.Context(), filters)
 		if err != nil {
@@ -196,7 +197,7 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 	return alice.New(
 		decodeListFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		listType := chi.RouteContext(req.Context()).URLParam("list")
+		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
 		filters := models.ListFiltersFromCtx(req.Context())
 
 		slogctx.FromCtx(req.Context()).Debug("Marking list.",
