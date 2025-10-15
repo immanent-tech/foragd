@@ -19,7 +19,7 @@ import (
 )
 
 // ProtectedRoutes are routes that require user authentication.
-var ProtectedRoutes = []string{"/home", "/subscription", "/article", "/settings", "/search", "/user", "/view", "/list"}
+var ProtectedRoutes = []string{"/home", "/subscription", "/article", "/settings", "/search", "/user", "/view", "/edit", "/mark", "/list"}
 
 // RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
 func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler {

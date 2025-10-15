@@ -6,7 +6,6 @@ package partials
 import (
 	"fmt"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"strings"
 )
 
@@ -29,7 +28,7 @@ templ (a *Article) Card(view models.View) {
 			// Header.
 			<div class="px-4 py-5 sm:px-6">
 				if img := a.GetImage(); img != nil {
-					@ViewObjectLink(a, nil) {
+					@ViewObjectLink(a, "", nil) {
 						<div class="relative w-full">
 							<img
 								class="aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"
@@ -53,7 +52,7 @@ templ (a *Article) Card(view models.View) {
 						</div>
 					}
 				} else {
-					@ViewObjectLink(a, nil) {
+					@ViewObjectLink(a, "", nil) {
 						<div class="group relative grow">
 							<h3 class="mt-3 text-lg/6 font-semibold text-pretty">
 								if a.GetTitle() != "" {
@@ -141,17 +140,14 @@ templ ArticleSummary(article *models.Article) {
 
 // ArticleContent renders the complete content of an article.
 templ ArticleContent(article *models.Article) {
-	{{ viewSubscriptionVals := session.ArticleFiltersFromSession(ctx).Parameters() }}
-	{{ viewSubscriptionVals[models.ParamSubscriptions] = article.GetSubscriptionID() }}
 	<main class="px-4 pt-8">
 		// Mobile breadcrumbs/navigation.
 		<div class="breadcrumbs-mobile">
 			<ul>
 				<li aria-label="Back">
 					<a
-						hx-get="/articles"
+						hx-get="/list/articles"
 						hx-target={ ContentID.Target() }
-						hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
 						hx-push-url="true"
 						class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0 truncate"
 					>
@@ -168,18 +164,16 @@ templ ArticleContent(article *models.Article) {
 			<ul>
 				<li aria-label="Subscriptions">
 					<a
-						hx-get="/subscriptions"
+						hx-get="/list/subscriptions"
 						hx-target={ ContentID.Target() }
-						hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
 						hx-push-url="true"
 						class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
 					>Subscriptions</a>
 				</li>
 				<li aria-label="Articles">
 					<a
-						hx-get="/articles"
+						hx-get="/list/articles"
 						hx-target={ ContentID.Target() }
-						hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
 						hx-push-url="true"
 						class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0 truncate"
 					>

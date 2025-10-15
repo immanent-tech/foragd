@@ -290,6 +290,73 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 	return articles, pagination, nil
 }
 
+func GetArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Articles, error) {
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	query := query.Bool(
+		query.Filter(
+			// Must match any of the given item IDs,
+			query.Terms("item_id", itemIDs...),
+		),
+	)
+	items, _, err := dataAPI.SearchItems(ctx, query, len(itemIDs), nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("get articles failed: %w", err)
+	}
+	articles, err := GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, fmt.Errorf("get articles failed: %w", err)
+	}
+
+	return articles, nil
+}
+
+func GetArticleTopCategories(ctx context.Context, dataAPI DataAPI, feeds ...FeedID) ([]Category, error) {
+	// Build query.
+	query := query.Bool(
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", feeds...),
+		),
+	)
+	// Build aggregations.
+	termsField := "categories.raw"
+	termsCount := 10
+	aggs := aggregations.Aggs{
+		"TopCategories": types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+		},
+	}
+	// Perform aggregation.
+	results, err := dataAPI.ItemsAggregation2(ctx, query, 0, aggs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get top categories: %w", err)
+	}
+
+	topCategoriesAgg, ok := results.Aggregations["TopCategories"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf("unable to get top categories: aggregations invalid")
+	}
+	topCategoriesBuckets, ok := topCategoriesAgg.Buckets.([]types.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf("unable to get top categories: aggregations invalid")
+	}
+
+	topCategories := make([]Category, 0)
+
+	for bucket := range slices.Values(topCategoriesBuckets) {
+		category, ok := bucket.Key.(Category)
+		if ok {
+			topCategories = append(topCategories, category)
+		}
+	}
+
+	return topCategories, nil
+}
+
 func BuildItemsQuery(ctx context.Context, filters Filters, subscriptions ...SubscriptionID) (query.Option, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {

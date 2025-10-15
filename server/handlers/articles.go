@@ -6,14 +6,11 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-shiori/go-readability"
 	"github.com/justinas/alice"
@@ -22,178 +19,87 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/forms"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
-// MarkArticle handles marking a articles as read or unread.
-func (a *API) MarkArticle() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Extract user data.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to mark subscription: %w", err)
-		}
-		// Construct the request from parameters.
-		request := &models.MarkArticleRequest{
-			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
-			Mark:           models.Mark(chi.URLParam(req, models.ParamMark)),
-			ItemID:         chi.URLParam(req, models.ParamItemID),
-		}
-		// Validate parameters.
-		valid, err := request.Valid()
-		if !valid || err != nil {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to mark subscription",
-					"The request looks invalid. Please check and try again.",
-				), 0))
-			return models.NewAPIError(
-				fmt.Errorf("unable to mark subscription: %w", err),
-				http.StatusUnprocessableEntity)
-		}
-		// Mark off items under subscription states.
-		slogctx.FromCtx(req.Context()).Debug("Marking article.",
-			slog.String("subscription_id", request.SubscriptionID),
-			slog.String("item_id", request.ItemID),
-			slog.String("mark", string(request.Mark)),
-		)
-		user.MarkItems(request.Mark, request.SubscriptionID, request.ItemID)
-		// Update the user object.
-		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
-			"subscriptions": user.Subscriptions,
-		})
-		if err != nil {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to mark subscription",
-					"Could not update user data.",
-				), 0))
-			return models.NewAPIError(
-				fmt.Errorf("unable to mark subscription: %w", err),
-				http.StatusUnprocessableEntity)
-		}
-		// Get updated articles.
-		s, err := a.getArticles(req.Context(), request.ItemID)
-		if err != nil || len(s) == 0 || len(s) > 1 {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to mark subscription",
-					"Could not refresh articles.",
-				), 0))
-			return models.NewAPIError(
-				fmt.Errorf("unable to mark subscription: %w", err),
-				http.StatusUnprocessableEntity)
-		}
-		// Generate appropriate swap content based on target header.
-		switch req.Header.Get(htmx.HeaderTarget) {
-		case request.ItemID:
-			// Swap target is card.
-			filters := session.ArticleFiltersFromSession(req.Context())
-			renderPartial(partials.NewArticleContent(s[0]).Card(filters.GetView())).ServeHTTP(res, req)
-		case "mark_" + request.ItemID:
-			// Swap target is link.
-			renderPartial(partials.UpdateViewArticleMark(s[0])).ServeHTTP(res, req)
-		}
-		return nil
-	})).ServeHTTP
-}
-
-// MarkAllArticles handles marking all articles in a subscription as appropriate.
-func (a *API) MarkAllArticles() http.HandlerFunc {
-	return alice.New(
-		decodeArticleFilters,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// // Extract filters from request.
-		// filters := articleFiltersFromCtx(req.Context())
-		// slogctx.FromCtx(req.Context()).Debug("Marking articles.", slog.String("filters", filters.Query()))
-		// // Set the appropriate mark.
-		// var mark models.Mark
-		// switch filters.GetView() {
-		// case models.ViewUnread:
-		// 	mark = models.MarkRead
-		// default:
-		// 	mark = models.MarkUnread
-		// }
-		// // Construct the request from parameters.
-		// request := &models.MarkSubscriptionsRequest{
-		// 	Mark:          mark,
-		// 	Subscriptions: filters.Subscriptions,
-		// }
-		// // Mark subscriptions.
-		// err := a.markSubscriptions(req.Context(), request)
-		// if err != nil {
-		// 	return fmt.Errorf("unable to mark subscriptions: %w", err)
-		// }
-		// // Get articles matching filters.
-		// articles, pagination, err := a.filterArticles(req.Context(), &filters)
-		// if err != nil {
-		// 	return fmt.Errorf("unable to mark subscriptions: %w", err)
-		// }
-		// // Render appropriate content.
-		// template := layouts.ArticlesGrid(articles, &filters, pagination)
-		// ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		// renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
-
-		// SetRedirect(ctx, "/subscriptions", res)
-
-		return nil
-	})).ServeHTTP
-}
-
-// ViewArticle handles viewing the content of an article.
-func (a *API) ViewArticle() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		itemID := chi.URLParam(req, models.ParamItemID)
-		articles, err := a.getArticles(req.Context(), itemID)
-		if err != nil {
-			renderPartial(partials.Error(
-				models.NewErrorMessage("Unable to fetch article content", ""),
-			)).ServeHTTP(res, req)
-			return fmt.Errorf("unable to view article: %w", err)
-		}
-		article := articles[0]
-		// For POST method, get the "show_full_content" value and override the article value.
-		if req.Method == http.MethodPost {
-			fullContent, err := strconv.ParseBool(req.FormValue(models.ParamFullArticleContent))
-			if err != nil {
-				article.ShowFullContent = false
-			} else {
-				article.ShowFullContent = fullContent
-			}
-		}
-		// Fetch and set remote content if required.
-		if article.ShowFullContent {
-			slogctx.FromCtx(req.Context()).Debug("Fetching article remote content.")
-			content, err := fetchArticleRemoteContent(article.GetLink())
-			if err != nil {
-				renderPartial(partials.Notification(
-					models.NewErrorMessage("Unable to fetch article remote content", ""), 0,
-				)).ServeHTTP(res, req)
-				article.ShowFullContent = false
-			} else {
-				if content == article.Content {
-					renderPartial(partials.Notification(
-						models.NewWarningMessage("Could not fetch full article content", "Page returned existing content."), 10*time.Second,
-					)).ServeHTTP(res, req)
-				}
-				article.Content = content
-			}
-		}
-		// Render appropriate content.
-		template := partials.ArticleContent(article)
-		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
-		return nil
-	})).ServeHTTP
-}
+// // MarkArticle handles marking a articles as read or unread.
+// func (a *API) MarkArticle() http.HandlerFunc {
+// 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+// 		// Extract user data.
+// 		user, err := models.UserFromCtx(req.Context())
+// 		if err != nil {
+// 			return fmt.Errorf("unable to mark subscription: %w", err)
+// 		}
+// 		// Construct the request from parameters.
+// 		request := &models.MarkArticleRequest{
+// 			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
+// 			Mark:           models.Mark(chi.URLParam(req, models.ParamMark)),
+// 			ItemID:         chi.URLParam(req, models.ParamItemID),
+// 		}
+// 		// Validate parameters.
+// 		valid, err := request.Valid()
+// 		if !valid || err != nil {
+// 			renderPartial(partials.Notification(
+// 				models.NewErrorMessage(
+// 					"Unable to mark subscription",
+// 					"The request looks invalid. Please check and try again.",
+// 				), 0))
+// 			return models.NewAPIError(
+// 				fmt.Errorf("unable to mark subscription: %w", err),
+// 				http.StatusUnprocessableEntity)
+// 		}
+// 		// Mark off items under subscription states.
+// 		slogctx.FromCtx(req.Context()).Debug("Marking article.",
+// 			slog.String("subscription_id", request.SubscriptionID),
+// 			slog.String("item_id", request.ItemID),
+// 			slog.String("mark", string(request.Mark)),
+// 		)
+// 		user.MarkItems(request.Mark, request.SubscriptionID, request.ItemID)
+// 		// Update the user object.
+// 		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+// 			"subscriptions": user.Subscriptions,
+// 		})
+// 		if err != nil {
+// 			renderPartial(partials.Notification(
+// 				models.NewErrorMessage(
+// 					"Unable to mark subscription",
+// 					"Could not update user data.",
+// 				), 0))
+// 			return models.NewAPIError(
+// 				fmt.Errorf("unable to mark subscription: %w", err),
+// 				http.StatusUnprocessableEntity)
+// 		}
+// 		// Get updated articles.
+// 		s, err := a.getArticles(req.Context(), request.ItemID)
+// 		if err != nil || len(s) == 0 || len(s) > 1 {
+// 			renderPartial(partials.Notification(
+// 				models.NewErrorMessage(
+// 					"Unable to mark subscription",
+// 					"Could not refresh articles.",
+// 				), 0))
+// 			return models.NewAPIError(
+// 				fmt.Errorf("unable to mark subscription: %w", err),
+// 				http.StatusUnprocessableEntity)
+// 		}
+// 		// Generate appropriate swap content based on target header.
+// 		switch req.Header.Get(htmx.HeaderTarget) {
+// 		case request.ItemID:
+// 			// Swap target is card.
+// 			filters := session.ArticleFiltersFromSession(req.Context())
+// 			renderPartial(partials.NewArticleContent(s[0]).Card(filters.GetView())).ServeHTTP(res, req)
+// 		case "mark_" + request.ItemID:
+// 			// Swap target is link.
+// 			renderPartial(partials.UpdateViewArticleMark(s[0])).ServeHTTP(res, req)
+// 		}
+// 		return nil
+// 	})).ServeHTTP
+// }
 
 // FindSimilarArticles handles finding other articles that are "similar" to a set of given articles.
 func (a *API) FindSimilarArticles() http.HandlerFunc {
@@ -254,7 +160,7 @@ func GetArticleIssues(api *API) http.HandlerFunc {
 		}
 		// Get the item ID.
 		id := chi.URLParam(req, models.ParamItemID)
-		i, err := api.getArticles(req.Context(), id)
+		i, err := models.GetArticles(req.Context(), api.Elastic, id)
 		if err != nil || len(i) == 0 {
 			msg := models.NewErrorMessage(
 				"Unable to create report form.",
@@ -284,7 +190,7 @@ func SubmitArticleIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 		}
 		// Get subscription details.
 		id := chi.URLParam(req, models.ParamItemID)
-		i, err := esapi.getArticles(req.Context(), id)
+		i, err := models.GetArticles(req.Context(), esapi.Elastic, id)
 		if err != nil || len(i) == 0 {
 			msg := models.NewErrorMessage(
 				"Unable to get subscription details.",
@@ -315,101 +221,6 @@ func SubmitArticleIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 		renderPartial(partials.IssueReportedConfirmation(msg)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
-}
-
-func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters) (models.Articles, models.Pagination, error) {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return nil, "", fmt.Errorf("unable to filter articles: %w", err)
-	}
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	subscriptions := user.GetSubscriptionMetadata()
-	if len(filters.Subscriptions) > 0 {
-		subscriptions = subscriptions.FilterByIDs(filters.Subscriptions...)
-	}
-	query := query.Bool(
-		query.Filter(
-			// Must match any of the given categories.
-			query.Terms("categories.raw", filters.GetCategories()...),
-			query.Bool(
-				query.Should(buildSubscriptionQueries(user, filters.GetView(), subscriptions...)...),
-			),
-		),
-	)
-
-	// query := query.Bool(
-	// 	query.BoolQueryName("item-filters-"+filters.Query()),
-	// 	query.Filter(
-	// 		// Must match any of the given feed IDs.
-	// 		query.Terms("feed_id", subscriptions.GetFeedIDs()...),
-	// 		// Must match any of the given categories.
-	// 		query.Terms("categories.raw", filters.GetCategories()...),
-	// 		// And should match one feed clause.
-	// 		query.Bool(
-	// 			query.Should(buildSubscriptionQueries(user, filters.GetView(), subscriptions...)...),
-	// 		),
-	// 	),
-	// )
-	sort := filters.GetSort()
-
-	// Find items matching filters.
-	items, pagination, err := a.DataAPI().SearchItems(ctx, query, filters.GetCount(), &sort, &filters.Pagination)
-	if err != nil {
-		return nil, "", models.RespErrBackend(err)
-	}
-	// Generate articles.
-	articles, err := models.GenerateArticles(ctx, items)
-	if err != nil {
-		return nil, "", models.RespErrBackend(err)
-	}
-
-	return articles, pagination, nil
-}
-
-func (a *API) getArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	query := query.Bool(
-		query.Filter(
-			// Must match any of the given item IDs,
-			query.Terms("item_id", itemIDs...),
-		),
-	)
-	items, _, err := a.DataAPI().SearchItems(ctx, query, len(itemIDs), nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("getArticles: %w", err)
-	}
-	articles, err := models.GenerateArticles(ctx, items)
-	if err != nil {
-		return nil, fmt.Errorf("getArticles: %w", err)
-	}
-
-	return articles, nil
-}
-
-func (a *API) getItemTopCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response) {
-	query := query.Bool(
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.Terms("feed_id", feeds...),
-		),
-	)
-	aggsResult, resp := a.DataAPI().ItemsAggregation(ctx, query, 0, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
-	if resp != nil {
-		return nil, resp
-	}
-	var (
-		topCategories aggregations.TermsAggregationResults
-		err           error
-	)
-	topCategories.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggsResult.Aggregations, "TopCategories")
-	if err != nil {
-		return nil, models.NewResponse(
-			models.WithResponseError(fmt.Errorf("could not extract category counts: %w", err)))
-	}
-
-	return topCategories.BucketNames(), nil
 }
 
 // archiveArticle will index an article into the item archive to avoid deletion.
@@ -464,31 +275,6 @@ func fetchArticleRemoteContent(url string) (string, error) {
 	}
 	content := validation.SanitizeString(remote.Content)
 	return content, nil
-}
-
-func decodeArticleFilters(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := req.Context()
-		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
-		if err != nil || !valid {
-			slogctx.FromCtx(req.Context()).Warn("Invalid article filters. Using defaults.",
-				slog.Any("error", err),
-			)
-			ctx = articleFiltersToCtx(ctx, models.NewArticleFilters())
-		} else {
-			ctx = articleFiltersToCtx(ctx, *filters)
-		}
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-// savePageState saves the current page state in the session.
-func saveArticleFilters(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Generate state.
-		session.FiltersToSession(req.Context(), articleFiltersFromCtx(req.Context()))
-		next.ServeHTTP(res, req)
-	})
 }
 
 func generateItemsQuery(ctx context.Context, filters models.Filters, subscriptions ...models.SubscriptionID) (query.Option, error) {

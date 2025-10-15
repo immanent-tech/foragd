@@ -315,7 +315,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Get the article details.
-		articles, err := a.getArticles(req.Context(), id)
+		articles, err := models.GetArticles(req.Context(), a.Elastic, id)
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."), 0)
@@ -409,7 +409,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		articles, err := a.getArticles(req.Context(), id)
+		articles, err := models.GetArticles(req.Context(), a.Elastic, id)
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."), 0)

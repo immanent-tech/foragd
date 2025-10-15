@@ -17,11 +17,9 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
-	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
@@ -32,74 +30,17 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/forms"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
-// MarkSubscription handles marking a subscription as read or unread.
-func (a *API) MarkSubscription() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Construct the request from parameters.
-		request := &models.MarkSubscriptionsRequest{
-			Mark:          models.Mark(chi.URLParam(req, models.ParamMark)),
-			Subscriptions: []models.SubscriptionID{chi.URLParam(req, models.ParamSubscriptionID)},
-		}
-		view := models.View(req.FormValue("view"))
-		// Mark subscription.
-		err := a.markSubscriptions(req.Context(), request)
-		if err != nil {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to mark subscription",
-					"Something went wrong, please try again",
-				), 0))
-			return models.NewAPIError(
-				fmt.Errorf("unable to mark subscription: %w", err),
-				http.StatusInternalServerError)
-		}
-		// If the view is "all" send back the updated subscription card.
-		if view == models.ViewAll {
-			s, err := a.getSubscriptions(req.Context(), request.Subscriptions...)
-			if err != nil || len(s) == 0 || len(s) > 1 {
-				renderPartial(partials.Notification(
-					models.NewErrorMessage(
-						"Unable to refresh subscription",
-						"Something went wrong, please try again",
-					), 0))
-				return models.NewAPIError(
-					fmt.Errorf("unable to mark subscription: %w", err),
-					http.StatusInternalServerError)
-			}
-			// Get subscription stats.
-			filters := session.SubscriptionFiltersFromSession(req.Context())
-			stats, err := a.getSubscriptionStats(req.Context(), &filters)
-			if err != nil {
-				renderPartial(partials.Notification(
-					models.NewErrorMessage(
-						"Unable to refresh subscription",
-						"Something went wrong, please try again",
-					), 0))
-				return models.NewAPIError(
-					fmt.Errorf("unable to mark subscription: %w", err),
-					http.StatusInternalServerError)
-			}
-			subscriptionStats := stats[s[0].GetID()]
-			renderPartial(partials.NewSubscriptionContent(s[0], &subscriptionStats).Card()).ServeHTTP(res, req)
-		} else {
-			res.WriteHeader(http.StatusOK)
-		}
-		return nil
-	})).ServeHTTP
-}
-
 // EditSubscription handles presenting the user with a form for editing a subscription.
 func (a *API) EditSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve the subscription ID from the URL parameter.
-		id := chi.URLParam(req, models.ParamSubscriptionID)
+		id := chi.URLParam(req, models.ParamObjectID)
 		// Retrieve user object.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -116,14 +57,13 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		}
 		// Get top categories across items in subscription feed and add as suggested categories for the
 		// subscription.
-		categories, resp := a.getItemTopCategories(req.Context(), metadata.GetFeedID())
+		categories, resp := models.GetArticleTopCategories(req.Context(), a.Elastic, metadata.GetFeedID())
 		if resp == nil {
 			request.SuggestedCategories = categories
 		}
 		// Generate page template.
 		template := layouts.EditSubscription(request)
-		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(template, templates.GeneratePageTitle("Editing "+request.GetNickname())).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(template, templates.GeneratePageTitle("Editing "+request.GetNickname())).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -175,29 +115,29 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 // subscription.
 func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Show a modal to confirm unsubscribe request.
-		id := chi.URLParam(req, models.ParamSubscriptionID)
-		subscriptions, err := a.getSubscriptions(req.Context(), id)
-		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
-			template := partials.Notification(msg, 0)
-			renderPage(template, "").ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusInternalServerError)
-		}
-		filters := session.SubscriptionFiltersFromSession(req.Context())
-		stats, err := a.getSubscriptionStats(req.Context(), &filters)
-		if err != nil {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to refresh subscription",
-					"Something went wrong, please try again",
-				), 0))
-			return models.NewAPIError(
-				fmt.Errorf("unable to mark subscription: %w", err),
-				http.StatusInternalServerError)
-		}
-		subscriptionStats := stats[subscriptions[0].GetID()]
-		renderPartial(partials.NewSubscriptionContent(subscriptions[0], &subscriptionStats).UnsubscribeModal()).ServeHTTP(res, req)
+		// // Show a modal to confirm unsubscribe request.
+		// id := chi.URLParam(req, models.ParamSubscriptionID)
+		// subscriptions, err := a.getSubscriptions(req.Context(), id)
+		// if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
+		// 	msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
+		// 	template := partials.Notification(msg, 0)
+		// 	renderPage(template, "").ServeHTTP(res, req)
+		// 	return models.NewAPIError(err, http.StatusInternalServerError)
+		// }
+		// filters := models.ListFiltersFromCtx(req.Context())
+		// stats, err := a.getSubscriptionStats(req.Context(), &filters)
+		// if err != nil {
+		// 	renderPartial(partials.Notification(
+		// 		models.NewErrorMessage(
+		// 			"Unable to refresh subscription",
+		// 			"Something went wrong, please try again",
+		// 		), 0))
+		// 	return models.NewAPIError(
+		// 		fmt.Errorf("unable to mark subscription: %w", err),
+		// 		http.StatusInternalServerError)
+		// }
+		// subscriptionStats := stats[subscriptions[0].GetID()]
+		// renderPartial(partials.NewSubscriptionContent(subscriptions[0], &subscriptionStats).UnsubscribeModal()).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -411,23 +351,26 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 
 // AdjustSubscriptionCategories handles adding and removing categories from a subscription, either when editing or
 // adding.
-func (a *API) AdjustSubscriptionCategories() http.HandlerFunc {
+func AdjustSubscriptionCategories() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
-		case http.MethodPost:
-			// Add a category.
-			currentCategories, _, _ := forms.DecodeForm[*partials.AddSubscriptionCategories](req)
+		case http.MethodPost: // Add category.
+			// Parse form values.
+			err := req.ParseForm()
+			if err != nil {
+				return fmt.Errorf("unable to parse category changes: %w", err)
+			}
+			currentCategories := req.PostForm["user_categories"]
 			category := req.FormValue("category")
-			if category == "" || (currentCategories != nil && slices.Contains(currentCategories.Categories, category)) {
+			// Only add a category if it isn't already added.
+			if category == "" || (currentCategories != nil && slices.Contains(currentCategories, category)) {
 				res.WriteHeader(http.StatusNoContent)
 			} else {
-				renderPartial(partials.AddCategory(category)).ServeHTTP(res, req)
+				renderPartial(partials.AddCategory(req.URL.Path, category)).ServeHTTP(res, req)
 			}
-		case http.MethodDelete:
-			// Remove a category.
+		case http.MethodDelete: // Remove a category.
 			res.WriteHeader(http.StatusOK)
-		default:
-			// Unsupported, do nothing.
+		default: // Unsupported, do nothing.
 			res.WriteHeader(http.StatusNoContent)
 		}
 		return nil
@@ -588,93 +531,6 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	}
 
 	return subscriptions, nil
-}
-
-func (a *API) getSubscriptionStats(ctx context.Context, filters *models.SubscriptionFilters) (map[models.SubscriptionID]models.SubscriptionStats, error) {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("getFeedStats: %w", err)
-	}
-
-	// Get the subscription metadata.
-	var metadata models.SubscriptionMetadataSlice
-	if len(filters.Subscriptions) > 0 {
-		metadata = user.GetSubscriptionMetadata().FilterByIDs(filters.Subscriptions...)
-	} else {
-		metadata = user.GetSubscriptionMetadata()
-	}
-	// Build query.
-	query := query.Bool(
-		query.BoolQueryName("feed_stats_query"),
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.Terms("feed_id", filters.Subscriptions...),
-			query.Since("@timestamp", time.Now().UTC().Add(-24*30*time.Hour)),
-			query.Bool(
-				query.Should(buildSubscriptionQueries(user, filters.GetView(), metadata...)...),
-			),
-		),
-	)
-	// Build aggregations.
-	termsField := "feed_id"
-	termsCount := len(metadata)
-	dateHistoField := "@timestamp"
-	dateFormat := "yyyy-MM-dd"
-	aggs := aggregations.Aggs{
-		"feed": types.Aggregations{
-			Terms: &types.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-			Aggregations: map[string]types.Aggregations{
-				"updates_per_day": {
-					DateHistogram: &types.DateHistogramAggregation{
-						Field:            &dateHistoField,
-						CalendarInterval: &calendarinterval.Day,
-						Format:           &dateFormat,
-					},
-				},
-				"avg_daily_updates": {
-					AvgBucket: &types.AverageBucketAggregation{
-						BucketsPath: "updates_per_day._count",
-					},
-				},
-			},
-		},
-	}
-
-	results, err := a.DataAPI().ItemsAggregation2(ctx, query, len(metadata), aggs)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
-	}
-	feedStats, ok := results.Aggregations["feed"].(*types.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
-	}
-	feedStatsBuckets, ok := feedStats.Buckets.([]types.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
-	}
-
-	stats := make(map[models.FeedID]models.SubscriptionStats)
-
-	for feed := range slices.Values(feedStatsBuckets) {
-		feedID, ok := feed.Key.(string)
-		if !ok {
-			slogctx.FromCtx(ctx).Debug("Unable to extract feed ID for aggregation", slog.Any("feed_id", feed.Key))
-			continue
-		}
-		updatesResult, ok := feed.Aggregations["avg_daily_updates"].(*types.SimpleValueAggregate)
-		if !ok {
-			slogctx.FromCtx(ctx).Debug("Unable to extract avg_daily_updates agg for subscription", slog.String("subscription", user.GetSubscriptionMetadata().GetByFeedID(feedID).GetID()))
-			continue
-		}
-
-		stats[user.GetSubscriptionMetadata().GetByFeedID(feedID).GetID()] = models.SubscriptionStats{
-			AvgDailyUpdates: float64(*updatesResult.Value),
-		}
-	}
-	return stats, nil
 }
 
 func (a *API) markSubscriptions(ctx context.Context, request *models.MarkSubscriptionsRequest) error {
@@ -912,28 +768,4 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		}
 	}
 	return results, nil
-}
-
-func decodeSubscriptionFilters(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := req.Context()
-		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
-		if err != nil || !valid {
-			slogctx.FromCtx(req.Context()).Warn("Invalid subscription filters. Using defaults.",
-				slog.Any("error", err),
-			)
-			ctx = subscriptionFiltersToCtx(ctx, models.NewSubscriptionFilters())
-		} else {
-			ctx = subscriptionFiltersToCtx(ctx, *filters)
-		}
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-// savePageState saves the current page state in the session.
-func saveSubscriptionFilters(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		session.FiltersToSession(req.Context(), subscriptionFiltersFromCtx(req.Context()))
-		next.ServeHTTP(res, req)
-	})
 }

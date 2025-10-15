@@ -7,6 +7,7 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"log/slog"
 )
 
 const (
@@ -34,6 +35,7 @@ templ SetPageTitle(title string) {
 }
 
 templ UpdateCSRFToken() {
+	{{ slog.Info("updating csrf_token") }}
 	<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 }
 

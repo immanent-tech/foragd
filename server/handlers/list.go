@@ -6,9 +6,11 @@ package handlers
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -35,20 +37,20 @@ const (
 //nolint:gocognit
 func ShowList(api *elastic.API) http.HandlerFunc {
 	return alice.New(
-		decodeListFilters,
-		// saveListFilters,
+		parseFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
 		filters := models.ListFiltersFromCtx(req.Context())
 		pagination := req.FormValue(models.ParamPagination)
 		// Redirect to include query parameters in address bar.
-		if len(req.URL.Query()) == 0 {
+		if req.Method == http.MethodGet && len(req.URL.Query()) == 0 {
 			if IsHTMX(req) {
-				res.Header().Add(htmx.HeaderReplaceUrl, req.URL.Path+"?"+filters.QueryString())
+				res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+filters.QueryString())
 			} else {
-				http.Redirect(res, req, req.URL.Path+"?"+filters.QueryParams().Encode(), http.StatusSeeOther)
+				http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
 			}
-			return nil
+		} else {
+			slog.Info("no replacement needed")
 		}
 		var (
 			template  templ.Component
@@ -114,7 +116,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 //nolint:gocognit
 func WatchList(api *elastic.API) http.HandlerFunc {
 	return alice.New(
-		decodeListFilters,
+		parseFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "text/event-stream")
 		res.Header().Set("Cache-Control", "no-cache")
@@ -195,14 +197,11 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 // redirect the user appropriately.
 func MarkList(api *elastic.API) http.HandlerFunc {
 	return alice.New(
-		decodeListFilters,
+		parseFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
 		filters := models.ListFiltersFromCtx(req.Context())
 
-		slogctx.FromCtx(req.Context()).Debug("Marking list.",
-			slog.String("list", listType),
-			slog.String("filters", filters.QueryParams().Encode()))
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			return fmt.Errorf("unable to mark all subscriptions: %w", err)
@@ -224,6 +223,11 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		} else {
 			subscriptions = filters.GetSubscriptions()
 		}
+		slogctx.FromCtx(req.Context()).Debug("Marking list.",
+			slog.String("list", listType),
+			slog.String("mark", string(mark)),
+			slog.String("subscriptions", strings.Join(subscriptions, ",")),
+		)
 		// Mark subscriptions.
 		err = models.MarkSubscriptions(req.Context(), api, mark, subscriptions...)
 		if err != nil {
@@ -254,20 +258,43 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 	})).ServeHTTP
 }
 
-func decodeListFilters(next http.Handler) http.Handler {
+func parseFilters(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters, valid, err := forms.DecodeForm[*models.ListDisplayFilters](req)
 		ctx := req.Context()
-		if err != nil || !valid {
-			slogctx.FromCtx(ctx).Warn("Invalid list filters. Using defaults.",
-				slog.Any("error", err),
-			)
-			session.SaveToSession(ctx, listFiltersSessionKey, models.NewListDisplayFilters())
-			ctx = models.FiltersToCtx(ctx, models.NewListDisplayFilters())
-		} else {
-			session.SaveToSession(ctx, listFiltersSessionKey, filters)
+		switch {
+		case err != nil:
+			if errors.Is(err, forms.ErrNoFormData) {
+				restored := session.RestoreFromSession(ctx, listFiltersSessionKey, models.NewListDisplayFilters)
+				filters = &restored
+				ctx = models.FiltersToCtx(ctx, filters)
+				slogctx.FromCtx(ctx).Debug("No form data. Using filters from session.",
+					slog.String("filters", filters.QueryString()))
+			} else {
+				slogctx.FromCtx(ctx).Debug("Error parsing filters. Using default filters.")
+				newFilters := models.NewListDisplayFilters()
+				session.SaveToSession(ctx, listFiltersSessionKey, newFilters)
+				ctx = models.FiltersToCtx(ctx, &newFilters)
+			}
+		case !valid:
+			slogctx.FromCtx(ctx).Debug("Invalid filters. Using default.")
+			newFilters := models.NewListDisplayFilters()
+			session.SaveToSession(ctx, listFiltersSessionKey, newFilters)
+			ctx = models.FiltersToCtx(ctx, &newFilters)
+		default:
+			slogctx.FromCtx(ctx).Debug("Saving filters.",
+				slog.String("filters", filters.QueryString()))
+			session.SaveToSession(ctx, listFiltersSessionKey, *filters)
 			ctx = models.FiltersToCtx(ctx, filters)
 		}
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+func getFilters(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		filters := session.RestoreFromSession(req.Context(), listFiltersSessionKey, models.NewListDisplayFilters)
+		ctx := models.FiltersToCtx(req.Context(), &filters)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }

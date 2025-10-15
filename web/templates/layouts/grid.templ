@@ -111,7 +111,7 @@ templ SubscriptionsList(subscriptions models.SubscriptionsSlice, stats map[model
 	}
 	if pagination != "" && len(subscriptions) == filters.GetCount() {
 		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/list/subscriptions", pagination)
+		@PaginationControl(ctx, "/list/subscriptions/paginate", pagination)
 	}
 }
 
@@ -196,6 +196,6 @@ templ ArticlesList(articles models.Articles, pagination models.Pagination) {
 	// Add pagination element if pagination is required.
 	if pagination != "" && len(articles) == filters.GetCount() {
 		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/list/articles", pagination)
+		@PaginationControl(ctx, "/list/articles/paginate", pagination)
 	}
 }

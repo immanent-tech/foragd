@@ -5,7 +5,6 @@ package layouts
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
@@ -98,7 +97,7 @@ templ DrawerSidebar(subscriptions models.SubscriptionsSlice, favorites models.Fa
 							hx-get="/list/subscriptions"
 							hx-target={ partials.ContentID.Target() }
 							hx-push-url="true"
-							hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+							hx-vals={ models.GenerateHXVals(models.ListFiltersFromCtx(ctx).Values()) }
 							class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
 							_="on click toggle @open on #mobile-sidebar-dialog"
 						>
@@ -114,7 +113,7 @@ templ DrawerSidebar(subscriptions models.SubscriptionsSlice, favorites models.Fa
 							hx-get="/list/articles"
 							hx-target={ partials.ContentID.Target() }
 							hx-push-url="true"
-							hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
+							hx-vals={ models.GenerateHXVals(models.ListFiltersFromCtx(ctx).Values()) }
 							class="group link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold"
 							_="on click toggle @open on #mobile-sidebar-dialog"
 						>

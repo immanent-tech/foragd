@@ -87,9 +87,14 @@ func NewServer(ctx context.Context, env string) (Server, error) {
 	// Set up routes.
 	router := svr.setupRoutes(api)
 
+	csrfRouter := nosurf.New(router)
+	csrfRouter.SetFailureHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("failed")
+	}))
+
 	h2s := &http2.Server{}
 	svr.Server = &http.Server{
-		Handler:     h2c.NewHandler(nosurf.New(router), h2s),
+		Handler:     h2c.NewHandler(csrfRouter, h2s),
 		Addr:        net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
 		ReadTimeout: cfg.ReadTimeout,
 		// WriteTimeout: ServerConfig.WriteTimeout,
@@ -243,31 +248,40 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.Get("/search", handler.GetSearchResults())
 		r.With(middlewares.RequireHTMX).Post("/search/filter/subscription", handlers.AddSubscriptionFilter())
 
+		// Viewing lists.
 		r.Route("/list", func(r chi.Router) {
 			r.Get("/{list}", handlers.ShowList(handler.Elastic))
 			r.With(middlewares.RequireHTMX).Post("/{list}/paginate", handlers.ShowList(handler.Elastic))
 			r.With(middlewares.RequireHTMX).Post("/{list}/mark", handlers.MarkList(handler.Elastic))
 			r.Get("/updates", handlers.WatchList(handler.Elastic))
 		})
-		r.Route("/view", func(r chi.Router) {
-			r.Get("/{object}/{id}", func(w http.ResponseWriter, r *http.Request) {})
+		// Viewing objects.
+		r.Get("/view/{object}/{id}", handlers.ViewObject(handler.Elastic))
+		r.Get("/mark/{object}/{id}", func(w http.ResponseWriter, r *http.Request) {})
+		// Subscription editing.
+		r.Route("/edit/subscription/{id}", func(r chi.Router) {
+			r.Get("/", handler.EditSubscription())
+			r.With(middlewares.RequireHTMX).Post("/", handler.SaveSubscription())
+			r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
+			r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
 		})
+		r.Get("/mark/{object}/{id}", func(w http.ResponseWriter, r *http.Request) {})
 
 		// Subscription route.
 		r.Route("/subscription/{subscription_id}", func(r chi.Router) {
 			// r.Get("/", handler.GetSubscriptionArticles())
-			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkSubscription())
+			// r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkSubscription())
 			r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetSubscriptionIssues(handler))
 			r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitSubscriptionIssues(handler, s.apis.github))
 		})
-		r.Route("/subscription/{subscription_id}/article/{item_id}", func(r chi.Router) {
-			r.Get("/", handler.ViewArticle())
-			r.With(middlewares.RequireHTMX).Post("/", handler.ViewArticle())
-			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkArticle())
-			r.Get("/similar", handler.FindSimilarArticles())
-			r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetArticleIssues(handler))
-			r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitArticleIssues(handler, s.apis.github))
-		})
+		// r.Route("/subscription/{subscription_id}/article/{item_id}", func(r chi.Router) {
+		// 	r.Get("/", handler.ViewArticle())
+		// 	r.With(middlewares.RequireHTMX).Post("/", handler.ViewArticle())
+		// 	r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkArticle())
+		// 	r.Get("/similar", handler.FindSimilarArticles())
+		// 	r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetArticleIssues(handler))
+		// 	r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitArticleIssues(handler, s.apis.github))
+		// })
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
 			r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues(handler))
@@ -284,8 +298,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 				r.Get("/remove/{subscription_id}", handler.GetRemoveSubscriptionConfirmation())
 				r.With(middlewares.RequireHTMX).Post("/remove/{subscription_id}", handler.ProcessRemoveSubscription())
 				// Category management for add/edit subscription.
-				r.With(middlewares.RequireHTMX).Post("/category", handler.AdjustSubscriptionCategories())
-				r.With(middlewares.RequireHTMX).Delete("/category", handler.AdjustSubscriptionCategories())
+				r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
+				r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
 			})
 			r.Post("/feedset", handlers.AddFeedset(handler.Elastic, web.StaticContent))
 			// Import/export.

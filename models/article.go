@@ -195,11 +195,11 @@ func (a *Article) Type() string {
 }
 
 func (a *Article) ViewURL() string {
-	return "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID()
+	return "/view/article/" + a.GetID()
 }
 
 func (a *Article) MarkURL(mark Mark) string {
-	return "/subscription/" + string(a.GetSubscriptionID()) + "/article/" + a.GetID() + "/mark/" + string(mark)
+	return "/mark/article/" + a.GetID()
 }
 
 // Sanitise will sanitise the input values.

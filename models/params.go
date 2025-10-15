@@ -4,8 +4,10 @@
 package models
 
 const (
-	ParamListType           = "list"
-	ParamObjectType         = "object"
+	ParamListType   = "list"
+	ParamObjectType = "object"
+	ParamObjectID   = "id"
+
 	ParamCategories         = "categories"
 	ParamCount              = "count"
 	ParamFeeds              = "feeds"

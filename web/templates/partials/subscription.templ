@@ -6,7 +6,6 @@ package partials
 import (
 	"github.com/dustin/go-humanize"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"slices"
 )
 
@@ -95,7 +94,7 @@ templ ViewSubscriptionLink(s *models.Subscription) {
 	} else {
 		{{ overrides[models.ParamView] = string(models.ViewRead) }}
 	}
-	@ViewObjectLink(s, overrides, "flex", "items-center", "gap-x-4", "hover:text-accent") {
+	@ViewObjectLink(s, "#content-filters", overrides, "flex", "items-center", "gap-x-4", "hover:text-accent") {
 		<div class="flex items-center">
 			<div class="mr-4 shrink-0 self-center">
 				@GenerateAvatar(s)
@@ -129,7 +128,7 @@ templ actionsMenu(s *models.Subscription) {
 		@MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "menu-item")
 		// Edit action.
 		<a
-			hx-get={ "/user/subscription/edit/" + s.GetID() }
+			hx-get={ "/edit/subscription/" + s.GetID() }
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
 			class="link link-hover menu-item"
@@ -208,13 +207,13 @@ templ (c *Subscription) UnsubscribeModal() {
 }
 
 templ subscriptionCategoryBadge(category models.Category) {
-	{{ params := session.SubscriptionFiltersFromSession(ctx).Parameters() }}
-	{{ params[models.ParamCategories] = category }}
+	{{ filters := models.ListFiltersFromCtx(ctx).Values() }}
+	{{ filters[models.ParamCategories] = category }}
 	<a
 		hx-get="/subscriptions"
 		hx-push-url="true"
 		hx-target={ ContentID.Target() }
-		hx-vals={ models.GenerateHXVals(params) }
+		hx-vals={ models.GenerateHXVals(filters) }
 		class="link link-hover"
 	>
 		<div class="flex gap-2 text-sm capitalize">

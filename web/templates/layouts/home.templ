@@ -6,7 +6,6 @@ package layouts
 import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 	"strconv"
@@ -160,7 +159,7 @@ templ (page *Home) Template() {
 }
 
 templ categoryBadge(category models.CategoryCount) {
-	{{ params := session.ArticleFiltersFromSession(ctx).Parameters() }}
+	{{ params := models.ListFiltersFromCtx(ctx).Values() }}
 	{{ params[models.ParamCategories] = category.Category }}
 	<a
 		hx-get="/articles"

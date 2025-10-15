@@ -5,7 +5,6 @@ package layouts
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 	"strconv"
@@ -55,13 +54,12 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			<legend class="fieldset-legend text-base/7">Customisation</legend>
 			<form
 				id="edit-subscription"
-				hx-post={ "/user/subscription/edit/" + request.GetID() }
-				hx-include="[name='user_categories'],[name='show_full_article_content'],[id='article_category_filters'],[id='article_author_filters']"
+				hx-post={ "/edit/subscription/" + request.GetID() }
+				hx-include="[name='user_categories'],[name='show_full_article_content'],[id='article_category_filters'],[id='article_author_filters'],[name='csrf_token']"
 				hx-target={ partials.ContentID.Target() }
 				hx-target-error={ partials.ContentID.Target() }
 				hx-indicator="#processing"
 			>
-				<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 				<input type="hidden" name="subscription_id" value={ request.GetID() }/>
 				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 					<label for="username" class="block text-sm/6 font-medium">Nickname</label>
@@ -78,22 +76,8 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					</div>
 				</div>
 			</form>
-			<div>
-				@partials.AddCategoryForm(request.SuggestedCategories, templ.Attributes{
-					"hx-post":     "/user/subscription/category",
-					"hx-push-url": "false",
-					"hx-target":   "#current-categories",
-					"hx-swap":     "beforeend",
-					"hx-trigger":  "change,submit",
-				})
-				// Show current categories.
-				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-					<label class="label block text-sm/6 font-medium sm:pt-1.5">Current Categories</label>
-					<div class="mt-2 sm:col-span-2 sm:mt-0">
-						@partials.ManageCategories(request.GetCategories())
-					</div>
-				</div>
-			</div>
+			{{ categoryMgmtPath := "/edit/subscription/" + request.GetID() + "/category" }}
+			@partials.CategoryManagement(categoryMgmtPath, request.SuggestedCategories, request.GetCategories())
 		</fieldset>
 		<fieldset class="fieldset border-base-300 rounded-box border p-4">
 			<legend class="fieldset-legend text-base/7">
@@ -165,9 +149,8 @@ templ EditSubscriptionSuccessNotification(metadata *models.SubscriptionMetadata)
 			<button
 				type="button"
 				class="rounded-md text-sm font-medium hover:bg-accent/20 hover:text-accent-content focus:outline-2 focus:outline-offset-2 focus:outline-primary"
-				hx-get="/subscriptions"
+				hx-get="/list/subscriptions"
 				hx-target={ partials.ContentID.Target() }
-				hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
 				hx-push-url="true"
 				_={ "on click remove #" + partials.GetNotificationIDFromCtx(ctx) }
 			>Go to subscriptions <span aria-hidden="true">&rarr;</span></button>
@@ -239,21 +222,8 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 					</div>
 				</div>
 			</form>
-			<div>
-				@partials.AddCategoryForm(nil, templ.Attributes{
-					"hx-post":     "/user/subscription/category",
-					"hx-push-url": "false",
-					"hx-target":   "#current-categories",
-					"hx-swap":     "beforeend",
-					"hx-trigger":  "change,submit",
-				})
-				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
-					<label class="block text-sm/6 font-medium">Current Categories</label>
-					<div class="mt-2 sm:col-span-2 sm:mt-0">
-						@partials.ManageCategories(request.Categories)
-					</div>
-				</div>
-			</div>
+			{{ categoryMgmtPath := "/user/subscription/category" }}
+			@partials.CategoryManagement(categoryMgmtPath, nil, request.Categories)
 		</fieldset>
 		<div class="flex items-center justify-end gap-x-6">
 			<div id="processing" class="htmx-indicator">
@@ -375,7 +345,7 @@ templ ImportResults(results AddSubscriptionResults) {
 		class="btn btn-primary"
 		hx-get="/subscriptions"
 		hx-target={ partials.ContentID.Target() }
-		hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+		hx-vals={ models.GenerateHXVals(models.ListFiltersFromCtx(ctx).Values()) }
 	>
 		Go to your subscriptions
 	</button>

@@ -22,6 +22,8 @@ var (
 	ErrEncode = errors.New("error in encoding")
 	// ErrValidation indicates an error occurred during validation.
 	ErrValidation = errors.New("validation failed")
+	// ErrNoFormData indicates that no form data was parsed.
+	ErrNoFormData = errors.New("no form data")
 	// ErrSanitise indicates an error occurred during sanitisation.
 	ErrSanitise = errors.New("sanitisation failed")
 )

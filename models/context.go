@@ -49,7 +49,8 @@ func FiltersToCtx(ctx context.Context, filters Filters) context.Context {
 func ListFiltersFromCtx(ctx context.Context) *ListDisplayFilters {
 	filters, found := ctx.Value(filtersCtxKey).(*ListDisplayFilters)
 	if !found {
-		return NewListDisplayFilters()
+		newFilters := NewListDisplayFilters()
+		return &newFilters
 	}
 	return filters
 }

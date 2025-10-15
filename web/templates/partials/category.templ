@@ -8,85 +8,84 @@ import (
 	"slices"
 )
 
-// AddCategoryForm renders a form that can be used to add categories to a subscription.
-templ AddCategoryForm(categories []models.Category, attributes templ.Attributes) {
-	<form
-		{ attributes... }
-		hx-on::after-request="if(event.detail.successful) this.reset()"
-	>
-		<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-		<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-			<div>
-				<label for="category" class="block text-sm/6 font-medium">Add category</label>
-				<p id="category-hint" class="mt-3 text-sm/6 text-base-content/60">Optional. Add a category to the subscription.</p>
-			</div>
-			<div class="mt-2 sm:col-span-2 sm:mt-0">
-				<el-autocomplete>
-					<div class="flex">
-						<div class="join">
-							<input
-								id="add-category"
-								type="text"
-								name="category"
-								placeholder="Cool Stuff"
-								class="input input-primary bg-base-content/10 join-item"
-							/>
-							<button class="btn btn-primary join-item">
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
-								</svg>
-							</button>
-						</div>
+templ CategoryManagement(path string, suggested []models.Category, existing []models.Category) {
+	<div>
+		<form
+			id="add-categories"
+			hx-post={ path }
+			hx-on::after-request="if(event.detail.successful) this.reset()"
+			hx-include="[name='csrf_token'],[name='user_categories']"
+			hx-push-url="false"
+			hx-target="#current-categories"
+			hx-swap="beforeend"
+			hx-trigger="submit"
+		>
+			<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+				<div>
+					<label for="category" class="block text-sm/6 font-medium">Add category</label>
+					<p id="category-hint" class="mt-3 text-sm/6 text-base-content/60">Optional. Add a category to the subscription.</p>
+				</div>
+				<div class="mt-2 sm:col-span-2 sm:mt-0">
+					<div class="join">
+						<el-autocomplete class="join-item">
+							<label class="flex input input-primary bg-base-content/10">
+								<input
+									id="add-category"
+									type="text"
+									name="category"
+									placeholder="Cool Stuff"
+								/>
+								<button>
+									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 text-primary">
+										<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+									</svg>
+								</button>
+							</label>
+							<el-options popover anchor="bottom start">
+								<div class="grid grid-cols-1 bg-base-content/10 p-4 text-sm/6 outline-1 -outline-offset-1 outline-neutral focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:text-sm/6 capitalize">
+									for category := range slices.Values(suggested) {
+										<el-option value={ category }>{ category }</el-option>
+									}
+								</div>
+							</el-options>
+						</el-autocomplete>
+						<button class="btn btn-primary join-item">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+							</svg>
+						</button>
 					</div>
-					<el-options popover anchor="bottom start">
-						<div class="mt-2 grid grid-cols-1 bg-base-200 rounded p-4 pr-8 pl-3 text-sm/6 outline-1 -outline-offset-1 outline-neutral focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:text-sm/6 capitalize">
-							for category := range slices.Values(categories) {
-								<el-option value={ category }>{ category }</el-option>
-							}
-						</div>
-					</el-options>
-				</el-autocomplete>
+				</div>
+			</div>
+		</form>
+		// Show current categories.
+		<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+			<label class="label block text-sm/6 font-medium sm:pt-1.5">Current Categories</label>
+			<div class="mt-2 sm:col-span-2 sm:mt-0">
+				<ul id="current-categories" class="-my-3 divide-y divide-base-content/10 px-6 py-4 text-sm/6">
+					for category := range slices.Values(existing) {
+						@AddCategory(path, category)
+					}
+				</ul>
 			</div>
 		</div>
-	</form>
-}
-
-type AddSubscriptionCategories struct {
-	Categories []models.Category `form:"user_categories"`
-}
-
-func (c *AddSubscriptionCategories) Valid() (bool, error) {
-	return true, nil
-}
-
-func (c *AddSubscriptionCategories) Sanitise() error {
-	return nil
-}
-
-// ManageCategories renders a list containing existing categories of a subscription.
-templ ManageCategories(categories []models.Category) {
-	<ul id="current-categories" class="-my-3 divide-y divide-base-content/10 px-6 py-4 text-sm/6">
-		for category := range slices.Values(categories) {
-			@AddCategory(category)
-		}
-	</ul>
+	</div>
 }
 
 // AddCategory renders a new category item to the list of categories of a subscription.
-templ AddCategory(category models.Category) {
-	@categoryListItem(category, templ.Attributes{
-		"hx-delete":   "/user/subscription/category",
-		"hx-push-url": "false",
-		"hx-target":   "closest li",
-		"hx-swap":     "delete",
-	})
-}
-
-templ categoryListItem(category models.Category, attributes templ.Attributes) {
+templ AddCategory(path string, category models.Category) {
+	{{ csrf_token := models.CSRFTokenFromCtx(ctx) }}
 	<li class="flex flex-row items-center py-4 gap-x-4 group-hover:text-accent">
 		<input type="hidden" name="user_categories" value={ category }/>
 		{ category }
-		<button { attributes... }>
+		<button
+			hx-delete={ path }
+			hx-push-url="false"
+			hx-target="closest li"
+			hx-swap="delete"
+			hx-headers={ `{"X-CSRF-Token": "` + csrf_token + `"}` }
+			class="btn btn-square btn-ghost"
+		>
 			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
 				<path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"></path>
 			</svg>

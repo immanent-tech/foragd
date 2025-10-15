@@ -160,7 +160,7 @@ func renderPage(template templ.Component, title string) http.Handler {
 				// Update the page title if set.
 				template = templ.Join(template, templates.SetPageTitle(title))
 			}
-			slogctx.FromCtx(req.Context()).Debug("Partial request")
+			// Update the CSRF token value.
 			template = templ.Join(template, templates.UpdateCSRFToken())
 			target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget))
 			if target != "" && target != templates.FragmentContent {
@@ -169,7 +169,6 @@ func renderPage(template templ.Component, title string) http.Handler {
 				templ.Handler(template).ServeHTTP(res, req)
 			}
 		} else {
-			slogctx.FromCtx(req.Context()).Debug("Non htmx request")
 			template = layouts.Drawer(layouts.DrawerData{User: user}, template)
 			template = templates.Page(title, template)
 			err := template.Render(req.Context(), res)

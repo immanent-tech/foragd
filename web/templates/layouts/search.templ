@@ -5,7 +5,6 @@ package layouts
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
@@ -109,12 +108,12 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="subscriptions-group-label">
 		<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
 		for subscription := range slices.Values(subscriptions) {
-			{{ values := session.ArticleFiltersFromSession(ctx).Parameters() }}
-			{{ values[models.ParamSubscriptions] = subscription.GetID() }}
+			{{ filters := models.ListFiltersFromCtx(ctx).Values() }}
+			{{ filters[models.ParamSubscriptions] = subscription.GetID() }}
 			<a
 				href="#"
 				hx-get="/articles"
-				hx-vals={ models.GenerateHXVals(values) }
+				hx-vals={ models.GenerateHXVals(filters) }
 				hx-target={ partials.ContentID.Target() }
 				hx-push-url="true"
 				hidden
@@ -625,7 +624,7 @@ templ showSearchResult(result partials.Object) {
 			<div class="flex-auto">
 				// Show article title.
 				<div class="flex items-baseline justify-between gap-x-4">
-					@partials.ViewObjectLink(result, nil) {
+					@partials.ViewObjectLink(result, "", nil) {
 						<p class="text-sm/6 font-semibold text-pretty line-clamp-2">{ result.GetTitle() }</p>
 					}
 					<p class="flex-none text-xs text-base-content/80">

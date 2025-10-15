@@ -48,10 +48,12 @@ templ GenerateAvatar(obj Object) {
 }
 
 // ViewObjectLink will render a link for viewing an object.
-templ ViewObjectLink(obj Object, vals map[string]string, classes ...string) {
+templ ViewObjectLink(obj Object, include string, vals map[string]string, classes ...string) {
 	<a
 		hx-get={ obj.ViewURL() }
-		hx-include="#content-filters"
+		if include != "" {
+			hx-include={ include }
+		}
 		if vals != nil {
 			hx-vals={ models.GenerateHXVals(vals) }
 		}
