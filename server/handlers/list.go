@@ -13,7 +13,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -51,12 +50,12 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 		switch listType {
 		case "subscriptions":
 			// Get subscriptions matching filters.
-			subscriptions, pagination, err := models.FilterSubscriptions(req.Context(), api, &filters, pagination)
+			subscriptions, pagination, err := models.FilterSubscriptions(req.Context(), api, filters, pagination)
 			if err != nil {
 				return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
 			}
 			// Get subscription stats.
-			stats, err := models.GetSubscriptionStats(req.Context(), api, &filters)
+			stats, err := models.GetSubscriptionStats(req.Context(), api, filters)
 			if err != nil {
 				return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
 			}
@@ -74,7 +73,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			}
 		case "articles":
 			// Get articles matching filters.
-			articles, pagination, err := models.FilterArticles(req.Context(), api, &filters, pagination)
+			articles, pagination, err := models.FilterArticles(req.Context(), api, filters, pagination)
 			if err != nil {
 				return fmt.Errorf("unable to get articles: %w", err)
 			}
@@ -119,7 +118,7 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 		}
 		// listType := chi.RouteContext(req.Context()).URLParam("list")
 		filters := models.ListFiltersFromCtx(req.Context())
-		query, err := models.BuildItemsQuery(req.Context(), &filters)
+		query, err := models.BuildItemsQuery(req.Context(), filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
 				slog.Any("error", err))
@@ -184,12 +183,15 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 	}).ServeHTTP
 }
 
+// MarkList handles marking a list of objects (subscriptions/articles) as read or unread. After marking, it will
+// redirect the user appropriately.
 func MarkList(api *elastic.API) http.HandlerFunc {
 	return alice.New(
-		decodeSubscriptionFilters,
+		decodeListFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam("list")
 		filters := models.ListFiltersFromCtx(req.Context())
+
 		slogctx.FromCtx(req.Context()).Debug("Marking list.",
 			slog.String("list", listType),
 			slog.String("filters", filters.QueryParams().Encode()))
@@ -214,7 +216,6 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		} else {
 			subscriptions = filters.GetSubscriptions()
 		}
-		godump.Dump(filters)
 		// Mark subscriptions.
 		err = models.MarkSubscriptions(req.Context(), api, mark, subscriptions...)
 		if err != nil {
@@ -227,40 +228,19 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 				fmt.Errorf("unable to mark all objects: %w", err),
 				http.StatusInternalServerError)
 		}
-		// // Get updated subscriptions.
-		// subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
-		// if err != nil {
-		// 	renderPartial(partials.Notification(
-		// 		models.NewErrorMessage(
-		// 			"Unable to refresh subscriptions",
-		// 			"Something went wrong, please try again",
-		// 		), 0))
-		// 	return models.NewAPIError(
-		// 		fmt.Errorf("unable to mark all subscriptions: %w", err),
-		// 		http.StatusInternalServerError)
-		// }
-		// stats, err := a.getSubscriptionStats(req.Context(), &filters)
-		// if err != nil {
-		// 	renderPartial(partials.Notification(
-		// 		models.NewErrorMessage(
-		// 			"Unable to refresh subscription",
-		// 			"Something went wrong, please try again",
-		// 		), 0))
-		// 	return models.NewAPIError(
-		// 		fmt.Errorf("unable to mark subscription: %w", err),
-		// 		http.StatusInternalServerError)
-		// }
-		// // Render appropriate content.
-		// template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination, stats)
-		// renderPage(template, templates.GeneratePageTitle("Subscriptions")).ServeHTTP(res, req)
 
 		// Redirect depending on the current view.
 		switch filters.GetView() {
 		case models.ViewRead, models.ViewUnread:
-			SetRedirect(req.Context(), "/home", nil, res)
+			if listType == "articles" {
+				SetRedirect(req.Context(), "/list/subscriptions", filters, res)
+			} else {
+				SetRedirect(req.Context(), "/home", nil, res)
+			}
 		case models.ViewAll:
-			SetRedirect(req.Context(), "/list/subscriptions", &filters, res)
+			SetRedirect(req.Context(), "/home", nil, res)
 		}
+		res.WriteHeader(http.StatusOK)
 		return nil
 	})).ServeHTTP
 }
@@ -274,10 +254,10 @@ func decodeListFilters(next http.Handler) http.Handler {
 				slog.Any("error", err),
 			)
 			session.SaveToSession(ctx, listFiltersSessionKey, models.NewListDisplayFilters())
-			ctx = models.ListFiltersToCtx(ctx, models.NewListDisplayFilters())
+			ctx = models.FiltersToCtx(ctx, models.NewListDisplayFilters())
 		} else {
 			session.SaveToSession(ctx, listFiltersSessionKey, filters)
-			ctx = models.ListFiltersToCtx(ctx, *filters)
+			ctx = models.FiltersToCtx(ctx, filters)
 		}
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})

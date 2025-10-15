@@ -84,7 +84,11 @@ templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, stats map[model
 			</ul>
 		</div>
 		<div id="update-notifications" sse-connect={ "/list/subscriptions/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
-		@partials.ListDisplayFilters(subscriptions.GetCategoryCounts(), filters)
+		if len(subscriptions) > 0 {
+			@partials.ListDisplayFilters(subscriptions.GetCategoryCounts(), filters, true)
+		} else {
+			@partials.ListDisplayFilters(subscriptions.GetCategoryCounts(), filters, false)
+		}
 		if len(subscriptions) >0 {
 			@Grid() {
 				@SubscriptionsList(subscriptions, stats, pagination)
@@ -169,7 +173,11 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 			</ul>
 		</div>
 		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
-		@partials.ListDisplayFilters(articles.GetCategoryCounts(), filters)
+		if len(articles) > 0 {
+			@partials.ListDisplayFilters(articles.GetCategoryCounts(), filters, true)
+		} else {
+			@partials.ListDisplayFilters(articles.GetCategoryCounts(), filters, false)
+		}
 		if len(articles) > 0 {
 			@Grid() {
 				@ArticlesList(articles, pagination)

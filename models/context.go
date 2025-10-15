@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	userCtxKey        contextKey = "user"
-	listFiltersCtxKey contextKey = "list_filters"
-	csrfTokenCtxKey   contextKey = "csrfToken"
+	userCtxKey      contextKey = "user"
+	filtersCtxKey   contextKey = "list_filters"
+	csrfTokenCtxKey contextKey = "csrfToken"
 )
 
 type contextKey string
@@ -40,12 +40,14 @@ func CSRFTokenFromCtx(ctx context.Context) string {
 	return ""
 }
 
-func ListFiltersToCtx(ctx context.Context, filters ListDisplayFilters) context.Context {
-	return context.WithValue(ctx, listFiltersCtxKey, filters)
+// FiltersToCtx stores the given filters (any specific type) to the context.
+func FiltersToCtx(ctx context.Context, filters Filters) context.Context {
+	return context.WithValue(ctx, filtersCtxKey, filters)
 }
 
-func ListFiltersFromCtx(ctx context.Context) ListDisplayFilters {
-	filters, found := ctx.Value(listFiltersCtxKey).(ListDisplayFilters)
+// ListFiltersFromCtx retrieves the ListDisplayFilters from the context
+func ListFiltersFromCtx(ctx context.Context) *ListDisplayFilters {
+	filters, found := ctx.Value(filtersCtxKey).(*ListDisplayFilters)
 	if !found {
 		return NewListDisplayFilters()
 	}

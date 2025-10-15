@@ -128,8 +128,8 @@ func FiltersFromParams[F Filters](params any) (F, error) {
 	return filters, nil
 }
 
-func NewListDisplayFilters() ListDisplayFilters {
-	return ListDisplayFilters{
+func NewListDisplayFilters() *ListDisplayFilters {
+	return &ListDisplayFilters{
 		SortBy:    SortByLastUpdated,
 		SortOrder: SortOrderDesc,
 		Count:     DefaultCount,
@@ -137,14 +137,13 @@ func NewListDisplayFilters() ListDisplayFilters {
 	}
 }
 
-func (f ListDisplayFilters) GetSubscriptions() []SubscriptionID {
+func (f *ListDisplayFilters) GetSubscriptions() []SubscriptionID {
 	return f.Subscriptions
 }
 
 func (f *ListDisplayFilters) Sanitise() error {
 	if f == nil {
-		newFilters := NewListDisplayFilters()
-		f = &newFilters
+		f = NewListDisplayFilters()
 		return nil
 	}
 	// Set required filters to valid values as necessary.
@@ -162,7 +161,7 @@ func (f *ListDisplayFilters) Valid() (bool, error) {
 }
 
 // Sort returns the Sort object for the Filters.
-func (f ListDisplayFilters) GetSort() Sort {
+func (f *ListDisplayFilters) GetSort() Sort {
 	return Sort{
 		SortBy:    f.SortBy,
 		SortOrder: f.SortOrder,
@@ -170,7 +169,7 @@ func (f ListDisplayFilters) GetSort() Sort {
 }
 
 // GetCount returns the count value (encoded as a string in the filters) as an int.
-func (f ListDisplayFilters) GetCount() int {
+func (f *ListDisplayFilters) GetCount() int {
 	value, err := strconv.Atoi(f.Count)
 	if err != nil {
 		return 10
@@ -178,15 +177,15 @@ func (f ListDisplayFilters) GetCount() int {
 	return value
 }
 
-func (f ListDisplayFilters) GetView() View {
+func (f *ListDisplayFilters) GetView() View {
 	return f.View
 }
 
-func (f ListDisplayFilters) GetCategories() []Category {
+func (f *ListDisplayFilters) GetCategories() []Category {
 	return f.Categories
 }
 
-func (f ListDisplayFilters) QueryParams() url.Values {
+func (f *ListDisplayFilters) QueryParams() url.Values {
 	params := make(url.Values)
 	if len(f.Subscriptions) > 0 {
 		params.Set(ParamSubscriptions, strings.Join(f.Subscriptions, ","))
@@ -201,11 +200,11 @@ func (f ListDisplayFilters) QueryParams() url.Values {
 	return params
 }
 
-func (f ListDisplayFilters) QueryString() string {
+func (f *ListDisplayFilters) QueryString() string {
 	return f.QueryParams().Encode()
 }
 
-func (f ListDisplayFilters) Values() map[string]string {
+func (f *ListDisplayFilters) Values() map[string]string {
 	params := make(map[string]string)
 	if len(f.Subscriptions) > 0 {
 		params[ParamSubscriptions] = strings.Join(f.Subscriptions, ",")

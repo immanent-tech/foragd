@@ -124,7 +124,6 @@ func SetRedirect(ctx context.Context, path string, filters models.Filters, res h
 	htmxResp = htmxResp.PushURL(pushURLPath)
 	slogctx.FromCtx(ctx).Debug("Redirecting.",
 		slog.String("path", pushURLPath),
-		slog.Any("parameters", filters.QueryString()),
 	)
 	err := htmxResp.Write(res)
 	if err != nil {
