@@ -233,6 +233,7 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		switch filters.GetView() {
 		case models.ViewRead, models.ViewUnread:
 			if listType == "articles" {
+				filters.Subscriptions = nil
 				SetRedirect(req.Context(), "/list/subscriptions", filters, res)
 			} else {
 				SetRedirect(req.Context(), "/home", nil, res)
