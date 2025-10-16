@@ -199,7 +199,10 @@ func (a *Article) ViewURL() string {
 }
 
 func (a *Article) MarkURL() string {
-	return "/mark/article/" + a.GetID()
+	if a.IsUnread() {
+		return "/mark/article/" + a.GetID() + "/read"
+	}
+	return "/mark/article/" + a.GetID() + "/unread"
 }
 
 // Sanitise will sanitise the input values.

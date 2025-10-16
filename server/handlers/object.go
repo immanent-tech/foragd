@@ -80,9 +80,11 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 
 func MarkObject(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Extract request parameters.
 		objectType := chi.URLParam(req, models.ParamObjectType)
 		id := chi.URLParam(req, models.ParamObjectID)
-		mark := models.Mark(req.FormValue(models.ParamMark))
+		mark := models.Mark(chi.URLParam(req, models.ParamMark))
+		// Validate parameters.
 		if id == "" || !(mark == models.MarkRead || mark == models.MarkUnread) {
 			renderPartial(partials.Notification(
 				models.NewErrorMessage(

@@ -136,7 +136,10 @@ func (s *Subscription) ViewURL() string {
 }
 
 func (s *Subscription) MarkURL() string {
-	return "/subscription/" + s.GetID() + "/mark"
+	if s.IsUnread() {
+		return "/mark/subscription/" + s.GetID() + "/read"
+	}
+	return "/mark/subscription/" + s.GetID() + "/unread"
 }
 
 type SubscriptionsSlice []*Subscription

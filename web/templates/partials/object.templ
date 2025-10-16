@@ -100,13 +100,6 @@ templ ToggleFavorite(obj Object) {
 
 // MarkObjectLink will render a link for toggling the mark status of the object.
 templ MarkObjectLink(obj Object, target, swap string, classes ...string) {
-	{{ var mark models.Mark }}
-	if obj.IsUnread() {
-		{{ mark = models.MarkRead }}
-	} else {
-		{{ mark = models.MarkUnread }}
-	}
-	<input type="hidden" name={ models.ParamMark } value={ string(mark) }/>
 	<a
 		hx-post={ obj.MarkURL() }
 		hx-include="[name='csrf_token']"

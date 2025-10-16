@@ -295,13 +295,6 @@ templ ArticleContent(article *models.Article) {
 
 // UpdateViewArticleMark updates the mark action when viewing an article.
 templ UpdateViewArticleMark(article *models.Article) {
-	{{ var mark models.Mark }}
-	if article.IsUnread() {
-		{{ mark = models.MarkRead }}
-	} else {
-		{{ mark = models.MarkUnread }}
-	}
-	<input type="hidden" name={ models.ParamMark } value={ string(mark) }/>
 	<a
 		role="btn"
 		hx-post={ article.MarkURL() }
