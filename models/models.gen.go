@@ -53,6 +53,12 @@ const (
 	ObjectCommonSourceTypeRSS      ObjectCommonSourceType = "RSS"
 )
 
+// Defines values for ObjectType.
+const (
+	ObjectTypeArticle      ObjectType = "article"
+	ObjectTypeSubscription ObjectType = "subscription"
+)
+
 // Defines values for SearchRequestPublishedWithin.
 const (
 	SearchRequestPublishedWithinAllTime     SearchRequestPublishedWithin = "all_time"
@@ -478,6 +484,18 @@ type MarkArticleRequest struct {
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
+// MarkObjectParams defines model for MarkObjectParams.
+type MarkObjectParams struct {
+	// ObjectID represents an ID of any user-facing object.
+	ObjectID ObjectID `form:"id" json:"id" validate:"required,startswith=sub_|startswith=item_"`
+
+	// Mark applies the given mark action to objects.
+	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
+
+	// Object represents the type of any user-facing object.
+	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
+}
+
 // Nickname is an optional friendly name.
 type Nickname = string
 
@@ -519,6 +537,9 @@ type ObjectCommon struct {
 // ObjectCommonSourceType indicates what type of source the object came from.
 type ObjectCommonSourceType string
 
+// ObjectID represents an ID of any user-facing object.
+type ObjectID = string
+
 // ObjectIssue contains common issues encountered with objects.
 type ObjectIssue struct {
 	// Duplicate indicates that the object has a duplicate.
@@ -530,6 +551,9 @@ type ObjectIssue struct {
 	// MissingImage indicates the object is expected to have an image, but it is missing.
 	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
 }
+
+// ObjectType represents the type of any user-facing object.
+type ObjectType string
 
 // PageIssue contains details about issues with a page.
 type PageIssue struct {
@@ -773,6 +797,15 @@ type UserSettings struct {
 
 	// Theme the user interface theme chosen by the user.
 	Theme string `form:"-" json:"theme,omitempty,omitzero"`
+}
+
+// ViewObjectParams contains the parameters for viewing an object.
+type ViewObjectParams struct {
+	// ObjectID represents an ID of any user-facing object.
+	ObjectID ObjectID `form:"id" json:"id" validate:"required,startswith=sub_|startswith=item_"`
+
+	// Object represents the type of any user-facing object.
+	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
 }
 
 // AsExternalRef0ImageInfo returns the union data inside the EditSubscriptionRequest_Image as a externalRef0.ImageInfo

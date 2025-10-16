@@ -17,6 +17,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -25,22 +26,27 @@ import (
 // ViewObject handles showing an object's content (e.g. viewing article content).
 func ViewObject(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		objectType := chi.URLParam(req, models.ParamObjectType)
-		id := chi.URLParam(req, models.ParamObjectID)
-		if id == "" {
-			slogctx.FromCtx(req.Context()).Error("No object ID provided.")
-			res.WriteHeader(http.StatusNotFound)
-			renderPage(layouts.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
-			return nil
+		// Extract request parameters.
+		params := &models.ViewObjectParams{
+			ObjectID: chi.URLParam(req, models.ParamObjectID),
+			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
-		switch objectType {
-		case "article":
-			articles, err := models.GetArticles(req.Context(), api, id)
+		valid, err := params.Valid()
+		if err != nil || !valid {
+			renderPage(layouts.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusNotFound,
+			)
+		}
+		switch params.Object {
+		case models.ObjectTypeArticle:
+			articles, err := models.GetArticles(req.Context(), api, params.ObjectID)
 			if err != nil {
 				renderPartial(partials.Error(
 					models.NewErrorMessage("Unable to fetch article content", ""),
 				)).ServeHTTP(res, req)
-				return fmt.Errorf("unable to view object: %w", err)
+				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
 			article := articles[0]
 			// For POST method, get the "show_full_content" value and override the article value.
@@ -82,19 +88,16 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 func MarkObject(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
-		objectType := chi.URLParam(req, models.ParamObjectType)
-		id := chi.URLParam(req, models.ParamObjectID)
-		mark := models.Mark(chi.URLParam(req, models.ParamMark))
-		// Validate parameters.
-		if id == "" || !(mark == models.MarkRead || mark == models.MarkUnread) {
+		params, valid, err := forms.DecodeForm[*models.MarkObjectParams](req)
+		if err != nil || !valid {
 			renderPartial(partials.Notification(
 				models.NewErrorMessage(
 					"Unable to mark article",
 					"Server received invalid data.",
 				), 0)).ServeHTTP(res, req)
 			return models.NewAPIError(
-				fmt.Errorf("%w: no ID and/or invalid mark provided", ErrInvalidRequestParams),
-				http.StatusBadRequest,
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusNotFound,
 			)
 		}
 		// Extract user data.
@@ -105,8 +108,8 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 				http.StatusBadRequest,
 			)
 		}
-		switch objectType {
-		case "article":
+		switch params.Object {
+		case models.ObjectTypeArticle:
 			subscriptionID := req.FormValue(models.ParamSubscriptionID)
 			if subscriptionID == "" {
 				return models.NewAPIError(
@@ -114,7 +117,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 					http.StatusBadRequest,
 				)
 			}
-			user.MarkItems(mark, subscriptionID, id)
+			user.MarkItems(params.Mark, subscriptionID, params.ObjectID)
 			// Update the user object.
 			err = api.UpdateUser(req.Context(), map[string]any{
 				"subscriptions": user.Subscriptions,
@@ -130,7 +133,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 					http.StatusUnprocessableEntity)
 			}
 			// Get updated articles.
-			s, err := models.GetArticles(req.Context(), api, id)
+			s, err := models.GetArticles(req.Context(), api, params.ObjectID)
 			if err != nil || len(s) == 0 || len(s) > 1 {
 				renderPartial(partials.Notification(
 					models.NewErrorMessage(
@@ -143,11 +146,11 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 			}
 			// Generate appropriate swap content based on target header.
 			switch req.Header.Get(htmx.HeaderTarget) {
-			case id:
+			case params.ObjectID:
 				// Swap target is card.
 				filters := models.ListFiltersFromCtx(req.Context())
 				renderPartial(partials.NewArticleContent(s[0]).Card(filters.GetView())).ServeHTTP(res, req)
-			case "mark_" + id:
+			case "mark_" + params.ObjectID:
 				// Swap target is link.
 				renderPartial(partials.UpdateViewArticleMark(s[0])).ServeHTTP(res, req)
 			}

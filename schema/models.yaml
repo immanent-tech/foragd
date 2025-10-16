@@ -85,6 +85,22 @@ components:
         validate: 'required,startswith=sub_'
         json: 'subscription_id'
         form: 'subscription_id'
+    ObjectID:
+      description: represents an ID of any user-facing object.
+      type: string
+      x-go-name: ObjectID
+      x-oapi-codegen-extra-tags:
+        validate: 'required,startswith=sub_|startswith=item_'
+        json: 'id'
+        form: 'id'
+    ObjectType:
+      description: represents the type of any user-facing object.
+      type: string
+      enum: ['subscription','article']
+      x-oapi-codegen-extra-tags:
+        validate: 'required,oneof=subscription article'
+        json: 'object'
+        form: 'object'
     UserID:
       description: is the unique ID of a user.
       type: string
@@ -946,3 +962,27 @@ components:
                 form: 'subscriptions'
                 validate: 'omitnil,unique,dive,startswith=sub_'
               x-go-type-skip-optional-pointer: true
+    ViewObjectParams:
+      description: >
+        contains the parameters for viewing an object.
+      type: object
+      required:
+        - id
+        - object
+      properties:
+        id:
+          $ref: '#/components/schemas/ObjectID'
+        object:
+          $ref: '#/components/schemas/ObjectType'
+    MarkObjectParams:
+      description: >
+        contains the parameters for marking an object.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ViewObjectParams'
+        - type: object
+          required:
+            - mark
+          properties:
+            mark:
+              $ref: '#/components/schemas/Mark'

@@ -16,6 +16,9 @@ import (
 	"time"
 
 	"github.com/go-shiori/go-readability"
+	"github.com/goforj/godump"
+
+	"github.com/immanent-tech/foragd/validation"
 )
 
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
@@ -195,4 +198,29 @@ func ExtractText(content string) (string, error) {
 		return "", fmt.Errorf("could not extract content as text: %w", err)
 	}
 	return article.TextContent, nil
+}
+
+func (v *ViewObjectParams) Valid() (bool, error) {
+	godump.Dump(v)
+	err := validation.Validate.Struct(v)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (v *ViewObjectParams) Sanitise() error {
+	return nil
+}
+
+func (m *MarkObjectParams) Valid() (bool, error) {
+	err := validation.Validate.Struct(m)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (m *MarkObjectParams) Sanitise() error {
+	return nil
 }

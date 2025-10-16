@@ -11,7 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-var validate = validator.New(validator.WithRequiredStructEnabled())
+var Validate = validator.New(validator.WithRequiredStructEnabled())
 
 var ErrNilObject = errors.New("object is nil")
 
@@ -38,12 +38,12 @@ func (e *Error) FieldError(name string) error {
 // the object. It does not return any details of validation issues, only a
 // boolean for valid (true) or invalid (false).
 func IsValid[T any](obj T) bool {
-	err := validate.Struct(obj)
+	err := Validate.Struct(obj)
 	return err != nil
 }
 
 func AddStructValidationFunc(fn validator.StructLevelFunc, types ...any) {
-	validate.RegisterStructValidation(fn, types...)
+	Validate.RegisterStructValidation(fn, types...)
 }
 
 // ValidateStruct will validate a struct using the validate tags assigned on the
@@ -55,7 +55,7 @@ func AddStructValidationFunc(fn validator.StructLevelFunc, types ...any) {
 func ValidateStruct[T any](obj T) (bool, error) {
 	validationErr := &validator.ValidationErrors{}
 
-	err := validate.Struct(obj)
+	err := Validate.Struct(obj)
 	if err != nil {
 		if !errors.As(err, validationErr) {
 			return false, &Error{Details: "internal validation error"}
@@ -74,7 +74,7 @@ func ValidateStruct[T any](obj T) (bool, error) {
 // representing whether the struct is valid. If an error occurred with
 // validation, a non-nil error will also be returned.
 func ValidateVariable(variable any, rule string) (bool, error) {
-	if err := validate.Var(variable, rule); err != nil {
+	if err := Validate.Var(variable, rule); err != nil {
 		return false, fmt.Errorf("invalid: %w", err)
 	}
 
