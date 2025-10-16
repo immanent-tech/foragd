@@ -16,7 +16,7 @@ var CSPPolicy = []string{
 	`img-src * data: *;`,
 	`media-src *;`,
 	`font-src 'self';`,
-	`connect-src 'self';`,
+	`connect-src 'self' https://cdn.jsdelivr.net;`,
 	`frame-src *;`,
 }
 
