@@ -3,7 +3,11 @@
 
 package layouts
 
-import "github.com/immanent-tech/foragd/web/templates/partials"
+import (
+	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+)
 
 // Landing is the landing page layout.
 templ Landing() {
@@ -55,56 +59,42 @@ templ Landing() {
 					<dl class="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 text-base-content/80 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
 						<div class="relative pl-9 space-x-2">
 							<dt class="inline font-semibold text-base-content">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute top-1 left-1 size-5 fill-primary">
-									<path fill-rule="evenodd" d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z" clip-rule="evenodd"></path>
-								</svg>
+								@tabler.HeartFilled(i.Props{Class: "absolute top-1 left-1 size-5 fill-primary"})
 								Favourite anything
 							</dt>
 							<dd class="inline">Mark a subscription, an article or a search as a favorite. Organise without cumbersome folders and exploding tags.</dd>
 						</div>
 						<div class="relative pl-9 space-x-2">
 							<dt class="inline font-semibold text-base-content">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute top-1 left-1 size-5 fill-primary">
-									<path fill-rule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clip-rule="evenodd"></path>
-								</svg>
+								@tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Powerful search.
 							</dt>
 							<dd class="inline">Search your subscriptions with advanced filtering. Favorite it. Boom. Now you have a custom subscription for that content.</dd>
 						</div>
 						<div class="relative pl-9 space-x-2">
 							<dt class="inline font-semibold text-base-content">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute top-1 left-1 size-5 fill-primary">
-									<path fill-rule="evenodd" d="M3.792 2.938A49.069 49.069 0 0 1 12 2.25c2.797 0 5.54.236 8.209.688a1.857 1.857 0 0 1 1.541 1.836v1.044a3 3 0 0 1-.879 2.121l-6.182 6.182a1.5 1.5 0 0 0-.439 1.061v2.927a3 3 0 0 1-1.658 2.684l-1.757.878A.75.75 0 0 1 9.75 21v-5.818a1.5 1.5 0 0 0-.44-1.06L3.13 7.938a3 3 0 0 1-.879-2.121V4.774c0-.897.64-1.683 1.542-1.836Z" clip-rule="evenodd"></path>
-								</svg>
+								@tabler.FilterFilled(i.Props{Class: "absolute top-1 left-1 size-5 fill-primary"})
 								Per subscription filtering.
 							</dt>
 							<dd class="inline">Filter a subscription by author, category etc. to hide posts you don't want to see.</dd>
 						</div>
 						<div class="relative pl-9 space-x-2">
 							<dt class="inline font-semibold text-base-content">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute top-1 left-1 size-5 fill-primary">
-									<path fill-rule="evenodd" d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z" clip-rule="evenodd"></path>
-									<path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z"></path>
-								</svg>
+								@tabler.WorldDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Retrieve full article content.
 							</dt>
 							<dd class="inline">Retrieve the full article content where possible if only a summary is shown. Avoid tab-switching.</dd>
 						</div>
 						<div class="relative pl-9 space-x-2">
 							<dt class="inline font-semibold text-base-content">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute top-1 left-1 size-5 fill-primary">
-									<path fill-rule="evenodd" d="M2.25 4.125c0-1.036.84-1.875 1.875-1.875h5.25c1.036 0 1.875.84 1.875 1.875V17.25a4.5 4.5 0 1 1-9 0V4.125Zm4.5 14.25a1.125 1.125 0 1 0 0-2.25 1.125 1.125 0 0 0 0 2.25Z" clip-rule="evenodd"></path>
-									<path d="M10.719 21.75h9.156c1.036 0 1.875-.84 1.875-1.875v-5.25c0-1.036-.84-1.875-1.875-1.875h-.14l-8.742 8.743c-.09.089-.18.175-.274.257ZM12.738 17.625l6.474-6.474a1.875 1.875 0 0 0 0-2.651L15.5 4.787a1.875 1.875 0 0 0-2.651 0l-.1.099V17.25c0 .126-.003.251-.01.375Z"></path>
-								</svg>
+								@tabler.ColorSwatch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Theme support.
 							</dt>
 							<dd class="inline">Dark mode, light mode. You choose. Or pick one of many other themes available out-of-the-box.</dd>
 						</div>
 						<div class="relative pl-9 space-x-2">
 							<dt class="inline font-semibold text-base-content">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="absolute top-1 left-1 size-5 fill-primary">
-									<path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0 1 12.548-3.364l1.903 1.903h-3.183a.75.75 0 1 0 0 1.5h4.992a.75.75 0 0 0 .75-.75V4.356a.75.75 0 0 0-1.5 0v3.18l-1.9-1.9A9 9 0 0 0 3.306 9.67a.75.75 0 1 0 1.45.388Zm15.408 3.352a.75.75 0 0 0-.919.53 7.5 7.5 0 0 1-12.548 3.364l-1.902-1.903h3.183a.75.75 0 0 0 0-1.5H2.984a.75.75 0 0 0-.75.75v4.992a.75.75 0 0 0 1.5 0v-3.18l1.9 1.9a9 9 0 0 0 15.059-4.035.75.75 0 0 0-.53-.918Z" clip-rule="evenodd"></path>
-								</svg>
+								@tabler.CloudCheck(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Keep your history in sync.
 							</dt>
 							<dd class="inline">Let Foragd handle keeping your read history, favorites and subscriptions. You focus on gathering the information you need.</dd>
@@ -252,12 +242,8 @@ templ landingFAQEntry(id, title string) {
 			<button type="button" command="--toggle" commandfor={ id } class="flex w-full items-start justify-between text-left">
 				<span class="text-base/7 font-semibold">{ title }</span>
 				<span class="ml-6 flex h-7 items-center">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 in-aria-expanded:hidden">
-						<path d="M12 6v12m6-6H6" stroke-linecap="round" stroke-linejoin="round"></path>
-					</svg>
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 not-in-aria-expanded:hidden">
-						<path d="M18 12H6" stroke-linecap="round" stroke-linejoin="round"></path>
-					</svg>
+					@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
+					@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
 				</span>
 			</button>
 		</dt>

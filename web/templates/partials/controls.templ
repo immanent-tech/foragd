@@ -1,11 +1,13 @@
+package partials
+
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
-
-package partials
 
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"strconv"
 )
 
@@ -32,9 +34,7 @@ templ (c ListControls) Template() {
 							<button type="button" command="close" commandfor="mobile-filters" class="relative -mr-2 flex size-10 items-center justify-center rounded-md p-2 text-base-content hover:text-base-content/50 focus:ring-2 focus:ring-accent focus:outline-hidden">
 								<span class="absolute -inset-0.5"></span>
 								<span class="sr-only">Close menu</span>
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-								</svg>
+								@tabler.X(i.Props{Class: "size-6"})
 							</button>
 						</div>
 						@c.controlForm("mt-4") {
@@ -45,9 +45,7 @@ templ (c ListControls) Template() {
 										<button type="button" command="--toggle" commandfor="filter-section-category" class="flex w-full items-center justify-between px-2 py-3 text-sm">
 											<span class="font-medium">Category</span>
 											<span class="ml-6 flex items-center">
-												<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
-													<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-												</svg>
+												@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
 											</span>
 										</button>
 									</h3>
@@ -66,9 +64,7 @@ templ (c ListControls) Template() {
 												hx-params={ "not " + models.ParamCategories }
 											>
 												<div class="flex items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-													</svg>
+													@tabler.X(i.Props{Class: "size-4"})
 													<p class="ml-3 text-sm font-medium capitalize hover:underline">Clear</p>
 												</div>
 											</a>
@@ -82,9 +78,7 @@ templ (c ListControls) Template() {
 									<button type="button" command="--toggle" commandfor="filter-section-view" class="flex w-full items-center justify-between px-2 py-3 text-sm">
 										<span class="font-medium">View</span>
 										<span class="ml-6 flex items-center">
-											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
-												<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-											</svg>
+											@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
 										</span>
 									</button>
 								</h3>
@@ -113,9 +107,7 @@ templ (c ListControls) Template() {
 						>
 							<span class="sr-only">Sort options</span>
 							Sort
-							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
-								<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-							</svg>
+							@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
 						</button>
 						<el-popover popover id="sort-menu" anchor="bottom start" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 							<fieldset>
@@ -200,9 +192,7 @@ templ (c ListControls) Template() {
 									<button popovertarget="desktop-menu-category" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
 										<span class="sr-only">Category filters</span>
 										<span>Category</span>
-										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
-											<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-										</svg>
+										@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
 									</button>
 									<el-popover id="desktop-menu-category" anchor="bottom end" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 										<div class="space-y-4">
@@ -222,9 +212,7 @@ templ (c ListControls) Template() {
 												hx-params={ "not " + models.ParamCategories }
 											>
 												<div class="flex items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-													</svg>
+													@tabler.X(i.Props{Class: "size-4"})
 													<p class="ml-3 text-sm font-medium capitalize hover:underline">Clear</p>
 												</div>
 											</a>
@@ -239,9 +227,7 @@ templ (c ListControls) Template() {
 								<button popovertarget="desktop-menu-view" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
 									<span class="sr-only">View filters</span>
 									<span>View</span>
-									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
-										<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-									</svg>
+									@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
 								</button>
 								<el-popover id="desktop-menu-view" anchor="bottom end" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 									@c.controlForm("space-y-4") {
@@ -279,7 +265,7 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 							<button type="button" command="close" commandfor="mobile-filters" class="relative -mr-2 flex size-10 items-center justify-center rounded-md p-2 text-base-content hover:text-base-content/50 focus:ring-2 focus:ring-accent focus:outline-hidden">
 								<span class="absolute -inset-0.5"></span>
 								<span class="sr-only">Close menu</span>
-								@CloseIcon("size-6")
+								@tabler.X(i.Props{Class: "size-6"})
 							</button>
 						</div>
 						@listDisplayFiltersForm(path, filters, "mt-4") {
@@ -290,9 +276,7 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 										<button type="button" command="--toggle" commandfor="filter-section-category" class="flex w-full items-center justify-between px-2 py-3 text-sm">
 											<span class="font-medium">Category</span>
 											<span class="ml-6 flex items-center">
-												<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
-													<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-												</svg>
+												@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
 											</span>
 										</button>
 									</h3>
@@ -311,9 +295,7 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 												hx-params={ "not " + models.ParamCategories }
 											>
 												<div class="flex items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-													</svg>
+													@tabler.X(i.Props{Class: "size-4"})
 													<p class="ml-3 text-sm font-medium capitalize hover:underline">Clear</p>
 												</div>
 											</a>
@@ -327,9 +309,7 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 									<button type="button" command="--toggle" commandfor="filter-section-view" class="flex w-full items-center justify-between px-2 py-3 text-sm">
 										<span class="font-medium">View</span>
 										<span class="ml-6 flex items-center">
-											<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
-												<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-											</svg>
+											@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
 										</span>
 									</button>
 								</h3>
@@ -358,9 +338,7 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 						>
 							<span class="sr-only">Sort options</span>
 							Sort
-							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
-								<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-							</svg>
+							@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
 						</button>
 						<el-popover popover id="sort-menu" anchor="bottom start" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 							<fieldset>
@@ -421,9 +399,7 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 									<button popovertarget="desktop-menu-category" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
 										<span class="sr-only">Category filters</span>
 										<span>Category</span>
-										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
-											<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-										</svg>
+										@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
 									</button>
 									<el-popover id="desktop-menu-category" anchor="bottom end" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 										<div class="space-y-4">
@@ -443,9 +419,7 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 												hx-params={ "not " + models.ParamCategories }
 											>
 												<div class="flex items-center">
-													<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-													</svg>
+													@tabler.X(i.Props{Class: "size-4"})
 													<p class="ml-3 text-sm font-medium capitalize hover:underline">Clear</p>
 												</div>
 											</a>
@@ -460,9 +434,7 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 								<button popovertarget="desktop-menu-view" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
 									<span class="sr-only">View filters</span>
 									<span>View</span>
-									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
-										<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-									</svg>
+									@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
 								</button>
 								<el-popover id="desktop-menu-view" anchor="bottom end" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 									@listDisplayFiltersForm(path, filters, "space-y-4") {
