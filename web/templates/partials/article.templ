@@ -342,7 +342,7 @@ templ articleActions(article *models.Article, view models.View) {
 	@ContextMenu(article.GetTitle() + " Actions") {
 		// Find similar action.
 		<a
-			hx-get={ "/subscription/" + article.GetFeedID() + "/article/" + article.GetID() + "/similar" }
+			hx-get={ article.ViewURL() + "/similar" }
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
 			class="menu-item"

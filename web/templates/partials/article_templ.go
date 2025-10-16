@@ -1064,9 +1064,9 @@ func articleActions(article *models.Article, view models.View) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var57 string
-			templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs("/subscription/" + article.GetFeedID() + "/article/" + article.GetID() + "/similar")
+			templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(article.ViewURL() + "/similar")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/article.templ`, Line: 345, Col: 95}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/article.templ`, Line: 345, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 			if templ_7745c5c3_Err != nil {

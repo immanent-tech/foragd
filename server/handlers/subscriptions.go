@@ -533,28 +533,6 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	return subscriptions, nil
 }
 
-func (a *API) markSubscriptions(ctx context.Context, request *models.MarkSubscriptionsRequest) error {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("markSubscriptions: %w", err)
-	}
-	// Validate parameters.
-	valid, err := request.Valid()
-	if err != nil || !valid {
-		return fmt.Errorf("markSubscriptions: %w", err)
-	}
-	// Mark user subscriptions.
-	user.MarkSubscriptions(request.Mark, request.Subscriptions...)
-	// Update the user.
-	err = a.DataAPI().UpdateUser(ctx, map[string]any{
-		"subscriptions": user.GetSubscriptionMetadata(),
-	})
-	if err != nil {
-		return fmt.Errorf("markSubscriptions: %w", err)
-	}
-	return nil
-}
-
 type (
 	addSubscriptionRequests map[*models.SubscriptionRequest]*models.Feed
 )

@@ -78,6 +78,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// MarkObject handles marking an object as read or unread and updating the UI appropriately.
 func MarkObject(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
@@ -150,6 +151,28 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 				// Swap target is link.
 				renderPartial(partials.UpdateViewArticleMark(s[0])).ServeHTTP(res, req)
 			}
+		}
+		return nil
+	})).ServeHTTP
+}
+
+// FindSimilar handles finding objects similar to the given objects and showing the results.
+func FindSimilar(api *elastic.API) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Extract request parameters.
+		objectType := chi.URLParam(req, models.ParamObjectType)
+		id := chi.URLParam(req, models.ParamObjectID)
+		switch objectType {
+		case "article":
+			articles, err := models.FindSimilarArticles(req.Context(), api, id)
+			if err != nil {
+				renderPartial(partials.Notification(
+					models.NewErrorMessage("Unable to find similar articles", ""), 0))
+				return models.NewAPIError(err, http.StatusInternalServerError)
+			}
+			// Show results.
+			template := layouts.SimilarArticles(articles)
+			renderPage(template, templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP

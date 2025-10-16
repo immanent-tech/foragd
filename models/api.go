@@ -311,6 +311,46 @@ func GetArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Artic
 	return articles, nil
 }
 
+func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Articles, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find similar articles: %w", err)
+	}
+	// Build the More Like This query.
+	// TODO: tweak values and fields for optimum results matching...
+	var (
+		minTermFreq   = 1
+		maxQueryTerms = 12
+	)
+	mlt := query.NewMoreLikeThisQuery("similar_articles")
+	mlt.LikeDocs(itemIDs...)
+	mlt.Fields = []string{"title", "categories.raw", "author"}
+	mlt.MinTermFreq = &minTermFreq
+	mlt.MaxQueryTerms = &maxQueryTerms
+	// Build query
+	similarQuery := query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(buildSubscriptionQueries(user, ViewUnread, user.GetSubscriptionMetadata()...)...),
+			),
+		),
+		query.Must(
+			mlt.ToQueryOption(),
+		),
+	)
+	// Query for similar articles.
+	items, _, err := dataAPI.SearchItems(ctx, similarQuery, 10, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find similar articles: %w", err)
+	}
+	// Generate article data.
+	articles, err := GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find similar articles: %w", err)
+	}
+	return articles, nil
+}
+
 func GetArticleTopCategories(ctx context.Context, dataAPI DataAPI, feeds ...FeedID) ([]Category, error) {
 	// Build query.
 	query := query.Bool(

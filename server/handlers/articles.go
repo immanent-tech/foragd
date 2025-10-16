@@ -14,7 +14,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-shiori/go-readability"
 	"github.com/justinas/alice"
-	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -23,59 +22,9 @@ import (
 	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
-	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
-
-// FindSimilarArticles handles finding other articles that are "similar" to a set of given articles.
-func (a *API) FindSimilarArticles() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		itemID := chi.URLParam(req, models.ParamItemID)
-		// Build the More Like This query.
-		// TODO: tweak values and fields for optimum results matching...
-		var (
-			minTermFreq   = 1
-			maxQueryTerms = 12
-		)
-		mlt := query.NewMoreLikeThisQuery("similar_to_" + itemID)
-		mlt.LikeDocs(itemID)
-		mlt.Fields = []string{"title", "categories.raw", "author"}
-		mlt.MinTermFreq = &minTermFreq
-		mlt.MaxQueryTerms = &maxQueryTerms
-		// Query for similar articles.
-		items, _, err := a.DataAPI().SearchItems(req.Context(), mlt.ToQueryOption(), 10, nil, nil)
-		if err != nil {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to find similar articles",
-					"The backend reported an issue. Please try again.",
-				), 0,
-			))
-			return models.NewAPIError(
-				fmt.Errorf("unable to find similar articles subscription: %w", err),
-				http.StatusUnprocessableEntity)
-		}
-		// Generate article data.
-		articles, err := models.GenerateArticles(req.Context(), items)
-		if err != nil {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to find similar articles",
-					"The backend reported an issue. Please try again.",
-				), 0,
-			))
-			return models.NewAPIError(
-				fmt.Errorf("unable to find similar articles subscription: %w", err),
-				http.StatusUnprocessableEntity)
-		}
-		// Show results.
-		template := layouts.SimilarArticles(articles)
-		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(template, templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req.WithContext(ctx))
-		return nil
-	})).ServeHTTP
-}
 
 // GetArticleIssues handles presenting a form for the user to submit details about subscription issues.
 func GetArticleIssues(api *API) http.HandlerFunc {
@@ -202,27 +151,4 @@ func fetchArticleRemoteContent(url string) (string, error) {
 	}
 	content := validation.SanitizeString(remote.Content)
 	return content, nil
-}
-
-func generateItemsQuery(ctx context.Context, filters models.Filters, subscriptions ...models.SubscriptionID) (query.Option, error) {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("generateItemsQuery: %w", err)
-	}
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	meta := user.GetSubscriptionMetadata().FilterByIDs(subscriptions...)
-	return query.Bool(
-		query.BoolQueryName("get_items"),
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.Terms("feed_id", meta.GetFeedIDs()...),
-			// Must match any of the given categories.
-			query.Terms("categories.raw", filters.GetCategories()...),
-			// And should match one feed clause.
-			query.Bool(
-				query.Should(buildSubscriptionQueries(user, filters.GetView(), meta...)...),
-			),
-		),
-	), nil
 }
