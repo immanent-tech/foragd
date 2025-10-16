@@ -90,17 +90,17 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 func MarkObject(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
-		params, valid, err := forms.DecodeForm[*models.MarkObjectParams](req)
+		params := &models.MarkObjectParams{
+			ObjectID: chi.URLParam(req, models.ParamObjectID),
+			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
+			Mark:     models.Mark(req.FormValue(models.ParamMark)),
+		}
+		valid, err := params.Valid()
 		if err != nil || !valid {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage(
-					"Unable to mark article",
-					"Server received invalid data.",
-				), 0)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusNotFound,
-			)
+			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
+			template := partials.Notification(msg, 0)
+			renderPartial(template).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Extract user data.
 		user, err := models.UserFromCtx(req.Context())
