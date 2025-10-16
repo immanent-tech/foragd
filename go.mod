@@ -77,6 +77,7 @@ require (
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/sdboyer/constext v0.0.0-20170321163424-836a14457353 // indirect
+	github.com/sebasvil20/templicons v1.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect

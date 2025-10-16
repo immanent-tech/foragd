@@ -6,6 +6,8 @@ package partials
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/go-syndication/types"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"time"
 )
 
@@ -109,10 +111,10 @@ templ MarkObjectLink(obj Object, target, swap string, classes ...string) {
 	>
 		switch obj.IsUnread() {
 			case true:
-				@ReadIcon("size-4")
+				@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 				Mark Read
 			case false:
-				@UnreadIcon("size-4")
+				@tabler.MailFilled(i.Props{Class: "size-4"})
 				Mark Unread
 		}
 	</a>
