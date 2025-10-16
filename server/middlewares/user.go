@@ -18,17 +18,20 @@ import (
 	"github.com/immanent-tech/foragd/server/session"
 )
 
-// ProtectedRoutes are routes that require user authentication.
-var ProtectedRoutes = []string{"/home", "/subscription", "/article", "/settings", "/search", "/user", "/view", "/edit", "/mark", "/list", "/issue"}
+// UnprotectedRoutes are routes that DO NOT require authentication. All other routes are assumed to require authentication.
+var UnprotectedRoutes = []string{"/login", "/tos", "/policies", "/img-proxy", "/content"}
 
 // RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
 func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			routePattern := chi.RouteContext(req.Context()).RoutePattern()
-			if !slices.ContainsFunc(ProtectedRoutes, func(route string) bool {
-				return strings.HasPrefix(routePattern, route)
-			}) {
+			// Landing page always unauthenticated.
+			if routePattern == "/" {
+				next.ServeHTTP(res, req)
+			}
+			// Continue for unprotected routes.
+			if slices.ContainsFunc(UnprotectedRoutes, func(route string) bool { return strings.HasPrefix(routePattern, route) }) {
 				next.ServeHTTP(res, req)
 				return
 			}
