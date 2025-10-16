@@ -59,6 +59,10 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 		// Render list based on type.
 		switch listType {
 		case "subscriptions":
+			// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
+			if htmx.IsHistoryRestoreRequest(req) {
+				filters.Subscriptions = nil
+			}
 			// Get subscriptions matching filters.
 			subscriptions, pagination, err := models.FilterSubscriptions(req.Context(), api, filters, pagination)
 			if err != nil {
