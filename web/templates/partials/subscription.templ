@@ -149,7 +149,7 @@ templ actionsMenu(s *models.Subscription) {
 			class="link link-hover menu-item"
 			_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
 		>
-			@tabler.Trash(i.Props{Class: "size-4"})
+			@tabler.TrashFilled(i.Props{Class: "size-4"})
 			Remove Subscription
 		</a>
 		// Report issue action.
@@ -158,7 +158,7 @@ templ actionsMenu(s *models.Subscription) {
 			hx-target={ ContentID.Target() }
 			class="link link-hover menu-item"
 		>
-			@tabler.Flag(i.Props{Class: "size-4"})
+			@tabler.FlagFilled(i.Props{Class: "size-4"})
 			Report an issue
 		</a>
 	}
