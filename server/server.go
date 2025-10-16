@@ -258,7 +258,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		// Viewing objects.
 		r.Get("/view/{object}/{id}", handlers.ViewObject(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/mark/{object}/{id}/{mark}", handlers.MarkObject(handler.Elastic))
-		// Subscription editing.
+		// Subscription specific.
 		r.Route("/edit/subscription/{id}", func(r chi.Router) {
 			r.Get("/", handler.EditSubscription())
 			r.With(middlewares.RequireHTMX).Post("/", handler.SaveSubscription())
