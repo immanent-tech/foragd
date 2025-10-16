@@ -94,7 +94,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 		params := &models.MarkObjectParams{
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
-			Mark:     models.Mark(req.FormValue(models.ParamMark)),
+			Mark:     models.Mark(chi.URLParam(req, models.ParamMark)),
 		}
 		valid, err := params.Valid()
 		if err != nil || !valid {
@@ -112,6 +112,25 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 			)
 		}
 		switch params.Object {
+		case models.ObjectTypeSubscription:
+			user.MarkSubscriptions(params.Mark, params.ObjectID)
+			// Update the user object.
+			err = api.UpdateUser(req.Context(), map[string]any{
+				"subscriptions": user.Subscriptions,
+			})
+			if err != nil {
+				renderPartial(partials.Notification(
+					models.NewErrorMessage(
+						"Unable to mark article",
+						"Could not update user data.",
+					), 0))
+				return models.NewAPIError(
+					fmt.Errorf("unable to mark article: %w", err),
+					http.StatusUnprocessableEntity)
+			}
+			// Client side refresh of page.
+			SetRedirect(req.Context(), "/list/subscriptions", models.ListFiltersFromCtx(req.Context()), res)
+			res.WriteHeader(http.StatusOK)
 		case models.ObjectTypeArticle:
 			subscriptionID := req.FormValue(models.ParamSubscriptionID)
 			if subscriptionID == "" {
