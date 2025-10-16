@@ -276,6 +276,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/similar", handlers.FindSimilar(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues(handler.Elastic, s.apis.github))
+		r.With(middlewares.RequireHTMX).Get("/remove/{object}/{id}", handlers.ConfirmRemoveObject(handler.Elastic))
+		r.With(middlewares.RequireHTMX).Post("/remove/{object}/{id}", handlers.RemoveObject(handler.Elastic))
 		// Subscription specific.
 		r.Route("/edit/subscription/{id}", func(r chi.Router) {
 			r.Get("/", handler.EditSubscription())
@@ -297,9 +299,6 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 				// Edit subscription.
 				r.Get("/edit/{subscription_id}", handler.EditSubscription())
 				r.With(middlewares.RequireHTMX).Post("/edit/{subscription_id}", handler.SaveSubscription())
-				// Remove subscription (unsubscribe).
-				r.Get("/remove/{subscription_id}", handler.GetRemoveSubscriptionConfirmation())
-				r.With(middlewares.RequireHTMX).Post("/remove/{subscription_id}", handler.ProcessRemoveSubscription())
 				// Category management for add/edit subscription.
 				r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
 				r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())

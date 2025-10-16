@@ -143,7 +143,8 @@ func renderPage(template templ.Component, title string) http.Handler {
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-			http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+			res.WriteHeader(http.StatusNoContent)
+			return
 		}
 		if template == nil {
 			// If there is no response, return 204: No Content.
@@ -176,7 +177,7 @@ func renderPage(template templ.Component, title string) http.Handler {
 			err := template.Render(req.Context(), res)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				res.WriteHeader(http.StatusNoContent)
 				return
 			}
 		}

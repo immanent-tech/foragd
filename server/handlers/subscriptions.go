@@ -110,66 +110,6 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// GetRemoveSubscriptionConfirmation handles showing a confirmation dialog for removing (unsubscribing) from a
-// subscription.
-func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// // Show a modal to confirm unsubscribe request.
-		// id := chi.URLParam(req, models.ParamSubscriptionID)
-		// subscriptions, err := a.getSubscriptions(req.Context(), id)
-		// if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-		// 	msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
-		// 	template := partials.Notification(msg, 0)
-		// 	renderPage(template, "").ServeHTTP(res, req)
-		// 	return models.NewAPIError(err, http.StatusInternalServerError)
-		// }
-		// filters := models.ListFiltersFromCtx(req.Context())
-		// stats, err := a.getSubscriptionStats(req.Context(), &filters)
-		// if err != nil {
-		// 	renderPartial(partials.Notification(
-		// 		models.NewErrorMessage(
-		// 			"Unable to refresh subscription",
-		// 			"Something went wrong, please try again",
-		// 		), 0))
-		// 	return models.NewAPIError(
-		// 		fmt.Errorf("unable to mark subscription: %w", err),
-		// 		http.StatusInternalServerError)
-		// }
-		// subscriptionStats := stats[subscriptions[0].GetID()]
-		// renderPartial(partials.NewSubscriptionContent(subscriptions[0], &subscriptionStats).UnsubscribeModal()).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
-// ProcessRemoveSubscription handles processing a remove (unsubscribe) subscription request.
-func (a *API) ProcessRemoveSubscription() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Perform unsubscribe action.
-		id := chi.URLParam(req, models.ParamSubscriptionID)
-		// Retrieve user object.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to process subscription removal: %w", err)
-		}
-		// Remove metadata for given subscriptions from user.
-		user.RemoveSubscriptions(id)
-		// Update the user.
-		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
-			"subscriptions": user.GetSubscriptionMetadata(),
-		})
-		if err != nil {
-			msg := models.NewErrorMessage("Unable to remove subscription", "Please try again.")
-			template := partials.Notification(msg, 0)
-			renderPage(template, "").ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusInternalServerError)
-		}
-		// Show success notification.
-		msg := models.NewSuccessMessage("Unsubscribed!", "")
-		renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
 // AddSubscription handles adding a new subscription requested by the user.
 func (a *API) AddSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {

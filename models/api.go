@@ -65,6 +65,7 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	if err != nil {
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
+	slog.Info("here")
 	// Generate subscriptions from data sources.
 	subscriptions := make(SubscriptionsSlice, 0, len(feeds))
 	for feed := range slices.Values(feeds) {

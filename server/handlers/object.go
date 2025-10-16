@@ -193,6 +193,90 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// ConfirmRemoveObject handles showing a confirmation dialog for removing (unsubscribing) from a
+// subscription.
+func ConfirmRemoveObject(api *elastic.API) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Extract request parameters.
+		params := &models.ObjectParams{
+			ObjectID: chi.URLParam(req, models.ParamObjectID),
+			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
+		}
+		valid, err := params.Valid()
+		if err != nil || !valid {
+			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
+			template := partials.Notification(msg, 0)
+			renderPartial(template).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+		}
+		switch params.Object {
+		case models.ObjectTypeSubscription:
+			subscriptions, err := models.GetSubscriptions(req.Context(), api, params.ObjectID)
+			if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
+				msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
+				template := partials.Notification(msg, 0)
+				renderPartial(template).ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusInternalServerError)
+			}
+			// filters := models.ListFiltersFromCtx(req.Context())
+			// stats, err := models.GetSubscriptionStats(req.Context(), api, filters)
+			// if err != nil {
+			// 	renderPartial(partials.Notification(
+			// 		models.NewErrorMessage(
+			// 			"Unable to refresh subscription",
+			// 			"Something went wrong, please try again",
+			// 		), 0))
+			// 	return models.NewAPIError(
+			// 		fmt.Errorf("unable to mark subscription: %w", err),
+			// 		http.StatusInternalServerError)
+			// }
+			// subscriptionStats := stats[subscriptions[0].GetID()]
+			renderPartial(partials.UnsubscribeModal(subscriptions[0])).ServeHTTP(res, req)
+		default:
+			res.WriteHeader(http.StatusNotImplemented)
+		}
+		return nil
+	})).ServeHTTP
+}
+
+func RemoveObject(api *elastic.API) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Extract request parameters.
+		params := &models.ObjectParams{
+			ObjectID: chi.URLParam(req, models.ParamObjectID),
+			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
+		}
+		valid, err := params.Valid()
+		if err != nil || !valid {
+			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
+			template := partials.Notification(msg, 0)
+			renderPartial(template).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+		}
+		// Retrieve user object.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to process subscription removal: %w", err)
+		}
+		// Remove metadata for given subscriptions from user.
+		user.RemoveSubscriptions(params.ObjectID)
+		// Update the user.
+		err = api.UpdateUser(req.Context(), map[string]any{
+			"subscriptions": user.GetSubscriptionMetadata(),
+		})
+		if err != nil {
+			msg := models.NewErrorMessage("Unable to remove subscription", "Please try again.")
+			template := partials.Notification(msg, 0)
+			renderPartial(template).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Show success notification.
+		msg := models.NewSuccessMessage("Unsubscribed!", "")
+		renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
 // GetObjectIssues presents a form for entering issues about a particular object (subscription/article).
 func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
