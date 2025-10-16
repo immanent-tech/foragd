@@ -274,6 +274,17 @@ templ ArticleContent(article *models.Article) {
 							<path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"></path>
 						</svg>
 					</a>
+					// Report issue action.
+					<a
+						role="btn"
+						hx-get={ article.IssueURL() }
+						hx-target={ ContentID.Target() }
+						class="btn btn-circle btn-primary btn-soft"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5"></path>
+						</svg>
+					</a>
 				</div>
 			</el-popover>
 		</div>
@@ -377,7 +388,7 @@ templ articleActions(article *models.Article, view models.View) {
 		}
 		// Report issue action.
 		<a
-			hx-get={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/issue" }
+			hx-get={ article.IssueURL() }
 			hx-target={ ContentID.Target() }
 			class="link link-hover menu-item"
 		>

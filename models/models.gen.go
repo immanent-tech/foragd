@@ -170,24 +170,6 @@ type ArticleArchive struct {
 // ArticleArchiveSourceType indicates what type of source the object came from.
 type ArticleArchiveSourceType string
 
-// ArticleIssue defines model for ArticleIssue.
-type ArticleIssue struct {
-	// Details is the user-submitted text about the issue.
-	Details string `form:"details" json:"details,omitempty,omitzero"`
-
-	// Duplicate indicates that the object has a duplicate.
-	Duplicate bool `form:"duplicate" json:"duplicate,omitempty,omitzero"`
-
-	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
-	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
-
-	// MissingImage indicates the object is expected to have an image, but it is missing.
-	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
-
-	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
-}
-
 // ArticleMetadata contains the stored data that represents an article.
 type ArticleMetadata struct {
 	// State tracks the state of an article.
@@ -384,6 +366,15 @@ type FeedSourceType string
 // FeedID is the unique ID of a feed.
 type FeedID = string
 
+// IssueRequest contains details about an issue with the service.
+type IssueRequest struct {
+	// Details is the user-submitted text about the issue.
+	Details string `form:"details" json:"details,omitempty,omitzero"`
+
+	// PageUrl is the URL of the page on which the user selected the report issue action.
+	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
+}
+
 // Item defines model for Item.
 type Item struct {
 	// Timestamp is when the document was created.
@@ -540,29 +531,41 @@ type ObjectCommonSourceType string
 // ObjectID represents an ID of any user-facing object.
 type ObjectID = string
 
-// ObjectIssue contains common issues encountered with objects.
-type ObjectIssue struct {
+// ObjectIssueRequest defines model for ObjectIssueRequest.
+type ObjectIssueRequest struct {
+	// Details is the user-submitted text about the issue.
+	Details string `form:"details" json:"details,omitempty,omitzero"`
+
 	// Duplicate indicates that the object has a duplicate.
 	Duplicate bool `form:"duplicate" json:"duplicate,omitempty,omitzero"`
+
+	// ObjectID represents an ID of any user-facing object.
+	ObjectID ObjectID `form:"id" json:"id" validate:"required,startswith=sub_|startswith=item_"`
 
 	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
 	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
 
 	// MissingImage indicates the object is expected to have an image, but it is missing.
 	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
-}
 
-// ObjectType represents the type of any user-facing object.
-type ObjectType string
-
-// PageIssue contains details about issues with a page.
-type PageIssue struct {
-	// Details is the user-submitted text about the issue.
-	Details string `form:"details" json:"details,omitempty,omitzero"`
+	// Object represents the type of any user-facing object.
+	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
 
 	// PageUrl is the URL of the page on which the user selected the report issue action.
 	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
 }
+
+// ObjectParams contains the parameters for viewing an object.
+type ObjectParams struct {
+	// ObjectID represents an ID of any user-facing object.
+	ObjectID ObjectID `form:"id" json:"id" validate:"required,startswith=sub_|startswith=item_"`
+
+	// Object represents the type of any user-facing object.
+	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
+}
+
+// ObjectType represents the type of any user-facing object.
+type ObjectType string
 
 // SearchRequest represents a search request by the user.
 type SearchRequest struct {
@@ -645,24 +648,6 @@ type SubscriptionCustomisation_Image struct {
 
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
-
-// SubscriptionIssue defines model for SubscriptionIssue.
-type SubscriptionIssue struct {
-	// Details is the user-submitted text about the issue.
-	Details string `form:"details" json:"details,omitempty,omitzero"`
-
-	// Duplicate indicates that the object has a duplicate.
-	Duplicate bool `form:"duplicate" json:"duplicate,omitempty,omitzero"`
-
-	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
-	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
-
-	// MissingImage indicates the object is expected to have an image, but it is missing.
-	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
-
-	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
-}
 
 // SubscriptionMetadata contains the stored data that represents a subscription
 type SubscriptionMetadata struct {
@@ -797,15 +782,6 @@ type UserSettings struct {
 
 	// Theme the user interface theme chosen by the user.
 	Theme string `form:"-" json:"theme,omitempty,omitzero"`
-}
-
-// ViewObjectParams contains the parameters for viewing an object.
-type ViewObjectParams struct {
-	// ObjectID represents an ID of any user-facing object.
-	ObjectID ObjectID `form:"id" json:"id" validate:"required,startswith=sub_|startswith=item_"`
-
-	// Object represents the type of any user-facing object.
-	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
 }
 
 // AsExternalRef0ImageInfo returns the union data inside the EditSubscriptionRequest_Image as a externalRef0.ImageInfo

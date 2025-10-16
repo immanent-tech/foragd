@@ -9,7 +9,7 @@ import (
 )
 
 // ReportPageIssue renders a form for reporting issues with the app.
-templ ReportPageIssue(details *models.PageIssue) {
+templ ReportPageIssue(details *models.IssueRequest) {
 	@partials.MainContainer() {
 		@partials.PageHeader("Report an issue with Foragd")
 		@partials.PageDescription("Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.")
@@ -18,7 +18,7 @@ templ ReportPageIssue(details *models.PageIssue) {
 		}
 		<form
 			id="report-app-issue"
-			hx-post={ "/user/issue" }
+			hx-post={ "/issue" }
 			hx-target={ partials.ContentID.Target() }
 			hx-target-error={ partials.ContentID.Target() }
 			hx-indicator="#processing"
@@ -53,6 +53,101 @@ templ ReportPageIssue(details *models.PageIssue) {
 					hx-target={ partials.ContentID.Target() }
 					class="btn btn-primary"
 				>Back</button>
+				<button
+					type="submit"
+					class="btn btn-primary"
+				>Submit</button>
+			</div>
+		</form>
+	}
+}
+
+templ ReportObjectIssues(obj partials.Object, details *models.ObjectIssueRequest) {
+	@partials.MainContainer() {
+		@partials.PageHeader("Report an issue")
+		@partials.PageDescription("Use this form to report an issue with " + obj.GetTitle() + ". We will look into it and get back to you as soon as we can.")
+		<form
+			id="report-subscription-issue"
+			hx-post={ "/issue/" + obj.Type() + "/" + obj.GetID() }
+			hx-target={ partials.ContentID.Target() }
+			hx-target-error={ partials.ContentID.Target() }
+			hx-indicator="#processing"
+			hx-include="[name='csrf_token']"
+		>
+			<input type="hidden" name="id" value={ details.ObjectID }/>
+			<input type="hidden" name="object" value={ details.Object }/>
+			<input type="hidden" name="page_url" value={ details.PageUrl }/>
+			<fieldset class="fieldset p-4">
+				<legend class="fieldset-legend text-base/7">Issues</legend>
+				<p class="mt-1 text-sm/6 text-base-content/80">Select all that apply.</p>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
+					<div class="flex items-center">
+						<div class="flex items-center gap-x-3">
+							<input
+								id="missing-image"
+								type="checkbox"
+								name="missing_image"
+								if details.MissingImage {
+									checked
+								}
+								class="checkbox checkbox-sm"
+							/>
+							<label for="missing-image" class="block text-sm/6 font-medium">Missing image</label>
+						</div>
+					</div>
+					<div class="flex items-center">
+						<div class="flex items-center gap-x-3">
+							<input
+								id="mangled-text"
+								type="checkbox"
+								name="mangled_text"
+								if details.MangledContent {
+									checked
+								}
+								class="checkbox checkbox-sm"
+							/>
+							<label for="mangled-text" class="block text-sm/6 font-medium">Mangled text</label>
+						</div>
+					</div>
+					<div class="flex items-center">
+						<div class="flex items-center gap-x-3">
+							<input
+								id="mangled-text"
+								type="checkbox"
+								name="duplicate"
+								if details.Duplicate {
+									checked
+								}
+								class="checkbox checkbox-sm"
+							/>
+							<label for="mangled-text" class="block text-sm/6 font-medium">Duplicate subscription</label>
+						</div>
+					</div>
+				</div>
+			</fieldset>
+			<fieldset class="fieldset p-4">
+				<legend class="fieldset-legend text-base/7">Details</legend>
+				<p class="mt-1 text-sm/6 text-base-content/80">Add any other details you think are relevant.</p>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
+					<div class="flex items-center col-span-full">
+						<textarea
+							id="details"
+							name="details"
+							class="textarea w-full"
+							placeholder="What was expected, what is missing, etc."
+							if details.Details != "" {
+								value={ details.Details }
+							}
+						></textarea>
+					</div>
+				</div>
+			</fieldset>
+			<div class="mt-6 flex items-center justify-end gap-x-6">
+				<div id="processing" class="htmx-indicator">
+					Processing...
+					<span class="loading loading-spinner loading-md"></span>
+				</div>
+				<button type="button" hx-get="#" class="btn btn-primary">Back</button>
 				<button
 					type="submit"
 					class="btn btn-primary"

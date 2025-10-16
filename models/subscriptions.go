@@ -142,6 +142,10 @@ func (s *Subscription) MarkURL() string {
 	return "/mark/subscription/" + s.GetID() + "/unread"
 }
 
+func (s *Subscription) IssueURL() string {
+	return "/issue/subscription/" + s.GetID()
+}
+
 type SubscriptionsSlice []*Subscription
 
 func (s SubscriptionsSlice) FilterByCategories(categories ...Category) SubscriptionsSlice {
@@ -424,21 +428,6 @@ func NewSubscriptionResult(subscription *Subscription, msg *UserMessage) *AddSub
 		Subscription: subscription,
 		Message:      msg,
 	}
-}
-
-// Valid returns a boolean indicating whether the data for the subscription issue is valid.
-func (r *SubscriptionIssue) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(r)
-	if !valid || err != nil {
-		return false, fmt.Errorf("request is invalid: %w", err)
-	}
-	return true, nil
-}
-
-// Sanitise will clean the data in the subscription issue.
-func (r *SubscriptionIssue) Sanitise() error {
-	r.Details = validation.SanitizeString(r.Details)
-	return nil
 }
 
 func (s *SubscriptionStats) GetDailyUpdates() int {

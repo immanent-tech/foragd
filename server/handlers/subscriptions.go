@@ -28,7 +28,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -373,73 +372,6 @@ func AdjustSubscriptionCategories() http.HandlerFunc {
 		default: // Unsupported, do nothing.
 			res.WriteHeader(http.StatusNoContent)
 		}
-		return nil
-	})).ServeHTTP
-}
-
-// GetSubscriptionIssues handles presenting a form for the user to submit details about subscription issues.
-func GetSubscriptionIssues(api *API) http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		id := chi.URLParam(req, models.ParamSubscriptionID)
-		s, err := api.getSubscriptions(req.Context(), id)
-		if err != nil || len(s) == 0 {
-			msg := models.NewErrorMessage(
-				"Unable to create report form.",
-				"The backend had issues generating the report form. Please try again.",
-			)
-			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusInternalServerError)
-		}
-		template := layouts.ReportSubscriptionIssue(s[0], &models.SubscriptionIssue{})
-		renderPage(template, templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
-// SubmitSubscriptionIssues handles processing the user submitted subscription issues form.
-func SubmitSubscriptionIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Validate the subscription issue request.
-		request, valid, err := forms.DecodeForm[*models.SubscriptionIssue](req)
-		if err != nil || !valid {
-			msg := models.NewErrorMessage(
-				"Unable to submit issue.",
-				"The backend had issues submitting the report. Please try again.",
-			)
-			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusUnprocessableEntity)
-		}
-		// Get subscription details.
-		id := chi.URLParam(req, models.ParamSubscriptionID)
-		s, err := esapi.getSubscriptions(req.Context(), id)
-		if err != nil || len(s) == 0 {
-			msg := models.NewErrorMessage(
-				"Unable to get subscription details.",
-				"The backend had issues processing the data. Please try again.",
-			)
-			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusInternalServerError)
-		}
-		// Create the issue in Github.
-		err = ghapi.CreateSubscriptionIssue(req.Context(), s[0], request)
-		if err != nil {
-			msg := models.NewErrorMessage(
-				"Unable to submit issue.",
-				"The backend had issues submitting the report. Please try again.",
-			)
-			template := templ.Join(
-				layouts.ReportSubscriptionIssue(s[0], request),
-				partials.ServerErrorNotification(msg),
-			)
-			renderPage(template, templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusInternalServerError)
-		}
-		// Force refresh of page.
-		msg := models.NewErrorMessage(
-			"Thanks for reporting the issue!",
-			"We will look into it and implement fixes as appropriate.",
-		)
-		renderPage(partials.IssueReportedConfirmation(msg), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

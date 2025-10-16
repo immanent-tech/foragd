@@ -860,61 +860,6 @@ components:
             type: string
           x-oapi-codegen-extra-tags:
             form: 'feedset,unique'
-    ObjectIssue:
-      description: >
-        contains common issues encountered with objects.
-      type: object
-      properties:
-        missing_image:
-          description: >
-            indicates the object is expected to have an image, but it is missing.
-          type: boolean
-          x-oapi-codegen-extra-tags:
-            form: 'missing_image'
-        mangled_content:
-          description: >
-            indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
-          type: boolean
-          x-oapi-codegen-extra-tags:
-            form: 'mangled_content'
-        duplicate:
-          description: >
-            indicates that the object has a duplicate.
-          type: boolean
-          x-oapi-codegen-extra-tags:
-            form: 'duplicate'
-    PageIssue:
-      description: >
-        contains details about issues with a page.
-      type: object
-      properties:
-        page_url:
-          description: >
-            is the URL of the page on which the user selected the report issue action.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'page_url'
-            validate: 'omitempty,url'
-        details:
-          description: >
-            is the user-submitted text about the issue.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'details'
-    SubscriptionIssue:
-      description: >
-        contains details about issues with a subscription.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/ObjectIssue'
-        - $ref: '#/components/schemas/PageIssue'
-    ArticleIssue:
-      description: >
-        contains details about issues with an article.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/ObjectIssue'
-        - $ref: '#/components/schemas/PageIssue'
     CommonDisplayFilters:
       description: >
         contains filters for altering the display of objects.
@@ -962,7 +907,7 @@ components:
                 form: 'subscriptions'
                 validate: 'omitnil,unique,dive,startswith=sub_'
               x-go-type-skip-optional-pointer: true
-    ViewObjectParams:
+    ObjectParams:
       description: >
         contains the parameters for viewing an object.
       type: object
@@ -979,10 +924,54 @@ components:
         contains the parameters for marking an object.
       type: object
       allOf:
-        - $ref: '#/components/schemas/ViewObjectParams'
+        - $ref: '#/components/schemas/ObjectParams'
         - type: object
           required:
             - mark
           properties:
             mark:
               $ref: '#/components/schemas/Mark'
+    ObjectIssueRequest:
+      description: >
+        contains details about issues with an object.
+      allOf:
+        - $ref: "#/components/schemas/IssueRequest"
+        - $ref: "#/components/schemas/ObjectParams"
+        - type: object
+          properties:
+            missing_image:
+              description: >
+                indicates the object is expected to have an image, but it is missing.
+              type: boolean
+              x-oapi-codegen-extra-tags:
+                form: 'missing_image'
+            mangled_content:
+              description: >
+                indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
+              type: boolean
+              x-oapi-codegen-extra-tags:
+                form: 'mangled_content'
+            duplicate:
+              description: >
+                indicates that the object has a duplicate.
+              type: boolean
+              x-oapi-codegen-extra-tags:
+                form: 'duplicate'
+    IssueRequest:
+      description: >
+        contains details about an issue with the service.
+      type: object
+      properties:
+        page_url:
+          description: >
+            is the URL of the page on which the user selected the report issue action.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'page_url'
+            validate: 'omitempty,url'
+        details:
+          description: >
+            is the user-submitted text about the issue.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'details'

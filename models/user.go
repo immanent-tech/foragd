@@ -555,18 +555,3 @@ func (s SubscriptionMetadataSlice) SortByTitle() SubscriptionMetadataSlice {
 	sort.Slice(s, func(i, j int) bool { return s[i].Customisation.Nickname < s[j].Customisation.Nickname })
 	return s
 }
-
-// Valid returns a boolean indicating whether the data for the subscription issue is valid.
-func (r *PageIssue) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(r)
-	if !valid || err != nil {
-		return false, fmt.Errorf("request is invalid: %w", err)
-	}
-	return true, nil
-}
-
-// Sanitise will clean the data in the subscription issue.
-func (r *PageIssue) Sanitise() error {
-	r.Details = validation.SanitizeString(r.Details)
-	return nil
-}

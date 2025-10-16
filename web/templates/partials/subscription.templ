@@ -158,7 +158,7 @@ templ actionsMenu(s *models.Subscription) {
 		</a>
 		// Report issue action.
 		<a
-			hx-get={ "/subscription/" + s.GetID() + "/issue" }
+			hx-get={ s.IssueURL() }
 			hx-target={ ContentID.Target() }
 			class="link link-hover menu-item"
 		>

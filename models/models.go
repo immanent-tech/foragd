@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/go-shiori/go-readability"
-	"github.com/goforj/godump"
 
 	"github.com/immanent-tech/foragd/validation"
 )
@@ -200,16 +199,15 @@ func ExtractText(content string) (string, error) {
 	return article.TextContent, nil
 }
 
-func (v *ViewObjectParams) Valid() (bool, error) {
-	godump.Dump(v)
-	err := validation.Validate.Struct(v)
+func (p *ObjectParams) Valid() (bool, error) {
+	err := validation.Validate.Struct(p)
 	if err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (v *ViewObjectParams) Sanitise() error {
+func (v *ObjectParams) Sanitise() error {
 	return nil
 }
 
@@ -222,5 +220,39 @@ func (m *MarkObjectParams) Valid() (bool, error) {
 }
 
 func (m *MarkObjectParams) Sanitise() error {
+	return nil
+}
+
+func NewObjectIssue(obj *ObjectParams, url string) *ObjectIssueRequest {
+	return &ObjectIssueRequest{
+		PageUrl:  url,
+		ObjectID: obj.ObjectID,
+		Object:   obj.Object,
+	}
+}
+
+func (i *ObjectIssueRequest) Valid() (bool, error) {
+	err := validation.Validate.Struct(i)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (i *ObjectIssueRequest) Sanitise() error {
+	i.Details = validation.SanitizeString(i.Details)
+	return nil
+}
+
+func (i *IssueRequest) Valid() (bool, error) {
+	err := validation.Validate.Struct(i)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (i *IssueRequest) Sanitise() error {
+	i.Details = validation.SanitizeString(i.Details)
 	return nil
 }

@@ -205,6 +205,10 @@ func (a *Article) MarkURL() string {
 	return "/mark/article/" + a.GetID() + "/unread"
 }
 
+func (a *Article) IssueURL() string {
+	return "/issue/article/" + a.GetID()
+}
+
 // Sanitise will sanitise the input values.
 func (r *MarkArticleRequest) Sanitise() error {
 	return nil
@@ -248,19 +252,4 @@ func NewArchivedArticle(userID UserID, subscriptionID SubscriptionID, item *Item
 	archive.SubscriptionID = subscriptionID
 	archive.UserID = userID
 	return archive, nil
-}
-
-// Valid returns a boolean indicating whether the data for the article issue is valid.
-func (r *ArticleIssue) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(r)
-	if !valid || err != nil {
-		return false, fmt.Errorf("request is invalid: %w", err)
-	}
-	return true, nil
-}
-
-// Sanitise will clean the data in the article issue.
-func (r *ArticleIssue) Sanitise() error {
-	r.Details = validation.SanitizeString(r.Details)
-	return nil
 }

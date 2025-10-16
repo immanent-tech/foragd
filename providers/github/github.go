@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"slices"
 	"strings"
 
 	"github.com/goforj/godump"
@@ -58,88 +57,29 @@ func NewClient(ctx context.Context) (*Client, error) {
 	return &Client{Client: githubClient}, nil
 }
 
-// CreateSubscriptionIssue creates a new issue in Github about problems with a subscription reported by a user.
-func (c *Client) CreateSubscriptionIssue(ctx context.Context, subscription *models.Subscription, details *models.SubscriptionIssue) error {
-	title := "Feed Issue: " + subscription.GetTitle()
+// CreateObjectIssue creates a new issue in Github about problems with a particular object reported by a user.
+func (c *Client) CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) error {
+	title := "Object Issue: " + string(details.Object)
 	labels := []string{"subscription"}
 	// Build issue body.
 	var bodyBuilder strings.Builder
-	bodyBuilder.WriteString("Subscription ID: " + subscription.GetID())
+	bodyBuilder.WriteString("Object ID: " + details.ObjectID)
 	bodyBuilder.WriteRune('\n')
-	bodyBuilder.WriteString("Feed ID: " + subscription.GetFeedID())
-	bodyBuilder.WriteRune('\n')
-	bodyBuilder.WriteString("Feed URLs:")
-	bodyBuilder.WriteRune('\n')
-	for url := range slices.Values(subscription.Feed.SourceURLs) {
-		bodyBuilder.WriteString(url)
-		bodyBuilder.WriteRune('\n')
-	}
-	bodyBuilder.WriteRune('\n')
-	bodyBuilder.WriteString("Issues:")
-	bodyBuilder.WriteRune('\n')
-	if details.MangledContent {
-		bodyBuilder.WriteString("- Mangled text.")
-		bodyBuilder.WriteRune('\n')
-	}
-	if details.MissingImage {
-		bodyBuilder.WriteString("- Missing image.")
-		bodyBuilder.WriteRune('\n')
-	}
-	if details.Details != "" {
-		bodyBuilder.WriteRune('\n')
-		bodyBuilder.WriteString("Details:")
-		bodyBuilder.WriteRune('\n')
-		bodyBuilder.WriteString(details.Details)
-		bodyBuilder.WriteRune('\n')
-	}
-	body := bodyBuilder.String()
-	issueDetails := github.IssueRequest{
-		Title:  &title,
-		Body:   &body,
-		Labels: &labels,
-	}
-	ctx = context.WithValue(ctx, github.BypassRateLimitCheck, true)
-	issue, response, err := c.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
-	var priRateErr *github.RateLimitError
-	if errors.As(err, &priRateErr) {
-		slogctx.FromCtx(ctx).Warn("Hit primary rate limit.",
-			slog.Int("remaining", priRateErr.Rate.Remaining),
-			slog.Int("limit", priRateErr.Rate.Limit))
-	}
-	var secRateErr *github.AbuseRateLimitError
-	if errors.As(err, &priRateErr) {
-		slogctx.FromCtx(ctx).Warn("Hit secondary rate limit.",
-			slog.Duration("retry_after", *secRateErr.RetryAfter))
-	}
-	godump.Dump(issue, response)
-	if err != nil {
-		return fmt.Errorf("unable to create subscription issue: %w", err)
-	}
-	return nil
-}
-
-// CreateArticleIssue creates a new issue in Github about problems with an article reported by a user.
-func (c *Client) CreateArticleIssue(ctx context.Context, article *models.Article, details *models.ArticleIssue) error {
-	title := "Feed Issue: " + article.GetTitle()
-	labels := []string{"subscription"}
-	// Build issue body.
-	var bodyBuilder strings.Builder
 	bodyBuilder.WriteString("Page URL: " + details.PageUrl)
 	bodyBuilder.WriteRune('\n')
-	bodyBuilder.WriteString("Subscription ID: " + article.GetSubscriptionID())
-	bodyBuilder.WriteRune('\n')
-	bodyBuilder.WriteString("Item ID: " + article.GetID())
-	bodyBuilder.WriteRune('\n')
-	bodyBuilder.WriteString("Source type: " + string(article.Item.SourceType))
 	bodyBuilder.WriteRune('\n')
 	bodyBuilder.WriteString("Issues:")
 	bodyBuilder.WriteRune('\n')
 	if details.MangledContent {
-		bodyBuilder.WriteString("- Mangled text.")
+		bodyBuilder.WriteString("- Mangled content.")
 		bodyBuilder.WriteRune('\n')
 	}
 	if details.MissingImage {
 		bodyBuilder.WriteString("- Missing image.")
+		bodyBuilder.WriteRune('\n')
+	}
+	if details.Duplicate {
+		bodyBuilder.WriteString("- Duplicate object.")
 		bodyBuilder.WriteRune('\n')
 	}
 	if details.Details != "" {
@@ -149,7 +89,6 @@ func (c *Client) CreateArticleIssue(ctx context.Context, article *models.Article
 		bodyBuilder.WriteString(details.Details)
 		bodyBuilder.WriteRune('\n')
 	}
-
 	body := bodyBuilder.String()
 	issueDetails := github.IssueRequest{
 		Title:  &title,
@@ -176,8 +115,8 @@ func (c *Client) CreateArticleIssue(ctx context.Context, article *models.Article
 	return nil
 }
 
-// CreatePageIssue creates a new issue in Github about problems with the app reported by a user.
-func (c *Client) CreatePageIssue(ctx context.Context, details *models.PageIssue) error {
+// CreateIssue creates a new issue in Github about problems with the app reported by a user.
+func (c *Client) CreateIssue(ctx context.Context, details *models.IssueRequest) error {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to create app issue: %w", err)

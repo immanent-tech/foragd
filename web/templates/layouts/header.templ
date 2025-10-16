@@ -65,7 +65,7 @@ templ HeaderUserMenu(user *models.User) {
 			</a>
 			// Report issue.
 			<a
-				hx-get={ "/user/issue" }
+				hx-get={ "/issue" }
 				hx-target={ partials.ContentID.Target() }
 				class="link link-hover menu-item"
 			>

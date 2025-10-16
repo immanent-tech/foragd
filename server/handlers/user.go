@@ -657,7 +657,7 @@ func GetPageIssues(api *API) http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
 		}
 		// Display the report issue form.
-		template := layouts.ReportPageIssue(&models.PageIssue{PageUrl: currentURL})
+		template := layouts.ReportPageIssue(&models.IssueRequest{PageUrl: currentURL})
 		renderPage(template, templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
@@ -667,7 +667,7 @@ func GetPageIssues(api *API) http.HandlerFunc {
 func SubmitPageIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Validate the subscription issue request.
-		request, valid, err := forms.DecodeForm[*models.PageIssue](req)
+		request, valid, err := forms.DecodeForm[*models.IssueRequest](req)
 		if err != nil || !valid {
 			msg := models.NewErrorMessage(
 				"Unable to submit issue.",
@@ -677,7 +677,7 @@ func SubmitPageIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Create the issue in Github.
-		err = ghapi.CreatePageIssue(req.Context(), request)
+		err = ghapi.CreateIssue(req.Context(), request)
 		if err != nil {
 			msg := models.NewErrorMessage(
 				"Unable to submit issue.",

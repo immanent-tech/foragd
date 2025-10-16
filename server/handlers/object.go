@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
@@ -27,7 +29,7 @@ import (
 func ViewObject(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
-		params := &models.ViewObjectParams{
+		params := &models.ObjectParams{
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
@@ -163,11 +165,21 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 func FindSimilar(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
-		objectType := chi.URLParam(req, models.ParamObjectType)
-		id := chi.URLParam(req, models.ParamObjectID)
-		switch objectType {
-		case "article":
-			articles, err := models.FindSimilarArticles(req.Context(), api, id)
+		params := &models.ObjectParams{
+			ObjectID: chi.URLParam(req, models.ParamObjectID),
+			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
+		}
+		valid, err := params.Valid()
+		if err != nil || !valid {
+			renderPage(layouts.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusNotFound,
+			)
+		}
+		switch params.Object {
+		case models.ObjectTypeArticle:
+			articles, err := models.FindSimilarArticles(req.Context(), api, params.ObjectID)
 			if err != nil {
 				renderPartial(partials.Notification(
 					models.NewErrorMessage("Unable to find similar articles", ""), 0))
@@ -177,6 +189,90 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 			template := layouts.SimilarArticles(articles)
 			renderPage(template, templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
 		}
+		return nil
+	})).ServeHTTP
+}
+
+// GetObjectIssues presents a form for entering issues about a particular object (subscription/article).
+func GetObjectIssues(api *elastic.API) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Extract request parameters.
+		params := &models.ObjectParams{
+			ObjectID: chi.URLParam(req, models.ParamObjectID),
+			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
+		}
+		valid, err := params.Valid()
+		if err != nil || !valid {
+			renderPage(layouts.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusNotFound,
+			)
+		}
+		currentURL, found := htmx.GetCurrentURL(req)
+		var template templ.Component
+		switch params.Object {
+		case models.ObjectTypeSubscription:
+			s, err := models.GetSubscriptions(req.Context(), api, params.ObjectID)
+			if err != nil || len(s) == 0 {
+				msg := models.NewErrorMessage(
+					"Unable to create report form.",
+					"The backend had issues generating the report form. Please try again.",
+				)
+				renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusInternalServerError)
+			}
+			template = layouts.ReportObjectIssues(s[0], models.NewObjectIssue(params, currentURL))
+
+		case models.ObjectTypeArticle:
+			// Get the current URL on which the issue is being reported.
+			if !found {
+				slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
+			}
+			i, err := models.GetArticles(req.Context(), api, params.ObjectID)
+			if err != nil || len(i) == 0 {
+				msg := models.NewErrorMessage(
+					"Unable to create report form.",
+					"The backend had issues generating the report form. Please try again.",
+				)
+				renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusInternalServerError)
+			}
+			template = layouts.ReportObjectIssues(i[0], models.NewObjectIssue(params, currentURL))
+		}
+		renderPage(template, templates.GeneratePageTitle("Report an issue")).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+func SubmitObjectIssues(esapi *elastic.API, ghapi *github.Client) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Validate the subscription issue request.
+		request, valid, err := forms.DecodeForm[*models.ObjectIssueRequest](req)
+		if err != nil || !valid {
+			msg := models.NewErrorMessage(
+				"Unable to submit issue.",
+				"The backend had issues submitting the report. Please try again.",
+			)
+			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+		}
+		// Create the issue in Github.
+		err = ghapi.CreateObjectIssue(req.Context(), request)
+		if err != nil {
+			msg := models.NewErrorMessage(
+				"Unable to submit issue.",
+				"The backend had issues submitting the report. Please try again.",
+			)
+			renderPartial(partials.ServerErrorNotification(msg))
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Force refresh of page.
+		msg := models.NewErrorMessage(
+			"Thanks for reporting the issue!",
+			"We will look into it and implement fixes as appropriate.",
+		)
+		renderPage(partials.IssueReportedConfirmation(msg), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
