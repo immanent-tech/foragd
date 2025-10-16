@@ -80,8 +80,9 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 			template := partials.ArticleContent(article)
 			ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 			renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
+		default:
+			res.WriteHeader(http.StatusNotImplemented)
 		}
-
 		return nil
 	})).ServeHTTP
 }
@@ -156,6 +157,8 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 				// Swap target is link.
 				renderPartial(partials.UpdateViewArticleMark(s[0])).ServeHTTP(res, req)
 			}
+		default:
+			res.WriteHeader(http.StatusNotImplemented)
 		}
 		return nil
 	})).ServeHTTP
@@ -188,6 +191,8 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 			// Show results.
 			template := layouts.SimilarArticles(articles)
 			renderPage(template, templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
+		default:
+			res.WriteHeader(http.StatusNotImplemented)
 		}
 		return nil
 	})).ServeHTTP
@@ -258,21 +263,26 @@ func RemoveObject(api *elastic.API) http.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("unable to process subscription removal: %w", err)
 		}
-		// Remove metadata for given subscriptions from user.
-		user.RemoveSubscriptions(params.ObjectID)
-		// Update the user.
-		err = api.UpdateUser(req.Context(), map[string]any{
-			"subscriptions": user.GetSubscriptionMetadata(),
-		})
-		if err != nil {
-			msg := models.NewErrorMessage("Unable to remove subscription", "Please try again.")
-			template := partials.Notification(msg, 0)
-			renderPartial(template).ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusInternalServerError)
+		switch params.Object {
+		case models.ObjectTypeSubscription:
+			// Remove metadata for given subscriptions from user.
+			user.RemoveSubscriptions(params.ObjectID)
+			// Update the user.
+			err = api.UpdateUser(req.Context(), map[string]any{
+				"subscriptions": user.GetSubscriptionMetadata(),
+			})
+			if err != nil {
+				msg := models.NewErrorMessage("Unable to remove subscription", "Please try again.")
+				template := partials.Notification(msg, 0)
+				renderPartial(template).ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusInternalServerError)
+			}
+			// Show success notification.
+			msg := models.NewSuccessMessage("Unsubscribed!", "")
+			renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
+		default:
+			res.WriteHeader(http.StatusNotImplemented)
 		}
-		// Show success notification.
-		msg := models.NewSuccessMessage("Unsubscribed!", "")
-		renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -323,6 +333,9 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
 			template = layouts.ReportObjectIssues(i[0], models.NewObjectIssue(params, currentURL))
+		default:
+			res.WriteHeader(http.StatusNotImplemented)
+
 		}
 		renderPage(template, templates.GeneratePageTitle("Report an issue")).ServeHTTP(res, req)
 		return nil
