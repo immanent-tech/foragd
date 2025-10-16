@@ -135,8 +135,8 @@ func (s *Subscription) ViewURL() string {
 	return "/list/articles"
 }
 
-func (s *Subscription) MarkURL(mark Mark) string {
-	return "/subscription/" + s.GetID() + "/mark/" + string(mark)
+func (s *Subscription) MarkURL() string {
+	return "/subscription/" + s.GetID() + "/mark"
 }
 
 type SubscriptionsSlice []*Subscription

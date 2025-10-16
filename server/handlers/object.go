@@ -22,6 +22,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
+// ViewObject handles showing an object's content (e.g. viewing article content).
 func ViewObject(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		objectType := chi.URLParam(req, models.ParamObjectType)
@@ -83,22 +84,32 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 		id := chi.URLParam(req, models.ParamObjectID)
 		mark := models.Mark(req.FormValue(models.ParamMark))
 		if id == "" || !(mark == models.MarkRead || mark == models.MarkUnread) {
-			slogctx.FromCtx(req.Context()).Error("No ID and/or invalid mark provided.")
-			res.WriteHeader(http.StatusBadRequest)
-			return nil
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to mark article",
+					"Server received invalid data.",
+				), 0)).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("%w: no ID and/or invalid mark provided", ErrInvalidRequestParams),
+				http.StatusBadRequest,
+			)
 		}
 		// Extract user data.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			return fmt.Errorf("unable to mark object: %w", err)
+			return models.NewAPIError(
+				err,
+				http.StatusBadRequest,
+			)
 		}
 		switch objectType {
 		case "article":
 			subscriptionID := req.FormValue(models.ParamSubscriptionID)
 			if subscriptionID == "" {
-				slogctx.FromCtx(req.Context()).Error("No subscription ID provided.")
-				res.WriteHeader(http.StatusBadRequest)
-				return nil
+				return models.NewAPIError(
+					fmt.Errorf("%w: unknown subscription ID", ErrInvalidRequestParams),
+					http.StatusBadRequest,
+				)
 			}
 			user.MarkItems(mark, subscriptionID, id)
 			// Update the user object.
@@ -108,11 +119,11 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 			if err != nil {
 				renderPartial(partials.Notification(
 					models.NewErrorMessage(
-						"Unable to mark subscription",
+						"Unable to mark article",
 						"Could not update user data.",
 					), 0))
 				return models.NewAPIError(
-					fmt.Errorf("unable to mark subscription: %w", err),
+					fmt.Errorf("unable to mark article: %w", err),
 					http.StatusUnprocessableEntity)
 			}
 			// Get updated articles.

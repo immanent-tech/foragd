@@ -28,16 +28,18 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
-// ErrInvalidContent indicates that the content for rendering is invalid.
-var ErrInvalidContent = errors.New("invalid content")
+var (
+	// ErrInvalidContent indicates that the content for rendering is invalid.
+	ErrInvalidContent = errors.New("invalid content")
+	// ErrInvalidRequestParams indicates that the request parameters received were invalid.
+	ErrInvalidRequestParams = errors.New("invalid request parameters")
+)
 
 // Keys for objects stored within the context and passed between handlers.
 const (
 	// defaultUpdateInterval is the default interval for checking for updates (i.e., for update notifications).
 	defaultUpdateInterval = time.Minute
 )
-
-type contextKey string
 
 // NotFound handles showing a page for a 404 response.
 func NotFound() http.HandlerFunc {

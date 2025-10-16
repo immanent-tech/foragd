@@ -19,7 +19,7 @@ type Object interface {
 	IsFavorite() bool
 	Type() string
 	ViewURL() string
-	MarkURL(mark models.Mark) string
+	MarkURL() string
 }
 
 // GenerateAvatar will render an image appropriate to use as an "avatar" for the object.
@@ -106,8 +106,9 @@ templ MarkObjectLink(obj Object, target, swap string, classes ...string) {
 	} else {
 		{{ mark = models.MarkUnread }}
 	}
+	<input type="hidden" name={ models.ParamMark } value={ string(mark) }/>
 	<a
-		hx-post={ obj.MarkURL(mark) }
+		hx-post={ obj.MarkURL() }
 		hx-include="[name='csrf_token']"
 		hx-target={ target }
 		hx-swap={ swap }

@@ -257,7 +257,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		})
 		// Viewing objects.
 		r.Get("/view/{object}/{id}", handlers.ViewObject(handler.Elastic))
-		r.Get("/mark/{object}/{id}", func(w http.ResponseWriter, r *http.Request) {})
+		r.With(middlewares.RequireHTMX).Post("/mark/{object}/{id}", handlers.MarkObject(handler.Elastic))
 		// Subscription editing.
 		r.Route("/edit/subscription/{id}", func(r chi.Router) {
 			r.Get("/", handler.EditSubscription())
@@ -265,7 +265,6 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
 			r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
 		})
-		r.Get("/mark/{object}/{id}", func(w http.ResponseWriter, r *http.Request) {})
 
 		// Subscription route.
 		r.Route("/subscription/{subscription_id}", func(r chi.Router) {

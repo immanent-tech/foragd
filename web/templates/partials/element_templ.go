@@ -13,6 +13,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"net/http"
 	"slices"
 	"sync"
 )
@@ -41,9 +42,30 @@ type element interface {
 	SetAttribute(key string, value any)
 }
 
-func WithHXGet(path string) Option[element] {
+func WithHXMethod(method, path string) Option[element] {
 	return func(e element) {
-		e.SetAttribute("hx-get", path)
+		switch method {
+		case http.MethodGet:
+			e.SetAttribute("hx-get", path)
+		case http.MethodPost:
+			e.SetAttribute("hx-post", path)
+		case http.MethodPut:
+			e.SetAttribute("hx-put", path)
+		case http.MethodDelete:
+			e.SetAttribute("hx-delete", path)
+		}
+	}
+}
+
+func WithHXTarget(value string) Option[element] {
+	return func(e element) {
+		e.SetAttribute("hx-target", value)
+	}
+}
+
+func WithHXSwap(value string) Option[element] {
+	return func(e element) {
+		e.SetAttribute("hx-swap", value)
 	}
 }
 

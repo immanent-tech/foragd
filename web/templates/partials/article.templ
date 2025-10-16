@@ -251,9 +251,12 @@ templ ArticleContent(article *models.Article) {
 						</svg>
 					</a>
 					// Mark article action.
-					<div id={ "mark_" + article.GetID() }>
-						@UpdateViewArticleMark(article)
-					</div>
+					<form>
+						<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+						<div id={ "mark_" + article.GetID() }>
+							@UpdateViewArticleMark(article)
+						</div>
+					</form>
 					// Favorite action.
 					<form>
 						<input type="hidden" name="display" value="content"/>
@@ -277,9 +280,10 @@ templ ArticleContent(article *models.Article) {
 		// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is read and mark it so.
 		if article.IsUnread() {
 			<div
-				hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + string(models.MarkRead) }
+				hx-post={ article.MarkURL() }
 				hx-target={ "#mark_" + article.GetID() }
 				hx-include="[name='csrf_token']"
+				hx-vals={ models.GenerateHXVals(map[string]string{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
 				hx-swap="innerHTML"
 				hx-trigger="intersect once,load delay:10s"
 				hx-push-url="false"
@@ -291,15 +295,16 @@ templ ArticleContent(article *models.Article) {
 
 // UpdateViewArticleMark updates the mark action when viewing an article.
 templ UpdateViewArticleMark(article *models.Article) {
-	{{ var mark string }}
+	{{ var mark models.Mark }}
 	if article.IsUnread() {
-		{{ mark = "read" }}
+		{{ mark = models.MarkRead }}
 	} else {
-		{{ mark = "unread" }}
+		{{ mark = models.MarkUnread }}
 	}
+	<input type="hidden" name={ models.ParamMark } value={ string(mark) }/>
 	<a
 		role="btn"
-		hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + mark }
+		hx-post={ article.MarkURL() }
 		hx-target={ "#mark_" + article.GetID() }
 		hx-include="[name='csrf_token']"
 		class="btn btn-circle btn-primary btn-soft"
@@ -362,12 +367,15 @@ templ articleActions(article *models.Article, view models.View) {
 			Find similar...
 		</a>
 		// Mark action.
-		if view == models.ViewAll {
-			@MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "menu-item")
-		} else {
-			@MarkObjectLink(article, "#"+article.GetID(), "delete", "menu-item")
-		}
-		// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+		<form id={ "mark-" + article.GetID() }>
+			<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+			if view == models.ViewAll {
+				@MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "menu-item")
+			} else {
+				@MarkObjectLink(article, "#"+article.GetID(), "delete", "menu-item")
+			}
+			// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+		</form>
 		<form>
 			<input type="hidden" name="display" value="card"/>
 			<div id={ "favorite_" + article.GetID() }>

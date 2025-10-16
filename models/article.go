@@ -198,7 +198,7 @@ func (a *Article) ViewURL() string {
 	return "/view/article/" + a.GetID()
 }
 
-func (a *Article) MarkURL(mark Mark) string {
+func (a *Article) MarkURL() string {
 	return "/mark/article/" + a.GetID()
 }
 

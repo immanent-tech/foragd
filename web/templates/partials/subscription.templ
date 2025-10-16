@@ -125,7 +125,9 @@ templ actionsMenu(s *models.Subscription) {
 			Feed Website
 		</a>
 		// Mark action.
-		@MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "menu-item")
+		<form id={ "mark-" + s.GetID() }>
+			@MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "menu-item")
+		</form>
 		// Edit action.
 		<a
 			hx-get={ "/edit/subscription/" + s.GetID() }
