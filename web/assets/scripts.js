@@ -15,7 +15,7 @@ _hyperscript.browserInit()
 import './timestamps.js'
 // tailwindplus
 // import '@tailwindplus/elements';
-import './debug.js'
+// import './debug.js'
 import './imgproxy.js'
 
 // Global shortcuts handling.
