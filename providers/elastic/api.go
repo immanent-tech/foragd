@@ -310,34 +310,10 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 	return items, newPagination, nil
 }
 
-// ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
-// options. It returns the raw search response.
-func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int, aggregations ...aggregations.Aggregation) (*search.Response, *models.Response) {
+func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int, aggregations aggregations.Aggs) (*search.Response, error) {
 	index, err := ItemsReadIndexFromCtx(ctx)
 	if err != nil {
-		return nil, ParseError(err)
-	}
-
-	req := NewSearchRequest(e.GetAPI(),
-		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
-		WithIndex[*search.Search, SearchRequest](index),
-		WithQueryOptions[*search.Search, SearchRequest](query),
-		WithSize[*search.Search, SearchRequest](size),
-		WithSortOptions[*search.Search, SearchRequest](&DocSorting{}),
-		WithAggregations[*search.Search, SearchRequest](aggregations...),
-	)
-	resp, err := req.Do(ctx)
-	if err != nil {
-		return nil, ParseError(err)
-	}
-
-	return resp, nil
-}
-
-func (e *API) ItemsAggregation2(ctx context.Context, query query.Option, size int, aggregations aggregations.Aggs) (*search.Response, error) {
-	index, err := ItemsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, ParseError(err)
+		return nil, toAPIError(err)
 	}
 
 	req := NewSearchRequest(e.GetAPI(),
@@ -350,7 +326,7 @@ func (e *API) ItemsAggregation2(ctx context.Context, query query.Option, size in
 	)
 	resp, err := req.Do(ctx)
 	if err != nil {
-		return nil, ParseError(err)
+		return nil, toAPIError(err)
 	}
 
 	return resp, nil
@@ -719,20 +695,6 @@ func MultiSearch(ctx context.Context, api *elasticsearch.TypedClient, searches .
 	}
 
 	return results, nil
-}
-
-func ParseError(err error) *models.Response {
-	var esErr *types.ElasticsearchError
-	if errors.As(err, &esErr) {
-		return models.NewResponse(
-			models.WithResponseStatusCode(esErr.Status),
-			models.WithResponseError(esErr),
-		)
-	}
-	return models.NewResponse(
-		models.WithResponseStatusCode(http.StatusInternalServerError),
-		models.WithResponseError(errors.New("unknown elastic error")),
-	)
 }
 
 func toAPIError(err error) error {

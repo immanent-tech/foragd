@@ -17,5 +17,4 @@ compatibility:
   allow-unexported-struct-field-names: true
   always-prefix-enum-values: true
 import-mapping:
-  api.yaml: '-'
   ../pkg/go-syndication/schema/types.yaml: github.com/immanent-tech/go-syndication/types

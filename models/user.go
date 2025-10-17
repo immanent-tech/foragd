@@ -235,32 +235,6 @@ func (u *User) RemoveFavorite(id string) {
 	u.Favorites = favorites
 }
 
-//
-// UserSignup.
-//
-
-// Valid will check to ensure the UserSignupRequest contains valid data.
-func (u *UserSignupRequest) Valid() (bool, error) {
-	_, problems := validation.ValidateStruct(u)
-	if problems != nil {
-		return false, fmt.Errorf("user is invalid: %w", problems)
-	}
-
-	return true, nil
-}
-
-// Sanitise will sanitise the UserSignupRequest.
-func (u *UserSignupRequest) Sanitise() error {
-	u.Email = validation.SanitizeString(u.Email)
-	u.Nickname = validation.SanitizeString(u.Nickname)
-	return nil
-}
-
-// NewUserSignup creates a new user signup request object.
-func NewUserSignup() *UserSignupRequest {
-	return &UserSignupRequest{}
-}
-
 // NewUserSettings returns a new instance of the default user settings.
 func NewUserSettings() *UserSettings {
 	return &UserSettings{

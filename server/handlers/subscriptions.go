@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
@@ -25,7 +24,6 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
@@ -243,7 +241,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			renderPage(layouts.ExportSubscriptions(), templates.GeneratePageTitle("Export Subscriptions")).ServeHTTP(res, req)
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":
 			// Get all subscriptions.
-			subscriptions, err := a.getSubscriptions(req.Context())
+			subscriptions, err := models.GetSubscriptions(req.Context(), a.Elastic)
 			if err != nil {
 				msg := models.NewErrorMessage(
 					"Error exporting OPML file.",
@@ -314,95 +312,6 @@ func AdjustSubscriptionCategories() http.HandlerFunc {
 		}
 		return nil
 	})).ServeHTTP
-}
-
-func (a *API) getSubscriptionUnreadCounts(ctx context.Context, subscriptionMetadata models.SubscriptionMetadataSlice) (*aggregations.TermsAggregationResults, error) {
-	// Don't continue if we have no subscriptions to calculate.
-	if len(subscriptionMetadata) == 0 {
-		return &aggregations.TermsAggregationResults{}, nil
-	}
-	// Retrieve user object.
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
-	}
-	// Generate unread count query.
-	subscriptionQueries := make([]query.Option, 0, len(subscriptionMetadata))
-	for m := range slices.Values(subscriptionMetadata) {
-		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, m))
-	}
-	query := query.Bool(
-		query.Filter(
-			query.Bool(
-				query.Should(subscriptionQueries...),
-			),
-		),
-	)
-	// Perform aggregation.
-	aggResults, resp := a.DataAPI().ItemsAggregation(ctx, query, 0, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(subscriptionMetadata)))
-	if resp != nil && !resp.IsNotFound() {
-		return nil, resp
-	}
-	var categoryCounts aggregations.TermsAggregationResults
-	if !resp.IsNotFound() {
-		categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggResults.Aggregations, "UnreadCounts")
-		if err != nil {
-			return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
-		}
-	}
-
-	return &categoryCounts, nil
-}
-
-func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.Subscriptions, error) {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("getSubscriptions: %w", err)
-	}
-	allFavorites := user.GetFavorites().FilterByType(models.FavoriteTypeSubscription)
-	// Get the subscription states.
-	var allMetadata models.SubscriptionMetadataSlice
-	if len(ids) > 0 {
-		allMetadata = user.GetSubscriptionMetadata().FilterByIDs(ids...)
-	} else {
-		allMetadata = user.GetSubscriptionMetadata()
-	}
-	// Get unread counts.
-	unreadCounts, err := a.getSubscriptionUnreadCounts(ctx, allMetadata)
-	if err != nil {
-		return nil, fmt.Errorf("getSubscriptions: %w", err)
-	}
-	// Get feed data for subscriptions.
-	feeds, err := a.DataAPI().GetFeeds(ctx, allMetadata.GetFeedIDs()...)
-	if err != nil {
-		return nil, fmt.Errorf("getSubscriptions: %w", err)
-	}
-	// Generate subscriptions from data sources.
-	subscriptions := make(models.Subscriptions, 0, len(feeds))
-	for feed := range slices.Values(feeds) {
-		var metadata *models.SubscriptionMetadata
-		var count int
-		if metadata = allMetadata.GetByFeedID(feed.GetID()); metadata == nil {
-			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved feed.",
-				slog.String("feed_id", feed.GetID()),
-			)
-			continue
-		}
-		if unreadCounts.HasResults() {
-			count = unreadCounts.GetCount(feed.GetID())
-		}
-
-		subscription, err := models.GenerateSubscription(metadata, feed, count, allFavorites.HasFavorite(metadata.GetID()))
-		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not generate subscription from data.",
-				slog.Any("error", err),
-			)
-			continue
-		}
-		subscriptions = append(subscriptions, subscription)
-	}
-
-	return subscriptions, nil
 }
 
 type (

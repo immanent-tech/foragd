@@ -21,7 +21,7 @@ import (
 
 type DataAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
-	ItemsAggregation2(ctx context.Context, query query.Option, count int, agg aggregations.Aggs) (*search.Response, error)
+	ItemsAggregation(ctx context.Context, query query.Option, count int, agg aggregations.Aggs) (*search.Response, error)
 	UpdateUser(ctx context.Context, updates map[string]any) error
 	SearchItems(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Items, Pagination, error)
 }
@@ -129,7 +129,7 @@ func GetSubscriptionUnreadCounts(ctx context.Context, dataAPI DataAPI, subscript
 		},
 	}
 	// Perform aggregation.
-	results, err := dataAPI.ItemsAggregation2(ctx, query, 0, aggs)
+	results, err := dataAPI.ItemsAggregation(ctx, query, 0, aggs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
 	}
@@ -200,7 +200,7 @@ func GetSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscriptions Su
 		},
 	}
 
-	results, err := dataAPI.ItemsAggregation2(ctx, query, len(subscriptions), aggs)
+	results, err := dataAPI.ItemsAggregation(ctx, query, len(subscriptions), aggs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
 	}
@@ -254,7 +254,7 @@ func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscrip
 func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Articles, Pagination, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
-		return nil, "", fmt.Errorf("unable to filter articles: %w", err)
+		return nil, "", fmt.Errorf("could not retrieve user: %w", err)
 	}
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
@@ -277,12 +277,12 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 	// Find items matching filters.
 	items, pagination, err := dataAPI.SearchItems(ctx, query, filters.GetCount(), &sort, &pagination)
 	if err != nil {
-		return nil, "", RespErrBackend(err)
+		return nil, "", fmt.Errorf("could not retrieve filtered items: %w", err)
 	}
 	// Generate articles.
 	articles, err := GenerateArticles(ctx, items)
 	if err != nil {
-		return nil, "", RespErrBackend(err)
+		return nil, "", fmt.Errorf("could not generate articles from items: %w", err)
 	}
 
 	return articles, pagination, nil
@@ -329,7 +329,7 @@ func GetArticleTopCategories(ctx context.Context, dataAPI DataAPI, feeds ...Feed
 		},
 	}
 	// Perform aggregation.
-	results, err := dataAPI.ItemsAggregation2(ctx, query, 0, aggs)
+	results, err := dataAPI.ItemsAggregation(ctx, query, 0, aggs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get top categories: %w", err)
 	}

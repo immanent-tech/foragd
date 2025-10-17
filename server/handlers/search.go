@@ -170,7 +170,7 @@ func (a *API) getSearchResults(ctx context.Context, request *models.SearchReques
 	subscriptions := make(models.Subscriptions, 0)
 	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
 	if len(metadataMatches) > 0 {
-		subscriptions, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
+		subscriptions, err := models.GetSubscriptions(ctx, a.Elastic, metadataMatches.GetIDs()...)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
 		}
@@ -254,7 +254,7 @@ func (a *API) findSubscriptions(ctx context.Context, request *models.SearchReque
 	}
 	// Find subscriptions matching the search request.
 	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
-	subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
+	subscriptionMatches, err := models.GetSubscriptions(ctx, a.Elastic, metadataMatches.GetIDs()...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find subscriptions: %w", err)
 	}

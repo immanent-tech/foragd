@@ -6,7 +6,6 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
@@ -14,7 +13,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -64,7 +62,7 @@ func (a *API) getHomePageData(ctx context.Context) (*layouts.Home, error) {
 	// Retrieve user object.
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
-		return data, fmt.Errorf("getHomePageData: could not fetch data: %w", err)
+		return data, fmt.Errorf("unable to retrieve user: %w", err)
 	}
 	data.User = user
 	data.Favorites = user.GetFavorites()
@@ -73,9 +71,9 @@ func (a *API) getHomePageData(ctx context.Context) (*layouts.Home, error) {
 		return data, nil
 	}
 	// Get subscriptions.
-	subscriptions, err := a.getSubscriptions(ctx)
+	subscriptions, err := models.GetSubscriptions(ctx, a.Elastic, user.GetSubscriptionMetadata().GetIDs()...)
 	if err != nil {
-		return data, models.RespErrBackend(err)
+		return data, fmt.Errorf("unable to retrieve subscriptions: %w", err)
 	}
 	data.Subscriptions = subscriptions.FilterByView(models.ViewUnread)
 	if len(data.Subscriptions) == 0 {
@@ -96,134 +94,121 @@ func (a *API) getHomePageData(ctx context.Context) (*layouts.Home, error) {
 	// Fetch latest articles.
 	latestItems, _, err := a.DataAPI().SearchItems(ctx, query, 10, &models.SortLastUpdatedDesc, nil)
 	if err != nil {
-		return nil, fmt.Errorf("getHomePageData: could not fetch latest articles: %w", err)
+		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
 	}
 	data.LatestArticles, err = models.GenerateArticles(ctx, latestItems)
 	if err != nil {
-		return nil, fmt.Errorf("getHomePageData: could not fetch latest articles: %w", err)
+		return nil, fmt.Errorf("unable to generate articles: %w", err)
 	}
 
 	// Fetch aggregation data.
-	var aggs []aggregations.Aggregation
 	TermsField := "categories.raw"
 	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
 	SampleField := "feed_id"
 	DefaultMaxDocsPerValue := 10
 	ShardSize := 1000
 	TopHitsCount := 1
-	aggs = append(aggs,
-		aggregations.Aggregation{
-			// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
-			// source.
-			Name: "top_categories_sample",
-			Definition: types.Aggregations{
-				DiversifiedSampler: &types.DiversifiedSamplerAggregation{
-					Field:           &SampleField,
-					MaxDocsPerValue: &DefaultMaxDocsPerValue,
-					ShardSize:       &ShardSize,
-				},
-				Aggregations: map[string]types.Aggregations{
-					// top_categories: the top categories across all subscriptions.
-					"top_categories": {
-						Terms: &types.TermsAggregation{
-							Field:   &TermsField,
-							Exclude: models.CommonCategoryFilters,
-						},
-						Aggregations: map[string]types.Aggregations{
-							// top_articles: the top scoring article for each top category.
-							"top_articles": {
-								TopHits: &types.TopHitsAggregation{
-									Size: &TopHitsCount,
-								},
+	MaxDocCount := int64(5)
+	aggs := aggregations.Aggs{
+		// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
+		// source.
+		"top_categories_sample": types.Aggregations{
+			DiversifiedSampler: &types.DiversifiedSamplerAggregation{
+				Field:           &SampleField,
+				MaxDocsPerValue: &DefaultMaxDocsPerValue,
+				ShardSize:       &ShardSize,
+			},
+			Aggregations: map[string]types.Aggregations{
+				// top_categories: the top categories across all subscriptions.
+				"top_categories": {
+					Terms: &types.TermsAggregation{
+						Field:   &TermsField,
+						Exclude: models.CommonCategoryFilters,
+					},
+					Aggregations: map[string]types.Aggregations{
+						// top_articles: the top scoring article for each top category.
+						"top_articles": {
+							TopHits: &types.TopHitsAggregation{
+								Size: &TopHitsCount,
 							},
 						},
 					},
 				},
 			},
 		},
-	)
-	// Aggregation definition for fetching the rare item categories across all subscriptions.
-	MaxDocCount := int64(5)
-	aggs = append(aggs,
-		aggregations.Aggregation{
-			Name: "rare_categories",
-			Definition: types.Aggregations{
-				RareTerms: &types.RareTermsAggregation{
-					Field:       &TermsField,
-					MaxDocCount: &MaxDocCount,
-					Exclude:     models.CommonCategoryFilters,
-				},
+		// Aggregation definition for fetching the rare item categories across all subscriptions.
+		"rare_categories": types.Aggregations{
+			RareTerms: &types.RareTermsAggregation{
+				Field:       &TermsField,
+				MaxDocCount: &MaxDocCount,
+				Exclude:     models.CommonCategoryFilters,
 			},
 		},
-	)
+	}
 
 	// Perform the request.
-	queryResult, resp := a.DataAPI().ItemsAggregation(ctx, query, 0, aggs...)
-	if resp != nil {
-		return nil, resp
+	queryResult, err := a.DataAPI().ItemsAggregation(ctx, query, 0, aggs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to calculate aggregations: %w", err)
 	}
 
 	// Get the top categories.
-	topCategoriesSamplerAgg, err := aggregations.ExtractAggregation[*types.SamplerAggregate](queryResult.Aggregations, "top_categories_sample")
-	if err != nil {
-		slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to show top categories.",
-			slog.Any("error", err))
-	}
-	topCategoriesAgg, err := aggregations.ExtractAggregation[*types.StringTermsAggregate](topCategoriesSamplerAgg.Aggregations, "top_categories")
-	if err != nil {
-		slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to show top categories.",
-			slog.Any("error", err))
-	}
-	categoryBuckets, ok := topCategoriesAgg.Buckets.([]types.StringTermsBucket)
+	topCategoriesSamplerAgg, ok := queryResult.Aggregations["top_categories_sample"].(*types.SamplerAggregate)
 	if ok {
-		// Generate categories from aggregation.
-		data.TopCategories = make(models.CategoryCounts, 0)
-		data.TopArticles = make(models.Articles, 0)
-		for category := range slices.Values(categoryBuckets) {
-			data.TopCategories = append(data.TopCategories, models.CategoryCount{Category: category.Key.(string), Count: int(category.DocCount)})
-			// Get top article.
-			topHitsAgg, err := aggregations.ExtractAggregation[*types.TopHitsAggregate](category.Aggregations, "top_articles")
-			if err != nil {
-				continue
+		topCategoriesAgg, ok := topCategoriesSamplerAgg.Aggregations["top_categories"].(*types.StringTermsAggregate)
+		if ok {
+			categoryBuckets, ok := topCategoriesAgg.Buckets.([]types.StringTermsBucket)
+			if ok {
+				// Generate categories from aggregation.
+				data.TopCategories = make(models.CategoryCounts, 0)
+				data.TopArticles = make(models.Articles, 0)
+				for category := range slices.Values(categoryBuckets) {
+					value, ok := category.Key.(string)
+					if !ok {
+						continue
+					}
+					data.TopCategories = append(data.TopCategories, models.CategoryCount{Category: value, Count: int(category.DocCount)})
+					// Get top article.
+					topHitsAgg, ok := category.Aggregations["top_articles"].(*types.TopHitsAggregate)
+					if !ok {
+						continue
+					}
+					items, _, err := results.ExtractSourceFromHits[*models.Item](topHitsAgg.Hits.Hits)
+					if err != nil {
+						continue
+					}
+					articles, err := models.GenerateArticles(ctx, items)
+					if err != nil {
+						continue
+					}
+					data.TopArticles = append(data.TopArticles, articles...)
+				}
+				// Sort categories by count.
+				data.TopCategories.Sort()
+				// Remove duplicate articles.
+				slices.SortFunc(data.TopArticles, func(a, b *models.Article) int {
+					return strings.Compare(a.GetID(), b.GetID())
+				})
+				data.TopArticles = slices.CompactFunc(data.TopArticles, func(a, b *models.Article) bool {
+					return a.GetID() == b.GetID()
+				})
 			}
-			items, _, err := results.ExtractSourceFromHits[*models.Item](topHitsAgg.Hits.Hits)
-			if err != nil {
-				continue
-			}
-			articles, err := models.GenerateArticles(ctx, items)
-			if err != nil {
-				continue
-			}
-			data.TopArticles = append(data.TopArticles, articles...)
-
 		}
-		// Sort categories by count.
-		data.TopCategories.Sort()
-		// Remove duplicate articles.
-		slices.SortFunc(data.TopArticles, func(a, b *models.Article) int {
-			return strings.Compare(a.GetID(), b.GetID())
-		})
-		data.TopArticles = slices.CompactFunc(data.TopArticles, func(a, b *models.Article) bool {
-			return a.GetID() == b.GetID()
-		})
 	}
-
 	// Get the rare categories.
-	rareCategoriesAgg, err := aggregations.ExtractAggregation[*types.StringRareTermsAggregate](queryResult.Aggregations, "rare_categories")
-	if err != nil {
-		slogctx.FromCtx(ctx).WarnContext(ctx, "Unable to show rare categories.",
-			slog.Any("error", err))
-	}
-	// Generate category counts from buckets.
-	rareCategoryBuckets, ok := rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket)
+	rareCategoriesAgg, ok := queryResult.Aggregations["rare_categories"].(*types.StringRareTermsAggregate)
 	if ok {
-		data.RareCategories = make(models.CategoryCounts, 0)
-		for category := range slices.Values(rareCategoryBuckets) {
-			data.RareCategories = append(data.RareCategories, models.CategoryCount{Category: category.Key, Count: int(category.DocCount)})
-		}
-		data.RareCategories.Sort()
-		if len(data.RareCategories) > 10 {
-			data.RareCategories = data.RareCategories[:10]
+		// Generate category counts from buckets.
+		rareCategoryBuckets, ok := rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket)
+		if ok {
+			data.RareCategories = make(models.CategoryCounts, 0)
+			for category := range slices.Values(rareCategoryBuckets) {
+				data.RareCategories = append(data.RareCategories, models.CategoryCount{Category: category.Key, Count: int(category.DocCount)})
+			}
+			data.RareCategories.Sort()
+			if len(data.RareCategories) > 10 {
+				data.RareCategories = data.RareCategories[:10]
+			}
 		}
 	}
 

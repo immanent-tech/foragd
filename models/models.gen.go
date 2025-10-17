@@ -69,11 +69,38 @@ const (
 	SearchRequestPublishedWithinLastWeek    SearchRequestPublishedWithin = "last_week"
 )
 
+// Defines values for SortBy.
+const (
+	SortByLastUpdated SortBy = "last_updated"
+	SortByUnreadCount SortBy = "unread_count"
+)
+
+// Defines values for SortOrder.
+const (
+	SortOrderAsc  SortOrder = "asc"
+	SortOrderDesc SortOrder = "desc"
+)
+
 // Defines values for State.
 const (
 	StateRead   State = "read"
 	StateSaved  State = "saved"
 	StateUnread State = "unread"
+)
+
+// Defines values for UserMessageStatus.
+const (
+	UserMessageStatusError   UserMessageStatus = "error"
+	UserMessageStatusInfo    UserMessageStatus = "info"
+	UserMessageStatusSuccess UserMessageStatus = "success"
+	UserMessageStatusWarning UserMessageStatus = "warning"
+)
+
+// Defines values for View.
+const (
+	ViewAll    View = "all"
+	ViewRead   View = "read"
+	ViewUnread View = "unread"
 )
 
 // APIError represents an error returned from any API within the service/application.
@@ -221,6 +248,9 @@ type CommonDisplayFilters struct {
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
+
+// Count is the count of items to retrieve with a request.
+type Count = string
 
 // CreatedAt records when the object was created in the database.
 type CreatedAt = time.Time
@@ -567,6 +597,9 @@ type ObjectParams struct {
 // ObjectType represents the type of any user-facing object.
 type ObjectType string
 
+// Pagination contains data for paginating through results.
+type Pagination = string
+
 // SearchRequest represents a search request by the user.
 type SearchRequest struct {
 	// Authors a list of search terms for authors.
@@ -593,6 +626,21 @@ type SearchRequest struct {
 
 // SearchRequestPublishedWithin represents a time range within which the objects should be published
 type SearchRequestPublishedWithin string
+
+// Sort contains information on sorting objects.
+type Sort struct {
+	// SortBy represents the selected field to sort on.
+	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
+
+	// SortOrder represents the order for sorting the selected field.
+	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
+}
+
+// SortBy represents the selected field to sort on.
+type SortBy string
+
+// SortOrder represents the order for sorting the selected field.
+type SortOrder string
 
 // State Tracks the state of an object.
 type State string
@@ -757,6 +805,21 @@ type User struct {
 // UserID is the unique ID of a user.
 type UserID = string
 
+// UserMessage represents a message that can be displayed to the user as the result of an action.
+type UserMessage struct {
+	// Details is a longer description and/or background details about the message.
+	Details string `json:"details,omitempty,omitzero"`
+
+	// Status indicates the severity or importance of the message.
+	Status UserMessageStatus `json:"status" validate:"required"`
+
+	// Summary is a user-level brief description for the message, which can be used as a title or summary.
+	Summary string `json:"summary" validate:"required"`
+}
+
+// UserMessageStatus indicates the severity or importance of the message.
+type UserMessageStatus string
+
 // UserNickname is an alias or label the user has given themselves.
 type UserNickname = string
 
@@ -786,6 +849,9 @@ type UserSettings struct {
 	// Theme the user interface theme chosen by the user.
 	Theme string `form:"-" json:"theme,omitempty,omitzero"`
 }
+
+// View The state of objects to view.
+type View string
 
 // AsExternalRef0ImageInfo returns the union data inside the EditSubscriptionRequest_Image as a externalRef0.ImageInfo
 func (t EditSubscriptionRequest_Image) AsExternalRef0ImageInfo() (externalRef0.ImageInfo, error) {

@@ -156,6 +156,58 @@ components:
         count:
           type: integer
           minimum: 0
+    Count:
+      description: >
+        is the count of items to retrieve with a request.
+      type: string
+      default: '10'
+      x-oapi-codegen-extra-tags:
+        form: 'count'
+        validate: 'numeric,gt=0,lt=20'
+    View:
+      description: >
+        The state of objects to view.
+      type: string
+      enum: ['read', 'unread', 'all']
+      default: 'unread'
+      x-oapi-codegen-extra-tags:
+        validate: 'oneof=read unread all'
+        form: 'view'
+    Pagination:
+      description: contains data for paginating through results.
+      type: string
+      x-oapi-codegen-extra-tags:
+        form: 'pagination'
+        validate: 'omitempty,url_encoded'
+    SortBy:
+      description: >
+        represents the selected field to sort on.
+      type: string
+      enum: ['unread_count', 'last_updated']
+      x-oapi-codegen-extra-tags:
+        validate: 'oneof=unread_count last_updated'
+        form: 'sort_by'
+    SortOrder:
+      description: >
+        represents the order for sorting the selected field.
+      type: string
+      enum: ['asc', 'desc']
+      x-oapi-codegen-extra-tags:
+        validate: 'oneof=asc desc'
+        form: 'sort_order'
+    Sort:
+      description: contains information on sorting objects.
+      type: object
+      required:
+        - sort_by
+        - sort_order
+      properties:
+        sort_by:
+          $ref: '#/components/schemas/SortBy'
+        sort_order:
+          $ref: '#/components/schemas/SortOrder'
+      x-oapi-codegen-extra-tags:
+        json: 'sort'
     # Objects.
     User:
       description: is a user of the application.
@@ -818,7 +870,7 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'authors'
         view:
-          $ref: 'api.yaml#/components/schemas/View'
+          $ref: '#/components/schemas/View'
         subscriptions:
           description: >
             is a list of subscription IDs.
@@ -873,13 +925,13 @@ components:
         - sort_order
       properties:
         count:
-          $ref: 'api.yaml#/components/schemas/Count'
+          $ref: '#/components/schemas/Count'
         view:
-          $ref: 'api.yaml#/components/schemas/View'
+          $ref: '#/components/schemas/View'
         sort_by:
-          $ref: 'api.yaml#/components/schemas/SortBy'
+          $ref: '#/components/schemas/SortBy'
         sort_order:
-          $ref: 'api.yaml#/components/schemas/SortOrder'
+          $ref: '#/components/schemas/SortOrder'
         categories:
           description: is a list of categories.
           type: array
@@ -977,3 +1029,29 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'details'
+    UserMessage:
+      description: >
+        represents a message that can be displayed to the user as the result of an action.
+      type: object
+      required:
+        - summary
+        - status
+      properties:
+        summary:
+          description: >
+            is a user-level brief description for the message, which can be used as a title
+            or summary.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        details:
+          description: >
+            is a longer description and/or background details about the message.
+          type: string
+        status:
+          description: >
+            indicates the severity or importance of the message.
+          type: string
+          enum: ['info', 'success', 'warning', 'error']
+          x-oapi-codegen-extra-tags:
+            validate: 'required'

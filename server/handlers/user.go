@@ -96,7 +96,7 @@ func (a *API) GetSubscriptionsSettings() http.HandlerFunc {
 		if request.Text != "" {
 			subscriptions, err = a.findSubscriptions(req.Context(), request)
 		} else {
-			subscriptions, err = a.getSubscriptions(req.Context())
+			subscriptions, err = models.GetSubscriptions(req.Context(), a.Elastic)
 		}
 		if err != nil {
 			template := partials.Notification(
@@ -231,7 +231,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		// 	render(RespBackendError(nil)).ServeHTTP(res, req)
 		// 	return
 		// }
-		subscriptions, err := a.getSubscriptions(req.Context(), id)
+		subscriptions, err := models.GetSubscriptions(req.Context(), a.Elastic, id)
 		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."), 0)
@@ -282,7 +282,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 		// 	renderPartial(template, "").ServeHTTP(res, req)
 		// 	return models.NewAPIError(err, http.StatusInternalServerError)
 		// }
-		subscriptions, err := a.getSubscriptions(req.Context(), id)
+		subscriptions, err := models.GetSubscriptions(req.Context(), a.Elastic, id)
 		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable to add favorite.", "Temporary backend issue, please try again."), 0)
