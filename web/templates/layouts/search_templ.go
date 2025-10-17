@@ -460,7 +460,7 @@ func SearchFilters(user *models.User, request *models.SearchRequest) templ.Compo
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, " class=\"radio radio-sm\"> <label for=\"view_all\" class=\"block text-sm/6 font-medium\">All</label></div></div></fieldset></div><div class=\"sm:col-span-3\"><label for=\"published_within\" class=\"block text-sm/6 font-medium\">Published within</label> <select id=\"published_within\" name=\"published_within\" class=\"select select-sm my-2 bg-base-content/10\"><option value=\"last_hour\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, " class=\"radio radio-sm\"> <label for=\"view_all\" class=\"block text-sm/6 font-medium\">All</label></div></div></fieldset></div><div class=\"sm:col-span-3\"><label for=\"published_within\" class=\"block text-sm/6 font-medium\">Published within</label> <select id=\"published_within\" name=\"published_within\" class=\"select select-sm my-2 bg-base-300 outline-1 -outline-offset-1 outline-solid shadow-xl\"><option value=\"last_hour\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -702,7 +702,7 @@ func GlobalSearch(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</button></div></form><el-command-list id=\"global-search-suggestions\" class=\"absolute w-full left-0 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6\" _=\"on keydown[key is 'Escape'] add @hidden\"></el-command-list><div id=\"search-filters\" class=\"hidden absolute w-full h-auto lg:max-h-160 left-0 sm:w-(--input-width) scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2\" _=\"on keydown[key is 'Escape'] add .hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</button></div></form><el-command-list id=\"global-search-suggestions\" class=\"absolute w-full left-0 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6  outline-1 -outline-offset-1 outline-solid\" _=\"on keydown[key is 'Escape'] from body add @hidden\"></el-command-list><div id=\"search-filters\" class=\"hidden absolute w-full h-auto lg:max-h-160 left-0 sm:w-(--input-width) scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2  outline-1 -outline-offset-1 outline-solid\" _=\"on keydown[key is 'Escape'] from body add .hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
