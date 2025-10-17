@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"iter"
 	"maps"
-	"net/url"
 	"slices"
 	"strings"
 	"time"
@@ -94,14 +93,6 @@ func ValidateDatetime(dt time.Time) (bool, error) {
 	}
 }
 
-func ParseDomain(value string) string {
-	url, err := url.Parse(value)
-	if err != nil {
-		return value
-	}
-	return url.Hostname()
-}
-
 type List[T any] struct {
 	Head, Tail *Element[T]
 }
@@ -150,6 +141,7 @@ func ExtractText(content string) (string, error) {
 	return article.TextContent, nil
 }
 
+// Object is an abstraction of any content (subscription or article).
 type Object interface {
 	GetID() string
 	GetImage() *types.ImageInfo

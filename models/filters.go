@@ -22,13 +22,13 @@ func init() {
 var ErrParseFilters = errors.New("error parsing filters")
 
 var (
-	// Sort by last updated, newest->oldest.
+	// SortLastUpdatedDesc sorts by last updated, newest->oldest.
 	SortLastUpdatedDesc = Sort{SortBy: SortByLastUpdated, SortOrder: SortOrderDesc}
-	// Sort by last updated, oldest->newest.
+	// SortLastUpdatedAsc sorts by last updated, oldest->newest.
 	SortLastUpdatedAsc = Sort{SortBy: SortByLastUpdated, SortOrder: SortOrderAsc}
-	// Sort by unread count, highest->lowest.
+	// SortUnreadCountDesc sorts by unread count, highest->lowest.
 	SortUnreadCountDesc = Sort{SortBy: SortByUnreadCount, SortOrder: SortOrderDesc}
-	// Sort by unread count, lowest->highest.
+	// SortUnreadCountAsc sorts by unread count, lowest->highest.
 	SortUnreadCountAsc = Sort{SortBy: SortByUnreadCount, SortOrder: SortOrderAsc}
 )
 

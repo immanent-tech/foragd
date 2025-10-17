@@ -6,7 +6,6 @@ package session
 
 import (
 	"context"
-	"encoding/gob"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -17,22 +16,13 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/session/store"
 )
 
 const (
-	sessionLifetime               = 24 * time.Hour
-	subscriptionFiltersSessionKey = "subscription_filters"
-	articleFiltersSessionKey      = "article_filters"
+	sessionLifetime = 24 * time.Hour
 )
-
-func init() {
-	gob.Register(models.SubscriptionFilters{})
-	gob.Register(models.ArticleFilters{})
-	gob.Register(models.CommonFilters{})
-}
 
 var Manager *scs.SessionManager
 
