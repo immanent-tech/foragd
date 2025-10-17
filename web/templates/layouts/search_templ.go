@@ -702,7 +702,7 @@ func GlobalSearch(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</button></div></form><el-command-list id=\"global-search-suggestions\" class=\"absolute w-full left-0 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6  outline-1 -outline-offset-1 outline-solid\" _=\"on keydown[key is 'Escape'] from body add @hidden\"></el-command-list><div id=\"search-filters\" class=\"hidden absolute w-full h-auto lg:max-h-160 left-0 sm:w-(--input-width) scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2  outline-1 -outline-offset-1 outline-solid\" _=\"on keydown[key is 'Escape'] from body add .hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "</button></div></form><el-command-list id=\"global-search-suggestions\" class=\"absolute w-full left-0 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6  outline-1 -outline-offset-1 outline-solid\" _=\"on keydown[key is 'Escape'] from body add @hidden end on click from elsewhere add .hidden end\"></el-command-list><div id=\"search-filters\" class=\"hidden absolute w-full h-auto lg:max-h-160 left-0 sm:w-(--input-width) scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2  outline-1 -outline-offset-1 outline-solid\" _=\"on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
