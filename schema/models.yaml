@@ -556,6 +556,8 @@ components:
           x-oapi-codegen-extra-tags:
             json: '-'
             validate: 'gte=0'
+        stats:
+          $ref: '#/components/schemas/SubscriptionStats'
         favorite:
           description: >
             indicates whether this subscription has been marked as a Favorite by the user.

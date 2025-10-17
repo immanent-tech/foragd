@@ -613,6 +613,9 @@ type Subscription struct {
 	// Metadata contains the stored data that represents a subscription
 	Metadata SubscriptionMetadata `json:"metadata"`
 
+	// Stats contains stats about a subscription.
+	Stats SubscriptionStats `json:"stats,omitempty,omitzero"`
+
 	// UnreadCount is the value of items that are not explicitly marked unread by the user for this subscription.
 	UnreadCount int `json:"-" validate:"gte=0"`
 }

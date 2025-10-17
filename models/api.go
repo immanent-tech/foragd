@@ -45,7 +45,7 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (SubscriptionsSlice, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get subscriptions: %w", err)
+		return nil, fmt.Errorf("could not determine user: %w", err)
 	}
 	allFavorites := user.GetFavorites().FilterByType(FavoriteTypeSubscription)
 	// Get the subscription states.
@@ -58,8 +58,14 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	// Get unread counts.
 	unreadCounts, err := GetSubscriptionUnreadCounts(ctx, dataAPI, allMetadata)
 	if err != nil {
-		return nil, fmt.Errorf("getSubscriptions: %w", err)
+		return nil, fmt.Errorf("could not retrieve unread counts: %w", err)
 	}
+	// Get subscription stats.
+	stats, err := GetSubscriptionStats(ctx, dataAPI, allMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve stats: %w", err)
+	}
+
 	// Get feed data for subscriptions.
 	feeds, err := dataAPI.GetFeeds(ctx, allMetadata.GetFeedIDs()...)
 	if err != nil {
@@ -85,6 +91,7 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 			)
 			continue
 		}
+		subscription.Stats = stats[subscription.GetID()]
 		subscriptions = append(subscriptions, subscription)
 	}
 
@@ -149,34 +156,25 @@ func GetSubscriptionUnreadCounts(ctx context.Context, dataAPI DataAPI, subscript
 	return stats, nil
 }
 
-func GetSubscriptionStats(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters) (map[SubscriptionID]SubscriptionStats, error) {
+func GetSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscriptions SubscriptionMetadataSlice) (map[SubscriptionID]SubscriptionStats, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getFeedStats: %w", err)
 	}
 
-	// Get the subscription metadata.
-	var metadata SubscriptionMetadataSlice
-	if len(filters.Subscriptions) > 0 {
-		metadata = user.GetSubscriptionMetadata().FilterByIDs(filters.Subscriptions...)
-	} else {
-		metadata = user.GetSubscriptionMetadata()
-	}
 	// Build query.
 	query := query.Bool(
 		query.BoolQueryName("feed_stats_query"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", filters.Subscriptions...),
+			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+			// Must be published within last month.
 			query.Since("@timestamp", time.Now().UTC().Add(-24*30*time.Hour)),
-			query.Bool(
-				query.Should(buildSubscriptionQueries(user, filters.GetView(), metadata...)...),
-			),
 		),
 	)
 	// Build aggregations.
 	termsField := "feed_id"
-	termsCount := len(metadata)
+	termsCount := len(subscriptions)
 	dateHistoField := "@timestamp"
 	dateFormat := "yyyy-MM-dd"
 	aggs := aggregations.Aggs{
@@ -202,7 +200,7 @@ func GetSubscriptionStats(ctx context.Context, dataAPI DataAPI, filters *ListDis
 		},
 	}
 
-	results, err := dataAPI.ItemsAggregation2(ctx, query, len(metadata), aggs)
+	results, err := dataAPI.ItemsAggregation2(ctx, query, len(subscriptions), aggs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
 	}
@@ -225,7 +223,7 @@ func GetSubscriptionStats(ctx context.Context, dataAPI DataAPI, filters *ListDis
 		}
 		updatesResult, ok := feed.Aggregations["avg_daily_updates"].(*types.SimpleValueAggregate)
 		if !ok {
-			slogctx.FromCtx(ctx).Debug("Unable to extract avg_daily_updates agg for subscription", slog.String("subscription", user.GetSubscriptionMetadata().GetByFeedID(feedID).GetID()))
+			slogctx.FromCtx(ctx).Debug("Unable to extract avg_daily_updates agg for subscription", slog.String("subscription", subscriptions.GetByFeedID(feedID).GetID()))
 			continue
 		}
 

@@ -13,16 +13,13 @@ import (
 
 type Subscription struct {
 	*models.Subscription
-
-	Stats *models.SubscriptionStats
 }
 
 // NewSubscriptionContent converts a subscription into an object that can be rendered in different ways within the app
 // UI.
-func NewSubscriptionContent(subscription *models.Subscription, stats *models.SubscriptionStats) *Subscription {
+func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 	return &Subscription{
 		Subscription: subscription,
-		Stats:        stats,
 	}
 }
 
@@ -57,29 +54,29 @@ templ (s *Subscription) Card() {
 						<dd class="text-base-content/90">{ s.GetUnreadCount() }</dd>
 					</div>
 				}
-				if s.Stats != nil {
-					if s.Stats.GetDailyUpdates() > 1 {
-						<div class="flex justify-between gap-x-4 sm:py-3">
-							<dt class="">Update frequency</dt>
-							<dd class="text-base-content/90">{ s.Stats.GetDailyUpdates() } articles/day</dd>
-						</div>
-					} else if s.Stats.AvgDailyUpdates < 1 && s.Stats.AvgDailyUpdates > 0.5 {
-						<div class="flex justify-between gap-x-4 sm:py-3">
-							<dt class="">Update frequency</dt>
-							<dd class="text-base-content/90">A few times a week</dd>
-						</div>
-					} else if s.Stats.AvgDailyUpdates < 0.5 && s.Stats.AvgDailyUpdates > 0.25 {
-						<div class="flex justify-between gap-x-4 sm:py-3">
-							<dt class="">Update frequency</dt>
-							<dd class="text-base-content/90">About weekly</dd>
-						</div>
-					} else {
-						<div class="flex justify-between gap-x-4 sm:py-3">
-							<dt class="">Update frequency</dt>
-							<dd class="text-base-content/90">Infrequent</dd>
-						</div>
-					}
+				// if s.Stats != nil {
+				if s.Stats.GetDailyUpdates() > 1 {
+					<div class="flex justify-between gap-x-4 sm:py-3">
+						<dt class="">Update frequency</dt>
+						<dd class="text-base-content/90">{ s.Stats.GetDailyUpdates() } articles/day</dd>
+					</div>
+				} else if s.Stats.AvgDailyUpdates < 1 && s.Stats.AvgDailyUpdates > 0.5 {
+					<div class="flex justify-between gap-x-4 sm:py-3">
+						<dt class="">Update frequency</dt>
+						<dd class="text-base-content/90">A few times a week</dd>
+					</div>
+				} else if s.Stats.AvgDailyUpdates < 0.5 && s.Stats.AvgDailyUpdates > 0.25 {
+					<div class="flex justify-between gap-x-4 sm:py-3">
+						<dt class="">Update frequency</dt>
+						<dd class="text-base-content/90">About weekly</dd>
+					</div>
+				} else {
+					<div class="flex justify-between gap-x-4 sm:py-3">
+						<dt class="">Update frequency</dt>
+						<dd class="text-base-content/90">Infrequent</dd>
+					</div>
 				}
+				// }
 				<div class="flex justify-between gap-x-4 sm:py-3">
 					<dt class="">Last update</dt>
 					<dd class="text-base-content/90">{ humanize.Time(s.GetUpdatedDate()) }</dd>

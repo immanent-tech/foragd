@@ -49,8 +49,6 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			} else {
 				http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
 			}
-		} else {
-			slog.Info("no replacement needed")
 		}
 		var (
 			template  templ.Component
@@ -68,22 +66,17 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			if err != nil {
 				return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
 			}
-			// Get subscription stats.
-			stats, err := models.GetSubscriptionStats(req.Context(), api, filters)
-			if err != nil {
-				return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
-			}
 			// Render appropriate content.
 			switch req.Method {
 			case http.MethodGet:
 				if len(subscriptions) > 0 {
-					template = layouts.SubscriptionsGrid(subscriptions, stats, pagination)
+					template = layouts.SubscriptionsGrid(subscriptions, pagination)
 				} else {
 					template = layouts.EmptyContent("/home", nil)
 				}
 			case http.MethodPost:
 				if len(subscriptions) > 0 {
-					template = layouts.SubscriptionsList(subscriptions, stats, pagination)
+					template = layouts.SubscriptionsList(subscriptions, pagination)
 				} else {
 					res.WriteHeader(http.StatusNoContent)
 					return nil

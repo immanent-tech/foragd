@@ -195,7 +195,7 @@ func (a *API) getSearchSuggestions(ctx context.Context, searchTerms string) ([]*
 	}
 	subscriptions := make([]*partials.Subscription, 0, len(subscriptionMatches))
 	for s := range slices.Values(subscriptionMatches) {
-		subscriptions = append(subscriptions, partials.NewSubscriptionContent(s, nil))
+		subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
 	}
 
 	return subscriptions, articles, nil
