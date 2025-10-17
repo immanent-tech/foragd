@@ -62,13 +62,13 @@ templ ReportPageIssue(details *models.IssueRequest) {
 	}
 }
 
-templ ReportObjectIssues(obj partials.Object, details *models.ObjectIssueRequest) {
+templ ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) {
 	@partials.MainContainer() {
 		@partials.PageHeader("Report an issue")
 		@partials.PageDescription("Use this form to report an issue with " + obj.GetTitle() + ". We will look into it and get back to you as soon as we can.")
 		<form
 			id="report-subscription-issue"
-			hx-post={ "/issue/" + obj.Type() + "/" + obj.GetID() }
+			hx-post={ "/issue/" + string(obj.Type()) + "/" + obj.GetID() }
 			hx-target={ partials.ContentID.Target() }
 			hx-target-error={ partials.ContentID.Target() }
 			hx-indicator="#processing"

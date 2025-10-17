@@ -20,7 +20,7 @@ import (
 )
 
 // SearchSuggestions will render suggestions for a given search.
-func SearchSuggestions(request *models.SearchRequest, subscriptions []*partials.Subscription, articles []*partials.Article) templ.Component {
+func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subscriptions, articles models.Articles) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -740,13 +740,13 @@ func GlobalSearch(user *models.User) templ.Component {
 
 type SearchResultsPage struct {
 	user          *models.User
-	subscriptions models.SubscriptionsSlice
-	articles      []*models.Article
+	subscriptions models.Subscriptions
+	articles      models.Articles
 	search        *models.SearchRequest
 	favoriteID    models.FavoriteID
 }
 
-func NewSearchResultsPage(user *models.User, fav *models.Favorite, search *models.SearchRequest, subscriptions models.SubscriptionsSlice, articles []*models.Article) *SearchResultsPage {
+func NewSearchResultsPage(user *models.User, fav *models.Favorite, search *models.SearchRequest, subscriptions models.Subscriptions, articles models.Articles) *SearchResultsPage {
 	page := &SearchResultsPage{
 		user:          user,
 		search:        search,
@@ -976,7 +976,7 @@ func RemoveFavoriteSearchButton(id models.FavoriteID) templ.Component {
 	})
 }
 
-func showSearchResult(result partials.Object) templ.Component {
+func showSearchResult(result models.Object) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

@@ -17,6 +17,8 @@ import (
 
 	"github.com/go-shiori/go-readability"
 
+	"github.com/immanent-tech/go-syndication/types"
+
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -127,57 +129,6 @@ func (lst *List[T]) AllElements() []T {
 	return elems
 }
 
-type HasFeedInfo interface {
-	GetFeedID() FeedID
-}
-
-func GetFeedIDs[T HasFeedInfo](objects iter.Seq[T]) []FeedID {
-	var ids []FeedID
-	for details := range objects {
-		ids = append(ids, details.GetFeedID())
-	}
-	return ids
-}
-
-func FindByFeedID[T HasFeedInfo](id FeedID, objects iter.Seq[T]) (T, bool) {
-	for object := range objects {
-		if object.GetFeedID() == id {
-			return object, true
-		}
-	}
-	return *new(T), false
-}
-
-type HasCategories interface {
-	GetCategories() []Category
-}
-
-func GetCategories[T HasCategories](objects iter.Seq[T]) []Category {
-	var categories []string
-	for object := range objects {
-		categories = append(categories, object.GetCategories()...)
-	}
-	slices.Sort(categories)
-	return slices.Compact(categories)
-}
-
-// GetCategoryCounts returns a count of the occurrence of a Category across all
-// the Subscriptions.
-func GetCategoryCounts[T HasCategories](objects iter.Seq[T]) CategoryCounts {
-	countsMap := make(map[Category]int)
-	for object := range objects {
-		for category := range slices.Values(object.GetCategories()) {
-			countsMap[category]++
-		}
-	}
-	var counts CategoryCounts
-	for category, count := range maps.All(countsMap) {
-		counts = append(counts, CategoryCount{Category: category, Count: count})
-	}
-
-	return counts
-}
-
 // GenerateHXVals generates a JSON-formatted object containing the given key-value pairs suitable for use as a hx-vals attribute.
 // See also: https://htmx.org/attributes/hx-vals/
 func GenerateHXVals(values map[string]string) string {
@@ -197,6 +148,20 @@ func ExtractText(content string) (string, error) {
 		return "", fmt.Errorf("could not extract content as text: %w", err)
 	}
 	return article.TextContent, nil
+}
+
+type Object interface {
+	GetID() string
+	GetImage() *types.ImageInfo
+	GetUpdatedDate() time.Time
+	GetTitle() string
+	GetDescription() string
+	GetCategories(count int) Categories
+	IsUnread() bool
+	IsFavorite() bool
+	Type() ObjectType
+	ViewURL() string
+	MarkURL() string
 }
 
 func (p *ObjectParams) Valid() (bool, error) {

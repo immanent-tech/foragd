@@ -354,7 +354,7 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, subscriptionMetad
 	return &categoryCounts, nil
 }
 
-func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionsSlice, error) {
+func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.Subscriptions, error) {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
@@ -378,7 +378,7 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
 	// Generate subscriptions from data sources.
-	subscriptions := make(models.SubscriptionsSlice, 0, len(feeds))
+	subscriptions := make(models.Subscriptions, 0, len(feeds))
 	for feed := range slices.Values(feeds) {
 		var metadata *models.SubscriptionMetadata
 		var count int

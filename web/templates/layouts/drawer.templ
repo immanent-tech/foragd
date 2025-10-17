@@ -13,7 +13,7 @@ import (
 )
 
 type DrawerData struct {
-	Subscriptions models.SubscriptionsSlice
+	Subscriptions models.Subscriptions
 	User          *models.User
 }
 
@@ -68,7 +68,7 @@ templ Drawer(data DrawerData, content templ.Component) {
 	</div>
 }
 
-templ DrawerSidebar(subscriptions models.SubscriptionsSlice, favorites models.FavoritesSlice, classes, layout string) {
+templ DrawerSidebar(subscriptions models.Subscriptions, favorites models.FavoritesSlice, classes, layout string) {
 	// Remove any subscription filter from the saved filters in the session and use these filters for links in the drawer.
 	{{ filters := models.ListFiltersFromCtx(ctx).Values() }}
 	{{ delete(filters, models.ParamSubscriptions) }}

@@ -204,7 +204,7 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 	})
 }
 
-func ReportObjectIssues(obj partials.Object, details *models.ObjectIssueRequest) templ.Component {
+func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -254,9 +254,9 @@ func ReportObjectIssues(obj partials.Object, details *models.ObjectIssueRequest)
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("/issue/" + obj.Type() + "/" + obj.GetID())
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("/issue/" + string(obj.Type()) + "/" + obj.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 71, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 71, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {

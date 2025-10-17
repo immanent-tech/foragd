@@ -75,7 +75,7 @@ func (s *Subscription) GetDescription() string {
 	return s.Feed.GetDescription()
 }
 
-func (s *Subscription) GetCategories(max int) []Category {
+func (s *Subscription) GetCategories(max int) Categories {
 	var all []Category
 	if s.Metadata.Customisation.Categories != nil {
 		all = slices.Compact(slices.Concat(s.Metadata.Customisation.Categories, s.Feed.GetCategories()))
@@ -127,8 +127,8 @@ func (s *Subscription) IsFavorite() bool {
 }
 
 // Type returns the type of the object, in this case, "subscription".
-func (s *Subscription) Type() string {
-	return "subscription"
+func (s *Subscription) Type() ObjectType {
+	return ObjectTypeSubscription
 }
 
 func (s *Subscription) ViewURL() string {
@@ -146,9 +146,10 @@ func (s *Subscription) IssueURL() string {
 	return "/issue/subscription/" + s.GetID()
 }
 
-type SubscriptionsSlice []*Subscription
+// Subscriptions is a slice of Subscription objects.
+type Subscriptions []*Subscription
 
-func (s SubscriptionsSlice) FilterByCategories(categories ...Category) SubscriptionsSlice {
+func (s Subscriptions) FilterByCategories(categories ...Category) Subscriptions {
 	if len(categories) == 0 {
 		return s
 	}
@@ -160,7 +161,7 @@ func (s SubscriptionsSlice) FilterByCategories(categories ...Category) Subscript
 	}))
 }
 
-func (s SubscriptionsSlice) FilterByView(view View) SubscriptionsSlice {
+func (s Subscriptions) FilterByView(view View) Subscriptions {
 	switch view {
 	case ViewRead:
 		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
@@ -175,7 +176,7 @@ func (s SubscriptionsSlice) FilterByView(view View) SubscriptionsSlice {
 	}
 }
 
-func (s SubscriptionsSlice) Sort(sort *Sort) SubscriptionsSlice {
+func (s Subscriptions) Sort(sort *Sort) Subscriptions {
 	if sort == nil {
 		sort = &Sort{
 			SortBy:    SortByUnreadCount,
@@ -202,7 +203,7 @@ func (s SubscriptionsSlice) Sort(sort *Sort) SubscriptionsSlice {
 	return s
 }
 
-func (s SubscriptionsSlice) Paginate(pagination Pagination, count int) (SubscriptionsSlice, Pagination) {
+func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions, Pagination) {
 	var from, to int
 	if pagination != "" {
 		value, err := strconv.Atoi(pagination)
@@ -216,7 +217,7 @@ func (s SubscriptionsSlice) Paginate(pagination Pagination, count int) (Subscrip
 }
 
 // GetTotalUnreadCount calculates the total unread articles across all subscriptions in the slice.
-func (s SubscriptionsSlice) GetTotalUnreadCount() int {
+func (s Subscriptions) GetTotalUnreadCount() int {
 	var unread int
 	for subscription := range slices.Values(s) {
 		unread += subscription.GetUnreadCount()
@@ -224,9 +225,27 @@ func (s SubscriptionsSlice) GetTotalUnreadCount() int {
 	return unread
 }
 
+// GetFeedIDs returns the feed ids of all subscriptions in the slice.
+func (s Subscriptions) GetFeedIDs() []FeedID {
+	ids := make([]FeedID, 0, len(s))
+	for subscription := range slices.Values(s) {
+		ids = append(ids, subscription.GetFeedID())
+	}
+	return ids
+}
+
+// GetSubscriptionMetadata returns the metadata for each subscription in the slice.
+func (s Subscriptions) GetSubscriptionMetadata() SubscriptionMetadataSlice {
+	metadata := make(SubscriptionMetadataSlice, 0, len(s))
+	for subscription := range slices.Values(s) {
+		metadata = append(metadata, &subscription.Metadata)
+	}
+	return metadata
+}
+
 // GetCategoryCounts returns a count of the occurrence of a Category across all
 // the Subscriptions.
-func (s SubscriptionsSlice) GetCategoryCounts() CategoryCounts {
+func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 	countsMap := make(map[Category]int)
 	for object := range slices.Values(s) {
 		for category := range slices.Values(object.GetCategories(0)) {
@@ -239,24 +258,6 @@ func (s SubscriptionsSlice) GetCategoryCounts() CategoryCounts {
 	}
 
 	return counts
-}
-
-// GetFeedIDs returns the feed ids of all subscriptions in the slice.
-func (s SubscriptionsSlice) GetFeedIDs() []FeedID {
-	ids := make([]FeedID, 0, len(s))
-	for subscription := range slices.Values(s) {
-		ids = append(ids, subscription.GetFeedID())
-	}
-	return ids
-}
-
-// GetSubscriptionMetadata returns the metadata for each subscription in the slice.
-func (s SubscriptionsSlice) GetSubscriptionMetadata() SubscriptionMetadataSlice {
-	metadata := make(SubscriptionMetadataSlice, 0, len(s))
-	for subscription := range slices.Values(s) {
-		metadata = append(metadata, &subscription.Metadata)
-	}
-	return metadata
 }
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,

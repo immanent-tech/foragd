@@ -5,27 +5,12 @@ package partials
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"time"
 )
 
-type Object interface {
-	GetID() string
-	GetImage() *types.ImageInfo
-	GetUpdatedDate() time.Time
-	GetTitle() string
-	GetDescription() string
-	IsUnread() bool
-	IsFavorite() bool
-	Type() string
-	ViewURL() string
-	MarkURL() string
-}
-
 // GenerateAvatar will render an image appropriate to use as an "avatar" for the object.
-templ GenerateAvatar(obj Object) {
+templ GenerateAvatar(obj models.Object) {
 	// Generate a thumbnail to display next to the title.
 	if img := obj.GetImage(); img != nil {
 		// If the source has an image, use that as the avatar.
@@ -50,7 +35,7 @@ templ GenerateAvatar(obj Object) {
 }
 
 // ViewObjectLink will render a link for viewing an object.
-templ ViewObjectLink(obj Object, include string, vals map[string]string, classes ...string) {
+templ ViewObjectLink(obj models.Object, include string, vals map[string]string, classes ...string) {
 	<a
 		hx-get={ obj.ViewURL() }
 		if include != "" {
@@ -69,12 +54,12 @@ templ ViewObjectLink(obj Object, include string, vals map[string]string, classes
 }
 
 // FavoriteObjectLink will render a link for toggling the favorite status of the object.
-templ FavoriteObjectLink(obj Object, classes ...string) {
+templ FavoriteObjectLink(obj models.Object, classes ...string) {
 	<a
 		if obj.IsFavorite() {
-			hx-post={ "/user/favorite/remove/" + obj.Type() + "/" + obj.GetID() }
+			hx-post={ "/user/favorite/remove/" + string(obj.Type()) + "/" + obj.GetID() }
 		} else {
-			hx-post={ "/user/favorite/add/" + obj.Type() + "/" + obj.GetID() }
+			hx-post={ "/user/favorite/add/" + string(obj.Type()) + "/" + obj.GetID() }
 		}
 		hx-target={ "#favorite_" + obj.GetID() }
 		hx-include="[name='csrf_token']"
@@ -92,12 +77,12 @@ templ FavoriteObjectLink(obj Object, classes ...string) {
 }
 
 // ToggleFavorite renders an updated favorite link based on the object's favorite status.
-templ ToggleFavorite(obj Object) {
+templ ToggleFavorite(obj models.Object) {
 	@FavoriteObjectLink(obj, "menu-item")
 }
 
 // MarkObjectLink will render a link for toggling the mark status of the object.
-templ MarkObjectLink(obj Object, target, swap string, classes ...string) {
+templ MarkObjectLink(obj models.Object, target, swap string, classes ...string) {
 	<a
 		hx-post={ obj.MarkURL() }
 		hx-include="[name='csrf_token']"

@@ -11,29 +11,17 @@ import (
 	"slices"
 )
 
-type Subscription struct {
-	*models.Subscription
-}
-
-// NewSubscriptionContent converts a subscription into an object that can be rendered in different ways within the app
-// UI.
-func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
-	return &Subscription{
-		Subscription: subscription,
-	}
-}
-
-// Card renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
-templ (s *Subscription) Card() {
+// SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
+templ SubscriptionCard(s *models.Subscription) {
 	{{ user, _ := models.UserFromCtx(ctx) }}
 	<li id={ s.GetID() }>
 		<div class={ "card-base", templ.KV("opacity-50",!s.IsUnread()) }>
 			<div class="flex items-center card-section">
 				<div class="flex flex-1">
-					@ViewSubscriptionLink(s.Subscription)
+					@ViewSubscriptionLink(s)
 				</div>
 				<div class="flex flex-none">
-					@actionsMenu(s.Subscription)
+					@actionsMenu(s)
 				</div>
 			</div>
 			// Display up to 5 of the subscription categories.

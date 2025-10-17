@@ -117,7 +117,7 @@ func PaginationControl(ctx context.Context, route string, pagination models.Pagi
 	})
 }
 
-func SubscriptionsGrid(subscriptions models.SubscriptionsSlice, pagination models.Pagination) templ.Component {
+func SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pagination) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -403,7 +403,7 @@ func SubscriptionsGrid(subscriptions models.SubscriptionsSlice, pagination model
 	})
 }
 
-func SubscriptionsList(subscriptions models.SubscriptionsSlice, pagination models.Pagination) templ.Component {
+func SubscriptionsList(subscriptions models.Subscriptions, pagination models.Pagination) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -426,7 +426,7 @@ func SubscriptionsList(subscriptions models.SubscriptionsSlice, pagination model
 		ctx = templ.ClearChildren(ctx)
 		filters := models.ListFiltersFromCtx(ctx)
 		for subscription := range slices.Values(subscriptions) {
-			templ_7745c5c3_Err = partials.NewSubscriptionContent(subscription).Card().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.SubscriptionCard(subscription).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -12,7 +12,7 @@ import (
 )
 
 // SearchSuggestions will render suggestions for a given search.
-templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials.Subscription, articles []*partials.Article) {
+templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subscriptions, articles models.Articles) {
 	// Always generate a suggestion to execute a full search.
 	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="search-group-label">
 		<form
@@ -434,13 +434,13 @@ templ GlobalSearch(user *models.User) {
 
 type SearchResultsPage struct {
 	user          *models.User
-	subscriptions models.SubscriptionsSlice
-	articles      []*models.Article
+	subscriptions models.Subscriptions
+	articles      models.Articles
 	search        *models.SearchRequest
 	favoriteID    models.FavoriteID
 }
 
-func NewSearchResultsPage(user *models.User, fav *models.Favorite, search *models.SearchRequest, subscriptions models.SubscriptionsSlice, articles []*models.Article) *SearchResultsPage {
+func NewSearchResultsPage(user *models.User, fav *models.Favorite, search *models.SearchRequest, subscriptions models.Subscriptions, articles models.Articles) *SearchResultsPage {
 	page := &SearchResultsPage{
 		user:          user,
 		search:        search,
@@ -572,7 +572,7 @@ templ RemoveFavoriteSearchButton(id models.FavoriteID) {
 	</button>
 }
 
-templ showSearchResult(result partials.Object) {
+templ showSearchResult(result models.Object) {
 	<li>
 		<div class="flex gap-x-4 py-5">
 			// Show article image or placeholder thumbnail.

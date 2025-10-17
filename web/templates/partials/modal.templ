@@ -4,6 +4,7 @@ package partials
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 import (
+	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
@@ -36,7 +37,7 @@ templ Modal(id string) {
 }
 
 // UnsubscribeModal renders a modal that will action an unsubscribe request when the user has confirmed.
-templ UnsubscribeModal(obj Object) {
+templ UnsubscribeModal(obj models.Object) {
 	{{ id := "unsubscribe" }}
 	@Modal(id) {
 		<div class="sm:flex sm:items-start">
@@ -53,7 +54,7 @@ templ UnsubscribeModal(obj Object) {
 		<div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
 			<button
 				type="button"
-				hx-post={ "/remove/" + obj.Type() + "/" + obj.GetID() }
+				hx-post={ "/remove/" + string(obj.Type()) + "/" + obj.GetID() }
 				hx-target={ "#" + obj.GetID() }
 				hx-swap="outerHTML"
 				_="on htmx:afterRequest(successful) if successful remove #unsubscribe-modal"

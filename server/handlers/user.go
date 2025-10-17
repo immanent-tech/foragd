@@ -90,7 +90,7 @@ func (a *API) GetSubscriptionsSettings() http.HandlerFunc {
 		request.Text = text
 		// Find matching subscriptions.
 		var (
-			subscriptions models.SubscriptionsSlice
+			subscriptions models.Subscriptions
 			err           error
 		)
 		if request.Text != "" {

@@ -26,7 +26,7 @@ type DataAPI interface {
 	SearchItems(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Items, Pagination, error)
 }
 
-func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (SubscriptionsSlice, Pagination, error) {
+func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Subscriptions, Pagination, error) {
 	// Get subscriptions by ID.
 	subscriptions, err := GetSubscriptions(ctx, dataAPI, filters.GetSubscriptions()...)
 	if err != nil {
@@ -42,7 +42,7 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 	return subscriptions, pagination, nil
 }
 
-func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (SubscriptionsSlice, error) {
+func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (Subscriptions, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not determine user: %w", err)
@@ -72,7 +72,7 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
 	// Generate subscriptions from data sources.
-	subscriptions := make(SubscriptionsSlice, 0, len(feeds))
+	subscriptions := make(Subscriptions, 0, len(feeds))
 	for feed := range slices.Values(feeds) {
 		var metadata *SubscriptionMetadata
 		var count int64
@@ -309,46 +309,6 @@ func GetArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Artic
 	return articles, nil
 }
 
-func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Articles, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to find similar articles: %w", err)
-	}
-	// Build the More Like This query.
-	// TODO: tweak values and fields for optimum results matching...
-	var (
-		minTermFreq   = 1
-		maxQueryTerms = 12
-	)
-	mlt := query.NewMoreLikeThisQuery("similar_articles")
-	mlt.LikeDocs(itemIDs...)
-	mlt.Fields = []string{"title", "categories.raw", "author"}
-	mlt.MinTermFreq = &minTermFreq
-	mlt.MaxQueryTerms = &maxQueryTerms
-	// Build query
-	similarQuery := query.Bool(
-		query.Filter(
-			query.Bool(
-				query.Should(buildSubscriptionQueries(user, ViewUnread, user.GetSubscriptionMetadata()...)...),
-			),
-		),
-		query.Must(
-			mlt.ToQueryOption(),
-		),
-	)
-	// Query for similar articles.
-	items, _, err := dataAPI.SearchItems(ctx, similarQuery, 10, nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("unable to find similar articles: %w", err)
-	}
-	// Generate article data.
-	articles, err := GenerateArticles(ctx, items)
-	if err != nil {
-		return nil, fmt.Errorf("unable to find similar articles: %w", err)
-	}
-	return articles, nil
-}
-
 func GetArticleTopCategories(ctx context.Context, dataAPI DataAPI, feeds ...FeedID) ([]Category, error) {
 	// Build query.
 	query := query.Bool(
@@ -393,6 +353,91 @@ func GetArticleTopCategories(ctx context.Context, dataAPI DataAPI, feeds ...Feed
 	}
 
 	return topCategories, nil
+}
+
+func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Articles, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find similar articles: %w", err)
+	}
+	// Build the More Like This query.
+	// TODO: tweak values and fields for optimum results matching...
+	var (
+		minTermFreq   = 1
+		maxQueryTerms = 12
+	)
+	mlt := query.NewMoreLikeThisQuery("similar_articles")
+	mlt.LikeDocs(itemIDs...)
+	mlt.Fields = []string{"title", "categories.raw", "author"}
+	mlt.MinTermFreq = &minTermFreq
+	mlt.MaxQueryTerms = &maxQueryTerms
+	// Build query
+	similarQuery := query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(buildSubscriptionQueries(user, ViewUnread, user.GetSubscriptionMetadata()...)...),
+			),
+		),
+		query.Must(
+			mlt.ToQueryOption(),
+		),
+	)
+	// Query for similar articles.
+	items, _, err := dataAPI.SearchItems(ctx, similarQuery, 10, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find similar articles: %w", err)
+	}
+	// Generate article data.
+	articles, err := GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find similar articles: %w", err)
+	}
+	return articles, nil
+}
+
+// GetSearchSuggestions will find suggestions for the global search from available subscriptions and articles.
+func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms string) (Subscriptions, Articles, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not fetch user: %w", err)
+	}
+	// Get article suggestions.
+	feedIDs := user.GetSubscriptionMetadata().GetFeedIDs()
+	itemsQuery := query.Bool(
+		query.Filter(
+			query.Terms("feed_id", feedIDs...),
+		),
+		query.Must(
+			query.Bool(
+				query.Should(
+					query.SearchAsYouType(searchTerms, "title"),
+					query.SearchAsYouType(searchTerms, "description"),
+					query.SearchAsYouType(searchTerms, "categories"),
+				),
+			),
+		),
+	)
+	itemResults, _, err := dataAPI.SearchItems(ctx, itemsQuery, 10, &SortLastUpdatedDesc, nil)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not get item matches: %w", err)
+	}
+	articles, err := GenerateArticles(ctx, itemResults)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Error generating articles from items.", slog.Any("error", err))
+	}
+
+	// Generate subscriptions from data sources.
+	metadataMatches := user.GetSubscriptionMetadata().Search(searchTerms)
+	subscriptions, err := GetSubscriptions(ctx, dataAPI, metadataMatches.GetIDs()...)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
+	}
+	// Truncate subscription matches to 3 results.
+	if len(subscriptions) > 3 {
+		subscriptions = subscriptions[:3]
+	}
+
+	return subscriptions, articles, nil
 }
 
 func BuildItemsQuery(ctx context.Context, filters Filters, subscriptions ...SubscriptionID) (query.Option, error) {

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"slices"
 	"strings"
 	"time"
 
@@ -41,7 +40,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 			return
 		}
 		// Get results.
-		subscriptions, articles, err := a.getSearchSuggestions(req.Context(), request.Text)
+		subscriptions, articles, err := models.GetSearchSuggestions(req.Context(), a.Elastic, request.Text)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Debug("Unable to retrieve suggestion data.",
 				slog.Any("error", err))
@@ -148,61 +147,8 @@ func AddSubscriptionFilter() http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// getSearchSuggestions will find suggestions for the global search from available subscriptions and articles.
-func (a *API) getSearchSuggestions(ctx context.Context, searchTerms string) ([]*partials.Subscription, []*partials.Article, error) {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to generate search suggestions: %w", err)
-	}
-	// Get article suggestions.
-	feedIDs := user.GetSubscriptionMetadata().GetFeedIDs()
-	itemsQuery := query.Bool(
-		query.Filter(
-			query.Terms("feed_id", feedIDs...),
-		),
-		query.Must(
-			query.Bool(
-				query.Should(
-					query.SearchAsYouType(searchTerms, "title"),
-					query.SearchAsYouType(searchTerms, "description"),
-					query.SearchAsYouType(searchTerms, "categories"),
-				),
-			),
-		),
-	)
-	itemResults, _, err := a.DataAPI().SearchItems(ctx, itemsQuery, 10, &models.SortLastUpdatedDesc, nil)
-	if err != nil {
-		return nil, nil, fmt.Errorf("findSuggestions: %w", err)
-	}
-	details, err := models.GenerateArticles(ctx, itemResults)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Error generating articles from items.", slog.Any("error", err))
-	}
-	articles := make([]*partials.Article, 0, len(itemResults))
-	for article := range slices.Values(details) {
-		articles = append(articles, partials.NewArticleContent(article))
-	}
-
-	// Generate subscriptions from data sources.
-	metadataMatches := user.GetSubscriptionMetadata().Search(searchTerms)
-	subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
-	}
-	// Truncate subscription matches to 3 results.
-	if len(subscriptionMatches) > 3 {
-		subscriptionMatches = subscriptionMatches[:3]
-	}
-	subscriptions := make([]*partials.Subscription, 0, len(subscriptionMatches))
-	for s := range slices.Values(subscriptionMatches) {
-		subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
-	}
-
-	return subscriptions, articles, nil
-}
-
 // getSearchResults will find suggestions for the global search from available subscriptions and articles.
-func (a *API) getSearchResults(ctx context.Context, request *models.SearchRequest) (models.SubscriptionsSlice, []*models.Article, error) {
+func (a *API) getSearchResults(ctx context.Context, request *models.SearchRequest) (models.Subscriptions, []*models.Article, error) {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
@@ -221,7 +167,7 @@ func (a *API) getSearchResults(ctx context.Context, request *models.SearchReques
 	// }
 
 	// Generate subscriptions from data sources.
-	subscriptions := make(models.SubscriptionsSlice, 0)
+	subscriptions := make(models.Subscriptions, 0)
 	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
 	if len(metadataMatches) > 0 {
 		subscriptions, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
@@ -300,7 +246,7 @@ func buildSearchQuery(user *models.User, request *models.SearchRequest) query.Op
 	)
 }
 
-func (a *API) findSubscriptions(ctx context.Context, request *models.SearchRequest) (models.SubscriptionsSlice, error) {
+func (a *API) findSubscriptions(ctx context.Context, request *models.SearchRequest) (models.Subscriptions, error) {
 	// Retrieve user object.
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {

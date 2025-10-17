@@ -19,15 +19,24 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
-// Articles is a slices of individual articles.
+// Articles is a slices of Article objects.
 type Articles []*Article
+
+// GetSubscriptionIDs retrieves the subscription ids for all articles in the slice.
+func (a Articles) GetSubscriptionIDs() []SubscriptionID {
+	ids := make([]SubscriptionID, 0, len(a))
+	for article := range slices.Values(a) {
+		ids = append(ids, article.SubscriptionID)
+	}
+	return slices.Compact(ids)
+}
 
 // GetCategoryCounts returns a count of the occurrence of a Category across all
 // the Articles in the slice.
 func (a Articles) GetCategoryCounts() CategoryCounts {
 	countsMap := make(map[Category]int)
 	for article := range slices.Values(a) {
-		for category := range slices.Values(article.GetCategories()) {
+		for category := range slices.Values(article.GetCategories(0)) {
 			countsMap[category]++
 		}
 	}
@@ -37,15 +46,6 @@ func (a Articles) GetCategoryCounts() CategoryCounts {
 	}
 
 	return counts
-}
-
-// GetSubscriptionIDs retrieves the subscription ids for all articles in the slice.
-func (a Articles) GetSubscriptionIDs() []SubscriptionID {
-	ids := make([]SubscriptionID, 0, len(a))
-	for article := range slices.Values(a) {
-		ids = append(ids, article.SubscriptionID)
-	}
-	return slices.Compact(ids)
 }
 
 // GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
@@ -119,22 +119,27 @@ func (a *Article) Valid() (bool, error) {
 	return true, nil
 }
 
+// GetID returns the article ID.
 func (a *Article) GetID() string {
 	return a.Item.GetID()
 }
 
+// GetSubscriptionID returns the ID of the user subscription the article belongs to.
 func (a *Article) GetSubscriptionID() SubscriptionID {
 	return a.SubscriptionID
 }
 
+// GetFeedID returns the ID of the feed the article belongs to.
 func (a *Article) GetFeedID() FeedID {
 	return a.Item.GetFeedID()
 }
 
+// GetTitle returns the title of the article.
 func (a *Article) GetTitle() string {
 	return a.Item.GetTitle()
 }
 
+// GetDescription returns the description of the article.
 func (a *Article) GetDescription() string {
 	return a.Item.GetDescription()
 }
@@ -171,8 +176,16 @@ func (a *Article) GetLink() string {
 	return a.Item.GetLink()
 }
 
-func (a *Article) GetCategories() []string {
-	return a.Item.GetCategories()
+func (a *Article) GetCategories(max int) Categories {
+	categories := a.Item.GetCategories()
+	if max != 0 {
+		if len(categories) > max {
+			return categories[:max]
+		} else {
+			return categories
+		}
+	}
+	return categories
 }
 
 func (a *Article) GetFeedTitle() string {
@@ -190,8 +203,8 @@ func (s *Article) IsFavorite() bool {
 }
 
 // Type returns the type of the object, in this case, "article".
-func (a *Article) Type() string {
-	return "article"
+func (a *Article) Type() ObjectType {
+	return ObjectTypeArticle
 }
 
 func (a *Article) ViewURL() string {
