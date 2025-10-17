@@ -129,12 +129,12 @@ func (s *Subscription) Card() templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<dl class=\"-my-3 px-6 py-2 text-sm/6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<dl class=\"-my-3 px-6 text-sm/6 card-section\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if user.GetSettings().ShowUnreadCounts {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"flex justify-between gap-x-4 py-3\"><dt class=\"\">Unread Count</dt><dd class=\"text-base-content/90\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"flex justify-between gap-x-4 sm:py-3\"><dt class=\"\">Unread Count</dt><dd class=\"text-base-content/90\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -154,7 +154,7 @@ func (s *Subscription) Card() templ.Component {
 		}
 		if s.Stats != nil {
 			if s.Stats.GetDailyUpdates() > 1 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"flex justify-between gap-x-4 py-3\"><dt class=\"\">Update frequency</dt><dd class=\"text-base-content/90\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"flex justify-between gap-x-4 sm:py-3\"><dt class=\"\">Update frequency</dt><dd class=\"text-base-content/90\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -172,23 +172,23 @@ func (s *Subscription) Card() templ.Component {
 					return templ_7745c5c3_Err
 				}
 			} else if s.Stats.AvgDailyUpdates < 1 && s.Stats.AvgDailyUpdates > 0.5 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"flex justify-between gap-x-4 py-3\"><dt class=\"\">Update frequency</dt><dd class=\"text-base-content/90\">A few times a week</dd></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"flex justify-between gap-x-4 sm:py-3\"><dt class=\"\">Update frequency</dt><dd class=\"text-base-content/90\">A few times a week</dd></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else if s.Stats.AvgDailyUpdates < 0.5 && s.Stats.AvgDailyUpdates > 0.25 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"flex justify-between gap-x-4 py-3\"><dt class=\"\">Update frequency</dt><dd class=\"text-base-content/90\">About weekly</dd></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"flex justify-between gap-x-4 sm:py-3\"><dt class=\"\">Update frequency</dt><dd class=\"text-base-content/90\">About weekly</dd></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"flex justify-between gap-x-4 py-3\"><dt class=\"\">Update frequency</dt><dd class=\"text-base-content/90\">Infrequent</dd></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"flex justify-between gap-x-4 sm:py-3\"><dt class=\"\">Update frequency</dt><dd class=\"text-base-content/90\">Infrequent</dd></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div class=\"flex justify-between gap-x-4 py-3\"><dt class=\"\">Last update</dt><dd class=\"text-base-content/90\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div class=\"flex justify-between gap-x-4 sm:py-3\"><dt class=\"\">Last update</dt><dd class=\"text-base-content/90\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
