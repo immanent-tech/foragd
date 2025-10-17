@@ -3,6 +3,12 @@
 
 package layouts
 
+import (
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+)
+
+// NotFound renders a layout appropriate to use for a 404 response.
 templ NotFound() {
 	<main class="grid min-h-full place-items-center bg-base-100 px-6 py-24 sm:py-32 lg:px-8">
 		<div class="text-center">
@@ -12,6 +18,18 @@ templ NotFound() {
 				<a href="/home" role="button" class="btn btn-primary">Go back home</a>
 				<a href="#" class="text-sm font-semibold">Contact support <span aria-hidden="true">&rarr;</span></a>
 			</div>
+		</div>
+	</main>
+}
+
+// EmptyContent renders a layout appropriate for use when there is nothing to show.
+templ EmptyContent() {
+	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+		<div class="text-center">
+			@tabler.FileUnknown(i.Props{Class: "mx-auto size-12 text-base-content"})
+			<h3 class="mt-2 text-base font-semibold">Nothing to show</h3>
+			<p class="mt-1 text-sm text-base-content">Try adjusting your filters/search, or maybe you are all caught up?</p>
+			<btn class="btn btn-ghost mt-1 text-sm text-base-content" onclick="history.back()">Go back</btn>
 		</div>
 	</main>
 }

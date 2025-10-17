@@ -89,12 +89,8 @@ templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, stats map[model
 		} else {
 			@partials.ListDisplayFilters(subscriptions.GetCategoryCounts(), filters, false)
 		}
-		if len(subscriptions) >0 {
-			@Grid() {
-				@SubscriptionsList(subscriptions, stats, pagination)
-			}
-		} else {
-			@EmptyContent()
+		@Grid() {
+			@SubscriptionsList(subscriptions, stats, pagination)
 		}
 	</main>
 }
@@ -176,12 +172,8 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 		} else {
 			@partials.ListDisplayFilters(articles.GetCategoryCounts(), filters, false)
 		}
-		if len(articles) > 0 {
-			@Grid() {
-				@ArticlesList(articles, pagination)
-			}
-		} else {
-			@EmptyContent()
+		@Grid() {
+			@ArticlesList(articles, pagination)
 		}
 	</main>
 }

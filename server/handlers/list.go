@@ -94,7 +94,11 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			// Render appropriate content.
 			switch req.Method {
 			case http.MethodGet:
-				template = layouts.ArticlesGrid(articles, pagination)
+				if len(articles) > 0 {
+					template = layouts.ArticlesGrid(articles, pagination)
+				} else {
+					template = layouts.EmptyContent()
+				}
 			case http.MethodPost:
 				if len(articles) > 0 {
 					template = layouts.ArticlesList(articles, pagination)

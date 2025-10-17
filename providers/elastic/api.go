@@ -37,7 +37,10 @@ import (
 	"github.com/immanent-tech/foragd/server/session/store"
 )
 
-var ErrNotFound = errors.New("not found")
+var (
+	ErrNotFound     = errors.New("not found")
+	ErrNoIndexInCtx = errors.New("index not found in context")
+)
 
 var (
 	_ store.Datastore = (*API)(nil)
@@ -284,12 +287,12 @@ func (e *API) UpdateFeed(ctx context.Context, id models.FeedID, updated *feeds.F
 func (e *API) SearchItems(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Items, models.Pagination, error) {
 	index, err := ItemsReadIndexFromCtx(ctx)
 	if err != nil {
-		return nil, "", fmt.Errorf("unable to search items: %w", err)
+		return nil, "", models.NewAPIError(ErrNoIndexInCtx, http.StatusInternalServerError)
 	}
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
-		return nil, "", fmt.Errorf("unable to search items: %w", err)
+		return nil, "", models.NewAPIError(err, http.StatusInternalServerError)
 	}
 	// Perform search.
 	items, newSearchAfter, err := Search[*models.Item](ctx, e.GetAPI(), index, query, count,
@@ -297,12 +300,12 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 	)
 	if err != nil {
-		return nil, "", fmt.Errorf("unable to search items: %w", err)
+		return nil, "", toAPIError(err)
 	}
 	// Parse last search after value into pagination.
 	newPagination, err := encodePagination(newSearchAfter)
 	if err != nil {
-		return nil, "", fmt.Errorf("unable to search items: %w", err)
+		return nil, "", models.NewAPIError(err, http.StatusInternalServerError)
 	}
 	return items, newPagination, nil
 }
@@ -628,7 +631,7 @@ func Search[O any](ctx context.Context, api *elasticsearch.TypedClient, index st
 	req := NewSearchRequest(api, defaultOptions...)
 	resp, err := req.Do(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("search request failed: %w", err)
+		return nil, nil, err
 	}
 	var warnings error
 	var docs []O
