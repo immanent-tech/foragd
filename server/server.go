@@ -264,10 +264,10 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/search/filter/subscription", handlers.AddSubscriptionFilter())
 
 		// Lists.
-		r.Route("/list", func(r chi.Router) {
-			r.Get("/{list}", handlers.ShowList(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/{list}/paginate", handlers.ShowList(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/{list}/mark", handlers.MarkList(handler.Elastic))
+		r.Route("/list/{list}", func(r chi.Router) {
+			r.Get("/", handlers.ShowList(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.ShowList(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/mark", handlers.MarkList(handler.Elastic))
 			r.Get("/updates", handlers.WatchList(handler.Elastic))
 		})
 		// Objects.

@@ -35,7 +35,6 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
-// Keys for objects stored within the context and passed between handlers.
 const (
 	// defaultUpdateInterval is the default interval for checking for updates (i.e., for update notifications).
 	defaultUpdateInterval = time.Minute
@@ -142,7 +141,11 @@ func renderPage(template templ.Component, title string) http.Handler {
 		// Get the user details.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+			slogctx.FromCtx(req.Context()).Error("Failed to render page template.",
+				slog.Any("error", err),
+				slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
+				slog.String("url", req.URL.String()),
+			)
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
