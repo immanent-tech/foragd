@@ -4,6 +4,8 @@
 package layouts
 
 import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
@@ -23,13 +25,21 @@ templ NotFound() {
 }
 
 // EmptyContent renders a layout appropriate for use when there is nothing to show.
-templ EmptyContent() {
+templ EmptyContent(backLink string, vals map[string]string) {
 	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 		<div class="text-center">
 			@tabler.FileUnknown(i.Props{Class: "mx-auto size-12 text-base-content"})
 			<h3 class="mt-2 text-base font-semibold">Nothing to show</h3>
 			<p class="mt-1 text-sm text-base-content">Try adjusting your filters/search, or maybe you are all caught up?</p>
-			<btn class="btn btn-ghost mt-1 text-sm text-base-content" onclick="history.back()">Go back</btn>
+			<btn
+				class="btn btn-ghost mt-1 text-sm text-base-content"
+				hx-get={ backLink }
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+				if vals != nil {
+					hx-vals={ models.GenerateHXVals(vals) }
+				}
+			>Go back</btn>
 		</div>
 	</main>
 }
