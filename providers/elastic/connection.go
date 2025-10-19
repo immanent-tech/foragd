@@ -47,12 +47,12 @@ var defaultTransportConfig = &http.Transport{
 func Connect(ctx context.Context, env string) (*API, error) {
 	clientConfig, err := loadConfigOnce(env)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
+		return nil, fmt.Errorf("could not load config: %w", err)
 	}
 
 	esclient, err := elasticsearch.NewTypedClient(*clientConfig)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
+		return nil, fmt.Errorf("could not generate client: %w", err)
 	}
 
 	return &API{TypedClient: esclient}, nil
@@ -61,11 +61,11 @@ func Connect(ctx context.Context, env string) (*API, error) {
 func RawConnection(ctx context.Context, env string) (*elasticsearch.Client, error) {
 	clientConfig, err := loadConfigOnce(env)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
+		return nil, fmt.Errorf("could not load config: %w", err)
 	}
 	es, err := elasticsearch.NewClient(*clientConfig)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
+		return nil, fmt.Errorf("could not generate client: %w", err)
 	}
 	return es, nil
 }

@@ -65,7 +65,7 @@ func SaveSettings(api *elastic.API) http.HandlerFunc {
 			settings.ShowUnreadCounts = false
 		}
 		// Update user object with new settings.
-		err = api.UpdateUser(req.Context(), map[string]any{"settings": settings})
+		err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": settings})
 		if err != nil {
 			template := partials.Notification(
 				models.NewErrorMessage("Unable save settings", "This might be a temporary issue, please try again"), 0,
@@ -118,7 +118,7 @@ func (a *API) GetSubscriptionsSettings() http.HandlerFunc {
 // AccountSettings handles managing user account settings.
 func (a *API) AccountSettings() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		_, err := models.UserFromCtx(req.Context())
+		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			return fmt.Errorf("unable to get account settings: %w", err)
 		}
@@ -138,7 +138,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			// Apply updates.
-			err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+			err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 				"nickname": request.Nickname,
 			})
 			if err != nil {
@@ -172,7 +172,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
-		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"settings": settings,
 		})
 		if err != nil {
@@ -215,7 +215,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -264,7 +264,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user.RemoveFavorite(id)
-		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -337,7 +337,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -393,7 +393,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		user.RemoveFavorite(id)
-		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -469,7 +469,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -523,7 +523,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 		}
 		// Remove the favorite.
 		user.RemoveFavorite(id)
-		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {

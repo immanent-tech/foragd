@@ -115,7 +115,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 		case models.ObjectTypeSubscription:
 			user.MarkSubscriptions(params.Mark, params.ObjectID)
 			// Update the user object.
-			err = api.UpdateUser(req.Context(), map[string]any{
+			err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{
 				"subscriptions": user.Subscriptions,
 			})
 			if err != nil {
@@ -141,7 +141,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 			}
 			user.MarkItems(params.Mark, subscriptionID, params.ObjectID)
 			// Update the user object.
-			err = api.UpdateUser(req.Context(), map[string]any{
+			err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{
 				"subscriptions": user.Subscriptions,
 			})
 			if err != nil {
@@ -287,7 +287,7 @@ func RemoveObject(api *elastic.API) http.HandlerFunc {
 			// Remove metadata for given subscriptions from user.
 			user.RemoveSubscriptions(params.ObjectID)
 			// Update the user.
-			err = api.UpdateUser(req.Context(), map[string]any{
+			err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{
 				"subscriptions": user.GetSubscriptionMetadata(),
 			})
 			if err != nil {

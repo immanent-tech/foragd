@@ -22,7 +22,7 @@ import (
 type DataAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
 	ItemsAggregation(ctx context.Context, query query.Option, count int, agg aggregations.Aggs) (*search.Response, error)
-	UpdateUser(ctx context.Context, updates map[string]any) error
+	UpdateUser(ctx context.Context, id UserID, updates map[string]any) error
 	SearchItems(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Items, Pagination, error)
 }
 
@@ -242,7 +242,7 @@ func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscrip
 	// Mark user subscriptions.
 	user.MarkSubscriptions(mark, subscriptions...)
 	// Update the user.
-	err = dataAPI.UpdateUser(ctx, map[string]any{
+	err = dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
 		"subscriptions": user.GetSubscriptionMetadata(),
 	})
 	if err != nil {

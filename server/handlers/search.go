@@ -96,7 +96,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				renderPartial(template).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
-			err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+			err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 				"favorites": user.Favorites,
 			})
 			if err != nil {

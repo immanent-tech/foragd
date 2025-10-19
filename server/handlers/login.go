@@ -170,7 +170,7 @@ func syncLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProf
 	}
 	if len(updates) > 0 {
 		// Update the user object.
-		err := api.UpdateUser(ctx, updates)
+		err := api.UpdateUser(ctx, user.GetID(), updates)
 		if err != nil {
 			slogctx.FromCtx(ctx).Error("Could not sync user data.",
 				slog.Any("error", err))

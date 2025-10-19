@@ -93,7 +93,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Update the user.
-		err = a.DataAPI().UpdateUser(req.Context(), map[string]any{
+		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"subscriptions": user.GetSubscriptionMetadata(),
 		})
 		if err != nil {
@@ -518,7 +518,7 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 			settings.ShowOnboarding = false
 		}
 		// Update the user object.
-		err = api.UpdateUser(ctx, map[string]any{
+		err = api.UpdateUser(ctx, user.GetID(), map[string]any{
 			"subscriptions": user.Subscriptions,
 			"settings":      settings,
 		})
