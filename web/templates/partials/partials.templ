@@ -63,7 +63,7 @@ templ HelpPopover(id, anchor string) {
 // Dock renders a dock at the bottom of the page with navigation buttons for the main pages of the service. Where
 // applicable, the button for the current page will be marked.
 templ Dock() {
-	<div class="dock lg:hidden">
+	<div class="dock bg-base-200 lg:hidden">
 		<button
 			hx-get="/home"
 			hx-target={ ContentID.Target() }

@@ -12,18 +12,6 @@ import (
 
 templ Header() {
 	<div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-base-content/10 bg-base-200 px-4 sm:gap-x-6 sm:px-6 lg:px-8">
-		// <button type="button" command="show-modal" commandfor="mobile-sidebar" class="-m-2.5 p-2.5 btn btn-ghost btn-square hover:text-primary lg:hidden">
-		// 	<span class="sr-only">Open sidebar</span>
-		// 	@tabler.LayoutSidebarFilled(i.Props{Class: "size-6 shrink-0"})
-		// </button>
-		// <a hx-get="/home" hx-target={ partials.ContentID.Target() } hx-push-url="true" role="button" class="-m-2.5 p-2.5 btn btn-ghost btn-square hover:text-primary lg:hidden">
-		// 	<span class="sr-only">Go to home page</span>
-		// 	@tabler.HomeFilled(i.Props{Class: "size-6 shrink-0"})
-		// </a>
-		<div class="flex h-16 shrink-0 items-center lg:hidden">
-			@partials.Logo("logo-drawer size-8")
-		</div>
-		<div aria-hidden="true" class="h-6 w-px bg-base-content/10 lg:hidden"></div>
 		<div class="flex flex-1 gap-x-4 self-stretch items-center lg:gap-x-6">
 			<div class="sm:relative grid flex-1 grid-cols-1 mx-auto sm:max-w-3xl">
 				@GlobalSearch()
