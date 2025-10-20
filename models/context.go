@@ -11,6 +11,7 @@ const (
 	userCtxKey      contextKey = "user"
 	filtersCtxKey   contextKey = "list_filters"
 	csrfTokenCtxKey contextKey = "csrfToken"
+	pathCtxKey      contextKey = "req_path"
 )
 
 type contextKey string
@@ -53,4 +54,17 @@ func ListFiltersFromCtx(ctx context.Context) *ListDisplayFilters {
 		return &newFilters
 	}
 	return filters
+}
+
+func PathToCtx(ctx context.Context, path string) context.Context {
+	return context.WithValue(ctx, pathCtxKey, path)
+}
+
+func PathFromCtx(ctx context.Context) string {
+	path, found := ctx.Value(pathCtxKey).(string)
+	if !found {
+		// Assume "/home"
+		return "/home"
+	}
+	return path
 }

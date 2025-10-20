@@ -120,15 +120,15 @@
     }
   }
   .logo-drawer {
-    @apply fill-base-content stroke-base-content;
+    @apply fill-accent stroke-accent;
     path {
-      @apply fill-base-content stroke-base-content;
+      @apply fill-accent stroke-accent;
     }
     ellipse {
-      @apply stroke-base-content;
+      @apply stroke-accent;
     }
     circle {
-      @apply stroke-base-content;
+      @apply stroke-accent;
     }
   }
 }

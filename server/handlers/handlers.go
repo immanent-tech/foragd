@@ -23,6 +23,8 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -33,6 +35,10 @@ var (
 	ErrInvalidContent = errors.New("invalid content")
 	// ErrInvalidRequestParams indicates that the request parameters received were invalid.
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
+)
+
+var defaultHandlerChain = alice.New(
+	storePath,
 )
 
 const (
@@ -138,17 +144,6 @@ func SetRedirect(ctx context.Context, path string, filters models.Filters, res h
 // appropriate full or partial HTML response as appropriate.
 func renderPage(template templ.Component, title string) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to render page template.",
-				slog.Any("error", err),
-				slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
-				slog.String("url", req.URL.String()),
-			)
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
 		if template == nil {
 			// If there is no response, return 204: No Content.
 			res.WriteHeader(http.StatusNoContent)
@@ -158,7 +153,7 @@ func renderPage(template templ.Component, title string) http.Handler {
 		if IsHTMX(req) {
 			if IsHistoryRestoreRequest(req) {
 				slogctx.FromCtx(req.Context()).Debug("History restore request")
-				template = layouts.Drawer(layouts.DrawerData{User: user}, template)
+				template = layouts.Content(template)
 				templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
 				return
 			}
@@ -175,7 +170,7 @@ func renderPage(template templ.Component, title string) http.Handler {
 				templ.Handler(template).ServeHTTP(res, req)
 			}
 		} else {
-			template = layouts.Drawer(layouts.DrawerData{User: user}, template)
+			template = layouts.Content(template)
 			template = templates.Page(title, template)
 			err := template.Render(req.Context(), res)
 			if err != nil {
@@ -200,8 +195,8 @@ func IsHistoryRestoreRequest(req *http.Request) bool {
 	return req.Header.Get("HX-History-Restore-Request") == "true"
 }
 
-// Document handles displaying a document, such as the privacy policy or terms of service..
-func Document(fs embed.FS, file string) http.HandlerFunc {
+// RenderMarkdown handles displaying a document, such as the privacy policy or terms of service..
+func RenderMarkdown(fs embed.FS, file string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		data, err := fs.Open(file)
 		if err != nil {
@@ -219,4 +214,44 @@ func Document(fs embed.FS, file string) http.HandlerFunc {
 		}
 		return nil
 	})).ServeHTTP
+}
+
+func parseFilters(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		filters, valid, err := forms.DecodeForm[*models.ListDisplayFilters](req)
+		ctx := req.Context()
+		switch {
+		case err != nil:
+			if errors.Is(err, forms.ErrNoFormData) {
+				restored := session.RestoreFromSession(ctx, listFiltersSessionKey, models.NewListDisplayFilters)
+				filters = &restored
+				ctx = models.FiltersToCtx(ctx, filters)
+				slogctx.FromCtx(ctx).Debug("No form data. Using filters from session.",
+					slog.String("filters", filters.QueryString()))
+			} else {
+				slogctx.FromCtx(ctx).Debug("Error parsing filters. Using default filters.")
+				newFilters := models.NewListDisplayFilters()
+				session.SaveToSession(ctx, listFiltersSessionKey, newFilters)
+				ctx = models.FiltersToCtx(ctx, &newFilters)
+			}
+		case !valid:
+			slogctx.FromCtx(ctx).Debug("Invalid filters. Using default.")
+			newFilters := models.NewListDisplayFilters()
+			session.SaveToSession(ctx, listFiltersSessionKey, newFilters)
+			ctx = models.FiltersToCtx(ctx, &newFilters)
+		default:
+			slogctx.FromCtx(ctx).Debug("Saving filters.",
+				slog.String("filters", filters.QueryString()))
+			session.SaveToSession(ctx, listFiltersSessionKey, *filters)
+			ctx = models.FiltersToCtx(ctx, filters)
+		}
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+func storePath(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		ctx := models.PathToCtx(req.Context(), req.URL.Path)
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
 }

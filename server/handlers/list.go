@@ -6,7 +6,6 @@ package handlers
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -16,13 +15,12 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/server/forms"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/layouts"
 	"github.com/immanent-tech/foragd/web/templates/partials"
@@ -38,6 +36,7 @@ const (
 func ShowList(api *elastic.API) http.HandlerFunc {
 	return alice.New(
 		parseFilters,
+		storePath,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
 		filters := models.ListFiltersFromCtx(req.Context())
@@ -69,8 +68,9 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			// Render appropriate content.
 			switch req.Method {
 			case http.MethodGet:
+				godump.Dump(req.URL.Path)
 				if len(subscriptions) > 0 {
-					template = layouts.SubscriptionsGrid(subscriptions, pagination)
+					template = layouts.Subscriptions(subscriptions, pagination)
 				} else {
 					template = layouts.EmptyContent("/home", nil)
 				}
@@ -92,7 +92,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			switch req.Method {
 			case http.MethodGet:
 				if len(articles) > 0 {
-					template = layouts.ArticlesGrid(articles, pagination)
+					template = layouts.Articles(articles, pagination)
 				} else {
 					filters.Subscriptions = nil
 					template = layouts.EmptyContent("/list/subscriptions", filters.Values())
@@ -262,45 +262,4 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		res.WriteHeader(http.StatusOK)
 		return nil
 	})).ServeHTTP
-}
-
-func parseFilters(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		filters, valid, err := forms.DecodeForm[*models.ListDisplayFilters](req)
-		ctx := req.Context()
-		switch {
-		case err != nil:
-			if errors.Is(err, forms.ErrNoFormData) {
-				restored := session.RestoreFromSession(ctx, listFiltersSessionKey, models.NewListDisplayFilters)
-				filters = &restored
-				ctx = models.FiltersToCtx(ctx, filters)
-				slogctx.FromCtx(ctx).Debug("No form data. Using filters from session.",
-					slog.String("filters", filters.QueryString()))
-			} else {
-				slogctx.FromCtx(ctx).Debug("Error parsing filters. Using default filters.")
-				newFilters := models.NewListDisplayFilters()
-				session.SaveToSession(ctx, listFiltersSessionKey, newFilters)
-				ctx = models.FiltersToCtx(ctx, &newFilters)
-			}
-		case !valid:
-			slogctx.FromCtx(ctx).Debug("Invalid filters. Using default.")
-			newFilters := models.NewListDisplayFilters()
-			session.SaveToSession(ctx, listFiltersSessionKey, newFilters)
-			ctx = models.FiltersToCtx(ctx, &newFilters)
-		default:
-			slogctx.FromCtx(ctx).Debug("Saving filters.",
-				slog.String("filters", filters.QueryString()))
-			session.SaveToSession(ctx, listFiltersSessionKey, *filters)
-			ctx = models.FiltersToCtx(ctx, filters)
-		}
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-func getFilters(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		filters := session.RestoreFromSession(req.Context(), listFiltersSessionKey, models.NewListDisplayFilters)
-		ctx := models.FiltersToCtx(req.Context(), &filters)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
 }

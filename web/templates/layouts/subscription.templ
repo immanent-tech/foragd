@@ -10,8 +10,38 @@ import (
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 )
+
+templ Subscriptions(subscriptions models.Subscriptions, pagination models.Pagination) {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
+	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+		// Hidden content filters.
+		<div id="content-filters" class="hidden">
+			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+			<input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
+			<input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
+			if len(filters.GetCategories()) > 0 {
+				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>
+			}
+			if len(filters.GetSubscriptions()) > 0 {
+				<input type="hidden" name={ models.ParamSubscriptions } value={ strings.Join(filters.GetSubscriptions(), ",") }/>
+			}
+		</div>
+		<div id="update-notifications" sse-connect={ "/list/subscriptions/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
+		if len(subscriptions) > 0 {
+			@partials.ListDisplayFilters(subscriptions.GetCategoryCounts(), filters, true)
+		} else {
+			@partials.ListDisplayFilters(subscriptions.GetCategoryCounts(), filters, false)
+		}
+		@Grid() {
+			@SubscriptionsList(subscriptions, pagination)
+		}
+		@partials.Dock()
+	</main>
+}
 
 templ EditSubscription(request *models.EditSubscriptionRequest) {
 	@partials.MainContainer() {

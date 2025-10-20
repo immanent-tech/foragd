@@ -5,6 +5,7 @@ package layouts
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -42,4 +43,88 @@ templ EmptyContent(backLink string, vals map[string]string) {
 			>Go back</btn>
 		</div>
 	</main>
+}
+
+templ Content(content templ.Component) {
+	<div class="hidden bg-base-200 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col">
+		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4">
+			<div class="flex flex-col h-16 shrink-0 gap-4 mt-8 items-center text-accent">
+				@partials.Logo("logo-drawer size-16")
+				Foragd
+			</div>
+			// Remove any subscription filter from the saved filters in the session and use these filters for links in the drawer.
+			{{ filters := models.ListFiltersFromCtx(ctx).Values() }}
+			{{ delete(filters, models.ParamSubscriptions) }}
+			<nav aria-label="Sidebar" class="flex flex-1 flex-col items-center">
+				<ul role="list" class="flex flex-1 flex-col gap-y-7">
+					<li>
+						<a
+							href="/home"
+							class="group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"
+						>
+							<span class="sr-only">Go to home page</span>
+							@tabler.Home(i.Props{Class: "size-6 shrink-0 text-current"})
+							Home
+						</a>
+					</li>
+					<li>
+						<a
+							hx-get="/list/subscriptions"
+							hx-target={ partials.ContentID.Target() }
+							hx-push-url="true"
+							hx-vals={ models.GenerateHXVals(filters) }
+							class="group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"
+							_="on click toggle @open on #mobile-sidebar-dialog"
+						>
+							<span class="sr-only">Show all unread subscriptions</span>
+							@tabler.Rss(i.Props{Class: "size-6 shrink-0 text-current"})
+							Subscriptions
+						</a>
+					</li>
+					<li>
+						<a
+							hx-get="/list/articles"
+							hx-target={ partials.ContentID.Target() }
+							hx-push-url="true"
+							hx-vals={ models.GenerateHXVals(filters) }
+							class="group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"
+							_="on click toggle @open on #mobile-sidebar-dialog"
+						>
+							<span class="sr-only">Show all unread articles</span>
+							@tabler.FileRss(i.Props{Class: "size-6 shrink-0 text-current"})
+							Articles
+						</a>
+					</li>
+					<li>
+						<a
+							hx-get="/favorites"
+							hx-target={ partials.ContentID.Target() }
+							hx-push-url="true"
+							hx-vals={ models.GenerateHXVals(filters) }
+							class="group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"
+							_="on click toggle @open on #mobile-sidebar-dialog"
+						>
+							<span class="sr-only">Show favorites</span>
+							@tabler.HeartFilled(i.Props{Class: "size-6 shrink-0 text-current"})
+							Favorites
+						</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+	<div class="lg:pl-36">
+		@Header()
+		<div id={ partials.ContentID.String() } hx-indicator="#content-loading">
+			@templ.Fragment(templates.FragmentContent) {
+				@content
+			}
+		</div>
+		<div id="content-loading" class="htmx-indicator">
+			<div class="text-center">
+				<span class="loading loading-bars loading-xl"></span>
+				<h3 class="mt-2 text-base font-semibold">Loading content...</h3>
+			</div>
+		</div>
+	</div>
 }

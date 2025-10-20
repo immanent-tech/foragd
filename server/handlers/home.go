@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
 
 	"github.com/immanent-tech/foragd/config"
@@ -25,7 +24,7 @@ import (
 
 // Home handles displaying the user's home page.
 func (a *API) Home() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		ctx := req.Context()
 		ctx = models.CSRFTokenToCtx(ctx, nosurf.Token(req))
 		user, err := models.UserFromCtx(ctx)

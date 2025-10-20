@@ -4,6 +4,7 @@
 package partials
 
 import (
+	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"time"
@@ -57,4 +58,54 @@ templ HelpPopover(id, anchor string) {
 	<el-popover popover id={ id } anchor={ anchor } class="[--anchor-gap:4px] rounded-box">
 		{ children... }
 	</el-popover>
+}
+
+// Dock renders a dock at the bottom of the page with navigation buttons for the main pages of the service. Where
+// applicable, the button for the current page will be marked.
+templ Dock() {
+	<div class="dock lg:hidden">
+		<button
+			hx-get="/home"
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/home" {
+				class="dock-active"
+			}
+		>
+			@tabler.HomeFilled(i.Props{Class: "size-6"})
+			<span class="dock-label">Home</span>
+		</button>
+		<button
+			hx-get="/list/subscriptions"
+			hx-target={ ContentID.Target() }
+			hx-vals={ models.GenerateHXVals(models.ListFiltersFromCtx(ctx).Values()) }
+			hx-params={ "not " + models.ParamSubscriptions }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/list/subscriptions" {
+				class="dock-active"
+			}
+		>
+			@tabler.Rss(i.Props{Class: "size-6"})
+			<span class="dock-label">Subscriptions</span>
+		</button>
+		<button
+			hx-get="/list/articles"
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/list/articles" {
+				class="dock-active"
+			}
+		>
+			@tabler.FileRssFilled(i.Props{Class: "size-6"})
+			<span class="dock-label">Articles</span>
+		</button>
+		<button
+			if models.PathFromCtx(ctx) == "/favorites" {
+				class="dock-active"
+			}
+		>
+			@tabler.HeartFilled(i.Props{Class: "size-6"})
+			<span class="dock-label">Favorites</span>
+		</button>
+	</div>
 }

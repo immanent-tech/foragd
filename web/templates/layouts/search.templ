@@ -136,7 +136,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 	</el-command-group>
 }
 
-templ SearchFilters(user *models.User, request *models.SearchRequest) {
+templ SearchFilters(request *models.SearchRequest) {
 	// Search form.
 	<div class="mx-auto max-w-3xl mt-4 p-4 overflow-y-auto">
 		<form
@@ -193,37 +193,40 @@ templ SearchFilters(user *models.User, request *models.SearchRequest) {
 						/>
 					</div>
 				</div>
-				// Include subscriptions filter.
-				<div class="sm:col-span-full">
-					<label for="subscriptions-filter-select" class="block text-sm/6 font-medium">In subscriptions</label>
-					<select
-						id="subscriptions-filter-select"
-						hx-post="/search/filter/subscription"
-						hx-target="next #subscription-filters"
-						hx-swap="beforeend"
-						hx-push-url="false"
-						name="subscription-filter-select"
-						class="select select-sm w-full bg-base-300"
-						_="on htmx:afterRequest halt"
-					>
-						<option disabled selected>Choose...</option>
-						for s := range slices.Values(user.GetSubscriptionMetadata().SortByTitle()) {
-							<option value={ s.GetID() + "|" + s.Customisation.Nickname }>{ s.Customisation.Nickname }</option>
-						}
-					</select>
-					<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
-						<div class="mt-2 sm:mt-0">
-							<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
-								for id := range slices.Values(request.Subscriptions) {
-									{{ subscription := user.GetSubscriptionMetadata().GetByID(id) }}
-									if subscription != nil {
-										@SubscriptionFilter(id, subscription.Customisation.Nickname)
+				{{ user, _ := models.UserFromCtx(ctx) }}
+				if user != nil {
+					// Include subscriptions filter.
+					<div class="sm:col-span-full">
+						<label for="subscriptions-filter-select" class="block text-sm/6 font-medium">In subscriptions</label>
+						<select
+							id="subscriptions-filter-select"
+							hx-post="/search/filter/subscription"
+							hx-target="next #subscription-filters"
+							hx-swap="beforeend"
+							hx-push-url="false"
+							name="subscription-filter-select"
+							class="select select-sm w-full bg-base-300"
+							_="on htmx:afterRequest halt"
+						>
+							<option disabled selected>Choose...</option>
+							for s := range slices.Values(user.GetSubscriptionMetadata().SortByTitle()) {
+								<option value={ s.GetID() + "|" + s.Customisation.Nickname }>{ s.Customisation.Nickname }</option>
+							}
+						</select>
+						<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
+							<div class="mt-2 sm:mt-0">
+								<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
+									for id := range slices.Values(request.Subscriptions) {
+										{{ subscription := user.GetSubscriptionMetadata().GetByID(id) }}
+										if subscription != nil {
+											@SubscriptionFilter(id, subscription.Customisation.Nickname)
+										}
 									}
-								}
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
+				}
 				// View filter.
 				<div class="sm:col-span-3">
 					<fieldset>
@@ -379,7 +382,7 @@ templ SubscriptionFilter(id, name string) {
 }
 
 // GlobalSearch renders a command palette element for powering global search within the app.
-templ GlobalSearch(user *models.User) {
+templ GlobalSearch() {
 	<el-command-palette>
 		<form
 			hx-trigger="input changed from:#global-search delay:100ms"
@@ -398,14 +401,14 @@ templ GlobalSearch(user *models.User) {
 					class="col-start-1 row-start-1 block size-full outline-hidden pr-4 pl-10 text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10 rounded-box py-2"
 					_="on customCtrlK from body me.focus()"
 				/>
-				@tabler.Search(i.Props{Class: "pointer-events-none col-start-1 row-start-1 self-center size-5 ml-4"})
+				@tabler.Search(i.Props{Class: "pointer-events-none col-start-1 row-start-1 self-center size-5 ml-4 text-accent"})
 				// Filters button.
 				<button
 					type="button"
 					class="row-start-1 col-start-1 mr-4 self-center justify-self-end"
 					_="on click toggle .hidden on #search-filters then halt bubbling"
 				>
-					@tabler.Filter(i.Props{Class: "size-5"})
+					@tabler.Filter(i.Props{Class: "size-5 text-accent"})
 				</button>
 			</div>
 		</form>
@@ -420,7 +423,7 @@ templ GlobalSearch(user *models.User) {
 			_="on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end"
 		>
 			// or focusout from body
-			@SearchFilters(user, models.NewSearchRequest()) {
+			@SearchFilters(models.NewSearchRequest()) {
 				<div class="mt-6 flex items-center justify-end gap-x-6">
 					<button type="button" class="btn btn-sm btn-outline" _="on click add .hidden to #search-filters">Cancel</button>
 					<button type="submit" class="btn btn-sm btn-primary">Search</button>
@@ -467,7 +470,7 @@ templ (page *SearchResultsPage) Content() {
 			</dt>
 			<el-disclosure id="faq-0" hidden class="contents">
 				<dd id="current-search-filters" class="mt-2 pr-12">
-					@SearchFilters(page.user, page.search) {
+					@SearchFilters(page.search) {
 						<input type="hidden" name="search_id" value={ page.search.ID() }/>
 						<button type="submit" class="btn btn-sm btn-primary">Update</button>
 					}

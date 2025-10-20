@@ -1,0 +1,38 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package layouts
+
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+	"strings"
+)
+
+templ Articles(articles models.Articles, pagination models.Pagination) {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
+	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+		<div id="content-filters" class="hidden">
+			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+			<input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
+			<input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
+			if len(filters.GetCategories()) > 0 {
+				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>
+			}
+			if len(filters.GetSubscriptions()) > 0 {
+				<input type="hidden" name={ models.ParamSubscriptions } value={ strings.Join(filters.GetSubscriptions(), ",") }/>
+			}
+		</div>
+		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
+		if len(articles) > 0 {
+			@partials.ListDisplayFilters(articles.GetCategoryCounts(), filters, true)
+		} else {
+			@partials.ListDisplayFilters(articles.GetCategoryCounts(), filters, false)
+		}
+		@Grid() {
+			@ArticlesList(articles, pagination)
+		}
+		@partials.Dock()
+	</main>
+}
