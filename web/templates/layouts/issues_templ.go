@@ -141,7 +141,7 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><fieldset class=\"fieldset p-4\"><legend class=\"fieldset-legend text-base/7\">Issue Details</legend><p class=\"mt-1 text-sm/6 text-base-content/80\">Add any other details you think are relevant.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><textarea id=\"details\" name=\"details\" class=\"textarea w-full\" placeholder=\"What was expected, what is missing, etc.\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">What is the problem or issue?</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><textarea id=\"details\" name=\"details\" class=\"textarea w-full\" placeholder=\"What was expected, what is missing, etc.\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -153,7 +153,7 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(details.Details)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 39, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 38, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -171,7 +171,7 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(details.PageUrl)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 52, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 51, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -184,13 +184,13 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 53, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 52, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"btn btn-primary\">Back</button> <button type=\"submit\" class=\"btn btn-primary\">Submit</button></div></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" class=\"btn btn-secondary\">Back</button> <button type=\"submit\" class=\"btn btn-primary\">Submit</button></div></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -256,7 +256,7 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("/issue/" + string(obj.Type()) + "/" + obj.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 71, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 70, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -269,7 +269,7 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 72, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 71, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -282,7 +282,7 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 73, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 72, Col: 48}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -295,7 +295,7 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(details.ObjectID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 77, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 76, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -308,7 +308,7 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(details.Object)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 78, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 77, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -321,13 +321,13 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(details.PageUrl)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 79, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 78, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"><fieldset class=\"fieldset p-4\"><legend class=\"fieldset-legend text-base/7\">Issues</legend><p class=\"mt-1 text-sm/6 text-base-content/80\">Select all that apply.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"missing-image\" type=\"checkbox\" name=\"missing_image\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">Select all that apply.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"missing-image\" type=\"checkbox\" name=\"missing_image\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -337,7 +337,7 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " class=\"checkbox checkbox-sm\"> <label for=\"missing-image\" class=\"block text-sm/6 font-medium\">Missing image</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"mangled-text\" type=\"checkbox\" name=\"mangled_text\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " class=\"checkbox checkbox-sm\"> <label for=\"missing-image\" class=\"block text-sm/6 font-medium\">Missing Image</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"mangled-text\" type=\"checkbox\" name=\"mangled_text\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -347,7 +347,7 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " class=\"checkbox checkbox-sm\"> <label for=\"mangled-text\" class=\"block text-sm/6 font-medium\">Mangled text</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"mangled-text\" type=\"checkbox\" name=\"duplicate\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " class=\"checkbox checkbox-sm\"> <label for=\"mangled-text\" class=\"block text-sm/6 font-medium\">Mangled Text</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"mangled-text\" type=\"checkbox\" name=\"duplicate\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -357,7 +357,7 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " class=\"checkbox checkbox-sm\"> <label for=\"mangled-text\" class=\"block text-sm/6 font-medium\">Duplicate subscription</label></div></div></div></fieldset><fieldset class=\"fieldset p-4\"><legend class=\"fieldset-legend text-base/7\">Details</legend><p class=\"mt-1 text-sm/6 text-base-content/80\">Add any other details you think are relevant.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><textarea id=\"details\" name=\"details\" class=\"textarea w-full\" placeholder=\"What was expected, what is missing, etc.\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " class=\"checkbox checkbox-sm\"> <label for=\"mangled-text\" class=\"block text-sm/6 font-medium\">Duplicate Content</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input type=\"checkbox\" id=\"other\" class=\"checkbox checkbox-sm\"> <label for=\"other\" class=\"block text-sm/6 font-medium\">Other</label></div></div></div></fieldset><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">Add any other details you think are relevant.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><textarea id=\"details\" name=\"details\" class=\"textarea w-full\" placeholder=\"What was expected, what is missing, etc.\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -369,7 +369,7 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(details.Details)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 139, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/layouts/issues.templ`, Line: 146, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {
@@ -380,7 +380,7 @@ func ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) t
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "></textarea></div></div></fieldset><div class=\"mt-6 flex items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><button type=\"button\" hx-get=\"#\" class=\"btn btn-primary\">Back</button> <button type=\"submit\" class=\"btn btn-primary\">Submit</button></div></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "></textarea></div></div></fieldset><div class=\"mt-6 flex items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><button type=\"button\" hx-get=\"#\" class=\"btn btn-secondary\">Back</button> <button type=\"submit\" class=\"btn btn-primary\">Submit</button></div></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

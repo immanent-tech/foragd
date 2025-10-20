@@ -26,8 +26,7 @@ templ ReportPageIssue(details *models.IssueRequest) {
 		>
 			<input type="hidden" name="page_url" value={ details.PageUrl }/>
 			<fieldset class="fieldset p-4">
-				<legend class="fieldset-legend text-base/7">Issue Details</legend>
-				<p class="mt-1 text-sm/6 text-base-content/80">Add any other details you think are relevant.</p>
+				<p class="mt-1 text-sm/6 text-base-content/80">What is the problem or issue?</p>
 				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
 					<div class="flex items-center col-span-full">
 						<textarea
@@ -51,7 +50,7 @@ templ ReportPageIssue(details *models.IssueRequest) {
 					type="button"
 					hx-get={ details.PageUrl }
 					hx-target={ partials.ContentID.Target() }
-					class="btn btn-primary"
+					class="btn btn-secondary"
 				>Back</button>
 				<button
 					type="submit"
@@ -78,7 +77,6 @@ templ ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) 
 			<input type="hidden" name="object" value={ details.Object }/>
 			<input type="hidden" name="page_url" value={ details.PageUrl }/>
 			<fieldset class="fieldset p-4">
-				<legend class="fieldset-legend text-base/7">Issues</legend>
 				<p class="mt-1 text-sm/6 text-base-content/80">Select all that apply.</p>
 				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
 					<div class="flex items-center">
@@ -92,7 +90,7 @@ templ ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) 
 								}
 								class="checkbox checkbox-sm"
 							/>
-							<label for="missing-image" class="block text-sm/6 font-medium">Missing image</label>
+							<label for="missing-image" class="block text-sm/6 font-medium">Missing Image</label>
 						</div>
 					</div>
 					<div class="flex items-center">
@@ -106,7 +104,7 @@ templ ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) 
 								}
 								class="checkbox checkbox-sm"
 							/>
-							<label for="mangled-text" class="block text-sm/6 font-medium">Mangled text</label>
+							<label for="mangled-text" class="block text-sm/6 font-medium">Mangled Text</label>
 						</div>
 					</div>
 					<div class="flex items-center">
@@ -120,13 +118,22 @@ templ ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) 
 								}
 								class="checkbox checkbox-sm"
 							/>
-							<label for="mangled-text" class="block text-sm/6 font-medium">Duplicate subscription</label>
+							<label for="mangled-text" class="block text-sm/6 font-medium">Duplicate Content</label>
+						</div>
+					</div>
+					<div class="flex items-center">
+						<div class="flex items-center gap-x-3">
+							<input
+								type="checkbox"
+								id="other"
+								class="checkbox checkbox-sm"
+							/>
+							<label for="other" class="block text-sm/6 font-medium">Other</label>
 						</div>
 					</div>
 				</div>
 			</fieldset>
 			<fieldset class="fieldset p-4">
-				<legend class="fieldset-legend text-base/7">Details</legend>
 				<p class="mt-1 text-sm/6 text-base-content/80">Add any other details you think are relevant.</p>
 				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
 					<div class="flex items-center col-span-full">
@@ -147,7 +154,7 @@ templ ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) 
 					Processing...
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
-				<button type="button" hx-get="#" class="btn btn-primary">Back</button>
+				<button type="button" hx-get="#" class="btn btn-secondary">Back</button>
 				<button
 					type="submit"
 					class="btn btn-primary"
