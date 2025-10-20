@@ -165,7 +165,7 @@ func (page *Home) Template() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(page.LatestArticles) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<ul role=\"list\" class=\"divide-y divide-base-content/15\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<ul role=\"list\" class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -260,7 +260,7 @@ func (page *Home) Template() templ.Component {
 			}
 		}
 		if len(page.TopArticles) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"flex items-center mt-8\"><div class=\"relative flex justify-start\"><span class=\"pr-3 text-base text-nowrap font-semibold\">Top Articles</span></div><div aria-hidden=\"true\" class=\"w-full border-t border-base-content/15\"></div></div><div class=\"mt-8\"><ul role=\"list\" class=\"grid grid-cols-1 xl:grid-cols-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div class=\"flex items-center mt-8\"><div class=\"relative flex justify-start\"><span class=\"pr-3 text-base text-nowrap font-semibold\">Top Articles</span></div><div aria-hidden=\"true\" class=\"w-full border-t border-base-content/15\"></div></div><div class=\"mt-8\"><ul role=\"list\" class=\"divide-y divide-base-content/15\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
