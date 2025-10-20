@@ -476,15 +476,13 @@ templ (page *SearchResultsPage) Content() {
 				</dd>
 			</el-disclosure>
 		</div>
-		<nav class="relative flex items-center">
-			<div id="favorite-button" class="fab">
-				if page.favoriteID != "" {
-					@RemoveFavoriteSearchButton(page.favoriteID)
-				} else {
-					@AddFavoriteSearchButton()
-				}
-			</div>
-		</nav>
+		<div id="favorite-button" class="fixed bottom-20 sm:bottom-4 right-4">
+			if page.favoriteID != "" {
+				@RemoveFavoriteSearchButton(page.favoriteID)
+			} else {
+				@AddFavoriteSearchButton()
+			}
+		</div>
 		// Show results.
 		@Grid() {
 			for article := range slices.Values(page.articles) {
@@ -523,6 +521,7 @@ templ (page *SearchResultsPage) Content() {
 		// </ul>
 		// <button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href={ ContentID.Target() }>Back to top</button>
 	}
+	@Dock()
 }
 
 // AddFavoriteSearchButton renders a button that the user can action to favorite the search. It presents a modal to name
@@ -530,7 +529,7 @@ templ (page *SearchResultsPage) Content() {
 templ AddFavoriteSearchButton() {
 	<button type="button" command="show-modal" commandfor="add-favorite-search" class="btn btn-primary btn-square">
 		<span class="sr-only">Add favorite search</span>
-		@tabler.Star(i.Props{Class: "size-4"})
+		@tabler.Heart(i.Props{Class: "size-4"})
 	</button>
 	<el-dialog>
 		<dialog id="add-favorite-search" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
@@ -552,8 +551,8 @@ templ AddFavoriteSearchButton() {
 							</div>
 						</div>
 						<div class="mt-5 sm:mt-6 text-center">
-							<button type="submit" class="btn btn-primary btn-outline">Save</button>
-							<button type="button" command="close" commandfor="add-favorite-search" class="btn btn-outline">Close</button>
+							<button type="button" command="close" commandfor="add-favorite-search" class="btn btn-secondary">Close</button>
+							<button type="submit" class="btn btn-primary">Save</button>
 						</div>
 					</form>
 				</el-dialog-panel>
@@ -570,7 +569,7 @@ templ RemoveFavoriteSearchButton(id models.FavoriteID) {
 		hx-include="#current-search-filters,[name='csrf_token']"
 		hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
 	>
-		@tabler.StarFilled(i.Props{Class: "size-4"})
+		@tabler.HeartFilled(i.Props{Class: "size-4"})
 	</button>
 }
 

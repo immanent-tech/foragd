@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 // htmx
-import 'htmx-ext-ajax-header'
 import 'htmx-ext-preload'
 import 'htmx-ext-response-targets'
 import 'htmx-ext-sse'
