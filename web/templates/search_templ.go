@@ -803,7 +803,7 @@ func (page *SearchResultsPage) Content() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-0\" class=\"flex w-full items-start justify-between text-left text-base-content\"><span class=\"text-base/7 font-semibold\">Filters</span> <span class=\"ml-6 flex h-7 items-center\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<div class=\"py-6 mt-4\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-0\" class=\"flex w-full items-start justify-between text-left text-base-content\"><span class=\"text-base/7 font-semibold\">Filters</span> <span class=\"ml-6 flex h-7 items-center\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
