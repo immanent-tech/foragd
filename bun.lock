@@ -25,7 +25,7 @@
         "eslint": "^9.37.0",
         "eslint-config-prettier": "^10.1.8",
         "globals": "^16.4.0",
-        "htmx-ext-debug": "^2.0.1",
+        "htmx-ext-debug": "^2.0.2",
         "prettier": "^3.6.2",
         "prettier-plugin-organize-imports": "^4.3.0",
         "prettier-plugin-tailwindcss": "^0.6.14",
@@ -432,7 +432,7 @@
 
     "hosted-git-info": ["hosted-git-info@4.1.0", "", { "dependencies": { "lru-cache": "^6.0.0" } }, "sha512-kyCuEOWjJqZuDbRHzL8V93NzQhwIB71oFWSyzVo+KPZI+pnQPPxucdkrOZvkLRnrf5URsQM+IJ09Dw29cRALIA=="],
 
-    "htmx-ext-debug": ["htmx-ext-debug@2.0.1", "", { "dependencies": { "htmx.org": "^2.0.2" } }, "sha512-GipbV220uTYdRrTzL+pK/Lbus3z167M6Ds6WnliCItIwsyK5qIFK8GPl6QIAaonf6+8sVif7rkxz/VIXUWdlFA=="],
+    "htmx-ext-debug": ["htmx-ext-debug@2.0.2", "", { "dependencies": { "htmx.org": "^2.0.2" } }, "sha512-G3QCwvvxtvknrM1meIseCtGzNpGKNs5EoqymSeQyXWqII0PfUGavmDo5h4x/efq5kkMe14Yb3YKnOVxuLxDOdA=="],
 
     "htmx-ext-preload": ["htmx-ext-preload@2.1.1", "", { "dependencies": { "htmx.org": "^2.0.3" } }, "sha512-Gm9NJTMgbR4OAhZ8a4abkBSVccuI+yCVJs5Nrsn2mWDv+Ha5bSwSw8Bc4Y8D+TCaeNSFd8Qz/fe1sqBIVmv0GA=="],
 
@@ -771,8 +771,6 @@
     "decamelize-keys/map-obj": ["map-obj@1.0.1", "", {}, "sha512-7N/q3lyZ+LVCp7PzuxrJr4KMbBE2hW7BT7YNia330OFxIf4d3r5zVpicP2650l7CPN6RM9zOJRl3NGpqSiw3Eg=="],
 
     "figures/escape-string-regexp": ["escape-string-regexp@1.0.5", "", {}, "sha512-vbRorB5FUQWvla16U8R/qgaFIya2qGzwDrNmCZuYKrbdSUMG6I1ZCGQRefkRVhuOkIGVne7BQ35DSfo1qvJqFg=="],
-
-    "htmx-ext-debug/htmx.org": ["htmx.org@2.0.6", "", {}, "sha512-7ythjYneGSk3yCHgtCnQeaoF+D+o7U2LF37WU3O0JYv3gTZSicdEFiI/Ai/NJyC5ZpYJWMpUb11OC5Lr6AfAqA=="],
 
     "htmx-ext-preload/htmx.org": ["htmx.org@2.0.6", "", {}, "sha512-7ythjYneGSk3yCHgtCnQeaoF+D+o7U2LF37WU3O0JYv3gTZSicdEFiI/Ai/NJyC5ZpYJWMpUb11OC5Lr6AfAqA=="],
 
