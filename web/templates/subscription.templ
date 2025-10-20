@@ -32,7 +32,19 @@ templ SubscriptionCard(s *models.Subscription) {
 				<div class="flex justify-center card-section">
 					<div class="flex flex-row flex-wrap place-content-center p-2 gap-2">
 						for category := range slices.Values(s.GetCategories(5)) {
-							@subscriptionCategoryBadge(category)
+							{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
+							{{ filters[models.ParamCategories] = category }}
+							<a
+								hx-get="/list/subscriptions"
+								hx-push-url="true"
+								hx-target={ ContentID.Target() }
+								hx-vals={ models.GenerateHXVals(filters) }
+								class="link link-hover"
+							>
+								<div class="flex gap-2 text-sm capitalize">
+									<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{ category } </span>
+								</div>
+							</a>
 						}
 					</div>
 				</div>
@@ -152,24 +164,8 @@ templ actionsMenu(s *models.Subscription) {
 	}
 }
 
-templ subscriptionCategoryBadge(category models.Category) {
-	{{ filters := models.ListFiltersFromCtx(ctx).Values() }}
-	{{ filters[models.ParamCategories] = category }}
-	<a
-		hx-get="/subscriptions"
-		hx-push-url="true"
-		hx-target={ ContentID.Target() }
-		hx-vals={ models.GenerateHXVals(filters) }
-		class="link link-hover"
-	>
-		<div class="flex gap-2 text-sm capitalize">
-			<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{ category } </span>
-		</div>
-	</a>
-}
-
 templ SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pagination) {
-	{{ filters := models.ListFiltersFromCtx(ctx) }}
+	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	@Main() {
 		// <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 		// Hidden content filters.
@@ -197,6 +193,17 @@ templ SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pa
 		// </main>
 	}
 	@Dock()
+}
+
+templ SubscriptionsList(subscriptions models.Subscriptions, pagination models.Pagination) {
+	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
+	for subscription := range slices.Values(subscriptions) {
+		@SubscriptionCard(subscription)
+	}
+	if pagination != "" && len(subscriptions) == filters.GetCount() {
+		// Add pagination htmx props to last article.
+		@PaginationControl(ctx, "/list/subscriptions/paginate", pagination)
+	}
 }
 
 templ EditSubscription(request *models.EditSubscriptionRequest) {
@@ -434,7 +441,7 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 
 // AddSubscriptionSuccess displays success feedback and navigation options on successful addition of a subscription.
 templ AddSubscriptionSuccess(result *models.AddSubscriptionResult) {
-	{{ filters := models.ListFiltersFromCtx(ctx) }}
+	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	<div class="text-center">
 		@tabler.CircleCheck(i.Props{Class: "size-12 mx-auto text-success"})
 		<h3 class="mt-2 text-base font-semibold">Subscription added: { result.Subscription.GetTitle() }</h3>
@@ -531,7 +538,7 @@ templ ImportResults(results AddSubscriptionResults) {
 		class="btn btn-primary"
 		hx-get="/subscriptions"
 		hx-target={ ContentID.Target() }
-		hx-vals={ models.GenerateHXVals(models.ListFiltersFromCtx(ctx).Values()) }
+		hx-vals={ models.GenerateHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
 	>
 		Go to your subscriptions
 	</button>

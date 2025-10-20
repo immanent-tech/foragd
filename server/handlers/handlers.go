@@ -221,27 +221,27 @@ func parseFilters(next http.Handler) http.Handler {
 		switch {
 		case err != nil:
 			if errors.Is(err, forms.ErrNoFormData) {
-				restored := session.RestoreFromSession(ctx, listFiltersSessionKey, models.NewListDisplayFilters)
+				restored := session.RestoreFromSession(ctx, "filters_"+req.URL.Path, models.NewListDisplayFilters)
 				filters = &restored
-				ctx = models.FiltersToCtx(ctx, filters)
+				ctx = models.PageFiltersToCtx(req.Context(), req.URL.Path, filters)
 				slogctx.FromCtx(ctx).Debug("No form data. Using filters from session.",
 					slog.String("filters", filters.QueryString()))
 			} else {
 				slogctx.FromCtx(ctx).Debug("Error parsing filters. Using default filters.")
 				newFilters := models.NewListDisplayFilters()
-				session.SaveToSession(ctx, listFiltersSessionKey, newFilters)
-				ctx = models.FiltersToCtx(ctx, &newFilters)
+				session.SaveToSession(ctx, "filters_"+req.URL.Path, newFilters)
+				ctx = models.PageFiltersToCtx(req.Context(), req.URL.Path, filters)
 			}
 		case !valid:
 			slogctx.FromCtx(ctx).Debug("Invalid filters. Using default.")
 			newFilters := models.NewListDisplayFilters()
-			session.SaveToSession(ctx, listFiltersSessionKey, newFilters)
-			ctx = models.FiltersToCtx(ctx, &newFilters)
+			session.SaveToSession(ctx, "filters_"+req.URL.Path, newFilters)
+			ctx = models.PageFiltersToCtx(req.Context(), req.URL.Path, filters)
 		default:
 			slogctx.FromCtx(ctx).Debug("Saving filters.",
 				slog.String("filters", filters.QueryString()))
-			session.SaveToSession(ctx, listFiltersSessionKey, *filters)
-			ctx = models.FiltersToCtx(ctx, filters)
+			session.SaveToSession(ctx, "filters_"+req.URL.Path, *filters)
+			ctx = models.PageFiltersToCtx(req.Context(), req.URL.Path, filters)
 		}
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})

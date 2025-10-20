@@ -146,7 +146,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 			return templ_7745c5c3_Err
 		}
 		for subscription := range slices.Values(subscriptions) {
-			filters := models.ListFiltersFromCtx(ctx).Values()
+			filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()
 			filters[models.ParamSubscriptions] = subscription.GetID()
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<a href=\"#\" hx-get=\"")
 			if templ_7745c5c3_Err != nil {

@@ -1253,7 +1253,7 @@ func ArticlesGrid(articles models.Articles, pagination models.Pagination) templ.
 			templ_7745c5c3_Var61 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		filters := models.ListFiltersFromCtx(ctx)
+		filters := models.PageFiltersFromCtx(ctx, "/list/articles")
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "<main class=\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8\"><div id=\"content-filters\" class=\"hidden\"><input type=\"hidden\" name=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1509,7 +1509,7 @@ func ArticlesList(articles models.Articles, pagination models.Pagination) templ.
 			templ_7745c5c3_Var76 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		filters := models.ListFiltersFromCtx(ctx)
+		filters := models.PageFiltersFromCtx(ctx, "/list/articles")
 		for article := range slices.Values(articles) {
 			templ_7745c5c3_Err = ArticleCard(article, filters.GetView()).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

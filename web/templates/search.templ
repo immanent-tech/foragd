@@ -95,7 +95,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="subscriptions-group-label">
 		<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
 		for subscription := range slices.Values(subscriptions) {
-			{{ filters := models.ListFiltersFromCtx(ctx).Values() }}
+			{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
 			{{ filters[models.ParamSubscriptions] = subscription.GetID() }}
 			<a
 				href="#"

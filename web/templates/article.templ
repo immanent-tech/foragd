@@ -362,7 +362,7 @@ templ UpdateViewArticleFavorite(article *models.Article) {
 }
 
 templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
-	{{ filters := models.ListFiltersFromCtx(ctx) }}
+	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 		<div id="content-filters" class="hidden">
 			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
@@ -390,7 +390,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 }
 
 templ ArticlesList(articles models.Articles, pagination models.Pagination) {
-	{{ filters := models.ListFiltersFromCtx(ctx) }}
+	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	for article := range slices.Values(articles) {
 		@ArticleCard(article, filters.GetView())
 	}

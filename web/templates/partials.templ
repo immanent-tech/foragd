@@ -9,6 +9,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -56,8 +57,6 @@ templ Content(content templ.Component) {
 				Foragd
 			</div>
 			// Remove any subscription filter from the saved filters in the session and use these filters for links in the drawer.
-			{{ filters := models.ListFiltersFromCtx(ctx).Values() }}
-			{{ delete(filters, models.ParamSubscriptions) }}
 			<nav aria-label="Sidebar" class="flex flex-1 flex-col items-center">
 				<ul role="list" class="flex flex-1 flex-col gap-y-7">
 					<li>
@@ -71,43 +70,42 @@ templ Content(content templ.Component) {
 						</a>
 					</li>
 					<li>
-						<a
-							hx-get="/list/subscriptions"
-							hx-target={ ContentID.Target() }
-							hx-push-url="true"
-							hx-vals={ models.GenerateHXVals(filters) }
-							class="group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"
-						>
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/list/subscriptions"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
+							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"),
+						) {
 							<span class="sr-only">Show all unread subscriptions</span>
 							@tabler.Rss(i.Props{Class: "size-6 shrink-0 text-current"})
 							Subscriptions
-						</a>
+						}
 					</li>
 					<li>
-						<a
-							hx-get="/list/articles"
-							hx-target={ ContentID.Target() }
-							hx-push-url="true"
-							hx-vals={ models.GenerateHXVals(filters) }
-							class="group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"
-						>
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/list/articles"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
+							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"),
+						) {
 							<span class="sr-only">Show all unread articles</span>
 							@tabler.FileRss(i.Props{Class: "size-6 shrink-0 text-current"})
 							Articles
-						</a>
+						}
 					</li>
 					<li>
-						<a
-							hx-get="/favorites"
-							hx-target={ ContentID.Target() }
-							hx-push-url="true"
-							hx-vals={ models.GenerateHXVals(filters) }
-							class="group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"
-						>
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/favorites"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"),
+						) {
 							<span class="sr-only">Show favorites</span>
 							@tabler.HeartFilled(i.Props{Class: "size-6 shrink-0 text-current"})
 							Favorites
-						</a>
+						}
 					</li>
 				</ul>
 			</nav>
@@ -206,17 +204,6 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 	></div>
 }
 
-templ SubscriptionsList(subscriptions models.Subscriptions, pagination models.Pagination) {
-	{{ filters := models.ListFiltersFromCtx(ctx) }}
-	for subscription := range slices.Values(subscriptions) {
-		@SubscriptionCard(subscription)
-	}
-	if pagination != "" && len(subscriptions) == filters.GetCount() {
-		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/list/subscriptions/paginate", pagination)
-	}
-}
-
 // ShowTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time
 // passes.
 templ ShowTimestamp(timestamp time.Time) {
@@ -277,7 +264,7 @@ templ Dock() {
 		<button
 			hx-get="/list/subscriptions"
 			hx-target={ ContentID.Target() }
-			hx-vals={ models.GenerateHXVals(models.ListFiltersFromCtx(ctx).Values()) }
+			hx-vals={ models.GenerateHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
 			hx-params={ "not " + models.ParamSubscriptions }
 			hx-push-url="true"
 			if models.PathFromCtx(ctx) == "/list/subscriptions" {
@@ -527,7 +514,7 @@ templ FavoritesList(favorites models.FavoritesSlice, swap models.HTMXFlag) {
 			// Show favorite subscriptions.
 			for fav := range slices.Values(subscriptions) {
 				<li>
-					{{ values := models.ListFiltersFromCtx(ctx).Values() }}
+					{{ values := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
 					{{ values[models.ParamSubscriptions] = fav.GetID() }}
 					<a
 						hx-get="/articles"

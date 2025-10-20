@@ -127,7 +127,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 					http.StatusUnprocessableEntity)
 			}
 			// Client side refresh of page.
-			SetRedirect(req.Context(), "/list/subscriptions", models.ListFiltersFromCtx(req.Context()), res)
+			SetRedirect(req.Context(), "/list/subscriptions", models.PageFiltersFromCtx(req.Context(), "/list/subscriptions"), res)
 			res.WriteHeader(http.StatusOK)
 		case models.ObjectTypeArticle:
 			subscriptionID := req.FormValue(models.ParamSubscriptionID)
@@ -168,7 +168,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 			switch req.Header.Get(htmx.HeaderTarget) {
 			case params.ObjectID:
 				// Swap target is card.
-				filters := models.ListFiltersFromCtx(req.Context())
+				filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 				renderPartial(templates.ArticleCard(s[0], filters.GetView())).ServeHTTP(res, req)
 			case "mark_" + params.ObjectID:
 				// Swap target is link.

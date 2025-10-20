@@ -24,17 +24,13 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-const (
-	listFiltersSessionKey = "ListFilters"
-)
-
 // ShowList handles displaying or paginating a list of objects (subscriptions/articles) as cards in a grid layout.
 //
 //nolint:gocognit
 func ShowList(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
-		filters := models.ListFiltersFromCtx(req.Context())
+		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 		pagination := req.FormValue(models.ParamPagination)
 		// Redirect to include query parameters in address bar.
 		if req.Method == http.MethodGet && len(req.URL.Query()) == 0 {
@@ -128,7 +124,7 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Warn("Cannot flush update stream!")
 			res.WriteHeader(http.StatusNoContent)
 		}
-		filters := models.ListFiltersFromCtx(req.Context())
+		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 		query, err := models.BuildItemsQuery(req.Context(), filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
@@ -201,7 +197,7 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		parseFilters,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
-		filters := models.ListFiltersFromCtx(req.Context())
+		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
