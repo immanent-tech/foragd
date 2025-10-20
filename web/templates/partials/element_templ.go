@@ -13,6 +13,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"encoding/json"
 	"net/http"
 	"slices"
 	"sync"
@@ -66,6 +67,18 @@ func WithHXTarget(value string) Option[element] {
 func WithHXSwap(value string) Option[element] {
 	return func(e element) {
 		e.SetAttribute("hx-swap", value)
+	}
+}
+
+func WithHXInclude(value string) Option[element] {
+	return func(e element) {
+		e.SetAttribute("hx-include", value)
+	}
+}
+
+func WithHXVals(vals map[string]string) Option[element] {
+	return func(e element) {
+		e.SetAttribute("hx-vals", generateHXVals(vals))
 	}
 }
 
@@ -126,6 +139,14 @@ func NewLink(options ...Option[element]) templ.Component {
 		}
 		return nil
 	})
+}
+
+func generateHXVals(values map[string]string) string {
+	data, err := json.Marshal(values)
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }
 
 var _ = templruntime.GeneratedTemplate

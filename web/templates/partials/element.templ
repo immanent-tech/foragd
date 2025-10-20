@@ -4,6 +4,7 @@
 package partials
 
 import (
+	"encoding/json"
 	"net/http"
 	"slices"
 	"sync"
@@ -60,6 +61,18 @@ func WithHXSwap(value string) Option[element] {
 	}
 }
 
+func WithHXInclude(value string) Option[element] {
+	return func(e element) {
+		e.SetAttribute("hx-include", value)
+	}
+}
+
+func WithHXVals(vals map[string]string) Option[element] {
+	return func(e element) {
+		e.SetAttribute("hx-vals", generateHXVals(vals))
+	}
+}
+
 func WithCustomAttribute(key string, value any) Option[element] {
 	return func(e element) {
 		e.SetAttribute(key, value)
@@ -78,4 +91,12 @@ templ NewLink(options ...Option[element]) {
 	<a { link.attributes... }>
 		{ children... }
 	</a>
+}
+
+func generateHXVals(values map[string]string) string {
+	data, err := json.Marshal(values)
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }

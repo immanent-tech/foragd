@@ -222,6 +222,13 @@ func (a *Article) IssueURL() string {
 	return "/issue/article/" + a.GetID()
 }
 
+func (a *Article) FavoriteURL() string {
+	if a.IsFavorite() {
+		return "/user/favorite/remove/article/" + a.GetID()
+	}
+	return "/user/favorite/add/article/" + a.GetID()
+}
+
 // Sanitise will sanitise the input values.
 func (r *MarkArticleRequest) Sanitise() error {
 	return nil
