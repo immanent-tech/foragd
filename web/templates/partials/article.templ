@@ -216,7 +216,7 @@ templ ArticleContent(article *models.Article) {
 			<button popovertarget="article-actions" class="btn btn-circle btn-primary" type="button">
 				<label class="swap">
 					<input type="checkbox"/>
-					@tabler.Category2(i.Props{Class: "swap-off size-6"})
+					@tabler.Menu(i.Props{Class: "swap-off size-6"})
 					@tabler.X(i.Props{Class: "swap-on size-6"})
 				</label>
 			</button>
@@ -238,16 +238,16 @@ templ ArticleContent(article *models.Article) {
 									value="true"
 								}
 							/>
-							<span class="badge badge-primary badge-soft">Toggle Full Content</span>
-							<button type="submit" class="btn btn-circle btn-primary btn-soft opacity-100">
+							<span class="badge badge-primary badge-soft shadow-sm">Toggle Full Content</span>
+							<button type="submit" class="btn btn-circle btn-primary btn-soft shadow-sm">
 								@tabler.FileDownloadFilled(i.Props{Class: "size-5"})
 							</button>
 						</form>
 					</li>
 					// View original article action.
 					<li>
-						<span class="badge badge-primary badge-soft">View Article Externally</span>
-						<a role="btn" href={ article.GetLink() } target="_blank" rel="noopener" class="btn btn-circle btn-primary btn-soft">
+						<span class="badge badge-primary badge-soft shadow-sm">View Article Externally</span>
+						<a role="btn" href={ article.GetLink() } target="_blank" rel="noopener" class="btn btn-circle btn-primary btn-soft shadow-sm">
 							@tabler.ExternalLink(i.Props{Class: "size-5"})
 						</a>
 					</li>
@@ -271,23 +271,23 @@ templ ArticleContent(article *models.Article) {
 					</li>
 					// Share action.
 					<li>
-						<span class="badge badge-primary badge-soft">Share Article</span>
+						<span class="badge badge-primary badge-soft shadow-sm">Share Article</span>
 						<a
 							role="btn"
 							_={ "on click set currentValue to (my innerHTML) then writeText('" + article.GetLink() + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
-							class="btn btn-circle btn-primary btn-soft"
+							class="btn btn-circle btn-primary btn-soft shadow-sm"
 						>
 							@tabler.Share(i.Props{Class: "size-5"})
 						</a>
 					</li>
 					// Report issue action.
 					<li>
-						<span class="badge badge-primary badge-soft">Report Article Issue</span>
+						<span class="badge badge-primary badge-soft shadow-sm">Report Article Issue</span>
 						<a
 							role="btn"
 							hx-get={ article.IssueURL() }
 							hx-target={ ContentID.Target() }
-							class="btn btn-circle btn-primary btn-soft"
+							class="btn btn-circle btn-primary btn-soft shadow-sm"
 						>
 							@tabler.Flag(i.Props{Class: "size-5"})
 						</a>
@@ -315,15 +315,15 @@ templ ArticleContent(article *models.Article) {
 templ UpdateViewArticleMark(article *models.Article) {
 	switch article.IsUnread() {
 		case true:
-			<span class="badge badge-primary badge-soft">Mark Read</span>
+			<span class="badge badge-primary badge-soft shadow-sm">Mark Read</span>
 		case false:
-			<span class="badge badge-primary badge-soft">Mark Unread</span>
+			<span class="badge badge-primary badge-soft shadow-sm">Mark Unread</span>
 	}
 	@NewLink(
 		WithHXMethod(http.MethodPost, article.MarkURL()),
 		WithHXTarget("#mark_"+article.GetID()),
 		WithHXInclude("[name='csrf_token']"),
-		WithCustomAttribute("class", "btn btn-circle btn-primary btn-soft"),
+		WithCustomAttribute("class", "btn btn-circle btn-primary btn-soft shadow-sm"),
 		WithCustomAttribute("role", "btn"),
 	) {
 		switch article.IsUnread() {
@@ -339,16 +339,16 @@ templ UpdateViewArticleMark(article *models.Article) {
 templ UpdateViewArticleFavorite(article *models.Article) {
 	switch article.IsFavorite() {
 		case true:
-			<span class="badge badge-primary badge-soft">Remove Favorite</span>
+			<span class="badge badge-primary badge-soft shadow-sm">Remove Favorite</span>
 		case false:
-			<span class="badge badge-primary badge-soft">Add Favorite</span>
+			<span class="badge badge-primary badge-soft shadow-sm">Add Favorite</span>
 	}
 	@NewLink(
 		WithHXMethod(http.MethodPost, article.FavoriteURL()),
 		WithHXTarget("#favorite_"+article.GetID()),
 		WithHXInclude("[name='csrf_token']"),
 		WithHXVals(map[string]string{"display": "content"}),
-		WithCustomAttribute("class", "btn btn-circle btn-primary btn-soft"),
+		WithCustomAttribute("class", "btn btn-circle btn-primary btn-soft shadow-sm"),
 		WithCustomAttribute("role", "btn"),
 	) {
 		switch article.Favorite {
