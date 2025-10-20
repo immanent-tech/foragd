@@ -7,6 +7,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"iter"
 	"maps"
 	"math"
 	"slices"
@@ -258,6 +259,10 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 	}
 
 	return counts
+}
+
+func (s Subscriptions) Values() iter.Seq[*Subscription] {
+	return slices.Values(s)
 }
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,

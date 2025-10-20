@@ -31,3 +31,39 @@ templ Document(data []byte) {
 		@templ.Raw(string(data))
 	</main>
 }
+
+// templ ObjectGrid(path string, pagination models.Pagination, objects models.Objects) {
+// 	{{ filters := models.PageFiltersFromCtx(ctx, path) }}
+// 	@Main() {
+// 		// Hidden content filters.
+// 		<div id="content-filters" class="hidden">
+// 			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+// 			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+// 			<input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
+// 			<input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
+// 			if len(filters.GetCategories()) > 0 {
+// 				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>
+// 			}
+// 			if len(filters.GetSubscriptions()) > 0 {
+// 				<input type="hidden" name={ models.ParamSubscriptions } value={ strings.Join(filters.GetSubscriptions(), ",") }/>
+// 			}
+// 		</div>
+// 		<div id="update-notifications" sse-connect={ path + "/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
+// 		@ListDisplayFilters(objects.GetCategoryCounts(), filters, true)
+// 		@Grid() {
+// 			@ObjectList(objects, pagination)
+// 		}
+// 	}
+// 	@Dock()
+// }
+
+// templ ObjectList(objects models.Objects, pagination models.Pagination) {
+// 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
+// 	for subscription := range objects.Values() {
+// 		@SubscriptionCard(subscription)
+// 	}
+// 	if pagination != "" && len(subscriptions) == filters.GetCount() {
+// 		// Add pagination htmx props to last article.
+// 		@PaginationControl(ctx, "/list/subscriptions/paginate", pagination)
+// 	}
+// }

@@ -156,6 +156,11 @@ type Object interface {
 	MarkURL() string
 }
 
+type Objects interface {
+	GetCategoryCounts() CategoryCounts
+	Values() iter.Seq[Object]
+}
+
 func (p *ObjectParams) Valid() (bool, error) {
 	err := validation.Validate.Struct(p)
 	if err != nil {

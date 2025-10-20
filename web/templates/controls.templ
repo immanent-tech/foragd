@@ -245,7 +245,7 @@ templ (c ListControls) Template() {
 	</div>
 }
 
-templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListDisplayFilters, showMarkButton bool) {
+templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListDisplayFilters) {
 	{{ var path string }}
 	switch chi.RouteContext(ctx).URLParam(models.ParamListType) {
 		case "subscriptions":
@@ -359,39 +359,35 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 					} else {
 						{{ mark = "unread" }}
 					}
-					if showMarkButton {
-						<div class="sm:hidden space-x-4">
-							<button
-								type="button"
-								class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
-								hx-post={ path + "/mark" }
-								hx-include="#content-filters,[name='csrf_token']"
-								hx-target={ ContentID.Target() }
-							>
-								<span class="sr-only">Mark all { mark }</span>
-								Mark all { mark }
-							</button>
-							// Button to reveal filters sidebar on mobile.
-							<button type="button" command="show-modal" commandfor="mobile-filters" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
-								<span class="sr-only">Filter options</span>
-								Filters
-							</button>
-						</div>
-					}
+					<div class="sm:hidden space-x-4">
+						<button
+							type="button"
+							class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
+							hx-post={ path + "/mark" }
+							hx-include="#content-filters,[name='csrf_token']"
+							hx-target={ ContentID.Target() }
+						>
+							<span class="sr-only">Mark all { mark }</span>
+							Mark all { mark }
+						</button>
+						// Button to reveal filters sidebar on mobile.
+						<button type="button" command="show-modal" commandfor="mobile-filters" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
+							<span class="sr-only">Filter options</span>
+							Filters
+						</button>
+					</div>
 					// Desktop Filters.
 					<el-popover-group class="hidden sm:flex sm:items-baseline sm:space-x-8">
-						if showMarkButton {
-							<button
-								type="button"
-								class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
-								hx-post={ path + "/mark" }
-								hx-include="#content-filters,[name='csrf_token']"
-								hx-target={ ContentID.Target() }
-							>
-								<span class="sr-only">Mark all { mark }</span>
-								Mark all { mark }
-							</button>
-						}
+						<button
+							type="button"
+							class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
+							hx-post={ path + "/mark" }
+							hx-include="#content-filters,[name='csrf_token']"
+							hx-target={ ContentID.Target() }
+						>
+							<span class="sr-only">Mark all { mark }</span>
+							Mark all { mark }
+						</button>
 						// Category Filters (desktop).
 						if len(categories.GetTopCategories(10)) > 0 {
 							<div class="relative inline-block text-left">

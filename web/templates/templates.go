@@ -3,7 +3,9 @@
 
 package templates
 
-import "fmt"
+import (
+	"fmt"
+)
 
 var (
 	// ContentID points to the element containing the main content of the page.
