@@ -185,60 +185,17 @@ templ ArticleSummary(article *models.Article) {
 
 // ArticleContent renders the complete content of an article.
 templ ArticleContent(article *models.Article) {
-	<main class="px-4 pt-8">
-		// Mobile breadcrumbs/navigation.
-		<div class="breadcrumbs-mobile">
-			<ul>
-				<li aria-label="Back">
-					<a
-						hx-get="/list/articles"
-						hx-target={ ContentID.Target() }
-						hx-push-url="true"
-						class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0 truncate"
-					>
-						@tabler.ChevronLeft(i.Props{Class: "mr-1 -ml-1 size-5 shrink-0 text-base-content/50"})
-						Back to articles
-					</a>
-				</li>
-			</ul>
-		</div>
-		// Desktop breadcrumbs/navigation.
-		<div class="breadcrumbs-desktop">
-			<ul>
-				<li aria-label="Subscriptions">
-					{{ values := models.ListFiltersFromCtx(ctx).Values() }}
-					{{ delete(values, models.ParamSubscriptions) }}
-					<a
-						hx-get="/list/subscriptions"
-						hx-target={ ContentID.Target() }
-						hx-vals={ models.GenerateHXVals(values) }
-						hx-push-url="true"
-						class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
-					>Subscriptions</a>
-				</li>
-				<li aria-label="Articles">
-					<a
-						hx-get="/list/articles"
-						hx-target={ ContentID.Target() }
-						hx-push-url="true"
-						class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0 truncate"
-					>
-						{ article.GetFeedTitle() }
-					</a>
-				</li>
-				<li class="min-w-0">
-					<a href="#" aria-current="page" class="ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"><p class="truncate min-w-0">{ article.GetTitle() }</p></a>
-				</li>
-			</ul>
-		</div>
+	@Main() {
+		// Add the subscription ID as a hidden input that htmx can use for actions.
+		<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 		// Article.
 		<div class="flex justify-center">
 			<article id={ article.GetID() } class="prose prose-sm sm:prose-lg w-full dark:prose-invert px-4 py-4 sm:px-6">
 				<h2 class="flex items-center gap-x-2 text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">
 					{ article.GetTitle() }
-					<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover hover:text-accent">
-						@tabler.ExternalLink(i.Props{Class: "size-8"})
-					</a>
+					// <a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover hover:text-accent">
+					// 	@tabler.ExternalLink(i.Props{Class: "size-8"})
+					// </a>
 				</h2>
 				<p class="text-base-content/80 text-wrap italic">
 					{ strings.Join(article.GetAuthors(),",") }
@@ -255,7 +212,7 @@ templ ArticleContent(article *models.Article) {
 			</article>
 		</div>
 		// Actions menu.
-		<div class="fixed bottom-4 right-4">
+		<div class="fixed bottom-20 sm:bottom-4 right-4">
 			<button popovertarget="article-actions" class="btn btn-circle btn-primary" type="button">
 				<label class="swap">
 					<input type="checkbox"/>
@@ -351,7 +308,7 @@ templ ArticleContent(article *models.Article) {
 				_="on htmx:afterRequest remove me"
 			></div>
 		}
-	</main>
+	}
 	@Dock()
 }
 
@@ -367,7 +324,7 @@ templ UpdateViewArticleMark(article *models.Article) {
 		WithHXMethod(http.MethodPost, article.MarkURL()),
 		WithHXTarget("#mark_"+article.GetID()),
 		WithHXInclude("[name='csrf_token']"),
-		WithCustomAttribute("class", "btn btn-circle btn-primary btn-soft shadow-sm"),
+		WithClasses("btn btn-circle btn-primary btn-soft shadow-sm"),
 		WithCustomAttribute("role", "btn"),
 	) {
 		switch article.IsUnread() {
@@ -392,7 +349,7 @@ templ UpdateViewArticleFavorite(article *models.Article) {
 		WithHXTarget("#favorite_"+article.GetID()),
 		WithHXInclude("[name='csrf_token']"),
 		WithHXVals(map[string]string{"display": "content"}),
-		WithCustomAttribute("class", "btn btn-circle btn-primary btn-soft shadow-sm"),
+		WithClasses("btn btn-circle btn-primary btn-soft shadow-sm"),
 		WithCustomAttribute("role", "btn"),
 	) {
 		switch article.Favorite {

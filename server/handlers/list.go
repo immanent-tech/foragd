@@ -32,10 +32,7 @@ const (
 //
 //nolint:gocognit
 func ShowList(api *elastic.API) http.HandlerFunc {
-	return alice.New(
-		parseFilters,
-		storePath,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.Append(parseFilters).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
 		filters := models.ListFiltersFromCtx(req.Context())
 		pagination := req.FormValue(models.ParamPagination)

@@ -57,7 +57,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 
 // GetSearchResults performs a search with the user input and renders a page with the search results.
 func (a *API) GetSearchResults() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		user, err := models.UserFromCtx(req.Context())
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 		if err != nil {

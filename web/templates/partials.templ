@@ -10,6 +10,7 @@ import (
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -295,6 +296,9 @@ templ Dock() {
 			hx-push-url="true"
 			if models.PathFromCtx(ctx) == "/list/articles" {
 				class="dock-active"
+			}
+			if strings.HasPrefix(models.PathFromCtx(ctx), "/view/article") {
+				hx-include="[name='subscriptions']"
 			}
 		>
 			@tabler.FileRssFilled(i.Props{Class: "size-6"})

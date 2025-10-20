@@ -25,7 +25,7 @@ import (
 
 // ViewObject handles showing an object's content (e.g. viewing article content).
 func ViewObject(api *elastic.API) http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
 		params := &models.ObjectParams{
 			ObjectID: chi.URLParam(req, models.ParamObjectID),

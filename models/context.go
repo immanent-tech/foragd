@@ -63,8 +63,7 @@ func PathToCtx(ctx context.Context, path string) context.Context {
 func PathFromCtx(ctx context.Context) string {
 	path, found := ctx.Value(pathCtxKey).(string)
 	if !found {
-		// Assume "/home"
-		return "/home"
+		return ""
 	}
 	return path
 }
