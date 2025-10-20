@@ -410,10 +410,11 @@ templ GlobalSearch() {
 				</button>
 			</div>
 		</form>
+		// _="on keydown[key is 'Escape'] add @hidden end on click from elsewhere add .hidden end"
 		<el-command-list
 			id="global-search-suggestions"
 			class="absolute w-full left-0 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6  outline-1 -outline-offset-1 outline-solid"
-			_="on keydown[key is 'Escape'] from body add @hidden end on click from elsewhere add .hidden end"
+			_="on keydown[key is 'Escape'] add .hidden"
 		></el-command-list>
 		<div
 			id="search-filters"
