@@ -12,12 +12,11 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/layouts"
 )
 
 // Landing handles displaying the landing page of the site.
 func Landing() http.HandlerFunc {
-	template := templates.Page(config.AppName, layouts.Landing())
+	template := templates.Page(config.AppName, templates.Landing())
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		err := template.Render(req.Context(), res)
 		if err != nil {

@@ -26,8 +26,6 @@ import (
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/layouts"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 var (
@@ -48,7 +46,7 @@ const (
 
 // NotFound handles showing a page for a 404 response.
 func NotFound() http.HandlerFunc {
-	return alice.New().Then(renderPage(layouts.NotFound(), "Not Found")).ServeHTTP
+	return alice.New().Then(renderPage(templates.NotFound(), "Not Found")).ServeHTTP
 }
 
 // StaticFileServerHandler handles serving content from the embedded filesystem containing static assets (i.e., images,
@@ -121,7 +119,7 @@ func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.Han
 func SetRedirect(ctx context.Context, path string, filters models.Filters, res http.ResponseWriter) {
 	pushURLPath := path
 	locCtx := htmx.LocationContext{
-		Target: partials.ContentID.Target(),
+		Target: templates.ContentID.Target(),
 	}
 	if filters != nil {
 		locCtx.Values = filters.Values()
@@ -153,7 +151,7 @@ func renderPage(template templ.Component, title string) http.Handler {
 		if IsHTMX(req) {
 			if IsHistoryRestoreRequest(req) {
 				slogctx.FromCtx(req.Context()).Debug("History restore request")
-				template = layouts.Content(template)
+				template = templates.Content(template)
 				templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
 				return
 			}
@@ -170,7 +168,7 @@ func renderPage(template templ.Component, title string) http.Handler {
 				templ.Handler(template).ServeHTTP(res, req)
 			}
 		} else {
-			template = layouts.Content(template)
+			template = templates.Content(template)
 			template = templates.Page(title, template)
 			err := template.Render(req.Context(), res)
 			if err != nil {
@@ -207,7 +205,7 @@ func RenderMarkdown(fs embed.FS, file string) http.HandlerFunc {
 			return fmt.Errorf("unable to read document %s: %w", file, err)
 		}
 		output := blackfriday.Run(policy, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
-		template := templates.Page("Privacy Policy - "+config.AppName, partials.Document(output))
+		template := templates.Page("Privacy Policy - "+config.AppName, templates.Document(output))
 		err = template.Render(req.Context(), res)
 		if err != nil {
 			return fmt.Errorf("unable to render document %s: %w", file, err)

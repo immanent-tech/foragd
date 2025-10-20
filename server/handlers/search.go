@@ -21,8 +21,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/layouts"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
@@ -49,7 +47,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 		}
 		if len(subscriptions) > 0 || len(articles) > 0 {
 			// Render suggestions.
-			renderPartial(layouts.SearchSuggestions(request, subscriptions, articles)).ServeHTTP(res, req)
+			renderPartial(templates.SearchSuggestions(request, subscriptions, articles)).ServeHTTP(res, req)
 		} else {
 			// No suggestions, indicate no change.
 			res.WriteHeader(http.StatusNoContent)
@@ -64,7 +62,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 		if err != nil {
 			return fmt.Errorf("unable to display search results: %w", err)
-			// renderPage(layouts.Drawer(nil, partials.Error(models.NewErrorMessage("No user data", ""))), "").ServeHTTP(res, req)
+			// renderPage(layouts.Drawer(nil, templates.Error(models.NewErrorMessage("No user data", ""))), "").ServeHTTP(res, req)
 			// return models.ErrUserNotFound
 		}
 		// Extract the search request.
@@ -72,7 +70,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		if err != nil || !valid {
 			msg := models.NewErrorMessage("Invalid search request",
 				"Unable to parse search request. Please check and try again.")
-			renderPage(partials.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
+			renderPage(templates.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		favoriteID := req.FormValue("search_id")
@@ -81,7 +79,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			if favoriteID == "" {
 				msg := models.NewErrorMessage("Invalid search request",
 					"Unable to parse search request. Please check and try again.")
-				renderPage(partials.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
+				renderPage(templates.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 		}
@@ -91,7 +89,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		if fav != nil {
 			err := user.UpdateFavoriteSearch(fav.Nickname, request)
 			if err != nil {
-				template := partials.Notification(
+				template := templates.Notification(
 					models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."), 0)
 				renderPartial(template).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)
@@ -100,7 +98,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				"favorites": user.Favorites,
 			})
 			if err != nil {
-				template := partials.Notification(
+				template := templates.Notification(
 					models.NewWarningMessage("Unable to update favorite.", "Temporary backend issue, please try again."), 5*time.Second)
 				renderPartial(template).ServeHTTP(res, req)
 			}
@@ -111,23 +109,23 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		case err != nil:
 			msg := models.NewErrorMessage("Could not generate search results",
 				"This could be a temporary problem, please try again.")
-			renderPage(partials.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
+			renderPage(templates.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		case len(subscriptions) > 0 || len(articles) > 0:
 			slog.Info("templated")
 			var template templ.Component
 			if IsHTMX(req) {
 				template = templ.Join(
-					layouts.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content(),
-					partials.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+					templates.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content(),
+					templates.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
 				)
 			} else {
-				template = layouts.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content()
+				template = templates.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content()
 			}
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		default:
-			template := layouts.NoSearchResults()
+			template := templates.NoSearchResults()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		}
@@ -140,7 +138,7 @@ func AddSubscriptionFilter() http.HandlerFunc {
 		data := req.FormValue("subscription-filter-select")
 		if data != "" {
 			values := strings.Split(data, "|")
-			renderPartial(layouts.SubscriptionFilter(values[0], values[1])).ServeHTTP(res, req)
+			renderPartial(templates.SubscriptionFilter(values[0], values[1])).ServeHTTP(res, req)
 		}
 		res.WriteHeader(http.StatusOK)
 		return nil

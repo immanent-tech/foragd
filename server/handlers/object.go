@@ -21,8 +21,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/layouts"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // ViewObject handles showing an object's content (e.g. viewing article content).
@@ -35,7 +33,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 		}
 		valid, err := params.Valid()
 		if err != nil || !valid {
-			renderPage(layouts.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
+			renderPage(templates.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				http.StatusNotFound,
@@ -45,7 +43,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 		case models.ObjectTypeArticle:
 			articles, err := models.GetArticles(req.Context(), api, params.ObjectID)
 			if err != nil {
-				renderPartial(partials.Error(
+				renderPartial(templates.Error(
 					models.NewErrorMessage("Unable to fetch article content", ""),
 				)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)
@@ -63,13 +61,13 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Debug("Fetching article remote content.")
 				content, err := fetchArticleRemoteContent(article.GetLink())
 				if err != nil {
-					renderPartial(partials.Notification(
+					renderPartial(templates.Notification(
 						models.NewErrorMessage("Unable to fetch article remote content", ""), 0,
 					)).ServeHTTP(res, req)
 					article.ShowFullContent = false
 				} else {
 					if content == article.Content {
-						renderPartial(partials.Notification(
+						renderPartial(templates.Notification(
 							models.NewWarningMessage("Could not fetch full article content", "Page returned existing content."), 10*time.Second,
 						)).ServeHTTP(res, req)
 					}
@@ -77,7 +75,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 				}
 			}
 			// Render appropriate content.
-			template := partials.ArticleContent(article)
+			template := templates.ArticleContent(article)
 			ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 			renderPage(template, templates.GeneratePageTitle("Articles")).ServeHTTP(res, req.WithContext(ctx))
 		default:
@@ -99,7 +97,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 		valid, err := params.Valid()
 		if err != nil || !valid {
 			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
-			template := partials.Notification(msg, 0)
+			template := templates.Notification(msg, 0)
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
@@ -119,7 +117,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 				"subscriptions": user.Subscriptions,
 			})
 			if err != nil {
-				renderPartial(partials.Notification(
+				renderPartial(templates.Notification(
 					models.NewErrorMessage(
 						"Unable to mark article",
 						"Could not update user data.",
@@ -145,7 +143,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 				"subscriptions": user.Subscriptions,
 			})
 			if err != nil {
-				renderPartial(partials.Notification(
+				renderPartial(templates.Notification(
 					models.NewErrorMessage(
 						"Unable to mark article",
 						"Could not update user data.",
@@ -157,7 +155,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 			// Get updated articles.
 			s, err := models.GetArticles(req.Context(), api, params.ObjectID)
 			if err != nil || len(s) == 0 || len(s) > 1 {
-				renderPartial(partials.Notification(
+				renderPartial(templates.Notification(
 					models.NewErrorMessage(
 						"Unable to mark object",
 						"Could not refresh object.",
@@ -171,10 +169,10 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 			case params.ObjectID:
 				// Swap target is card.
 				filters := models.ListFiltersFromCtx(req.Context())
-				renderPartial(partials.NewArticleContent(s[0]).Card(filters.GetView())).ServeHTTP(res, req)
+				renderPartial(templates.ArticleCard(s[0], filters.GetView())).ServeHTTP(res, req)
 			case "mark_" + params.ObjectID:
 				// Swap target is link.
-				renderPartial(partials.UpdateViewArticleMark(s[0])).ServeHTTP(res, req)
+				renderPartial(templates.UpdateViewArticleMark(s[0])).ServeHTTP(res, req)
 			}
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
@@ -193,7 +191,7 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 		}
 		valid, err := params.Valid()
 		if err != nil || !valid {
-			renderPage(layouts.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
+			renderPage(templates.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				http.StatusNotFound,
@@ -203,12 +201,12 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 		case models.ObjectTypeArticle:
 			articles, err := models.FindSimilarArticles(req.Context(), api, params.ObjectID)
 			if err != nil {
-				renderPartial(partials.Notification(
+				renderPartial(templates.Notification(
 					models.NewErrorMessage("Unable to find similar articles", ""), 0))
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
 			// Show results.
-			template := layouts.SimilarArticles(articles)
+			template := templates.SimilarArticles(articles)
 			renderPage(template, templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
@@ -229,7 +227,7 @@ func ConfirmRemoveObject(api *elastic.API) http.HandlerFunc {
 		valid, err := params.Valid()
 		if err != nil || !valid {
 			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
-			template := partials.Notification(msg, 0)
+			template := templates.Notification(msg, 0)
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
@@ -238,14 +236,14 @@ func ConfirmRemoveObject(api *elastic.API) http.HandlerFunc {
 			subscriptions, err := models.GetSubscriptions(req.Context(), api, params.ObjectID)
 			if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
 				msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
-				template := partials.Notification(msg, 0)
+				template := templates.Notification(msg, 0)
 				renderPartial(template).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
 			// filters := models.ListFiltersFromCtx(req.Context())
 			// stats, err := models.GetSubscriptionStats(req.Context(), api, filters)
 			// if err != nil {
-			// 	renderPartial(partials.Notification(
+			// 	renderPartial(templates.Notification(
 			// 		models.NewErrorMessage(
 			// 			"Unable to refresh subscription",
 			// 			"Something went wrong, please try again",
@@ -255,7 +253,7 @@ func ConfirmRemoveObject(api *elastic.API) http.HandlerFunc {
 			// 		http.StatusInternalServerError)
 			// }
 			// subscriptionStats := stats[subscriptions[0].GetID()]
-			renderPartial(partials.UnsubscribeModal(subscriptions[0])).ServeHTTP(res, req)
+			renderPartial(templates.UnsubscribeModal(subscriptions[0])).ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}
@@ -273,7 +271,7 @@ func RemoveObject(api *elastic.API) http.HandlerFunc {
 		valid, err := params.Valid()
 		if err != nil || !valid {
 			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
-			template := partials.Notification(msg, 0)
+			template := templates.Notification(msg, 0)
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
@@ -292,13 +290,13 @@ func RemoveObject(api *elastic.API) http.HandlerFunc {
 			})
 			if err != nil {
 				msg := models.NewErrorMessage("Unable to remove subscription", "Please try again.")
-				template := partials.Notification(msg, 0)
+				template := templates.Notification(msg, 0)
 				renderPartial(template).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
 			// Show success notification.
 			msg := models.NewSuccessMessage("Unsubscribed!", "")
-			renderPartial(partials.Notification(msg, 0)).ServeHTTP(res, req)
+			renderPartial(templates.Notification(msg, 0)).ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}
@@ -316,7 +314,7 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 		}
 		valid, err := params.Valid()
 		if err != nil || !valid {
-			renderPage(layouts.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
+			renderPage(templates.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				http.StatusNotFound,
@@ -332,10 +330,10 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 					"Unable to create report form.",
 					"The backend had issues generating the report form. Please try again.",
 				)
-				renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
-			template = layouts.ReportObjectIssues(s[0], models.NewObjectIssue(params, currentURL))
+			template = templates.ReportObjectIssues(s[0], models.NewObjectIssue(params, currentURL))
 
 		case models.ObjectTypeArticle:
 			// Get the current URL on which the issue is being reported.
@@ -348,10 +346,10 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 					"Unable to create report form.",
 					"The backend had issues generating the report form. Please try again.",
 				)
-				renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
-			template = layouts.ReportObjectIssues(i[0], models.NewObjectIssue(params, currentURL))
+			template = templates.ReportObjectIssues(i[0], models.NewObjectIssue(params, currentURL))
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 
@@ -370,7 +368,7 @@ func SubmitObjectIssues(esapi *elastic.API, ghapi *github.Client) http.HandlerFu
 				"Unable to submit issue.",
 				"The backend had issues submitting the report. Please try again.",
 			)
-			renderPartial(partials.ServerErrorNotification(msg)).ServeHTTP(res, req)
+			renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Create the issue in Github.
@@ -380,7 +378,7 @@ func SubmitObjectIssues(esapi *elastic.API, ghapi *github.Client) http.HandlerFu
 				"Unable to submit issue.",
 				"The backend had issues submitting the report. Please try again.",
 			)
-			renderPartial(partials.ServerErrorNotification(msg))
+			renderPartial(templates.ServerErrorNotification(msg))
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Force refresh of page.
@@ -388,7 +386,7 @@ func SubmitObjectIssues(esapi *elastic.API, ghapi *github.Client) http.HandlerFu
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
-		renderPage(partials.IssueReportedConfirmation(msg), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+		renderPage(templates.IssueReportedConfirmation(msg), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

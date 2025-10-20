@@ -6,7 +6,6 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 const (
@@ -81,18 +80,18 @@ templ Page(title string, body templ.Component) {
 			class="h-full"
 			hx-ext="response-targets,preload,ajax-header,sse"
 			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
-			hx-target-404={ partials.ContentID.Target() }
+			hx-target-404={ ContentID.Target() }
 		>
 			<input id="page-theme" type="checkbox" value={ models.GetUserTheme(ctx) } class="toggle theme-controller hidden" checked="checked"/>
 			<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-			<div id={ partials.ModalContainerID.String() } hx-target-error="#modal-errors"></div>
+			<div id={ ModalContainerID.String() } hx-target-error="#modal-errors"></div>
 			if body != nil {
 				@body
 			}
 			{ children... }
 			//  px-4 py-6 sm:p-6
 			<div aria-live="assertive" class="pointer-events-none fixed inset-0 flex items-end sm:items-start z-999">
-				<div id={ partials.NotificationsID.String() } class="flex w-full flex-col items-center space-y-4 m-4 sm:items-end"></div>
+				<div id={ NotificationsID.String() } class="flex w-full flex-col items-center space-y-4 m-4 sm:items-end"></div>
 			</div>
 		</body>
 	</html>

@@ -1,0 +1,601 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	"github.com/dustin/go-humanize"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+	"slices"
+	"strconv"
+	"strings"
+	"time"
+)
+
+// SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
+templ SubscriptionCard(s *models.Subscription) {
+	{{ user, _ := models.UserFromCtx(ctx) }}
+	<li id={ s.GetID() }>
+		<div class={ "card-base", templ.KV("opacity-50",!s.IsUnread()) }>
+			<div class="flex items-center card-section">
+				<div class="flex flex-1">
+					@ViewSubscriptionLink(s)
+				</div>
+				<div class="flex flex-none">
+					@actionsMenu(s)
+				</div>
+			</div>
+			// Display up to 5 of the subscription categories.
+			if len(s.GetCategories(0)) > 0 {
+				<div class="flex justify-center card-section">
+					<div class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+						for category := range slices.Values(s.GetCategories(5)) {
+							@subscriptionCategoryBadge(category)
+						}
+					</div>
+				</div>
+			}
+			// Display some subscription metrics.
+			<dl class="-my-3 px-6 text-sm/6 card-section">
+				if user.GetSettings().ShowUnreadCounts {
+					<div class="flex justify-between gap-x-4 sm:py-3">
+						<dt class="">Unread Count</dt>
+						<dd class="text-base-content/90">{ s.GetUnreadCount() }</dd>
+					</div>
+				}
+				// if s.Stats != nil {
+				if s.Stats.GetDailyUpdates() > 1 {
+					<div class="flex justify-between gap-x-4 sm:py-3">
+						<dt class="">Update frequency</dt>
+						<dd class="text-base-content/90">{ s.Stats.GetDailyUpdates() } articles/day</dd>
+					</div>
+				} else if s.Stats.AvgDailyUpdates < 1 && s.Stats.AvgDailyUpdates > 0.5 {
+					<div class="flex justify-between gap-x-4 sm:py-3">
+						<dt class="">Update frequency</dt>
+						<dd class="text-base-content/90">A few times a week</dd>
+					</div>
+				} else if s.Stats.AvgDailyUpdates < 0.5 && s.Stats.AvgDailyUpdates > 0.25 {
+					<div class="flex justify-between gap-x-4 sm:py-3">
+						<dt class="">Update frequency</dt>
+						<dd class="text-base-content/90">About weekly</dd>
+					</div>
+				} else {
+					<div class="flex justify-between gap-x-4 sm:py-3">
+						<dt class="">Update frequency</dt>
+						<dd class="text-base-content/90">Infrequent</dd>
+					</div>
+				}
+				// }
+				<div class="flex justify-between gap-x-4 sm:py-3">
+					<dt class="">Last update</dt>
+					<dd class="text-base-content/90">{ humanize.Time(s.GetUpdatedDate()) }</dd>
+				</div>
+			</dl>
+		</div>
+	</li>
+}
+
+templ ViewSubscriptionLink(s *models.Subscription) {
+	{{ overrides := map[string]string{models.ParamSortBy: string(models.SortByLastUpdated), "subscriptions": s.GetID()} }}
+	if s.IsUnread() {
+		{{ overrides[models.ParamView] = string(models.ViewUnread) }}
+	} else {
+		{{ overrides[models.ParamView] = string(models.ViewRead) }}
+	}
+	@ViewObjectLink(s, "#content-filters", overrides, "flex", "items-center", "gap-x-4", "hover:text-accent") {
+		<div class="flex items-center">
+			<div class="mr-4 shrink-0 self-center">
+				@GenerateAvatar(s)
+			</div>
+			<div>
+				<h4 class="text-lg font-bold">{ s.GetTitle() }</h4>
+			</div>
+		</div>
+	}
+}
+
+// Settings renders the subscription in a format suitable for showing on the subscription settings page.
+templ SubscriptionSettings(s *models.Subscription) {
+	<li class="flex items-center justify-between px-4 py-5 sm:px-6">
+		@ViewSubscriptionLink(s)
+		@actionsMenu(s)
+	</li>
+}
+
+// actionsMenu renders a dropdown menu containing actions specific to the subscription (e.g. mark, share, favorite).
+templ actionsMenu(s *models.Subscription) {
+	@ContextMenu(s.GetTitle() + " Actions") {
+		// View action.
+		<a href={ s.GetLink() } target="_blank" rel="noopener" class="menu-item">
+			@tabler.ExternalLink(i.Props{Class: "size-4"})
+			Feed Website
+		</a>
+		// Mark action.
+		<form id={ "mark-" + s.GetID() }>
+			@MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "menu-item")
+		</form>
+		// Edit action.
+		<a
+			hx-get={ "/edit/subscription/" + s.GetID() }
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			class="link link-hover menu-item"
+		>
+			@tabler.Edit(i.Props{Class: "size-4"})
+			Edit Subscription
+		</a>
+		// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+		<div id={ "favorite_" + s.GetID() }>
+			@FavoriteObjectLink(s, "menu-item")
+		</div>
+		// Unsubscribe action.
+		<a
+			hx-get={ "/remove/subscription/" + s.GetID() }
+			hx-target={ ModalContainerID.Target() }
+			class="link link-hover menu-item"
+			_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
+		>
+			@tabler.TrashFilled(i.Props{Class: "size-4"})
+			Remove Subscription
+		</a>
+		// Report issue action.
+		<a
+			hx-get={ s.IssueURL() }
+			hx-target={ ContentID.Target() }
+			class="link link-hover menu-item"
+		>
+			@tabler.FlagFilled(i.Props{Class: "size-4"})
+			Report an issue
+		</a>
+	}
+}
+
+templ subscriptionCategoryBadge(category models.Category) {
+	{{ filters := models.ListFiltersFromCtx(ctx).Values() }}
+	{{ filters[models.ParamCategories] = category }}
+	<a
+		hx-get="/subscriptions"
+		hx-push-url="true"
+		hx-target={ ContentID.Target() }
+		hx-vals={ models.GenerateHXVals(filters) }
+		class="link link-hover"
+	>
+		<div class="flex gap-2 text-sm capitalize">
+			<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{ category } </span>
+		</div>
+	</a>
+}
+
+templ SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pagination) {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
+	@Main() {
+		// <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+		// Hidden content filters.
+		<div id="content-filters" class="hidden">
+			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+			<input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
+			<input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
+			if len(filters.GetCategories()) > 0 {
+				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>
+			}
+			if len(filters.GetSubscriptions()) > 0 {
+				<input type="hidden" name={ models.ParamSubscriptions } value={ strings.Join(filters.GetSubscriptions(), ",") }/>
+			}
+		</div>
+		<div id="update-notifications" sse-connect={ "/list/subscriptions/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
+		if len(subscriptions) > 0 {
+			@ListDisplayFilters(subscriptions.GetCategoryCounts(), filters, true)
+		} else {
+			@ListDisplayFilters(subscriptions.GetCategoryCounts(), filters, false)
+		}
+		@Grid() {
+			@SubscriptionsList(subscriptions, pagination)
+		}
+		// </main>
+	}
+	@Dock()
+}
+
+templ EditSubscription(request *models.EditSubscriptionRequest) {
+	@Main() {
+		@PageHeader("Editing Subscription")
+		if request.HasError() {
+			<div role="alert" class="alert alert-error alert-outline mt-12">
+				<div class="px-4 py-5 sm:p-6 space-y-4">
+					<span class="gap-y-2">
+						<p class="font-semibold text-base">Invalid Details</p>
+						<p class="text-sm">There is a problem with the details. Please check and try again.</p>
+					</span>
+				</div>
+			</div>
+		}
+		<fieldset class="fieldset border-base-300 rounded-box border p-4">
+			<legend class="fieldset-legend text-base/7">Settings</legend>
+			<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
+				<div class="flex items-center">
+					<label class="block text-sm/6 font-medium">
+						<input
+							type="checkbox"
+							if request.ShowFullArticleContent {
+								checked="checked"
+							}
+							name="show_full_article_content"
+							class="toggle toggle-sm toggle-primary"
+						/>
+						Always show full article content
+					</label>
+					@HelpPopover("show-full-article-help", "top end") {
+						<div tabindex="0" class="card-body card-sm">
+							<div tabindex="0" class="card-body">
+								<p>If articles in the subscription are only showing a summary, set this toggle to attempt to fetch the full content from the website.</p>
+								<p>Note: fetching full content is based on a heuristic that tries to locate the article content on the page. It does not always produce optimal results.</p>
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+		</fieldset>
+		<fieldset class="fieldset border-base-300 rounded-box border p-4">
+			<legend class="fieldset-legend text-base/7">Customisation</legend>
+			<form
+				id="edit-subscription"
+				hx-post={ "/edit/subscription/" + request.GetID() }
+				hx-include="[name='user_categories'],[name='show_full_article_content'],[id='article_category_filters'],[id='article_author_filters'],[name='csrf_token']"
+				hx-target={ ContentID.Target() }
+				hx-target-error={ ContentID.Target() }
+				hx-indicator="#processing"
+			>
+				<input type="hidden" name="subscription_id" value={ request.GetID() }/>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+					<label for="username" class="block text-sm/6 font-medium">Nickname</label>
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						<input
+							id="nickname"
+							required
+							type="text"
+							name="user_nickname"
+							value={ request.GetNickname() }
+							placeholder="My Subscription"
+							class="input input-primary bg-base-content/10"
+						/>
+					</div>
+				</div>
+			</form>
+			{{ categoryMgmtPath := "/edit/subscription/" + request.GetID() + "/category" }}
+			@CategoryManagement(categoryMgmtPath, request.SuggestedCategories, request.GetCategories())
+		</fieldset>
+		<fieldset class="fieldset border-base-300 rounded-box border p-4">
+			<legend class="fieldset-legend text-base/7">
+				Article Filtering
+			</legend>
+			<div class="flex items-center space-x-2">
+				<p class="mt-1 text-sm/6 text-base-content">Filter the articles within the subscription by the value of various fields.</p>
+				@HelpPopover("filter-operators-help", "top end") {
+					<div tabindex="0" class="card-body card-sm bg-base-300">
+						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+						<ul class="gap-y-2">
+							<li>+ signifies AND operation (i.e., food AND beverages)</li>
+							<li>| signifies OR operation (i.e., food OR beverages)</li>
+							<li>- negates a the word (i.e., NOT alcoholic)</li>
+							<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
+							<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
+						</ul>
+					</div>
+				}
+			</div>
+			<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+				<label for="article_category_filters" class="block text-sm/6 font-medium">Categories</label>
+				<div class="mt-2 sm:col-span-2 sm:mt-0">
+					<input
+						id="article_category_filters"
+						type="text"
+						name="article_filters.categories"
+						value={ request.ArticleFilters.Categories }
+						placeholder="Add filters..."
+						class="input input-primary bg-base-content/10"
+					/>
+				</div>
+			</div>
+			<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+				<label for="article_author_filters" class="block text-sm/6 font-medium">Authors</label>
+				<div class="mt-2 sm:col-span-2 sm:mt-0">
+					<input
+						id="article_author_filters"
+						type="text"
+						name="article_filters.authors"
+						value={ request.ArticleFilters.Authors }
+						placeholder="Add filters..."
+						class="input input-primary bg-base-content/10"
+					/>
+				</div>
+			</div>
+		</fieldset>
+		<div class="mt-6 flex items-center justify-end gap-x-6">
+			<div id="processing" class="htmx-indicator">
+				Processing...
+				<span class="loading loading-spinner loading-md"></span>
+			</div>
+			<button type="button" onclick="history.back()" class="btn btn-primary">Back</button>
+			<button
+				type="submit"
+				form="edit-subscription"
+				class="btn btn-primary"
+			>Save</button>
+		</div>
+	}
+}
+
+templ EditSubscriptionSuccessNotification(metadata *models.SubscriptionMetadata) {
+	@Notification(&models.UserMessage{
+		Status:  models.UserMessageStatusSuccess,
+		Summary: metadata.Customisation.Nickname + " updated",
+	}, 15*time.Second) {
+		<div class="mt-3 flex space-x-7">
+			<button
+				type="button"
+				class="rounded-md text-sm font-medium hover:bg-accent/20 hover:text-accent-content focus:outline-2 focus:outline-offset-2 focus:outline-primary"
+				hx-get="/list/subscriptions"
+				hx-target={ ContentID.Target() }
+				hx-push-url="true"
+				_={ "on click remove #" + GetNotificationIDFromCtx(ctx) }
+			>Go to subscriptions <span aria-hidden="true">&rarr;</span></button>
+		</div>
+	}
+}
+
+// AddSubscription is a page for adding a new subscription.
+templ AddSubscription(request *models.SubscriptionRequest) {
+	@Main() {
+		@PageHeader("Add a subscription")
+		if request.HasError() {
+			<div role="alert" class="alert alert-error alert-outline mt-12">
+				<div class="px-4 py-5 sm:p-6 space-y-4">
+					<span class="gap-y-2">
+						<p class="font-semibold text-base">Invalid Details</p>
+						<p class="text-sm">There is a problem with the details. Please check and try again.</p>
+					</span>
+				</div>
+			</div>
+		}
+		<fieldset class="fieldset border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0">
+			<form
+				id="add-subscription"
+				hx-post="/user/subscription/add"
+				hx-target={ ContentID.Target() }
+				hx-include="[name='user_categories']"
+				hx-indicator="#processing"
+				hx-on::after-request="if(event.detail.successful) this.reset()"
+			>
+				<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
+					<div>
+						<label for="username" class="block text-sm/6 font-medium">URL</label>
+						<p id="url-hint" class="mt-3 text-sm/6 text-base-content/60">Required. The feed's URL or website.</p>
+					</div>
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						<input
+							id="url"
+							required
+							type="url"
+							name="url"
+							value={ request.URL }
+							placeholder="https://my-favorite-site/feed"
+							class="input input-primary bg-base-content/10 w-full"
+						/>
+						if request.URLErr != nil {
+							<p class="text-error py-2 text-xs/4 font-semibold">Error: { request.URLErr.Error() }</p>
+						}
+					</div>
+				</div>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
+					<div>
+						<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
+						<p id="nickname-hint" class="mt-3 text-sm/6 text-base-content/60">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
+					</div>
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						<input
+							id="nickname"
+							type="text"
+							name="user_nickname"
+							value={ request.Nickname }
+							placeholder="My cool subscription"
+							class={ templ.KV("input input-primary bg-base-content/10",request.NicknameErr == nil), templ.KV("input input-error bg-base-content/10",request.NicknameErr !=nil) }
+						/>
+						if request.NicknameErr != nil {
+							<p class="text-error py-2 text-xs/4 font-semibold">{ request.NicknameErr.Error() }</p>
+						}
+					</div>
+				</div>
+			</form>
+			{{ categoryMgmtPath := "/user/subscription/category" }}
+			@CategoryManagement(categoryMgmtPath, nil, request.Categories)
+		</fieldset>
+		<div class="flex items-center justify-end gap-x-6">
+			<div id="processing" class="htmx-indicator">
+				Processing...
+				<span class="loading loading-spinner loading-md"></span>
+			</div>
+			<button
+				type="button"
+				onclick="history.back()"
+				class="btn btn-primary"
+			>Back</button>
+			<button
+				type="submit"
+				form="add-subscription"
+				class="btn btn-primary"
+			>Add</button>
+		</div>
+	}
+}
+
+// AddSubscriptionSuccess displays success feedback and navigation options on successful addition of a subscription.
+templ AddSubscriptionSuccess(result *models.AddSubscriptionResult) {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
+	<div class="text-center">
+		@tabler.CircleCheck(i.Props{Class: "size-12 mx-auto text-success"})
+		<h3 class="mt-2 text-base font-semibold">Subscription added: { result.Subscription.GetTitle() }</h3>
+		<p class="mt-1 text-sm text-base-content">Articles will be fetched shortly...</p>
+		<div class="mt-6">
+			<button
+				type="button"
+				hx-get="/list/subscriptions"
+				hx-target={ ContentID.Target() }
+				hx-vals={ models.GenerateHXVals(filters.Values()) }
+				hx-push-url="true"
+				class="btn btn-outline hover:bg-accent"
+			>
+				Go to subscriptions
+			</button>
+			<button
+				type="button"
+				hx-get="/user/subscription/add"
+				hx-target={ ContentID.Target() }
+				hx-push-url="true"
+				class="btn btn-outline hover:bg-accent"
+			>
+				Add another
+			</button>
+		</div>
+	</div>
+}
+
+// ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
+templ ImportSubscriptions() {
+	@Main() {
+		@PageHeader("Import Subscriptions")
+		@PageDescription("You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.")
+		<div class="border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0">
+			<form
+				id="import"
+				hx-encoding="multipart/form-data"
+				hx-post="/user/import"
+				hx-target="#import-results"
+				hx-indicator="#processing"
+			>
+				<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+					<label for="source" class="block text-sm/6 font-medium">OPML file</label>
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						<fieldset class="fieldset">
+							<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10"/>
+							<span class="validator-hint hidden">Make sure the file is a valid OPML file.</span>
+						</fieldset>
+					</div>
+				</div>
+				<div class="mt-6 flex items-center justify-end gap-x-6">
+					<div id="processing" class="htmx-indicator">
+						Processing...
+						<span class="loading loading-spinner loading-md"></span>
+					</div>
+					<button type="button" onclick="history.back()" class="btn btn-primary">
+						Back
+					</button>
+					<button
+						type="submit"
+						class="btn btn-primary"
+					>
+						Import
+					</button>
+				</div>
+			</form>
+		</div>
+		<div id="import-results" class="space-y-4"></div>
+	}
+}
+
+type AddSubscriptionResults map[*models.SubscriptionRequest]*models.AddSubscriptionResult
+
+func (r AddSubscriptionResults) GetSuccessful() []*models.AddSubscriptionResult {
+	return slices.Collect(models.FilterMapValues(r, func(result *models.AddSubscriptionResult) bool {
+		return result.Message.Status == models.UserMessageStatusSuccess
+	}))
+}
+
+func (r AddSubscriptionResults) GetFailed() []*models.AddSubscriptionResult {
+	return slices.Collect(models.FilterMapValues(r, func(result *models.AddSubscriptionResult) bool {
+		return result.Message.Status != models.UserMessageStatusSuccess
+	}))
+}
+
+// ImportResults is a partial template that displays the results of an import.
+templ ImportResults(results AddSubscriptionResults) {
+	{{ successfulResults := results.GetSuccessful() }}
+	{{ failedResults := results.GetFailed() }}
+	@PageHeader("Import Results")
+	@PageDescription("Imported: " + strconv.Itoa(len(successfulResults)) + " Failed: " + strconv.Itoa(len(failedResults)))
+	<button
+		class="btn btn-primary"
+		hx-get="/subscriptions"
+		hx-target={ ContentID.Target() }
+		hx-vals={ models.GenerateHXVals(models.ListFiltersFromCtx(ctx).Values()) }
+	>
+		Go to your subscriptions
+	</button>
+	<div class="mt-10 space-y-8 border-t border-neutral">
+		<ul class="list">
+			for response := range slices.Values(slices.Concat(successfulResults,failedResults)) {
+				<li class="list-row items-center">
+					switch response.Message.Status {
+						case models.UserMessageStatusSuccess:
+							@tabler.CircleCheck(i.Props{Class: "size-10 text-success"})
+							<div>
+								<div>{ response.Message.Summary }</div>
+							</div>
+						case models.UserMessageStatusError:
+							@tabler.ExclamationCircle(i.Props{Class: "size-10 text-error"})
+							<div>
+								<div>{ response.Message.Summary }</div>
+								if response.Message.HasDetails() {
+									<p class="list-col-wrap text-xs">
+										{ response.Message.Details }
+									</p>
+								}
+							</div>
+						case models.UserMessageStatusWarning:
+							@tabler.AlertTriangle(i.Props{Class: "size-10 text-warning"})
+							<div>
+								<div>{ response.Message.Summary }</div>
+								if response.Message.HasDetails() {
+									<p class="list-col-wrap text-xs">
+										{ response.Message.Details }
+									</p>
+								}
+							</div>
+					}
+				</li>
+			}
+		</ul>
+	</div>
+	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" href={ ContentID.Target() }>Back to top</button>
+}
+
+// ExportSubscriptions renders a form for exporting all subscriptions as an OPML file.
+templ ExportSubscriptions() {
+	@Main() {
+		@PageHeader("Export subscriptions")
+		@PageDescription("You can export your current subscription to an OPML file, which all good feed readers can import.")
+		<div class="mt-10 space-y-8">
+			<div class="mt-6 flex items-center justify-end gap-x-6">
+				<button type="button" onclick="history.back()" class="btn btn-primary">
+					Back
+				</button>
+				<a
+					role="button"
+					class="btn btn-primary"
+					href="/user/export/opml"
+					download
+				>
+					Export
+				</a>
+			</div>
+		</div>
+		<center id="processing" class="htmx-indicator">
+			Processing, this could take a few minutes...
+			<span class="loading loading-spinner loading-md"></span>
+		</center>
+	}
+}

@@ -1,0 +1,271 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/models"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+	"slices"
+	"strconv"
+)
+
+type Home struct {
+	User           *models.User
+	LatestArticles models.Articles
+	Subscriptions  models.Subscriptions
+	TopCategories  models.CategoryCounts
+	TopArticles    models.Articles
+	RareCategories models.CategoryCounts
+	Favorites      models.FavoritesSlice
+}
+
+// content renders the home page content.
+templ (page *Home) Template() {
+	{{ filters := models.ListFiltersFromCtx(ctx) }}
+	<main class="pr-4 lg:pr-100 pl-4 pt-8">
+		// Stats.
+		<header class="flex items-center">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base text-nowrap font-semibold">Stats</span>
+			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+		</header>
+		<dl class="mt-5 flex gap-2 sm:gap-4 justify-center">
+			<div class="px-2 py-4 sm:px-6 sm:py-8">
+				<a
+					hx-get="/list/subscriptions"
+					hx-target={ ContentID.Target() }
+					hx-push-url="true"
+					hx-vals={ models.GenerateHXVals(filters.Values()) }
+					class="link link-hover font-medium hover:text-accent"
+				>
+					<dt>
+						<div class="absolute rounded-md bg-accent p-3">
+							@tabler.Rss(i.Props{Class: "size-6 text-accent-content"})
+						</div>
+						<p class="ml-16 text-sm font-medium ">Subscriptions</p>
+					</dt>
+					<dd class="ml-16 flex items-baseline">
+						<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.User.GetSubscriptionMetadata())) }</p>
+					</dd>
+				</a>
+			</div>
+			<div class="px-2 py-4 sm:px-6 sm:py-8">
+				<a
+					hx-get="/list/articles"
+					hx-target={ ContentID.Target() }
+					hx-push-url="true"
+					hx-vals={ models.GenerateHXVals(filters.Values()) }
+					class="link link-hover font-medium hover:text-accent"
+				>
+					<dt>
+						<div class="absolute rounded-md bg-accent p-3">
+							@tabler.FileRss(i.Props{Class: "size-6 text-accent-content"})
+						</div>
+						<p class="ml-16 text-sm font-medium ">Unread Articles</p>
+					</dt>
+					<dd class="ml-16 flex items-baseline">
+						<p class="text-2xl font-semibold">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</p>
+					</dd>
+				</a>
+			</div>
+		</dl>
+		// Latest articles.
+		<header class="flex items-center">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base text-nowrap font-semibold">Latest Articles</span>
+			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+		</header>
+		if len(page.LatestArticles) > 0 {
+			<ul role="list" class="divide-y divide-base-content/15">
+				for article := range slices.Values(page.LatestArticles) {
+					<li class="py-4 space-y-2">
+						@ArticleSummary(article)
+					</li>
+				}
+			</ul>
+		} else {
+			<div class="text-center">
+				@tabler.CircleCheckFilled(i.Props{Class: "mx-auto size-12"})
+				<h3 class="mt-2 text-sm font-semibold">All caught up!</h3>
+			</div>
+		}
+	</main>
+	// Latest articles feed.
+	<aside class="lg:fixed lg:top-16 lg:right-0 lg:bottom-0 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-base-content/15 px-4 pt-8">
+		// Show top categories (if found).
+		if len(page.TopCategories) > 0 {
+			<div class="flex items-center mt-8">
+				<div class="relative flex justify-start">
+					<span class="pr-3 text-base text-nowrap font-semibold">Top Categories</span>
+				</div>
+				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+			</div>
+			<div class="flex justify-center gap-2 p-2 m-2">
+				<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+					for category := range slices.Values(page.TopCategories) {
+						@categoryBadge(category)
+					}
+				</div>
+			</div>
+		}
+		// Show top articles (if found).
+		if len(page.TopArticles) > 0 {
+			<div class="flex items-center mt-8">
+				<div class="relative flex justify-start">
+					<span class="pr-3 text-base text-nowrap font-semibold">Top Articles</span>
+				</div>
+				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+			</div>
+			<div class="mt-8">
+				<ul role="list" class="grid grid-cols-1 xl:grid-cols-2">
+					for article := range slices.Values(page.TopArticles) {
+						<li class="py-4 sm:px-4 space-y-2">
+							@ArticleSummary(article)
+						</li>
+					}
+				</ul>
+			</div>
+		}
+		// Interesting Picks section: rare/semantic categories and articles.
+		if len(page.RareCategories) > 0 {
+			if page.RareCategories != nil {
+				<div class="flex items-center mt-8">
+					<div class="relative flex justify-start">
+						<span class="pr-3 text-base text-nowrap font-semibold">Interesting Picks</span>
+					</div>
+					<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+				</div>
+				<div class="mt-8">
+					<div class="flex justify-center gap-2 p-4 m-4">
+						<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+							for category := range slices.Values(page.RareCategories) {
+								@categoryBadge(category)
+							}
+						</div>
+					</div>
+				</div>
+			}
+		}
+	</aside>
+	@Dock()
+}
+
+templ categoryBadge(category models.CategoryCount) {
+	{{ params := models.ListFiltersFromCtx(ctx).Values() }}
+	{{ params[models.ParamCategories] = category.Category }}
+	<a
+		hx-get="/articles"
+		hx-push-url="true"
+		hx-target={ ContentID.Target() }
+		hx-vals={ models.GenerateHXVals(params) }
+		class="link link-hover"
+	>
+		<div class="flex gap-2 text-sm capitalize">
+			<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{ category.Category+ " "+ strconv.Itoa(category.Count) } </span>
+		</div>
+	</a>
+}
+
+templ NewUserHome() {
+	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 space-y-4">
+		<h1 class="text-5xl font-bold pb-6">Welcome to { config.AppName }</h1>
+		<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
+		<p class="py-2">Import your feeds from somewhere else:</p>
+		<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content max-w-prose">
+			<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
+				@tabler.Plus(i.Props{Class: "size-6 text-secondary-content"})
+			</div>
+			<div>
+				<h3 class="text-sm font-medium ">
+					<a
+						hx-get="/user/subscription/add"
+						hx-target={ ContentID.Target() }
+						hx-push-url="true"
+						class="link link-hover focus:outline-hidden"
+					>
+						<span aria-hidden="true" class="absolute inset-0"></span>
+						<span>Add a subscription</span>
+						<span aria-hidden="true">&rarr;</span>
+					</a>
+				</h3>
+				<p class="mt-1 text-sm text-base-content">Add a single subscription from a URL or webpage.</p>
+			</div>
+		</div>
+		<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content max-w-prose">
+			<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary">
+				@tabler.CloudDownload(i.Props{Class: "size-6 text-secondary-content"})
+			</div>
+			<div>
+				<h3 class="text-sm font-medium">
+					<a
+						hx-get="/user/import"
+						hx-target={ ContentID.Target() }
+						hx-push-url="true"
+						class="link link-hover focus:outline-hidden"
+					>
+						<span aria-hidden="true" class="absolute inset-0"></span>
+						<span>Import subscriptions</span>
+						<span aria-hidden="true">&rarr;</span>
+					</a>
+				</h3>
+				<p class="mt-1 text-sm text-base-content">Import multiple subscriptions using an OPML file.</p>
+			</div>
+		</div>
+		<p class="py-2">Or try one or more curated starter sets (you can also add these later in settings):</p>
+		<form
+			hx-post="/user/feedset"
+			hx-include="[name='csrf_token']"
+			hx-indicator="#processing"
+		>
+			<fieldset>
+				<div class="mt-6 space-y-6">
+					<div class="flex gap-3">
+						<div class="flex h-6 shrink-0 items-center">
+							<div class="group grid size-4 grid-cols-1">
+								<input id="informed" type="checkbox" name="feedset" value="informed" aria-describedby="informed-description" class="checkbox checkbox-sm checkbox-primary"/>
+							</div>
+						</div>
+						<div class="text-sm/6">
+							<label for="informed" class="font-medium">Informed</label>
+							<p id="inspired-description" class="text-base-content/80">News and information sites.</p>
+						</div>
+					</div>
+					<div class="flex gap-3">
+						<div class="flex h-6 shrink-0 items-center">
+							<div class="group grid size-4 grid-cols-1">
+								<input id="inspired" type="checkbox" name="feedset" value="inspired" aria-describedby="inspired-description" class="checkbox checkbox-sm checkbox-primary"/>
+							</div>
+						</div>
+						<div class="text-sm/6">
+							<label for="inspired" class="font-medium">Inspired</label>
+							<p id="inspired-description" class="text-base-content/80">Digital art and other oddities.</p>
+						</div>
+					</div>
+					<div class="flex gap-3">
+						<div class="flex h-6 shrink-0 items-center">
+							<div class="group grid size-4 grid-cols-1">
+								<input id="enlightened" type="checkbox" name="feedset" value="enlightened" aria-describedby="enlightened-description" class="checkbox checkbox-sm checkbox-primary"/>
+							</div>
+						</div>
+						<div class="text-sm/6">
+							<label for="enlightened" class="font-medium">Enlightened</label>
+							<p id="enlightened-description" class="text-base-content/80">Alternative and fringe sites.</p>
+						</div>
+					</div>
+				</div>
+			</fieldset>
+			<div class="mt-6 flex items-center justify-end gap-x-6 max-w-prose">
+				<div id="processing" class="htmx-indicator">
+					Processing...
+					<span class="loading loading-spinner loading-md"></span>
+				</div>
+				<button type="submit" class="btn btn-primary">Add sets</button>
+			</div>
+		</form>
+	</main>
+}

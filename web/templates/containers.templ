@@ -1,0 +1,33 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+// Main is a container for main content. Children will be constrained and padded to the center of the
+// screen.
+templ Main() {
+	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+		// <div class="max-w-5xl">
+		{ children... }
+		// </div>
+	</main>
+}
+
+// Grid layout renders children in a responsive grid.
+templ Grid() {
+	<ul
+		role="list"
+		class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4 items-center"
+		id="grid-objects"
+	>
+		{ children... }
+	</ul>
+}
+
+// Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
+// (i.e., privacy policy, terms of service, etc.)
+templ Document(data []byte) {
+	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 prose my-4">
+		@templ.Raw(string(data))
+	</main>
+}

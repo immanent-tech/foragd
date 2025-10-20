@@ -22,8 +22,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/layouts"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 const (
@@ -70,13 +68,13 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			case http.MethodGet:
 				godump.Dump(req.URL.Path)
 				if len(subscriptions) > 0 {
-					template = layouts.Subscriptions(subscriptions, pagination)
+					template = templates.SubscriptionsGrid(subscriptions, pagination)
 				} else {
-					template = layouts.EmptyContent("/home", nil)
+					template = templates.EmptyContent("/home", nil)
 				}
 			case http.MethodPost:
 				if len(subscriptions) > 0 {
-					template = layouts.SubscriptionsList(subscriptions, pagination)
+					template = templates.SubscriptionsList(subscriptions, pagination)
 				} else {
 					res.WriteHeader(http.StatusNoContent)
 					return nil
@@ -92,14 +90,14 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			switch req.Method {
 			case http.MethodGet:
 				if len(articles) > 0 {
-					template = layouts.Articles(articles, pagination)
+					template = templates.ArticlesGrid(articles, pagination)
 				} else {
 					filters.Subscriptions = nil
-					template = layouts.EmptyContent("/list/subscriptions", filters.Values())
+					template = templates.EmptyContent("/list/subscriptions", filters.Values())
 				}
 			case http.MethodPost:
 				if len(articles) > 0 {
-					template = layouts.ArticlesList(articles, pagination)
+					template = templates.ArticlesList(articles, pagination)
 				} else {
 					res.WriteHeader(http.StatusNoContent)
 					return nil
@@ -172,7 +170,7 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
 					var b bytes.Buffer //nolint:varnamelen
 					template := bufio.NewWriter(&b)
-					err := partials.UpdatesToast().Render(req.Context(), template)
+					err := templates.UpdatesToast().Render(req.Context(), template)
 					if err != nil {
 						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
 							slog.Any("error", err))
@@ -237,7 +235,7 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		// Mark subscriptions.
 		err = models.MarkSubscriptions(req.Context(), api, mark, subscriptions...)
 		if err != nil {
-			renderPartial(partials.Notification(
+			renderPartial(templates.Notification(
 				models.NewErrorMessage(
 					"Unable to mark objects",
 					"Something went wrong, please try again",

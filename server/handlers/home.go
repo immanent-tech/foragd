@@ -18,8 +18,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
-	"github.com/immanent-tech/foragd/web/templates/layouts"
-	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // Home handles displaying the user's home page.
@@ -32,13 +31,13 @@ func (a *API) Home() http.HandlerFunc {
 			return fmt.Errorf("unable to serve home page: %w", err)
 		}
 		if user.GetSettings().ShowOnboarding {
-			template := layouts.NewUserHome()
+			template := templates.NewUserHome()
 			renderPage(template, "Home - "+config.AppName).ServeHTTP(res, req.WithContext(ctx))
 			return nil
 		}
 		data, err := a.getHomePageData(ctx)
 		if err != nil {
-			renderPartial(partials.Notification(
+			renderPartial(templates.Notification(
 				models.NewErrorMessage(
 					"Unable to get home page data",
 					"Something went wrong, please try again",
@@ -56,8 +55,8 @@ func (a *API) Home() http.HandlerFunc {
 // getHomePageData retrieves the data required to construct the homepage content.
 //
 //nolint:funlen // mostly aggregation definitions.
-func (a *API) getHomePageData(ctx context.Context) (*layouts.Home, error) {
-	data := &layouts.Home{}
+func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
+	data := &templates.Home{}
 	// Retrieve user object.
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
