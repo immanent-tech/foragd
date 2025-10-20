@@ -8,6 +8,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"net/http"
 	"slices"
 	"strconv"
 )
@@ -34,14 +35,15 @@ templ (page *Home) Template() {
 			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
 		</header>
 		<dl class="mt-5 flex gap-2 sm:gap-4 justify-center">
+			// Subscriptions count.
 			<div class="px-2 py-4 sm:px-6 sm:py-8">
-				<a
-					hx-get="/list/subscriptions"
-					hx-target={ ContentID.Target() }
-					hx-push-url="true"
-					hx-vals={ models.GenerateHXVals(filters.Values()) }
-					class="link link-hover font-medium hover:text-accent"
-				>
+				@NewLink(
+					WithHXMethod(http.MethodGet, "/list/subscriptions"),
+					WithHXTarget(ContentID.Target()),
+					WithHXVals(filters.Values()),
+					WithHXPushURL(),
+					WithClasses("font-medium", "hover:text-accent"),
+				) {
 					<dt>
 						<div class="absolute rounded-md bg-accent p-3">
 							@tabler.Rss(i.Props{Class: "size-6 text-accent-content"})
@@ -51,16 +53,17 @@ templ (page *Home) Template() {
 					<dd class="ml-16 flex items-baseline">
 						<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.User.GetSubscriptionMetadata())) }</p>
 					</dd>
-				</a>
+				}
 			</div>
+			// Articles count.
 			<div class="px-2 py-4 sm:px-6 sm:py-8">
-				<a
-					hx-get="/list/articles"
-					hx-target={ ContentID.Target() }
-					hx-push-url="true"
-					hx-vals={ models.GenerateHXVals(filters.Values()) }
-					class="link link-hover font-medium hover:text-accent"
-				>
+				@NewLink(
+					WithHXMethod(http.MethodGet, "/list/articles"),
+					WithHXTarget(ContentID.Target()),
+					WithHXVals(filters.Values()),
+					WithHXPushURL(),
+					WithClasses("font-medium", "hover:text-accent"),
+				) {
 					<dt>
 						<div class="absolute rounded-md bg-accent p-3">
 							@tabler.FileRss(i.Props{Class: "size-6 text-accent-content"})
@@ -70,7 +73,7 @@ templ (page *Home) Template() {
 					<dd class="ml-16 flex items-baseline">
 						<p class="text-2xl font-semibold">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</p>
 					</dd>
-				</a>
+				}
 			</div>
 		</dl>
 		// Latest articles.
@@ -108,7 +111,20 @@ templ (page *Home) Template() {
 			<div class="flex justify-center gap-2 p-2 m-2">
 				<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
 					for category := range slices.Values(page.TopCategories) {
-						@categoryBadge(category)
+						{{ params := models.ListFiltersFromCtx(ctx).Values() }}
+						{{ params[models.ParamCategories] = category.Category }}
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/list/articles"),
+							WithHXTarget(ContentID.Target()),
+							WithHXVals(params),
+							WithHXPushURL(),
+						) {
+							<div class="flex gap-2 text-sm capitalize">
+								<div class="badge badge-soft badge-primary">
+									{ category.Category+ " "+ strconv.Itoa(category.Count) }
+								</div>
+							</div>
+						}
 					}
 				</div>
 			</div>
@@ -144,7 +160,20 @@ templ (page *Home) Template() {
 					<div class="flex justify-center gap-2 p-4 m-4">
 						<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
 							for category := range slices.Values(page.RareCategories) {
-								@categoryBadge(category)
+								{{ params := models.ListFiltersFromCtx(ctx).Values() }}
+								{{ params[models.ParamCategories] = category.Category }}
+								@NewLink(
+									WithHXMethod(http.MethodGet, "/list/articles"),
+									WithHXTarget(ContentID.Target()),
+									WithHXVals(params),
+									WithHXPushURL(),
+								) {
+									<div class="flex gap-2 text-sm capitalize">
+										<div class="badge badge-soft badge-primary">
+											{ category.Category+ " "+ strconv.Itoa(category.Count) }
+										</div>
+									</div>
+								}
 							}
 						</div>
 					</div>
@@ -153,22 +182,6 @@ templ (page *Home) Template() {
 		}
 	</aside>
 	@Dock()
-}
-
-templ categoryBadge(category models.CategoryCount) {
-	{{ params := models.ListFiltersFromCtx(ctx).Values() }}
-	{{ params[models.ParamCategories] = category.Category }}
-	<a
-		hx-get="/articles"
-		hx-push-url="true"
-		hx-target={ ContentID.Target() }
-		hx-vals={ models.GenerateHXVals(params) }
-		class="link link-hover"
-	>
-		<div class="flex gap-2 text-sm capitalize">
-			<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{ category.Category+ " "+ strconv.Itoa(category.Count) } </span>
-		</div>
-	</a>
 }
 
 templ NewUserHome() {
