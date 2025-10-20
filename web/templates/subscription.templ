@@ -24,7 +24,50 @@ templ SubscriptionCard(s *models.Subscription) {
 					@ViewSubscriptionLink(s)
 				</div>
 				<div class="flex flex-none">
-					@actionsMenu(s)
+					@ContextMenu(s.GetTitle() + " Actions") {
+						// View action.
+						<a href={ s.GetLink() } target="_blank" rel="noopener" class="menu-item">
+							@tabler.ExternalLink(i.Props{Class: "size-4"})
+							Feed Website
+						</a>
+						// Mark action.
+						<form id={ "mark-" + s.GetID() }>
+							@MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "menu-item")
+						</form>
+						// Edit action.
+						<a
+							hx-get={ "/edit/subscription/" + s.GetID() }
+							hx-target={ ContentID.Target() }
+							hx-push-url="true"
+							class="link link-hover menu-item"
+						>
+							@tabler.Edit(i.Props{Class: "size-4"})
+							Edit Subscription
+						</a>
+						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+						<div id={ "favorite_" + s.GetID() }>
+							@FavoriteObjectLink(s, "menu-item")
+						</div>
+						// Unsubscribe action.
+						<a
+							hx-get={ "/remove/subscription/" + s.GetID() }
+							hx-target={ ModalContainerID.Target() }
+							class="link link-hover menu-item"
+							_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
+						>
+							@tabler.TrashFilled(i.Props{Class: "size-4"})
+							Remove Subscription
+						</a>
+						// Report issue action.
+						<a
+							hx-get={ s.IssueURL() }
+							hx-target={ ContentID.Target() }
+							class="link link-hover menu-item"
+						>
+							@tabler.FlagFilled(i.Props{Class: "size-4"})
+							Report an issue
+						</a>
+					}
 				</div>
 			</div>
 			// Display up to 5 of the subscription categories.
@@ -105,62 +148,6 @@ templ ViewSubscriptionLink(s *models.Subscription) {
 				<h4 class="text-lg font-bold">{ s.GetTitle() }</h4>
 			</div>
 		</div>
-	}
-}
-
-// Settings renders the subscription in a format suitable for showing on the subscription settings page.
-templ SubscriptionSettings(s *models.Subscription) {
-	<li class="flex items-center justify-between px-4 py-5 sm:px-6">
-		@ViewSubscriptionLink(s)
-		@actionsMenu(s)
-	</li>
-}
-
-// actionsMenu renders a dropdown menu containing actions specific to the subscription (e.g. mark, share, favorite).
-templ actionsMenu(s *models.Subscription) {
-	@ContextMenu(s.GetTitle() + " Actions") {
-		// View action.
-		<a href={ s.GetLink() } target="_blank" rel="noopener" class="menu-item">
-			@tabler.ExternalLink(i.Props{Class: "size-4"})
-			Feed Website
-		</a>
-		// Mark action.
-		<form id={ "mark-" + s.GetID() }>
-			@MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "menu-item")
-		</form>
-		// Edit action.
-		<a
-			hx-get={ "/edit/subscription/" + s.GetID() }
-			hx-target={ ContentID.Target() }
-			hx-push-url="true"
-			class="link link-hover menu-item"
-		>
-			@tabler.Edit(i.Props{Class: "size-4"})
-			Edit Subscription
-		</a>
-		// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-		<div id={ "favorite_" + s.GetID() }>
-			@FavoriteObjectLink(s, "menu-item")
-		</div>
-		// Unsubscribe action.
-		<a
-			hx-get={ "/remove/subscription/" + s.GetID() }
-			hx-target={ ModalContainerID.Target() }
-			class="link link-hover menu-item"
-			_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
-		>
-			@tabler.TrashFilled(i.Props{Class: "size-4"})
-			Remove Subscription
-		</a>
-		// Report issue action.
-		<a
-			hx-get={ s.IssueURL() }
-			hx-target={ ContentID.Target() }
-			class="link link-hover menu-item"
-		>
-			@tabler.FlagFilled(i.Props{Class: "size-4"})
-			Report an issue
-		</a>
 	}
 }
 
@@ -321,7 +308,11 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				Processing...
 				<span class="loading loading-spinner loading-md"></span>
 			</div>
-			<button type="button" onclick="history.back()" class="btn btn-primary">Back</button>
+			<button
+				type="button"
+				onclick="history.back()"
+				class="btn btn-secondary"
+			>Back</button>
 			<button
 				type="submit"
 				form="edit-subscription"
@@ -424,7 +415,7 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 			<button
 				type="button"
 				onclick="history.back()"
-				class="btn btn-primary"
+				class="btn btn-secondary"
 			>Back</button>
 			<button
 				type="submit"
@@ -494,7 +485,11 @@ templ ImportSubscriptions() {
 						Processing...
 						<span class="loading loading-spinner loading-md"></span>
 					</div>
-					<button type="button" onclick="history.back()" class="btn btn-primary">
+					<button
+						type="button"
+						onclick="history.back()"
+						class="btn btn-secondary"
+					>
 						Back
 					</button>
 					<button

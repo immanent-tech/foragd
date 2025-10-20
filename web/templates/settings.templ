@@ -69,31 +69,7 @@ templ subscriptionSettingsTab() {
 				hx-push-url="true"
 			>Export</button>
 		</div>
-		<div class="flex items-center">
-			<div class="relative flex justify-start">
-				<span class="pr-3 text-base font-semibold ">Management</span>
-			</div>
-			<div aria-hidden="true" class="w-full border-t border-base-content/10"></div>
-		</div>
-		<div class="flex justify-center">
-			<form
-				hx-post="/user/settings/subscriptions"
-				hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
-				hx-target="#subscriptions-list"
-				hx-indicator=".htmx-indicator"
-				hx-include="[name='csrf_token']"
-				hx-push-url="false"
-			>
-				<div class="grid grid-cols-1">
-					<input id="filter-subscriptions" type="search" name="text" placeholder="Filter subscriptions..." class="input input-primary input-sm bg-base-content/10"/>
-					<span class="htmx-indicator loading loading-spinner loading-sm"></span>
-				</div>
-			</form>
-		</div>
-		<ul id="subscriptions-list" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"></ul>
 	</div>
-	//
-	// class="divide-y divide-base-content/5 max-w-prose"
 }
 
 // accountSettingsTab renders tab content for account-related settings.

@@ -80,39 +80,6 @@ func SaveSettings(api *elastic.API) http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// GetSubscriptionsSettings shows a table of subscriptions, optionally filtered, with settings controls.
-func (a *API) GetSubscriptionsSettings() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		text := req.FormValue("text")
-		request := models.NewSearchRequest()
-		request.Text = text
-		// Find matching subscriptions.
-		var (
-			subscriptions models.Subscriptions
-			err           error
-		)
-		if request.Text != "" {
-			subscriptions, err = a.findSubscriptions(req.Context(), request)
-		} else {
-			subscriptions, err = models.GetSubscriptions(req.Context(), a.Elastic)
-		}
-		if err != nil {
-			template := templates.Notification(
-				models.NewErrorMessage("Unable to filter subscriptions", ""), 0,
-			)
-			renderPartial(template).ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusInternalServerError)
-		}
-		settings := make([]templ.Component, 0, len(subscriptions))
-		for subscription := range slices.Values(subscriptions) {
-			settings = append(settings, templates.SubscriptionSettings(subscription))
-		}
-		template := templ.Join(settings...)
-		renderPartial(template).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
 // AccountSettings handles managing user account settings.
 func (a *API) AccountSettings() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
