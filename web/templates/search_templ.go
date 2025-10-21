@@ -471,7 +471,7 @@ func SearchFilters(request *models.SearchRequest) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, " class=\"radio radio-sm\"> <label for=\"view_all\" class=\"block text-sm/6 font-medium\">All</label></div></div></fieldset></div><div class=\"sm:col-span-3\"><label for=\"published_within\" class=\"block text-sm/6 font-medium\">Published within</label> <select id=\"published_within\" name=\"published_within\" class=\"select select-sm my-2 bg-base-300 outline-1 -outline-offset-1 outline-solid shadow-xl\"><option value=\"last_hour\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, " class=\"radio radio-sm\"> <label for=\"view_all\" class=\"block text-sm/6 font-medium\">All</label></div></div></fieldset></div><div class=\"sm:col-span-3\"><label for=\"published_within\" class=\"block text-sm/6 font-medium\">Published within</label> <select id=\"published_within\" name=\"published_within\" class=\"select select-sm my-2 bg-base-300\"><option value=\"last_hour\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -705,7 +705,7 @@ func GlobalSearch() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "<button type=\"button\" class=\"row-start-1 col-start-1 mr-4 self-center justify-self-end\" _=\"on click toggle .hidden on #search-filters then halt bubbling\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, "<button type=\"button\" class=\"row-start-1 col-start-1 mr-4 self-center justify-self-end\" _=\"on click toggle .hidden on #search-filters then toggle .disabled on #global-search then halt bubbling\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

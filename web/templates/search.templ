@@ -275,7 +275,7 @@ templ SearchFilters(request *models.SearchRequest) {
 				// Date range filter.
 				<div class="sm:col-span-3">
 					<label for="published_within" class="block text-sm/6 font-medium">Published within</label>
-					<select id="published_within" name="published_within" class="select select-sm my-2 bg-base-300 outline-1 -outline-offset-1 outline-solid shadow-xl">
+					<select id="published_within" name="published_within" class="select select-sm my-2 bg-base-300">
 						<option
 							value="last_hour"
 							if request.PublishedWithin == models.SearchRequestPublishedWithinLastHour {
@@ -404,7 +404,7 @@ templ GlobalSearch() {
 				<button
 					type="button"
 					class="row-start-1 col-start-1 mr-4 self-center justify-self-end"
-					_="on click toggle .hidden on #search-filters then halt bubbling"
+					_="on click toggle .hidden on #search-filters then toggle .disabled on #global-search then halt bubbling"
 				>
 					@tabler.Filter(i.Props{Class: "size-5 text-accent"})
 				</button>
