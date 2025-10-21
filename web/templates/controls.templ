@@ -9,6 +9,7 @@ import (
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
+	"slices"
 	"strconv"
 )
 
@@ -91,14 +92,14 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 	</el-dialog>
 	<section aria-labelledby="filter-heading">
 		<h2 id="filter-heading" class="sr-only">Filters</h2>
-		<div class="border-b border-base-content/40 pb-4">
-			<div class="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+		<div class="border-b border-base-content/40 py-4">
+			<div class="mx-auto flex max-w-7xl items-center justify-between">
 				@filtersButton("sort-menu") {
 					<span class="sr-only">Sort options</span>
 					Sort
 					@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
 				}
-				@filtersMenu("sort-menu") {
+				@filtersMenu("sort-menu", "bottom start") {
 					<fieldset>
 						<div class="space-y-4">
 							@sortOption(path, models.SortLastUpdatedDesc, filters.GetSort())
@@ -127,7 +128,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 										Category
 										@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
 									}
-									@filtersMenu("desktop-filters-menu-category") {
+									@filtersMenu("desktop-filters-menu-category", "bottom end") {
 										<div class="space-y-4">
 											@listDisplayFiltersForm(path, filters, "space-y-4") {
 												<input type="hidden" name={ models.ParamView } value={ string(filters.GetView()) }/>
@@ -158,7 +159,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 									View
 									@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
 								}
-								@filtersMenu("desktop-filters-menu-view") {
+								@filtersMenu("desktop-filters-menu-view", "bottom end") {
 									<fieldset>
 										<div class="space-y-4">
 											@viewFilter(path, "filter-view-unread", models.ViewUnread, filters.GetView())
@@ -174,24 +175,30 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 			</div>
 		</div>
 		// Active Filters.
-		// <div>
-		// 	<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
-		// 		<h3 class="text-sm font-medium text-accent">
-		// 			Categories
-		// 			<span class="sr-only">, active</span>
-		// 		</h3>
-		// 		<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>
-		// 		<div class="mt-2 sm:mt-0 sm:ml-4">
-		// 			<div class="-m-1 flex flex-wrap items-center">
-		// 				for category := range slices.Values(categories.GetTopCategories(10)) {
-		// 					if slices.Contains(filters.GetCategories(),category.Category) {
-		// 						@activeCategoryFilterBadge(category.Category)
-		// 					}
-		// 				}
-		// 			</div>
-		// 		</div>
-		// 	</div>
-		// </div>
+		<div>
+			<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
+				<h3 class="text-sm font-medium text-accent">
+					Filters
+					<span class="sr-only">, active</span>
+				</h3>
+				<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>
+				<div class="mt-2 sm:mt-0 sm:ml-4">
+					<div class="-m-1 flex flex-wrap items-center">
+						<div class="badge badge-accent badge-soft m-1 capitalize">
+							{ filters.GetView() }
+						</div>
+						<div class="badge badge-accent badge-soft m-1 capitalize">
+							{ filters.GetSort().String() }
+						</div>
+						for category := range slices.Values(categories.GetTopCategories(10)) {
+							if slices.Contains(filters.GetCategories(),category.Category) {
+								@activeCategoryFilterBadge(category.Category)
+							}
+						}
+					</div>
+				</div>
+			</div>
+		</div>
 	</section>
 }
 
@@ -205,10 +212,10 @@ templ filtersButton(id string) {
 	</button>
 }
 
-templ filtersMenu(id string) {
+templ filtersMenu(id, anchor string) {
 	<el-popover
 		id={ id }
-		anchor="bottom end"
+		anchor={ anchor }
 		popover
 		class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
 	>
@@ -274,9 +281,17 @@ templ categoryFilter(id string, category models.CategoryCount, current models.Ca
 }
 
 templ activeCategoryFilterBadge(category models.Category) {
-	<div class="badge badge-accent badge-soft">
+	<div class="badge badge-accent badge-soft m-1">
 		{ category }
-		@tabler.X()
+		<button
+			hx-get={ models.PathFromCtx(ctx) }
+			hx-push-url="true"
+			hx-target={ ContentID.Target() }
+			hx-include="#content-filters,[name='subscriptions'],[name='csrf_token']"
+			hx-params="not categories"
+		>
+			@tabler.X(i.Props{Class: "size-4"})
+		</button>
 	</div>
 	// <span class="m-1 inline-flex items-center rounded-full border border-gray-200 bg-white py-1.5 pr-2 pl-3 text-sm font-medium text-gray-900">
 	// 	<span>Objects</span>

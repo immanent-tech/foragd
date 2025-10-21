@@ -159,14 +159,14 @@ templ SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pa
 			// Dynamic title containing view and sort state.
 			<div class="min-w-0 flex-1">
 				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">
-					{ filters.GetView() }
-					Subscriptions,
-					switch  {
-						case filters.GetSort() == models.SortLastUpdatedDesc:
-							Newest First
-						case filters.GetSort() == models.SortLastUpdatedAsc:
-							Oldest First
-					}
+					// { filters.GetView() }
+					Subscriptions
+					// switch  {
+					// 	case filters.GetSort() == models.SortLastUpdatedDesc:
+					// 		Newest First
+					// 	case filters.GetSort() == models.SortLastUpdatedAsc:
+					// 		Oldest First
+					// }
 				</h2>
 			</div>
 			// Actions menu.

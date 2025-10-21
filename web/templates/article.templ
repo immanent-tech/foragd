@@ -334,14 +334,14 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 		<div class="flex items-center justify-between mt-4">
 			<div class="min-w-0 flex-1">
 				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">
-					{ filters.GetView() }
-					Articles,
-					switch  {
-						case filters.GetSort() == models.SortLastUpdatedDesc:
-							Newest First
-						case filters.GetSort() == models.SortLastUpdatedAsc:
-							Oldest First
-					}
+					// { filters.GetView() }
+					Articles
+					// switch  {
+					// 	case filters.GetSort() == models.SortLastUpdatedDesc:
+					// 		Newest First
+					// 	case filters.GetSort() == models.SortLastUpdatedAsc:
+					// 		Oldest First
+					// }
 				</h2>
 			</div>
 			// Actions menu.
