@@ -330,10 +330,21 @@ templ UpdateViewArticleFavorite(article *models.Article) {
 templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	@Main() {
+		// Dynamic title with view and sort state.
 		<div class="flex items-center justify-between mt-4">
 			<div class="min-w-0 flex-1">
-				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Articles</h2>
+				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">
+					{ filters.GetView() }
+					Articles,
+					switch  {
+						case filters.GetSort() == models.SortLastUpdatedDesc:
+							Newest First
+						case filters.GetSort() == models.SortLastUpdatedAsc:
+							Oldest First
+					}
+				</h2>
 			</div>
+			// Actions menu.
 			<el-dropdown class="inline-block flex-none">
 				<button class="inline-flex flex-col items-center">
 					<span class="sr-only">Articles Actions</span>
