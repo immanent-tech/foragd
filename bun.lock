@@ -8,7 +8,7 @@
         "@oddbird/css-anchor-positioning": "^0.7.0",
         "daisyui": "^5.3.0",
         "date-fns": "^4.1.0",
-        "htmx-ext-preload": "^2.1.1",
+        "htmx-ext-preload": "^2.1.2",
         "htmx-ext-response-targets": "^2.0.3",
         "htmx-ext-sse": "^2.2.3",
         "htmx.org": "^2.0.7",
@@ -450,7 +450,7 @@
 
     "htmx-ext-debug": ["htmx-ext-debug@2.0.1", "", { "dependencies": { "htmx.org": "^2.0.2" } }, "sha512-GipbV220uTYdRrTzL+pK/Lbus3z167M6Ds6WnliCItIwsyK5qIFK8GPl6QIAaonf6+8sVif7rkxz/VIXUWdlFA=="],
 
-    "htmx-ext-preload": ["htmx-ext-preload@2.1.1", "", { "dependencies": { "htmx.org": "^2.0.3" } }, "sha512-Gm9NJTMgbR4OAhZ8a4abkBSVccuI+yCVJs5Nrsn2mWDv+Ha5bSwSw8Bc4Y8D+TCaeNSFd8Qz/fe1sqBIVmv0GA=="],
+    "htmx-ext-preload": ["htmx-ext-preload@2.1.2", "", { "dependencies": { "htmx.org": "^2.0.3" } }, "sha512-foD06XAITUUQApCUQnPexyJ6B7+4vFGMQ+t42unTVTGRu/CYHdAAt6oHg7eekPHT7NRnbM5hjnGVKtClryPabg=="],
 
     "htmx-ext-response-targets": ["htmx-ext-response-targets@2.0.3", "", { "dependencies": { "htmx.org": "^2.0.2" } }, "sha512-glfxJolnRohvqVZcjixo6SRvyHgoEN4LffDVSJndWJHzDu6Mo8F3boKCIVYPaOyfohnGyqZfd6nxH3QqrBonRQ=="],
 
@@ -791,8 +791,6 @@
     "figures/escape-string-regexp": ["escape-string-regexp@1.0.5", "", {}, "sha512-vbRorB5FUQWvla16U8R/qgaFIya2qGzwDrNmCZuYKrbdSUMG6I1ZCGQRefkRVhuOkIGVne7BQ35DSfo1qvJqFg=="],
 
     "htmx-ext-debug/htmx.org": ["htmx.org@2.0.6", "", {}, "sha512-7ythjYneGSk3yCHgtCnQeaoF+D+o7U2LF37WU3O0JYv3gTZSicdEFiI/Ai/NJyC5ZpYJWMpUb11OC5Lr6AfAqA=="],
-
-    "htmx-ext-preload/htmx.org": ["htmx.org@2.0.6", "", {}, "sha512-7ythjYneGSk3yCHgtCnQeaoF+D+o7U2LF37WU3O0JYv3gTZSicdEFiI/Ai/NJyC5ZpYJWMpUb11OC5Lr6AfAqA=="],
 
     "htmx-ext-response-targets/htmx.org": ["htmx.org@2.0.6", "", {}, "sha512-7ythjYneGSk3yCHgtCnQeaoF+D+o7U2LF37WU3O0JYv3gTZSicdEFiI/Ai/NJyC5ZpYJWMpUb11OC5Lr6AfAqA=="],
 
