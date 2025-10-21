@@ -5,7 +5,9 @@
   "singleQuote": true,
   "plugins": [
     "prettier-plugin-organize-imports",
-    "prettier-plugin-tailwindcss"
+    "prettier-plugin-tailwindcss",
+    "prettier-plugin-toml",
+    "@prettier/plugin-xml"
   ],
   "proseWrap": "preserve"
 }
