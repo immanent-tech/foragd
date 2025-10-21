@@ -18,6 +18,7 @@ type HTMLElement struct {
 	sync.Mutex
 	attributes templ.Attributes
 	classes    []string
+	id         ID
 }
 
 func NewHTMLElement() HTMLElement {
@@ -25,6 +26,18 @@ func NewHTMLElement() HTMLElement {
 		attributes: make(templ.Attributes),
 		classes:    make([]string, 0),
 	}
+}
+
+func (e *HTMLElement) GetID() string {
+	return e.id.String()
+}
+
+func (e *HTMLElement) GetTarget() string {
+	return e.id.Target()
+}
+
+func (e *HTMLElement) SetID(id string) {
+	e.id = ID(id)
 }
 
 func (e *HTMLElement) SetAttribute(key string, value any) {
@@ -44,9 +57,18 @@ func (e *HTMLElement) GetClasses() []string {
 }
 
 type element interface {
+	SetID(id string)
+	GetID() string
+	GetTarget() string
 	SetAttribute(key string, value any)
 	AddClasses(classes ...string)
 	GetClasses() []string
+}
+
+func WithID(id string) Option[element] {
+	return func(e element) {
+		e.SetID(id)
+	}
 }
 
 func WithHXMethod(method, path string) Option[element] {
@@ -121,7 +143,12 @@ templ NewLink(options ...Option[element]) {
 		{{ option(link) }}
 	}
 	{{ link.SetAttribute("class", strings.Join(link.GetClasses(), " ")) }}
-	<a { link.attributes... }>
+	<a
+		if link.GetID() != "" {
+			id={ link.GetID() }
+		}
+		{ link.attributes... }
+	>
 		{ children... }
 	</a>
 }
@@ -137,7 +164,12 @@ templ NewButton(options ...Option[element]) {
 		{{ option(btn) }}
 	}
 	{{ btn.SetAttribute("class", strings.Join(btn.GetClasses(), " ")) }}
-	<button { btn.attributes... }>
+	<button
+		if btn.GetID() != "" {
+			id={ btn.GetID() }
+		}
+		{ btn.attributes... }
+	>
 		{ children... }
 	</button>
 }

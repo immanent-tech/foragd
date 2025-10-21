@@ -223,10 +223,12 @@ templ SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pa
 			}
 		</div>
 		<div id="update-notifications" sse-connect={ "/list/subscriptions/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
-		@ListDisplayFilters(subscriptions.GetCategoryCounts(), filters)
-		@Grid() {
-			@SubscriptionsList(subscriptions, pagination)
-		}
+		@FilterControls(subscriptions.GetCategoryCounts(), filters)
+		<section class="mt-4">
+			@Grid() {
+				@SubscriptionsList(subscriptions, pagination)
+			}
+		</section>
 	}
 }
 

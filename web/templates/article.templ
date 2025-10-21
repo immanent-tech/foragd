@@ -386,10 +386,12 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 			}
 		</div>
 		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
-		@ListDisplayFilters(articles.GetCategoryCounts(), filters)
-		@Grid() {
-			@ArticlesList(articles, pagination)
-		}
+		@FilterControls(articles.GetCategoryCounts(), filters)
+		<section class="mt-4">
+			@Grid() {
+				@ArticlesList(articles, pagination)
+			}
+		</section>
 	}
 }
 

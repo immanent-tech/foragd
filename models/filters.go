@@ -49,30 +49,19 @@ const (
 	DefaultSince = math.MaxInt64
 )
 
-func (sb SortBy) String() string {
-	switch sb {
-	case SortByLastUpdated:
-		return "Last Updated"
-	case SortByUnreadCount:
-		return "Unread Count"
-	default:
-		return ""
-	}
-}
-
-func (so SortOrder) String() string {
-	switch so {
-	case SortOrderAsc:
-		return "Asc"
-	case SortOrderDesc:
-		return "Desc"
-	default:
-		return ""
-	}
-}
-
 func (s *Sort) String() string {
-	return s.SortBy.String() + ": " + s.SortOrder.String()
+	switch *s {
+	case SortLastUpdatedDesc:
+		return "Newest First"
+	case SortLastUpdatedAsc:
+		return "Oldest First"
+	case SortUnreadCountDesc:
+		return "Most Unread"
+	case SortUnreadCountAsc:
+		return "Least Unread"
+	default:
+		return "Unknown Sort"
+	}
 }
 
 // ID returns a string that can be used as an id for the sort.
