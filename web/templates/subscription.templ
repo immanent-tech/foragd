@@ -5,9 +5,11 @@ package templates
 
 import (
 	"github.com/dustin/go-humanize"
+	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"net/http"
 	"slices"
 	"strconv"
 	"strings"
@@ -175,7 +177,7 @@ templ SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pa
 		}
 		// </main>
 	}
-	@Dock()
+	@Dock(SubscriptionsListActions(), nil)
 }
 
 templ SubscriptionsList(subscriptions models.Subscriptions, pagination models.Pagination) {
@@ -187,6 +189,56 @@ templ SubscriptionsList(subscriptions models.Subscriptions, pagination models.Pa
 		// Add pagination htmx props to last article.
 		@PaginationControl(ctx, "/list/subscriptions/paginate", pagination)
 	}
+}
+
+templ SubscriptionsListActions() {
+	<div class="items-center">
+		<el-dropdown class="inline-block">
+			<button class="inline-flex flex-col items-center">
+				@tabler.Menu(i.Props{Class: "size-6"})
+				<span class="dock-label">Actions</span>
+			</button>
+			<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/50 rounded-md bg-base-300 shadow-lg outline-1 outline-accent/50 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+				<div class="py-1">
+					// Mark all subscriptions action.
+					{{ var path string }}
+					switch chi.RouteContext(ctx).URLParam(models.ParamListType) {
+						case "subscriptions":
+							{{ path = "/list/subscriptions" }}
+						case "articles":
+							{{ path = "/list/articles" }}
+					}
+					@NewLink(
+						WithHXMethod(http.MethodPost, path+"/mark"),
+						WithHXTarget(ContentID.Target()),
+						WithHXInclude("#content-filters,[name='csrf_token']"),
+						WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
+					) {
+						if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewUnread {
+							@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+							<span class="sr-only">Mark All Read</span>
+							Mark all Read
+						} else {
+							@tabler.MailFilled(i.Props{Class: "size-4"})
+							<span class="sr-only">Mark All Unread</span>
+							Mark all Unread
+						}
+					}
+				</div>
+				<div class="py-1">
+					@NewLink(
+						WithHXMethod(http.MethodGet, "/user/subscription/add"),
+						WithHXTarget(ContentID.Target()),
+						WithHXPushURL(),
+						WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
+					) {
+						@tabler.Plus(i.Props{Class: "size-4"})
+						Add Subscription
+					}
+				</div>
+			</el-menu>
+		</el-dropdown>
+	</div>
 }
 
 templ EditSubscription(request *models.EditSubscriptionRequest) {

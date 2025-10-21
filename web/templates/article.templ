@@ -309,7 +309,7 @@ templ ArticleContent(article *models.Article) {
 			></div>
 		}
 	}
-	@Dock()
+	@Dock(nil, nil)
 }
 
 // UpdateViewArticleMark updates the mark action when viewing an article.
@@ -382,7 +382,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 			@ArticlesList(articles, pagination)
 		}
 	</main>
-	@Dock()
+	@Dock(nil, nil)
 }
 
 templ ArticlesList(articles models.Articles, pagination models.Pagination) {

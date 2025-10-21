@@ -1075,7 +1075,7 @@ func ArticleContent(article *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Dock().Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Dock(nil, nil).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1473,7 +1473,7 @@ func ArticlesGrid(articles models.Articles, pagination models.Pagination) templ.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Dock().Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Dock(nil, nil).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
