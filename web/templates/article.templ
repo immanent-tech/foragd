@@ -309,7 +309,6 @@ templ ArticleContent(article *models.Article) {
 			></div>
 		}
 	}
-	@Dock(nil, nil)
 }
 
 // UpdateViewArticleMark updates the mark action when viewing an article.
@@ -363,7 +362,39 @@ templ UpdateViewArticleFavorite(article *models.Article) {
 
 templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
-	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+	@Main() {
+		<div class="flex items-center justify-between mt-4">
+			<div class="min-w-0 flex-1">
+				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Articles</h2>
+			</div>
+			<el-dropdown class="inline-block flex-none">
+				<button class="inline-flex flex-col items-center">
+					<span class="sr-only">Articles Actions</span>
+					@tabler.DotsVertical(i.Props{Class: "size-6"})
+				</button>
+				<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/50 rounded-md bg-base-300 shadow-lg outline-1 outline-accent/50 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+					<div class="py-1">
+						// Mark all subscriptions action.
+						@NewLink(
+							WithHXMethod(http.MethodPost, "/list/articles/mark"),
+							WithHXTarget(ContentID.Target()),
+							WithHXInclude("#content-filters,[name='csrf_token']"),
+							WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
+						) {
+							if models.PageFiltersFromCtx(ctx,"/list/articles").GetView() == models.ViewUnread {
+								@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+								<span class="sr-only">Mark All Read</span>
+								Mark all Read
+							} else {
+								@tabler.MailFilled(i.Props{Class: "size-4"})
+								<span class="sr-only">Mark All Unread</span>
+								Mark all Unread
+							}
+						}
+					</div>
+				</el-menu>
+			</el-dropdown>
+		</div>
 		<div id="content-filters" class="hidden">
 			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
@@ -381,8 +412,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 		@Grid() {
 			@ArticlesList(articles, pagination)
 		}
-	</main>
-	@Dock(nil, nil)
+	}
 }
 
 templ ArticlesList(articles models.Articles, pagination models.Pagination) {

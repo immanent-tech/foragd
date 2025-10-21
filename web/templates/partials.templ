@@ -50,67 +50,7 @@ templ EmptyContent(backLink string, vals map[string]string) {
 }
 
 templ Content(content templ.Component) {
-	<div class="hidden bg-base-200 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col">
-		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4">
-			<div class="flex flex-col h-16 shrink-0 gap-4 mt-8 items-center text-accent">
-				@Logo("logo-drawer size-16")
-				Foragd
-			</div>
-			// Remove any subscription filter from the saved filters in the session and use these filters for links in the drawer.
-			<nav aria-label="Sidebar" class="flex flex-1 flex-col items-center">
-				<ul role="list" class="flex flex-1 flex-col gap-y-7">
-					<li>
-						<a
-							href="/home"
-							class="group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"
-						>
-							<span class="sr-only">Go to home page</span>
-							@tabler.Home(i.Props{Class: "size-6 shrink-0 text-current"})
-							Home
-						</a>
-					</li>
-					<li>
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/list/subscriptions"),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
-							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
-							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"),
-						) {
-							<span class="sr-only">Show all unread subscriptions</span>
-							@tabler.Rss(i.Props{Class: "size-6 shrink-0 text-current"})
-							Subscriptions
-						}
-					</li>
-					<li>
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/list/articles"),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
-							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
-							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"),
-						) {
-							<span class="sr-only">Show all unread articles</span>
-							@tabler.FileRss(i.Props{Class: "size-6 shrink-0 text-current"})
-							Articles
-						}
-					</li>
-					<li>
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/favorites"),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
-							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold"),
-						) {
-							<span class="sr-only">Show favorites</span>
-							@tabler.HeartFilled(i.Props{Class: "size-6 shrink-0 text-current"})
-							Favorites
-						}
-					</li>
-				</ul>
-			</nav>
-		</div>
-	</div>
+	@ContentSideBar(nil)
 	<div class="lg:pl-36">
 		@Header()
 		<div id={ ContentID.String() } hx-indicator="#content-loading">
@@ -124,6 +64,122 @@ templ Content(content templ.Component) {
 				<h3 class="mt-2 text-base font-semibold">Loading content...</h3>
 			</div>
 		</div>
+	</div>
+	@ContentDock(nil)
+}
+
+templ ContentSideBar(attributes templ.Attributes) {
+	<div id="page-sidebar" class="hidden bg-base-200 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col" { attributes... }>
+		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4">
+			<div class="flex flex-col h-16 shrink-0 gap-4 mt-8 items-center text-accent">
+				@Logo("logo-drawer size-16")
+				Foragd
+			</div>
+			// Remove any subscription filter from the saved filters in the session and use these filters for links in the drawer.
+			<nav aria-label="Sidebar" class="flex flex-1 flex-col items-center">
+				<ul role="list" class="flex flex-1 flex-col gap-y-7">
+					<li>
+						<a
+							href="/home"
+							class="group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
+						>
+							<span class="sr-only">Go to home page</span>
+							@tabler.Home(i.Props{Class: "size-6 shrink-0 text-current"})
+							Home
+						</a>
+					</li>
+					<li>
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/list/subscriptions"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
+							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+						) {
+							<span class="sr-only">Show all unread subscriptions</span>
+							@tabler.Rss(i.Props{Class: "size-6 shrink-0 text-current"})
+							Subscriptions
+						}
+					</li>
+					<li>
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/list/articles"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
+							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+						) {
+							<span class="sr-only">Show all unread articles</span>
+							@tabler.FileRss(i.Props{Class: "size-6 shrink-0 text-current"})
+							Articles
+						}
+					</li>
+					<li>
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/favorites"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+						) {
+							<span class="sr-only">Show favorites</span>
+							@tabler.HeartFilled(i.Props{Class: "size-6 shrink-0 text-current"})
+							Favorites
+						}
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+}
+
+templ ContentDock(attributes templ.Attributes) {
+	<div id="page-dock" class="dock bg-base-200 lg:hidden" { attributes... }>
+		<button
+			hx-get="/home"
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/home" {
+				class="dock-active"
+			}
+		>
+			@tabler.HomeFilled(i.Props{Class: "size-6"})
+			<span class="dock-label">Home</span>
+		</button>
+		<button
+			hx-get="/list/subscriptions"
+			hx-target={ ContentID.Target() }
+			hx-vals={ models.GenerateHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
+			hx-params={ "not " + models.ParamSubscriptions }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/list/subscriptions" {
+				class="dock-active"
+			}
+		>
+			@tabler.Rss(i.Props{Class: "size-6"})
+			<span class="dock-label">Subscriptions</span>
+		</button>
+		<button
+			hx-get="/list/articles"
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/list/articles" {
+				class="dock-active"
+			}
+			if strings.HasPrefix(models.PathFromCtx(ctx), "/view/article") {
+				hx-include="[name='subscriptions']"
+			}
+		>
+			@tabler.FileRssFilled(i.Props{Class: "size-6"})
+			<span class="dock-label">Articles</span>
+		</button>
+		<button
+			if models.PathFromCtx(ctx) == "/favorites" {
+				class="dock-active"
+			}
+		>
+			@tabler.HeartFilled(i.Props{Class: "size-6"})
+			<span class="dock-label">Favorites</span>
+		</button>
 	</div>
 }
 
@@ -244,62 +300,6 @@ templ HelpPopover(id, anchor string) {
 	<el-popover popover id={ id } anchor={ anchor } class="[--anchor-gap:4px] rounded-box">
 		{ children... }
 	</el-popover>
-}
-
-// Dock renders a dock at the bottom of the page with navigation buttons for the main pages of the service. Where
-// applicable, the button for the current page will be marked.
-templ Dock(actions templ.Component, attributes templ.Attributes) {
-	<div id="page-dock" class="dock bg-base-200 lg:hidden" { attributes... }>
-		<button
-			hx-get="/home"
-			hx-target={ ContentID.Target() }
-			hx-push-url="true"
-			if models.PathFromCtx(ctx) == "/home" {
-				class="dock-active"
-			}
-		>
-			@tabler.HomeFilled(i.Props{Class: "size-6"})
-			<span class="dock-label">Home</span>
-		</button>
-		<button
-			hx-get="/list/subscriptions"
-			hx-target={ ContentID.Target() }
-			hx-vals={ models.GenerateHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
-			hx-params={ "not " + models.ParamSubscriptions }
-			hx-push-url="true"
-			if models.PathFromCtx(ctx) == "/list/subscriptions" {
-				class="dock-active"
-			}
-		>
-			@tabler.Rss(i.Props{Class: "size-6"})
-			<span class="dock-label">Subscriptions</span>
-		</button>
-		<button
-			hx-get="/list/articles"
-			hx-target={ ContentID.Target() }
-			hx-push-url="true"
-			if models.PathFromCtx(ctx) == "/list/articles" {
-				class="dock-active"
-			}
-			if strings.HasPrefix(models.PathFromCtx(ctx), "/view/article") {
-				hx-include="[name='subscriptions']"
-			}
-		>
-			@tabler.FileRssFilled(i.Props{Class: "size-6"})
-			<span class="dock-label">Articles</span>
-		</button>
-		<button
-			if models.PathFromCtx(ctx) == "/favorites" {
-				class="dock-active"
-			}
-		>
-			@tabler.HeartFilled(i.Props{Class: "size-6"})
-			<span class="dock-label">Favorites</span>
-		</button>
-		if actions != nil {
-			@actions
-		}
-	</div>
 }
 
 templ ContextMenu(name string) {

@@ -126,6 +126,22 @@ templ NewLink(options ...Option[element]) {
 	</a>
 }
 
+type Button struct {
+	HTMLElement
+}
+
+templ NewButton(options ...Option[element]) {
+	{{ btn := &Button{HTMLElement: NewHTMLElement()} }}
+	{{ WithClasses("btn")(btn) }}
+	for option := range slices.Values(options) {
+		{{ option(btn) }}
+	}
+	{{ btn.SetAttribute("class", strings.Join(btn.GetClasses(), " ")) }}
+	<button { btn.attributes... }>
+		{ children... }
+	</button>
+}
+
 func generateHXVals(values map[string]string) string {
 	data, err := json.Marshal(values)
 	if err != nil {

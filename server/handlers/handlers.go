@@ -147,34 +147,30 @@ func renderPage(template templ.Component, title string) http.Handler {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		// Write the response template.
-		if IsHTMX(req) {
-			if IsHistoryRestoreRequest(req) {
-				slogctx.FromCtx(req.Context()).Debug("History restore request")
-				template = templates.Content(template)
-				templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
-				return
-			}
+
+		if !IsHTMX(req) || IsHistoryRestoreRequest(req) { // Non-HTMX or HistoryRestoreRequests render a full-page.
+			template = templates.Content(template)
+			templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
+			return
+		} else { // HTMX request renders partial content.
+			// Add OOB swaps depending on path.
+			template = templ.Join(template,
+				templates.ContentSideBar(templ.Attributes{"hx-swap-oob": "true"}),
+				templates.ContentDock(templ.Attributes{"hx-swap-oob": "true"}),
+			)
+			// Update page title if set.
 			if title != "" {
 				// Update the page title if set.
 				template = templ.Join(template, templates.SetPageTitle(title))
 			}
-			// Update the CSRF token value.
+			// Add OOB swap to update CSRF token.
 			template = templ.Join(template, templates.UpdateCSRFToken())
+			// Render template (or template fragment).
 			target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget))
 			if target != "" && target != templates.FragmentContent {
 				templ.Handler(template, templ.WithFragments(target)).ServeHTTP(res, req)
 			} else {
 				templ.Handler(template).ServeHTTP(res, req)
-			}
-		} else {
-			template = templates.Content(template)
-			template = templates.Page(title, template)
-			err := template.Render(req.Context(), res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				res.WriteHeader(http.StatusNoContent)
-				return
 			}
 		}
 	})

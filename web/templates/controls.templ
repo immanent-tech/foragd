@@ -353,23 +353,7 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 							</fieldset>
 						</el-popover>
 					</div>
-					{{ var mark string }}
-					if filters.GetView() == models.ViewUnread {
-						{{ mark = "read" }}
-					} else {
-						{{ mark = "unread" }}
-					}
 					<div class="sm:hidden space-x-4">
-						<button
-							type="button"
-							class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
-							hx-post={ path + "/mark" }
-							hx-include="#content-filters,[name='csrf_token']"
-							hx-target={ ContentID.Target() }
-						>
-							<span class="sr-only">Mark all { mark }</span>
-							Mark all { mark }
-						</button>
 						// Button to reveal filters sidebar on mobile.
 						<button type="button" command="show-modal" commandfor="mobile-filters" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
 							<span class="sr-only">Filter options</span>
@@ -378,16 +362,6 @@ templ ListDisplayFilters(categories models.CategoryCounts, filters *models.ListD
 					</div>
 					// Desktop Filters.
 					<el-popover-group class="hidden sm:flex sm:items-baseline sm:space-x-8">
-						<button
-							type="button"
-							class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
-							hx-post={ path + "/mark" }
-							hx-include="#content-filters,[name='csrf_token']"
-							hx-target={ ContentID.Target() }
-						>
-							<span class="sr-only">Mark all { mark }</span>
-							Mark all { mark }
-						</button>
 						// Category Filters (desktop).
 						if len(categories.GetTopCategories(10)) > 0 {
 							<div class="relative inline-block text-left">
