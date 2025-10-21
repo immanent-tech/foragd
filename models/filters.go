@@ -49,8 +49,8 @@ const (
 	DefaultSince = math.MaxInt64
 )
 
-func (s *Sort) String() string {
-	switch *s {
+func (s Sort) String() string {
+	switch s {
 	case SortLastUpdatedDesc:
 		return "Newest First"
 	case SortLastUpdatedAsc:
