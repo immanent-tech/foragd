@@ -165,7 +165,7 @@ func (page *Home) Template() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(page.LatestArticles) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<ul role=\"list\" class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<ul role=\"list\" class=\"grid grid-cols-1 xl:grid-cols-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

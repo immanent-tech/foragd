@@ -83,7 +83,7 @@ templ (page *Home) Template() {
 			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
 		</header>
 		if len(page.LatestArticles) > 0 {
-			<ul role="list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+			<ul role="list" class="grid grid-cols-1 xl:grid-cols-2">
 				for article := range slices.Values(page.LatestArticles) {
 					<li class="py-4 space-y-2">
 						@ArticleSummary(article)
