@@ -193,8 +193,10 @@ templ ContentLoadingPlaceholder() {
 templ Header() {
 	<header class="sticky top-0 z-50 flex h-16 items-center gap-x-4 border-b border-base-content/30 bg-base-200 px-4 sm:gap-x-6 sm:px-6 lg:px-8">
 		<div class="flex flex-1 items-center gap-x-4 lg:gap-x-6">
-			@GlobalSearch()
-			<div class="flex flex-1 items-center justify-end">
+			<div class="flex flex-1 justify-center">
+				@GlobalSearch()
+			</div>
+			<div class="flex items-center justify-end">
 				// <button type="button" class="-m-2.5 p-2.5 btn btn-ghost btn-square hover:text-primary">
 				// 	<span class="sr-only">View notifications</span>
 				// 	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">

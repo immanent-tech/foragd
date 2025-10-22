@@ -383,8 +383,8 @@ templ SubscriptionFilter(id, name string) {
 
 // GlobalSearch renders a command palette element for powering global search within the app.
 templ GlobalSearch() {
-	<el-command-palette class="block w-full sm:max-w-3xl">
-		<label for="global-search" class="inline-flex w-full input input-accent text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10">
+	<el-command-palette class="grid w-full sm:max-w-3xl">
+		<label for="global-search" class="w-full sm:max-w-3xl input input-accent text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10">
 			@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-accent"})
 			<form
 				hx-trigger="input changed from:#global-search delay:100ms"
@@ -411,18 +411,15 @@ templ GlobalSearch() {
 				@tabler.Filter(i.Props{Class: "flex-none text-accent"})
 			</button>
 		</label>
-		<script>
-document.querySelector(':root').style.setProperty('--global-search-width', document.getElementById('global-search').getBoundingClientRect().width+"px");
-		</script>
 		// _="on keydown[key is 'Escape'] add @hidden end on click from elsewhere add .hidden end"
 		<el-command-list
 			id="global-search-suggestions"
-			class="absolute w-full sm:max-w-3xl left-0 sm:left-6 lg:left-8 mt-2 block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
+			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
 			_="on keydown[key is 'Escape'] add .hidden"
 		></el-command-list>
 		<div
 			id="search-filters"
-			class="hidden absolute w-full sm:max-w-3xl left-0 sm:left-6 lg:left-8 mt-2 h-auto lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2 outline-1 -outline-offset-1 outline-base-content/10"
+			class="hidden absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl h-auto lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2 outline-1 -outline-offset-1 outline-base-content/10"
 			_="on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end"
 		>
 			// or focusout from body
