@@ -234,7 +234,7 @@ templ SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pa
 					<span class="sr-only">Subscriptions Actions</span>
 					@tabler.DotsVertical(i.Props{Class: "size-6"})
 				</button>
-				<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/50 rounded-md bg-base-300 shadow-lg outline-1 outline-accent/50 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+				<el-menu anchor="bottom end" popover class="context-menu-base">
 					<div class="py-1">
 						// Mark all subscriptions action.
 						@NewLink(
@@ -288,6 +288,7 @@ templ SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pa
 				@SubscriptionsList(subscriptions, pagination)
 			}
 		</section>
+		@ContentLoadingPlaceholder()
 	}
 }
 
@@ -310,7 +311,7 @@ templ SubscriptionsDockActions() {
 				@tabler.Menu(i.Props{Class: "size-6"})
 				<span class="dock-label">Actions</span>
 			</button>
-			<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/50 rounded-md bg-base-300 shadow-lg outline-1 outline-accent/50 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+			<el-menu anchor="bottom end" popover class="context-menu-base">
 				<div class="py-1">
 					// Mark all subscriptions action.
 					@NewLink(

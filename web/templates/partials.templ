@@ -58,12 +58,6 @@ templ Content(content templ.Component) {
 				@content
 			}
 		</div>
-		<div id="content-loading" class="htmx-indicator">
-			<div class="text-center">
-				<span class="loading loading-bars loading-xl"></span>
-				<h3 class="mt-2 text-base font-semibold">Loading content...</h3>
-			</div>
-		</div>
 	</div>
 	@ContentDock(nil)
 }
@@ -186,6 +180,16 @@ templ ContentDock(attributes templ.Attributes) {
 	</div>
 }
 
+// ContentLoadingPlaceholder renders a (hidden by default) element that is shown when a (HTMX) request is loading.
+templ ContentLoadingPlaceholder() {
+	<div id="content-loading" class="htmx-indicator">
+		<div class="text-center">
+			<span class="loading loading-bars loading-xl"></span>
+			<h3 class="mt-2 text-base font-semibold">Loading content...</h3>
+		</div>
+	</div>
+}
+
 templ Header() {
 	<div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-base-content/10 bg-base-200 px-4 sm:gap-x-6 sm:px-6 lg:px-8">
 		<div class="flex flex-1 items-center gap-x-4 lg:gap-x-6">
@@ -205,7 +209,7 @@ templ Header() {
 							<span class="sr-only">Open user menu</span>
 							<img src={ user.GetAvatar() } alt={ user.GetNickname() } class="size-8 rounded-full outline -outline-offset-1 outline-base-content/10"/>
 						</button>
-						<el-menu id="header-menu" anchor="bottom end" popover class="origin-top-right rounded-md bg-base-300 py-2 outline-1 -outline-offset-1 outline-base-content/10 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+						<el-menu id="header-menu" anchor="bottom end" popover class="context-menu-base">
 							// Open settings menu.
 							<a
 								class="menu-item"
@@ -313,7 +317,7 @@ templ ContextMenu(name string) {
 		<el-menu
 			anchor="bottom end"
 			popover
-			class="bg-base-300 ring-base-content/20 origin-top-right rounded-md py-2 shadow-lg ring-1 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+			class="context-menu-base"
 		>
 			{ children... }
 		</el-menu>

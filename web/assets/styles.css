@@ -56,6 +56,10 @@
     }
   }
 
+  .context-menu-base {
+    @apply bg-base-300 outline-base-content/10 origin-top-right rounded-md py-2 outline-1 -outline-offset-1 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
+  }
+
   .responsive-img {
     width: 100%;
     height: auto;
