@@ -641,7 +641,7 @@ func Header() templ.Component {
 			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div class=\"sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-base-content/30 bg-base-200 px-4 sm:gap-x-6 sm:px-6 lg:px-8\"><div class=\"flex flex-1 items-center gap-x-4 lg:gap-x-6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<header class=\"sticky top-0 z-50 flex h-16 items-center gap-x-4 border-b border-base-content/30 bg-base-200 px-4 sm:gap-x-6 sm:px-6 lg:px-8\"><div class=\"flex flex-1 items-center gap-x-4 lg:gap-x-6\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -749,7 +749,7 @@ func Header() templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "</div></div></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

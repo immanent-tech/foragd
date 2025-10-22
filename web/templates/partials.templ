@@ -191,7 +191,7 @@ templ ContentLoadingPlaceholder() {
 }
 
 templ Header() {
-	<div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-base-content/30 bg-base-200 px-4 sm:gap-x-6 sm:px-6 lg:px-8">
+	<header class="sticky top-0 z-50 flex h-16 items-center gap-x-4 border-b border-base-content/30 bg-base-200 px-4 sm:gap-x-6 sm:px-6 lg:px-8">
 		<div class="flex flex-1 items-center gap-x-4 lg:gap-x-6">
 			@GlobalSearch()
 			<div class="flex flex-1 items-center justify-end">
@@ -246,7 +246,7 @@ templ Header() {
 				}
 			</div>
 		</div>
-	</div>
+	</header>
 }
 
 // PaginationControl generates an element that will cause a pagination request when scrolled into view.
