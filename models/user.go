@@ -157,8 +157,8 @@ func (u *User) RemoveSubscriptions(ids ...SubscriptionID) {
 	)
 }
 
-// GetFavorites returns the slice of user favorites.
-func (u *User) GetFavorites() FavoritesSlice {
+// GetAllFavorites returns the slice of user favorites.
+func (u *User) GetAllFavorites() FavoritesSlice {
 	return u.Favorites
 }
 
@@ -182,7 +182,7 @@ func (u *User) IsFavorite(id string) bool {
 
 // AddFavoriteSubscription creates a new favorite subscription for the user.
 func (u *User) AddFavoriteSubscription(id SubscriptionID, nickname string) error {
-	if u.GetFavorites().FilterByType(FavoriteTypeSubscription).HasFavorite(id) {
+	if u.GetAllFavorites().FilterByType(FavoriteTypeSubscription).HasFavorite(id) {
 		return ErrAlreadyFavorite
 	}
 	fav := newFavorite(FavoriteTypeSubscription, nickname)
@@ -193,7 +193,7 @@ func (u *User) AddFavoriteSubscription(id SubscriptionID, nickname string) error
 
 // AddFavoriteArticle creates a new favorite article for the user.
 func (u *User) AddFavoriteArticle(nickname string, article *Article) error {
-	if u.GetFavorites().FilterByType(FavoriteTypeArticle).HasFavorite(article.GetID()) {
+	if u.GetAllFavorites().FilterByType(FavoriteTypeArticle).HasFavorite(article.GetID()) {
 		return ErrAlreadyFavorite
 	}
 	fav := newFavorite(FavoriteTypeArticle, nickname)
@@ -214,7 +214,7 @@ func (u *User) AddFavoriteSearch(nickname string, search *SearchRequest) error {
 	if id == "" {
 		return fmt.Errorf("%w: cannot generate search id", ErrUpdateUser)
 	}
-	if u.GetFavorites().FilterByType(FavoriteTypeSearch).HasFavorite(id) {
+	if u.GetAllFavorites().FilterByType(FavoriteTypeSearch).HasFavorite(id) {
 		return ErrAlreadyFavorite
 	}
 	fav := newFavorite(FavoriteTypeSearch, nickname)
@@ -229,7 +229,7 @@ func (u *User) AddFavoriteSearch(nickname string, search *SearchRequest) error {
 
 func (u *User) UpdateFavoriteSearch(nickname string, search *SearchRequest) error {
 	// Find the index of the existing favorite search entry in the user favorites.
-	idx := slices.IndexFunc(u.GetFavorites(), func(f *Favorite) bool {
+	idx := slices.IndexFunc(u.GetAllFavorites(), func(f *Favorite) bool {
 		return f.Nickname == nickname
 	})
 	// Replace the existing favorite entry.

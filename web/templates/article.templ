@@ -14,7 +14,7 @@ import (
 )
 
 // Card renders an article as a card, for displaying in a list.
-templ ArticleCard(article *models.Article, view models.View) {
+templ ArticleCard(article *models.Article) {
 	<li id={ article.GetID() }>
 		<div
 			class={ "card-base", templ.KV("opacity-50",!article.IsUnread()) }
@@ -104,7 +104,7 @@ templ ArticleCard(article *models.Article, view models.View) {
 							// Mark action.
 							<form id={ "mark-" + article.GetID() }>
 								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-								if view == models.ViewAll {
+								if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewAll {
 									@MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "menu-item")
 								} else {
 									@MarkObjectLink(article, "#"+article.GetID(), "delete", "menu-item")
@@ -140,48 +140,6 @@ templ ArticleCard(article *models.Article, view models.View) {
 			</div>
 		</div>
 	</li>
-}
-
-// ArticleSummary renders a summary of the article with an image (if available) and snippet of the article content.
-templ ArticleSummary(article *models.Article) {
-	<div class={ "sm:flex items-center", templ.KV("opacity-50",!article.IsUnread()) }>
-		if img := article.GetImage(); img != nil {
-			<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
-				<img
-					src={ img.GetURL() }
-					if img.GetTitle() != "" {
-						alt={ article.GetImage().GetTitle() }
-					}
-					class="h-32 sm:w-32 w-full object-cover sm:aspect-2/1 lg:aspect-3/2 rounded-box border border-base-content"
-				/>
-			</div>
-		}
-		<div class="space-y-4">
-			<a
-				hx-get={ article.ViewURL() }
-				hx-target={ ContentID.Target() }
-				hx-push-url="true"
-				hx-swap="innerHTML show:top"
-				class={ "link link-hover" }
-			>
-				<h4 class="text-lg font-bold">{ article.GetTitle() }</h4>
-			</a>
-			<div class="flex gap-x-4">
-				<p class="flex-none text-xs text-base-content/80">
-					@ShowTimestamp(article.GetUpdatedDate())
-				</p>
-				<p class="flex-none text-xs text-base-content/80">
-					{ article.GetFeedTitle() }
-				</p>
-			</div>
-			{{ text, err := models.ExtractText(article.GetContent()) }}
-			if err == nil {
-				<article class="prose prose-sm line-clamp-3">
-					{ text }
-				</article>
-			}
-		</div>
-	</div>
 }
 
 // ArticleContent renders the complete content of an article.
@@ -398,7 +356,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 templ ArticlesList(articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	for article := range slices.Values(articles) {
-		@ArticleCard(article, filters.GetView())
+		@ArticleCard(article)
 	}
 	// Add pagination element if pagination is required.
 	if pagination != "" && len(articles) == filters.GetCount() {

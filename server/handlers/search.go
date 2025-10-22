@@ -84,7 +84,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			}
 		}
 		// Retrieve favorite data for this search
-		fav := user.GetFavorites().FilterByType(models.FavoriteTypeSearch).Get(favoriteID)
+		fav := user.GetFavorite(favoriteID)
 		// Check if the favorite needs to be updated.
 		if fav != nil {
 			err := user.UpdateFavoriteSearch(fav.Nickname, request)
@@ -117,7 +117,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			if IsHTMX(req) {
 				template = templ.Join(
 					templates.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content(),
-					templates.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+					templates.FavoritesList(user.GetAllFavorites(), models.OOBSwapTrue),
 				)
 			} else {
 				template = templates.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content()

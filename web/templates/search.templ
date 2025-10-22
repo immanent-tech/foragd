@@ -488,7 +488,7 @@ templ (page *SearchResultsPage) Content() {
 		// Show results.
 		@Grid() {
 			for article := range slices.Values(page.articles) {
-				@ArticleCard(article, models.ViewAll)
+				@ArticleCard(article)
 			}
 		}
 		// <ul role="list">
@@ -625,7 +625,7 @@ templ SimilarArticles(articles models.Articles) {
 		// Show results.
 		@Grid() {
 			for article := range slices.Values(articles) {
-				@ArticleCard(article, models.ViewAll)
+				@ArticleCard(article)
 			}
 		}
 	}

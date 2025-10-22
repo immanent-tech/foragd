@@ -63,7 +63,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 		return data, fmt.Errorf("unable to retrieve user: %w", err)
 	}
 	data.User = user
-	data.Favorites = user.GetFavorites()
+	data.Favorites = user.GetAllFavorites()
 	// User has no subscriptions, show empty page
 	if len(user.GetSubscriptionMetadata()) == 0 {
 		return data, nil

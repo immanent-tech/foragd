@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -32,7 +33,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 		pagination := req.FormValue(models.ParamPagination)
 		// Redirect to include query parameters in address bar.
-		if req.Method == http.MethodGet && len(req.URL.Query()) == 0 {
+		if req.Method == http.MethodGet && len(req.URL.Query()) == 0 && listType != "favorites" {
 			if IsHTMX(req) {
 				res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+filters.QueryString())
 			} else {
@@ -95,8 +96,47 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				}
 			}
 		case "favorites":
-
-
+			// Get user info.
+			user, err := models.UserFromCtx(req.Context())
+			if err != nil {
+				return fmt.Errorf("could not fetch user info from context: %w", err)
+			}
+			favorites := user.GetAllFavorites()
+			// Get IDs of favorite subscriptions and articles.
+			var favSubscriptionIDs, favArticleIDs []string
+			for favSubscription := range slices.Values(favorites.FilterByType(models.FavoriteTypeSubscription)) {
+				favSubscriptionIDs = append(favSubscriptionIDs, favSubscription.GetID())
+			}
+			for favArticle := range slices.Values(favorites.FilterByType(models.FavoriteTypeArticle)) {
+				favArticleIDs = append(favArticleIDs, favArticle.GetID())
+			}
+			// Get favorite subscriptions and articles.
+			var subscriptions models.Subscriptions
+			if len(favSubscriptionIDs) > 0 {
+				subscriptions, err = models.GetSubscriptions(req.Context(), api, favSubscriptionIDs...)
+				if err != nil {
+					return fmt.Errorf("unable to get favorite subscriptions: %w", err)
+				}
+			}
+			articles, err := models.GetArticles(req.Context(), api, favArticleIDs...)
+			if err != nil {
+				return fmt.Errorf("unable to get favorite articles: %w", err)
+			}
+			searches := make(map[string]models.FavoriteSearch)
+			for favSearch := range slices.Values(favorites.FilterByType(models.FavoriteTypeSearch)) {
+				search, err := favSearch.ObjectData.AsFavoriteSearch()
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Could not extract favorite search data.",
+						slog.Any("error", err))
+					continue
+				}
+				searches[favSearch.Nickname] = search
+			}
+			if len(subscriptions)+len(articles)+len(searches) == 0 {
+				template = templates.EmptyContent("/list/subscriptions", filters.Values())
+			} else {
+				template = templates.FavoritesLayout(subscriptions, articles, searches)
+			}
 		default:
 			slogctx.FromCtx(req.Context()).Error("Unsupported list type requested.",
 				slog.String("type", listType))

@@ -886,7 +886,7 @@ func (page *SearchResultsPage) Content() templ.Component {
 				}
 				ctx = templ.InitializeContext(ctx)
 				for article := range slices.Values(page.articles) {
-					templ_7745c5c3_Err = ArticleCard(article, models.ViewAll).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = ArticleCard(article).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1196,7 +1196,7 @@ func SimilarArticles(articles models.Articles) templ.Component {
 				}
 				ctx = templ.InitializeContext(ctx)
 				for article := range slices.Values(articles) {
-					templ_7745c5c3_Err = ArticleCard(article, models.ViewAll).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = ArticleCard(article).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

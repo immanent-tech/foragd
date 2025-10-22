@@ -86,7 +86,55 @@ templ (page *Home) Template() {
 			<ul role="list" class="grid grid-cols-1 xl:grid-cols-2">
 				for article := range slices.Values(page.LatestArticles) {
 					<li class="py-4 space-y-2">
-						@ArticleSummary(article)
+						<div class={ "sm:flex items-center", templ.KV("opacity-50",!article.IsUnread()) }>
+							// Article image.
+							if img := article.GetImage(); img != nil {
+								<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
+									<img
+										src={ img.GetURL() }
+										if img.GetTitle() != "" {
+											alt={ article.GetImage().GetTitle() }
+										}
+										class="h-32 sm:w-32 w-full object-cover sm:aspect-2/1 lg:aspect-3/2 rounded-box border border-base-content"
+									/>
+								</div>
+							}
+							<div class="space-y-4">
+								// Article title.
+								<a
+									hx-get={ article.ViewURL() }
+									hx-target={ ContentID.Target() }
+									hx-push-url="true"
+									hx-swap="innerHTML show:top"
+									class={ "link link-hover" }
+								>
+									<h4 class="text-lg font-bold">{ article.GetTitle() }</h4>
+								</a>
+								// Timestamp, Subscription.
+								<div class="flex gap-x-4">
+									<p class="flex-none text-xs text-base-content/80">
+										@ShowTimestamp(article.GetUpdatedDate())
+									</p>
+									<p class="flex-none text-xs text-base-content/80">
+										@NewLink(
+											WithHXMethod(http.MethodGet, "/list/articles"),
+											WithHXTarget(ContentID.Target()),
+											WithHXPushURL(),
+											WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+										) {
+											{ article.GetFeedTitle() }
+										}
+									</p>
+								</div>
+								// Article content summary.
+								{{ text, err := models.ExtractText(article.GetContent()) }}
+								if err == nil {
+									<article class="prose prose-sm line-clamp-3">
+										{ text }
+									</article>
+								}
+							</div>
+						</div>
 					</li>
 				}
 			</ul>
@@ -140,7 +188,55 @@ templ (page *Home) Template() {
 				<ul role="list" class="divide-y divide-base-content/15">
 					for article := range slices.Values(page.TopArticles) {
 						<li class="py-4 sm:px-4 space-y-2">
-							@ArticleSummary(article)
+							<div class={ "sm:flex items-center", templ.KV("opacity-50",!article.IsUnread()) }>
+								// Article image.
+								if img := article.GetImage(); img != nil {
+									<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
+										<img
+											src={ img.GetURL() }
+											if img.GetTitle() != "" {
+												alt={ article.GetImage().GetTitle() }
+											}
+											class="h-32 sm:w-32 w-full object-cover sm:aspect-2/1 lg:aspect-3/2 rounded-box border border-base-content"
+										/>
+									</div>
+								}
+								<div class="space-y-4">
+									// Article title.
+									<a
+										hx-get={ article.ViewURL() }
+										hx-target={ ContentID.Target() }
+										hx-push-url="true"
+										hx-swap="innerHTML show:top"
+										class={ "link link-hover" }
+									>
+										<h4 class="text-lg font-bold">{ article.GetTitle() }</h4>
+									</a>
+									// Timestamp, Subscription.
+									<div class="flex gap-x-4">
+										<p class="flex-none text-xs text-base-content/80">
+											@ShowTimestamp(article.GetUpdatedDate())
+										</p>
+										<p class="flex-none text-xs text-base-content/80">
+											@NewLink(
+												WithHXMethod(http.MethodGet, "/list/articles"),
+												WithHXTarget(ContentID.Target()),
+												WithHXPushURL(),
+												WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+											) {
+												{ article.GetFeedTitle() }
+											}
+										</p>
+									</div>
+									// Article content summary.
+									{{ text, err := models.ExtractText(article.GetContent()) }}
+									if err == nil {
+										<article class="prose prose-sm line-clamp-3">
+											{ text }
+										</article>
+									}
+								</div>
+							</div>
 						</li>
 					}
 				</ul>

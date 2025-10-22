@@ -116,7 +116,7 @@ templ ContentSideBar(attributes templ.Attributes) {
 					</li>
 					<li>
 						@NewLink(
-							WithHXMethod(http.MethodGet, "/favorites"),
+							WithHXMethod(http.MethodGet, "/list/favorites"),
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
 							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
@@ -173,7 +173,10 @@ templ ContentDock(attributes templ.Attributes) {
 			<span class="dock-label">Articles</span>
 		</button>
 		<button
-			if models.PathFromCtx(ctx) == "/favorites" {
+			hx-get="/list/favorites"
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/list/favorites" {
 				class="dock-active"
 			}
 		>

@@ -205,7 +205,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		}
 		template = templ.Join(
 			templates.ToggleFavorite(subscriptions[0]),
-			templates.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+			templates.FavoritesList(user.GetAllFavorites(), models.OOBSwapTrue),
 		)
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
@@ -256,7 +256,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 		}
 		template = templ.Join(
 			templates.ToggleFavorite(subscriptions[0]),
-			templates.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+			templates.FavoritesList(user.GetAllFavorites(), models.OOBSwapTrue),
 		)
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
@@ -328,12 +328,12 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 		case "card":
 			template = templ.Join(
 				templates.ToggleFavorite(article),
-				templates.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+				templates.FavoritesList(user.GetAllFavorites(), models.OOBSwapTrue),
 			)
 		case "content":
 			template = templ.Join(
 				templates.UpdateViewArticleFavorite(article),
-				templates.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+				templates.FavoritesList(user.GetAllFavorites(), models.OOBSwapTrue),
 			)
 		}
 		renderPartial(template).ServeHTTP(res, req)
@@ -396,12 +396,12 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 		case "card":
 			template = templ.Join(
 				templates.ToggleFavorite(article),
-				templates.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+				templates.FavoritesList(user.GetAllFavorites(), models.OOBSwapTrue),
 			)
 		case "content":
 			template = templ.Join(
 				templates.UpdateViewArticleFavorite(article),
-				templates.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+				templates.FavoritesList(user.GetAllFavorites(), models.OOBSwapTrue),
 			)
 		}
 		renderPartial(template).ServeHTTP(res, req)
@@ -451,11 +451,11 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			renderPartial(template).ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-		fav := user.GetFavorites().Get(id)
+		fav := user.GetAllFavorites().Get(id)
 		// Update the favorite button and list of favorites.
 		template := templ.Join(
 			templates.RemoveFavoriteSearchButton(fav.GetID()),
-			templates.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+			templates.FavoritesList(user.GetAllFavorites(), models.OOBSwapTrue),
 		)
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
@@ -500,7 +500,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 		// Update the favorite button and list of favorites.
 		template := templ.Join(
 			templates.AddFavoriteSearchButton(),
-			templates.FavoritesList(user.GetFavorites(), models.OOBSwapTrue),
+			templates.FavoritesList(user.GetAllFavorites(), models.OOBSwapTrue),
 		)
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
