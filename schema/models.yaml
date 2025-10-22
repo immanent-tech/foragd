@@ -621,6 +621,12 @@ components:
         holds filters to apply to the articles within a subscription.
       type: object
       properties:
+        text:
+          description: >
+            is the filters on the title/content to apply.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'text'
         categories:
           description: >
             is the category filters to apply.

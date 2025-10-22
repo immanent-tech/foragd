@@ -411,6 +411,19 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				}
 			</div>
 			<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+				<label for="article_text_filters" class="block text-sm/6 font-medium">Title/Content</label>
+				<div class="mt-2 sm:col-span-2 sm:mt-0">
+					<input
+						id="article_category_filters"
+						type="text"
+						name="article_filters.text"
+						value={ request.ArticleFilters.Text }
+						placeholder="Add filters..."
+						class="input input-primary bg-base-content/10"
+					/>
+				</div>
+			</div>
+			<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 				<label for="article_category_filters" class="block text-sm/6 font-medium">Categories</label>
 				<div class="mt-2 sm:col-span-2 sm:mt-0">
 					<input
@@ -445,12 +458,12 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			<button
 				type="button"
 				onclick="history.back()"
-				class="btn btn-secondary"
+				class="btn btn-secondary btn-soft"
 			>Back</button>
 			<button
 				type="submit"
 				form="edit-subscription"
-				class="btn btn-primary"
+				class="btn btn-primary btn-soft"
 			>Save</button>
 		</div>
 	}

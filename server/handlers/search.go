@@ -217,7 +217,7 @@ func buildSearchQuery(user *models.User, request *models.SearchRequest) query.Op
 	return query.Bool(
 		query.Filter(
 			query.Bool(
-				query.Should(buildSubscriptionQueries(user, request.View, subscriptions...)...),
+				query.Should(models.BuildSubscriptionQueries(user, request.View, subscriptions...)...),
 			),
 			query.Bool(
 				query.Should(

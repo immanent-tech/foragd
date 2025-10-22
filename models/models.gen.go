@@ -675,6 +675,9 @@ type SubscriptionArticleFilters struct {
 
 	// Categories is the category filters to apply.
 	Categories string `form:"categories" json:"categories,omitempty,omitzero"`
+
+	// Text is the filters on the title/content to apply.
+	Text string `form:"text" json:"text,omitempty,omitzero"`
 }
 
 // SubscriptionCustomisation contains object fields that can be customised (overridden) by a user

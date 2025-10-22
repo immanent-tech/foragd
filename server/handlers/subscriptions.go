@@ -81,6 +81,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		metadata.Customisation.Nickname = request.GetNickname()
 		metadata.Customisation.Categories = request.GetCategories()
 		metadata.Settings.ShowFullArticleContent = request.ShowFullArticleContent
+		metadata.Customisation.ArticleFilters.Text = request.ArticleFilters.Text
 		metadata.Customisation.ArticleFilters.Authors = request.ArticleFilters.Authors
 		metadata.Customisation.ArticleFilters.Categories = request.ArticleFilters.Categories
 		err = user.UpdateSubscription(metadata)

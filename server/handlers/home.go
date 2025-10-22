@@ -84,7 +84,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()...),
 			query.Bool(
-				query.Should(buildSubscriptionQueries(user, models.ViewUnread, data.Subscriptions.GetSubscriptionMetadata()...)...),
+				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, data.Subscriptions.GetSubscriptionMetadata()...)...),
 			),
 		),
 	)

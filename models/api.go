@@ -266,7 +266,7 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 			// Must match any of the given categories.
 			query.Terms("categories.raw", filters.GetCategories()...),
 			query.Bool(
-				query.Should(buildSubscriptionQueries(user, filters.GetView(), subscriptions...)...),
+				query.Should(BuildSubscriptionQueries(user, filters.GetView(), subscriptions...)...),
 			),
 		),
 	)
@@ -374,7 +374,7 @@ func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID
 	similarQuery := query.Bool(
 		query.Filter(
 			query.Bool(
-				query.Should(buildSubscriptionQueries(user, ViewUnread, user.GetSubscriptionMetadata()...)...),
+				query.Should(BuildSubscriptionQueries(user, ViewUnread, user.GetSubscriptionMetadata()...)...),
 			),
 		),
 		query.Must(
@@ -456,14 +456,14 @@ func BuildItemsQuery(ctx context.Context, filters Filters, subscriptions ...Subs
 			query.Terms("categories.raw", filters.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(buildSubscriptionQueries(user, filters.GetView(), meta...)...),
+				query.Should(BuildSubscriptionQueries(user, filters.GetView(), meta...)...),
 			),
 		),
 	), nil
 }
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
-func buildSubscriptionQueries(user *User, view View, subscriptions ...*SubscriptionMetadata) []query.Option {
+func BuildSubscriptionQueries(user *User, view View, subscriptions ...*SubscriptionMetadata) []query.Option {
 	queries := make([]query.Option, 0, len(user.Subscriptions))
 	// Work out what query to use based on the state filter.
 	if len(subscriptions) == 0 {
@@ -510,6 +510,7 @@ func queryReadItems(user *User, subscription *SubscriptionMetadata) query.Option
 		),
 		// User-specified field-level filtering.
 		query.Must(
+			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Text, "", "title", "description", "content"),
 			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Authors, "", "authors", "contributors"),
 			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Categories, "", "categories"),
 		),
@@ -537,6 +538,7 @@ func queryUnreadItems(user *User, subscription *SubscriptionMetadata) query.Opti
 		),
 		// User-specified field-level filtering.
 		query.Must(
+			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Text, "", "title", "description", "content"),
 			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Authors, "", "authors", "contributors"),
 			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Categories, "", "categories"),
 		),
@@ -561,6 +563,7 @@ func queryAllItems(user *User, subscription *SubscriptionMetadata) query.Option 
 		),
 		// User-specified field-level filtering.
 		query.Must(
+			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Text, "", "title", "description", "content"),
 			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Authors, "", "authors", "contributors"),
 			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Categories, "", "categories"),
 		),
