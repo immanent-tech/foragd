@@ -6,6 +6,8 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 	"slices"
 	"strings"
@@ -41,6 +43,7 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 				</div>
 			</div>
 		</section>
+		// Favorite searches.
 		if len(searches) > 0 {
 			<section id="searches" class="mt-4">
 				<div class="pb-5">
@@ -79,6 +82,7 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 				}
 			</section>
 		}
+		// Favorite subscriptions.
 		if len(subscriptions) > 0 {
 			<section id="subscriptions" class="mt-4">
 				<div class="pb-5">
@@ -86,11 +90,66 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 				</div>
 				@Grid() {
 					for subscription := range slices.Values(subscriptions) {
-						@SubscriptionFavorite(subscription)
+						<li id={ subscription.GetID() }>
+							<div class="bg-base-200 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border shadow-sm dark:shadow-none">
+								<div class="flex items-center p-4">
+									<div class="flex flex-1">
+										@ViewSubscriptionLink(subscription)
+									</div>
+									<div class="flex flex-none">
+										@ContextMenu(subscription.GetTitle() + " Actions") {
+											// View action.
+											<a href={ subscription.GetLink() } target="_blank" rel="noopener" class="context-menu-item-base">
+												@tabler.ExternalLink(i.Props{Class: "size-4"})
+												Feed Website
+											</a>
+											// Mark action.
+											<form id={ "mark-" + subscription.GetID() }>
+												@MarkObjectLink(subscription, "#"+subscription.GetID(), "outerHTML", "context-menu-item-base")
+											</form>
+											// Edit action.
+											<a
+												hx-get={ "/edit/subscription/" + subscription.GetID() }
+												hx-target={ ContentID.Target() }
+												hx-push-url="true"
+												class="link link-hover context-menu-item-base"
+											>
+												@tabler.Edit(i.Props{Class: "size-4"})
+												Edit Subscription
+											</a>
+											// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+											<div id={ "favorite_" + subscription.GetID() }>
+												@FavoriteObjectLink(subscription, "context-menu-item-base")
+											</div>
+											// Unsubscribe action.
+											<a
+												hx-get={ "/remove/subscription/" + subscription.GetID() }
+												hx-target={ ModalContainerID.Target() }
+												class="link link-hover context-menu-item-base"
+												_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
+											>
+												@tabler.TrashFilled(i.Props{Class: "size-4"})
+												Remove Subscription
+											</a>
+											// Report issue action.
+											<a
+												hx-get={ subscription.IssueURL() }
+												hx-target={ ContentID.Target() }
+												class="link link-hover context-menu-item-base"
+											>
+												@tabler.FlagFilled(i.Props{Class: "size-4"})
+												Report an issue
+											</a>
+										}
+									</div>
+								</div>
+							</div>
+						</li>
 					}
 				}
 			</section>
 		}
+		// Favorite articles.
 		if len(articles) > 0 {
 			<section id="articles" class="mt-4">
 				<div class="pb-5">
