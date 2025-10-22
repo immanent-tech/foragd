@@ -159,6 +159,7 @@ templ SearchFilters(request *models.SearchRequest) {
 								value={ request.Text }
 							}
 							class="input input-sm w-full bg-base-content/10"
+							_="on change from #global-search set my value to #global-search.value"
 						/>
 					</div>
 				</div>
@@ -544,36 +545,6 @@ templ (page *SearchResultsPage) Content() {
 				</li>
 			}
 		}
-		// <ul role="list">
-		// 	// Subscription results.
-		// 	if len(page.subscriptions) > 0 {
-		// 		<div class="flex items-center mt-8">
-		// 			<div class="relative flex justify-start">
-		// 				<span class="pr-3 text-base/7 font-semibold text-base-content">Subscriptions</span>
-		// 			</div>
-		// 			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
-		// 		</div>
-		// 		<ul id="subscription-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-3">
-		// 			for subscription := range slices.Values(page.subscriptions) {
-		// 				@showSearchResult(subscription)
-		// 			}
-		// 		</ul>
-		// 	}
-		// 	// Article results.
-		// 	if len(page.articles) > 0 {
-		// 		<div class="flex items-center mt-8">
-		// 			<div class="relative flex justify-start">
-		// 				<span class="pr-3 text-base/7 font-semibold text-base-content">Articles</span>
-		// 			</div>
-		// 			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
-		// 		</div>
-		// 		<ul id="article-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-		// 			for article := range slices.Values(page.articles) {
-		// 				@showSearchResult(article)
-		// 			}
-		// 		</ul>
-		// 	}
-		// </ul>
 		// <button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href={ ContentID.Target() }>Back to top</button>
 	}
 }
@@ -690,7 +661,16 @@ templ NoSearchResults() {
 		<h1 class="mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-4xl">Nothing found 😕</h1>
 		<p class="mt-6 text-lg font-medium text-pretty text-base-content sm:text-xl/8">Looks like there are no matches for that search.</p>
 		<div class="mt-10 flex items-center justify-center gap-x-6">
-			<a href="/home" role="button" class="btn btn-primary">Go to home</a>
+			<a
+				role="button"
+				onclick="history.back()"
+				class="btn btn-secondary"
+			>Back</a>
+			<a
+				href="/home"
+				role="button"
+				class="btn btn-primary"
+			>Home</a>
 		</div>
 	</div>
 }
