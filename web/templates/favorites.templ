@@ -24,15 +24,16 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 		<section>
 			<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8 text-sm">
 				<h3 class="font-medium text-accent">
-					Jump To
+					Jump To:
 				</h3>
-				<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>
-				<div class="px-2">
+				<div class="flex items-center px-2">
 					if len(searches) > 0 {
 						<a href="#searches" class="link link-hover">Searches</a>
+						<div aria-hidden="true" class="h-5 w-px bg-base-content/40 m-4 block"></div>
 					}
 					if len(subscriptions) > 0 {
 						<a href="#subscriptions" class="link link-hover">Subscriptions</a>
+						<div aria-hidden="true" class="h-5 w-px bg-base-content/40 m-4 block"></div>
 					}
 					if len(articles) > 0 {
 						<a href="#articles" class="link link-hover">Articles</a>
