@@ -320,7 +320,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 							WithHXMethod(http.MethodPost, "/list/articles/mark"),
 							WithHXTarget(ContentID.Target()),
 							WithHXInclude("#content-filters,[name='csrf_token']"),
-							WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
+							WithClasses("context-menu-item-base"),
 						) {
 							if models.PageFiltersFromCtx(ctx,"/list/articles").GetView() == models.ViewUnread {
 								@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
@@ -330,6 +330,17 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 								@tabler.MailFilled(i.Props{Class: "size-4"})
 								<span class="sr-only">Mark All Unread</span>
 								Mark all Unread
+							}
+						}
+						if len(articles.GetSubscriptionIDs()) == 1 {
+							@NewLink(
+								WithHXMethod(http.MethodGet, "/edit/subscription/"+articles.GetSubscriptionIDs()[0]),
+								WithHXTarget(ContentID.Target()),
+								WithHXPushURL(),
+								WithClasses("context-menu-item-base"),
+							) {
+								@tabler.Edit(i.Props{Class: "size-4"})
+								Edit Subscription
 							}
 						}
 					</div>
