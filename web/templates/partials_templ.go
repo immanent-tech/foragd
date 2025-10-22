@@ -681,7 +681,7 @@ func Header() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\" class=\"size-8 rounded-full outline -outline-offset-1 outline-base-content/10\"></button> <el-menu id=\"header-menu\" anchor=\"bottom end\" popover class=\"context-menu-base\"><a class=\"menu-item\" hx-get=\"/user/settings\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "\" class=\"size-8 rounded-full outline -outline-offset-1 outline-base-content/10\"></button> <el-menu id=\"header-menu\" anchor=\"bottom end\" popover class=\"context-menu-base\"><a class=\"context-menu-item-base\" hx-get=\"/user/settings\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -728,7 +728,7 @@ func Header() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\" class=\"link link-hover menu-item\"><div class=\"flex flex-1 items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\" class=\"link link-hover context-menu-item-base\"><div class=\"flex flex-1 items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -736,7 +736,7 @@ func Header() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "Report an issue</div></a><a href=\"/logout\" class=\"menu-item\"><div class=\"flex flex-1 items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "Report an issue</div></a><a href=\"/logout\" class=\"context-menu-item-base\"><div class=\"flex flex-1 items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1472,7 +1472,7 @@ func ToggleFavorite(obj models.Object) templ.Component {
 			templ_7745c5c3_Var60 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = FavoriteObjectLink(obj, "menu-item").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = FavoriteObjectLink(obj, "context-menu-item-base").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

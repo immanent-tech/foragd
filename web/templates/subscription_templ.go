@@ -119,7 +119,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" target=\"_blank\" rel=\"noopener\" class=\"menu-item\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" target=\"_blank\" rel=\"noopener\" class=\"context-menu-item-base\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -144,7 +144,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "menu-item").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "context-menu-item-base").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -174,7 +174,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-push-url=\"true\" class=\"link link-hover menu-item\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-push-url=\"true\" class=\"link link-hover context-menu-item-base\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -199,7 +199,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = FavoriteObjectLink(s, "menu-item").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = FavoriteObjectLink(s, "context-menu-item-base").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -229,7 +229,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" class=\"link link-hover menu-item\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" class=\"link link-hover context-menu-item-base\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -263,7 +263,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" class=\"link link-hover menu-item\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" class=\"link link-hover context-menu-item-base\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -566,7 +566,7 @@ func SubscriptionFavorite(subscription *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" target=\"_blank\" rel=\"noopener\" class=\"menu-item\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" target=\"_blank\" rel=\"noopener\" class=\"context-menu-item-base\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -591,7 +591,7 @@ func SubscriptionFavorite(subscription *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = MarkObjectLink(subscription, "#"+subscription.GetID(), "outerHTML", "menu-item").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = MarkObjectLink(subscription, "#"+subscription.GetID(), "outerHTML", "context-menu-item-base").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -621,7 +621,7 @@ func SubscriptionFavorite(subscription *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" hx-push-url=\"true\" class=\"link link-hover menu-item\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" hx-push-url=\"true\" class=\"link link-hover context-menu-item-base\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -646,7 +646,7 @@ func SubscriptionFavorite(subscription *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = FavoriteObjectLink(subscription, "menu-item").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = FavoriteObjectLink(subscription, "context-menu-item-base").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -676,7 +676,7 @@ func SubscriptionFavorite(subscription *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\" class=\"link link-hover menu-item\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\" class=\"link link-hover context-menu-item-base\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -710,7 +710,7 @@ func SubscriptionFavorite(subscription *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\" class=\"link link-hover menu-item\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\" class=\"link link-hover context-menu-item-base\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

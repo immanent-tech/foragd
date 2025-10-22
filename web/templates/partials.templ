@@ -212,7 +212,7 @@ templ Header() {
 						<el-menu id="header-menu" anchor="bottom end" popover class="context-menu-base">
 							// Open settings menu.
 							<a
-								class="menu-item"
+								class="context-menu-item-base"
 								hx-get="/user/settings"
 								hx-target={ ContentID.Target() }
 								hx-push-url="true"
@@ -227,7 +227,7 @@ templ Header() {
 							<a
 								hx-get={ "/issue" }
 								hx-target={ ContentID.Target() }
-								class="link link-hover menu-item"
+								class="link link-hover context-menu-item-base"
 							>
 								<div class="flex flex-1 items-center gap-x-2">
 									@tabler.FlagFilled(i.Props{Class: "size-4"})
@@ -235,7 +235,7 @@ templ Header() {
 								</div>
 							</a>
 							// Logout
-							<a href="/logout" class="menu-item">
+							<a href="/logout" class="context-menu-item-base">
 								<div class="flex flex-1 items-center gap-x-2">
 									@tabler.Logout(i.Props{Class: "size-4"})
 									Log out
@@ -393,7 +393,7 @@ templ FavoriteObjectLink(obj models.Object, classes ...string) {
 
 // ToggleFavorite renders an updated favorite link based on the object's favorite status.
 templ ToggleFavorite(obj models.Object) {
-	@FavoriteObjectLink(obj, "menu-item")
+	@FavoriteObjectLink(obj, "context-menu-item-base")
 }
 
 // MarkObjectLink will render a link for toggling the mark status of the object.

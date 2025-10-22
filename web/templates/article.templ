@@ -96,7 +96,7 @@ templ ArticleCard(article *models.Article) {
 								WithHXMethod(http.MethodGet, article.ViewURL()+"/similar"),
 								WithHXTarget(ContentID.Target()),
 								WithHXPushURL(),
-								WithClasses("menu-item"),
+								WithClasses("context-menu-item-base"),
 							) {
 								@tabler.FileSearch(i.Props{Class: "size-4"})
 								Find similar...
@@ -105,22 +105,22 @@ templ ArticleCard(article *models.Article) {
 							<form id={ "mark-" + article.GetID() }>
 								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 								if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewAll {
-									@MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "menu-item")
+									@MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "context-menu-item-base")
 								} else {
-									@MarkObjectLink(article, "#"+article.GetID(), "delete", "menu-item")
+									@MarkObjectLink(article, "#"+article.GetID(), "delete", "context-menu-item-base")
 								}
 								// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 							</form>
 							<form>
 								<input type="hidden" name="display" value="card"/>
 								<div id={ "favorite_" + article.GetID() }>
-									@FavoriteObjectLink(article, "menu-item")
+									@FavoriteObjectLink(article, "context-menu-item-base")
 								</div>
 							</form>
 							// Share action.
 							<a
 								_={ "on click set currentValue to (my innerHTML) then writeText('" + article.GetLink() + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
-								class={ "link link-hover", "menu-item" }
+								class={ "link link-hover", "context-menu-item-base" }
 							>
 								@tabler.Share(i.Props{Class: "size-4"})
 								Share
@@ -129,7 +129,7 @@ templ ArticleCard(article *models.Article) {
 							<a
 								hx-get={ article.IssueURL() }
 								hx-target={ ContentID.Target() }
-								class="link link-hover menu-item"
+								class="link link-hover context-menu-item-base"
 							>
 								@tabler.FlagFilled(i.Props{Class: "size-4"})
 								Report an issue

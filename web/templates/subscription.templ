@@ -27,33 +27,33 @@ templ SubscriptionCard(s *models.Subscription) {
 				<div class="flex flex-none">
 					@ContextMenu(s.GetTitle() + " Actions") {
 						// View action.
-						<a href={ s.GetLink() } target="_blank" rel="noopener" class="menu-item">
+						<a href={ s.GetLink() } target="_blank" rel="noopener" class="context-menu-item-base">
 							@tabler.ExternalLink(i.Props{Class: "size-4"})
 							Feed Website
 						</a>
 						// Mark action.
 						<form id={ "mark-" + s.GetID() }>
-							@MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "menu-item")
+							@MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "context-menu-item-base")
 						</form>
 						// Edit action.
 						<a
 							hx-get={ "/edit/subscription/" + s.GetID() }
 							hx-target={ ContentID.Target() }
 							hx-push-url="true"
-							class="link link-hover menu-item"
+							class="link link-hover context-menu-item-base"
 						>
 							@tabler.Edit(i.Props{Class: "size-4"})
 							Edit Subscription
 						</a>
 						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 						<div id={ "favorite_" + s.GetID() }>
-							@FavoriteObjectLink(s, "menu-item")
+							@FavoriteObjectLink(s, "context-menu-item-base")
 						</div>
 						// Unsubscribe action.
 						<a
 							hx-get={ "/remove/subscription/" + s.GetID() }
 							hx-target={ ModalContainerID.Target() }
-							class="link link-hover menu-item"
+							class="link link-hover context-menu-item-base"
 							_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
 						>
 							@tabler.TrashFilled(i.Props{Class: "size-4"})
@@ -63,7 +63,7 @@ templ SubscriptionCard(s *models.Subscription) {
 						<a
 							hx-get={ s.IssueURL() }
 							hx-target={ ContentID.Target() }
-							class="link link-hover menu-item"
+							class="link link-hover context-menu-item-base"
 						>
 							@tabler.FlagFilled(i.Props{Class: "size-4"})
 							Report an issue
@@ -163,33 +163,33 @@ templ SubscriptionFavorite(subscription *models.Subscription) {
 				<div class="flex flex-none">
 					@ContextMenu(subscription.GetTitle() + " Actions") {
 						// View action.
-						<a href={ subscription.GetLink() } target="_blank" rel="noopener" class="menu-item">
+						<a href={ subscription.GetLink() } target="_blank" rel="noopener" class="context-menu-item-base">
 							@tabler.ExternalLink(i.Props{Class: "size-4"})
 							Feed Website
 						</a>
 						// Mark action.
 						<form id={ "mark-" + subscription.GetID() }>
-							@MarkObjectLink(subscription, "#"+subscription.GetID(), "outerHTML", "menu-item")
+							@MarkObjectLink(subscription, "#"+subscription.GetID(), "outerHTML", "context-menu-item-base")
 						</form>
 						// Edit action.
 						<a
 							hx-get={ "/edit/subscription/" + subscription.GetID() }
 							hx-target={ ContentID.Target() }
 							hx-push-url="true"
-							class="link link-hover menu-item"
+							class="link link-hover context-menu-item-base"
 						>
 							@tabler.Edit(i.Props{Class: "size-4"})
 							Edit Subscription
 						</a>
 						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 						<div id={ "favorite_" + subscription.GetID() }>
-							@FavoriteObjectLink(subscription, "menu-item")
+							@FavoriteObjectLink(subscription, "context-menu-item-base")
 						</div>
 						// Unsubscribe action.
 						<a
 							hx-get={ "/remove/subscription/" + subscription.GetID() }
 							hx-target={ ModalContainerID.Target() }
-							class="link link-hover menu-item"
+							class="link link-hover context-menu-item-base"
 							_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
 						>
 							@tabler.TrashFilled(i.Props{Class: "size-4"})
@@ -199,7 +199,7 @@ templ SubscriptionFavorite(subscription *models.Subscription) {
 						<a
 							hx-get={ subscription.IssueURL() }
 							hx-target={ ContentID.Target() }
-							class="link link-hover menu-item"
+							class="link link-hover context-menu-item-base"
 						>
 							@tabler.FlagFilled(i.Props{Class: "size-4"})
 							Report an issue

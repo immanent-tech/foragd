@@ -305,7 +305,7 @@ func ArticleCard(article *models.Article) templ.Component {
 				WithHXMethod(http.MethodGet, article.ViewURL()+"/similar"),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
-				WithClasses("menu-item"),
+				WithClasses("context-menu-item-base"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -354,12 +354,12 @@ func ArticleCard(article *models.Article) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if models.PageFiltersFromCtx(ctx, "/list/subscriptions").GetView() == models.ViewAll {
-				templ_7745c5c3_Err = MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "menu-item").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "context-menu-item-base").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = MarkObjectLink(article, "#"+article.GetID(), "delete", "menu-item").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = MarkObjectLink(article, "#"+article.GetID(), "delete", "context-menu-item-base").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -381,7 +381,7 @@ func ArticleCard(article *models.Article) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = FavoriteObjectLink(article, "menu-item").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = FavoriteObjectLink(article, "context-menu-item-base").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -389,7 +389,7 @@ func ArticleCard(article *models.Article) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var19 = []any{"link link-hover", "menu-item"}
+			var templ_7745c5c3_Var19 = []any{"link link-hover", "context-menu-item-base"}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var19...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -454,7 +454,7 @@ func ArticleCard(article *models.Article) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" class=\"link link-hover menu-item\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" class=\"link link-hover context-menu-item-base\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

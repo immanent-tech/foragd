@@ -40,15 +40,6 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
-  /* breadcrumbs-mobile is the style applied to breadcrumbs on mobile layouts */
-  .breadcrumbs-mobile {
-    @apply breadcrumbs text-base-content/80 text-sm font-medium sm:hidden;
-  }
-  /* breadcrumbs-desktop is the style applied to breadcrumbs on desktop layouts */
-  .breadcrumbs-desktop {
-    @apply breadcrumbs text-base-content/80 hidden min-w-0 truncate text-sm font-medium sm:flex;
-  }
-
   .card-base {
     @apply bg-base-100 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border pb-4 shadow-sm dark:shadow-none;
     .card-section {
@@ -58,6 +49,9 @@
 
   .context-menu-base {
     @apply bg-base-300 outline-base-content/10 origin-top-right rounded-md py-2 outline-1 -outline-offset-1 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
+    .context-menu-item-base {
+      @apply focus:text-accent flex items-center gap-4 px-4 py-2 text-sm no-underline hover:underline focus:outline-hidden;
+    }
   }
 
   .responsive-img {
@@ -75,11 +69,6 @@
     height: auto;
     aspect-ratio: var(--aspect-ratio);
     object-fit: cover;
-  }
-
-  /* menu-item is a link/action in a context menu */
-  .menu-item {
-    @apply link link-hover hover:text-accent flex items-center gap-x-2 px-3 py-1 text-sm/6;
   }
 
   .toast {
