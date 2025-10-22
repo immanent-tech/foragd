@@ -15,7 +15,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -59,7 +58,6 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			// Render appropriate content.
 			switch req.Method {
 			case http.MethodGet:
-				godump.Dump(req.URL.Path)
 				if len(subscriptions) > 0 {
 					template = templates.SubscriptionsGrid(subscriptions, pagination)
 				} else {
@@ -96,6 +94,14 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 					return nil
 				}
 			}
+		case "favorites":
+
+
+		default:
+			slogctx.FromCtx(req.Context()).Error("Unsupported list type requested.",
+				slog.String("type", listType))
+			res.WriteHeader(http.StatusNotFound)
+			return nil
 		}
 		// Choose rendering method based on method (get = page, post = partial).
 		switch req.Method {

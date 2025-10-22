@@ -47,7 +47,6 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	if err != nil {
 		return nil, fmt.Errorf("could not determine user: %w", err)
 	}
-	allFavorites := user.GetFavorites().FilterByType(FavoriteTypeSubscription)
 	// Get the subscription states.
 	var allMetadata SubscriptionMetadataSlice
 	if len(ids) > 0 {
@@ -84,7 +83,7 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 		}
 		count = unreadCounts[metadata.GetID()]
 
-		subscription, err := GenerateSubscription(metadata, feed, int(count), allFavorites.HasFavorite(metadata.GetID()))
+		subscription, err := GenerateSubscription(user, metadata, feed, int(count))
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not generate subscription from data.",
 				slog.Any("error", err),

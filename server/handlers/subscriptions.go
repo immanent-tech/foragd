@@ -488,7 +488,7 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		}
 		allMetadata = append(allMetadata, metadata)
 		// Generate subscription and add to results map.
-		subscription, err := models.GenerateSubscription(metadata, feed, 0, false)
+		subscription, err := models.GenerateSubscription(user, metadata, feed, 0)
 		if err != nil {
 			results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
 				Status:  models.UserMessageStatusError,

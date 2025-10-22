@@ -24,12 +24,14 @@ var ErrInvalidSubscriptionState = errors.New("invalid subscription state")
 
 // GenerateSubscription creates a subscription from the given data sources: a feed, any user customisation of feed
 // values, subscription state and an unread count. All data besides the feed is optional.
-func GenerateSubscription(metadata *SubscriptionMetadata, feed *Feed, count int, favorite bool) (*Subscription, error) {
+func GenerateSubscription(user *User, metadata *SubscriptionMetadata, feed *Feed, count int) (*Subscription, error) {
 	subscription := &Subscription{
 		Metadata:    *metadata,
 		Feed:        *feed,
-		Favorite:    favorite,
 		UnreadCount: count,
+	}
+	if user.IsFavorite(subscription.GetID()) {
+		subscription.Favorite = true
 	}
 	// Validate the subscription.
 	valid, err := subscription.Valid()

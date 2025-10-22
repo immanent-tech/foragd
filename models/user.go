@@ -162,6 +162,24 @@ func (u *User) GetFavorites() FavoritesSlice {
 	return u.Favorites
 }
 
+// GetFavorite returns the user favorite with the given ID or nil if there is no favorite.
+func (u *User) GetFavorite(id string) *Favorite {
+	idx := slices.IndexFunc(u.Favorites, func(f *Favorite) bool {
+		return f.GetID() == id
+	})
+	if idx != -1 {
+		return u.Favorites[idx]
+	}
+	return nil
+}
+
+// IsFavorite returns a boolean indicating whether the user marked an object with the given ID as a favorite.
+func (u *User) IsFavorite(id string) bool {
+	return slices.ContainsFunc(u.Favorites, func(f *Favorite) bool {
+		return f.GetID() == id
+	})
+}
+
 // AddFavoriteSubscription creates a new favorite subscription for the user.
 func (u *User) AddFavoriteSubscription(id SubscriptionID, nickname string) error {
 	if u.GetFavorites().FilterByType(FavoriteTypeSubscription).HasFavorite(id) {

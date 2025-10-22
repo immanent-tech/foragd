@@ -50,14 +50,14 @@ func (a Articles) GetCategoryCounts() CategoryCounts {
 
 // GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
 // and state is required.
-func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite) (*Article, error) {
+func GenerateArticle(user *User, item *Item, state *SubscriptionMetadata) (*Article, error) {
 	article := &Article{
 		Item:           *item,
 		SubscriptionID: state.GetID(),
 		State:          *state.GetItemState(item.GetID()),
 	}
 	// If there is favorite data, mark article as a favorite.
-	if favorite != nil {
+	if user.IsFavorite(article.GetID()) {
 		article.Favorite = true
 	}
 	// Add any appropriate feed customisation data.
@@ -90,13 +90,10 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 	}
 	// Retrieve subscription customisations for feed subscriptions.
 	subscriptions := user.GetSubscriptionMetadata().FilterByFeedIDs(items.GetFeedIDs()...)
-	// Retrieve article favorites.
-	articleFavorites := user.GetFavorites().FilterByType(FavoriteTypeArticle)
 	// Create articles from the items.
 	articles := make(Articles, 0, len(items))
 	for item := range slices.Values(items) {
-		fav := articleFavorites.Get(item.GetID())
-		article, err := GenerateArticle(item, subscriptions.GetByFeedID(item.GetFeedID()), fav)
+		article, err := GenerateArticle(user, item, subscriptions.GetByFeedID(item.GetFeedID()))
 		if err != nil {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not generate article from data.",
 				slog.Any("error", err),
