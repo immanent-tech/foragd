@@ -4,7 +4,8 @@
 package handlers
 
 import (
-	"context"
+	"bufio"
+	"bytes"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -18,7 +19,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -104,7 +105,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			}
 		}
 		// Find subscriptions and articles that match search request.
-		subscriptions, articles, err := a.getSearchResults(req.Context(), request)
+		subscriptions, articles, err := models.GetSearchResults(req.Context(), a.Elastic, request)
 		switch {
 		case err != nil:
 			msg := models.NewErrorMessage("Could not generate search results",
@@ -133,6 +134,89 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// WatchSearchResults handles watching the search results for any updates and rendering a notification to the user to refresh the page.
+//
+//nolint:gocognit
+func WatchSearchResults(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Set up SSE connection.
+		res.Header().Set("Content-Type", "text/event-stream")
+		res.Header().Set("Cache-Control", "no-cache")
+		res.Header().Set("Connection", "keep-alive")
+		if f, ok := res.(http.Flusher); ok {
+			f.Flush()
+		} else {
+			slogctx.FromCtx(req.Context()).Warn("Cannot flush update stream!")
+			res.WriteHeader(http.StatusNoContent)
+		}
+		// Get user data.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get user data: %w", err)
+		}
+		// Extract the search request.
+		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
+		if err != nil || !valid {
+			return fmt.Errorf("unable to get search request updates: %w", err)
+		}
+		// Build query.
+		query := models.BuildSearchResultsQuery(user, request)
+		// Run query once and count results.
+		var (
+			currentCount int64
+			prevCount    int64
+		)
+		prevCount, err = api.CountItems(req.Context(), query)
+		if err != nil {
+			return fmt.Errorf("unable to get search request updates: %w", err)
+		}
+		// Loop while the connection is alive, running the query, counting results, comparing against previous count and
+		// notifying user if changed.
+		for {
+			select {
+			case <-req.Context().Done():
+				res.Header().Set("Connection", "close")
+				res.WriteHeader(http.StatusRequestTimeout)
+				return nil
+			default:
+				currentCount, err = api.CountItems(req.Context(), query)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
+						slog.Any("error", err))
+					continue
+				}
+				// Show updates toast if new items found.
+				if currentCount > prevCount {
+					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
+					var b bytes.Buffer //nolint:varnamelen
+					template := bufio.NewWriter(&b)
+					err := templates.UpdatesToast().Render(req.Context(), template)
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
+							slog.Any("error", err))
+						continue
+					}
+					err = template.Flush()
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Error("Failed to flush SSE message buffer.",
+							slog.Any("error", err))
+					}
+					_, err = fmt.Fprintf(res, "data: %s\n\n", b.String())
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Error("Failed to send update SSE message.",
+							slog.Any("error", err))
+					}
+					if f, ok := res.(http.Flusher); ok {
+						f.Flush()
+					}
+				}
+				prevCount = currentCount
+				time.Sleep(defaultUpdateInterval)
+			}
+		}
+	})).ServeHTTP
+}
+
 func AddSubscriptionFilter() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		data := req.FormValue("subscription-filter-select")
@@ -143,118 +227,4 @@ func AddSubscriptionFilter() http.HandlerFunc {
 		res.WriteHeader(http.StatusOK)
 		return nil
 	})).ServeHTTP
-}
-
-// getSearchResults will find suggestions for the global search from available subscriptions and articles.
-func (a *API) getSearchResults(ctx context.Context, request *models.SearchRequest) (models.Subscriptions, []*models.Article, error) {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
-	}
-	itemResults, _, err := a.DataAPI().SearchItems(ctx, buildSearchQuery(user, request), 10, &models.SortLastUpdatedDesc, nil)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
-	}
-	articles, err := models.GenerateArticles(ctx, itemResults)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to get search results: %w", err)
-	}
-	// articles := make([]*partials.Article, 0, len(itemResults))
-	// for article := range slices.Values(details) {
-	// 	articles = append(articles, partials.NewArticleContent(article))
-	// }
-
-	// Generate subscriptions from data sources.
-	subscriptions := make(models.Subscriptions, 0)
-	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
-	if len(metadataMatches) > 0 {
-		subscriptions, err := models.GetSubscriptions(ctx, a.Elastic, metadataMatches.GetIDs()...)
-		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
-		}
-		// Truncate subscription matches to 3 results.
-		if len(subscriptions) > 3 {
-			subscriptions = subscriptions[:3]
-		}
-		// for s := range slices.Values(subscriptionMatches) {
-		// 	subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
-		// }
-	}
-	return subscriptions, articles, nil
-}
-
-func buildSearchQuery(user *models.User, request *models.SearchRequest) query.Option {
-	// var err error
-	var loc *time.Location
-	if request.Timezone != "" {
-		loc, _ = time.LoadLocation(request.Timezone)
-		// if err != nil {
-		// 	slogctx.FromCtx(ctx).Debug("Error parsing timezone in request.",
-		// 		slog.Any("error", err))
-		// }
-	} else {
-		loc, _ = time.LoadLocation("UTC")
-	}
-	var since time.Time
-	switch request.PublishedWithin {
-	case models.SearchRequestPublishedWithinLastHour:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
-	case models.SearchRequestPublishedWithinLast12hours:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), loc)
-	case models.SearchRequestPublishedWithinLastDay:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), loc)
-	case models.SearchRequestPublishedWithinLastWeek:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
-	case models.SearchRequestPublishedWithinLastMonth:
-		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
-	}
-
-	subscriptions := user.GetSubscriptionMetadata()
-	if len(request.Subscriptions) > 0 {
-		subscriptions = subscriptions.FilterByIDs(request.Subscriptions...)
-	}
-
-	return query.Bool(
-		query.Filter(
-			query.Bool(
-				query.Should(models.BuildSubscriptionQueries(user, request.View, subscriptions...)...),
-			),
-			query.Bool(
-				query.Should(
-					query.Since("published", since),
-					query.Since("updated", since),
-				),
-			),
-		),
-		// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
-		// search suggestion).
-		query.Must(
-			// Search across title, description and content fields, with preference for match in that order (via field
-			// boosting).
-			query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
-			// query.Bool(
-			// 	query.Should(
-			// 		query.MultiMatch(request.Text, "title", "description", "content"),
-			// 		query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
-			// 	),
-			// ),
-			query.SimpleQueryString(request.Categories, "", "categories"),
-			query.SimpleQueryString(request.Authors, "", "authors", "contributors"),
-		),
-	)
-}
-
-func (a *API) findSubscriptions(ctx context.Context, request *models.SearchRequest) (models.Subscriptions, error) {
-	// Retrieve user object.
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to find subscriptions: %w", err)
-	}
-	// Find subscriptions matching the search request.
-	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
-	subscriptionMatches, err := models.GetSubscriptions(ctx, a.Elastic, metadataMatches.GetIDs()...)
-	if err != nil {
-		return nil, fmt.Errorf("unable to find subscriptions: %w", err)
-	}
-	return subscriptionMatches, nil
 }

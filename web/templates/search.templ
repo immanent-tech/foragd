@@ -542,7 +542,7 @@ templ (page *SearchResultsPage) Content() {
 				</li>
 			}
 		}
-		// <button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href={ ContentID.Target() }>Back to top</button>
+		<div id="update-notifications" sse-connect={ "/search/updates?" + page.search.Query() } sse-swap="message" class="toast toast-center z-50"></div>
 	}
 }
 

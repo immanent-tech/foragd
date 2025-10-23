@@ -181,10 +181,12 @@ func renderPartial(template templ.Component) http.Handler {
 	return templ.Handler(templ.Join(template, templates.UpdateCSRFToken()))
 }
 
+// IsHTMX returns a boolean indicating whether the request is a HTMX request.
 func IsHTMX(req *http.Request) bool {
 	return req.Header.Get("HX-Request") == "true"
 }
 
+// IsHistoryRestoreRequest returns a boolean indicating whether the request is a HTMX history restore request.
 func IsHistoryRestoreRequest(req *http.Request) bool {
 	return req.Header.Get("HX-History-Restore-Request") == "true"
 }

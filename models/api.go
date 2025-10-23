@@ -439,6 +439,44 @@ func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms stri
 	return subscriptions, articles, nil
 }
 
+// GetSearchResults will find results for the global search from available subscriptions and articles.
+func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchRequest) (Subscriptions, []*Article, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not fetch user: %w", err)
+	}
+	itemResults, _, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, request), 10, &SortLastUpdatedDesc, nil)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not get item matches: %w", err)
+	}
+	articles, err := GenerateArticles(ctx, itemResults)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not generate articles: %w", err)
+	}
+	// articles := make([]*partials.Article, 0, len(itemResults))
+	// for article := range slices.Values(details) {
+	// 	articles = append(articles, partials.NewArticleContent(article))
+	// }
+
+	// Generate subscriptions from data sources.
+	subscriptions := make(Subscriptions, 0)
+	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
+	if len(metadataMatches) > 0 {
+		subscriptions, err := GetSubscriptions(ctx, dataAPI, metadataMatches.GetIDs()...)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
+		}
+		// Truncate subscription matches to 3 results.
+		if len(subscriptions) > 3 {
+			subscriptions = subscriptions[:3]
+		}
+		// for s := range slices.Values(subscriptionMatches) {
+		// 	subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
+		// }
+	}
+	return subscriptions, articles, nil
+}
+
 func BuildItemsQuery(ctx context.Context, filters Filters, subscriptions ...SubscriptionID) (query.Option, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -486,6 +524,67 @@ func BuildSubscriptionQueries(user *User, view View, subscriptions ...*Subscript
 		}
 	}
 	return queries
+}
+
+func BuildSearchResultsQuery(user *User, request *SearchRequest) query.Option {
+	// var err error
+	var loc *time.Location
+	if request.Timezone != "" {
+		loc, _ = time.LoadLocation(request.Timezone)
+		// if err != nil {
+		// 	slogctx.FromCtx(ctx).Debug("Error parsing timezone in request.",
+		// 		slog.Any("error", err))
+		// }
+	} else {
+		loc, _ = time.LoadLocation("UTC")
+	}
+	var since time.Time
+	switch request.PublishedWithin {
+	case SearchRequestPublishedWithinLastHour:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
+	case SearchRequestPublishedWithinLast12hours:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), loc)
+	case SearchRequestPublishedWithinLastDay:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), loc)
+	case SearchRequestPublishedWithinLastWeek:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
+	case SearchRequestPublishedWithinLastMonth:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
+	}
+
+	subscriptions := user.GetSubscriptionMetadata()
+	if len(request.Subscriptions) > 0 {
+		subscriptions = subscriptions.FilterByIDs(request.Subscriptions...)
+	}
+
+	return query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(BuildSubscriptionQueries(user, request.View, subscriptions...)...),
+			),
+			query.Bool(
+				query.Should(
+					query.Since("published", since),
+					query.Since("updated", since),
+				),
+			),
+		),
+		// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
+		// search suggestion).
+		query.Must(
+			// Search across title, description and content fields, with preference for match in that order (via field
+			// boosting).
+			query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
+			// query.Bool(
+			// 	query.Should(
+			// 		query.MultiMatch(request.Text, "title", "description", "content"),
+			// 		query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
+			// 	),
+			// ),
+			query.SimpleQueryString(request.Categories, "", "categories"),
+			query.SimpleQueryString(request.Authors, "", "authors", "contributors"),
+		),
+	)
 }
 
 // queryReadItems generates a query for finding read items for the given subscription.
