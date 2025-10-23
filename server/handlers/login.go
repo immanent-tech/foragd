@@ -34,7 +34,7 @@ type authAPI interface {
 // Login handles login requests.
 func Login(authAPI authAPI) http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		provider := chi.URLParam(req, "provider")
+		// prompt=login&screen_hint=signup
 		state, err := generateRandomState()
 		if err != nil {
 			template := templates.Page("Foragd", templates.Error(models.NewErrorMessage("Unable to log in.", "")))
@@ -46,12 +46,20 @@ func Login(authAPI authAPI) http.HandlerFunc {
 			}
 			return
 		}
+		var authURL string
+		switch chi.RouteContext(req.Context()).RoutePattern() {
+		case "/signup":
+			authURL = authAPI.AuthCodeURL(state,
+				oauth2.SetAuthURLParam("screen_hint", "signup"),
+			)
+		case "/login":
+			authURL = authAPI.AuthCodeURL(state)
+		}
 		session.Manager.Put(req.Context(), "state", state)
 		slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
-			slog.String("provider", provider),
 			slog.String("url", authAPI.AuthCodeURL(state)),
 		)
-		http.Redirect(res, req, authAPI.AuthCodeURL(state), http.StatusTemporaryRedirect)
+		http.Redirect(res, req, authURL, http.StatusTemporaryRedirect)
 	}).ServeHTTP
 }
 

@@ -244,8 +244,9 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
 		)
-		r.Get("/login/{provider}", handlers.Login(s.apis.auth))
-		r.Get("/login/{provider}/callback", handlers.LoginCallback(s.apis.auth, handler.Elastic))
+		r.Get("/login", handlers.Login(s.apis.auth))
+		r.Get("/signup", handlers.Login(s.apis.auth))
+		r.Get("/login/callback", handlers.LoginCallback(s.apis.auth, handler.Elastic))
 		r.Get("/logout", handlers.Logout(s.apis.auth))
 	})
 
