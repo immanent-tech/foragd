@@ -33,12 +33,13 @@ var (
 )
 
 // NewUser creates a new user from the external provider details.
-func NewUser(externalID, provider string) *User {
+func NewUser(externalID, email, provider string) *User {
 	ts := time.Now().UTC()
 	return &User{
 		CreatedAt:      ts,
 		UpdatedAt:      ts,
 		ExternalUserId: externalID,
+		Email:          email,
 		Provider:       provider,
 		UserID:         NewID(UserPFX),
 		Settings:       *NewUserSettings(),
@@ -71,6 +72,11 @@ func (u *User) GetAvatar() string {
 // GetNickname retrieves the nickname of the user.
 func (u *User) GetNickname() string {
 	return u.Nickname
+}
+
+// GetNickname retrieves the nickname of the user.
+func (u *User) GetEmail() string {
+	return u.Email
 }
 
 // GetMaxHistory returns a timestamp in the past from which the user can view

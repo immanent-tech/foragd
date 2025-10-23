@@ -296,14 +296,8 @@ type EditSubscriptionRequest_Image struct {
 	union json.RawMessage
 }
 
-// EditUserRequest contains details for editing a user account.
-type EditUserRequest struct {
-	// Nickname is an alias or label the user has given themselves.
-	Nickname UserNickname `form:"nickname" json:"nickname,omitempty,omitzero"`
-
-	// NicknameErr represents an error in the nickname field.
-	NicknameErr error `form:"-" json:"-"`
-}
+// EditUserRequest contains account fields that a user can customize.
+type EditUserRequest = UserCustomisation
 
 // Favorite is an object that the user has marked as a Favorite. Favorites  have higher visibility in the display and score higher in search results.
 type Favorite struct {
@@ -772,13 +766,16 @@ type URL = string
 // UpdatedAt records when the object was last updated in the database.
 type UpdatedAt = time.Time
 
-// User is a user of the application.
+// User defines model for User.
 type User struct {
 	// AvatarURL is a link to an image file to user as an avatar for the user.
-	AvatarURL string `json:"avatar_url,omitempty,omitzero" validate:"omitempty,url"`
+	AvatarURL string `form:"avatar_url" json:"avatar_url,omitempty,omitzero" validate:"omitempty,url"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+
+	// Email is the email address of the user.
+	Email string `form:"email" json:"email,omitempty,omitzero" validate:"required,email"`
 
 	// ExternalUserId is the ID of the user on the external backend that was used to create the account.
 	ExternalUserId string `json:"external_user_id" validate:"required"`
@@ -786,8 +783,8 @@ type User struct {
 	// Favorites contains the user favorites.
 	Favorites []*Favorite `json:"favorites,omitempty,omitzero" validate:"omitempty,dive"`
 
-	// Nickname is an alias or label the user has given themselves.
-	Nickname UserNickname `form:"nickname" json:"nickname,omitempty,omitzero"`
+	// Nickname is a nickname for the user.
+	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero"`
 
 	// Provider is the backend provider that was used to create the account.
 	Provider string `json:"provider" validate:"required"`
@@ -803,6 +800,18 @@ type User struct {
 
 	// UserID is the unique ID of a user.
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
+}
+
+// UserCustomisation contains account fields that a user can customize.
+type UserCustomisation struct {
+	// AvatarURL is a link to an image file to user as an avatar for the user.
+	AvatarURL string `form:"avatar_url" json:"avatar_url,omitempty,omitzero" validate:"omitempty,url"`
+
+	// Email is the email address of the user.
+	Email string `form:"email" json:"email,omitempty,omitzero" validate:"required,email"`
+
+	// Nickname is a nickname for the user.
+	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero"`
 }
 
 // UserID is the unique ID of a user.
@@ -822,9 +831,6 @@ type UserMessage struct {
 
 // UserMessageStatus indicates the severity or importance of the message.
 type UserMessageStatus string
-
-// UserNickname is an alias or label the user has given themselves.
-type UserNickname = string
 
 // UserSession tracks a user session.
 type UserSession struct {

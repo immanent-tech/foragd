@@ -7,8 +7,10 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"log/slog"
 
 	"github.com/auth0/go-auth0/management"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 )
@@ -55,6 +57,11 @@ func (u *UserProfile) GetID() string {
 	return u.Subject
 }
 
+// GetEmail returns the email address associated with the external user.
+func (u *UserProfile) GetEmail() string {
+	return u.Name
+}
+
 // ManagementAPI represents the Auth0 management API backend connection.
 type ManagementAPI struct {
 	*management.Management
@@ -80,11 +87,47 @@ func NewManagementAPI() (*ManagementAPI, error) {
 func Delete(ctx context.Context, user *models.User) error {
 	api, err := NewManagementAPI()
 	if err != nil {
-		return fmt.Errorf("auth0: delete user: %w", err)
+		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
+	}
+	// Delete the user's active sessions.
+	err = api.User.DeleteUserSessions(ctx, user.ExternalUserId)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not remove active sessions for user while deleting account.",
+			slog.Any("error", err),
+		)
 	}
 	err = api.User.Delete(ctx, user.ExternalUserId)
 	if err != nil {
-		return fmt.Errorf("auth0: delete user: %w", err)
+		return fmt.Errorf("unable to delete user account on backend: %w", err)
+	}
+	return nil
+}
+
+func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
+	api, err := NewManagementAPI()
+	if err != nil {
+		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
+	}
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("could not retrieve current user from context: %w", err)
+	}
+	// If the user changed their email, end a new verification email.
+	var verifyEmail bool
+	if user.Email != request.Email {
+		verifyEmail = true
+	}
+	// Create update object.
+	updates := &management.User{
+		Nickname:    &request.Nickname,
+		Email:       &request.Email,
+		Picture:     &request.AvatarURL,
+		VerifyEmail: &verifyEmail,
+	}
+	// Update the user.
+	err = api.User.Update(ctx, user.ExternalUserId, updates)
+	if err != nil {
+		return fmt.Errorf("unable to update user in backend: %w", err)
 	}
 	return nil
 }

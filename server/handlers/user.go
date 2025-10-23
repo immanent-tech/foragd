@@ -15,6 +15,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
@@ -38,6 +39,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("unable to get user settings: %w", err)
 		}
+		godump.Dump(user.ExternalUserId)
 		// Render appropriate content.
 		template := templates.NewSettingsPage(user, &models.EditUserRequest{}).Content()
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
@@ -81,12 +83,8 @@ func SaveSettings(api *elastic.API) http.HandlerFunc {
 }
 
 // AccountSettings handles managing user account settings.
-func (a *API) AccountSettings() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get account settings: %w", err)
-		}
+func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract the search request.
 		switch req.Method {
 		// case http.MethodGet:
@@ -102,27 +100,34 @@ func (a *API) AccountSettings() http.HandlerFunc {
 				renderPartial(template).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
-			// Apply updates.
-			err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-				"nickname": request.Nickname,
-			})
-			if err != nil {
+			godump.Dump(request)
+			// Update on backend.
+			err = auth0.UpdateUser(req.Context(), request)
+			if err != nil || !valid {
 				msg := models.NewErrorMessage(
-					"Could not update account settings.",
-					"There was a problem editing account settings. Please try again.",
+					"Could not edit account.",
+					"An internal error occurred, please try again.",
 				)
 				template := templates.Notification(msg, 0)
 				renderPartial(template).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
+			// Update local copy.
+			err = models.UpdateUser(req.Context(), api, request)
+			if err != nil || !valid {
+				msg := models.NewErrorMessage(
+					"Could not edit account.",
+					"An internal error occurred, please try again.",
+				)
+				template := templates.Notification(msg, 0)
+				renderPartial(template).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("failed!"), http.StatusInternalServerError)
+			}
 			// Report success.
-			msg := models.NewSuccessMessage("Account edits saved.", "")
+			msg := models.NewSuccessMessage("Account edits saved!", "")
 			template := templates.Notification(msg, 0)
 			renderPartial(template).ServeHTTP(res, req)
 		}
-		// Update the user in the context.
-		// user, _ = a.DataAPI().GetUser(req.Context(), user.UserID)
-		// ctx := models.UserToCtx(req.Context(), user)
 		return nil
 	})).ServeHTTP
 }
@@ -511,27 +516,33 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 // active session is destroyed and the browser is redirected back to the landing page.
 func (a *API) DeleteUser() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Get user account details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("could not delete user: %w", err)
+		switch req.Method {
+		case http.MethodGet:
+			renderPartial(templates.DeleteAccountModal()).ServeHTTP(res, req)
+		case http.MethodPost:
+			// Get user account details.
+			user, err := models.UserFromCtx(req.Context())
+			if err != nil {
+				return fmt.Errorf("could not delete user: %w", err)
+			}
+			// Delete account on the backend.
+			err = auth0.Delete(req.Context(), user)
+			if err != nil {
+				return fmt.Errorf("could not delete user: %w", err)
+			}
+			// Delete account locally.
+			err = a.DataAPI().DeleteUser(req.Context(), user.GetID())
+			if err != nil {
+				return fmt.Errorf("could not delete user: %w", err)
+			}
+			// Remove session cookie.
+			err = session.Manager.Destroy(req.Context())
+			if err != nil {
+				return fmt.Errorf("could not delete user: %w", err)
+			}
+			res.Header().Add(htmx.HeaderRedirect, "/")
+			// http.Redirect(res, req, "/", http.StatusSeeOther)
 		}
-		// Delete account on the backend.
-		err = auth0.Delete(req.Context(), user)
-		if err != nil {
-			return fmt.Errorf("could not delete user: %w", err)
-		}
-		// Delete account locally.
-		err = a.DataAPI().DeleteUser(req.Context(), user.GetID())
-		if err != nil {
-			return fmt.Errorf("could not delete user: %w", err)
-		}
-		// Remove session cookie.
-		err = session.Manager.Destroy(req.Context())
-		if err != nil {
-			return fmt.Errorf("could not delete user: %w", err)
-		}
-		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return nil
 	})).ServeHTTP
 }

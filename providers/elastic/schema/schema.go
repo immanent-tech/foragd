@@ -158,6 +158,7 @@ func userComponentTemplate() *Template {
 				WithKeywordMapping("nickname"),
 				WithKeywordMapping("avatar_url"),
 				WithKeywordMapping("external_user_id"),
+				WithKeywordMapping("email"),
 				WithKeywordMapping("provider"),
 				WithDatetimeMapping("created_at"),
 				WithDatetimeMapping("updated_at"),

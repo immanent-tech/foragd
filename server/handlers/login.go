@@ -115,7 +115,7 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 			// If a local user is not found, create one.
 			if errors.As(err, &apiError) {
 				if apiError.StatusCode == http.StatusNotFound {
-					err = createLocalUser(req.Context(), storeAPI, profile.GetID())
+					err = models.CreateUser(req.Context(), storeAPI, profile.GetID(), profile.GetEmail())
 					if err != nil {
 						template := templates.Page("Foragd", templates.Error(models.NewErrorMessage("Unable to log in.", err.Error())))
 						err := template.Render(req.Context(), res)
@@ -156,45 +156,18 @@ func syncLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProf
 	}
 	ctx = models.UserToCtx(ctx, user)
 	ctx = elastic.SetupIndexAliases(ctx)
-	// For the following fields, assume that if the backend value is different from the local value, it was updated on
-	// the backend. In such cases, replace the local value.
-	updates := make(map[string]any)
-	// Overwrite local avatar with remote avatar if different
-	if user.AvatarURL != profile.Picture {
-		updates["avatar_url"] = profile.Picture
+	// Create an edit user request from the data.
+	request := &models.EditUserRequest{
+		Nickname:  profile.Nickname,
+		AvatarURL: profile.Picture,
+		Email:     profile.Name,
 	}
-	// Overwrite local nickname with remote nickname if different
-	if user.Nickname != profile.Nickname {
-		updates["nickname"] = profile.Nickname
-	}
-	if len(updates) > 0 {
-		// Update the user object.
-		err := api.UpdateUser(ctx, user.GetID(), updates)
-		if err != nil {
-			slogctx.FromCtx(ctx).Error("Could not sync user data.",
-				slog.Any("error", err))
-		} else {
-			slogctx.FromCtx(ctx).Debug("User data synced.")
-		}
-	}
-}
-
-// createLocaUser will create a local user for user that has authenticated via the auth backend.
-func createLocalUser(ctx context.Context, api *elastic.API, externalID string) error {
-	user := models.NewUser(externalID, "auth0")
-	valid, err := user.Valid(ctx)
-	if err != nil || !valid {
-		return fmt.Errorf("cannot create local user: %w", err)
-	}
-	index, err := elastic.UserWriteIndexFromCtx(ctx)
+	err = models.UpdateUser(ctx, api, request)
 	if err != nil {
-		return fmt.Errorf("cannot create local user: %w", err)
+		slogctx.FromCtx(ctx).Error("Could not sync user data.",
+			slog.Any("error", err))
+		return
 	}
-	err = elastic.CreateDoc(ctx, api.GetAPI(), index, user.GetID(), user)
-	if err != nil {
-		return fmt.Errorf("cannot create local user: %w", err)
-	}
-	return nil
 }
 
 func generateRandomState() (string, error) {

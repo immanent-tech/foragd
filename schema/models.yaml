@@ -109,12 +109,6 @@ components:
         json: 'user_id'
         validate: 'required,startswith=user_'
         form: 'user_id'
-    UserNickname:
-      description: >
-        is an alias or label the user has given themselves.
-      type: string
-      x-oapi-codegen-extra-tags:
-        form: 'nickname'
     FavoriteID:
       description: is the unique ID of a Favorite.
       type: string
@@ -209,72 +203,82 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'sort'
     # Objects.
-    User:
-      description: is a user of the application.
+    UserCustomisation:
+      description: >
+        contains account fields that a user can customize.
       type: object
-      required:
-        - created_at
-        - user_id
-        - external_user_id
-        - provider
       properties:
-        created_at:
-          $ref: '#/components/schemas/CreatedAt'
-        updated_at:
-          $ref: '#/components/schemas/UpdatedAt'
-        user_id:
-          $ref: '#/components/schemas/UserID'
-        external_user_id:
-          description: >
-            is the ID of the user on the external backend that was used to create the account.
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required'
-        provider:
-          description: >
-            is the backend provider that was used to create the account.
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required'
         nickname:
-          $ref: '#/components/schemas/UserNickname'
+          description: >
+            is a nickname for the user.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'nickname'
+        email:
+          description: >
+            is the email address of the user.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'email'
+            validate: 'required,email'
         avatar_url:
           description: >
             is a link to an image file to user as an avatar for the user.
           type: string
           x-go-name: AvatarURL
           x-oapi-codegen-extra-tags:
+            form: 'avatar_url'
             validate: 'omitempty,url'
-        settings:
-          $ref: '#/components/schemas/UserSettings'
-        subscriptions:
-          description: >
-            is a list of the states of all subscriptions the user has.
-          x-go-type: '[]*SubscriptionMetadata'
-          x-oapi-codegen-extra-tags:
-            validate: 'omitempty,dive'
-        favorites:
-          description: >
-            contains the user favorites.
-          type: array
-          items:
-            x-go-type: '*Favorite'
-          x-oapi-codegen-extra-tags:
-            validate: 'omitempty,dive'
+    User:
+      description: is a user of the application.
+      allOf:
+        - $ref: '#/components/schemas/UserCustomisation'
+        - type: object
+          required:
+            - created_at
+            - user_id
+            - external_user_id
+            - provider
+          properties:
+            created_at:
+              $ref: '#/components/schemas/CreatedAt'
+            updated_at:
+              $ref: '#/components/schemas/UpdatedAt'
+            user_id:
+              $ref: '#/components/schemas/UserID'
+            external_user_id:
+              description: >
+                is the ID of the user on the external backend that was used to create the account.
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: 'required'
+            provider:
+              description: >
+                is the backend provider that was used to create the account.
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: 'required'
+            settings:
+              $ref: '#/components/schemas/UserSettings'
+            subscriptions:
+              description: >
+                is a list of the states of all subscriptions the user has.
+              x-go-type: '[]*SubscriptionMetadata'
+              x-oapi-codegen-extra-tags:
+                validate: 'omitempty,dive'
+            favorites:
+              description: >
+                contains the user favorites.
+              type: array
+              items:
+                x-go-type: '*Favorite'
+              x-oapi-codegen-extra-tags:
+                validate: 'omitempty,dive'
     EditUserRequest:
       description: >
         contains details for editing a user account.
-      type: object
-      properties:
-        nickname:
-          $ref: '#/components/schemas/UserNickname'
-        nicknameErr:
-          description: >
-            represents an error in the nickname field.
-          x-go-type: error
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
+      allOf:
+        - $ref: '#/components/schemas/UserCustomisation'
     UserSettings:
       description: >
         contains user-specific settings for the application.

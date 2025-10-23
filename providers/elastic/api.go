@@ -115,6 +115,18 @@ func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
 	return found, nil
 }
 
+func (a *API) CreateUser(ctx context.Context, user *models.User) error {
+	index, err := UserWriteIndexFromCtx(ctx)
+	if err != nil {
+		return ErrNoIndexInCtx
+	}
+	err = CreateDoc(ctx, a.GetAPI(), index, user.GetID(), user)
+	if err != nil {
+		return toAPIError(err)
+	}
+	return nil
+}
+
 // GetUser retrieves the user with the given id.
 func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
 	index, err := UserReadIndexFromCtx(ctx)

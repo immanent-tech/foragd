@@ -323,14 +323,14 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handler.GetSettings())
 				r.With(middlewares.RequireHTMX).Post("/", handlers.SaveSettings(handler.Elastic))
-				// r.Get("/account", handler.AccountSettings())
-				// r.With(middlewares.RequireHTMX).Post("/account", handler.AccountSettings())
+				r.With(middlewares.RequireHTMX).Post("/account", handlers.SaveAccountSettings(handler.Elastic))
 				// r.Get("/app", handler.AppSettings())
 				r.Route("/theme", func(r chi.Router) {
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())
 				})
 			})
 			r.With(middlewares.RequireHTMX).Get("/delete", handler.DeleteUser())
+			r.With(middlewares.RequireHTMX).Post("/delete", handler.DeleteUser())
 		})
 	})
 

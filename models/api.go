@@ -22,8 +22,52 @@ import (
 type DataAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
 	ItemsAggregation(ctx context.Context, query query.Option, count int, agg aggregations.Aggs) (*search.Response, error)
+	CreateUser(ctx context.Context, user *User) error
 	UpdateUser(ctx context.Context, id UserID, updates map[string]any) error
 	SearchItems(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Items, Pagination, error)
+}
+
+func CreateUser(ctx context.Context, dataAPI DataAPI, externalID, email string) error {
+	user := NewUser(externalID, email, "auth0")
+	valid, err := user.Valid(ctx)
+	if err != nil || !valid {
+		return fmt.Errorf("cannot create local user: %w", err)
+	}
+	err = dataAPI.CreateUser(ctx, user)
+	if err != nil {
+		return fmt.Errorf("unable to create user: %w", err)
+	}
+	return nil
+}
+
+func UpdateUser(ctx context.Context, dataAPI DataAPI, request *EditUserRequest) error {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("could not retrieve current user: %w", err)
+	}
+	// For the following fields, assume that if the backend value is different from the local value, it was updated on
+	// the backend. In such cases, replace the local value.
+	updates := make(map[string]any)
+	// Overwrite local avatar with remote avatar if different
+	if user.AvatarURL != request.AvatarURL {
+		updates["avatar_url"] = request.AvatarURL
+	}
+	// Overwrite local nickname with remote nickname if different
+	if user.Nickname != request.Nickname {
+		updates["nickname"] = request.Nickname
+	}
+	// Overwrite local email with remote email if different
+	if user.Email != request.Email {
+		updates["email"] = request.Email
+	}
+	if len(updates) > 0 {
+		// Update the user object.
+		err := dataAPI.UpdateUser(ctx, user.GetID(), updates)
+		if err != nil {
+			return fmt.Errorf("could not update user object: %w", err)
+		}
+	}
+	return nil
 }
 
 func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Subscriptions, Pagination, error) {

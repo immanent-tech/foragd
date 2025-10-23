@@ -3,7 +3,10 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/models"
+import (
+	"github.com/immanent-tech/foragd/models"
+	"strings"
+)
 
 type Settings struct {
 	user            *models.User
@@ -30,7 +33,7 @@ templ (page *Settings) Content() {
 			</div>
 			<input id="account-tab" type="radio" name="settings" class="tab font-semibold" aria-label="Account"/>
 			<div class="tab-content mt-8">
-				@accountSettingsTab()
+				@accountSettingsTab(page.user)
 			</div>
 		</div>
 	}
@@ -72,26 +75,74 @@ templ subscriptionSettingsTab() {
 }
 
 // accountSettingsTab renders tab content for account-related settings.
-templ accountSettingsTab() {
+templ accountSettingsTab(user *models.User) {
 	<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+		if !strings.HasPrefix(user.ExternalUserId,"auth0|") {
+			<div class="col-span-full">
+				<h2 class="text-base/7 font-semibold">Edit Account</h2>
+				<p class="mt-1 text-sm/6">
+					Your account is provided by an external service provider such as Google or Facebook, please log in to your account on the external service to make changes.
+				</p>
+			</div>
+		} else {
+			<div>
+				<h2 class="text-base/7 font-semibold">Edit Account</h2>
+				<p class="mt-1 text-sm/6"></p>
+			</div>
+			<form
+				hx-post="/user/settings/account"
+				hx-swap="none"
+				hx-include="[name='csrf_token']"
+				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:place-items-center sm:grid-cols-6 md:col-span-2"
+			>
+				<div class="sm:col-span-full">
+					<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
+					<div class="mt-2">
+						<input id="nickname" type="text" class="input input-primary validator invalid:input-error bg-base-content/10" placeholder="Nickname" name="nickname" required value={ user.GetNickname() }/>
+						<p class="validator-hint">Nickname is required</p>
+					</div>
+				</div>
+				<div class="sm:col-span-full">
+					<label for="nickname" class="block text-sm/6 font-medium">Email</label>
+					<div class="mt-2">
+						<input id="nickname" type="email" class="input input-primary invalid:input-error validator bg-base-content/10" placeholder="Email" name="email" required value={ user.GetEmail() }/>
+						<p class="validator-hint">Must be a valid email address</p>
+					</div>
+				</div>
+				<input type="hidden" name="avatar_url" value={ user.GetAvatar() }/>
+				<div class="col-span-full place-self-end">
+					<div id="processing" class="htmx-indicator">
+						Processing...
+						<span class="loading loading-spinner loading-md"></span>
+					</div>
+					<div class="mt-6 flex items-center justify-end gap-x-6">
+						<button type="submit" class="btn btn-primary btn-soft">Save</button>
+					</div>
+				</div>
+			</form>
+		}
 		<div>
-			<h2 class="text-base/7 font-semibold">Delete account</h2>
-			<p class="mt-1 text-sm/6 text-base-content/80">
+			<h2 class="text-base/7 font-semibold">Delete Account</h2>
+			<p class="mt-1 text-sm/6">
 				No longer want to use our service? You can delete your account here. This action is not reversible. All
 				information related to this account will be deleted permanently and you will be redirected back to the
 				landing page.
 			</p>
 		</div>
-		<form
-			hx-get="/user/delete"
-			hx-swap="none"
-			class="flex items-start md:col-span-2"
-		>
-			<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-			<button type="submit" class="btn btn-error">
-				Yes, delete my account
-			</button>
-		</form>
+		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:place-items-center sm:grid-cols-6 md:col-span-2">
+			<div class="sm:col-span-full">
+				<form
+					hx-get="/user/delete"
+					hx-target={ ModalContainerID.Target() }
+					class="flex items-start md:col-span-2"
+					_="on htmx:afterOnLoad wait 10ms then call document.getElementById('delete-account').show()"
+				>
+					<button type="submit" class="btn btn-error">
+						Yes, delete my account
+					</button>
+				</form>
+			</div>
+		</div>
 	</div>
 }
 
