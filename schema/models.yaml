@@ -279,6 +279,28 @@ components:
         contains details for editing a user account.
       allOf:
         - $ref: '#/components/schemas/UserCustomisation'
+    ChangePasswordRequest:
+      description: >
+        contains details for changing a user password.
+      type: object
+      required:
+        - new_password
+        - new_password_confirm
+      properties:
+        new_password:
+          description: >
+            is the new password.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'new_password'
+            validate: 'required,eqfield=ConfirmNewPassword'
+        confirm_new_password:
+          description: >
+            is the new password (again), used for confirmation.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'confirm_new_password'
+            validate: 'required'
     UserSettings:
       description: >
         contains user-specific settings for the application.

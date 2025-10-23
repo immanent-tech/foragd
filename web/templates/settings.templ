@@ -22,7 +22,7 @@ func NewSettingsPage(user *models.User, editUser *models.EditUserRequest) *Setti
 
 templ (page *Settings) Content() {
 	@Main() {
-		<div class="tabs tabs-border">
+		<div class="tabs">
 			<input id="subscriptions-tab" type="radio" name="settings" class="tab font-semibold" aria-label="Subscriptions" checked="true"/>
 			<div class="tab-content mt-8">
 				@subscriptionSettingsTab()
@@ -81,19 +81,20 @@ templ accountSettingsTab(user *models.User) {
 			<div class="col-span-full">
 				<h2 class="text-base/7 font-semibold">Edit Account</h2>
 				<p class="mt-1 text-sm/6">
-					Your account is provided by an external service provider such as Google or Facebook, please log in to your account on the external service to make changes.
+					Your account is provided by an external service provider such as Google or Facebook, please log in to your account on the external service to make changes to your nickname, email, avatar or password.
 				</p>
 			</div>
 		} else {
+			// Account customisation.
 			<div>
 				<h2 class="text-base/7 font-semibold">Edit Account</h2>
-				<p class="mt-1 text-sm/6"></p>
+				<p class="mt-1 text-sm/6">Use an email address that can receive messages.</p>
 			</div>
 			<form
 				hx-post="/user/settings/account"
 				hx-swap="none"
 				hx-include="[name='csrf_token']"
-				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:place-items-center sm:grid-cols-6 md:col-span-2"
+				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2"
 			>
 				<div class="sm:col-span-full">
 					<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
@@ -115,12 +116,47 @@ templ accountSettingsTab(user *models.User) {
 						Processing...
 						<span class="loading loading-spinner loading-md"></span>
 					</div>
-					<div class="mt-6 flex items-center justify-end gap-x-6">
+					<div class="mt-2 flex items-center justify-end gap-x-6">
 						<button type="submit" class="btn btn-primary btn-soft">Save</button>
 					</div>
 				</div>
 			</form>
+			// Change password.
+			<div>
+				<h2 class="text-base/7 font-semibold">Change Password</h2>
+				<p class="mt-1 text-sm/6">Update your password associated with your account.</p>
+			</div>
+			<form
+				hx-post="/user/settings/password"
+				hx-swap="none"
+				hx-include="[name='csrf_token']"
+				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2"
+				_="on htmx:afterOnLoad wait 10ms then call document.getElementById('delete-account').show()"
+			>
+				<div class="sm:col-span-full">
+					<label for="new-password" class="block text-sm/6 font-medium">New Password</label>
+					<div class="mt-2">
+						<input id="nickname" type="password" class="input input-primary w-full bg-base-content/10" name="new_password" required/>
+					</div>
+				</div>
+				<div class="sm:col-span-full">
+					<label for="nickname" class="block text-sm/6 font-medium">Confirm New Password</label>
+					<div class="mt-2">
+						<input id="nickname" type="password" class="input input-primary w-full bg-base-content/10" name="confirm_new_password" required/>
+					</div>
+				</div>
+				<div class="col-span-full place-self-end">
+					<div id="processing" class="htmx-indicator">
+						Processing...
+						<span class="loading loading-spinner loading-md"></span>
+					</div>
+					<div class="mt-2 flex items-center justify-end gap-x-6">
+						<button type="submit" class="btn btn-primary btn-soft">Change Password</button>
+					</div>
+				</div>
+			</form>
 		}
+		// Delete account.
 		<div>
 			<h2 class="text-base/7 font-semibold">Delete Account</h2>
 			<p class="mt-1 text-sm/6">

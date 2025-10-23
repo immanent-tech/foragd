@@ -321,6 +321,20 @@ func (s *EditUserRequest) Sanitise() error {
 	return nil
 }
 
+// Valid returns a boolean indicating whether the ChangePasswordRequest contains valid data.
+func (r *ChangePasswordRequest) Valid() (bool, error) {
+	valid, err := validation.ValidateStruct(r)
+	if err != nil || !valid {
+		return false, fmt.Errorf("request is invalid: %w", err)
+	}
+	return true, nil
+}
+
+// Sanitise will sanitise the user input for a ChangePasswordRequest.
+func (r *ChangePasswordRequest) Sanitise() error {
+	return nil
+}
+
 //
 // Favorites.
 //

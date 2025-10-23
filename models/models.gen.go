@@ -231,6 +231,15 @@ type CategoryCount struct {
 	Count    int      `json:"count"`
 }
 
+// ChangePasswordRequest contains details for changing a user password.
+type ChangePasswordRequest struct {
+	// ConfirmNewPassword is the new password (again), used for confirmation.
+	ConfirmNewPassword string `form:"confirm_new_password" json:"confirm_new_password,omitempty,omitzero" validate:"required"`
+
+	// NewPassword is the new password.
+	NewPassword string `form:"new_password" json:"new_password" validate:"required,eqfield=ConfirmNewPassword"`
+}
+
 // CommonDisplayFilters contains filters for altering the display of objects.
 type CommonDisplayFilters struct {
 	// Categories is a list of categories.

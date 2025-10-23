@@ -132,6 +132,44 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// ChangePassword handles a change password request from the user.
+func ChangePassword(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Extract the search request.
+		switch req.Method {
+		// case http.MethodGet:
+		// 	template = pages.NewSettingsPage("account", user, &models.EditUserRequest{}).Template(req)
+		case http.MethodPost:
+			request, valid, err := forms.DecodeForm[*models.ChangePasswordRequest](req)
+			if err != nil || !valid {
+				msg := models.NewErrorMessage(
+					"Could not change password.",
+					"There are problems with the input. Please check and try again.",
+				)
+				template := templates.Notification(msg, 0)
+				renderPartial(template).ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
+			}
+			// Update on backend.
+			err = auth0.ChangeUserPassword(req.Context(), request)
+			if err != nil || !valid {
+				msg := models.NewErrorMessage(
+					"Could not edit account.",
+					"An internal error occurred, please try again.",
+				)
+				template := templates.Notification(msg, 0)
+				renderPartial(template).ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusInternalServerError)
+			}
+			// Report success.
+			msg := models.NewSuccessMessage("Password changed!", "Logout and log back in to use the new password.")
+			template := templates.Notification(msg, 0)
+			renderPartial(template).ServeHTTP(res, req)
+		}
+		return nil
+	})).ServeHTTP
+}
+
 // SetTheme handles setting a theme selected by the user.
 func (a *API) SetTheme() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
@@ -526,7 +564,7 @@ func (a *API) DeleteUser() http.HandlerFunc {
 				return fmt.Errorf("could not delete user: %w", err)
 			}
 			// Delete account on the backend.
-			err = auth0.Delete(req.Context(), user)
+			err = auth0.DeleteUser(req.Context(), user)
 			if err != nil {
 				return fmt.Errorf("could not delete user: %w", err)
 			}

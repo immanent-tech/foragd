@@ -325,7 +325,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 				r.Get("/", handler.GetSettings())
 				r.With(middlewares.RequireHTMX).Post("/", handlers.SaveSettings(handler.Elastic))
 				r.With(middlewares.RequireHTMX).Post("/account", handlers.SaveAccountSettings(handler.Elastic))
-				// r.Get("/app", handler.AppSettings())
+				r.With(middlewares.RequireHTMX).Post("/password", handlers.ChangePassword(handler.Elastic))
 				r.Route("/theme", func(r chi.Router) {
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())
 				})

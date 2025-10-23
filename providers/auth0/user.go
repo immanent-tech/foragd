@@ -83,8 +83,8 @@ func NewManagementAPI() (*ManagementAPI, error) {
 	return &ManagementAPI{Management: api}, nil
 }
 
-// Delete will delete the given user from the Auth0 backend.
-func Delete(ctx context.Context, user *models.User) error {
+// DeleteUser will delete the given user from the Auth0 backend.
+func DeleteUser(ctx context.Context, user *models.User) error {
 	api, err := NewManagementAPI()
 	if err != nil {
 		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
@@ -123,6 +123,27 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 		Email:       &request.Email,
 		Picture:     &request.AvatarURL,
 		VerifyEmail: &verifyEmail,
+	}
+	// Update the user.
+	err = api.User.Update(ctx, user.ExternalUserId, updates)
+	if err != nil {
+		return fmt.Errorf("unable to update user in backend: %w", err)
+	}
+	return nil
+}
+
+func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error {
+	api, err := NewManagementAPI()
+	if err != nil {
+		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
+	}
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("could not retrieve current user from context: %w", err)
+	}
+	// Create update object.
+	updates := &management.User{
+		Password: &request.NewPassword,
 	}
 	// Update the user.
 	err = api.User.Update(ctx, user.ExternalUserId, updates)
