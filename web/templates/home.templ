@@ -279,7 +279,7 @@ templ (page *Home) Template() {
 }
 
 templ NewUserHome() {
-	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 space-y-4">
+	@Main() {
 		<h1 class="text-5xl font-bold pb-6">Welcome to { config.AppName }</h1>
 		<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
 		<p class="py-2">Import your feeds from somewhere else:</p>
@@ -374,5 +374,5 @@ templ NewUserHome() {
 				<button type="submit" class="btn btn-primary">Add sets</button>
 			</div>
 		</form>
-	</main>
+	}
 }
