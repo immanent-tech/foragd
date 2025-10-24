@@ -8,70 +8,38 @@ import (
 	"strings"
 )
 
-type Settings struct {
-	user            *models.User
-	editUserRequest *models.EditUserRequest
-}
-
-func NewSettingsPage(user *models.User, editUser *models.EditUserRequest) *Settings {
-	return &Settings{
-		user:            user,
-		editUserRequest: editUser,
-	}
-}
-
-templ (page *Settings) Content() {
+templ SettingsPage() {
 	@Main() {
-		<div class="tabs">
-			<input id="app-tab" type="radio" name="settings" class="tab font-semibold" aria-label="Display" checked="true"/>
-			<div class="tab-content mt-8">
-				@DisplaySettings(page.user)
-			</div>
-			<input id="account-tab" type="radio" name="settings" class="tab font-semibold" aria-label="Account"/>
-			<div class="tab-content mt-8">
-				@AccountSettings(page.user)
-			</div>
+		<div
+			class="tabs tabs-box"
+			hx-trigger="load once"
+			hx-get="/user/settings/display"
+			hx-target="#current-settings"
+		>
+			<input
+				type="radio"
+				name="settings_tabs"
+				class="tab"
+				aria-label="Display"
+				checked="checked"
+				hx-get="/user/settings/display"
+				hx-target="#current-settings"
+			/>
+			<input
+				type="radio"
+				name="settings_tabs"
+				class="tab"
+				aria-label="Account"
+				hx-get="/user/settings/account"
+				hx-target="#current-settings"
+			/>
 		</div>
+		<section id="current-settings"></section>
 	}
-}
-
-// subscriptionSettingsTab renders tab content for subscription-related settings.
-templ subscriptionSettingsTab() {
-	<div class="flex flex-col mt-2 gap-y-4">
-		<div class="flex items-center">
-			<div class="relative flex justify-start">
-				<span class="pr-3 text-base font-semibold ">Actions</span>
-			</div>
-			<div aria-hidden="true" class="w-full border-t border-base-content/10"></div>
-		</div>
-		<div class="flex gap-x-4 justify-center">
-			<button
-				type="button"
-				class="btn btn-primary btn-sm"
-				hx-get="/user/subscription/add"
-				hx-target={ ContentID.Target() }
-				hx-push-url="true"
-			>Add</button>
-			<button
-				type="button"
-				class="btn btn-primary btn-sm"
-				hx-get="/user/import"
-				hx-target={ ContentID.Target() }
-				hx-push-url="true"
-			>Import</button>
-			<button
-				type="button"
-				class="btn btn-primary btn-sm"
-				hx-get="/user/export"
-				hx-target={ ContentID.Target() }
-				hx-push-url="true"
-			>Export</button>
-		</div>
-	</div>
 }
 
 templ AccountSettings(user *models.User) {
-	<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+	<div id="account-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 		<div>
 			<h2 class="text-base/7 font-semibold">Import/Export</h2>
 			<p class="mt-1 text-sm/6">Import or Export your subscriptions.</p>

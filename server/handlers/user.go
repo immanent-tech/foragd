@@ -17,7 +17,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/goforj/godump"
 	"github.com/justinas/alice"
-	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-syndication/opml"
@@ -32,18 +31,32 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-// GetSettings handles retrieving and rendering the user settings page.
-func (a *API) GetSettings() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+// ShowSettings handles retrieving and rendering the user settings page.
+func (a *API) ShowSettings() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		renderPage(templates.SettingsPage(), templates.GeneratePageTitle("Settings")).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+func ShowDisplaySettings() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			return fmt.Errorf("unable to get user settings: %w", err)
 		}
-		godump.Dump(user.ExternalUserId)
-		// Render appropriate content.
-		template := templates.NewSettingsPage(user, &models.EditUserRequest{}).Content()
-		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
-		renderPage(template, templates.GeneratePageTitle("Settings")).ServeHTTP(res, req.WithContext(ctx))
+		renderPartial(templates.DisplaySettings(user)).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+func ShowAccountSettings() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get user settings: %w", err)
+		}
+		renderPartial(templates.AccountSettings(user)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
