@@ -270,10 +270,6 @@ func migrateLogs(ctx context.Context, api *elasticsearch.TypedClient) error {
 // updateAlias performs a swap of an alias to the given index. It adds the given index to the alias, sets it as the
 // write destination, then removes any existing aliased indicies so the index remains as the only aliased one.
 func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias string, index string) error {
-	_, err := api.Indices.PutAlias(index, alias).IsWriteIndex(true).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not update alias %s to add index %s: %w", alias, index, err)
-	}
 	aliasesResp, err := api.Indices.GetAlias().Index(alias).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("could not retrieve indices associated with alias %s: %w", alias, err)
@@ -294,6 +290,10 @@ func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias stri
 				return fmt.Errorf("unable to remove index %s from alias %s: %w", aliasedIndex, alias, err)
 			}
 		}
+	}
+	_, err = api.Indices.PutAlias(index, alias).IsWriteIndex(true).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("could not update alias %s to add index %s: %w", alias, index, err)
 	}
 	return nil
 }
