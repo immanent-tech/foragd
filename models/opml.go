@@ -95,6 +95,9 @@ func (r *AddFeedsetRequest) Valid() (bool, error) {
 
 // Sanitise will sanitise the input values of the SubscriptionRequest.
 func (r *AddFeedsetRequest) Sanitise() error {
+	if r == nil {
+		return nil
+	}
 	sets := make([]string, 0, len(r.Feedset))
 	for set := range slices.Values(r.Feedset) {
 		set = validation.SanitizeString(set)

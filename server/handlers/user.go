@@ -574,6 +574,11 @@ func (a *API) DeleteUser() http.HandlerFunc {
 // AddFeedset handles adding a feedset as subscriptions.
 func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Ignore submission without any feedset selected.
+		if req.FormValue("feedset") == "" {
+			res.WriteHeader(http.StatusNoContent)
+			return nil
+		}
 		request, valid, err := forms.DecodeForm[*models.AddFeedsetRequest](req)
 		if err != nil || !valid {
 			res.Header().Add(htmx.HeaderReswap, "none")
