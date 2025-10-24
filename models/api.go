@@ -98,6 +98,10 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	} else {
 		allMetadata = user.GetSubscriptionMetadata()
 	}
+	// Return early if there the user has no subscriptions (i.e., new user).
+	if len(allMetadata) == 0 {
+		return nil, nil
+	}
 	// Get unread counts.
 	unreadCounts, err := GetSubscriptionUnreadCounts(ctx, dataAPI, allMetadata)
 	if err != nil {
@@ -304,6 +308,10 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 	subscriptions := user.GetSubscriptionMetadata()
 	if len(filters.Subscriptions) > 0 {
 		subscriptions = subscriptions.FilterByIDs(filters.Subscriptions...)
+	}
+	// Return early if there the user has no subscriptions (i.e., new user).
+	if len(subscriptions) == 0 {
+		return nil, "", nil
 	}
 	query := query.Bool(
 		query.Filter(
