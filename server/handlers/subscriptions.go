@@ -65,7 +65,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 
 // SaveSubscription handles saving the edits made by a user to a subscription.
 func (a *API) SaveSubscription() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve user object.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -101,8 +101,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			renderPage(template, "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
-		template := templ.Join(templates.EditSubscription(request), templates.EditSubscriptionSuccessNotification(metadata))
-		renderPage(template, "").ServeHTTP(res, req)
+		renderPartial(templates.EditSubscriptionSuccessNotification(metadata)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

@@ -368,8 +368,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				id="edit-subscription"
 				hx-post={ "/edit/subscription/" + request.GetID() }
 				hx-include="[name='user_categories'],[name='show_full_article_content'],[id='article_category_filters'],[id='article_author_filters'],[name='csrf_token']"
-				hx-target={ ContentID.Target() }
-				hx-target-error={ ContentID.Target() }
+				hx-swap="none"
 				hx-indicator="#processing"
 			>
 				<input type="hidden" name="subscription_id" value={ request.GetID() }/>
