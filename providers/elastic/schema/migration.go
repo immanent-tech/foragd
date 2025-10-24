@@ -181,13 +181,20 @@ func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient) error
 	slogctx.FromCtx(ctx).Info("Updated items datastream write alias.")
 
 	// Reindex.
-	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(datastreamName)).WaitForCompletion(true).Do(ctx)
+	found, err := api.Indices.Exists(readAlias).Do(ctx)
 	if err != nil {
-		return fmt.Errorf("could not reindex: %w", err)
+		return fmt.Errorf("could not determine %s index state: %w", readAlias, err)
 	}
-	slogctx.FromCtx(ctx).Info("Completed items datastream reindex.",
-		slog.Int64("took", *reindexResp.Took),
-	)
+	if found {
+
+		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(datastreamName)).WaitForCompletion(true).Do(ctx)
+		if err != nil {
+			return fmt.Errorf("could not reindex: %w", err)
+		}
+		slogctx.FromCtx(ctx).Info("Completed items datastream reindex.",
+			slog.Int64("took", *reindexResp.Took),
+		)
+	}
 
 	// Update the read alias.
 	err = updateAlias(ctx, api, readAlias, datastreamName)
