@@ -10,13 +10,11 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -26,7 +24,7 @@ import (
 
 // ShowList handles displaying or paginating a list of objects (subscriptions/articles) as cards in a grid layout.
 //
-//nolint:gocognit
+//nolint:gocognit,gocyclo,funlen
 func ShowList(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
@@ -182,9 +180,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 //
 //nolint:gocognit
 func WatchList(api *elastic.API) http.HandlerFunc {
-	return alice.New(
-		parseFilters,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "text/event-stream")
 		res.Header().Set("Cache-Control", "no-cache")
 		res.Header().Set("Connection", "keep-alive")
@@ -263,15 +259,17 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 // MarkList handles marking a list of objects (subscriptions/articles) as read or unread. After marking, it will
 // redirect the user appropriately.
 func MarkList(api *elastic.API) http.HandlerFunc {
-	return alice.New(
-		parseFilters,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.Append(parseFilters).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-
+		// Retrieve user data.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			return fmt.Errorf("unable to mark all subscriptions: %w", err)
+			renderPartial(
+				templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to mark objects!", "")),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
 		// Generate request details
 		var (
@@ -290,24 +288,15 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		} else {
 			subscriptions = filters.GetSubscriptions()
 		}
-		slogctx.FromCtx(req.Context()).Debug("Marking list.",
-			slog.String("list", listType),
-			slog.String("mark", string(mark)),
-			slog.String("subscriptions", strings.Join(subscriptions, ",")),
-		)
 		// Mark subscriptions.
 		err = models.MarkSubscriptions(req.Context(), api, mark, subscriptions...)
 		if err != nil {
-			renderPartial(templates.Notification(
-				models.NewErrorMessage(
-					"Unable to mark objects",
-					"Something went wrong, please try again",
-				), 0))
-			return models.NewAPIError(
-				fmt.Errorf("unable to mark all objects: %w", err),
-				http.StatusInternalServerError)
+			renderPartial(
+				templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to mark objects!", "")),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("mark subscriptions failed: %w", err), http.StatusInternalServerError)
 		}
-
 		// Redirect depending on the current view.
 		switch filters.GetView() {
 		case models.ViewRead, models.ViewUnread:

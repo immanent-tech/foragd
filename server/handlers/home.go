@@ -11,9 +11,7 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/justinas/nosurf"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -24,37 +22,34 @@ import (
 // Home handles displaying the user's home page.
 func (a *API) Home() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		pageTitle := templates.GeneratePageTitle("Home")
 		ctx := req.Context()
-		ctx = models.CSRFTokenToCtx(ctx, nosurf.Token(req))
 		user, err := models.UserFromCtx(ctx)
 		if err != nil {
-			return fmt.Errorf("unable to serve home page: %w", err)
+			msg := models.NewErrorMessage("Unable to complete request!", "This might be temporary, please try again.")
+			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
 		if user.GetSettings().ShowOnboarding {
 			template := templates.NewUserHome()
-			renderPage(template, "Home - "+config.AppName).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
 			return nil
 		}
 		data, err := a.getHomePageData(ctx)
 		if err != nil {
-			renderPartial(templates.Notification(
-				models.NewErrorMessage(
-					"Unable to get home page data",
-					"Something went wrong, please try again",
-				), 0))
-			return models.NewAPIError(
-				fmt.Errorf("unable to mark subscription: %w", err),
-				http.StatusInternalServerError)
+			msg := models.NewErrorMessage("Unable to complete request!", "This might be temporary, please try again.")
+			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("unable to retrieve home page data: %w", err), http.StatusInternalServerError)
 		}
 		template := data.Template()
-		renderPage(template, "Home - "+config.AppName).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
 
 // getHomePageData retrieves the data required to construct the homepage content.
 //
-//nolint:funlen // mostly aggregation definitions.
+//nolint:funlen,gocognit // mostly aggregation definitions.
 func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	data := &templates.Home{}
 	// Retrieve user object.

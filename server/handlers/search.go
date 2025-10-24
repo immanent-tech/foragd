@@ -12,10 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
-	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -26,7 +24,7 @@ import (
 
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func (a *API) GetSearchSuggestions() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			slogctx.FromCtx(req.Context()).Debug("Invalid search suggestion input.",
@@ -59,76 +57,78 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 // GetSearchResults performs a search with the user input and renders a page with the search results.
 func (a *API) GetSearchResults() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		pageTitle := templates.GeneratePageTitle("Search Results")
 		user, err := models.UserFromCtx(req.Context())
-		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 		if err != nil {
-			return fmt.Errorf("unable to display search results: %w", err)
-			// renderPage(layouts.Drawer(nil, templates.ErrorPage(models.NewErrorMessage("No user data", ""))), "").ServeHTTP(res, req)
-			// return models.ErrUserNotFound
+			msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
+			renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			msg := models.NewErrorMessage("Invalid search request",
-				"Unable to parse search request. Please check and try again.")
-			renderPage(templates.ErrorPage(msg), "").ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+			renderPage(templates.NotFound(), pageTitle).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		favoriteID := req.FormValue("search_id")
 		if favoriteID == "" {
 			favoriteID = request.ID()
 			if favoriteID == "" {
-				msg := models.NewErrorMessage("Invalid search request",
-					"Unable to parse search request. Please check and try again.")
-				renderPage(templates.ErrorPage(msg), "").ServeHTTP(res, req.WithContext(ctx))
-				return models.NewAPIError(err, http.StatusUnprocessableEntity)
+				msg := models.NewErrorMessage("Unable to parse search request", "This might be a temporary issue, please try again.")
+				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("%w: unable to generate search ID from data", ErrInvalidRequestParams),
+					http.StatusUnprocessableEntity,
+				)
 			}
 		}
 		// Retrieve favorite data for this search
 		fav := user.GetFavorite(favoriteID)
-		// Check if the favorite needs to be updated.
 		if fav != nil {
+			// Update favorite in user.
 			err := user.UpdateFavoriteSearch(fav.Nickname, request)
 			if err != nil {
-				template := templates.Notification(
-					models.NewErrorMessage("Unable to process favorite.", "Temporary backend issue, please try again."), 0)
-				renderPartial(template).ServeHTTP(res, req)
-				return models.NewAPIError(err, http.StatusInternalServerError)
+				msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("unable to update search favorite: %w", err),
+					http.StatusInternalServerError,
+				)
 			}
+			// Update user.
 			err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 				"favorites": user.Favorites,
 			})
 			if err != nil {
-				template := templates.Notification(
-					models.NewWarningMessage("Unable to update favorite.", "Temporary backend issue, please try again."), 5*time.Second)
-				renderPartial(template).ServeHTTP(res, req)
+				msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("unable to update user data: %w", err),
+					http.StatusInternalServerError,
+				)
 			}
 		}
 		// Find subscriptions and articles that match search request.
 		subscriptions, articles, err := models.GetSearchResults(req.Context(), a.Elastic, request)
 		switch {
 		case err != nil:
-			msg := models.NewErrorMessage("Could not generate search results",
-				"This could be a temporary problem, please try again.")
-			renderPage(templates.ErrorPage(msg), "").ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(err, http.StatusUnprocessableEntity)
+			msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve subscriptions: %w", err),
+				http.StatusInternalServerError,
+			)
 		case len(subscriptions) > 0 || len(articles) > 0:
-			slog.Info("templated")
-			var template templ.Component
-			if IsHTMX(req) {
-				template = templ.Join(
-					templates.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content(),
-					templates.FavoritesList(user.GetAllFavorites(), models.OOBSwapTrue),
-				)
-			} else {
-				template = templates.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content()
-			}
+			template := templates.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
-			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req)
 		default:
 			template := templates.NoSearchResults()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
-			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP
@@ -217,6 +217,7 @@ func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// AddSubscriptionFilter handles adding a subscription as a search filter.
 func AddSubscriptionFilter() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		data := req.FormValue("subscription-filter-select")

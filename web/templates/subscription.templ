@@ -720,16 +720,22 @@ templ ImportResults(results AddSubscriptionResults) {
 // ExportSubscriptions renders a form for exporting all subscriptions as an OPML file.
 templ ExportSubscriptions() {
 	@Main() {
-		@PageHeader("Export subscriptions")
-		@PageDescription("You can export your current subscription to an OPML file, which all good feed readers can import.")
+		<div class="md:flex md:items-center md:justify-between mt-8">
+			<div class="min-w-0 flex-1">
+				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Export Subscriptions</h2>
+			</div>
+		</div>
+		<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+			You can export your current subscription to an OPML file, which all good feed readers can import.
+		</p>
 		<div class="mt-10 space-y-8">
 			<div class="mt-6 flex items-center justify-end gap-x-6">
-				<button type="button" onclick="history.back()" class="btn btn-primary">
+				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">
 					Back
 				</button>
 				<a
 					role="button"
-					class="btn btn-primary"
+					class="btn btn-primary btn-soft"
 					href="/user/export/opml"
 					download
 				>
