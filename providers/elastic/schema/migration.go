@@ -146,17 +146,17 @@ func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient) error
 
 	slogctx.FromCtx(ctx).Info("Migrating items datastream...")
 
-	resp, err := api.Ilm.GetLifecycle().Do(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to migrate items datastream: %w", err)
-	}
-	if _, found := resp[ItemsSchemaPrefix]; found {
-		_, err := api.Ilm.DeleteLifecycle(ItemsSchemaPrefix).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("unable to migrate items datastream: %w", err)
-		}
-	}
-	_, err = api.Ilm.PutLifecycle(ItemsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx)
+	// resp, err := api.Ilm.GetLifecycle().Do(ctx)
+	// if err != nil {
+	// 	return fmt.Errorf("unable to migrate items datastream: %w", err)
+	// }
+	// if _, found := resp[ItemsSchemaPrefix]; found {
+	// 	_, err := api.Ilm.DeleteLifecycle(ItemsSchemaPrefix).Do(ctx)
+	// 	if err != nil {
+	// 		return fmt.Errorf("unable to migrate items datastream: %w", err)
+	// 	}
+	// }
+	_, err := api.Ilm.PutLifecycle(ItemsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to migrate items datastream: %w", err)
 	}
