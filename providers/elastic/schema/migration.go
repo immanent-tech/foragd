@@ -5,11 +5,14 @@ package schema
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v9"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -272,7 +275,9 @@ func migrateLogs(ctx context.Context, api *elasticsearch.TypedClient) error {
 func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias string, index string) error {
 	aliasesResp, err := api.Indices.GetAlias().Index(alias).Do(ctx)
 	if err != nil {
-		return fmt.Errorf("could not retrieve indices associated with alias %s: %w", alias, err)
+		if getStatusCode(err) != http.StatusNotFound {
+			return fmt.Errorf("could not retrieve indices associated with alias %s: %w", alias, err)
+		}
 	}
 	for aliasedIndex := range aliasesResp {
 		if aliasedIndex != index {
@@ -325,4 +330,12 @@ func updateTemplates(ctx context.Context, api *elasticsearch.TypedClient, prefix
 		return fmt.Errorf("could not create index template %s: %w", indexTemplateName, err)
 	}
 	return nil
+}
+
+func getStatusCode(err error) int {
+	var esErr *types.ElasticsearchError
+	if errors.As(err, &esErr) {
+		return esErr.Status
+	}
+	return http.StatusInternalServerError
 }
