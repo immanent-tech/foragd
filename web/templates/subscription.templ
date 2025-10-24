@@ -489,7 +489,9 @@ templ EditSubscriptionSuccessNotification(metadata *models.SubscriptionMetadata)
 // AddSubscription is a page for adding a new subscription.
 templ AddSubscription(request *models.SubscriptionRequest) {
 	@Main() {
-		@PageHeader("Add a subscription")
+		<div class="min-w-0 flex-1 pb-8">
+			<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">Add A Subscription</h2>
+		</div>
 		if request.HasError() {
 			<div role="alert" class="alert alert-error alert-outline mt-12">
 				<div class="px-4 py-5 sm:p-6 space-y-4">
@@ -500,7 +502,7 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 				</div>
 			</div>
 		}
-		<fieldset class="fieldset border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0">
+		<div class="space-y-8">
 			<form
 				id="add-subscription"
 				hx-post="/user/subscription/add"
@@ -509,65 +511,64 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 				hx-indicator="#processing"
 				hx-on::after-request="if(event.detail.successful) this.reset()"
 			>
-				<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
+				// URL.
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<label for="username" class="block text-sm/6 font-medium">URL</label>
-						<p id="url-hint" class="mt-3 text-sm/6 text-base-content/60">Required. The feed's URL or website.</p>
+						<h2 class="text-base/7 font-semibold">Feed Website or URL</h2>
+						<p class="mt-1 text-sm/6 text-base-content/60">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p>
 					</div>
-					<div class="mt-2 sm:col-span-2 sm:mt-0">
-						<input
-							id="url"
-							required
-							type="url"
-							name="url"
-							value={ request.URL }
-							placeholder="https://my-favorite-site/feed"
-							class="input input-primary bg-base-content/10 w-full"
-						/>
-						if request.URLErr != nil {
-							<p class="text-error py-2 text-xs/4 font-semibold">Error: { request.URLErr.Error() }</p>
-						}
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2">
+							<input
+								id="url"
+								required
+								type="url"
+								name="url"
+								value={ request.URL }
+								placeholder="https://my-favorite-site/feed"
+								class="input input-primary bg-base-content/10 w-full"
+							/>
+							if request.URLErr != nil {
+								<p class="text-error py-2 text-xs/4 font-semibold">Error: { request.URLErr.Error() }</p>
+							}
+						</div>
 					</div>
 				</div>
-				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 py-2 sm:py-6">
+				// Nickname.
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
-						<p id="nickname-hint" class="mt-3 text-sm/6 text-base-content/60">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
+						<h2 class="text-base/7 font-semibold">Feed Nickname</h2>
+						<p class="mt-1 text-sm/6 text-base-content/60">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
 					</div>
-					<div class="mt-2 sm:col-span-2 sm:mt-0">
-						<input
-							id="nickname"
-							type="text"
-							name="user_nickname"
-							value={ request.Nickname }
-							placeholder="My cool subscription"
-							class={ templ.KV("input input-primary bg-base-content/10",request.NicknameErr == nil), templ.KV("input input-error bg-base-content/10",request.NicknameErr !=nil) }
-						/>
-						if request.NicknameErr != nil {
-							<p class="text-error py-2 text-xs/4 font-semibold">{ request.NicknameErr.Error() }</p>
-						}
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="sm:col-span-4 mt-2">
+							<input
+								id="nickname"
+								type="text"
+								name="user_nickname"
+								value={ request.Nickname }
+								placeholder="My cool subscription"
+								class={ templ.KV("input input-primary bg-base-content/10",request.NicknameErr == nil), templ.KV("input input-error bg-base-content/10",request.NicknameErr !=nil) }
+							/>
+							if request.NicknameErr != nil {
+								<p class="text-error py-2 text-xs/4 font-semibold">{ request.NicknameErr.Error() }</p>
+							}
+						</div>
 					</div>
 				</div>
 			</form>
+			// Categories
 			{{ categoryMgmtPath := "/user/subscription/category" }}
 			@CategoryManagement(categoryMgmtPath, nil, request.Categories)
-		</fieldset>
-		<div class="flex items-center justify-end gap-x-6">
-			<div id="processing" class="htmx-indicator">
-				Processing...
-				<span class="loading loading-spinner loading-md"></span>
+			// Action buttons.
+			<div class="flex flex-1 items-center justify-end gap-x-6">
+				<div id="processing" class="htmx-indicator">
+					Processing...
+					<span class="loading loading-spinner loading-md"></span>
+				</div>
+				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
+				<button type="submit" form="add-subscription" class="btn btn-primary btn-soft">Add</button>
 			</div>
-			<button
-				type="button"
-				onclick="history.back()"
-				class="btn btn-secondary"
-			>Back</button>
-			<button
-				type="submit"
-				form="add-subscription"
-				class="btn btn-primary"
-			>Add</button>
 		</div>
 	}
 }
@@ -606,24 +607,27 @@ templ AddSubscriptionSuccess(result *models.AddSubscriptionResult) {
 // ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
 templ ImportSubscriptions() {
 	@Main() {
-		@PageHeader("Import Subscriptions")
-		@PageDescription("You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.")
+		<div class="md:flex md:items-center md:justify-between">
+			<div class="min-w-0 flex-1">
+				<h2 class="text-2xl/7 font-bold sm:text-3xl sm:tracking-tight">Import Subscriptions</h2>
+			</div>
+			<p class="mt-2 max-w-4xl text-sm sm:truncate text-base-content/80">
+				You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.
+			</p>
+		</div>
 		<div class="border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0">
 			<form
 				id="import"
 				hx-encoding="multipart/form-data"
 				hx-post="/user/import"
 				hx-target="#import-results"
+				hx-include="[name='csrf_token']"
 				hx-indicator="#processing"
 			>
-				<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 					<label for="source" class="block text-sm/6 font-medium">OPML file</label>
 					<div class="mt-2 sm:col-span-2 sm:mt-0">
-						<fieldset class="fieldset">
-							<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10"/>
-							<span class="validator-hint hidden">Make sure the file is a valid OPML file.</span>
-						</fieldset>
+						<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10"/>
 					</div>
 				</div>
 				<div class="mt-6 flex items-center justify-end gap-x-6">
@@ -634,13 +638,13 @@ templ ImportSubscriptions() {
 					<button
 						type="button"
 						onclick="history.back()"
-						class="btn btn-secondary"
+						class="btn btn-secondary btn-soft"
 					>
 						Back
 					</button>
 					<button
 						type="submit"
-						class="btn btn-primary"
+						class="btn btn-primary btn-soft"
 					>
 						Import
 					</button>
