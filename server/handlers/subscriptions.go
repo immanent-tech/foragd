@@ -167,7 +167,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Adding subscription failed", ""),
 				)).ServeHTTP(res, req)
-				return models.NewAPIError(errors.New(result[request].Message.String()), http.StatusUnprocessableEntity)
+				return models.NewAPIError(fmt.Errorf("%w: %s", ErrInvalidAPIResponse, result[request].Message.String()), http.StatusUnprocessableEntity)
 			}
 			template := templates.AddSubscriptionSuccess(result[request])
 

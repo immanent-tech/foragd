@@ -49,7 +49,7 @@ func (a *API) Home() http.HandlerFunc {
 
 // getHomePageData retrieves the data required to construct the homepage content.
 //
-//nolint:funlen,gocognit // mostly aggregation definitions.
+//nolint:funlen,gocognit,nestif // mostly aggregation definitions.
 func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	data := &templates.Home{}
 	// Retrieve user object.

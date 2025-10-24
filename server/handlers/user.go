@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"embed"
-	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -69,7 +68,7 @@ func ShowAccountSettings() http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// SaveSettings handles saving user settings after user submitted changes.
+// SaveDisplaySettings handles saving user settings after user submitted changes.
 func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		user, err := models.UserFromCtx(req.Context())
@@ -324,7 +323,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite article", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(errors.New("unexpected number of results returned"), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("%w: expected single result, got %d", ErrInvalidAPIResponse, len(articles)), http.StatusInternalServerError)
 		}
 		article := articles[0]
 		// Create a new favorite article.
@@ -414,7 +413,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite article", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(errors.New("unexpected number of results returned"), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("%w: expected single result, got %d", ErrInvalidAPIResponse, len(articles)), http.StatusInternalServerError)
 		}
 		article := articles[0]
 		// Get the display type.
@@ -474,7 +473,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(errors.New("unable to determine search ID"), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("%w: search request ID was empty", ErrInvalidAPIResponse), http.StatusInternalServerError)
 		}
 		fav := user.GetAllFavorites().Get(id)
 		// Update the favorite button and list of favorites.
@@ -507,7 +506,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(errors.New("unable to determine search ID"), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("%w: search request ID was empty", ErrInvalidAPIResponse), http.StatusInternalServerError)
 		}
 		// Remove the favorite.
 		user.RemoveFavorite(id)

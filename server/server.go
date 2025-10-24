@@ -191,8 +191,9 @@ func (s *Server) setupAPI(ctx context.Context) (*handlers.API, error) {
 	}, nil
 }
 
+//nolint:funlen
 func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
-	rl := middlewares.NewRateLimiter()
+	rateLimiter := middlewares.NewRateLimiter()
 	// Set up a new chi router.
 	router := chi.NewRouter()
 	router.Use(
@@ -212,7 +213,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
 		middleware.NoCache,
-		middlewares.RateLimit(rl, s.environment),
+		middlewares.RateLimit(rateLimiter, s.environment),
 	)
 
 	// Routes.

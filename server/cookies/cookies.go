@@ -26,6 +26,7 @@ var (
 	ErrWriteFail    = errors.New("write cookie failed")
 )
 
+// Write will write the given cookie to the response.
 func Write(res http.ResponseWriter, cookie http.Cookie) error {
 	// Encode the cookie value using base64.
 	cookie.Value = base64.URLEncoding.EncodeToString([]byte(cookie.Value))
@@ -42,6 +43,7 @@ func Write(res http.ResponseWriter, cookie http.Cookie) error {
 	return nil
 }
 
+// Read will read the cookie from the request.
 func Read(r *http.Request, name string) (string, error) {
 	// Read the cookie as normal.
 	cookie, err := r.Cookie(name)
@@ -61,6 +63,7 @@ func Read(r *http.Request, name string) (string, error) {
 	return string(value), nil
 }
 
+// WriteEncrypted will write an encrypted cookie to the response.
 func WriteEncrypted(res http.ResponseWriter, cookie http.Cookie, secretKey []byte) error {
 	// Create a new AES cipher block from the secret key.
 	block, err := aes.NewCipher(secretKey)
@@ -100,6 +103,7 @@ func WriteEncrypted(res http.ResponseWriter, cookie http.Cookie, secretKey []byt
 	return Write(res, cookie)
 }
 
+// ReadEncrypted will read an encrypted cookie  from the request.
 func ReadEncrypted(r *http.Request, name string, secretKey []byte) (string, error) {
 	// Read the encrypted value from the cookie as normal.
 	encryptedValue, err := Read(r, name)

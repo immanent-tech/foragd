@@ -64,6 +64,8 @@ func Login(authAPI authAPI) http.HandlerFunc {
 }
 
 // LoginCallback handles processing the response from a login provider.
+//
+//nolint:gocognit,nestif
 func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// provider := chi.URLParam(req, "provider")
@@ -179,13 +181,13 @@ func syncLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProf
 }
 
 func generateRandomState() (string, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
+	bytes := make([]byte, 32)
+	_, err := rand.Read(bytes)
 	if err != nil {
 		return "", fmt.Errorf("unable to generate random state: %w", err)
 	}
 
-	state := base64.StdEncoding.EncodeToString(b)
+	state := base64.StdEncoding.EncodeToString(bytes)
 
 	return state, nil
 }

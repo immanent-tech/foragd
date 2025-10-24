@@ -21,10 +21,12 @@ var (
 	_ scs.Store         = (*Store)(nil)
 )
 
+// Store satisfies the session store interface for storing sessions in a custom backend.
 type Store struct {
 	data Datastore
 }
 
+// Datastore implements the methods needed to satisfy a session store.
 type Datastore interface {
 	GetSession(ctx context.Context, token string) (*models.UserSession, error)
 	DeleteSession(ctx context.Context, token string) error
@@ -33,6 +35,8 @@ type Datastore interface {
 }
 
 // NewSessionStore sets up a new session store for use by the server.
+//
+//nolint:fatcontext
 func NewSessionStore(ctx context.Context, client Datastore) (*Store, error) {
 	sessionCtx = ctx
 	return &Store{
