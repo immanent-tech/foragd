@@ -43,7 +43,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 		case models.ObjectTypeArticle:
 			articles, err := models.GetArticles(req.Context(), api, params.ObjectID)
 			if err != nil {
-				renderPartial(templates.Error(
+				renderPartial(templates.ErrorPage(
 					models.NewErrorMessage("Unable to fetch article content", ""),
 				)).ServeHTTP(res, req)
 				return models.NewAPIError(err, http.StatusInternalServerError)

@@ -54,7 +54,15 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			// Get subscriptions matching filters.
 			subscriptions, pagination, err := models.FilterSubscriptions(req.Context(), api, filters, pagination)
 			if err != nil {
-				return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
+				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
+				switch req.Method {
+				case http.MethodGet:
+					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+				case http.MethodPost:
+					template := templates.ServerErrorNotification(msg)
+					renderPartial(template).ServeHTTP(res, req)
+				}
+				return models.NewAPIError(fmt.Errorf("unable to list subscriptions: %w", err), http.StatusInternalServerError)
 			}
 			// Render appropriate content.
 			switch req.Method {
@@ -76,7 +84,15 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			// Get articles matching filters.
 			articles, pagination, err := models.FilterArticles(req.Context(), api, filters, pagination)
 			if err != nil {
-				return fmt.Errorf("unable to get articles: %w", err)
+				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
+				switch req.Method {
+				case http.MethodGet:
+					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+				case http.MethodPost:
+					template := templates.ServerErrorNotification(msg)
+					renderPartial(template).ServeHTTP(res, req)
+				}
+				return models.NewAPIError(fmt.Errorf("unable to list articles: %w", err), http.StatusInternalServerError)
 			}
 			// Render appropriate content.
 			switch req.Method {
@@ -99,7 +115,15 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			// Get user info.
 			user, err := models.UserFromCtx(req.Context())
 			if err != nil {
-				return fmt.Errorf("could not fetch user info from context: %w", err)
+				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
+				switch req.Method {
+				case http.MethodGet:
+					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+				case http.MethodPost:
+					template := templates.ServerErrorNotification(msg)
+					renderPartial(template).ServeHTTP(res, req)
+				}
+				return models.NewAPIError(fmt.Errorf("could not fetch user info from context: %w", err), http.StatusInternalServerError)
 			}
 			favorites := user.GetAllFavorites()
 			// Get IDs of favorite subscriptions and articles.

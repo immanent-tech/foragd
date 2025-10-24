@@ -37,7 +37,7 @@ func Login(authAPI authAPI) http.HandlerFunc {
 		// prompt=login&screen_hint=signup
 		state, err := generateRandomState()
 		if err != nil {
-			template := templates.Page("Foragd", templates.Error(models.NewErrorMessage("Unable to log in.", "")))
+			template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "")))
 			err := template.Render(req.Context(), res)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -70,7 +70,7 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 
 		state := req.FormValue("state")
 		if state != session.Manager.GetString(req.Context(), "state") {
-			template := templates.Page("Foragd", templates.Error(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")))
+			template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")))
 			err := template.Render(req.Context(), res)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -84,7 +84,7 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 		code := req.FormValue("code")
 		token, err := authAPI.Exchange(req.Context(), code)
 		if err != nil {
-			template := templates.Page("Foragd", templates.Error(models.NewErrorMessage("Unable to log in.", "Failed to exchange an authorization code for a token.")))
+			template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "Failed to exchange an authorization code for a token.")))
 			err := template.Render(req.Context(), res)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -96,7 +96,7 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 
 		idToken, err := authAPI.VerifyIDToken(req.Context(), token)
 		if err != nil {
-			template := templates.Error(models.NewErrorMessage("Unable to log in.", "Failed to verify ID Token."))
+			template := templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "Failed to verify ID Token."))
 			renderPage(template, "").ServeHTTP(res, req)
 			return
 		}
@@ -104,7 +104,7 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 		var profile auth0.UserProfile
 		err = idToken.Claims(&profile)
 		if err != nil {
-			template := templates.Page("Foragd", templates.Error(models.NewErrorMessage("Unable to log in.", err.Error())))
+			template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())))
 			err := template.Render(req.Context(), res)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -125,7 +125,7 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 				if apiError.StatusCode == http.StatusNotFound {
 					err = models.CreateUser(req.Context(), storeAPI, profile.GetID(), profile.GetEmail())
 					if err != nil {
-						template := templates.Page("Foragd", templates.Error(models.NewErrorMessage("Unable to log in.", err.Error())))
+						template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())))
 						err := template.Render(req.Context(), res)
 						if err != nil {
 							slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -137,7 +137,7 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Debug("Create new local user.")
 				}
 			} else {
-				template := templates.Page("Foragd", templates.Error(models.NewErrorMessage("Unable to log in.", err.Error())))
+				template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())))
 				err := template.Render(req.Context(), res)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))

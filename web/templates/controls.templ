@@ -37,36 +37,46 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 					</div>
 					// Category Filters.
 					if len(categories.GetTopCategories(10)) > 0 {
-						<form
-							hx-get={ path }
-							hx-push-url="true"
-							hx-target={ ContentID.Target() }
-							class="mt-4"
-							hx-trigger="submit"
-							hx-include="#content-filters,[name='subscriptions'],[name='csrf_token']"
-						>
-							<div class="border-t border-base-content/10 px-4 py-6">
-								<h3 class="-mx-2 -my-3 flow-root">
-									<button type="button" command="--toggle" commandfor="filter-section-category" class="flex w-full items-center justify-between px-2 py-3 text-sm">
-										<span class="font-medium">Category</span>
-										<span class="ml-6 flex items-center">
-											@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
-										</span>
-									</button>
-								</h3>
-								<el-disclosure id="filter-section-category" hidden class="block pt-6">
-									<div class="space-y-6">
+						<div class="border-t border-base-content/10 px-4 py-6">
+							<h3 class="-mx-2 -my-3 flow-root">
+								<button type="button" command="--toggle" commandfor="filter-section-category" class="flex w-full items-center justify-between px-2 py-3 text-sm">
+									<span class="font-medium">Category</span>
+									<span class="ml-6 flex items-center">
+										@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
+									</span>
+								</button>
+							</h3>
+							<el-disclosure id="filter-section-category" hidden class="block pt-6">
+								<div class="flex flex-col">
+									<form
+										hx-get={ path }
+										hx-push-url="true"
+										hx-target={ ContentID.Target() }
+										hx-trigger="click"
+										hx-vals={ models.GenerateHXVals(filters.Values()) }
+										class="mt-4 space-y-4"
+									>
 										// Top 10 categories only.
 										for idx, category := range categories.GetTopCategories(10) {
 											@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
 										}
-										<button type="submit" class="btn btn-primary btn-sm">
-											Apply
+									</form>
+									<div class="flex justify-end">
+										<button
+											hx-get={ path }
+											hx-push-url="true"
+											hx-target={ ContentID.Target() }
+											hx-trigger="click"
+											hx-vals={ models.GenerateHXVals(filters.Values()) }
+											hx-params="not categories"
+											class="btn btn-secondary btn-soft btn-sm"
+										>
+											Clear
 										</button>
 									</div>
-								</el-disclosure>
-							</div>
-						</form>
+								</div>
+							</el-disclosure>
+						</div>
 					}
 					// View Filters (mobile).
 					<div class="mt-4 border-t border-base-content/10 px-4 py-6">
@@ -130,20 +140,27 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 									}
 									@filtersMenu("desktop-filters-menu-category", "bottom end") {
 										<div class="space-y-4">
-											@listDisplayFiltersForm(path, filters, "space-y-4") {
-												<input type="hidden" name={ models.ParamView } value={ string(filters.GetView()) }/>
+											<form
+												hx-get={ path }
+												hx-push-url="true"
+												hx-target={ ContentID.Target() }
+												hx-trigger="click"
+												hx-vals={ models.GenerateHXVals(filters.Values()) }
+												class="mt-4 space-y-4"
+											>
 												// Top 10 categories only.
 												for idx, category := range categories.GetTopCategories(10) {
 													@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
 												}
-											}
+											</form>
 											<a
-												class="link link-hover"
 												hx-get={ path }
 												hx-push-url="true"
 												hx-target={ ContentID.Target() }
-												hx-include="#content-filters"
-												hx-params={ "not " + models.ParamCategories }
+												hx-trigger="click"
+												hx-vals={ models.GenerateHXVals(filters.Values()) }
+												hx-params="not categories"
+												class="link link-hover"
 											>
 												<div class="flex items-center">
 													@tabler.X(i.Props{Class: "size-4"})
@@ -287,7 +304,7 @@ templ activeCategoryFilterBadge(category models.Category) {
 			hx-get={ models.PathFromCtx(ctx) }
 			hx-push-url="true"
 			hx-target={ ContentID.Target() }
-			hx-include="#content-filters,[name='subscriptions'],[name='csrf_token']"
+			hx-include="#content-filters,[name='subscriptions']"
 			hx-params="not categories"
 		>
 			@tabler.X(i.Props{Class: "size-4"})

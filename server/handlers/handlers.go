@@ -147,7 +147,6 @@ func renderPage(template templ.Component, title string) http.Handler {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-
 		if !IsHTMX(req) || IsHistoryRestoreRequest(req) { // Non-HTMX or HistoryRestoreRequests render a full-page.
 			template = templates.Content(template)
 			templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)

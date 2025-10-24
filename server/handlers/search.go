@@ -63,7 +63,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		ctx := models.CSRFTokenToCtx(req.Context(), nosurf.Token(req))
 		if err != nil {
 			return fmt.Errorf("unable to display search results: %w", err)
-			// renderPage(layouts.Drawer(nil, templates.Error(models.NewErrorMessage("No user data", ""))), "").ServeHTTP(res, req)
+			// renderPage(layouts.Drawer(nil, templates.ErrorPage(models.NewErrorMessage("No user data", ""))), "").ServeHTTP(res, req)
 			// return models.ErrUserNotFound
 		}
 		// Extract the search request.
@@ -71,7 +71,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		if err != nil || !valid {
 			msg := models.NewErrorMessage("Invalid search request",
 				"Unable to parse search request. Please check and try again.")
-			renderPage(templates.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
+			renderPage(templates.ErrorPage(msg), "").ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		favoriteID := req.FormValue("search_id")
@@ -80,7 +80,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			if favoriteID == "" {
 				msg := models.NewErrorMessage("Invalid search request",
 					"Unable to parse search request. Please check and try again.")
-				renderPage(templates.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
+				renderPage(templates.ErrorPage(msg), "").ServeHTTP(res, req.WithContext(ctx))
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 		}
@@ -110,7 +110,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		case err != nil:
 			msg := models.NewErrorMessage("Could not generate search results",
 				"This could be a temporary problem, please try again.")
-			renderPage(templates.Error(msg), "").ServeHTTP(res, req.WithContext(ctx))
+			renderPage(templates.ErrorPage(msg), "").ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		case len(subscriptions) > 0 || len(articles) > 0:
 			slog.Info("templated")
