@@ -192,7 +192,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 			renderPartial(template).ServeHTTP(res, req)
 			return fmt.Errorf("unable to set theme: %w", err)
 		}
-		renderPartial(templates.AppSettingsTab(user)).ServeHTTP(res, req)
+		renderPartial(templates.DisplaySettings(user)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

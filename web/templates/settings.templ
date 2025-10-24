@@ -23,17 +23,13 @@ func NewSettingsPage(user *models.User, editUser *models.EditUserRequest) *Setti
 templ (page *Settings) Content() {
 	@Main() {
 		<div class="tabs">
-			<input id="subscriptions-tab" type="radio" name="settings" class="tab font-semibold" aria-label="Subscriptions" checked="true"/>
+			<input id="app-tab" type="radio" name="settings" class="tab font-semibold" aria-label="Display" checked="true"/>
 			<div class="tab-content mt-8">
-				@subscriptionSettingsTab()
-			</div>
-			<input id="app-tab" type="radio" name="settings" class="tab font-semibold" aria-label="App"/>
-			<div class="tab-content mt-8">
-				@AppSettingsTab(page.user)
+				@DisplaySettings(page.user)
 			</div>
 			<input id="account-tab" type="radio" name="settings" class="tab font-semibold" aria-label="Account"/>
 			<div class="tab-content mt-8">
-				@accountSettingsTab(page.user)
+				@AccountSettings(page.user)
 			</div>
 		</div>
 	}
@@ -74,9 +70,30 @@ templ subscriptionSettingsTab() {
 	</div>
 }
 
-// accountSettingsTab renders tab content for account-related settings.
-templ accountSettingsTab(user *models.User) {
+templ AccountSettings(user *models.User) {
 	<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+		<div>
+			<h2 class="text-base/7 font-semibold">Import/Export</h2>
+			<p class="mt-1 text-sm/6">Import or Export your subscriptions.</p>
+		</div>
+		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:place-items-center sm:grid-cols-6 md:col-span-2">
+			<div class="sm:col-span-full">
+				<button
+					type="button"
+					class="btn btn-primary"
+					hx-get="/user/import"
+					hx-target={ ContentID.Target() }
+					hx-push-url="true"
+				>Import</button>
+				<button
+					type="button"
+					class="btn btn-primary"
+					hx-get="/user/export"
+					hx-target={ ContentID.Target() }
+					hx-push-url="true"
+				>Export</button>
+			</div>
+		</div>
 		if !strings.HasPrefix(user.ExternalUserId,"auth0|") {
 			<div class="col-span-full">
 				<h2 class="text-base/7 font-semibold">Edit Account</h2>
@@ -182,8 +199,7 @@ templ accountSettingsTab(user *models.User) {
 	</div>
 }
 
-// appSettingsTab renders tab content for app-related settings.
-templ AppSettingsTab(user *models.User) {
+templ DisplaySettings(user *models.User) {
 	<div id="tab-app-settings" class="flex flex-col mt-2 gap-y-4">
 		<form hx-post="/user/settings" hx-include="[name='csrf_token']" hx-swap="none">
 			<fieldset class="fieldset">
