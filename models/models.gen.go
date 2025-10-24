@@ -855,6 +855,9 @@ type UserSession struct {
 
 // UserSettings contains user-specific settings for the application.
 type UserSettings struct {
+	// MarkArticleReadOnView indicates whether to automatically mark an article as read when viewed.
+	MarkArticleReadOnView bool `form:"mark_article_read_on_view" json:"mark_article_read_on_view"`
+
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
 	MaxHistory string `form:"-" json:"max_history"`
 

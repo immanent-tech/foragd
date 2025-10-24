@@ -235,8 +235,10 @@ templ ArticleContent(article *models.Article) {
 			</div>
 			@ContentLoadingPlaceholder()
 		</article>
-		// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is read and mark it so.
-		if article.IsUnread() {
+		// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
+		// read and mark it so (when the user has set this option).
+		{{ user, _ := models.UserFromCtx(ctx) }}
+		if user.GetSettings().MarkArticleReadOnView && article.IsUnread() {
 			<div
 				hx-post={ article.MarkURL() }
 				hx-target={ "#mark_" + article.GetID() }

@@ -17,7 +17,7 @@ import (
 
 const (
 	// DefaultUserTheme is the default theme for the app.
-	DefaultUserTheme = "forest"
+	DefaultUserTheme = "garden"
 	// DefaultMaxHistory for users/objects is 30 days.
 	DefaultMaxHistory = 30 * 24 * time.Hour
 )
@@ -262,10 +262,11 @@ func (u *User) RemoveFavorite(id string) {
 // NewUserSettings returns a new instance of the default user settings.
 func NewUserSettings() *UserSettings {
 	return &UserSettings{
-		Theme:            DefaultUserTheme,
-		ShowOnboarding:   true,
-		ShowUnreadCounts: true,
-		MaxHistory:       DefaultMaxHistory.String(),
+		Theme:                 DefaultUserTheme,
+		ShowOnboarding:        true,
+		ShowUnreadCounts:      true,
+		MarkArticleReadOnView: true,
+		MaxHistory:            DefaultMaxHistory.String(),
 	}
 }
 

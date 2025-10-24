@@ -11,7 +11,7 @@ import (
 templ SettingsPage() {
 	@Main() {
 		<div
-			class="tabs tabs-box"
+			class="tabs tabs-box mt-8"
 			hx-trigger="load once"
 			hx-get="/user/settings/display"
 			hx-target="#current-settings"
@@ -168,41 +168,69 @@ templ AccountSettings(user *models.User) {
 }
 
 templ DisplaySettings(user *models.User) {
-	<div id="tab-app-settings" class="flex flex-col mt-2 gap-y-4">
-		<form hx-post="/user/settings" hx-include="[name='csrf_token']" hx-swap="none">
-			<fieldset class="fieldset">
-				<legend class="fieldset-legend text-base/7">Settings</legend>
-				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
-					<div class="flex items-center col-span-full space-x-2">
-						<label class="block text-sm/6 font-medium">
-							<input
-								type="checkbox"
-								if user.GetSettings().ShowUnreadCounts {
-									checked="checked"
-								}
-								name="show_unread_counts"
-								class="toggle toggle-sm toggle-primary"
-							/>
-							Show unread counts on subscriptions.
-						</label>
-						@HelpPopover("show-full-article-help", "top end") {
-							<div tabindex="0" class="card-body card-sm">
-								<div tabindex="0" class="card-body">
-									<p>Toggles whether to show unread counts on subscriptions.</p>
-								</div>
-							</div>
+	<div id="display-settings">
+		// Display settings.
+		<div id="behaviour-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+			<div>
+				<h2 class="text-base/7 font-semibold">Behaviour</h2>
+				<p class="mt-1 text-sm/6">Settings that control the display behaviour in the app.</p>
+			</div>
+			<form
+				hx-post="/user/settings/display"
+				hx-swap="none"
+				hx-include="[name='csrf_token']"
+				class="col-span-full md:col-span-2 space-y-10"
+			>
+				<div class="flex items-center gap-x-4">
+					<input
+						id="show-unread-counts"
+						type="checkbox"
+						name="show_unread_counts"
+						if user.GetSettings().ShowUnreadCounts {
+							checked
 						}
-					</div>
-					<div class="mt-6 flex items-center justify-end gap-x-6 col-span-full">
-						<button type="submit" class="btn btn-primary">Save</button>
+						aria-describedby="show-unread-counts-description"
+						class="col-start-1 row-start-1 toggle toggle-sm toggle-primary"
+					/>
+					<div class="flex-1 text-sm/6">
+						<label for="show-unread-counts" class="font-medium">Show Unread Counts on Subscriptions</label>
+						<p id="show-unread-counts-description" class="text-base-content/80">Show the number of unread articles on each subscription.</p>
 					</div>
 				</div>
-			</fieldset>
-		</form>
-		<fieldset class="fieldset">
-			<legend class="fieldset-legend text-base/7">Theme</legend>
-			<p class="text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
-			<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8">
+				<div class="flex items-center gap-x-4">
+					<input
+						id="mark-article-read-on-view"
+						type="checkbox"
+						name="mark_article_read_on_view"
+						if user.GetSettings().MarkArticleReadOnView {
+							checked
+						}
+						aria-describedby="mark-article-read-on-view-description"
+						class="col-start-1 row-start-1 toggle toggle-sm toggle-primary"
+					/>
+					<div class="flex-1 text-sm/6">
+						<label for="mark-article-read-on-view" class="font-medium">Mark Article Read on View</label>
+						<p id="mark-article-read-on-view-description" class="text-base-content/80">When viewing an article, mark it as read automatically when viewed.</p>
+					</div>
+				</div>
+				<div class="col-span-full place-self-end">
+					<div id="processing" class="htmx-indicator">
+						Processing...
+						<span class="loading loading-spinner loading-md"></span>
+					</div>
+					<div class="mt-2 flex items-center justify-end gap-x-6">
+						<button type="submit" class="btn btn-primary btn-soft">Save</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		// Theme settings.
+		<div id="theme-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+			<div class="md:col-span-full">
+				<h2 class="text-base/7 font-semibold">Theme</h2>
+				<p class="mt-1 text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
+			</div>
+			<div class="grid max-w-7xl col-span-full grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8">
 				{{ currentTheme := user.GetSettings().Theme }}
 				@themePreview("light", currentTheme)
 				@themePreview("dark", currentTheme)
@@ -217,7 +245,7 @@ templ DisplaySettings(user *models.User) {
 				@themePreview("dim", currentTheme)
 				@themePreview("nord", currentTheme)
 			</div>
-		</fieldset>
+		</div>
 	</div>
 }
 
@@ -231,7 +259,7 @@ templ themePreview(theme string, currentTheme string) {
 		hx-put={ "/user/settings/theme/" + theme }
 		hx-include="[name='csrf_token']"
 		hx-swap="outerHTML"
-		hx-target="#tab-app-settings"
+		hx-target="#display-settings"
 		id={ "theme-preview-" + theme }
 	>
 		<div class="bg-base-100 text-base-content w-full cursor-pointer font-sans" data-theme={ theme }>

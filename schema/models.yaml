@@ -340,6 +340,15 @@ components:
             form: 'show_unread_counts'
           x-omitzero: false
           x-omitempty: false
+        mark_article_read_on_view:
+          description: >
+            indicates whether to automatically mark an article as read when viewed.
+          type: boolean
+          default: true
+          x-oapi-codegen-extra-tags:
+            form: 'mark_article_read_on_view'
+          x-omitzero: false
+          x-omitempty: false
     Favorite:
       description: >
         is an object that the user has marked as a Favorite. Favorites  have higher visibility in the display and

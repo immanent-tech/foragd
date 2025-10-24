@@ -62,7 +62,7 @@ func ShowAccountSettings() http.HandlerFunc {
 }
 
 // SaveSettings handles saving user settings after user submitted changes.
-func SaveSettings(api *elastic.API) http.HandlerFunc {
+func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -70,12 +70,18 @@ func SaveSettings(api *elastic.API) http.HandlerFunc {
 		}
 		settings := user.GetSettings()
 		// Parse show_unread_counts setting.
-		show_unread_counts := req.FormValue("show_unread_counts")
-		switch show_unread_counts {
+		switch req.FormValue("show_unread_counts") {
 		case "on":
 			settings.ShowUnreadCounts = true
 		case "":
 			settings.ShowUnreadCounts = false
+		}
+		// Parse mark_article_read_on_view setting.
+		switch req.FormValue("mark_article_read_on_view") {
+		case "on":
+			settings.MarkArticleReadOnView = true
+		case "":
+			settings.MarkArticleReadOnView = false
 		}
 		// Update user object with new settings.
 		err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": settings})
