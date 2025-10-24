@@ -112,15 +112,21 @@ func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix 
 	slogctx.FromCtx(ctx).Info("Write alias updated.")
 
 	// Reindex.
-	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(indexName)).WaitForCompletion(true).Do(ctx)
+	found, err = api.Indices.Exists(readAlias).Do(ctx)
 	if err != nil {
-		return fmt.Errorf("could not reindex: %w", err)
+		return fmt.Errorf("could not determine %s index state: %w", readAlias, err)
 	}
-	slogctx.FromCtx(ctx).Info("Reindex completed.",
-		slog.String("src", prefix),
-		slog.String("dest", indexName),
-		slog.Int64("took", *reindexResp.Took),
-	)
+	if found {
+		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(indexName)).WaitForCompletion(true).Do(ctx)
+		if err != nil {
+			return fmt.Errorf("could not reindex: %w", err)
+		}
+		slogctx.FromCtx(ctx).Info("Reindex completed.",
+			slog.String("src", prefix),
+			slog.String("dest", indexName),
+			slog.Int64("took", *reindexResp.Took),
+		)
+	}
 
 	// Update the read alias.
 	err = updateAlias(ctx, api, readAlias, indexName)
