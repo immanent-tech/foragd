@@ -150,23 +150,19 @@ templ ArticleContent(article *models.Article) {
 		// Title and actions menu.
 		<div class="flex justify-center">
 			<article id={ article.GetID() } class="prose prose-sm sm:prose-lg dark:prose-invert">
-				<div class="flex items-center justify-between mt-4 max-w-prose">
-					<div class="min-w-0 flex-1">
-						<h2 class="text-2xl/7 sm:text-3xl font-bold tracking-tight">
-							if article.GetTitle() != "" {
-								{ article.GetTitle() }
-							} else {
-								(no title)
-							}
-						</h2>
-					</div>
-					<el-dropdown class="inline-block flex-none">
-						<button class="inline-flex flex-col items-center">
-							<span class="sr-only">Article Actions</span>
-							@tabler.DotsVertical(i.Props{Class: "size-6"})
-						</button>
-						<el-menu anchor="bottom end" popover class="context-menu-base">
-							<div class="py-1">
+				<div class="flex mt-4 max-w-prose">
+					<h2 class="flex flex-1 items-center justify-between text-2xl/7 sm:text-3xl font-bold tracking-tight">
+						if article.GetTitle() != "" {
+							{ article.GetTitle() }
+						} else {
+							(no title)
+						}
+						<el-dropdown class="flex flex-none">
+							<button class="inline-flex flex-col items-center">
+								<span class="sr-only">Article Actions</span>
+								@tabler.DotsVertical(i.Props{Class: "size-6"})
+							</button>
+							<el-menu anchor="bottom end" popover class="context-menu-base py-2">
 								// Toggle view full content action.
 								@NewLink(
 									WithHXMethod(http.MethodGet, article.ViewURL()),
@@ -192,8 +188,6 @@ templ ArticleContent(article *models.Article) {
 									@tabler.ExternalLink(i.Props{Class: "size-4"})
 									View Original Article
 								}
-							</div>
-							<div class="py-1">
 								<form>
 									<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 									<div id={ "mark_" + article.GetID() }>
@@ -207,8 +201,6 @@ templ ArticleContent(article *models.Article) {
 										@UpdateViewArticleFavorite(article)
 									</div>
 								</form>
-							</div>
-							<div class="py-1">
 								@NewLink(
 									WithHXMethod(http.MethodGet, article.IssueURL()),
 									WithHXTarget(ContentID.Target()),
@@ -217,9 +209,9 @@ templ ArticleContent(article *models.Article) {
 									@tabler.FlagFilled(i.Props{Class: "size-4"})
 									Report An Issue
 								}
-							</div>
-						</el-menu>
-					</el-dropdown>
+							</el-menu>
+						</el-dropdown>
+					</h2>
 				</div>
 				// Article.
 				<div class="flex flex-col justify-items-center">
