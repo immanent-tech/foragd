@@ -94,37 +94,37 @@ templ SubscriptionCard(s *models.Subscription) {
 				</div>
 			}
 			// Display some subscription metrics.
-			<dl class="-my-3 px-6 text-sm/6 card-section">
+			<dl class="-my-3 px-6 card-section">
 				if user.GetSettings().ShowUnreadCounts {
-					<div class="flex justify-between gap-x-4 sm:py-3">
+					<div class="flex justify-between gap-x-4 text-sm/6">
 						<dt class="">Unread Count</dt>
 						<dd class="text-base-content/90">{ s.GetUnreadCount() }</dd>
 					</div>
 				}
 				// if s.Stats != nil {
 				if s.Stats.GetDailyUpdates() > 1 {
-					<div class="flex justify-between gap-x-4 sm:py-3">
+					<div class="flex justify-between gap-x-4 text-sm/6">
 						<dt class="">Update frequency</dt>
 						<dd class="text-base-content/90">{ s.Stats.GetDailyUpdates() } articles/day</dd>
 					</div>
 				} else if s.Stats.AvgDailyUpdates < 1 && s.Stats.AvgDailyUpdates > 0.5 {
-					<div class="flex justify-between gap-x-4 sm:py-3">
+					<div class="flex justify-between gap-x-4 text-sm/6">
 						<dt class="">Update frequency</dt>
 						<dd class="text-base-content/90">A few times a week</dd>
 					</div>
 				} else if s.Stats.AvgDailyUpdates < 0.5 && s.Stats.AvgDailyUpdates > 0.25 {
-					<div class="flex justify-between gap-x-4 sm:py-3">
+					<div class="flex justify-between gap-x-4 text-sm/6">
 						<dt class="">Update frequency</dt>
 						<dd class="text-base-content/90">About weekly</dd>
 					</div>
 				} else {
-					<div class="flex justify-between gap-x-4 sm:py-3">
+					<div class="flex justify-between gap-x-4 text-sm/6">
 						<dt class="">Update frequency</dt>
 						<dd class="text-base-content/90">Infrequent</dd>
 					</div>
 				}
 				// }
-				<div class="flex justify-between gap-x-4 sm:py-3">
+				<div class="flex justify-between gap-x-4 text-sm/6">
 					<dt class="">Last update</dt>
 					<dd class="text-base-content/90">{ humanize.Time(s.GetUpdatedDate()) }</dd>
 				</div>
@@ -146,7 +146,7 @@ templ ViewSubscriptionLink(s *models.Subscription) {
 				@GenerateAvatar(s)
 			</div>
 			<div>
-				<h4 class="text-lg font-bold">{ s.GetTitle() }</h4>
+				<h4 class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
 			</div>
 		</div>
 	}
