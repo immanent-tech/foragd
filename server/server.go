@@ -88,26 +88,7 @@ func NewServer(ctx context.Context, env string) (Server, error) {
 	router := svr.setupRoutes(api)
 
 	csrfRouter := nosurf.New(router)
-	csrfRouter.SetFailureHandler(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		params := make(map[string]string)
-		if len(chi.RouteContext(req.Context()).URLParams.Keys) > 0 {
-			for i, k := range chi.RouteContext(req.Context()).URLParams.Keys {
-				params[k] = chi.RouteContext(req.Context()).URLParams.Values[i]
-			}
-		}
-		slogctx.FromCtx(req.Context()).Error("CSRF check failed",
-			slog.String("method", req.Method),
-			slog.String("host", req.Host),
-			slog.String("path", req.URL.Path),
-			slog.String("query", req.URL.RawQuery),
-			slog.Any("params", params),
-			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
-			slog.String("ip", req.RemoteAddr),
-			slog.String("referer", req.Referer()),
-			slog.String(slogchi.RequestIDKey, middleware.GetReqID(req.Context())),
-		)
-		res.WriteHeader(http.StatusBadRequest)
-	}))
+	csrfRouter.SetFailureHandler(handlers.CSRFError())
 
 	h2s := &http2.Server{}
 	svr.Server = &http.Server{
