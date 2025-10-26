@@ -134,6 +134,7 @@ templ Content(content templ.Component) {
 			@content
 			// }
 		</div>
+		@ContentLoadingPlaceholder()
 	</div>
 	@ContentDock(nil)
 }
@@ -315,7 +316,6 @@ templ PageDescription(description string) {
 // help text.
 templ HelpPopover(id, anchor string) {
 	<button popovertarget={ id } type="button" class="btn btn-circle btn-ghost btn-xs text-info">
-		<span class="sr-only">Search filters help</span>
 		@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
 	</button>
 	<el-popover popover id={ id } anchor={ anchor } class="[--anchor-gap:4px] rounded-box">

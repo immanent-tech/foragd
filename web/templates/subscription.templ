@@ -325,7 +325,9 @@ templ SubscriptionsSidebarActions() {
 
 templ EditSubscription(request *models.EditSubscriptionRequest) {
 	@Main() {
-		@PageHeader("Editing Subscription")
+		<div class="min-w-0 flex-1 pb-8">
+			<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">Editing { request.Nickname }</h2>
+		</div>
 		if request.HasError() {
 			<div role="alert" class="alert alert-error alert-outline mt-12">
 				<div class="px-4 py-5 sm:p-6 space-y-4">
@@ -336,34 +338,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				</div>
 			</div>
 		}
-		<fieldset class="fieldset border-base-300 rounded-box border p-4">
-			<legend class="fieldset-legend text-base/7">Settings</legend>
-			<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
-				<div class="flex items-center">
-					<label class="block text-sm/6 font-medium">
-						<input
-							type="checkbox"
-							if request.ShowFullArticleContent {
-								checked="checked"
-							}
-							name="show_full_article_content"
-							class="toggle toggle-sm toggle-primary"
-						/>
-						Always show full article content
-					</label>
-					@HelpPopover("show-full-article-help", "top end") {
-						<div tabindex="0" class="card-body card-sm">
-							<div tabindex="0" class="card-body">
-								<p>If articles in the subscription are only showing a summary, set this toggle to attempt to fetch the full content from the website.</p>
-								<p>Note: fetching full content is based on a heuristic that tries to locate the article content on the page. It does not always produce optimal results.</p>
-							</div>
-						</div>
-					}
-				</div>
-			</div>
-		</fieldset>
-		<fieldset class="fieldset border-base-300 rounded-box border p-4">
-			<legend class="fieldset-legend text-base/7">Customisation</legend>
+		<div class="space-y-8">
 			<form
 				id="edit-subscription"
 				hx-post={ "/edit/subscription/" + request.GetID() }
@@ -371,99 +346,100 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				hx-swap="none"
 				hx-indicator="#processing"
 			>
-				<input type="hidden" name="subscription_id" value={ request.GetID() }/>
-				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-					<label for="username" class="block text-sm/6 font-medium">Nickname</label>
-					<div class="mt-2 sm:col-span-2 sm:mt-0">
-						<input
-							id="nickname"
-							required
-							type="text"
-							name="user_nickname"
-							value={ request.GetNickname() }
-							placeholder="My Subscription"
-							class="input input-primary bg-base-content/10"
-						/>
+				<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
+				// Nickname.
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">Nickname</h2>
+						<p class="mt-1 text-sm/6 text-base-content/60">A friendly name for this subscription.</p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2">
+							<input id="nickname" required type="text" name="user_nickname" value={ request.GetNickname() } placeholder="My Subscription" class="input input-primary bg-base-content/10"/>
+						</div>
+					</div>
+				</div>
+				// Filtering.
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">Filtering</h2>
+						<div class="flex items-center">
+							<p class="mt-1 text-sm/6 text-base-content/60">Filter articles by keywords/text in fields.</p>
+							@HelpPopover("show-full-article-help", "top end") {
+								<div class="card-body">
+									<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+									<p>+ signifies AND operation (i.e., food AND beverages)</p>
+									<p>| signifies OR operation (i.e., food OR beverages)</p>
+									<p>- negates a the word (i.e., NOT alcoholic)</p>
+									<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
+									<p>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</p>
+								</div>
+							}
+						</div>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="sm:col-span-full mt-2">
+							<div class="input input-primary bg-base-content/10">
+								<label for="name" class="block text-xs font-medium">Text:</label>
+								<input id="article_text_filters" type="text" name="article_filters.text" value={ request.ArticleFilters.Text } placeholder="Text..." class="block w-full"/>
+							</div>
+						</div>
+						<div class="sm:col-span-full mt-2">
+							<div class="input input-primary bg-base-content/10">
+								<label for="name" class="block text-xs font-medium">Categories:</label>
+								<input id="article_category_filters" type="text" name="article_filters.categories" value={ request.ArticleFilters.Categories } placeholder="Categories..." class="block w-full"/>
+							</div>
+						</div>
+						<div class="sm:col-span-full mt-2">
+							<div class="input input-primary bg-base-content/10">
+								<label for="name" class="block text-xs font-medium">Authors:</label>
+								<input id="article_author_filters" type="text" name="article_filters.authors" value={ request.ArticleFilters.Authors } placeholder="Authors..." class="block w-full"/>
+							</div>
+						</div>
+					</div>
+				</div>
+				// Full article content toggle.
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">Always Show Full Article Content</h2>
+						<div class="flex items-center">
+							<p class="mt-1 text-sm/6 text-base-content/60">
+								Always fetch and show article content from original site.
+							</p>
+							@HelpPopover("show-full-article-help", "top end") {
+								<div class="card-body">
+									<p>If articles in the subscription are only showing a summary, set this toggle to attempt to fetch the full content from the website.</p>
+									<p>Note: fetching full content is based on a heuristic that tries to locate the article content on the page. It does not always produce optimal results.</p>
+								</div>
+							}
+						</div>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2">
+							<input
+								type="checkbox"
+								if request.ShowFullArticleContent {
+									checked="checked"
+								}
+								name="show_full_article_content"
+								class="toggle toggle-sm toggle-primary"
+							/>
+						</div>
 					</div>
 				</div>
 			</form>
-			{{ categoryMgmtPath := "/edit/subscription/" + request.GetID() + "/category" }}
-			@CategoryManagement(categoryMgmtPath, request.SuggestedCategories, request.GetCategories())
-		</fieldset>
-		<fieldset class="fieldset border-base-300 rounded-box border p-4">
-			<legend class="fieldset-legend text-base/7">
-				Article Filtering
-			</legend>
-			<div class="flex items-center space-x-2">
-				<p class="mt-1 text-sm/6 text-base-content">Filter the articles within the subscription by the value of various fields.</p>
-				@HelpPopover("filter-operators-help", "top end") {
-					<div tabindex="0" class="card-body card-sm bg-base-300">
-						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-						<ul class="gap-y-2">
-							<li>+ signifies AND operation (i.e., food AND beverages)</li>
-							<li>| signifies OR operation (i.e., food OR beverages)</li>
-							<li>- negates a the word (i.e., NOT alcoholic)</li>
-							<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
-							<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
-						</ul>
-					</div>
-				}
-			</div>
-			<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-				<label for="article_text_filters" class="block text-sm/6 font-medium">Title/Content</label>
-				<div class="mt-2 sm:col-span-2 sm:mt-0">
-					<input
-						id="article_category_filters"
-						type="text"
-						name="article_filters.text"
-						value={ request.ArticleFilters.Text }
-						placeholder="Add filters..."
-						class="input input-primary bg-base-content/10"
-					/>
+			// Categories
+			{{ categoryMgmtPath := "/user/subscription/category" }}
+			@CategoryManagement(categoryMgmtPath, nil, request.Categories)
+			// Action buttons.
+			<div class="flex flex-1 items-center justify-end gap-x-6">
+				<div id="processing" class="htmx-indicator">
+					Processing...
+					<span class="loading loading-spinner loading-md"></span>
 				</div>
+				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
+				<button type="submit" form="edit-subscription" class="btn btn-primary btn-soft">Save</button>
 			</div>
-			<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-				<label for="article_category_filters" class="block text-sm/6 font-medium">Categories</label>
-				<div class="mt-2 sm:col-span-2 sm:mt-0">
-					<input
-						id="article_category_filters"
-						type="text"
-						name="article_filters.categories"
-						value={ request.ArticleFilters.Categories }
-						placeholder="Add filters..."
-						class="input input-primary bg-base-content/10"
-					/>
-				</div>
-			</div>
-			<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-				<label for="article_author_filters" class="block text-sm/6 font-medium">Authors</label>
-				<div class="mt-2 sm:col-span-2 sm:mt-0">
-					<input
-						id="article_author_filters"
-						type="text"
-						name="article_filters.authors"
-						value={ request.ArticleFilters.Authors }
-						placeholder="Add filters..."
-						class="input input-primary bg-base-content/10"
-					/>
-				</div>
-			</div>
-		</fieldset>
-		<div class="mt-6 flex items-center justify-end gap-x-6">
-			<div id="processing" class="htmx-indicator">
-				Processing...
-				<span class="loading loading-spinner loading-md"></span>
-			</div>
-			<button
-				type="button"
-				onclick="history.back()"
-				class="btn btn-secondary btn-soft"
-			>Back</button>
-			<button
-				type="submit"
-				form="edit-subscription"
-				class="btn btn-primary btn-soft"
-			>Save</button>
 		</div>
 	}
 }
