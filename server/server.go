@@ -89,9 +89,11 @@ func NewServer(ctx context.Context, env string) (Server, error) {
 
 	csrfRouter := nosurf.New(router)
 	csrfRouter.SetFailureHandler(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		params := map[string]string{}
-		for i, k := range chi.RouteContext(req.Context()).URLParams.Keys {
-			params[k] = chi.RouteContext(req.Context()).URLParams.Values[i]
+		params := make(map[string]string)
+		if len(chi.RouteContext(req.Context()).URLParams.Keys) > 0 {
+			for i, k := range chi.RouteContext(req.Context()).URLParams.Keys {
+				params[k] = chi.RouteContext(req.Context()).URLParams.Values[i]
+			}
 		}
 		slogctx.FromCtx(req.Context()).Error("CSRF check failed",
 			slog.String("method", req.Method),
