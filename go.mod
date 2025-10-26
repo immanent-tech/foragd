@@ -1,6 +1,6 @@
 module github.com/immanent-tech/foragd
 
-go 1.25.1
+go 1.25.3
 
 replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 
@@ -22,10 +22,12 @@ require (
 	github.com/knadh/koanf/v2 v2.3.0
 	github.com/lmittmann/tint v1.1.2
 	github.com/mattn/go-isatty v0.0.20
+	github.com/nbio/xml v0.0.0-20251016084110-a619c1115f34
 	github.com/oapi-codegen/runtime v1.1.2
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-chi v1.16.1
 	github.com/samber/slog-multi v1.5.0
+	github.com/sebasvil20/templicons v1.1.0
 	golang.org/x/oauth2 v0.32.0
 )
 
@@ -77,7 +79,6 @@ require (
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/sdboyer/constext v0.0.0-20170321163424-836a14457353 // indirect
-	github.com/sebasvil20/templicons v1.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
@@ -120,7 +121,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-resty/resty/v2 v2.16.5 // indirect
+	github.com/go-resty/resty/v2 v2.16.5
 	github.com/go-shiori/go-readability v0.0.0-20250217085726-9f5bf5ca7612
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
