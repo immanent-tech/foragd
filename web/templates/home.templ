@@ -25,7 +25,7 @@ type Home struct {
 
 // content renders the home page content.
 templ (page *Home) Template() {
-	<main class="pr-4 lg:pr-100 pl-4 pt-8">
+	<main class="pr-4 lg:pr-128 pl-4 pt-8">
 		// Stats.
 		<header class="flex items-center">
 			<div class="relative flex justify-start">
@@ -146,7 +146,7 @@ templ (page *Home) Template() {
 		}
 	</main>
 	// Latest articles feed.
-	<aside class="lg:fixed lg:top-16 lg:right-0 lg:bottom-0 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-base-content/15 px-4 pt-8">
+	<aside class="lg:fixed lg:top-16 lg:right-0 lg:bottom-0 lg:w-lg lg:overflow-y-auto lg:border-l lg:border-base-content/15 px-4 pt-8">
 		// Show top categories (if found).
 		if len(page.TopCategories) > 0 {
 			<div class="flex items-center mt-8">

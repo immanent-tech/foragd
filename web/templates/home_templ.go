@@ -54,7 +54,7 @@ func (page *Home) Template() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<main class=\"pr-4 lg:pr-100 pl-4 pt-8\"><header class=\"flex items-center\"><div class=\"relative flex justify-start\"><span class=\"pr-3 text-base text-nowrap font-semibold\">Stats</span></div><div aria-hidden=\"true\" class=\"w-full border-t border-base-content/15\"></div></header><dl class=\"mt-5 flex gap-2 sm:gap-4 justify-center\"><div class=\"px-2 py-4 sm:px-6 sm:py-8\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<main class=\"pr-4 lg:pr-128 pl-4 pt-8\"><header class=\"flex items-center\"><div class=\"relative flex justify-start\"><span class=\"pr-3 text-base text-nowrap font-semibold\">Stats</span></div><div aria-hidden=\"true\" class=\"w-full border-t border-base-content/15\"></div></header><dl class=\"mt-5 flex gap-2 sm:gap-4 justify-center\"><div class=\"px-2 py-4 sm:px-6 sm:py-8\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -390,7 +390,7 @@ func (page *Home) Template() templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</main><aside class=\"lg:fixed lg:top-16 lg:right-0 lg:bottom-0 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-base-content/15 px-4 pt-8\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</main><aside class=\"lg:fixed lg:top-16 lg:right-0 lg:bottom-0 lg:w-lg lg:overflow-y-auto lg:border-l lg:border-base-content/15 px-4 pt-8\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
