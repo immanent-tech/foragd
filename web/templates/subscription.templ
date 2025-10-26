@@ -364,7 +364,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 						<h2 class="text-base/7 font-semibold">Filtering</h2>
 						<div class="flex items-center">
 							<p class="mt-1 text-sm/6 text-base-content/60">Filter articles by keywords/text in fields.</p>
-							@HelpPopover("show-full-article-help", "top end") {
+							@HelpPopover("subscription-filters-help", "top end") {
 								<div class="card-body">
 									<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 									<p>+ signifies AND operation (i.e., food AND beverages)</p>
