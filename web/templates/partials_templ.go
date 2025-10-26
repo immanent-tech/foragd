@@ -281,7 +281,7 @@ func Content(content templ.Component) templ.Component {
 			templ_7745c5c3_Var12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<header class=\"fixed w-full top-0 z-50 flex h-16 items-center gap-x-4 bg-base-200 border-b border-base-content/30 px-4 sm:gap-x-6 sm:px-6 lg:px-8\"><div class=\"flex flex-1 mx-auto max-w-7xl lg:pl-36 items-center gap-x-4 lg:gap-x-6\"><div class=\"flex flex-col lg:hidden h-16 shrink-0 gap-4 mt-8 items-center text-accent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<header class=\"fixed w-full top-0 z-50 flex h-16 items-center gap-x-4 bg-base-200 border-b border-base-content/30 px-4 sm:gap-x-6 sm:px-6 lg:px-8\"><div class=\"flex flex-1 mx-auto lg:pl-36 items-center gap-x-4 lg:gap-x-6\"><div class=\"flex flex-col lg:hidden h-16 shrink-0 gap-4 mt-8 items-center text-accent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
