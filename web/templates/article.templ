@@ -240,7 +240,6 @@ templ ArticleContent(article *models.Article) {
 						}
 					</section>
 				</div>
-				@ContentLoadingPlaceholder()
 			</article>
 			// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 			// read and mark it so (when the user has set this option).
@@ -376,7 +375,6 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 				@ArticlesList(articles, pagination)
 			}
 		</section>
-		@ContentLoadingPlaceholder()
 	}
 }
 
