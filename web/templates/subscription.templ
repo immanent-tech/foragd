@@ -649,16 +649,20 @@ func (r AddSubscriptionResults) GetFailed() []*models.AddSubscriptionResult {
 templ ImportResults(results AddSubscriptionResults) {
 	{{ successfulResults := results.GetSuccessful() }}
 	{{ failedResults := results.GetFailed() }}
-	@PageHeader("Import Results")
-	@PageDescription("Imported: " + strconv.Itoa(len(successfulResults)) + " Failed: " + strconv.Itoa(len(failedResults)))
-	<button
-		class="btn btn-primary"
-		hx-get="/subscriptions"
-		hx-target={ ContentID.Target() }
-		hx-vals={ models.GenerateHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
-	>
+	<div class="min-w-0 flex-1 pb-8">
+		<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">Import Results</h2>
+	</div>
+	<p class="mt-2 max-w-4xl text-sm sm:truncate text-base-content/80">
+		{ "Imported: " + strconv.Itoa(len(successfulResults)) + " Failed: " + strconv.Itoa(len(failedResults)) }
+	</p>
+	@NewButton(
+		WithHXMethod(http.MethodGet, "/list/subscriptions"),
+		WithHXTarget(ContentID.Target()),
+		WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
+		WithClasses("btn-primary"),
+	) {
 		Go to your subscriptions
-	</button>
+	}
 	<div class="mt-10 space-y-8 border-t border-neutral">
 		<ul class="list">
 			for response := range slices.Values(slices.Concat(successfulResults,failedResults)) {
