@@ -4,13 +4,19 @@
 package middlewares
 
 import (
+	"log/slog"
 	"net/http"
+	"os"
 	"slices"
 
 	"github.com/didip/tollbooth/v8"
 	"github.com/didip/tollbooth/v8/limiter"
 	"github.com/realclientip/realclientip-go"
 	slogctx "github.com/veqryn/slog-context"
+)
+
+const (
+	clientIPHeader = "X-Forwarded-For"
 )
 
 // RateLimiter holds options for controlling a rate limiter middleware.
@@ -22,21 +28,26 @@ type RateLimiter struct {
 // NewRateLimiter initialises data for a rate limiter middleware.
 func NewRateLimiter() RateLimiter {
 	// Set up rate-limiting.
-	strategy, err := realclientip.NewRightmostNonPrivateStrategy("X-Forwarded-For")
+	strategy, err := realclientip.NewRightmostNonPrivateStrategy(clientIPHeader)
 	if err != nil {
 		panic("realclientip.NewRightmostNonPrivateStrategy returned error (bad input)")
 	}
-	limiter := tollbooth.NewLimiter(1, nil)
+	lmt := tollbooth.NewLimiter(5, nil)
+	lmt.SetIPLookup(limiter.IPLookup{
+		Name:           clientIPHeader,
+		IndexFromRight: 0,
+	})
 	return RateLimiter{
 		strategy: strategy,
-		limiter:  limiter,
+		limiter:  lmt,
 	}
 }
 
 // RateLimit middleware will try to rate limit incoming requests with a pre-defined strategy.
-func RateLimit(ratelimiter RateLimiter, env string) func(next http.Handler) http.Handler {
+func RateLimit(ratelimiter RateLimiter) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			env := os.Getenv("FORAGD_ENVIRONMENT")
 			// Ignore rate-limiting in development environment or for health probes in GCP.
 			if env == "development" || slices.Contains([]string{"/livenessProbe"}, req.URL.Path) {
 				next.ServeHTTP(res, req)
@@ -54,6 +65,10 @@ func RateLimit(ratelimiter RateLimiter, env string) func(next http.Handler) http
 
 			httpErr := tollbooth.LimitByKeys(ratelimiter.limiter, []string{clientIP})
 			if httpErr != nil {
+				slogctx.FromCtx(req.Context()).Warn("Request rate-limited.",
+					slog.String("error", httpErr.Message),
+					slog.Int("code", httpErr.StatusCode),
+				)
 				http.Error(res, httpErr.Message, httpErr.StatusCode)
 				return
 			}

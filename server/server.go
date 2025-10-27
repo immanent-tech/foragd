@@ -195,7 +195,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		middlewares.Etag,
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
-		middlewares.RateLimit(rateLimiter, s.environment),
+		middlewares.RateLimit(rateLimiter),
 	)
 
 	// Routes.
