@@ -5,10 +5,10 @@ package github
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
 	"strings"
 
 	"github.com/goforj/godump"
@@ -36,11 +36,12 @@ func NewClient(ctx context.Context) (*Client, error) {
 	// Generate app installation token.
 	//
 	// https://github.com/jferrl/go-githubauth?tab=readme-ov-file#generate-github-app-installation-token
-	pemKey, err := os.ReadFile(cfg.Key)
+	data, err := base64.StdEncoding.DecodeString(cfg.Key)
 	if err != nil {
 		return nil, fmt.Errorf("unable to use github api: %w", err)
 	}
-	appTokenSource, err := githubauth.NewApplicationTokenSource[string](cfg.ClientID, pemKey)
+	godump.Dump(data)
+	appTokenSource, err := githubauth.NewApplicationTokenSource(cfg.ClientID, data)
 	if err != nil {
 		return nil, fmt.Errorf("unable to use github api: %w", err)
 	}
