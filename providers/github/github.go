@@ -40,7 +40,6 @@ func NewClient(ctx context.Context) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to use github api: %w", err)
 	}
-	godump.Dump(data)
 	appTokenSource, err := githubauth.NewApplicationTokenSource(cfg.ClientID, data)
 	if err != nil {
 		return nil, fmt.Errorf("unable to use github api: %w", err)
