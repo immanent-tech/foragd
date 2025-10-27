@@ -68,7 +68,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				if len(subscriptions) > 0 {
 					template = templates.SubscriptionsGrid(subscriptions, pagination)
 				} else {
-					template = templates.EmptyContent("/home", nil)
+					template = templates.EmptyContent()
 				}
 			case http.MethodPost:
 				if len(subscriptions) > 0 {
@@ -99,7 +99,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 					template = templates.ArticlesGrid(articles, pagination)
 				} else {
 					filters.Subscriptions = nil
-					template = templates.EmptyContent("/list/subscriptions", filters.Values())
+					template = templates.EmptyContent()
 				}
 			case http.MethodPost:
 				if len(articles) > 0 {
@@ -155,7 +155,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				searches[favSearch.Nickname] = search
 			}
 			if len(subscriptions)+len(articles)+len(searches) == 0 {
-				template = templates.EmptyContent("/list/subscriptions", filters.Values())
+				template = templates.EmptyContent()
 			} else {
 				template = templates.FavoritesLayout(subscriptions, articles, searches)
 			}
