@@ -22,10 +22,9 @@ require (
 	github.com/knadh/koanf/v2 v2.3.0
 	github.com/lmittmann/tint v1.1.2
 	github.com/mattn/go-isatty v0.0.20
-	github.com/nbio/xml v0.0.0-20251016084110-a619c1115f34
 	github.com/oapi-codegen/runtime v1.1.2
 	github.com/rs/cors v1.11.1
-	github.com/samber/slog-chi v1.16.1
+	github.com/samber/slog-chi v1.17.0
 	github.com/samber/slog-multi v1.5.0
 	github.com/sebasvil20/templicons v1.1.0
 	golang.org/x/oauth2 v0.32.0
@@ -65,6 +64,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/nbio/xml v0.0.0-20251016084110-a619c1115f34 // indirect
 	github.com/nightlyone/lockfile v1.0.0 // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.5.0 // indirect
@@ -121,7 +121,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-resty/resty/v2 v2.16.5
+	github.com/go-resty/resty/v2 v2.16.5 // indirect
 	github.com/go-shiori/go-readability v0.0.0-20250217085726-9f5bf5ca7612
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
