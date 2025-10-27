@@ -195,7 +195,6 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		middlewares.Etag,
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
-		middleware.NoCache,
 		middlewares.RateLimit(rateLimiter, s.environment),
 	)
 
@@ -241,6 +240,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
 			middlewares.RequireUserAuth(handler.DataAPI()),
+			// middleware.NoCache,
 		)
 		r.Get("/home", handler.Home())
 		r.Get("/home/updates", handlers.WatchHome(handler.Elastic))
