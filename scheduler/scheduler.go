@@ -9,11 +9,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"sync"
 	"time"
 
@@ -100,16 +98,6 @@ func Run(ctx context.Context, env string) error {
 
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler started.")
 
-	// Start a webserver for health probes.
-	svr := &http.Server{
-		Addr:        net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
-		ReadTimeout: cfg.ReadTimeout,
-		// WriteTimeout: ServerConfig.WriteTimeout,
-		IdleTimeout: cfg.IdleTimeout,
-	}
-	http.HandleFunc("/startupProbe", func(res http.ResponseWriter, req *http.Request) {
-		fmt.Fprint(res, "Started.")
-	})
 	var wg sync.WaitGroup
 	wg.Add(1)
 	// Listen for shutdown events and process them.
@@ -118,7 +106,6 @@ func Run(ctx context.Context, env string) error {
 		stop := make(chan os.Signal, 1)
 		signal.Notify(stop, os.Interrupt)
 		<-stop
-		err := svr.Shutdown(context.Background())
 		// Can't do much here except for logging any errors
 		if err != nil {
 			slog.Error("Error occurred when trying to shut down server.",
@@ -126,7 +113,6 @@ func Run(ctx context.Context, env string) error {
 			)
 		}
 	}()
-	err = svr.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
 		wg.Wait()
 	} else if err != nil {
