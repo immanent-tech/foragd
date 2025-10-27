@@ -82,7 +82,7 @@ templ (page *Home) Template() {
 				if len(page.LatestArticles) > 0 {
 					<ul role="list" class="grid grid-cols-1 justify-center">
 						for article := range slices.Values(page.LatestArticles) {
-							<li class="py-4 space-y-2 w-full">
+							<li class="py-4 sm:px-4 space-y-2">
 								<div class={ "sm:flex items-center", templ.KV("opacity-50",!article.IsUnread()) }>
 									// Article image.
 									if img := article.GetImage(); img != nil {
@@ -118,6 +118,7 @@ templ (page *Home) Template() {
 													WithHXTarget(ContentID.Target()),
 													WithHXPushURL(),
 													WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+													WithClasses("truncate"),
 												) {
 													{ article.GetFeedTitle() }
 												}
