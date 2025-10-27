@@ -5,6 +5,7 @@ package middlewares
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/didip/tollbooth/v8"
 	"github.com/didip/tollbooth/v8/limiter"
@@ -36,7 +37,8 @@ func NewRateLimiter() RateLimiter {
 func RateLimit(ratelimiter RateLimiter, env string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			if env == "development" {
+			// Ignore rate-limiting in development environment or for health probes in GCP.
+			if env == "development" || slices.Contains([]string{"/livenessProbe"}, req.URL.Path) {
 				next.ServeHTTP(res, req)
 				return
 			}
