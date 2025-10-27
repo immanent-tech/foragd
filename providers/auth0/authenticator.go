@@ -74,12 +74,12 @@ func (a *Authenticator) GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate logout url: %w", err)
 	}
-	scheme := "http"
-	if req.TLS != nil {
-		scheme = "https"
-	}
+	// scheme := "https"
+	// if req.TLS != nil {
+	// 	scheme = "https"
+	// }
 
-	returnTo, err := url.Parse(scheme + "://" + req.Host)
+	returnTo, err := url.Parse("https://" + req.Host)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate logout URL: %w", err)
 	}
