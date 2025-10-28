@@ -20,7 +20,6 @@ import (
 	"github.com/immanent-tech/foragd/logging"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 // Make sure out jobQueue implementation satisfies quartz.JobQueue.
@@ -52,10 +51,14 @@ type JobQueue struct {
 
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
+	jobsIndex, err := elastic.JobsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to start job queue: %w", err)
+	}
 	return &JobQueue{
 		ctx:    ctx,
 		client: client,
-		index:  schema.SchedulerJobsPrefix,
+		index:  jobsIndex,
 	}, nil
 }
 
