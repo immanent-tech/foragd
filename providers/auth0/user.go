@@ -37,7 +37,10 @@ type UserProfile struct {
 	Subject string `json:"sub" validate:"required"`
 	// ID of the current session.
 	SessionID string `json:"sid" validate:"required"`
-
+	// The user's email address.
+	Email string `json:"email" validate:"email"`
+	// Indicates whether the user has verified their email address.
+	EmailVerified bool `json:"email_verified"`
 	// URL pointing to the user's profile picture.
 	Picture string `json:"picture" validate:"omitempty,url"`
 	// The user's family name.
@@ -59,7 +62,7 @@ func (u *UserProfile) GetID() string {
 
 // GetEmail returns the email address associated with the external user.
 func (u *UserProfile) GetEmail() string {
-	return u.Name
+	return u.Email
 }
 
 // ManagementAPI represents the Auth0 management API backend connection.

@@ -43,7 +43,7 @@ func New(ctx context.Context) (*Authenticator, error) {
 		ClientSecret: cfg.ClientSecret,
 		RedirectURL:  cfg.CallbackURL,
 		Endpoint:     provider.Endpoint(),
-		Scopes:       []string{oidc.ScopeOpenID, "profile"},
+		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 
 	return &Authenticator{
