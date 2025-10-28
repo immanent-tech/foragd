@@ -20,7 +20,7 @@ var CLI struct {
 	logging.Options
 
 	Serve        cli.ServeCmd         `cmd:"" help:"Run server."`
-	Migrate      cli.MigrateCmd       `cmd:"" help:"Run backend migrations."`
+	Schema       cli.SchemaCmd        `cmd:"" help:"Perform schema operations."`
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
 	ProfileFlags logging.ProfileFlags `name:"profile" help:"Set profiling flags."`
 	Environment  string               `env:"FORAGD_ENVIRONMENT" name:"environment" help:"Set the running environment." required:"true" default:"development" enum:"development,production"`

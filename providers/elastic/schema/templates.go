@@ -304,10 +304,17 @@ func AsDatastream(value bool) IndexTemplateOption {
 	}
 }
 
-// WithIndexTemplateMetadata sets the given metadata in the index template.
+// WithIndexTemplateMetadata option sets the given metadata in the index template.
 func WithIndexTemplateMetadata(metadata types.Metadata) IndexTemplateOption {
 	return func(ct *IndexTemplate) {
 		ct.Meta_ = metadata
+	}
+}
+
+// WithPriority option defines the priority for this index template.
+func WithPriority(pri int64) IndexTemplateOption {
+	return func(it *IndexTemplate) {
+		it.Priority = &pri
 	}
 }
 

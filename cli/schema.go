@@ -15,25 +15,28 @@ import (
 )
 
 // MigrateCmd defines the `migrate` command, which performs data-store migrations for schema changes.
-type MigrateCmd struct {
-	Migrations []string `arg:"" default:"all" enum:"all,feeds,items,users,scheduler,sessions,logs,archive" help:"Components to migrate."`
+type SchemaCmd struct {
+	Migrate MigrateCmd `cmd:"migrate" help:"Migrate schemas"`
 }
 
-// Run contains the logic for performing the migrate command.
-func (r *MigrateCmd) Run(opts *Arguments) error {
+type MigrateCmd struct {
+	schema.SchemaOpts
+}
+
+func (r *MigrateCmd) Run(opts *MigrateCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	// Load the Elastic backend
-	elasticClient, err := elastic.Connect(ctx, opts.Environment)
+	env := os.Getenv("FORAGD_ENVIRONMENT")
+	elasticClient, err := elastic.Connect(ctx, env)
 	if err != nil {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}
 	// Perform migrations.
-	err = schema.Migration(ctx, elasticClient.GetAPI(), r.Migrations...)
+	err = schema.Migration(ctx, elasticClient.GetAPI(), &opts.SchemaOpts)
 	if err != nil {
 		return fmt.Errorf("unable to perform Elastic migration: %w", err)
 	}
-
 	return nil
 }

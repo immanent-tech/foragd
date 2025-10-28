@@ -10,9 +10,11 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/conflicts"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -20,27 +22,30 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/reindex"
 )
 
-var validMigrations = []string{"users", "feeds", "items", "scheduler", "sessions", "logs", "archive"}
+type SchemaOpts struct {
+	Indices   []string `arg:"" default:"all" enum:"all,feeds,items,users,scheduler,sessions,logs,archive" help:"List of indicies to perform command on."`
+	NoReindex bool     `help:"Do not perform reindex from existing index."`
+}
 
 // Migration will create all necessary index templates settings and policies.
-func Migration(ctx context.Context, api *elasticsearch.TypedClient, migrations ...string) error {
+func Migration(ctx context.Context, api *elasticsearch.TypedClient, opts *SchemaOpts) error {
 	// If no migrations are specified, perform migrations for all items.
-	if slices.Contains(migrations, "all") {
-		migrations = validMigrations
+	if slices.Contains(opts.Indices, "all") {
+		opts.Indices = []string{"users", "feeds", "items", "scheduler", "sessions", "logs", "archive"}
 	}
 
 	migrationJobs, ctx := errgroup.WithContext(ctx)
 
 	// Perform requested migrations.
-	for migration := range slices.Values(migrations) {
-		switch migration {
+	for index := range slices.Values(opts.Indices) {
+		switch index {
 		case "users":
 			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, UsersSchemaPrefix, userComponentTemplate())
+				return indexMigration(ctx, api, opts.NoReindex, UsersSchemaPrefix, userComponentTemplate())
 			})
 		case "feeds":
 			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, FeedsSchemaPrefix, feedsComponentTemplate())
+				return indexMigration(ctx, api, opts.NoReindex, FeedsSchemaPrefix, feedsComponentTemplate())
 			})
 		case "items":
 			migrationJobs.Go(func() error {
@@ -48,20 +53,21 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, migrations .
 			})
 		case "archive":
 			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, ArticleArchiveSchemaPrefix, articleArchiveComponentTemplate())
+				return indexMigration(ctx, api, opts.NoReindex, ArticleArchiveSchemaPrefix, articleArchiveComponentTemplate())
 			})
 		case "scheduler":
 			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, SchedulerJobsPrefix, schedulerJobsComponentTemplate())
+				return indexMigration(ctx, api, opts.NoReindex, SchedulerJobsPrefix, schedulerJobsComponentTemplate())
 			})
 			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, SchedulerStatePrefix, schedulerStateComponentTemplate())
+				return indexMigration(ctx, api, opts.NoReindex, SchedulerStatePrefix, schedulerStateComponentTemplate())
 			})
 		case "sessions":
 			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, SessionsSchemaPrefix, sessionsComponentTemplate())
+				return indexMigration(ctx, api, opts.NoReindex, SessionsSchemaPrefix, sessionsComponentTemplate())
 			})
 		case "logs":
+			continue
 			migrationJobs.Go(func() error {
 				return migrateLogs(ctx, api)
 			})
@@ -78,7 +84,7 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, migrations .
 
 // indexMigration performs a migration of a standard index, including component & index templates as well as the index
 // itself.
-func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix string, schema *Template) error {
+func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, noreindex bool, prefix string, schema *Template) error {
 	schemaPrefix := prefix
 
 	slogctx.FromCtx(ctx).Info("Performing appropriate migrations...",
@@ -119,7 +125,7 @@ func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix 
 	if err != nil {
 		return fmt.Errorf("could not determine %s index state: %w", readAlias, err)
 	}
-	if found {
+	if found && !noreindex {
 		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(indexName)).WaitForCompletion(true).Do(ctx)
 		if err != nil {
 			return fmt.Errorf("could not reindex: %w", err)
@@ -190,7 +196,7 @@ func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient) error
 	}
 	if found {
 
-		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(datastreamName)).WaitForCompletion(true).Do(ctx)
+		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(datastreamName)).Conflicts(conflicts.Proceed).WaitForCompletion(true).Do(ctx)
 		if err != nil {
 			return fmt.Errorf("could not reindex: %w", err)
 		}
@@ -279,6 +285,7 @@ func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias stri
 			return fmt.Errorf("could not retrieve indices associated with alias %s: %w", alias, err)
 		}
 	}
+	// Remove alias from existing indices.
 	for aliasedIndex := range aliasesResp {
 		if aliasedIndex != index {
 			// // Close the old index so writes don't happen.
@@ -296,7 +303,12 @@ func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias stri
 			}
 		}
 	}
-	_, err = api.Indices.PutAlias(index, alias).IsWriteIndex(true).Do(ctx)
+	// Set as write index if alias name ends in "rw".
+	var writeIndex bool
+	if strings.HasSuffix(alias, "rw") {
+		writeIndex = true
+	}
+	_, err = api.Indices.PutAlias(index, alias).IsWriteIndex(writeIndex).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("could not update alias %s to add index %s: %w", alias, index, err)
 	}
