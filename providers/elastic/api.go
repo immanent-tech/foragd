@@ -211,6 +211,19 @@ func (a *API) CreateFeed(ctx context.Context, feed *models.Feed) error {
 	return nil
 }
 
+func (a *API) DeleteFeed(ctx context.Context, id models.FeedID) error {
+	index, err := FeedsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return ErrNoIndexInCtx
+	}
+	// Delete the feed.
+	err = DeleteDoc(ctx, a.GetAPI(), index, id)
+	if err != nil {
+		return toAPIError(err)
+	}
+	return nil
+}
+
 // GetFeeds retrieves the feeds with the given IDs.
 func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 	index, err := FeedsReadIndexFromCtx(ctx)

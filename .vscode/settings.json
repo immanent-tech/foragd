@@ -42,7 +42,8 @@
     "atom",
     "css",
     "search",
-    "pkg"
+    "pkg",
+    "cli"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
