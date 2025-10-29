@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -74,7 +73,6 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
-		godump.Dump(request)
 		favoriteID := req.FormValue("search_id")
 		if favoriteID == "" {
 			favoriteID = request.ID()

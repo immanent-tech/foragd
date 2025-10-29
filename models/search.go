@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/goforj/godump"
 	"github.com/gohugoio/hashstructure"
 	"github.com/immanent-tech/go-syndication/sanitization"
 
@@ -85,7 +84,6 @@ func (r *SearchRequest) params() url.Values {
 	if len(r.Subscriptions) > 0 {
 		params.Set("subscriptions", strings.Join(r.Subscriptions, ","))
 	}
-	godump.Dump(r)
 	params.Set("view", string(r.View))
 	params.Set("published_within", string(r.PublishedWithin))
 	params.Set("timezone", r.Timezone)
