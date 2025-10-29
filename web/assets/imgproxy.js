@@ -1,7 +1,5 @@
 // Code taken from https://zhipenghe.me/blog/2025/Bypassing-Image-Anti-Hotlinking-with-Nginx/
 
-const { lastDayOfMonth, isMatch } = require('date-fns')
-
 ;(function () {
   // CDN domains that commonly implement anti-hotlinking
   const BLOCKED_DOMAINS = [
