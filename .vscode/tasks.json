@@ -20,7 +20,7 @@
     {
       "label": "run: scheduler",
       "type": "shell",
-      "command": "export $(grep -v '^#' .devcontainer/.env | xargs) && go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file scheduler",
+      "command": "export $(grep -v '^#' .devcontainer/.env | xargs) && go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file scheduler run",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
