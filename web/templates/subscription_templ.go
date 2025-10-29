@@ -1487,7 +1487,7 @@ func AddSubscription(request *models.SubscriptionRequest) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "\" hx-include=\"[name='user_categories']\" hx-indicator=\"#processing\" hx-on::after-request=\"if(event.detail.successful) this.reset()\"><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Feed Website or URL</h2><p class=\"mt-1 text-sm/6 text-base-content/60\">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full mt-2\"><input id=\"url\" required type=\"url\" name=\"url\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 105, "\" hx-include=\"[name='user_categories'],[name='csrf_token']\" hx-indicator=\"#processing\" hx-on::after-request=\"if(event.detail.successful) this.reset()\"><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Feed Website or URL</h2><p class=\"mt-1 text-sm/6 text-base-content/60\">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full mt-2\"><input id=\"url\" required type=\"url\" name=\"url\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1605,7 +1605,7 @@ func AddSubscription(request *models.SubscriptionRequest) templ.Component {
 }
 
 // AddSubscriptionSuccess displays success feedback and navigation options on successful addition of a subscription.
-func AddSubscriptionSuccess(result *models.AddSubscriptionResult) templ.Component {
+func AddSubscriptionSuccess(result *models.SubscriptionResult) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1743,22 +1743,8 @@ func ImportSubscriptions() templ.Component {
 	})
 }
 
-type AddSubscriptionResults map[*models.SubscriptionRequest]*models.AddSubscriptionResult
-
-func (r AddSubscriptionResults) GetSuccessful() []*models.AddSubscriptionResult {
-	return slices.Collect(models.FilterMapValues(r, func(result *models.AddSubscriptionResult) bool {
-		return result.Message.Status == models.UserMessageStatusSuccess
-	}))
-}
-
-func (r AddSubscriptionResults) GetFailed() []*models.AddSubscriptionResult {
-	return slices.Collect(models.FilterMapValues(r, func(result *models.AddSubscriptionResult) bool {
-		return result.Message.Status != models.UserMessageStatusSuccess
-	}))
-}
-
 // ImportResults is a partial template that displays the results of an import.
-func ImportResults(results AddSubscriptionResults) templ.Component {
+func ImportResults(results []*models.SubscriptionResult) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1779,8 +1765,8 @@ func ImportResults(results AddSubscriptionResults) templ.Component {
 			templ_7745c5c3_Var81 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		successfulResults := results.GetSuccessful()
-		failedResults := results.GetFailed()
+		successfulResults := filterSuccessfulResults(results)
+		failedResults := filterUnsuccessfulResults(results)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 124, "<div class=\"min-w-0 flex-1 pb-8\"><h2 class=\"text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize\">Import Results</h2></div><p class=\"mt-2 max-w-4xl text-sm sm:truncate text-base-content/80\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1788,7 +1774,7 @@ func ImportResults(results AddSubscriptionResults) templ.Component {
 		var templ_7745c5c3_Var82 string
 		templ_7745c5c3_Var82, templ_7745c5c3_Err = templ.JoinStringErrs("Imported: " + strconv.Itoa(len(successfulResults)) + " Failed: " + strconv.Itoa(len(failedResults)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 655, Col: 104}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 641, Col: 104}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var82))
 		if templ_7745c5c3_Err != nil {
@@ -1847,7 +1833,7 @@ func ImportResults(results AddSubscriptionResults) templ.Component {
 				var templ_7745c5c3_Var84 string
 				templ_7745c5c3_Var84, templ_7745c5c3_Err = templ.JoinStringErrs(response.Message.Summary)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 673, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 659, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var84))
 				if templ_7745c5c3_Err != nil {
@@ -1869,7 +1855,7 @@ func ImportResults(results AddSubscriptionResults) templ.Component {
 				var templ_7745c5c3_Var85 string
 				templ_7745c5c3_Var85, templ_7745c5c3_Err = templ.JoinStringErrs(response.Message.Summary)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 678, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 664, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var85))
 				if templ_7745c5c3_Err != nil {
@@ -1887,7 +1873,7 @@ func ImportResults(results AddSubscriptionResults) templ.Component {
 					var templ_7745c5c3_Var86 string
 					templ_7745c5c3_Var86, templ_7745c5c3_Err = templ.JoinStringErrs(response.Message.Details)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 681, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 667, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var86))
 					if templ_7745c5c3_Err != nil {
@@ -1914,7 +1900,7 @@ func ImportResults(results AddSubscriptionResults) templ.Component {
 				var templ_7745c5c3_Var87 string
 				templ_7745c5c3_Var87, templ_7745c5c3_Err = templ.JoinStringErrs(response.Message.Summary)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 688, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 674, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var87))
 				if templ_7745c5c3_Err != nil {
@@ -1932,7 +1918,7 @@ func ImportResults(results AddSubscriptionResults) templ.Component {
 					var templ_7745c5c3_Var88 string
 					templ_7745c5c3_Var88, templ_7745c5c3_Err = templ.JoinStringErrs(response.Message.Details)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 691, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 677, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var88))
 					if templ_7745c5c3_Err != nil {
@@ -1960,7 +1946,7 @@ func ImportResults(results AddSubscriptionResults) templ.Component {
 		var templ_7745c5c3_Var89 string
 		templ_7745c5c3_Var89, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 700, Col: 85}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 686, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var89))
 		if templ_7745c5c3_Err != nil {
@@ -1972,6 +1958,18 @@ func ImportResults(results AddSubscriptionResults) templ.Component {
 		}
 		return nil
 	})
+}
+
+func filterSuccessfulResults(results []*models.SubscriptionResult) []*models.SubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result *models.SubscriptionResult) bool {
+		return result.Message.Status == models.UserMessageStatusSuccess
+	}))
+}
+
+func filterUnsuccessfulResults(results []*models.SubscriptionResult) []*models.SubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result *models.SubscriptionResult) bool {
+		return result.Message.Status != models.UserMessageStatusSuccess
+	}))
 }
 
 // ExportSubscriptions renders a form for exporting all subscriptions as an OPML file.

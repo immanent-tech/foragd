@@ -5,9 +5,12 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -19,12 +22,32 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-type DataAPI interface {
+var ErrNotFound = errors.New("not found")
+
+// FeedsAPI contains API methods for Feeds.
+type FeedsAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
+	SearchFeeds(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Feeds, Pagination, error)
+	CreateFeed(ctx context.Context, feed *Feed) error
+}
+
+// ItemsAPI contains API methods for Items.
+type ItemsAPI interface {
+	SearchItems(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Items, Pagination, error)
 	ItemsAggregation(ctx context.Context, query query.Option, count int, agg aggregations.Aggs) (*search.Response, error)
+}
+
+// UserAPI contains API methods for Users.
+type UserAPI interface {
 	CreateUser(ctx context.Context, user *User) error
 	UpdateUser(ctx context.Context, id UserID, updates map[string]any) error
-	SearchItems(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Items, Pagination, error)
+}
+
+// DataAPI contains all methods for data API access.
+type DataAPI interface {
+	FeedsAPI
+	ItemsAPI
+	UserAPI
 }
 
 func CreateUser(ctx context.Context, dataAPI DataAPI, externalID, email string) error {
@@ -84,6 +107,40 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 	// Set up pagination.
 	subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
 	return subscriptions, pagination, nil
+}
+
+func CreateSubscription(ctx context.Context, dataAPI DataAPI, request *SubscriptionRequest, feed *Feed) (*Subscription, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create subscription: could not determine user: %w", err)
+	}
+	// Generate metadata.
+	metadata := NewSubscriptionMetadata(user, feed, request)
+	valid, err := metadata.Valid()
+	if err != nil || !valid {
+		return nil, fmt.Errorf("unable to create subscription: invalid metadata: %w", err)
+	}
+	// Generate subscription.
+	subscription, err := GenerateSubscription(user, metadata, feed, 0)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create subscription: %w", err)
+	}
+	// Add metadata to user.
+	user.AddSubscriptions(metadata)
+	// Disable onboarding once a subscription has been added.
+	settings := user.GetSettings()
+	if settings.ShowOnboarding {
+		settings.ShowOnboarding = false
+	}
+	// Update the user object.
+	err = dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
+		"subscriptions": user.Subscriptions,
+		"settings":      settings,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to create subscription: %w", err)
+	}
+	return subscription, nil
 }
 
 func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (Subscriptions, error) {
@@ -294,6 +351,43 @@ func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscrip
 	})
 	if err != nil {
 		return fmt.Errorf("markSubscriptions: %w", err)
+	}
+	return nil
+}
+
+func MatchRequestToFeed(ctx context.Context, dataAPI DataAPI, req *SubscriptionRequest) (*Feed, error) {
+	// Generate query. Match URL in either source_urls or (website) url.
+	feedMatchQuery := query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(
+					query.Term("source_urls", req.GetURL()),
+					query.Term("url", req.GetURL()),
+				),
+			),
+		),
+	)
+	// Find matches.
+	feeds, _, err := dataAPI.SearchFeeds(ctx, feedMatchQuery, 1, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("unable to match request to feed: %w", err)
+	}
+	if len(feeds) == 0 {
+		return nil, NewAPIError(ErrNotFound, http.StatusNotFound)
+	}
+	if len(feeds) != 1 {
+		slogctx.FromCtx(ctx).Warn("More than one matching feed for request. Using first match.",
+			slog.String("url", req.GetURL()),
+			slog.String("matches", strings.Join(feeds.GetIDs(), ",")),
+		)
+	}
+	return feeds[0], nil
+}
+
+func CreateFeed(ctx context.Context, dataAPI DataAPI, feed *Feed) error {
+	err := dataAPI.CreateFeed(ctx, feed)
+	if err != nil {
+		return fmt.Errorf("unable to create feed: %w", err)
 	}
 	return nil
 }

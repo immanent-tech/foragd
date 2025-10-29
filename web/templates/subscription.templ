@@ -482,7 +482,7 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 				id="add-subscription"
 				hx-post="/user/subscription/add"
 				hx-target={ ContentID.Target() }
-				hx-include="[name='user_categories']"
+				hx-include="[name='user_categories'],[name='csrf_token']"
 				hx-indicator="#processing"
 				hx-on::after-request="if(event.detail.successful) this.reset()"
 			>
@@ -549,7 +549,7 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 }
 
 // AddSubscriptionSuccess displays success feedback and navigation options on successful addition of a subscription.
-templ AddSubscriptionSuccess(result *models.AddSubscriptionResult) {
+templ AddSubscriptionSuccess(result *models.SubscriptionResult) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	<div class="text-center">
 		@tabler.CircleCheck(i.Props{Class: "size-12 mx-auto text-success"})
@@ -630,24 +630,10 @@ templ ImportSubscriptions() {
 	}
 }
 
-type AddSubscriptionResults map[*models.SubscriptionRequest]*models.AddSubscriptionResult
-
-func (r AddSubscriptionResults) GetSuccessful() []*models.AddSubscriptionResult {
-	return slices.Collect(models.FilterMapValues(r, func(result *models.AddSubscriptionResult) bool {
-		return result.Message.Status == models.UserMessageStatusSuccess
-	}))
-}
-
-func (r AddSubscriptionResults) GetFailed() []*models.AddSubscriptionResult {
-	return slices.Collect(models.FilterMapValues(r, func(result *models.AddSubscriptionResult) bool {
-		return result.Message.Status != models.UserMessageStatusSuccess
-	}))
-}
-
 // ImportResults is a partial template that displays the results of an import.
-templ ImportResults(results AddSubscriptionResults) {
-	{{ successfulResults := results.GetSuccessful() }}
-	{{ failedResults := results.GetFailed() }}
+templ ImportResults(results []*models.SubscriptionResult) {
+	{{ successfulResults := filterSuccessfulResults(results) }}
+	{{ failedResults := filterUnsuccessfulResults(results) }}
 	<div class="min-w-0 flex-1 pb-8">
 		<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">Import Results</h2>
 	</div>
@@ -698,6 +684,18 @@ templ ImportResults(results AddSubscriptionResults) {
 		</ul>
 	</div>
 	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" href={ ContentID.Target() }>Back to top</button>
+}
+
+func filterSuccessfulResults(results []*models.SubscriptionResult) []*models.SubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result *models.SubscriptionResult) bool {
+		return result.Message.Status == models.UserMessageStatusSuccess
+	}))
+}
+
+func filterUnsuccessfulResults(results []*models.SubscriptionResult) []*models.SubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result *models.SubscriptionResult) bool {
+		return result.Message.Status != models.UserMessageStatusSuccess
+	}))
 }
 
 // ExportSubscriptions renders a form for exporting all subscriptions as an OPML file.

@@ -199,6 +199,18 @@ func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, erro
 	return feed, nil
 }
 
+func (a *API) CreateFeed(ctx context.Context, feed *models.Feed) error {
+	index, err := FeedsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return ErrNoIndexInCtx
+	}
+	err = CreateDoc(ctx, a.GetAPI(), index, feed.GetID(), feed)
+	if err != nil {
+		return toAPIError(err)
+	}
+	return nil
+}
+
 // GetFeeds retrieves the feeds with the given IDs.
 func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 	index, err := FeedsReadIndexFromCtx(ctx)
@@ -352,7 +364,7 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 	if err != nil {
 		return nil, ErrNoIndexInCtx
 	}
-	return BulkAdd(ctx, e, index, items...)
+	return BulkAdd[models.ItemID, *models.Item](ctx, e, index, items...)
 }
 
 func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, error) {

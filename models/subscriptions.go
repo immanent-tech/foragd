@@ -312,8 +312,6 @@ func (r *SubscriptionRequest) HasError() bool {
 	return r.NicknameErr != nil || r.CategoriesErr != nil || r.URLErr != nil
 }
 
-type SubscriptionRequests []*SubscriptionRequest
-
 // NewSubscriptionMetadata creates a new subscription state with the given subscription and feed ids.
 func NewSubscriptionMetadata(user *User, feed *Feed, request *SubscriptionRequest) *SubscriptionMetadata {
 	ts := time.Now().UTC()

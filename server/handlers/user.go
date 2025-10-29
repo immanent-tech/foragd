@@ -7,9 +7,9 @@ import (
 	"embed"
 	"fmt"
 	"log/slog"
-	"maps"
 	"net/http"
 	"slices"
+	"sync"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -572,8 +572,15 @@ func (a *API) DeleteUser() http.HandlerFunc {
 }
 
 // AddFeedset handles adding a feedset as subscriptions.
-func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
+func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Retrieve user object.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			msg := models.NewErrorMessage("Unable to edit subscription", "This might be a temporary problem, please try again.")
+			renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle("Error")).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+		}
 		// Ignore submission without any feedset selected.
 		if req.FormValue("feedset") == "" {
 			res.WriteHeader(http.StatusNoContent)
@@ -588,7 +595,7 @@ func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
 		// Process requested feedsets and generate subscription requests.
-		var subscriptionRequests models.SubscriptionRequests
+		var subscriptionRequests []*models.SubscriptionRequest
 		for set := range slices.Values(request.Feedset) {
 			var (
 				data []byte
@@ -623,28 +630,40 @@ func AddFeedset(storeAPI *elastic.API, static embed.FS) http.HandlerFunc {
 			}
 			subscriptionRequests = append(subscriptionRequests, models.GenerateRequestsFromOutlines(opmlImport.Body...)...)
 		}
-		// Process subscription requests.
-		subscriptionProcessing := make(addSubscriptionRequests)
-		for r := range slices.Values(subscriptionRequests) {
-			subscriptionProcessing[r] = &models.Feed{}
+		// Process requests.
+		resultsCh := make(chan models.SubscriptionResult)
+		var wg sync.WaitGroup
+		for request := range slices.Values(subscriptionRequests) {
+			wg.Go(func() {
+				processSubscriptionRequest(req.Context(), api, user, request, resultsCh)
+			})
 		}
-		matchResults, err := subscriptionProcessing.matchFeedsToSubscriptionRequests(req.Context(), storeAPI)
-		if err != nil {
-			res.Header().Add(htmx.HeaderReswap, "none")
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add feedset", "This might be a temporary issue, please try again."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to match feeds to subscriptions: %w", err), http.StatusInternalServerError)
+		// Wait for all request processing to complete.
+		go func() {
+			defer close(resultsCh)
+			wg.Wait()
+		}()
+		results := make([]*models.SubscriptionResult, 0, len(subscriptionRequests))
+		// Process results
+		for result := range resultsCh {
+			results = append(results, &result)
+			if result.Error != nil {
+				switch result.Message.Status {
+				case models.UserMessageStatusError:
+					slogctx.FromCtx(req.Context()).Error("Error occurred during subscription request processing.",
+						slog.String("url", result.Request.GetURL()),
+						slog.Any("error", result.Error),
+					)
+				case models.UserMessageStatusWarning:
+					fallthrough
+				default:
+					slogctx.FromCtx(req.Context()).Warn("Warning occurred during subscription request processing.",
+						slog.String("url", result.Request.GetURL()),
+						slog.Any("error", result.Error),
+					)
+				}
+			}
 		}
-		createResults, err := subscriptionProcessing.createNewSubscriptions(req.Context(), storeAPI)
-		if err != nil {
-			res.Header().Add(htmx.HeaderReswap, "none")
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add feedset", "This might be a temporary issue, please try again."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to create new subscriptions: %w", err), http.StatusInternalServerError)
-		}
-		maps.Copy(createResults, matchResults)
 		msg := models.NewSuccessMessage("Added sets", "Request sets added to your subscriptions.")
 		renderPartial(templates.Notification(msg, 0)).ServeHTTP(res, req)
 		return nil

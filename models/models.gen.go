@@ -754,6 +754,23 @@ type SubscriptionRequest struct {
 	NicknameErr error `form:"-" json:"-"`
 }
 
+// SubscriptionResult contains the result of adding/importing a subscription from a request.
+type SubscriptionResult struct {
+	Error error `json:"error,omitempty,omitzero"`
+
+	// Feed represents a feed object.
+	Feed Feed `json:"feed,omitempty,omitzero"`
+
+	// Message represents a message that can be displayed to the user as the result of an action.
+	Message UserMessage `json:"message,omitempty,omitzero"`
+
+	// Request represents a request to create a subscription.
+	Request SubscriptionRequest `json:"request"`
+
+	// Subscription represents a feed a user has subscribed to.
+	Subscription Subscription `json:"subscription,omitempty,omitzero"`
+}
+
 // SubscriptionSettings contains options that control how the subscription is stored/displayed.
 type SubscriptionSettings struct {
 	// ShowFullArticleContent toggles whether articles in the subscription should be always displayed with remote content.

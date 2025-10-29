@@ -725,6 +725,23 @@ components:
           x-oapi-codegen-extra-tags:
             form: '-'
             json: '-'
+    SubscriptionResult:
+      description: >
+        contains the result of adding/importing a subscription from a request.
+      type: object
+      required:
+        - request
+      properties:
+        request:
+          $ref: '#/components/schemas/SubscriptionRequest'
+        feed:
+          $ref: '#/components/schemas/Feed'
+        subscription:
+          $ref: '#/components/schemas/Subscription'
+        message:
+          $ref: '#/components/schemas/UserMessage'
+        error:
+          x-go-type: error
     EditSubscriptionRequest:
       description: >
         is the request details for editing a subscription.
