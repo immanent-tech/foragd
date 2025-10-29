@@ -380,7 +380,7 @@ type Feed struct {
 	// SourceType indicates what type of source the object came from.
 	SourceType FeedSourceType `json:"source_type"`
 
-	// SourceURLs is a list of URLs that point to the feed source.
+	// SourceURLs is a list of URLs that point to the feed source. These might be either the website corresponding to the feed or the
 	SourceURLs []URL `json:"source_urls" validate:"required,dive,url"`
 
 	// Title is the title of the feed or item.

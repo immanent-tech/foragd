@@ -155,14 +155,14 @@ func FavoritesLayout(subscriptions models.Subscriptions, articles models.Article
 							return templ_7745c5c3_Err
 						}
 						if len(search.Subscriptions) > 0 {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<input type=\"hidden\" name=\"authors\" value=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<input type=\"hidden\" name=\"subscriptions\" value=\"")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var8 string
 							templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join(search.Subscriptions, ","))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 66, Col: 92}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 66, Col: 98}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 							if templ_7745c5c3_Err != nil {

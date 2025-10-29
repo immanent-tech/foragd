@@ -210,7 +210,7 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 			if len(articles) > 0 {
 				template = templates.SimilarArticles(articles)
 			} else {
-				template = templates.NoSearchResults()
+				template = templates.NoSearchResults(nil)
 			}
 			renderPage(template, templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
 		default:

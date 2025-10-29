@@ -63,7 +63,7 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 								<input type="hidden" name="view" value={ search.View }/>
 								<input type="hidden" name="published_within" value={ string(search.PublishedWithin) }/>
 								if len(search.Subscriptions) > 0 {
-									<input type="hidden" name="authors" value={ strings.Join(search.Subscriptions, ",") }/>
+									<input type="hidden" name="subscriptions" value={ strings.Join(search.Subscriptions, ",") }/>
 								}
 								if search.Authors != "" {
 									<input type="hidden" name="authors" value={ search.Authors }/>

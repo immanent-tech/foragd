@@ -477,13 +477,11 @@ templ (page *SearchResultsPage) Content() {
 				</dd>
 			</el-disclosure>
 		</div>
-		<div id="favorite-button" class="fixed bottom-20 sm:bottom-4 right-4">
-			if page.favoriteID != "" {
-				@RemoveFavoriteSearchButton(page.favoriteID)
-			} else {
-				@AddFavoriteSearchButton()
-			}
-		</div>
+		if page.favoriteID != "" {
+			@RemoveFavoriteSearchButton(page.favoriteID)
+		} else {
+			@AddFavoriteSearchButton()
+		}
 		// Show results.
 		@Grid() {
 			for article := range slices.Values(page.articles) {
@@ -549,50 +547,54 @@ templ (page *SearchResultsPage) Content() {
 // AddFavoriteSearchButton renders a button that the user can action to favorite the search. It presents a modal to name
 // the search (name is required) before saving.
 templ AddFavoriteSearchButton() {
-	<button type="button" command="show-modal" commandfor="add-favorite-search" class="btn btn-primary btn-square">
-		<span class="sr-only">Add favorite search</span>
-		@tabler.Heart(i.Props{Class: "size-4"})
-	</button>
-	<el-dialog>
-		<dialog id="add-favorite-search" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
-			<el-dialog-backdrop class="fixed inset-0 bg-base-100/80 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
-			<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
-				<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-sm sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
-					<form
-						hx-post="/user/favorite/add/search"
-						hx-target="#favorite-button"
-						hx-include="#current-search-filters,[name='csrf_token']"
-						hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
-					>
-						<div>
-							<div class="mt-3 sm:mt-5">
-								<fieldset class="fieldset">
-									<legend class="fieldset-legend">Name this search</legend>
-									<input type="text" class="input" name="search_name" required placeholder="Type here"/>
-								</fieldset>
+	<div id="favorite-button" class="fixed bottom-20 sm:bottom-4 right-4">
+		<button type="button" command="show-modal" commandfor="add-favorite-search" class="btn btn-primary btn-square">
+			<span class="sr-only">Add favorite search</span>
+			@tabler.Heart(i.Props{Class: "size-4"})
+		</button>
+		<el-dialog>
+			<dialog id="add-favorite-search" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
+				<el-dialog-backdrop class="fixed inset-0 bg-base-100/80 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
+				<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
+					<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-sm sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
+						<form
+							hx-post="/user/favorite/add/search"
+							hx-target="#favorite-button"
+							hx-include="#current-search-filters,[name='csrf_token']"
+							hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
+						>
+							<div>
+								<div class="mt-3 sm:mt-5">
+									<fieldset class="fieldset">
+										<legend class="fieldset-legend">Name this search</legend>
+										<input type="text" class="input" name="search_name" required placeholder="Type here"/>
+									</fieldset>
+								</div>
 							</div>
-						</div>
-						<div class="mt-5 sm:mt-6 text-center">
-							<button type="button" command="close" commandfor="add-favorite-search" class="btn btn-secondary">Close</button>
-							<button type="submit" class="btn btn-primary">Save</button>
-						</div>
-					</form>
-				</el-dialog-panel>
-			</div>
-		</dialog>
-	</el-dialog>
+							<div class="mt-5 sm:mt-6 text-center">
+								<button type="button" command="close" commandfor="add-favorite-search" class="btn btn-secondary">Close</button>
+								<button type="submit" class="btn btn-primary">Save</button>
+							</div>
+						</form>
+					</el-dialog-panel>
+				</div>
+			</dialog>
+		</el-dialog>
+	</div>
 }
 
 templ RemoveFavoriteSearchButton(id models.FavoriteID) {
-	<button
-		class="btn btn-primary btn-square"
-		hx-post="/user/favorite/remove/search"
-		hx-target="#favorite-button"
-		hx-include="#current-search-filters,[name='csrf_token']"
-		hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
-	>
-		@tabler.HeartFilled(i.Props{Class: "size-4"})
-	</button>
+	<div id="favorite-button" class="fixed bottom-20 sm:bottom-4 right-4">
+		<button
+			class="btn btn-primary btn-square"
+			hx-post="/user/favorite/remove/search"
+			hx-target="#favorite-button"
+			hx-include="#current-search-filters,[name='csrf_token']"
+			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
+		>
+			@tabler.HeartFilled(i.Props{Class: "size-4"})
+		</button>
+	</div>
 }
 
 templ showSearchResult(result models.Object) {
@@ -653,7 +655,7 @@ templ SimilarArticles(articles models.Articles) {
 }
 
 // NoSearchResults renders an informational message for when no search results were returned.
-templ NoSearchResults() {
+templ NoSearchResults(fav *models.Favorite) {
 	<div class="text-center">
 		<h1 class="mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-4xl">Nothing found 😕</h1>
 		<p class="mt-6 text-lg font-medium text-pretty text-base-content sm:text-xl/8">Looks like there are no matches for that search.</p>
@@ -669,5 +671,8 @@ templ NoSearchResults() {
 				class="btn btn-primary btn-soft"
 			>Home</a>
 		</div>
+		if fav != nil {
+			@AddFavoriteSearchButton()
+		}
 	</div>
 }

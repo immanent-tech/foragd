@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/angelofallars/htmx-go"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -73,6 +74,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
+		godump.Dump(request)
 		favoriteID := req.FormValue("search_id")
 		if favoriteID == "" {
 			favoriteID = request.ID()
@@ -126,7 +128,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req)
 		default:
-			template := templates.NoSearchResults()
+			template := templates.NoSearchResults(fav)
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req)
 		}

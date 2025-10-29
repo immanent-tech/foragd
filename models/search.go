@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/goforj/godump"
 	"github.com/gohugoio/hashstructure"
 	"github.com/immanent-tech/go-syndication/sanitization"
 
@@ -27,6 +28,10 @@ func NewSearchRequest() *SearchRequest {
 
 // Valid returns a boolean indicating whether the search request data is valid.
 func (r *SearchRequest) Valid() (bool, error) {
+	// Split subscriptions field.
+	if len(r.Subscriptions) == 1 {
+		r.Subscriptions = strings.Split(r.Subscriptions[0], ",")
+	}
 	valid, err := validation.ValidateStruct(r)
 	if !valid || err != nil {
 		return false, fmt.Errorf("search request is invalid: %w", err)
@@ -80,6 +85,7 @@ func (r *SearchRequest) params() url.Values {
 	if len(r.Subscriptions) > 0 {
 		params.Set("subscriptions", strings.Join(r.Subscriptions, ","))
 	}
+	godump.Dump(r)
 	params.Set("view", string(r.View))
 	params.Set("published_within", string(r.PublishedWithin))
 	params.Set("timezone", r.Timezone)
