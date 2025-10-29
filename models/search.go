@@ -27,10 +27,6 @@ func NewSearchRequest() *SearchRequest {
 
 // Valid returns a boolean indicating whether the search request data is valid.
 func (r *SearchRequest) Valid() (bool, error) {
-	// Split subscriptions field.
-	if len(r.Subscriptions) == 1 {
-		r.Subscriptions = strings.Split(r.Subscriptions[0], ",")
-	}
 	valid, err := validation.ValidateStruct(r)
 	if !valid || err != nil {
 		return false, fmt.Errorf("search request is invalid: %w", err)
@@ -40,9 +36,26 @@ func (r *SearchRequest) Valid() (bool, error) {
 
 // Sanitise will sanitise the search request data.
 func (r *SearchRequest) Sanitise() error {
+	// Split and sanitise subscriptions field.
+	if len(r.Subscriptions) == 1 {
+		r.Subscriptions = strings.Split(r.Subscriptions[0], ",")
+	}
+	for idx, subscription := range r.Subscriptions {
+		r.Subscriptions[idx] = sanitization.SanitizeString(subscription)
+	}
 	r.Text = sanitization.SanitizeString(r.Text)
 	r.Authors = sanitization.SanitizeString(r.Authors)
 	r.Categories = sanitization.SanitizeString(r.Categories)
+	// Set some defaults if for some reason these fields do not have values.
+	if r.Timezone == "" {
+		r.Timezone = "UTC"
+	}
+	if r.PublishedWithin == "" {
+		r.PublishedWithin = SearchRequestPublishedWithinAllTime
+	}
+	if r.View == "" {
+		r.View = ViewUnread
+	}
 	return nil
 }
 
