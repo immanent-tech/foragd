@@ -177,8 +177,14 @@ func (s *Server) setupAPI(ctx context.Context) (*handlers.API, error) {
 //nolint:funlen
 func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 	rateLimiter := middlewares.NewRateLimiter()
+
 	// Set up a new chi router.
 	router := chi.NewRouter()
+
+	// Health check endpoints (for GCP).
+	router.Use(middleware.Heartbeat("/livenessProbe"))
+
+	// Standard middleware stack.
 	router.Use(
 		middleware.RequestID,
 		middleware.Recoverer,
@@ -197,13 +203,6 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		middlewares.SaveCSRFToken,
 		middlewares.RateLimit(rateLimiter),
 	)
-
-	// Routes.
-	//
-	// Liveness probe.
-	router.HandleFunc("/livenessProbe", func(res http.ResponseWriter, req *http.Request) {
-		fmt.Fprint(res, "I'm alive!")
-	})
 
 	// Static content.
 	router.Group(func(r chi.Router) {
