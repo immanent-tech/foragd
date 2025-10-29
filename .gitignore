@@ -11,7 +11,7 @@
 go.work
 
 # Environment files.
-.env*
+**/.env*
 
 # Don't include local server configuration.
 server.toml
