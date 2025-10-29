@@ -6,7 +6,6 @@ package server
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"math"
 	"time"
@@ -44,8 +43,6 @@ var cfg = &Config{
 	IdleTimeout:  120 * time.Second,
 }
 
-var ErrLoadConfig = errors.New("error loading config")
-
 // Config contains the server configuration options.
 type Config struct {
 	Secret       string        `toml:"app_secret"`
@@ -57,6 +54,7 @@ type Config struct {
 	ReadTimeout  time.Duration `toml:"read_timeout"`
 	WriteTimeout time.Duration `toml:"write_timeout"`
 	IdleTimeout  time.Duration `toml:"idle_timeout"`
+	ImgproxyURL  string        `toml:"imgproxy_url"`
 }
 
 func randomBase16String(length int) (string, error) {

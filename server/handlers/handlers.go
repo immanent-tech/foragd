@@ -98,12 +98,12 @@ func StaticFileServerHandler(fs http.FileSystem) http.Handler {
 	})
 }
 
-func ImageProxy() http.HandlerFunc {
+func ImageProxy(proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		url := chi.URLParam(req, "*")
 		// image := filepath.Base(url)
 		// host := filepath.Dir(url)
-		resp, err := http.Get("http://imgproxy:8080/https://" + url)
+		resp, err := http.Get(proxyURLBase + url)
 		if err != nil {
 			res.WriteHeader(resp.StatusCode)
 			return fmt.Errorf("unable to proxy image: %w", err)

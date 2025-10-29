@@ -210,7 +210,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.Handle("/content/*", handlers.StaticFileServerHandler(http.FS(web.StaticContent)))
 	})
 
-	router.Get("/img-proxy/*", handlers.ImageProxy())
+	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgproxyURL))
 
 	// Error handling.
 	router.NotFound(handlers.NotFound())
