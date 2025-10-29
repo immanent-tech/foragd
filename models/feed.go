@@ -137,14 +137,14 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 				)
 			}
 		}
-		feed = NewFeedFromSource(result.Feed)
+		feed = NewFeedFromSource(url, result.Feed)
 	}
 
 	return feed, nil
 }
 
 // NewFeedFromSource converts the raw types.FeedSource into a Feed object.
-func NewFeedFromSource(source *feeds.Feed) *Feed {
+func NewFeedFromSource(url string, source *feeds.Feed) *Feed {
 	feed := &Feed{
 		FeedID:       NewID(FeedPFX),
 		CreatedAt:    time.Now().UTC(),
@@ -154,7 +154,7 @@ func NewFeedFromSource(source *feeds.Feed) *Feed {
 		Title:        source.GetTitle(),
 		Description:  source.GetDescription(),
 		SourceType:   FeedSourceType(source.SourceType),
-		SourceURLs:   source.Links(),
+		SourceURLs:   []string{source.GetSourceURL()},
 		URL:          source.GetLink(),
 		Authors:      source.GetAuthors(),
 		Contributors: source.GetContributors(),
@@ -162,7 +162,10 @@ func NewFeedFromSource(source *feeds.Feed) *Feed {
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
 	}
-
+	// Add the url used to find the feed to the source URLs if needed.
+	if !slices.Contains(feed.SourceURLs, url) {
+		feed.SourceURLs = append(feed.SourceURLs, url)
+	}
 	if source.GetImage() != nil {
 		feed.Image = *source.GetImage()
 	}

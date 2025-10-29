@@ -481,7 +481,7 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 			<form
 				id="add-subscription"
 				hx-post="/user/subscription/add"
-				hx-target={ ContentID.Target() }
+				hx-swap="none"
 				hx-include="[name='user_categories'],[name='csrf_token']"
 				hx-indicator="#processing"
 				hx-on::after-request="if(event.detail.successful) this.reset()"
@@ -546,37 +546,6 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 			</div>
 		</div>
 	}
-}
-
-// AddSubscriptionSuccess displays success feedback and navigation options on successful addition of a subscription.
-templ AddSubscriptionSuccess(result *models.SubscriptionResult) {
-	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
-	<div class="text-center">
-		@tabler.CircleCheck(i.Props{Class: "size-12 mx-auto text-success"})
-		<h3 class="mt-2 text-base font-semibold">Subscription added: { result.Subscription.GetTitle() }</h3>
-		<p class="mt-1 text-sm text-base-content">Articles will be fetched shortly...</p>
-		<div class="mt-6">
-			<button
-				type="button"
-				hx-get="/list/subscriptions"
-				hx-target={ ContentID.Target() }
-				hx-vals={ models.GenerateHXVals(filters.Values()) }
-				hx-push-url="true"
-				class="btn btn-outline hover:bg-accent"
-			>
-				Go to subscriptions
-			</button>
-			<button
-				type="button"
-				hx-get="/user/subscription/add"
-				hx-target={ ContentID.Target() }
-				hx-push-url="true"
-				class="btn btn-outline hover:bg-accent"
-			>
-				Add another
-			</button>
-		</div>
-	</div>
 }
 
 // ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).

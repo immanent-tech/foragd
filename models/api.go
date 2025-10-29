@@ -356,19 +356,8 @@ func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscrip
 }
 
 func MatchRequestToFeed(ctx context.Context, dataAPI DataAPI, req *SubscriptionRequest) (*Feed, error) {
-	// Generate query. Match URL in either source_urls or (website) url.
-	feedMatchQuery := query.Bool(
-		query.Filter(
-			query.Bool(
-				query.Should(
-					query.Term("source_urls", req.GetURL()),
-					query.Term("url", req.GetURL()),
-				),
-			),
-		),
-	)
 	// Find matches.
-	feeds, _, err := dataAPI.SearchFeeds(ctx, feedMatchQuery, 1, nil, nil)
+	feeds, _, err := dataAPI.SearchFeeds(ctx, query.Term("source_urls", req.GetURL()), 1, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to match request to feed: %w", err)
 	}

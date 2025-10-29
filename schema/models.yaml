@@ -495,6 +495,7 @@ components:
           required:
             - feed_id
             - source_urls
+            - web_urls
             - created_at
             - last_fetched
           properties:
@@ -502,7 +503,7 @@ components:
               $ref: '#/components/schemas/FeedID'
             source_urls:
               description: >
-                is a list of URLs that point to the feed source.
+                is a list of URLs that point to the feed source. These might be either the website corresponding to the feed or the
               type: array
               items:
                 $ref: '#/components/schemas/URL'

@@ -166,8 +166,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 				}
 			}
 
-			template := templates.AddSubscriptionSuccess(&result)
-			renderPage(template, "Add Subscription Results").ServeHTTP(res, req)
+			renderPartial(templates.Notification(&result.Message, 0)).ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP
