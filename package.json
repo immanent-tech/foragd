@@ -5,8 +5,6 @@
   "license": "AGPL-3.0-or-later",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
-    "build:parcel": "parcel build ./web/assets/scripts.js ./web/assets/styles.css --dist-dir ./web/content",
-    "build:parcel:dev": "parcel build ./web/assets/scripts.js ./web/assets/styles.css --dist-dir ./web/content --log-level verbose",
     "build:js": "bunx esbuild ./web/assets/scripts.js --bundle --sourcemap --outdir=./web/content/",
     "build:css": "bunx tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
   },
@@ -21,10 +19,10 @@
     "htmx.org": "^2.0.8",
     "hyperscript.org": "^0.9.14",
     "idiomorph": "^0.7.4",
-    "release-please": "^17.1.3",
     "tailwindcss": "^4.1.16"
   },
   "devDependencies": {
+    "release-please": "^17.1.3",
     "@eslint/js": "^9.38.0",
     "@prettier/plugin-xml": "^3.4.2",
     "@tailwindcss/cli": "^4.1.16",
