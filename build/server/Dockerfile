@@ -1,7 +1,7 @@
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-FROM --platform=$BUILDPLATFORM docker.io/alpine:3.22.1 AS builder
+FROM --platform=$BUILDPLATFORM docker.io/alpine:3.22.2 AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -10,9 +10,9 @@ ARG APPVERSION
 WORKDIR /build
 
 # Copy go from official image.
-COPY --from=docker.io/golang:1.25.1-alpine /usr/local/go/ /usr/local/go/
+COPY --from=docker.io/golang:1.25.3-alpine /usr/local/go/ /usr/local/go/
 # Copy bun from official image
-COPY --from=docker.io/oven/bun:1.2.23-alpine /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=docker.io/oven/bun:1.3.1-alpine /usr/local/bin/bun /usr/local/bin/bun
 # Update $PATH.
 ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
 
@@ -43,7 +43,7 @@ RUN go build -ldflags="-s -w -X github.com/immanent-tech/foragd/config.Version=$
 # compress binary with upx
 RUN upx --best --lzma foragd
 
-FROM docker.io/alpine AS server
+FROM docker.io/alpine:3.22.2 AS server
 
 ENV FORAGD_CONTAINER=1
 
