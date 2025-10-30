@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -346,6 +347,8 @@ func AdjustSubscriptionCategories() http.HandlerFunc {
 }
 
 func processSubscriptionRequest(ctx context.Context, api *elastic.API, user *models.User, request *models.SubscriptionRequest, resultsCh chan models.SubscriptionResult) {
+	slogctx.FromCtx(ctx).Debug("Processing subscription request.",
+		slog.String("url", request.GetURL()))
 	result := models.SubscriptionResult{
 		Request: *request,
 	}
@@ -382,6 +385,10 @@ func processSubscriptionRequest(ctx context.Context, api *elastic.API, user *mod
 			resultsCh <- result
 			return
 		}
+		slogctx.FromCtx(ctx).Debug("Created new feed for request.",
+			slog.String("name", newFeed.GetTitle()),
+			slog.String("urls", strings.Join(newFeed.GetSourceURLs(), ",")),
+		)
 		feed = newFeed
 	}
 	// Check if user already subscribed.
