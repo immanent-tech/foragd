@@ -686,7 +686,7 @@ func GetPageIssues(api *API) http.HandlerFunc {
 }
 
 // SubmitPageIssues handles processing the user submitted subscription issues form.
-func SubmitPageIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
+func SubmitPageIssues(esapi *API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeForm[*models.IssueRequest](req)
@@ -697,7 +697,15 @@ func SubmitPageIssues(esapi *API, ghapi *github.Client) http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
 		// Create the issue in Github.
-		err = ghapi.CreateIssue(req.Context(), request)
+		err = github.Connect()
+		if err != nil {
+			res.Header().Add(htmx.HeaderReswap, "none")
+			renderPartial(templates.ServerErrorNotification(
+				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
+			)).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("unable to connect to github: %w", err), http.StatusInternalServerError)
+		}
+		err = github.CreateIssue(req.Context(), request)
 		if err != nil {
 			res.Header().Add(htmx.HeaderReswap, "none")
 			renderPartial(templates.ServerErrorNotification(

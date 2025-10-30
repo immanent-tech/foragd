@@ -27,7 +27,6 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/session"
@@ -44,8 +43,7 @@ type Server struct {
 }
 
 type APIs struct {
-	auth   *auth0.Authenticator
-	github *github.Client
+	auth *auth0.Authenticator
 }
 
 // NewServer sets up a new server.
@@ -65,12 +63,6 @@ func NewServer(ctx context.Context, env string) (Server, error) {
 		return svr, fmt.Errorf("unable start server: %w", err)
 	}
 	svr.apis.auth = authapi
-	// Set up github api.
-	ghapi, err := github.NewClient(ctx)
-	if err != nil {
-		return svr, fmt.Errorf("unable start server: %w", err)
-	}
-	svr.apis.github = ghapi
 	// Set up handlers api.
 	api, err := svr.setupAPI(ctx)
 	if err != nil {
@@ -255,7 +247,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/mark/{object}/{id}/{mark}", handlers.MarkObject(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/similar", handlers.FindSimilar(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues(handler.Elastic, s.apis.github))
+		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Get("/remove/{object}/{id}", handlers.ConfirmRemoveObject(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/remove/{object}/{id}", handlers.RemoveObject(handler.Elastic))
 		// Subscription specific.
@@ -267,7 +259,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		})
 		// General.
 		r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues(handler))
-		r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues(handler, s.apis.github))
+		r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues(handler))
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {

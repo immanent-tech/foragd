@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 
 	"github.com/goforj/godump"
 	"github.com/gofri/go-github-ratelimit/v2/github_ratelimit"
@@ -21,16 +22,14 @@ import (
 	"github.com/immanent-tech/foragd/models"
 )
 
-// Client provides access to the Github API.
-type Client struct {
-	*github.Client
-}
+var client *github.Client
 
-// NewClient creates a new client for using the Github API.
-func NewClient(ctx context.Context) (*Client, error) {
+// Connect will create a client connection with the GitHub API. The connection will be cached for re-use. It is safe to
+// call multiple times, with subsequent calls being no-ops.
+var Connect = sync.OnceValue(func() error {
 	err := LoadConfigOnce()
 	if err != nil {
-		return nil, fmt.Errorf("unable to create github client: %w", err)
+		return fmt.Errorf("unable to create github client: %w", err)
 	}
 
 	// Generate app installation token.
@@ -38,11 +37,11 @@ func NewClient(ctx context.Context) (*Client, error) {
 	// https://github.com/jferrl/go-githubauth?tab=readme-ov-file#generate-github-app-installation-token
 	data, err := base64.StdEncoding.DecodeString(cfg.Key)
 	if err != nil {
-		return nil, fmt.Errorf("unable to use github api: %w", err)
+		return fmt.Errorf("unable to use github api: %w", err)
 	}
 	appTokenSource, err := githubauth.NewApplicationTokenSource(cfg.ClientID, data)
 	if err != nil {
-		return nil, fmt.Errorf("unable to use github api: %w", err)
+		return fmt.Errorf("unable to use github api: %w", err)
 	}
 	installationTokenSource := githubauth.NewInstallationTokenSource(int64(cfg.InstallationID), appTokenSource)
 
@@ -53,12 +52,13 @@ func NewClient(ctx context.Context) (*Client, error) {
 	rateLimiter.Jar = httpClient.Jar
 	rateLimiter.CheckRedirect = httpClient.CheckRedirect
 	rateLimiter.Timeout = httpClient.Timeout
-	githubClient := github.NewClient(rateLimiter)
-	return &Client{Client: githubClient}, nil
-}
+	client = github.NewClient(rateLimiter)
+	slog.Debug("GitHub client connected.")
+	return nil
+})
 
 // CreateObjectIssue creates a new issue in Github about problems with a particular object reported by a user.
-func (c *Client) CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) error {
+func CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) error {
 	title := "Object Issue: " + string(details.Object)
 	labels := []string{"subscription"}
 	// Build issue body.
@@ -96,7 +96,7 @@ func (c *Client) CreateObjectIssue(ctx context.Context, details *models.ObjectIs
 		Labels: &labels,
 	}
 	ctx = context.WithValue(ctx, github.BypassRateLimitCheck, true)
-	issue, response, err := c.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
+	issue, response, err := client.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
 	var priRateErr *github.RateLimitError
 	if errors.As(err, &priRateErr) {
 		slogctx.FromCtx(ctx).Warn("Hit primary rate limit.",
@@ -104,7 +104,7 @@ func (c *Client) CreateObjectIssue(ctx context.Context, details *models.ObjectIs
 			slog.Int("limit", priRateErr.Rate.Limit))
 	}
 	var secRateErr *github.AbuseRateLimitError
-	if errors.As(err, &priRateErr) {
+	if errors.As(err, &secRateErr) {
 		slogctx.FromCtx(ctx).Warn("Hit secondary rate limit.",
 			slog.Duration("retry_after", *secRateErr.RetryAfter))
 	}
@@ -116,7 +116,7 @@ func (c *Client) CreateObjectIssue(ctx context.Context, details *models.ObjectIs
 }
 
 // CreateIssue creates a new issue in Github about problems with the app reported by a user.
-func (c *Client) CreateIssue(ctx context.Context, details *models.IssueRequest) error {
+func CreateIssue(ctx context.Context, details *models.IssueRequest) error {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to create app issue: %w", err)
@@ -144,7 +144,7 @@ func (c *Client) CreateIssue(ctx context.Context, details *models.IssueRequest) 
 		Labels: &labels,
 	}
 	ctx = context.WithValue(ctx, github.BypassRateLimitCheck, true)
-	issue, response, err := c.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
+	issue, response, err := client.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
 	var priRateErr *github.RateLimitError
 	if errors.As(err, &priRateErr) {
 		slogctx.FromCtx(ctx).Warn("Hit primary rate limit.",
@@ -152,7 +152,7 @@ func (c *Client) CreateIssue(ctx context.Context, details *models.IssueRequest) 
 			slog.Int("limit", priRateErr.Rate.Limit))
 	}
 	var secRateErr *github.AbuseRateLimitError
-	if errors.As(err, &priRateErr) {
+	if errors.As(err, &secRateErr) {
 		slogctx.FromCtx(ctx).Warn("Hit secondary rate limit.",
 			slog.Duration("retry_after", *secRateErr.RetryAfter))
 	}

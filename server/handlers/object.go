@@ -353,7 +353,7 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 }
 
 // SubmitObjectIssues handles processing the issue form and creating a github issue with the details.
-func SubmitObjectIssues(esapi *elastic.API, ghapi *github.Client) http.HandlerFunc {
+func SubmitObjectIssues(esapi *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeForm[*models.ObjectIssueRequest](req)
@@ -363,8 +363,15 @@ func SubmitObjectIssues(esapi *elastic.API, ghapi *github.Client) http.HandlerFu
 			)).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
+		err = github.Connect()
+		if err != nil {
+			renderPartial(templates.ServerErrorNotification(
+				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
+			)).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("unable to connect to github: %w", err), http.StatusInternalServerError)
+		}
 		// Create the issue in Github.
-		err = ghapi.CreateObjectIssue(req.Context(), request)
+		err = github.CreateObjectIssue(req.Context(), request)
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
