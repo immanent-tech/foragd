@@ -412,4 +412,6 @@ func processSubscriptionRequest(ctx context.Context, api *elastic.API, user *mod
 	// Add subscription details to the result.
 	result.Subscription = *subscription
 	result.Message = *models.NewSuccessMessage("Subscription Created: "+feed.GetTitle(), "Articles will be fetched shortly...")
+	// Send the result back through the channel.
+	resultsCh <- result
 }
