@@ -43,7 +43,8 @@
     "css",
     "search",
     "pkg",
-    "cli"
+    "cli",
+    "types"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
