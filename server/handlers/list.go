@@ -184,6 +184,7 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 		res.Header().Set("Content-Type", "text/event-stream")
 		res.Header().Set("Cache-Control", "no-cache")
 		res.Header().Set("Connection", "keep-alive")
+		res.Header().Set("X-Accel-Buffering", "no")
 		if f, ok := res.(http.Flusher); ok {
 			f.Flush()
 		} else {
