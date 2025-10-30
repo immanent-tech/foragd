@@ -9,15 +9,11 @@ package config
 import (
 	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
-	"os"
 	"strings"
 	"sync"
 
-	"github.com/knadh/koanf/parsers/toml/v2"
 	"github.com/knadh/koanf/providers/env"
-	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 )
 
@@ -27,12 +23,10 @@ const (
 	// AppID is the application name formatted for use as an ID.
 	AppID = "foragd-app"
 	// AppDescription is the catch-line of the application.
-	AppDescription = "Gather the information important to you"
+	AppDescription = "Gather what's important to you"
 	// ConfigEnvPrefix defines the environment variable prefix for reading
 	// server configuration from the environment.
 	ConfigEnvPrefix = "FORAGD_"
-	// ConfigFile is the location of the server configuration file.
-	ConfigFile = "server.toml"
 )
 
 // Config contains the global (app) configuration options.
@@ -64,30 +58,8 @@ var Init = sync.OnceValue(func() error {
 	if Version == "_UNKNOWN_" {
 		return fmt.Errorf("%w: version not set correctly", ErrLoadConfig)
 	}
-	// // Read the version from the release-please manifest.
-	// data, err := os.ReadFile("./.release-please-manifest.json")
-	// if err != nil {
-	// 	return fmt.Errorf("%w: unable to open release manifest: %w", ErrLoadConfig, err)
-	// }
-	// var versionInfo map[string]string
-	// err = json.Unmarshal(data, &versionInfo)
-	// if err != nil {
-	// 	return fmt.Errorf("%w: unable to parse release manifest: %w", ErrLoadConfig, err)
-	// }
-	// if v, found := versionInfo["."]; !found {
-	// 	return fmt.Errorf("%w: unable to find version in release manifest", ErrLoadConfig)
-	// } else {
-	// 	Version = v
-	// }
-	// Load config file
-	err := configSrc.Load(file.Provider(ConfigFile), toml.Parser())
-	if err != nil {
-		slog.Warn("No config file found.",
-			slog.Any("error", err),
-		)
-	}
-	// Merge config with any environment variables.
-	err = configSrc.Load(env.Provider(ConfigEnvPrefix, ".", func(s string) string {
+	// Load environment variables.
+	err := configSrc.Load(env.Provider(ConfigEnvPrefix, ".", func(s string) string {
 		return strings.Replace(strings.ToLower(strings.TrimPrefix(s, ConfigEnvPrefix)), "_", ".", 1)
 	}), nil)
 	if err != nil {
@@ -111,16 +83,8 @@ var Init = sync.OnceValue(func() error {
 // Components should take care to ensure this is called only once, where
 // required.
 func Load(configPrefix, envPrefix string, cfg any) error {
-	// Load config file
-	err := configSrc.Load(file.Provider(ConfigFile), toml.Parser())
-	pathErr := &fs.PathError{}
-	if errors.As(err, &pathErr) {
-		if !errors.Is(pathErr, os.ErrNotExist) {
-			return fmt.Errorf("unable to load config: %w", err)
-		}
-	}
-	// Merge config with any environment variables.
-	err = configSrc.Load(env.Provider(envPrefix, ".", func(s string) string {
+	// Load environment variables.
+	err := configSrc.Load(env.Provider(envPrefix, ".", func(s string) string {
 		return strings.Replace(strings.ToLower(strings.TrimPrefix(s, envPrefix)), "_", ".", 1)
 	}), nil)
 	if err != nil {

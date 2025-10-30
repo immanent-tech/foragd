@@ -45,7 +45,6 @@ var cfg = &Config{
 
 // Config contains the server configuration options.
 type Config struct {
-	Secret       string        `toml:"app_secret"`
 	CSP          []string      `toml:"csp"`
 	Port         int           `toml:"port"`
 	Host         string        `toml:"host"`
