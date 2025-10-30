@@ -133,6 +133,9 @@ func (a *Article) GetFeedID() FeedID {
 
 // GetTitle returns the title of the article.
 func (a *Article) GetTitle() string {
+	if a.Item.GetTitle() == "" {
+		return "(no title)"
+	}
 	return a.Item.GetTitle()
 }
 

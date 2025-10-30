@@ -119,22 +119,24 @@ templ ArticleCard(article *models.Article) {
 								</div>
 							</form>
 							// Share action.
-							<a
-								_={ "on click set currentValue to (my innerHTML) then writeText('" + article.GetLink() + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
-								class={ "link link-hover", "context-menu-item-base" }
-							>
+							@NewLink(
+								WithCustomAttribute("_",
+									"on click set currentValue to (my innerHTML) then writeText('"+article.GetLink()+"') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me",
+								),
+								WithClasses("context-menu-item-base"),
+							) {
 								@tabler.Share(i.Props{Class: "size-4"})
 								Share
-							</a>
+							}
 							// Report issue action.
-							<a
-								hx-get={ article.IssueURL() }
-								hx-target={ ContentID.Target() }
-								class="link link-hover context-menu-item-base"
-							>
+							@NewLink(
+								WithHXMethod(http.MethodGet, article.IssueURL()),
+								WithHXTarget(ContentID.Target()),
+								WithClasses("context-menu-item-base"),
+							) {
 								@tabler.FlagFilled(i.Props{Class: "size-4"})
 								Report an issue
-							</a>
+							}
 						}
 					</div>
 				</div>
@@ -153,11 +155,7 @@ templ ArticleContent(article *models.Article) {
 			<article id={ article.GetID() } class="prose prose-sm sm:prose-lg dark:prose-invert">
 				<div class="flex mt-4 max-w-prose">
 					<h2 class="flex flex-1 items-center justify-between text-2xl/7 sm:text-3xl font-bold tracking-tight">
-						if article.GetTitle() != "" {
-							{ article.GetTitle() }
-						} else {
-							(no title)
-						}
+						{ article.GetTitle() }
 						<el-dropdown class="flex flex-none">
 							<button class="inline-flex flex-col items-center">
 								<span class="sr-only">Article Actions</span>
@@ -299,14 +297,11 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 		<div class="flex items-center justify-between mt-4">
 			<div class="min-w-0 flex-1">
 				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">
-					// { filters.GetView() }
-					Articles
-					// switch  {
-					// 	case filters.GetSort() == models.SortLastUpdatedDesc:
-					// 		Newest First
-					// 	case filters.GetSort() == models.SortLastUpdatedAsc:
-					// 		Oldest First
-					// }
+					if len(articles.GetSubscriptionIDs()) == 1 {
+						{ articles[0].GetFeedTitle() }
+					} else {
+						Articles
+					}
 				</h2>
 			</div>
 			// Actions menu.
