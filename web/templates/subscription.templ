@@ -79,22 +79,21 @@ templ SubscriptionCard(s *models.Subscription) {
 			</div>
 			// Display up to 5 of the subscription categories.
 			if len(s.GetCategories(0)) > 0 {
-				<div class="flex justify-center card-section">
+				<div class="flex justify-center">
 					<div class="flex flex-row flex-wrap place-content-center p-2 gap-2">
 						for category := range slices.Values(s.GetCategories(5)) {
 							{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
 							{{ filters[models.ParamCategories] = category }}
-							<a
-								hx-get="/list/subscriptions"
-								hx-push-url="true"
-								hx-target={ ContentID.Target() }
-								hx-vals={ models.GenerateHXVals(filters) }
-								class="link link-hover"
-							>
-								<div class="flex gap-2 text-sm capitalize">
-									<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{ category } </span>
+							@NewLink(
+								WithHXMethod(http.MethodGet, "/list/subscriptions"),
+								WithHXTarget(ContentID.Target()),
+								WithHXPushURL(),
+								WithHXVals(filters),
+							) {
+								<div class="flex gap-2 capitalize">
+									<div class="badge badge-accent badge-soft badge-sm">{ category }</div>
 								</div>
-							</a>
+							}
 						}
 					</div>
 				</div>
