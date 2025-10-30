@@ -27,7 +27,7 @@ import (
 
 // Home handles displaying the user's home page.
 func (a *API) Home() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.Append(setCacheControl).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		pageTitle := templates.GeneratePageTitle("Home")
 		ctx := req.Context()
 		user, err := models.UserFromCtx(ctx)

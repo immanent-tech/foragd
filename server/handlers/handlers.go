@@ -283,3 +283,10 @@ func storePath(next http.Handler) http.Handler {
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
+
+func setCacheControl(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Add("Cache-Control", "max-age=60, must-revalidate")
+		next.ServeHTTP(res, req)
+	})
+}
