@@ -20,8 +20,6 @@ const (
 
 var defaultCSP = []string{
 	"default-src 'self' https://dev-zuc8oqf6gd86s4rw.us.auth0.com;",
-	"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
-	"font-src 'self' data: https://fonts.gstatic.com;",
 	"script-src 'self' 'unsafe-eval' 'unsafe-inline';",
 	"connect-src 'self' wss://localhost:*  https://dev-zuc8oqf6gd86s4rw.us.auth0.com;",
 	"img-src 'self' https: data:;",
