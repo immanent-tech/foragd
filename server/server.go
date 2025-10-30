@@ -176,7 +176,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 	router := chi.NewRouter()
 
 	// Health check endpoints (for GCP).
-	router.Use(middleware.Heartbeat("/livenessProbe"))
+	router.Use(middleware.Heartbeat("/health-check"))
 
 	// Standard middleware stack.
 	router.Use(
