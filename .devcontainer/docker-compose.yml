@@ -345,3 +345,4 @@ services:
       - ../deployments/imgproxy:/tmp/imageproxy
     environment:
       - IMAGEPROXY_CACHE=/tmp/imageproxy
+      - IMAGEPROXY_VERBOSE=true
