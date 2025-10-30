@@ -109,24 +109,32 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 	return subscriptions, pagination, nil
 }
 
-func CreateSubscription(ctx context.Context, dataAPI DataAPI, request *SubscriptionRequest, feed *Feed) (*Subscription, error) {
+func CreateSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*SubscriptionResult) error {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create subscription: could not determine user: %w", err)
+		return fmt.Errorf("unable to create subscription: could not determine user: %w", err)
 	}
-	// Generate metadata.
-	metadata := NewSubscriptionMetadata(user, feed, request)
-	valid, err := metadata.Valid()
-	if err != nil || !valid {
-		return nil, fmt.Errorf("unable to create subscription: invalid metadata: %w", err)
-	}
-	// Generate subscription.
-	subscription, err := GenerateSubscription(user, metadata, feed, 0)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create subscription: %w", err)
+	subscriptionsMetadata := make([]*SubscriptionMetadata, 0, len(results))
+	for result := range slices.Values(results) {
+		// Generate metadata.
+		metadata := NewSubscriptionMetadata(user, &result.Feed, &result.Request)
+		valid, err := metadata.Valid()
+		if err != nil || !valid {
+			result.Error = fmt.Errorf("unable to create subscription: invalid metadata: %w", err)
+			continue
+		}
+		// Generate subscription.
+		subscription, err := GenerateSubscription(user, metadata, &result.Feed, 0)
+		if err != nil {
+			result.Error = fmt.Errorf("unable to create subscription: %w", err)
+			continue
+		}
+		result.Subscription = *subscription
+		subscriptionsMetadata = append(subscriptionsMetadata, metadata)
+		result.Message = *NewSuccessMessage("Subscription Created: "+result.Feed.GetTitle(), "Articles will be fetched shortly...")
 	}
 	// Add metadata to user.
-	user.AddSubscriptions(metadata)
+	user.AddSubscriptions(subscriptionsMetadata...)
 	// Disable onboarding once a subscription has been added.
 	settings := user.GetSettings()
 	if settings.ShowOnboarding {
@@ -138,9 +146,9 @@ func CreateSubscription(ctx context.Context, dataAPI DataAPI, request *Subscript
 		"settings":      settings,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to create subscription: %w", err)
+		return fmt.Errorf("unable to create subscriptions: %w", err)
 	}
-	return subscription, nil
+	return nil
 }
 
 func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (Subscriptions, error) {

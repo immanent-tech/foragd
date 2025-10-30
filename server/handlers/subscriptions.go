@@ -166,6 +166,13 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					)
 				}
 			}
+			err = models.CreateSubscriptions(req.Context(), a.Elastic, &result)
+			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
+				msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("unable process import request: %w", err), http.StatusInternalServerError)
+			}
 
 			renderPartial(templates.Notification(&result.Message, 0)).ServeHTTP(res, req)
 		}
@@ -246,6 +253,15 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					}
 				}
 			}
+			// Create the subscriptions.
+			err = models.CreateSubscriptions(req.Context(), a.Elastic, results...)
+			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
+				msg := models.NewErrorMessage("Failed to import.", "The backend produced an error. This might be temporary, please try again.")
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("unable process import request: %w", err), http.StatusInternalServerError)
+			}
+			// Display results.
 			msg := models.NewSuccessMessage("OPML import complete.", "Please consult the results and check for any issues.")
 			template := templ.Join(templates.ImportResults(results), templates.Notification(msg, 10*time.Second))
 			renderPartial(template).ServeHTTP(res, req)
@@ -401,17 +417,6 @@ func processSubscriptionRequest(ctx context.Context, api *elastic.API, user *mod
 	}
 	// Add the feed details to the result.
 	result.Feed = *feed
-	// Create the subscription.
-	subscription, err := models.CreateSubscription(ctx, api, request, feed)
-	if err != nil {
-		result.Error = err
-		result.Message = *models.NewErrorMessage("Unable to create user subscription", "The backend produced an error. This might be temporary, please try again.")
-		resultsCh <- result
-		return
-	}
-	// Add subscription details to the result.
-	result.Subscription = *subscription
-	result.Message = *models.NewSuccessMessage("Subscription Created: "+feed.GetTitle(), "Articles will be fetched shortly...")
 	// Send the result back through the channel.
 	resultsCh <- result
 }
