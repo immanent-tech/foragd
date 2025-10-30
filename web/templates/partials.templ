@@ -294,6 +294,7 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 		hx-swap="beforeend"
 		hx-indicator="#content-loading"
 		preload
+		preload-images="true"
 		_="on htmx:afterRequest remove me"
 	></div>
 }
@@ -364,7 +365,7 @@ templ GenerateAvatar(obj models.Object) {
 		<div class="avatar">
 			<div class="rounded-box size-12">
 				<img
-					src={ img.GetURL() }
+					src={ "http://localhost:8080/48/" + img.GetURL() }
 					if img.GetTitle() != "" {
 						alt={ img.GetTitle() }
 					}
