@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -58,15 +59,6 @@ func NewServer(ctx context.Context, env string) (Server, error) {
 	if err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
-	// If no secret is set, create a new secret.
-	if cfg.Secret == "" {
-		secret, err := randomBase16String(32)
-		if err != nil {
-			return svr, fmt.Errorf("unable to generate server secret: %w", err)
-		}
-
-		cfg.Secret = secret
-	}
 	// Set up auth0 api.
 	authapi, err := auth0.New(ctx)
 	if err != nil {
@@ -110,10 +102,6 @@ func NewServer(ctx context.Context, env string) (Server, error) {
 // Start will start the server. It runs a background goroutine to safely shutdown the server when its context is
 // cancelled.
 func (s *Server) Start(ctx context.Context) error {
-	slogctx.FromCtx(ctx).Info("Starting server...",
-		slog.String("address", s.Addr),
-		slog.String("environment", s.environment))
-
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -134,6 +122,12 @@ func (s *Server) Start(ctx context.Context) error {
 			)
 		}
 	}()
+
+	slogctx.FromCtx(ctx).Info("Starting server...",
+		slog.String("address", s.Addr),
+		slog.String("environment", s.environment),
+		slog.Time("start_time", time.Now()),
+	)
 
 	// And we serve HTTP until the world ends.
 	var err error
