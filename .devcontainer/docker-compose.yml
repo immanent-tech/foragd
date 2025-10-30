@@ -343,6 +343,8 @@ services:
     image: ghcr.io/willnorris/imageproxy:0.13.0
     volumes:
       - ../deployments/imgproxy:/tmp/imageproxy
+    ports:
+      - $FORAGD_imgproxy_port:$FORAGD_imgproxy_port
     environment:
       - IMAGEPROXY_CACHE=/tmp/imageproxy
       - IMAGEPROXY_VERBOSE=true
