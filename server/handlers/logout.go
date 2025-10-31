@@ -11,7 +11,7 @@ import (
 )
 
 // Logout handles logout requests.
-func Logout(authAPI *auth0.Authenticator) http.HandlerFunc {
+func Logout() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Delete the session cookie.
 		err := session.Manager.Destroy(req.Context())
@@ -20,7 +20,7 @@ func Logout(authAPI *auth0.Authenticator) http.HandlerFunc {
 			return
 		}
 		// Generate logout URL.
-		logoutURL, err := authAPI.GenerateLogoutURL(req)
+		logoutURL, err := auth0.GenerateLogoutURL(req)
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return

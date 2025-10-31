@@ -28,8 +28,7 @@ func (r *MigrateCmd) Run(opts *MigrateCmd) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	// Load the Elastic backend
-	env := os.Getenv("FORAGD_ENVIRONMENT")
-	elasticClient, err := elastic.Connect(ctx, env)
+	elasticClient, err := elastic.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}

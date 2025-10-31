@@ -25,7 +25,6 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
@@ -37,32 +36,16 @@ import (
 // for static content.
 type Server struct {
 	*http.Server
-
-	apis        *APIs
-	environment string
-}
-
-type APIs struct {
-	auth *auth0.Authenticator
 }
 
 // NewServer sets up a new server.
 func NewServer(ctx context.Context, env string) (Server, error) {
-	svr := Server{
-		environment: env,
-		apis:        &APIs{},
-	}
+	svr := Server{}
 	// Load the server config.
 	err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, cfg)
 	if err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
-	// Set up auth0 api.
-	authapi, err := auth0.New(ctx)
-	if err != nil {
-		return svr, fmt.Errorf("unable start server: %w", err)
-	}
-	svr.apis.auth = authapi
 	// Set up handlers api.
 	api, err := svr.setupAPI(ctx)
 	if err != nil {
@@ -117,7 +100,6 @@ func (s *Server) Start(ctx context.Context) error {
 
 	slogctx.FromCtx(ctx).Info("Starting server...",
 		slog.String("address", s.Addr),
-		slog.String("environment", s.environment),
 		slog.Time("start_time", time.Now()),
 	)
 
@@ -146,7 +128,7 @@ func (s *Server) Start(ctx context.Context) error {
 // SetupAPI creates the object containing the various backend APIs needed by handlers.
 func (s *Server) setupAPI(ctx context.Context) (*handlers.API, error) {
 	// Load the Elastic backend
-	elasticAPI, err := elastic.Connect(ctx, s.environment)
+	elasticAPI, err := elastic.Connect(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to set up elastic api: %w", err)
 	}
@@ -182,7 +164,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 				slogchi.IgnorePathContains("/content", "/favicon"),
 			},
 		}),
-		middlewares.SetupCORS(s.environment),
+		middlewares.SetupCORS(),
 		middlewares.SetupCSP(),
 		middlewares.Etag,
 		middleware.StripSlashes,
@@ -212,10 +194,10 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
 		)
-		r.Get("/login", handlers.Login(s.apis.auth))
-		r.Get("/signup", handlers.Login(s.apis.auth))
-		r.Get("/login/callback", handlers.LoginCallback(s.apis.auth, handler.Elastic))
-		r.Get("/logout", handlers.Logout(s.apis.auth))
+		r.Get("/login", handlers.Login())
+		r.Get("/signup", handlers.Login())
+		r.Get("/login/callback", handlers.LoginCallback(handler.Elastic))
+		r.Get("/logout", handlers.Logout())
 	})
 
 	// Authenticated routes.

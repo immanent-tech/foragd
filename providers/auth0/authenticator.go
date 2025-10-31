@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sync"
 
 	"golang.org/x/oauth2"
 
@@ -23,33 +24,42 @@ type Authenticator struct {
 	oauth2.Config
 }
 
-// New instantiates the *Authenticator.
-func New(ctx context.Context) (*Authenticator, error) {
-	err := LoadConfigOnce()
+var AuthClient *Authenticator
+
+// Connect will create a client connection with the GitHub API. The connection will be cached for re-use. It is safe to
+// call multiple times, with subsequent calls being no-ops.
+var InitAuthenticator = func(ctx context.Context) error {
+	err := sync.OnceValue(func() error {
+		err := LoadConfigOnce()
+		if err != nil {
+			return fmt.Errorf("unable to create authenticator: %w", err)
+		}
+
+		provider, err := oidc.NewProvider(
+			ctx,
+			"https://"+cfg.Domain+"/",
+		)
+		if err != nil {
+			return fmt.Errorf("unable to create authenticator: %w", err)
+		}
+
+		conf := oauth2.Config{
+			ClientID:     cfg.ClientID,
+			ClientSecret: cfg.ClientSecret,
+			RedirectURL:  cfg.CallbackURL,
+			Endpoint:     provider.Endpoint(),
+			Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+		}
+		AuthClient = &Authenticator{
+			Provider: provider,
+			Config:   conf,
+		}
+		return nil
+	})()
 	if err != nil {
-		return nil, fmt.Errorf("unable to create authenticator: %w", err)
+		return err
 	}
-
-	provider, err := oidc.NewProvider(
-		ctx,
-		"https://"+cfg.Domain+"/",
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create authenticator: %w", err)
-	}
-
-	conf := oauth2.Config{
-		ClientID:     cfg.ClientID,
-		ClientSecret: cfg.ClientSecret,
-		RedirectURL:  cfg.CallbackURL,
-		Endpoint:     provider.Endpoint(),
-		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
-	}
-
-	return &Authenticator{
-		Provider: provider,
-		Config:   conf,
-	}, nil
+	return nil
 }
 
 // VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.
@@ -59,9 +69,9 @@ func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) 
 		return nil, ErrNoIDToken
 	}
 	oidcConfig := &oidc.Config{
-		ClientID: a.ClientID,
+		ClientID: AuthClient.ClientID,
 	}
-	id, err := a.Verifier(oidcConfig).Verify(ctx, rawIDToken)
+	id, err := AuthClient.Verifier(oidcConfig).Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, fmt.Errorf("unable to verify token: %w", err)
 	}
@@ -69,7 +79,7 @@ func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) 
 }
 
 // GenerateLogoutURL generates URL to log the user out from the auth backend.
-func (a *Authenticator) GenerateLogoutURL(req *http.Request) (*url.URL, error) {
+func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 	logoutURL, err := url.Parse("https://" + cfg.Domain + "/v2/logout")
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate logout url: %w", err)

@@ -5,6 +5,7 @@ package middlewares
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/rs/cors"
@@ -47,7 +48,12 @@ var HTMXResponseHeaders = []string{
 }
 
 // SetupCORS handles adding the appropriate headers for CORS to the request.
-func SetupCORS(env string) func(next http.Handler) http.Handler {
+func SetupCORS() func(next http.Handler) http.Handler {
+	env := os.Getenv("FORAGD_ENVIRONMENT")
+	if env == "" {
+		env = "development"
+	}
+
 	options := cors.Options{
 		AllowCredentials:    true,
 		MaxAge:              CORSMaxAge,

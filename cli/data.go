@@ -29,8 +29,7 @@ func (c *DeleteCmd) Run(opts *DeleteCmd) error {
 	defer cancelFunc()
 	ctx = elastic.SetupIndexAliases(ctx)
 	// Load the Elastic backend
-	env := os.Getenv("FORAGD_ENVIRONMENT")
-	client, err := elastic.Connect(ctx, env)
+	client, err := elastic.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}

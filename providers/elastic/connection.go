@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"time"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
@@ -44,7 +45,11 @@ var defaultTransportConfig = &http.Transport{
 
 // Connect will connect to Elasticsearch using the config in the server configuration file or environment variables and
 // return an API object that can be used to issue requests.
-func Connect(ctx context.Context, env string) (*API, error) {
+func Connect(ctx context.Context) (*API, error) {
+	env := os.Getenv("FORAGD_ENVIRONMENT")
+	if env == "" {
+		env = "development"
+	}
 	clientConfig, err := loadConfigOnce(env)
 	if err != nil {
 		return nil, fmt.Errorf("could not load config: %w", err)
@@ -58,7 +63,11 @@ func Connect(ctx context.Context, env string) (*API, error) {
 	return &API{TypedClient: esclient}, nil
 }
 
-func RawConnection(ctx context.Context, env string) (*elasticsearch.Client, error) {
+func RawConnection(ctx context.Context) (*elasticsearch.Client, error) {
+	env := os.Getenv("FORAGD_ENVIRONMENT")
+	if env == "" {
+		env = "development"
+	}
 	clientConfig, err := loadConfigOnce(env)
 	if err != nil {
 		return nil, fmt.Errorf("could not load config: %w", err)

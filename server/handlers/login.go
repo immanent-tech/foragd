@@ -12,7 +12,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -25,15 +24,20 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-type authAPI interface {
-	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
-	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
-	VerifyIDToken(ctx context.Context, token *oauth2.Token) (*oidc.IDToken, error)
-}
+// type authAPI interface {
+// 	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
+// 	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
+// }
 
 // Login handles login requests.
-func Login(authAPI authAPI) http.HandlerFunc {
+func Login() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		err := auth0.InitAuthenticator(req.Context())
+		if err != nil {
+			http.Error(res, "Login is not available.", http.StatusServiceUnavailable)
+			return
+		}
+
 		// prompt=login&screen_hint=signup
 		state, err := generateRandomState()
 		if err != nil {
@@ -49,15 +53,15 @@ func Login(authAPI authAPI) http.HandlerFunc {
 		var authURL string
 		switch chi.RouteContext(req.Context()).RoutePattern() {
 		case "/signup":
-			authURL = authAPI.AuthCodeURL(state,
+			authURL = auth0.AuthClient.AuthCodeURL(state,
 				oauth2.SetAuthURLParam("screen_hint", "signup"),
 			)
 		case "/login":
-			authURL = authAPI.AuthCodeURL(state)
+			authURL = auth0.AuthClient.AuthCodeURL(state)
 		}
 		session.Manager.Put(req.Context(), "state", state)
 		slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
-			slog.String("url", authAPI.AuthCodeURL(state)),
+			slog.String("url", auth0.AuthClient.AuthCodeURL(state)),
 		)
 		http.Redirect(res, req, authURL, http.StatusTemporaryRedirect)
 	}).ServeHTTP
@@ -66,7 +70,7 @@ func Login(authAPI authAPI) http.HandlerFunc {
 // LoginCallback handles processing the response from a login provider.
 //
 //nolint:gocognit,nestif
-func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
+func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// provider := chi.URLParam(req, "provider")
 
@@ -84,7 +88,7 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 
 		// Exchange an authorization code for a token.
 		code := req.FormValue("code")
-		token, err := authAPI.Exchange(req.Context(), code)
+		token, err := auth0.AuthClient.Exchange(req.Context(), code)
 		if err != nil {
 			template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "Failed to exchange an authorization code for a token.")))
 			err := template.Render(req.Context(), res)
@@ -96,7 +100,7 @@ func LoginCallback(authAPI authAPI, storeAPI *elastic.API) http.HandlerFunc {
 			return
 		}
 
-		idToken, err := authAPI.VerifyIDToken(req.Context(), token)
+		idToken, err := auth0.AuthClient.VerifyIDToken(req.Context(), token)
 		if err != nil {
 			template := templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "Failed to verify ID Token."))
 			renderPage(template, "").ServeHTTP(res, req)

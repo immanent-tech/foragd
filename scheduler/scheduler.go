@@ -40,14 +40,14 @@ type Manager struct {
 var manager *Manager
 
 // Run starts the scheduler manager.
-func Run(ctx context.Context, env string) error {
+func Run(ctx context.Context) error {
 	// Load the config.
 	err := config.Load(configPrefix, configEnvPrefix, cfg)
 	if err != nil {
 		return fmt.Errorf("unable to load config: %w", err)
 	}
 
-	esClient, err := elastic.Connect(ctx, env)
+	esClient, err := elastic.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
