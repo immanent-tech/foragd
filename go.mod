@@ -18,7 +18,6 @@ require (
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/knadh/koanf/providers/env v1.1.0
-	github.com/knadh/koanf/providers/file v1.2.0
 	github.com/knadh/koanf/v2 v2.3.0
 	github.com/lmittmann/tint v1.1.2
 	github.com/mattn/go-isatty v0.0.20
@@ -72,7 +71,6 @@ require (
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
 	github.com/onsi/gomega v1.34.1 // indirect
 	github.com/package-url/packageurl-go v0.1.0 // indirect
-	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/recoilme/pudge v1.0.3 // indirect
 	github.com/rhysd/go-github-selfupdate v1.2.3 // indirect
@@ -135,7 +133,6 @@ require (
 	github.com/justinas/alice v1.2.0
 	github.com/justinas/nosurf v1.2.0
 	github.com/knadh/koanf/maps v0.1.2 // indirect
-	github.com/knadh/koanf/parsers/toml/v2 v2.2.0
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.3 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
