@@ -29,12 +29,12 @@ var UnixEpoch = time.Unix(0, 0)
 // time.Time value.
 func parseMaxHistory(maxHistory string) time.Time {
 	if maxHistory == "" {
-		return time.Now().Add(-DefaultMaxHistory)
+		return time.Now().Add(-BasicAccountMaxHistory)
 	}
 
 	dur, err := time.ParseDuration(maxHistory)
 	if err != nil {
-		return time.Now().Add(-DefaultMaxHistory)
+		return time.Now().Add(-BasicAccountMaxHistory)
 	}
 
 	return time.Now().Add(-dur)

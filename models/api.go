@@ -50,8 +50,9 @@ type DataAPI interface {
 	UserAPI
 }
 
+// TODO: set account level appropriately.
 func CreateUser(ctx context.Context, dataAPI DataAPI, externalID, email string) error {
-	user := NewUser(externalID, email, "auth0")
+	user := NewUser(externalID, email, "auth0", UserLevelStandard)
 	valid, err := user.Valid(ctx)
 	if err != nil || !valid {
 		return fmt.Errorf("cannot create local user: %w", err)

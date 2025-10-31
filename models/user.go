@@ -18,8 +18,13 @@ import (
 const (
 	// DefaultUserTheme is the default theme for the app.
 	DefaultUserTheme = "garden"
-	// DefaultMaxHistory for users/objects is 30 days.
-	DefaultMaxHistory = 30 * 24 * time.Hour
+
+	BasicAccountMaxHistory          = 7 * 24 * time.Hour // One week.
+	BasicAccountUpdatesFrequency    = time.Hour
+	StandardAccountMaxHistory       = 30 * 24 * time.Hour // One month.
+	StandardAccountUpdatesFrequency = 5 * time.Minute
+	PremiumAccountMaxHistory        = 365 * 24 * time.Hour // One year.
+	PremiumAccountUpdatesFrequency  = time.Minute
 )
 
 var (
@@ -33,9 +38,9 @@ var (
 )
 
 // NewUser creates a new user from the external provider details.
-func NewUser(externalID, email, provider string) *User {
+func NewUser(externalID, email, provider string, level UserLevel) *User {
 	ts := time.Now().UTC()
-	return &User{
+	user := &User{
 		CreatedAt:      ts,
 		UpdatedAt:      ts,
 		ExternalUserId: externalID,
@@ -43,7 +48,21 @@ func NewUser(externalID, email, provider string) *User {
 		Provider:       provider,
 		UserID:         NewID(UserPFX),
 		Settings:       *NewUserSettings(),
+		Level:          level,
 	}
+	// Set account level based user settings.
+	switch user.Level {
+	case UserLevelBasic:
+		user.Settings.MaxHistory = BasicAccountMaxHistory.String()
+		user.Settings.UpdatesFrequency = BasicAccountUpdatesFrequency.String()
+	case UserLevelStandard:
+		user.Settings.MaxHistory = StandardAccountMaxHistory.String()
+		user.Settings.UpdatesFrequency = StandardAccountUpdatesFrequency.String()
+	case UserLevelCustom, UserLevelPremium:
+		user.Settings.MaxHistory = PremiumAccountMaxHistory.String()
+		user.Settings.UpdatesFrequency = PremiumAccountUpdatesFrequency.String()
+	}
+	return user
 }
 
 // Valid returns a boolean indicating whether the user data is valid. If not valid, it will also return a non-nil error
@@ -266,7 +285,7 @@ func NewUserSettings() *UserSettings {
 		ShowOnboarding:        true,
 		ShowUnreadCounts:      true,
 		MarkArticleReadOnView: true,
-		MaxHistory:            DefaultMaxHistory.String(),
+		MaxHistory:            BasicAccountMaxHistory.String(),
 	}
 }
 
@@ -283,7 +302,7 @@ func (s *UserSettings) Valid() (bool, error) {
 		return false, fmt.Errorf("%w: max history is invalid", ErrInvalidUser)
 	}
 	// Make sure max history is not greater than default max history.
-	if maxHistory > DefaultMaxHistory {
+	if maxHistory > BasicAccountMaxHistory {
 		return false, fmt.Errorf("%w: max history is invalid", ErrInvalidUser)
 	}
 	return true, nil

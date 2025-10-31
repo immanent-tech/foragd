@@ -258,6 +258,14 @@ components:
               type: string
               x-oapi-codegen-extra-tags:
                 validate: 'required'
+            level:
+              description: >
+                is the subscription level that the account is paying for.
+              type: string
+              enum: ['basic','standard','premium','custom']
+              default: basic
+              x-oapi-codegen-extra-tags:
+                validate: 'required,oneof=basic standard premium custom'
             settings:
               $ref: '#/components/schemas/UserSettings'
             subscriptions:
@@ -327,7 +335,15 @@ components:
           x-omitempty: false
         max_history:
           description: >
-            is a duration representing the maximum time-frame over which objects contained within are available.
+            is a duration representing the maximum time-frame over which objects contained within are available. Set by
+            the account level.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: '-'
+        updates_frequency:
+          description: >
+            is a duration indicating how often the account should check for updates in various places within the apply.
+            Set by the account level.
           type: string
           x-oapi-codegen-extra-tags:
             form: '-'

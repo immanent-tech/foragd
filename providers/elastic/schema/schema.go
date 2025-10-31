@@ -160,6 +160,7 @@ func userComponentTemplate() *Template {
 				WithKeywordMapping("external_user_id"),
 				WithKeywordMapping("email"),
 				WithKeywordMapping("provider"),
+				WithKeywordMapping("level"),
 				WithDatetimeMapping("created_at"),
 				WithDatetimeMapping("updated_at"),
 				WithKeywordMapping("max_history"),

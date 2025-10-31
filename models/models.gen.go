@@ -88,6 +88,14 @@ const (
 	StateUnread State = "unread"
 )
 
+// Defines values for UserLevel.
+const (
+	UserLevelBasic    UserLevel = "basic"
+	UserLevelCustom   UserLevel = "custom"
+	UserLevelPremium  UserLevel = "premium"
+	UserLevelStandard UserLevel = "standard"
+)
+
 // Defines values for UserMessageStatus.
 const (
 	UserMessageStatusError   UserMessageStatus = "error"
@@ -809,6 +817,9 @@ type User struct {
 	// Favorites contains the user favorites.
 	Favorites []*Favorite `json:"favorites,omitempty,omitzero" validate:"omitempty,dive"`
 
+	// Level is the subscription level that the account is paying for.
+	Level UserLevel `json:"level,omitempty,omitzero" validate:"required,oneof=basic standard premium custom"`
+
 	// Nickname is a nickname for the user.
 	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero"`
 
@@ -827,6 +838,9 @@ type User struct {
 	// UserID is the unique ID of a user.
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
 }
+
+// UserLevel is the subscription level that the account is paying for.
+type UserLevel string
 
 // UserCustomisation contains account fields that a user can customize.
 type UserCustomisation struct {
@@ -875,7 +889,7 @@ type UserSettings struct {
 	// MarkArticleReadOnView indicates whether to automatically mark an article as read when viewed.
 	MarkArticleReadOnView bool `form:"mark_article_read_on_view" json:"mark_article_read_on_view"`
 
-	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
+	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available. Set by the account level.
 	MaxHistory string `form:"-" json:"max_history"`
 
 	// ShowOnboarding indicates whether to show onboarding information (i.e., for a new user).
@@ -886,6 +900,9 @@ type UserSettings struct {
 
 	// Theme the user interface theme chosen by the user.
 	Theme string `form:"-" json:"theme,omitempty,omitzero"`
+
+	// UpdatesFrequency is a duration indicating how often the account should check for updates in various places within the apply. Set by the account level.
+	UpdatesFrequency string `form:"-" json:"updates_frequency,omitempty,omitzero"`
 }
 
 // View The state of objects to view.
