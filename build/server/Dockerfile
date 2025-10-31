@@ -54,8 +54,8 @@ LABEL org.opencontainers.image.title="Foragd Server"
 LABEL org.opencontainers.image.description="Server service for Foragd app is responsible for handling all web requests."
 LABEL org.opencontainers.image.licenses=AGPL-3.0-or-later
 
-# Install CA certificates.
-RUN apk add ca-certificates
+# Install supporting packages required for certain functionality.
+RUN apk add ca-certificates tzdata
 
 # Copy project's binary and templates from /build to the scratch container.
 COPY --from=builder /build/foragd /
