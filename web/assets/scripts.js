@@ -18,7 +18,7 @@ import './timestamps.js'
 import './imgproxy.js'
 
 // Global shortcuts handling.
-import '@geenat/surreal'
+// import '@geenat/surreal'
 import Shortcut from './Shortcut.js'
 /* Create a basic shortcut handler */
 const myShortcutHandler = new Shortcut()
