@@ -102,8 +102,8 @@ templ Content(content templ.Component) {
 				if user != nil {
 					<el-dropdown id="header-user-menu" class="relative">
 						<button id="header-menu-button" class="btn btn-ghost btn-square hover:text-primary">
-							<span class="sr-only">Open user menu</span>
-							<img src={ user.GetAvatar() } alt={ user.GetNickname() } class="size-8 rounded-full outline -outline-offset-1 outline-base-content/10"/>
+							<span class="sr-only">Open settings menu</span>
+							<img src={ "/img-proxy/32x32/" + user.GetAvatar() } alt={ "Avatar for user " + user.GetNickname() } width="32" height="32" class="size-8 rounded-full outline -outline-offset-1 outline-base-content/10"/>
 						</button>
 						<el-menu id="header-menu" anchor="bottom end" popover class="context-menu-base">
 							// Open settings menu.
