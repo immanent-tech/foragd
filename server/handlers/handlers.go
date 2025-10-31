@@ -103,18 +103,29 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		url := chi.URLParam(req, "*")
 		// image := filepath.Base(url)
 		// host := filepath.Dir(url)
-		resp, err := http.Get(proxyURLBase + url)
+		var imageURL string
+		if proxyURLBase != "" {
+			imageURL = proxyURLBase + url
+		} else {
+			imageURL = url
+		}
+		resp, err := http.Get(imageURL)
 		if err != nil {
 			res.WriteHeader(resp.StatusCode)
 			return fmt.Errorf("unable to proxy image: %w", err)
 		}
-		b, err := io.ReadAll(resp.Body)
+		imageData, err := io.ReadAll(resp.Body)
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			return fmt.Errorf("unable to proxy image: %w", err)
 		}
 		res.WriteHeader(http.StatusOK)
-		res.Write(b)
+		_, err = res.Write(imageData)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Unable to proxy image.",
+				slog.Any("error", err),
+			)
+		}
 		return nil
 	})).ServeHTTP
 }

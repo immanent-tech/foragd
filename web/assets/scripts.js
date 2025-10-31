@@ -15,7 +15,7 @@ import './timestamps.js'
 // tailwindplus
 // import '@tailwindplus/elements';
 // import './debug.js'
-import './imgproxy.js'
+// import './imgproxy.js'
 
 // Global shortcuts handling.
 // import '@geenat/surreal'
