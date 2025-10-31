@@ -12,6 +12,9 @@
     },
     "editor.defaultFormatter": "golang.go"
   },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
   },

@@ -70,16 +70,14 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
-		favoriteID := req.FormValue("search_id")
+		var favoriteID string
+		favoriteID = req.FormValue("search_id")
 		if favoriteID == "" {
-			favoriteID = request.ID()
-			if favoriteID == "" {
+			favoriteID, err = request.ID()
+			if err != nil {
 				msg := models.NewErrorMessage("Unable to parse search request", "This might be a temporary issue, please try again.")
 				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("%w: unable to generate search ID from data", ErrInvalidRequestParams),
-					http.StatusUnprocessableEntity,
-				)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 		}
 		// Retrieve favorite data for this search
@@ -132,8 +130,6 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 }
 
 // WatchSearchResults handles watching the search results for any updates and rendering a notification to the user to refresh the page.
-//
-//nolint:gocognit
 func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user data.

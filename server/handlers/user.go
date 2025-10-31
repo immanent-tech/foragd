@@ -468,12 +468,12 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
 		}
 		// Update the favorite button.
-		id := request.ID()
-		if id == "" {
+		id, err := request.ID()
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: search request ID was empty", ErrInvalidAPIResponse), http.StatusInternalServerError)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		fav := user.GetAllFavorites().Get(id)
 		// Update the favorite button and list of favorites.
@@ -501,12 +501,12 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
 		// Derive the favorite id.
-		id := request.ID()
-		if id == "" {
+		id, err := request.ID()
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: search request ID was empty", ErrInvalidAPIResponse), http.StatusInternalServerError)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Remove the favorite.
 		user.RemoveFavorite(id)

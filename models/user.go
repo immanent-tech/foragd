@@ -28,13 +28,8 @@ const (
 )
 
 var (
-	ErrAddUser               = errors.New("add subscription failed")
-	ErrUpdateUser            = errors.New("update user failed")
-	ErrUserAlreadyReadItem   = errors.New("user already read this item")
-	ErrUserAlreadyUnreadItem = errors.New("user already unread this item")
-	ErrAlreadyFavorite       = errors.New("already favorited")
-	ErrNotSubscribed         = errors.New("user not subscribed to feed")
-	ErrInvalidUser           = errors.New("user data is invalid")
+	ErrUserNotSubscribed    = errors.New("not subscribed")
+	ErrUserAlreadyFavorited = errors.New("already a favorite")
 )
 
 // NewUser creates a new user from the external provider details.
@@ -68,12 +63,9 @@ func NewUser(externalID, email, provider string, level UserLevel) *User {
 // Valid returns a boolean indicating whether the user data is valid. If not valid, it will also return a non-nil error
 // that contains the validation issues.
 func (u *User) Valid(_ context.Context) (bool, error) {
-	valid, err := validation.ValidateStruct(u)
-	switch {
-	case err != nil:
-		return false, fmt.Errorf("%w: %w", ErrInvalidUser, err)
-	case !valid:
-		return valid, ErrInvalidUser
+	err := validation.Validate.Struct(u)
+	if err != nil {
+		return false, fmt.Errorf("user data is invalid: %w", err)
 	}
 	return true, nil
 }
@@ -170,7 +162,7 @@ func (u *User) UpdateSubscription(update *SubscriptionMetadata) error {
 		u.Subscriptions[idx] = update
 		return nil
 	}
-	return ErrNotSubscribed
+	return ErrUserNotSubscribed
 }
 
 // RemoveSubscriptions removes the user subscriptions with the matching id.
@@ -208,7 +200,7 @@ func (u *User) IsFavorite(id string) bool {
 // AddFavoriteSubscription creates a new favorite subscription for the user.
 func (u *User) AddFavoriteSubscription(id SubscriptionID, nickname string) error {
 	if u.GetAllFavorites().FilterByType(FavoriteTypeSubscription).HasFavorite(id) {
-		return ErrAlreadyFavorite
+		return ErrUserAlreadyFavorited
 	}
 	fav := newFavorite(FavoriteTypeSubscription, nickname)
 	fav.SetID(id)
@@ -219,7 +211,7 @@ func (u *User) AddFavoriteSubscription(id SubscriptionID, nickname string) error
 // AddFavoriteArticle creates a new favorite article for the user.
 func (u *User) AddFavoriteArticle(nickname string, article *Article) error {
 	if u.GetAllFavorites().FilterByType(FavoriteTypeArticle).HasFavorite(article.GetID()) {
-		return ErrAlreadyFavorite
+		return ErrUserAlreadyFavorited
 	}
 	fav := newFavorite(FavoriteTypeArticle, nickname)
 	fav.SetID(article.GetID())
@@ -235,16 +227,16 @@ func (u *User) AddFavoriteArticle(nickname string, article *Article) error {
 
 // AddFavoriteSearch creates a new favorite search for the user.
 func (u *User) AddFavoriteSearch(nickname string, search *SearchRequest) error {
-	id := search.ID()
+	id, err := search.ID()
 	if id == "" {
-		return fmt.Errorf("%w: cannot generate search id", ErrUpdateUser)
+		return fmt.Errorf("could not favorite search: %w", err)
 	}
 	if u.GetAllFavorites().FilterByType(FavoriteTypeSearch).HasFavorite(id) {
-		return ErrAlreadyFavorite
+		return ErrUserAlreadyFavorited
 	}
 	fav := newFavorite(FavoriteTypeSearch, nickname)
 	fav.SetID(id)
-	err := fav.ObjectData.FromFavoriteSearch(*search)
+	err = fav.ObjectData.FromFavoriteSearch(*search)
 	if err != nil {
 		return fmt.Errorf("could not create favorite search: %w", err)
 	}
@@ -260,10 +252,14 @@ func (u *User) UpdateFavoriteSearch(nickname string, search *SearchRequest) erro
 	// Replace the existing favorite entry.
 	if idx != -1 {
 		fav := newFavorite(FavoriteTypeSearch, nickname)
-		fav.SetID(search.ID())
-		err := fav.ObjectData.FromFavoriteSearch(*search)
+		id, err := search.ID()
 		if err != nil {
-			return fmt.Errorf("could not create favorite search: %w", err)
+			return fmt.Errorf("could not update favorite search: %w", err)
+		}
+		fav.SetID(id)
+		err = fav.ObjectData.FromFavoriteSearch(*search)
+		if err != nil {
+			return fmt.Errorf("could not update favorite search: %w", err)
 		}
 		u.Favorites[idx] = fav
 	}
@@ -292,18 +288,9 @@ func NewUserSettings() *UserSettings {
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *UserSettings) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(s)
-	if err != nil || !valid {
-		return false, fmt.Errorf("%w: %w", ErrInvalidUser, err)
-	}
-	// Make sure max history is a valid duration value.
-	maxHistory, err := time.ParseDuration(s.MaxHistory)
+	err := validation.Validate.Struct(s)
 	if err != nil {
-		return false, fmt.Errorf("%w: max history is invalid", ErrInvalidUser)
-	}
-	// Make sure max history is not greater than default max history.
-	if maxHistory > BasicAccountMaxHistory {
-		return false, fmt.Errorf("%w: max history is invalid", ErrInvalidUser)
+		return false, fmt.Errorf("invalid user settings: %w", err)
 	}
 	return true, nil
 }

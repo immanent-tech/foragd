@@ -100,6 +100,7 @@ func StaticFileServerHandler(fs http.FileSystem) http.Handler {
 	})
 }
 
+// ImageProxy handles proxying images through the image proxy service, which can resize and cache remote images.
 func ImageProxy(key, proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		opts := chi.URLParam(req, "image_opts")

@@ -50,6 +50,7 @@ func (a *API) Home() http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// WatchHome handles watching the home page content (namely, latest articles) for updates.
 func WatchHome(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)

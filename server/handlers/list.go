@@ -174,8 +174,6 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 }
 
 // WatchList handles watching a list of object for any updates and rendering a notification to the user to refresh the page.
-//
-//nolint:gocognit
 func WatchList(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
