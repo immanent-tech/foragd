@@ -21,6 +21,7 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	"github.com/russross/blackfriday/v2"
 	slogchi "github.com/samber/slog-chi"
@@ -105,6 +106,10 @@ func ImageProxy(key, proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		opts := chi.URLParam(req, "image_opts")
 		url := chi.URLParam(req, "*")
+		if len(req.URL.Query()) > 0 {
+			url = url + "?" + req.URL.Query().Encode()
+			godump.Dump(url)
+		}
 		var imageURL string
 		if proxyURLBase != "" {
 			// image := filepath.Base(url)
