@@ -105,10 +105,10 @@ func ImageProxy(key, proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		opts := chi.URLParam(req, "image_opts")
 		url := chi.URLParam(req, "*")
-		// Include any query parameters from the original image URL in the URL passed to the proxy.
-		if len(req.URL.Query()) > 0 {
-			url = url + "?" + req.URL.Query().Encode()
-		}
+		// // Include any query parameters from the original image URL in the URL passed to the proxy.
+		// if len(req.URL.Query()) > 0 {
+		// 	url = url + "?" + req.URL.Query().Encode()
+		// }
 		var imageURL string
 		if proxyURLBase != "" { // Generate image URL through proxy.
 			if key == "" {

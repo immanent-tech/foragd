@@ -29,8 +29,8 @@ templ ArticleCard(article *models.Article) {
 					) {
 						<div class="relative w-full">
 							<img
-								class="aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"
-								src={ img.GetURL() }
+								class="w-full rounded-2xl bg-base-content-10 object-cover aspect-3/2"
+								src={ "/img-proxy/300x200/" + img.GetURL() }
 								if img.GetTitle() != "" {
 									alt={ img.GetTitle() }
 								}
