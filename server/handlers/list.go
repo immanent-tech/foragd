@@ -4,13 +4,10 @@
 package handlers
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"slices"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -181,16 +178,6 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 //nolint:gocognit
 func WatchList(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Content-Type", "text/event-stream")
-		res.Header().Set("Cache-Control", "no-cache")
-		res.Header().Set("Connection", "keep-alive")
-		res.Header().Set("X-Accel-Buffering", "no")
-		if f, ok := res.(http.Flusher); ok {
-			f.Flush()
-		} else {
-			slogctx.FromCtx(req.Context()).Warn("Cannot flush update stream!")
-			res.WriteHeader(http.StatusNoContent)
-		}
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 		query, err := models.BuildItemsQuery(req.Context(), filters)
 		if err != nil {
@@ -199,61 +186,8 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
-		var (
-			currentCount int64
-			prevCount    int64
-		)
-		prevCount, err = api.CountItems(req.Context(), query)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
-				slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		for {
-			select {
-			case <-req.Context().Done():
-				res.Header().Set("Connection", "close")
-				res.WriteHeader(http.StatusRequestTimeout)
-				return
-			default:
-				currentCount, err = api.CountItems(req.Context(), query)
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
-						slog.Any("error", err))
-					continue
-				}
-				// Show updates toast if new items found.
-				if currentCount > prevCount {
-					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
-					var b bytes.Buffer //nolint:varnamelen
-					template := bufio.NewWriter(&b)
-					err := templates.UpdatesToast().Render(req.Context(), template)
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
-							slog.Any("error", err))
-						continue
-					}
-					err = template.Flush()
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Error("Failed to flush SSE message buffer.",
-							slog.Any("error", err))
-					}
-					_, err = fmt.Fprintf(res, "data: %s\n\n", b.String())
-					if err != nil {
-						slogctx.FromCtx(req.Context()).Error("Failed to send update SSE message.",
-							slog.Any("error", err))
-					}
-					if f, ok := res.(http.Flusher); ok {
-						f.Flush()
-					}
-				}
-				prevCount = currentCount
-				time.Sleep(defaultUpdateInterval)
-			}
-		}
+		// Watch list for updates.
+		watchForUpdates(api, query).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 

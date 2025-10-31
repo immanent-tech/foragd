@@ -5,6 +5,8 @@
 package handlers
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -28,6 +30,8 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -44,11 +48,6 @@ var (
 
 var defaultHandlerChain = alice.New(
 	storePath,
-)
-
-const (
-	// defaultUpdateInterval is the default interval for checking for updates (i.e., for update notifications).
-	defaultUpdateInterval = time.Minute
 )
 
 // NotFound handles showing a page for a 404 response.
@@ -317,5 +316,88 @@ func setCacheControl(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Add("Cache-Control", "max-age=60, must-revalidate")
 		next.ServeHTTP(res, req)
+	})
+}
+
+func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			res.WriteHeader(http.StatusNoContent)
+			slogctx.FromCtx(req.Context()).Error("cannot watch for updates: %w", models.ErrNoUserCtx)
+			return
+		}
+		updateInterval, err := time.ParseDuration(user.GetSettings().UpdatesFrequency)
+		if err != nil {
+			res.WriteHeader(http.StatusNoContent)
+			slogctx.FromCtx(req.Context()).Error("cannot watch for updates: %w", err)
+			return
+		}
+
+		// Set headers for SSE.
+		res.Header().Set("Content-Type", "text/event-stream")
+		res.Header().Set("Cache-Control", "no-cache")
+		res.Header().Set("Connection", "keep-alive")
+		res.Header().Set("X-Accel-Buffering", "no")
+		if f, ok := res.(http.Flusher); ok {
+			f.Flush()
+		} else {
+			slogctx.FromCtx(req.Context()).Warn("Cannot flush update stream!")
+			res.WriteHeader(http.StatusNoContent)
+		}
+		var (
+			currentCount int64
+			prevCount    int64
+		)
+		prevCount, err = api.CountItems(req.Context(), watch)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
+				slog.Any("error", err))
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		for {
+			select {
+			case <-req.Context().Done():
+				res.Header().Set("Connection", "close")
+				res.WriteHeader(http.StatusRequestTimeout)
+				return
+			default:
+				currentCount, err = api.CountItems(req.Context(), watch)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
+						slog.Any("error", err))
+					continue
+				}
+				// Show updates toast if new items found.
+				if currentCount > prevCount {
+					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
+					var b bytes.Buffer //nolint:varnamelen
+					template := bufio.NewWriter(&b)
+					err := templates.UpdatesToast().Render(req.Context(), template)
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
+							slog.Any("error", err))
+						continue
+					}
+					err = template.Flush()
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Error("Failed to flush SSE message buffer.",
+							slog.Any("error", err))
+					}
+					_, err = fmt.Fprintf(res, "data: %s\n\n", b.String())
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Error("Failed to send update SSE message.",
+							slog.Any("error", err))
+					}
+					if f, ok := res.(http.Flusher); ok {
+						f.Flush()
+					}
+				}
+				prevCount = currentCount
+				time.Sleep(updateInterval)
+			}
+		}
 	})
 }
