@@ -21,7 +21,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	"github.com/russross/blackfriday/v2"
 	slogchi "github.com/samber/slog-chi"
@@ -106,14 +105,12 @@ func ImageProxy(key, proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		opts := chi.URLParam(req, "image_opts")
 		url := chi.URLParam(req, "*")
+		// Include any query parameters from the original image URL in the URL passed to the proxy.
 		if len(req.URL.Query()) > 0 {
 			url = url + "?" + req.URL.Query().Encode()
-			godump.Dump(url)
 		}
 		var imageURL string
-		if proxyURLBase != "" {
-			// image := filepath.Base(url)
-			// host := filepath.Dir(url)
+		if proxyURLBase != "" { // Generate image URL through proxy.
 			if key == "" {
 				res.WriteHeader(http.StatusForbidden)
 				return nil
@@ -125,10 +122,10 @@ func ImageProxy(key, proxyURLBase string) http.HandlerFunc {
 			// Generate signed URL to pass to proxy.
 			signedURL := opts + "," + base64.URLEncoding.EncodeToString(result) + "/" + url
 			imageURL = proxyURLBase + signedURL
-		} else {
-			// No proxy supplied, use direct image URL.
+		} else { // No proxy supplied, use direct image URL.
 			imageURL = url
 		}
+		// Fetch the image (either from proxy or direct).
 		resp, err := http.Get(imageURL)
 		if err != nil {
 			res.WriteHeader(resp.StatusCode)
@@ -139,6 +136,7 @@ func ImageProxy(key, proxyURLBase string) http.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 			return fmt.Errorf("unable to proxy image: %w", err)
 		}
+		// Write the image to the response.
 		res.WriteHeader(http.StatusOK)
 		_, err = res.Write(imageData)
 		if err != nil {
