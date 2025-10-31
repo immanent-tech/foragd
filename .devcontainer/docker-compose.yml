@@ -348,3 +348,4 @@ services:
     environment:
       - IMAGEPROXY_CACHE=/tmp/imageproxy
       - IMAGEPROXY_VERBOSE=true
+      - IMAGEPROXY_SIGNATUREKEY="foragd"

@@ -52,6 +52,7 @@ type Config struct {
 	WriteTimeout time.Duration `toml:"write_timeout"`
 	IdleTimeout  time.Duration `toml:"idle_timeout"`
 	ImgproxyURL  string        `toml:"imgproxy_url"`
+	ImgproxyKey  string        `toml:"imgproxy_key"`
 }
 
 func randomBase16String(length int) (string, error) {

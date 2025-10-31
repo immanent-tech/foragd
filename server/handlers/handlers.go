@@ -6,7 +6,10 @@ package handlers
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
 	"embed"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -98,15 +101,27 @@ func StaticFileServerHandler(fs http.FileSystem) http.Handler {
 	})
 }
 
-func ImageProxy(proxyURLBase string) http.HandlerFunc {
+func ImageProxy(key, proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		opts := chi.URLParam(req, "image_opts")
 		url := chi.URLParam(req, "*")
-		// image := filepath.Base(url)
-		// host := filepath.Dir(url)
 		var imageURL string
 		if proxyURLBase != "" {
-			imageURL = proxyURLBase + url
+			// image := filepath.Base(url)
+			// host := filepath.Dir(url)
+			if key == "" {
+				res.WriteHeader(http.StatusForbidden)
+				return nil
+			}
+			// Create a signature for image signing.
+			mac := hmac.New(sha256.New, []byte(key))
+			mac.Write([]byte(url + "#" + opts))
+			result := mac.Sum(nil)
+			// Generate signed URL to pass to proxy.
+			signedURL := opts + "," + base64.URLEncoding.EncodeToString(result) + "/" + url
+			imageURL = proxyURLBase + signedURL
 		} else {
+			// No proxy supplied, use direct image URL.
 			imageURL = url
 		}
 		resp, err := http.Get(imageURL)
