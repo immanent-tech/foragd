@@ -23,7 +23,7 @@ var ErrInvalidSearchID = errors.New("id is invalid")
 // NewSearchRequest creates a new SearchRequest object with default values.
 func NewSearchRequest() *SearchRequest {
 	return &SearchRequest{
-		PublishedWithin: SearchRequestPublishedWithinAllTime,
+		PublishedWithin: SearchRequestPublishedWithinLastWeek,
 		View:            ViewUnread,
 	}
 }
@@ -54,7 +54,7 @@ func (r *SearchRequest) Sanitise() error {
 		r.Timezone = "UTC"
 	}
 	if r.PublishedWithin == "" {
-		r.PublishedWithin = SearchRequestPublishedWithinAllTime
+		r.PublishedWithin = SearchRequestPublishedWithinLastWeek
 	}
 	if r.View == "" {
 		r.View = ViewUnread
