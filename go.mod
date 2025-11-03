@@ -154,6 +154,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
+	github.com/spaolacci/murmur3 v1.1.0
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
 	github.com/veqryn/slog-context v0.8.0
 	github.com/veqryn/slog-json v0.5.0

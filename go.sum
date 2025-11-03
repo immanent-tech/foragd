@@ -478,6 +478,8 @@ github.com/sonatype-nexus-community/go-sona-types v0.1.6/go.mod h1:rEtJNICfnmj5P
 github.com/sonatype-nexus-community/nancy v1.0.51 h1:hbKMfbN18UTc1ljDolqYwmLH4YCBgkKqWiqEmVA7Me0=
 github.com/sonatype-nexus-community/nancy v1.0.51/go.mod h1:Y0t/tlmiuV/M5h+DSlUB4xsqMlHbvni07o9BdpmTSpA=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
+github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
+github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/speakeasy-api/jsonpath v0.6.0 h1:IhtFOV9EbXplhyRqsVhHoBmmYjblIRh5D1/g8DHMXJ8=
 github.com/speakeasy-api/jsonpath v0.6.0/go.mod h1:ymb2iSkyOycmzKwbEAYPJV/yi2rSmvBCLZJcyD+VVWw=
 github.com/speakeasy-api/openapi-overlay v0.10.2 h1:VOdQ03eGKeiHnpb1boZCGm7x8Haj6gST0P3SGTX95GU=

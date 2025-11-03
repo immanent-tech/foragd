@@ -6,10 +6,12 @@ package models
 import (
 	"maps"
 	"slices"
+	"strconv"
 	"time"
 
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
+	"github.com/spaolacci/murmur3"
 )
 
 // Items is a slice of items.
@@ -144,8 +146,15 @@ func (i *Item) IsNewer(since time.Time) bool {
 
 // NewItemFromSource generates an Item from the underlying feed data.
 func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
+	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
+	var itemID ItemID
+	if sourceID := source.GetID(); sourceID != "" {
+		itemID = ItemPFX.String() + strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+sourceID)), 10)
+	} else {
+		itemID = ItemPFX.String() + strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+source.GetLink())), 10)
+	}
 	item := &Item{
-		ItemID:       NewID(ItemPFX),
+		ItemID:       itemID,
 		FeedID:       feed.GetID(),
 		Timestamp:    time.Now().UTC(),
 		Published:    source.GetPublishedDate(),
