@@ -107,8 +107,14 @@ templ ServerErrorNotification(msg *models.UserMessage) {
 // IssueReportedConfirmation will show feedback to a user that the issue they reported has been recorded.
 templ IssueReportedConfirmation(msg *models.UserMessage) {
 	@Main() {
-		@PageHeader(msg.Summary)
-		@PageDescription(msg.Details)
+		<div class="md:flex md:items-center md:justify-between">
+			<div class="min-w-0 flex-1">
+				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">{ msg.Summary }</h2>
+			</div>
+		</div>
+		<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+			{ msg.Details }
+		</p>
 		<div class="mt-3 flex space-x-7">
 			<button
 				type="button"

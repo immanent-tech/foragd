@@ -8,11 +8,17 @@ import "github.com/immanent-tech/foragd/models"
 // ReportPageIssue renders a form for reporting issues with the app.
 templ ReportPageIssue(details *models.IssueRequest) {
 	@Main() {
-		@PageHeader("Report an issue with Foragd")
-		@PageDescription("Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.")
-		@PageDescription("") {
+		<div class="md:flex md:items-center md:justify-between">
+			<div class="min-w-0 flex-1">
+				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Report An Issue</h2>
+			</div>
+		</div>
+		<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+			Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.
+		</p>
+		<p class="mt-2 max-w-4xl text-sm text-base-content/80">
 			You can also provide general feedback and comments to us via <a class="link" href="mailto:feedback@immanent.tech&subject=Foragd Feedback">email.</a>
-		}
+		</p>
 		<form
 			id="report-app-issue"
 			hx-post={ "/issue" }
@@ -60,8 +66,17 @@ templ ReportPageIssue(details *models.IssueRequest) {
 
 templ ReportObjectIssues(obj models.Object, details *models.ObjectIssueRequest) {
 	@Main() {
-		@PageHeader("Report an issue")
-		@PageDescription("Use this form to report an issue with " + obj.GetTitle() + ". We will look into it and get back to you as soon as we can.")
+		<div class="md:flex md:items-center md:justify-between">
+			<div class="min-w-0 flex-1">
+				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Report An Issue</h2>
+			</div>
+		</div>
+		<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+			Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.
+		</p>
+		<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+			You can also provide general feedback and comments to us via <a class="link" href="mailto:feedback@immanent.tech&subject=Foragd Feedback">email.</a>
+		</p>
 		<form
 			id="report-subscription-issue"
 			hx-post={ "/issue/" + string(obj.Type()) + "/" + obj.GetID() }
