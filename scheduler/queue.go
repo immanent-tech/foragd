@@ -51,7 +51,7 @@ type JobQueue struct {
 
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
-	jobsIndex, err := elastic.SchedulerReadIndexFromCtx(ctx)
+	jobsIndex, err := elastic.SchedulerWriteIndexFromCtx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to start job queue: %w", err)
 	}

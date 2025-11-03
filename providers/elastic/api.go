@@ -393,7 +393,7 @@ func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, err
 }
 
 func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
-	index, err := SchedulerReadIndexFromCtx(ctx)
+	index, err := SchedulerWriteIndexFromCtx(ctx)
 	if err != nil {
 		return ErrNoIndexInCtx
 	}
