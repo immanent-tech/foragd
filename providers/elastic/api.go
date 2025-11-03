@@ -377,7 +377,7 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 	if err != nil {
 		return nil, ErrNoIndexInCtx
 	}
-	return BulkAdd[models.ItemID, *models.Item](ctx, e, index, items...)
+	return BulkUpdate(ctx, e, index, items...)
 }
 
 func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
@@ -473,6 +473,7 @@ func BulkUpdate[T ~string, O Object[T]](ctx context.Context, api *API, index str
 				bulk.AsOperationType(bulk.BulkUpdate),
 				bulk.SetDocID(string(object.GetID())),
 				bulk.ToIndex(index),
+				bulk.Upsert(true),
 			)
 		}
 	}()

@@ -15,7 +15,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/bulk"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operationtype"
-	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 )
 
@@ -77,19 +76,23 @@ func WithIndex(index string) Option {
 // AddOperation adds document operations to the bulk request.
 func (r *Request) AddOperation(operation Operation) error {
 	var err error
+	requireIndexAlias := true
+	retryOnConflict := 3
 
 	switch operation.opType {
 	case BulkCreate:
 		if operation.id != "" {
-			err = r.CreateOp(types.CreateOperation{Index_: &operation.index, Id_: &operation.id}, operation.document)
+			err = r.CreateOp(types.CreateOperation{Index_: &operation.index, Id_: &operation.id, RequireAlias: &requireIndexAlias}, operation.document)
 		} else {
-			err = r.CreateOp(types.CreateOperation{Index_: &operation.index}, operation.document)
+			err = r.CreateOp(types.CreateOperation{Index_: &operation.index, RequireAlias: &requireIndexAlias}, operation.document)
 		}
 	case BulkUpdate:
 		if operation.id == "" {
 			return fmt.Errorf("%w: a doc id is required", ErrCreateOpFailed)
 		}
-		err = r.UpdateOp(types.UpdateOperation{Index_: &operation.index, Id_: &operation.id}, operation.document, types.NewUpdateAction())
+		action := types.NewUpdateAction()
+		action.DocAsUpsert = &operation.upsert
+		err = r.UpdateOp(types.UpdateOperation{Index_: &operation.index, Id_: &operation.id, RequireAlias: &requireIndexAlias, RetryOnConflict: &retryOnConflict}, operation.document, action)
 	}
 
 	if err != nil {
@@ -113,7 +116,8 @@ func (r *Response) FailedDocs() []string {
 		if resp.Id_ == nil {
 			continue
 		}
-		if _, err := resp.State(); err != nil {
+		_, err := resp.State()
+		if err != nil {
 			failedDocIDs = append(failedDocIDs, *resp.Id_)
 		}
 	}
@@ -125,14 +129,17 @@ type OperationResponse struct {
 	*types.ResponseItem
 }
 
+// Created indicates the document was created.
 func (r *OperationResponse) Created() bool {
 	return r.Result != nil && *r.Result == "created"
 }
 
+// Updated indicates the document was updated.
 func (r *OperationResponse) Updated() bool {
 	return r.Result != nil && *r.Result == "updated"
 }
 
+// Deleted indicates the document was deleted.
 func (r *OperationResponse) Deleted() bool {
 	return r.Result != nil && *r.Result == "deleted"
 }
@@ -164,6 +171,7 @@ type Operation struct {
 	index    string
 	opType   OpType
 	id       string
+	upsert   bool
 }
 
 // SetDocID option sets the doc id for the operation.
@@ -181,6 +189,13 @@ func AsOperationType(opType OpType) OperationOption {
 	}
 }
 
+// Upsert option will perform the bulk action as an upsert. Only used where operation type is update.
+func Upsert(value bool) OperationOption {
+	return func(o *Operation) {
+		o.upsert = value
+	}
+}
+
 // ToIndex option sets the index containing the document.
 func ToIndex(index string) OperationOption {
 	return func(operation *Operation) {
@@ -193,11 +208,9 @@ func NewOperation(doc any, options ...OperationOption) Operation {
 	operation := &Operation{
 		document: doc,
 	}
-
 	for _, option := range options {
 		option(operation)
 	}
-
 	return *operation
 }
 
@@ -219,8 +232,9 @@ func NewRequest(ctx context.Context, client Client, options ...Option) (chan Ope
 		defer close(respCh)
 
 		for op := range bulkOps {
-			if err := req.AddOperation(op); err != nil {
-				logger(ctx).Warn("Could not add operation to bulk request.",
+			err := req.AddOperation(op)
+			if err != nil {
+				slogctx.FromCtx(ctx).Warn("Could not add operation to bulk request.",
 					slog.Any("error", err))
 			}
 		}
@@ -229,10 +243,10 @@ func NewRequest(ctx context.Context, client Client, options ...Option) (chan Ope
 		// Handle response.
 		switch {
 		case err != nil:
-			logger(ctx).Error("Bulk request failed.", slog.Any("error", err))
+			slogctx.FromCtx(ctx).Error("Bulk request failed.", slog.Any("error", err))
 			respCh <- Response{Err: err}
 		case resp.Errors:
-			logger(ctx).Warn("Bulk request completed with some operation errors.")
+			slogctx.FromCtx(ctx).Warn("Bulk request completed with some operation errors.")
 			respCh <- Response{Err: ErrBulkHasErrors, Responses: GetOperationResponses(resp.Items)}
 		default:
 			respCh <- Response{Responses: GetOperationResponses(resp.Items)}
@@ -251,12 +265,4 @@ func GetOperationResponses(resp []map[operationtype.OperationType]types.Response
 		}
 	}
 	return responses
-}
-
-func logger(ctx context.Context) *slog.Logger {
-	logger := slogctx.FromCtx(ctx)
-	if id := middleware.GetReqID(ctx); id != "" {
-		logger = logger.With(slog.String("id", id))
-	}
-	return logger.WithGroup("bulk")
 }
