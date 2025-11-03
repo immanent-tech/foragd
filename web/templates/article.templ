@@ -20,26 +20,44 @@ templ ArticleCard(article *models.Article) {
 			class={ "card-base", templ.KV("opacity-50",!article.IsUnread()) }
 		>
 			// Header.
-			<div class="px-4 py-5 sm:px-6">
-				if img := article.GetImage(); img != nil {
-					@NewLink(
-						WithHXMethod(http.MethodGet, article.ViewURL()),
-						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
-					) {
-						<div class="relative w-full">
-							<img
-								class="w-full rounded-2xl bg-base-content-10 object-cover aspect-3/2"
-								src={ "/img-proxy/300x200/" + img.GetURL() }
-								if img.GetTitle() != "" {
-									alt={ img.GetTitle() }
-								}
-							/>
-							<div class="inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
-						</div>
-						<div class="flex max-w-xl grow flex-col justify-between">
+			<div class="flex items-center">
+				<div class="flex flex-1 px-4 py-5 sm:px-6">
+					if img := article.GetImage(); img != nil {
+						@NewLink(
+							WithHXMethod(http.MethodGet, article.ViewURL()),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+						) {
+							<div class="relative w-full">
+								<img
+									class="w-full rounded-2xl bg-base-content-10 object-cover aspect-3/2"
+									src={ "/img-proxy/300x200/" + img.GetURL() }
+									if img.GetTitle() != "" {
+										alt={ img.GetTitle() }
+									}
+								/>
+								<div class="inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
+							</div>
+							<div class="flex max-w-xl grow flex-col justify-between">
+								<div class="group relative grow">
+									<h3 class="mt-3 text-lg/6 font-semibold text-pretty">
+										if article.GetTitle() != "" {
+											{ article.GetTitle() }
+										} else {
+											(no title)
+										}
+									</h3>
+								</div>
+							</div>
+						}
+					} else {
+						@NewLink(
+							WithHXMethod(http.MethodGet, article.ViewURL()),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+						) {
 							<div class="group relative grow">
-								<h3 class="mt-3 text-lg/6 font-semibold text-pretty">
+								<h3 class="mt-3 text-lg/6 font-semibold text-pretty line-clamp-3">
 									if article.GetTitle() != "" {
 										{ article.GetTitle() }
 									} else {
@@ -47,31 +65,28 @@ templ ArticleCard(article *models.Article) {
 									}
 								</h3>
 							</div>
-						</div>
+						}
 					}
-				} else {
-					@NewLink(
-						WithHXMethod(http.MethodGet, article.ViewURL()),
-						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
-					) {
-						<div class="group relative grow">
-							<h3 class="mt-3 text-lg/6 font-semibold text-pretty line-clamp-3">
-								if article.GetTitle() != "" {
-									{ article.GetTitle() }
-								} else {
-									(no title)
-								}
-							</h3>
-						</div>
-					}
-				}
+				</div>
 			</div>
 			// Body.
-			<div class="px-4 sm:px-6">
-				<p class="text-xs/4 text-base-content/80 italic text-ellipsis">
-					{ strings.Join(article.GetAuthors(),",") }
+			<div class="grid grid-flow-row items-center px-4 sm:px-6">
+				<p class="grid text-xs/4 text-base-content/80 truncate">
+					@NewLink(
+						WithHXMethod(http.MethodGet, "/list/articles"),
+						WithHXTarget(ContentID.Target()),
+						WithHXPushURL(),
+						WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+						WithClasses("truncate"),
+					) {
+						{ article.GetFeedTitle() }
+					}
 				</p>
+				if len(article.GetAuthors()) > 0 {
+					<p class="inline-block text-xs/4 text-base-content/80 italic truncate">
+						{ strings.Join(article.GetAuthors(),",") }
+					</p>
+				}
 			</div>
 			{{ text, err := models.ExtractText(article.GetContent()) }}
 			// No error and text content is more than 5 words.
@@ -84,13 +99,14 @@ templ ArticleCard(article *models.Article) {
 			}
 			// Footer.
 			<div class="px-4 py-4 sm:px-6">
-				<div class="flex items-center">
-					<div class="flex flex-1">
+				<div class="flex justify-between items-center">
+					<div class="flex flex-1 gap-x-2">
 						<p class="text-xs/4 text-base-content/80 capitalize">
+							Updated&nbsp;
 							@ShowTimestamp(article.GetUpdatedDate())
 						</p>
 					</div>
-					<div class="flex flex-1">
+					<div class="flex flex-none">
 						@ContextMenu(article.GetTitle() + " Actions") {
 							// Find similar action.
 							@NewLink(

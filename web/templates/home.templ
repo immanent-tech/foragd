@@ -108,11 +108,11 @@ templ (page *Home) Template() {
 											<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
 										</a>
 										// Timestamp, Subscription.
-										<div class="flex gap-x-4">
-											<p class="flex-none text-xs text-base-content/80">
+										<div class="grid grid-flow-col justify-between">
+											<p class="grid text-xs text-base-content/80">
 												@ShowTimestamp(article.GetUpdatedDate())
 											</p>
-											<p class="flex-1 text-xs text-base-content/80 truncate">
+											<p class="grid justify-self-end text-xs text-base-content/80 truncate">
 												@NewLink(
 													WithHXMethod(http.MethodGet, "/list/articles"),
 													WithHXTarget(ContentID.Target()),
