@@ -498,6 +498,7 @@ func withILMPolicyMigration(policy *ILMPolicy) templateMigrationOption {
 	}
 }
 
+// https://www.elastic.co/docs/manage-data/data-store/templates
 func migrateIndexTemplates(ctx context.Context, api *elasticsearch.TypedClient, options ...templateMigrationOption) error {
 	migration := &templatesMigration{}
 	// Process migration options.
@@ -600,6 +601,8 @@ func migrateIndexData(ctx context.Context, api *elasticsearch.TypedClient, index
 
 // updateAlias performs a swap of an alias to the given index. It adds the given index to the alias, sets it as the
 // write destination, then removes any existing aliased indicies so the index remains as the only aliased one.
+//
+// https://www.elastic.co/docs/manage-data/data-store/aliases
 func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias string, index string) error {
 	aliasesResp, err := api.Indices.GetAlias().Index(alias).Do(ctx)
 	if err != nil {

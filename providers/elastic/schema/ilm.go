@@ -79,6 +79,8 @@ func NewILMAction(options ...Option[*types.IlmActions]) *types.IlmActions {
 }
 
 // WithActions adds the given actions to the phase.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/index-lifecycle-actions/
 func WithActions(options ...Option[*types.IlmActions]) Option[*types.Phase] {
 	return func(phase *types.Phase) {
 		phase.Actions = NewILMAction(options...)
