@@ -7,6 +7,7 @@ import (
 	"maps"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	feeds "github.com/immanent-tech/go-syndication"
@@ -149,9 +150,9 @@ func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
 	var itemID ItemID
 	if sourceID := source.GetID(); sourceID != "" {
-		itemID = ItemPFX.String() + strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+sourceID)), 10)
+		itemID = strings.Join([]string{ItemPFX.String(), strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+sourceID)), 10)}, "_")
 	} else {
-		itemID = ItemPFX.String() + strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+source.GetLink())), 10)
+		itemID = strings.Join([]string{ItemPFX.String(), strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+source.GetLink())), 10)}, "_")
 	}
 	item := &Item{
 		ItemID:       itemID,
