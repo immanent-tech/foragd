@@ -11,268 +11,586 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/conflicts"
 	slogctx "github.com/veqryn/slog-context"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/elastic/reindex"
 )
 
 type SchemaOpts struct {
-	Indices   []string `arg:"" default:"all" enum:"all,feeds,items,users,scheduler,sessions,logs,archive" help:"List of indicies to perform command on."`
+	Indices   []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,scheduler,sessions" help:"List of indicies to perform command on."`
 	NoReindex bool     `help:"Do not perform reindex from existing index."`
 }
 
-// Migration will create all necessary index templates settings and policies.
-func Migration(ctx context.Context, api *elasticsearch.TypedClient, opts *SchemaOpts) error {
+func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts *SchemaOpts) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
-		opts.Indices = []string{"users", "feeds", "items", "scheduler", "sessions", "logs", "archive"}
+		opts.Indices = []string{"users", "feeds", "items", "favorites", "scheduler", "sessions"}
 	}
 
-	migrationJobs, ctx := errgroup.WithContext(ctx)
+	// Migrate Feed/Items common mappings component template.
+	err := migrateIndexTemplates(ctx, api,
+		WithComponentTemplatesMigration(
+			NewComponentTemplate(
+				"feed_items_common",
+				NewTemplate(
+					WithTemplateMapping(
+						WithProperties(
+							WithDatetimeMapping("published"),
+							WithDatetimeMapping("updated"),
+							WithTextMapping("title", &types.TextProperty{
+								Type: "text",
+								Fields: map[string]types.Property{
+									"raw": types.NewKeywordProperty(),
+									"exact": types.TextProperty{
+										Analyzer: &EnglishExactAnalyzerName,
+									},
+									"search": types.NewSearchAsYouTypeProperty(),
+								},
+							}),
+							WithTextMapping("description", nil),
+							WithTextMapping("content", nil),
+							WithTextMapping("authors", &types.TextProperty{
+								Type: "text",
+								Fields: map[string]types.Property{
+									"raw": types.NewKeywordProperty(),
+									"exact": types.TextProperty{
+										Analyzer: &EnglishExactAnalyzerName,
+									},
+									"search": types.NewSearchAsYouTypeProperty(),
+								},
+							}),
+							WithTextMapping("contributors", &types.TextProperty{
+								Type: "text",
+								Fields: map[string]types.Property{
+									"raw": types.NewKeywordProperty(),
+									"exact": types.TextProperty{
+										Analyzer: &EnglishExactAnalyzerName,
+									},
+									"search": types.NewSearchAsYouTypeProperty(),
+								},
+							}),
+							WithTextMapping("categories", &types.TextProperty{
+								Type: "text",
+								Fields: map[string]types.Property{
+									"raw": types.NewKeywordProperty(),
+									"exact": types.TextProperty{
+										Analyzer: &EnglishExactAnalyzerName,
+									},
+									"search": types.NewSearchAsYouTypeProperty(),
+								},
+							}),
+							WithKeywordMapping("language"),
+							WithTextMapping("copyright", nil),
+							WithKeywordMapping("source_type"),
+							WithKeywordMapping("url"),
+							WithObjectMapping("image",
+								WithKeywordMapping("url"),
+								WithTextMapping("title", nil),
+							)),
+						WithDynamicProperties(false),
+					),
+					WithTemplateSettings(
+						WithAnalysis(types.IndexSettingsAnalysis{
+							Analyzer: map[string]types.Analyzer{
+								EnglishExactAnalyzerName: types.CustomAnalyzer{
+									Tokenizer: "standard",
+									Filter:    []string{"lowercase"},
+								},
+							},
+						}),
+					),
+				),
+				WithComponentTemplateMetadata(defaultMetadata),
+			),
+		),
+	)
+	if err != nil {
+		return fmt.Errorf("could not migrate feed/items common mappings component template: %w", err)
+	}
 
-	// Perform requested migrations.
 	for index := range slices.Values(opts.Indices) {
 		switch index {
-		case "users":
-			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, opts.NoReindex, UsersSchemaPrefix, userComponentTemplate())
-			})
-		case "feeds":
-			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, opts.NoReindex, FeedsSchemaPrefix, feedsComponentTemplate())
-			})
 		case "items":
-			migrationJobs.Go(func() error {
-				return migrateFeedItems(ctx, api)
-			})
-		case "archive":
-			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, opts.NoReindex, ArticleArchiveSchemaPrefix, articleArchiveComponentTemplate())
-			})
+			componentTemplateName := "items_component_template"
+			indexTemplateName := "items_index_template"
+			indexPattern := "items-*"
+			ilmPolicy := "items_ilm_policy"
+			indexName := ItemsSchemaPrefix + "-" + config.Version + "-" + time.Now().Format("20060102")
+			writeAlias := ItemsSchemaPrefix + IndexWriteSuffix
+			readAlias := ItemsSchemaPrefix + IndexReadSuffix
+			err := migrateIndexTemplates(ctx, api,
+				// Items specific mappings component template.
+				WithComponentTemplatesMigration(
+					NewComponentTemplate(
+						componentTemplateName,
+						NewTemplate(
+							WithTemplateMapping(
+								WithProperties(
+									WithDatetimeMapping("@timestamp"),
+									WithDatetimeMapping("created"),
+									WithKeywordMapping("feed_id"),
+									WithKeywordMapping("item_id"),
+									WithTextMapping("feed_title", &types.TextProperty{
+										Type: "text",
+										Fields: map[string]types.Property{
+											"raw": types.NewKeywordProperty(),
+											"exact": types.TextProperty{
+												Analyzer: &EnglishExactAnalyzerName,
+											},
+											"search": types.NewSearchAsYouTypeProperty(),
+										},
+									}),
+									WithExistingMappings(FeedItemCommonMappings),
+								),
+								WithDynamicProperties(false),
+							),
+							WithTemplateSettings(
+								WithAnalysis(types.IndexSettingsAnalysis{
+									Analyzer: map[string]types.Analyzer{
+										EnglishExactAnalyzerName: types.CustomAnalyzer{
+											Tokenizer: "standard",
+											Filter:    []string{"lowercase"},
+										},
+									},
+								}),
+								WithLifecycle(ilmPolicy, writeAlias),
+							),
+						),
+					),
+				),
+				// Items index template.
+				WithIndexTemplateMigration(
+					NewIndexTemplate(
+						indexTemplateName,
+						WithComponentTemplates("feed_items_common", componentTemplateName),
+						WithIndexPatterns(indexPattern),
+						WithIndexTemplateMetadata(defaultMetadata),
+					),
+				),
+				// Items ILM Policy.
+				WithILMPolicyMigration(
+					NewILMPolicy(
+						ilmPolicy,
+						WithPhase("hot",
+							WithActions(WithRolloverMaxSize("50gb")),
+						),
+						WithPhase("warm",
+							WithActions(
+								WithShrinkToShards(1),
+								WithForceMergeSegments(1),
+							),
+						),
+						WithPhase("delete",
+							WithMinAge("735d"),
+							WithActions(WithDelete()),
+						),
+					),
+				),
+			)
+			if err != nil {
+				return fmt.Errorf("could not migrate items: %w", err)
+			}
+			err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, WithNoReindex(opts.NoReindex))
+			if err != nil {
+				return fmt.Errorf("could not migrate items: %w", err)
+			}
+		case "favorites":
+			componentTemplateName := "favorite_items_component_template"
+			indexTemplateName := "favorite_items_index_template"
+			indexPattern := "favorite-items-*"
+			indexName := FavoriteItemsSchemaPrefix + "-" + config.Version
+			writeAlias := FavoriteItemsSchemaPrefix + IndexWriteSuffix
+			readAlias := FavoriteItemsSchemaPrefix + IndexReadSuffix
+			err := migrateIndexTemplates(ctx, api,
+				// Feeds specific mappings component template.
+				WithComponentTemplatesMigration(
+					NewComponentTemplate(
+						componentTemplateName,
+						NewTemplate(
+							WithTemplateMapping(
+								WithProperties(
+									WithDatetimeMapping("@timestamp"),
+									WithDatetimeMapping("created"),
+									WithKeywordMapping("feed_id"),
+									WithKeywordMapping("item_id"),
+									WithKeywordMapping("user_id"),
+									WithKeywordMapping("subscription_id"),
+								),
+								WithDynamicProperties(false),
+							),
+							WithTemplateSettings(
+								WithAnalysis(types.IndexSettingsAnalysis{
+									Analyzer: map[string]types.Analyzer{
+										EnglishExactAnalyzerName: types.CustomAnalyzer{
+											Tokenizer: "standard",
+											Filter:    []string{"lowercase"},
+										},
+									},
+								}),
+							),
+						),
+						WithComponentTemplateMetadata(defaultMetadata),
+					),
+				),
+				// Feeds index template.
+				WithIndexTemplateMigration(
+					NewIndexTemplate(
+						indexTemplateName,
+						WithComponentTemplates("feed_items_common", componentTemplateName),
+						WithIndexPatterns(indexPattern),
+						WithIndexTemplateMetadata(defaultMetadata),
+					),
+				),
+			)
+			if err != nil {
+				return fmt.Errorf("could not migrate favorite items: %w", err)
+			}
+			err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, WithNoReindex(opts.NoReindex))
+			if err != nil {
+				return fmt.Errorf("could not favorite items: %w", err)
+			}
+		case "feeds":
+			componentTemplateName := "feeds_component_template"
+			indexTemplateName := "feeds_index_template"
+			indexPattern := "feeds-*"
+			indexName := FeedsSchemaPrefix + "-" + config.Version
+			writeAlias := FeedsSchemaPrefix + IndexWriteSuffix
+			readAlias := FeedsSchemaPrefix + IndexReadSuffix
+			err := migrateIndexTemplates(ctx, api,
+				// Feeds specific mappings component template.
+				WithComponentTemplatesMigration(
+					NewComponentTemplate(
+						componentTemplateName,
+						NewTemplate(
+							WithTemplateMapping(
+								WithProperties(
+									WithKeywordMapping("feed_id"),
+									WithDatetimeMapping("created_at"),
+									WithDatetimeMapping("last_fetched"),
+									WithKeywordMapping("source_urls"),
+								),
+								WithDynamicProperties(false),
+							),
+							WithTemplateSettings(
+								WithAnalysis(types.IndexSettingsAnalysis{
+									Analyzer: map[string]types.Analyzer{
+										EnglishExactAnalyzerName: types.CustomAnalyzer{
+											Tokenizer: "standard",
+											Filter:    []string{"lowercase"},
+										},
+									},
+								}),
+							),
+						),
+						WithComponentTemplateMetadata(defaultMetadata),
+					),
+				),
+				// Feeds index template.
+				WithIndexTemplateMigration(
+					NewIndexTemplate(
+						indexTemplateName,
+						WithComponentTemplates("feed_items_common", componentTemplateName),
+						WithIndexPatterns(indexPattern),
+						WithIndexTemplateMetadata(defaultMetadata),
+					),
+				),
+			)
+			if err != nil {
+				return fmt.Errorf("could not migrate feeds: %w", err)
+			}
+			err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, WithNoReindex(opts.NoReindex))
+			if err != nil {
+				return fmt.Errorf("could not migrate feeds: %w", err)
+			}
+		case "users":
+			componentTemplateName := "users_component_template"
+			indexTemplateName := "users_index_template"
+			indexPattern := "users-*"
+			indexName := UsersSchemaPrefix + "-" + config.Version
+			writeAlias := UsersSchemaPrefix + IndexWriteSuffix
+			readAlias := UsersSchemaPrefix + IndexReadSuffix
+			err := migrateIndexTemplates(ctx, api,
+				// User specific mappings component template.
+				WithComponentTemplatesMigration(
+					NewComponentTemplate(
+						componentTemplateName,
+						NewTemplate(
+							WithTemplateMapping(
+								WithProperties(
+									WithKeywordMapping("user_id"),
+									WithKeywordMapping("nickname"),
+									WithKeywordMapping("avatar_url"),
+									WithKeywordMapping("external_user_id"),
+									WithKeywordMapping("email"),
+									WithKeywordMapping("provider"),
+									WithKeywordMapping("level"),
+									WithDatetimeMapping("created_at"),
+									WithDatetimeMapping("updated_at"),
+									WithKeywordMapping("max_history"),
+									WithFlattenedMapping("settings"),
+									WithFlattenedMapping("subscriptions"),
+									WithFlattenedMapping("favorites"),
+								),
+								WithDynamicProperties(false),
+							),
+						),
+					),
+				),
+				// User index template.
+				WithIndexTemplateMigration(
+					NewIndexTemplate(
+						indexTemplateName,
+						WithComponentTemplates(componentTemplateName),
+						WithIndexPatterns(indexPattern),
+						WithIndexTemplateMetadata(defaultMetadata),
+					),
+				),
+			)
+			if err != nil {
+				return fmt.Errorf("could not migrate users: %w", err)
+			}
+			err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, WithNoReindex(opts.NoReindex))
+			if err != nil {
+				return fmt.Errorf("could not migrate users: %w", err)
+			}
 		case "scheduler":
-			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, opts.NoReindex, SchedulerJobsPrefix, schedulerJobsComponentTemplate())
-			})
-			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, opts.NoReindex, SchedulerStatePrefix, schedulerStateComponentTemplate())
-			})
+			componentTemplateName := "scheduler_component_template"
+			indexTemplateName := "scheduler_index_template"
+			indexPattern := "scheduler-*"
+			indexName := SchedulerSchemaPrefix + "-" + config.Version
+			writeAlias := SchedulerSchemaPrefix + IndexWriteSuffix
+			readAlias := SchedulerSchemaPrefix + IndexReadSuffix
+			err := migrateIndexTemplates(ctx, api,
+				// User specific mappings component template.
+				WithComponentTemplatesMigration(
+					NewComponentTemplate(
+						componentTemplateName,
+						NewTemplate(
+							WithTemplateMapping(
+								WithProperties(
+									WithDatetimeMapping("updated_at"),
+									WithFlattenedMapping("job_options"),
+									WithFlattenedMapping("job_data"),
+									WithKeywordMapping("job_type"),
+									WithKeywordMapping("job_trigger_type"),
+									WithFlattenedMapping("job_trigger"),
+									WithDatetimeMapping("job_next_run"),
+								),
+								WithDynamicProperties(false),
+							),
+						),
+					),
+				),
+				// User index template.
+				WithIndexTemplateMigration(
+					NewIndexTemplate(
+						indexTemplateName,
+						WithComponentTemplates(componentTemplateName),
+						WithIndexPatterns(indexPattern),
+						WithIndexTemplateMetadata(defaultMetadata),
+					),
+				),
+			)
+			if err != nil {
+				return fmt.Errorf("could not migrate users: %w", err)
+			}
+			err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, WithNoReindex(opts.NoReindex))
+			if err != nil {
+				return fmt.Errorf("could not migrate users: %w", err)
+			}
 		case "sessions":
-			migrationJobs.Go(func() error {
-				return indexMigration(ctx, api, opts.NoReindex, SessionsSchemaPrefix, sessionsComponentTemplate())
-			})
-		case "logs":
-			continue
-			migrationJobs.Go(func() error {
-				return migrateLogs(ctx, api)
-			})
+			componentTemplateName := "sessions_component_template"
+			indexTemplateName := "sessions_index_template"
+			indexPattern := "sessions-*"
+			// ilmPolicy := "sessions_ilm_policy"
+			// indexName := SessionsSchemaPrefix + "-" + time.Now().Format("20060102")
+			indexName := SessionsSchemaPrefix + "-" + config.Version
+			writeAlias := SessionsSchemaPrefix + IndexWriteSuffix
+			readAlias := SessionsSchemaPrefix + IndexReadSuffix
+			err := migrateIndexTemplates(ctx, api,
+				// Sessions specific mappings component template.
+				WithComponentTemplatesMigration(
+					NewComponentTemplate(
+						componentTemplateName,
+						NewTemplate(
+							WithTemplateMapping(
+								WithProperties(
+									WithDatetimeMapping("expiry"),
+									WithKeywordMapping("token"),
+									WithBinaryMapping("data"),
+								),
+								WithDynamicProperties(false),
+							),
+							// WithTemplateSettings(
+							// 	WithLifecycle(ilmPolicy, writeAlias),
+							// ),
+						),
+					),
+				),
+				// Sessions index template.
+				WithIndexTemplateMigration(
+					NewIndexTemplate(
+						indexTemplateName,
+						WithComponentTemplates(componentTemplateName),
+						WithIndexPatterns(indexPattern),
+						WithIndexTemplateMetadata(defaultMetadata),
+					),
+				),
+				// // Sessions ILM Policy.
+				// WithILMPolicyMigration(
+				// 	NewILMPolicy(
+				// 		ilmPolicy,
+				// 		WithPhase("hot",
+				// 			WithActions(WithRolloverMaxAge("30d")),
+				// 		),
+				// 		WithPhase("delete",
+				// 			WithMinAge("1d"),
+				// 			WithActions(WithDelete()),
+				// 		),
+				// 	),
+				// ),
+			)
+			if err != nil {
+				return fmt.Errorf("could not migrate sessions: %w", err)
+			}
+			err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, WithNoReindex(opts.NoReindex))
+			if err != nil {
+				return fmt.Errorf("could not migrate sessions: %w", err)
+			}
 		}
-	}
-
-	err := migrationJobs.Wait()
-	if err != nil {
-		return fmt.Errorf("migration failed: %w", err)
 	}
 
 	return nil
 }
 
-// indexMigration performs a migration of a standard index, including component & index templates as well as the index
-// itself.
-func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, noreindex bool, prefix string, schema *Template) error {
-	schemaPrefix := prefix
+type templatesMigration struct {
+	componentTemplates []*ComponentTemplate
+	indexTemplate      *IndexTemplate
+	ilmPolicy          *ILMPolicy
+}
 
-	slogctx.FromCtx(ctx).Info("Performing appropriate migrations...",
-		slog.String("schema", schemaPrefix))
+type templateMigrationOption Option[*templatesMigration]
 
-	indexName := schemaPrefix + "_" + config.Version
-	writeAlias := schemaPrefix + IndexWriteSuffix
-	readAlias := schemaPrefix + IndexReadSuffix
+func WithComponentTemplatesMigration(templates ...*ComponentTemplate) templateMigrationOption {
+	return func(m *templatesMigration) {
+		m.componentTemplates = templates
+	}
+}
 
-	err := updateTemplates(ctx, api, prefix, schema, false)
-	if err != nil {
-		return fmt.Errorf("could not update %s templates: %w", prefix, err)
+func WithIndexTemplateMigration(template *IndexTemplate) templateMigrationOption {
+	return func(m *templatesMigration) {
+		m.indexTemplate = template
+	}
+}
+
+func WithILMPolicyMigration(policy *ILMPolicy) templateMigrationOption {
+	return func(m *templatesMigration) {
+		m.ilmPolicy = policy
+	}
+}
+
+func migrateIndexTemplates(ctx context.Context, api *elasticsearch.TypedClient, options ...templateMigrationOption) error {
+	migration := &templatesMigration{}
+	// Process migration options.
+	for option := range slices.Values(options) {
+		option(migration)
+	}
+	// Migrate component templates.
+	if len(migration.componentTemplates) > 0 {
+		for template := range slices.Values(migration.componentTemplates) {
+			slogctx.FromCtx(ctx).Info("Migrating component template...",
+				slog.String("name", template.name))
+			err := template.Put(ctx, api)
+			if err != nil {
+				return fmt.Errorf("could not migrate component template %s: %w", template.name, err)
+			}
+		}
+	}
+	// Migrate index template.
+	if migration.indexTemplate != nil {
+		slogctx.FromCtx(ctx).Info("Migrating index template...",
+			slog.String("name", migration.indexTemplate.name))
+		err := migration.indexTemplate.Put(ctx, api)
+		if err != nil {
+			return fmt.Errorf("could not migrate index template %s: %w", migration.indexTemplate.name, err)
+		}
+	}
+	// Migrate ILM policy.
+	if migration.ilmPolicy != nil {
+		slogctx.FromCtx(ctx).Info("Migrating ILM policy...",
+			slog.String("name", migration.ilmPolicy.name))
+		err := migration.ilmPolicy.Put(ctx, api)
+		if err != nil {
+			return fmt.Errorf("could not migrate ilm policy %s: %w", migration.ilmPolicy.name, err)
+		}
+	}
+	return nil
+}
+
+type indexMigration struct {
+	noReindex bool
+}
+
+type indexMigrationOption Option[*indexMigration]
+
+func WithNoReindex(noReindex bool) indexMigrationOption {
+	return func(m *indexMigration) {
+		m.noReindex = noReindex
+	}
+}
+
+func migrateIndexData(ctx context.Context, api *elasticsearch.TypedClient, index, writeAlias, readAlias string, options ...indexMigrationOption) error {
+	migration := &indexMigration{}
+	// Process migration options.
+	for option := range slices.Values(options) {
+		option(migration)
 	}
 
 	// Create index.
-	found, err := api.Indices.Exists(indexName).Do(ctx)
+	found, err := api.Indices.Exists(index).Do(ctx)
 	if err != nil {
-		return fmt.Errorf("could not determine %s index state: %w", indexName, err)
+		return fmt.Errorf("could not determine %s index state: %w", index, err)
 	}
 	if !found {
-		slogctx.FromCtx(ctx).Info("Creating new index...",
-			slog.String("name", indexName))
-		_, err = api.Indices.Create(indexName).Do(ctx)
+		_, err = api.Indices.Create(index).Do(ctx)
 		if err != nil {
-			return fmt.Errorf("could not create index %s: %w", indexName, err)
+			return fmt.Errorf("could not create index %s: %w", index, err)
 		}
 	}
-
+	slogctx.FromCtx(ctx).Info("New index created",
+		slog.String("name", index),
+	)
 	// Update the write alias.
-	err = updateAlias(ctx, api, writeAlias, indexName)
+	err = updateAlias(ctx, api, writeAlias, index)
 	if err != nil {
 		return fmt.Errorf("migration failed: %w", err)
 	}
-	slogctx.FromCtx(ctx).Info("Write alias updated.")
-
-	// Reindex.
+	// Reindex if requested.
 	found, err = api.Indices.Exists(readAlias).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("could not determine %s index state: %w", readAlias, err)
 	}
-	if found && !noreindex {
-		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(indexName)).WaitForCompletion(true).Do(ctx)
+	if found && !migration.noReindex {
+		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index)).WaitForCompletion(true).Do(ctx)
 		if err != nil {
 			return fmt.Errorf("could not reindex: %w", err)
 		}
 		slogctx.FromCtx(ctx).Info("Reindex completed.",
-			slog.String("src", prefix),
-			slog.String("dest", indexName),
+			slog.String("src", readAlias),
+			slog.String("dest", index),
 			slog.Int64("took", *reindexResp.Took),
 		)
 	}
-
 	// Update the read alias.
-	err = updateAlias(ctx, api, readAlias, indexName)
+	err = updateAlias(ctx, api, readAlias, index)
 	if err != nil {
 		return fmt.Errorf("migration failed: %w", err)
 	}
-	slogctx.FromCtx(ctx).Info("Read alias updated.")
-
-	return nil
-}
-
-// migrateFeedItems contains migration actions for migrating items (datastream and archive).
-func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient) error {
-	datastreamName := ItemsSchemaPrefix + "_" + config.Version
-	writeAlias := ItemsSchemaPrefix + IndexWriteSuffix
-	readAlias := ItemsSchemaPrefix + IndexReadSuffix
-
-	slogctx.FromCtx(ctx).Info("Migrating items datastream...")
-
-	// resp, err := api.Ilm.GetLifecycle().Do(ctx)
-	// if err != nil {
-	// 	return fmt.Errorf("unable to migrate items datastream: %w", err)
-	// }
-	// if _, found := resp[ItemsSchemaPrefix]; found {
-	// 	_, err := api.Ilm.DeleteLifecycle(ItemsSchemaPrefix).Do(ctx)
-	// 	if err != nil {
-	// 		return fmt.Errorf("unable to migrate items datastream: %w", err)
-	// 	}
-	// }
-	_, err := api.Ilm.PutLifecycle(ItemsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to migrate items datastream: %w", err)
-	}
-	slogctx.FromCtx(ctx).Info("Updated items datastream lifecycle policy.")
-
-	err = updateTemplates(ctx, api, ItemsSchemaPrefix, itemsComponentTemplate(), true)
-	if err != nil {
-		return fmt.Errorf("unable to migrate items datastream: %w", err)
-	}
-
-	// Create datastream.
-	_, err = api.Indices.CreateDataStream(datastreamName).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to create new datastream %s: %w", datastreamName, err)
-	}
-
-	// Update the write alias.
-	err = updateAlias(ctx, api, writeAlias, datastreamName)
-	if err != nil {
-		return fmt.Errorf("unable to update items datastream write alias: %w", err)
-	}
-	slogctx.FromCtx(ctx).Info("Updated items datastream write alias.")
-
-	// Reindex.
-	found, err := api.Indices.Exists(readAlias).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not determine %s index state: %w", readAlias, err)
-	}
-	if found {
-
-		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(datastreamName)).Conflicts(conflicts.Proceed).WaitForCompletion(true).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("could not reindex: %w", err)
-		}
-		slogctx.FromCtx(ctx).Info("Completed items datastream reindex.",
-			slog.Int64("took", *reindexResp.Took),
-		)
-	}
-
-	// Update the read alias.
-	err = updateAlias(ctx, api, readAlias, datastreamName)
-	if err != nil {
-		return fmt.Errorf("migration failed: %w", err)
-	}
-	slogctx.FromCtx(ctx).Info("Updated items datastream read alias.")
-
-	return nil
-}
-
-// migrateLogs contains migration actions for migrating logs (datastream).
-func migrateLogs(ctx context.Context, api *elasticsearch.TypedClient) error {
-	datastreamName := LogsSchemaPrefix + "_" + config.Version
-	writeAlias := LogsSchemaPrefix + IndexWriteSuffix
-	readAlias := LogsSchemaPrefix + IndexReadSuffix
-
-	slogctx.FromCtx(ctx).Info("Migrating logs datastream...")
-
-	resp, err := api.Ilm.GetLifecycle().Do(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to migrate logs datastream: %w", err)
-	}
-	if _, found := resp[LogsSchemaPrefix]; found {
-		_, err := api.Ilm.DeleteLifecycle(LogsSchemaPrefix).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("unable to migrate logs datastream: %w", err)
-		}
-	}
-	_, err = api.Ilm.PutLifecycle(LogsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to migrate logs datastream: %w", err)
-	}
-	slogctx.FromCtx(ctx).Info("Updated logs datastream lifecycle policy.")
-
-	err = updateTemplates(ctx, api, LogsSchemaPrefix, logsComponentTemplate(), true)
-	if err != nil {
-		return fmt.Errorf("unable to migrate logs datastream: %w", err)
-	}
-
-	// Create datastream.
-	_, err = api.Indices.CreateDataStream(datastreamName).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to create new datastream %s: %w", datastreamName, err)
-	}
-
-	// Update the write alias.
-	err = updateAlias(ctx, api, writeAlias, datastreamName)
-	if err != nil {
-		return fmt.Errorf("unable to update logs datastream write alias: %w", err)
-	}
-	slogctx.FromCtx(ctx).Info("Updated logs datastream write alias.")
-
-	// Reindex.
-	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(datastreamName)).WaitForCompletion(true).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not reindex: %w", err)
-	}
-	slogctx.FromCtx(ctx).Info("Completed logs datastream reindex.",
-		slog.Int64("took", *reindexResp.Took),
-	)
-
-	// Update the read alias.
-	err = updateAlias(ctx, api, readAlias, datastreamName)
-	if err != nil {
-		return fmt.Errorf("migration failed: %w", err)
-	}
-	slogctx.FromCtx(ctx).Info("Updated logs datastream read alias.")
-
 	return nil
 }
 
@@ -285,62 +603,36 @@ func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias stri
 			return fmt.Errorf("could not retrieve indices associated with alias %s: %w", alias, err)
 		}
 	}
-	// Remove alias from existing indices.
-	for aliasedIndex := range aliasesResp {
-		if aliasedIndex != index {
-			// // Close the old index so writes don't happen.
-			// _, err := api.Indices.Close(aliasedIndex).Do(ctx)
-			// if err != nil {
-			// 	slogctx.FromCtx(ctx).Warn("Could not close old index for alias removal.",
-			// 		slog.String("index", aliasedIndex),
-			// 		slog.Any("error", err))
-			// 	continue
-			// }
-			// Remove the old index from the alias.
+	// Remove existing index marked as write index from alias.
+	for aliasedIndex, aliases := range aliasesResp {
+		_, found := aliases.Aliases[alias]
+		if found {
 			_, err = api.Indices.DeleteAlias(aliasedIndex, alias).Do(ctx)
 			if err != nil {
 				return fmt.Errorf("unable to remove index %s from alias %s: %w", aliasedIndex, alias, err)
 			}
+			slogctx.FromCtx(ctx).Info("Removed index for alias.",
+				slog.String("alias", alias),
+				slog.String("old_index", aliasedIndex),
+			)
 		}
 	}
-	// Set as write index if alias name ends in "rw".
+
 	var writeIndex bool
 	if strings.HasSuffix(alias, "rw") {
+		// Set as write index if alias name ends in "rw".
 		writeIndex = true
 	}
+	// Update the alias.
 	_, err = api.Indices.PutAlias(index, alias).IsWriteIndex(writeIndex).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("could not update alias %s to add index %s: %w", alias, index, err)
 	}
-	return nil
-}
-
-func updateTemplates(ctx context.Context, api *elasticsearch.TypedClient, prefix string, schema *Template, datastream bool) error {
-	componentTemplateName := prefix + "_component_template"
-	indexTemplateName := prefix + "_" + config.Version + "_index_template"
-
-	slogctx.FromCtx(ctx).Info("Creating component template...",
-		slog.String("name", componentTemplateName))
-	componentTemplate := NewComponentTemplate(componentTemplateName, schema,
-		WithComponentTemplateMetadata(defaultMetadata),
+	slogctx.FromCtx(ctx).Info("Index alias updated.",
+		slog.String("alias", alias),
+		slog.String("index", index),
+		slog.Bool("is_write_index", writeIndex),
 	)
-	err := componentTemplate.Put(ctx, api)
-	if err != nil {
-		return fmt.Errorf("could not create component template %s: %w", componentTemplateName, err)
-	}
-
-	slogctx.FromCtx(ctx).Info("Creating index template...",
-		slog.String("name", indexTemplateName))
-	indexTemplate := NewIndexTemplate(indexTemplateName,
-		WithComponentTemplates(componentTemplateName),
-		WithIndexPatterns(prefix+"_"+config.Version),
-		WithIndexTemplateMetadata(defaultMetadata),
-		AsDatastream(datastream),
-	)
-	err = indexTemplate.Put(ctx, api)
-	if err != nil {
-		return fmt.Errorf("could not create index template %s: %w", indexTemplateName, err)
-	}
 	return nil
 }
 

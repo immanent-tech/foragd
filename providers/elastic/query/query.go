@@ -28,6 +28,16 @@ func MatchAll() Option {
 	}
 }
 
+// Exists query adds an "Exists" clause.
+//
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-exists-query
+func Exists(field string) Option {
+	return func(q *types.Query) {
+		q.Exists = types.NewExistsQuery()
+		q.Exists.Field = field
+	}
+}
+
 // Match adds a "Match" query on the given field with the given value.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query

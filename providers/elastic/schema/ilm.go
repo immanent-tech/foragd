@@ -4,6 +4,10 @@
 package schema
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/ilm/putlifecycle"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 )
@@ -24,6 +28,18 @@ func WithRolloverMaxSize(size string) Option[*types.IlmActions] {
 		}
 
 		action.Rollover.MaxSize = types.ByteSize(size)
+	}
+}
+
+// WithRolloverMaxAge will apply a rollover action to the phase that will
+// rollover indices older than the given duration.
+func WithRolloverMaxAge(duration string) Option[*types.IlmActions] {
+	return func(action *types.IlmActions) {
+		if action.Rollover == nil {
+			action.Rollover = types.NewRolloverAction()
+		}
+
+		action.Rollover.MaxAge = types.Duration(duration)
 	}
 }
 
@@ -100,13 +116,32 @@ func WithPhase(name string, options ...Option[*types.Phase]) Option[*types.IlmPo
 	}
 }
 
+type ILMPolicy struct {
+	*putlifecycle.Request
+
+	name string
+}
+
 // NewILMPolicy creates a new ILM policy with the given options and encapsulates it in an appropriate request object.
-func NewILMPolicy(options ...Option[*types.IlmPolicy]) *putlifecycle.Request {
-	policy := &types.IlmPolicy{}
 
-	for _, option := range options {
-		option(policy)
+func NewILMPolicy(name string, options ...Option[*types.IlmPolicy]) *ILMPolicy {
+	policy := &ILMPolicy{
+		name: name,
+		Request: &putlifecycle.Request{
+			Policy: types.NewIlmPolicy(),
+		},
 	}
+	for _, option := range options {
+		option(policy.Policy)
+	}
+	return policy
+}
 
-	return &putlifecycle.Request{Policy: policy}
+// Put will send a request to create the index template in the cluster.
+func (p *ILMPolicy) Put(ctx context.Context, api *elasticsearch.TypedClient) error {
+	_, err := api.Ilm.PutLifecycle(p.name).Request(p.Request).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to put ILM policy: %w", err)
+	}
+	return nil
 }

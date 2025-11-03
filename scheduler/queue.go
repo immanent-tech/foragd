@@ -51,7 +51,7 @@ type JobQueue struct {
 
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
-	jobsIndex, err := elastic.JobsWriteIndexFromCtx(ctx)
+	jobsIndex, err := elastic.SchedulerReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to start job queue: %w", err)
 	}
@@ -118,7 +118,7 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 
 // Head returns the first scheduled job without removing it from the queue.
 func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
-	jobs, _, err := elastic.Search[*ScheduledJob](jq.ctx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1,
+	jobs, _, err := elastic.Search[*ScheduledJob](jq.ctx, jq.client.GetAPI(), jq.index, query.Exists("job_type"), 1,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&jobSorting{}),
 	)
 	if err != nil {
@@ -164,7 +164,7 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 // ScheduledJobs returns the slice of all scheduled jobs in the queue.
 func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]) ([]quartz.ScheduledJob, error) {
 	jobs := make([]quartz.ScheduledJob, 0)
-	allJobs, err := elastic.SearchAll[ScheduledJob](jq.ctx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1000)
+	allJobs, err := elastic.SearchAll[ScheduledJob](jq.ctx, jq.client.GetAPI(), jq.index, query.Exists("job_type"), 1000)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get scheduled jobs: %w", err)
 	}
@@ -188,7 +188,7 @@ func (jq *JobQueue) Size() (int, error) {
 
 // Clear clears the job queue.
 func (jq *JobQueue) Clear() error {
-	err := elastic.DeleteDocs(jq.ctx, jq.client.GetAPI(), jq.index, query.MatchAll())
+	err := elastic.DeleteDocs(jq.ctx, jq.client.GetAPI(), jq.index, query.Exists("job_type"))
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrClearJobs, err)
 	}

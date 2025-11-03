@@ -18,7 +18,7 @@ import (
 
 // archiveArticle will index an article into the item archive to avoid deletion.
 func (a *API) archiveArticle(ctx context.Context, article *models.Article) error {
-	index, err := elastic.ItemsArchiveWriteIndexFromCtx(ctx)
+	index, err := elastic.FavoriteItemsWriteIndexFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to archive article: %w", err)
 	}
@@ -39,7 +39,7 @@ func (a *API) archiveArticle(ctx context.Context, article *models.Article) error
 
 // unarchiveArticle will delete an article from the archive.
 func (a *API) unarchiveArticle(ctx context.Context, id models.ItemID) error {
-	index, err := elastic.ItemsArchiveWriteIndexFromCtx(ctx)
+	index, err := elastic.FavoriteItemsWriteIndexFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to removed archived article: %w", err)
 	}

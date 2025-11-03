@@ -381,7 +381,7 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 }
 
 func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
-	index, err := JobStateReadIndexFromCtx(ctx)
+	index, err := SchedulerReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, ErrNoIndexInCtx
 	}
@@ -393,7 +393,7 @@ func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, err
 }
 
 func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
-	index, err := JobStateWriteIndexFromCtx(ctx)
+	index, err := SchedulerReadIndexFromCtx(ctx)
 	if err != nil {
 		return ErrNoIndexInCtx
 	}
@@ -410,11 +410,11 @@ func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]
 
 // CountItems returns a count of items that match the given query.
 func (e *API) CountJobs(ctx context.Context) (int64, error) {
-	index, err := JobsReadIndexFromCtx(ctx)
+	index, err := SchedulerReadIndexFromCtx(ctx)
 	if err != nil {
 		return 0, ErrNoIndexInCtx
 	}
-	count, err := Count(ctx, e.GetAPI(), index, query.MatchAll())
+	count, err := Count(ctx, e.GetAPI(), index, query.Exists("job_type"))
 	if err != nil {
 		return 0, toAPIError(err)
 	}

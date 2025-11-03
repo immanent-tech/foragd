@@ -33,7 +33,7 @@ func (r *MigrateCmd) Run(opts *MigrateCmd) error {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}
 	// Perform migrations.
-	err = schema.Migration(ctx, elasticClient.GetAPI(), &opts.SchemaOpts)
+	err = schema.PerformMigrations(ctx, elasticClient.GetAPI(), &opts.SchemaOpts)
 	if err != nil {
 		return fmt.Errorf("unable to perform Elastic migration: %w", err)
 	}

@@ -87,10 +87,11 @@ func WithMode(mode string) SettingsOption {
 }
 
 // WithLifecycle option will ensure the template applies the given lifecycle policy name to indices.
-func WithLifecycle(name string) SettingsOption {
+func WithLifecycle(name, rolloverAlias string) SettingsOption {
 	return func(s *Settings) {
 		s.Lifecycle = types.NewIndexSettingsLifecycle()
 		s.Lifecycle.Name = &name
+		s.Lifecycle.RolloverAlias = &rolloverAlias
 	}
 }
 

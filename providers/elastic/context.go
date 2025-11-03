@@ -24,10 +24,8 @@ const (
 	itemsArchiveWriteIndexCtxKey contextKey = "archive_rw"
 	itemsReadIndexCtxKey         contextKey = "items_ro"
 	itemsWriteIndexCtxKey        contextKey = "items_rw"
-	jobsReadIndexCtxKey          contextKey = "jobs_ro"
-	jobsWriteIndexCtxKey         contextKey = "jobs_rw"
-	jobStateReadIndexCtxKey      contextKey = "job_state_ro"
-	jobStateWriteIndexCtxKey     contextKey = "job_state_rw"
+	schedulerReadIndexCtxKey     contextKey = "jobs_ro"
+	schedulerWriteIndexCtxKey    contextKey = "jobs_rw"
 )
 
 type contextKey string
@@ -38,12 +36,10 @@ func SetupIndexAliases(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, userWriteIndexCtxKey, schema.UsersSchemaPrefix+schema.IndexWriteSuffix)
 	ctx = context.WithValue(ctx, feedsReadIndexCtxKey, schema.FeedsSchemaPrefix+schema.IndexReadSuffix)
 	ctx = context.WithValue(ctx, feedsWriteIndexCtxKey, schema.FeedsSchemaPrefix+schema.IndexWriteSuffix)
-	ctx = context.WithValue(ctx, itemsArchiveReadIndexCtxKey, schema.ArticleArchiveSchemaPrefix+schema.IndexReadSuffix)
-	ctx = context.WithValue(ctx, itemsArchiveWriteIndexCtxKey, schema.ArticleArchiveSchemaPrefix+schema.IndexWriteSuffix)
-	ctx = context.WithValue(ctx, jobsReadIndexCtxKey, schema.SchedulerJobsPrefix+schema.IndexReadSuffix)
-	ctx = context.WithValue(ctx, jobsWriteIndexCtxKey, schema.SchedulerJobsPrefix+schema.IndexWriteSuffix)
-	ctx = context.WithValue(ctx, jobStateReadIndexCtxKey, schema.SchedulerStatePrefix+schema.IndexReadSuffix)
-	ctx = context.WithValue(ctx, jobStateWriteIndexCtxKey, schema.SchedulerStatePrefix+schema.IndexWriteSuffix)
+	ctx = context.WithValue(ctx, itemsArchiveReadIndexCtxKey, schema.FavoriteItemsSchemaPrefix+schema.IndexReadSuffix)
+	ctx = context.WithValue(ctx, itemsArchiveWriteIndexCtxKey, schema.FavoriteItemsSchemaPrefix+schema.IndexWriteSuffix)
+	ctx = context.WithValue(ctx, schedulerReadIndexCtxKey, schema.SchedulerSchemaPrefix+schema.IndexReadSuffix)
+	ctx = context.WithValue(ctx, schedulerWriteIndexCtxKey, schema.SchedulerSchemaPrefix+schema.IndexWriteSuffix)
 	ctx = context.WithValue(ctx, itemsReadIndexCtxKey, schema.ItemsSchemaPrefix+schema.IndexReadSuffix)
 	ctx = context.WithValue(ctx, itemsWriteIndexCtxKey, schema.ItemsSchemaPrefix+schema.IndexWriteSuffix)
 	return ctx
@@ -81,52 +77,36 @@ func FeedsWriteIndexFromCtx(ctx context.Context) (string, error) {
 	return "", models.NewAPIError(fmt.Errorf("%w: feeds write index name not found", ErrFetchCtx), http.StatusNotFound)
 }
 
-// ItemsArchiveReadIndexFromCtx retrieves the index alias for read operations against the articles archive index.
-func ItemsArchiveReadIndexFromCtx(ctx context.Context) (string, error) {
+// FavoriteItemsReadIndexFromCtx retrieves the index alias for read operations against the articles archive index.
+func FavoriteItemsReadIndexFromCtx(ctx context.Context) (string, error) {
 	if value, ok := ctx.Value(itemsArchiveReadIndexCtxKey).(string); ok {
 		return value, nil
 	}
 	return "", models.NewAPIError(fmt.Errorf("%w: items archive read index name not found", ErrFetchCtx), http.StatusNotFound)
 }
 
-// ItemsArchiveWriteIndexFromCtx retrieves the index alias for write operations against the articles archive index.
-func ItemsArchiveWriteIndexFromCtx(ctx context.Context) (string, error) {
+// FavoriteItemsWriteIndexFromCtx retrieves the index alias for write operations against the articles archive index.
+func FavoriteItemsWriteIndexFromCtx(ctx context.Context) (string, error) {
 	if value, ok := ctx.Value(itemsArchiveWriteIndexCtxKey).(string); ok {
 		return value, nil
 	}
 	return "", models.NewAPIError(fmt.Errorf("%w: items archive write index name not found", ErrFetchCtx), http.StatusNotFound)
 }
 
-// JobsReadIndexFromCtx retrieves the index alias for read operations against the scheduler jobs index.
-func JobsReadIndexFromCtx(ctx context.Context) (string, error) {
-	if value, ok := ctx.Value(jobsReadIndexCtxKey).(string); ok {
+// SchedulerReadIndexFromCtx retrieves the index alias for read operations against the scheduler jobs index.
+func SchedulerReadIndexFromCtx(ctx context.Context) (string, error) {
+	if value, ok := ctx.Value(schedulerReadIndexCtxKey).(string); ok {
 		return value, nil
 	}
 	return "", models.NewAPIError(fmt.Errorf("%w: jobs read index name not found", ErrFetchCtx), http.StatusNotFound)
 }
 
-// JobsWriteIndexFromCtx retrieves the index alias for write operations against the scheduler jobs index.
-func JobsWriteIndexFromCtx(ctx context.Context) (string, error) {
-	if value, ok := ctx.Value(jobsWriteIndexCtxKey).(string); ok {
+// SchedulerWriteIndexFromCtx retrieves the index alias for write operations against the scheduler jobs index.
+func SchedulerWriteIndexFromCtx(ctx context.Context) (string, error) {
+	if value, ok := ctx.Value(schedulerWriteIndexCtxKey).(string); ok {
 		return value, nil
 	}
 	return "", models.NewAPIError(fmt.Errorf("%w: jobs write index name not found", ErrFetchCtx), http.StatusNotFound)
-}
-
-// JobStateReadIndexFromCtx retrieves the index alias for read operations against the scheduler job state index.
-func JobStateReadIndexFromCtx(ctx context.Context) (string, error) {
-	if value, ok := ctx.Value(jobStateReadIndexCtxKey).(string); ok {
-		return value, nil
-	}
-	return "", models.NewAPIError(fmt.Errorf("%w: job state read index name not found", ErrFetchCtx), http.StatusNotFound)
-}
-
-// JobStateWriteIndexFromCtx retrieves the index alias for write operations against the scheduler job state index.
-func JobStateWriteIndexFromCtx(ctx context.Context) (string, error) {
-	if value, ok := ctx.Value(jobStateWriteIndexCtxKey).(string); ok {
-		return value, nil
-	}
-	return "", models.NewAPIError(fmt.Errorf("%w: job state write index name not found", ErrFetchCtx), http.StatusNotFound)
 }
 
 // ItemsReadIndexFromCtx retrieves the index alias for read operations against the items datastream indicies.
