@@ -158,6 +158,7 @@ templ (page *Home) Template() {
 								@NewLink(
 									WithHXMethod(http.MethodGet, "/list/articles"),
 									WithHXTarget(ContentID.Target()),
+									WithHXSwap("innerHTML show:top"),
 									WithHXVals(params),
 									WithHXPushURL(),
 								) {
@@ -194,15 +195,14 @@ templ (page *Home) Template() {
 									}
 									<div class="space-y-4">
 										// Article title.
-										<a
-											hx-get={ article.ViewURL() }
-											hx-target={ ContentID.Target() }
-											hx-push-url="true"
-											hx-swap="innerHTML show:top"
-											class={ "link link-hover" }
-										>
+										@NewLink(
+											WithHXMethod(http.MethodGet, article.ViewURL()),
+											WithHXTarget(ContentID.Target()),
+											WithHXPushURL(),
+											WithHXSwap("innerHTML show:top"),
+										) {
 											<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
-										</a>
+										}
 										// Timestamp, Subscription.
 										<div class="flex gap-x-4">
 											<p class="flex-none text-xs text-base-content/80">
@@ -212,6 +212,7 @@ templ (page *Home) Template() {
 												@NewLink(
 													WithHXMethod(http.MethodGet, "/list/articles"),
 													WithHXTarget(ContentID.Target()),
+													WithHXSwap("innerHTML show:top"),
 													WithHXPushURL(),
 													WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
 												) {
@@ -247,6 +248,7 @@ templ (page *Home) Template() {
 										@NewLink(
 											WithHXMethod(http.MethodGet, "/list/articles"),
 											WithHXTarget(ContentID.Target()),
+											WithHXSwap("innerHTML show:top"),
 											WithHXVals(params),
 											WithHXPushURL(),
 										) {
