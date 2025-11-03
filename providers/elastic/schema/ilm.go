@@ -116,6 +116,7 @@ func WithPhase(name string, options ...Option[*types.Phase]) Option[*types.IlmPo
 	}
 }
 
+// ILMPolicy represents an index lifecycle management policy.
 type ILMPolicy struct {
 	*putlifecycle.Request
 
@@ -123,7 +124,6 @@ type ILMPolicy struct {
 }
 
 // NewILMPolicy creates a new ILM policy with the given options and encapsulates it in an appropriate request object.
-
 func NewILMPolicy(name string, options ...Option[*types.IlmPolicy]) *ILMPolicy {
 	policy := &ILMPolicy{
 		name: name,
