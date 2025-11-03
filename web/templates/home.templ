@@ -112,7 +112,7 @@ templ (page *Home) Template() {
 											<p class="flex-none text-xs text-base-content/80">
 												@ShowTimestamp(article.GetUpdatedDate())
 											</p>
-											<p class="flex-none text-xs text-base-content/80">
+											<p class="flex-1 text-xs text-base-content/80 truncate">
 												@NewLink(
 													WithHXMethod(http.MethodGet, "/list/articles"),
 													WithHXTarget(ContentID.Target()),
