@@ -170,85 +170,89 @@ templ ArticleContent(article *models.Article) {
 	@Main() {
 		// Title and actions menu.
 		<div class="flex justify-center">
-			<article id={ article.GetID() } class="prose prose-sm sm:prose-lg dark:prose-invert">
-				<div class="flex mt-4 max-w-prose">
-					<h2 class="flex flex-1 items-center justify-between text-2xl/7 sm:text-3xl font-bold tracking-tight">
-						{ article.GetTitle() }
-						<el-dropdown class="flex flex-none">
-							<button class="inline-flex flex-col items-center">
-								<span class="sr-only">Article Actions</span>
-								@tabler.DotsVertical(i.Props{Class: "size-6"})
-							</button>
-							<el-menu anchor="bottom end" popover class="context-menu-base py-2">
-								// Toggle view full content action.
-								@NewLink(
-									WithHXMethod(http.MethodGet, article.ViewURL()),
-									WithHXTarget(ContentID.Target()),
-									WithHXInclude("#content-filters,[name='csrf_token']"),
-									WithHXVals(map[string]string{models.ParamFullArticleContent: strconv.FormatBool(!article.ShowFullContent)}),
-									WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
-								) {
-									@tabler.FileDownloadFilled(i.Props{Class: "size-4"})
-									if article.ShowFullContent {
-										Show Feed Content
-									} else {
-										Show Remote Article
-									}
+			<article id={ article.GetID() } class="prose prose-sm sm:prose-lg dark:prose-invert w-full sm:w-prose">
+				<div class="flex mt-4 items-center">
+					<div class="flex flex-1">
+						<h2 class=" text-2xl/7 sm:text-3xl font-bold tracking-tight">
+							{ article.GetTitle() }
+						</h2>
+					</div>
+					<el-dropdown class="flex justify-self-end self-center">
+						<button>
+							<span class="sr-only">Article Actions</span>
+							@tabler.DotsVertical(i.Props{Class: "size-6"})
+						</button>
+						<el-menu anchor="bottom end" popover class="context-menu-base py-2">
+							// Toggle view full content action.
+							@NewLink(
+								WithHXMethod(http.MethodGet, article.ViewURL()),
+								WithHXTarget(ContentID.Target()),
+								WithHXInclude("#content-filters,[name='csrf_token']"),
+								WithHXVals(map[string]string{models.ParamFullArticleContent: strconv.FormatBool(!article.ShowFullContent)}),
+								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
+							) {
+								@tabler.FileDownloadFilled(i.Props{Class: "size-4"})
+								if article.ShowFullContent {
+									Show Feed Content
+								} else {
+									Show Remote Article
 								}
-								// View original article action.
-								@NewLink(
-									WithCustomAttribute("href", article.GetLink()),
-									WithCustomAttribute("target", "_blank"),
-									WithCustomAttribute("rel", "noopener"),
-									WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
-								) {
-									@tabler.ExternalLink(i.Props{Class: "size-4"})
-									View Original Article
-								}
-								<form>
-									<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-									<div id={ "mark_" + article.GetID() }>
-										@UpdateViewArticleMark(article)
-									</div>
-								</form>
-								// Favorite action.
-								<form>
-									<input type="hidden" name="display" value="content"/>
-									<div id={ "favorite_" + article.GetID() }>
-										@UpdateViewArticleFavorite(article)
-									</div>
-								</form>
-								@NewLink(
-									WithHXMethod(http.MethodGet, article.IssueURL()),
-									WithHXTarget(ContentID.Target()),
-									WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
-								) {
-									@tabler.FlagFilled(i.Props{Class: "size-4"})
-									Report An Issue
-								}
-							</el-menu>
-						</el-dropdown>
-					</h2>
+							}
+							// View original article action.
+							@NewLink(
+								WithCustomAttribute("href", article.GetLink()),
+								WithCustomAttribute("target", "_blank"),
+								WithCustomAttribute("rel", "noopener"),
+								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
+							) {
+								@tabler.ExternalLink(i.Props{Class: "size-4"})
+								View Original Article
+							}
+							<form>
+								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+								<div id={ "mark_" + article.GetID() }>
+									@UpdateViewArticleMark(article)
+								</div>
+							</form>
+							// Favorite action.
+							<form>
+								<input type="hidden" name="display" value="content"/>
+								<div id={ "favorite_" + article.GetID() }>
+									@UpdateViewArticleFavorite(article)
+								</div>
+							</form>
+							@NewLink(
+								WithHXMethod(http.MethodGet, article.IssueURL()),
+								WithHXTarget(ContentID.Target()),
+								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
+							) {
+								@tabler.FlagFilled(i.Props{Class: "size-4"})
+								Report An Issue
+							}
+						</el-menu>
+					</el-dropdown>
 				</div>
-				// Article.
-				<div class="flex flex-col justify-items-center">
-					<section class="flex justify-between max-w-prose">
-						<p class="flex-1 text-base-content/80 text-wrap italic justify-self-start">
+				// Author(s) and Published Time.
+				<div class="flex flex-col">
+					if len(article.GetAuthors()) > 0 {
+						<p class="flex flex-1 text-sm/6 text-base-content/80 italic truncate">
 							{ strings.Join(article.GetAuthors(),",") }
 						</p>
-						<p class="text-base-content/80 capitalize justify-self-end">
-							@ShowTimestamp(article.GetUpdatedDate())
-						</p>
-					</section>
-					<section>
-						switch  {
-							case article.GetContent() != "":
-								@templ.Raw(article.GetContent())
-							case article.GetDescription() != "":
-								@templ.Raw(article.GetDescription())
-						}
-					</section>
+					}
+					<p class="flex flex-1 text-sm/6 text-base-content/80 capitalize">
+						Updated&nbsp;
+						@ShowTimestamp(article.GetUpdatedDate())
+					</p>
 				</div>
+				// Content.
+				<section>
+					switch  {
+						case article.GetContent() != "":
+							@templ.Raw(article.GetContent())
+						case article.GetDescription() != "":
+							@templ.Raw(article.GetDescription())
+					}
+				</section>
 			</article>
 			// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 			// read and mark it so (when the user has set this option).
