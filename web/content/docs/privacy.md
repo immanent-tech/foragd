@@ -69,7 +69,7 @@ information.
 
 ## Maintaining the Quality of your Personal Information
 
-It is an important to us that your Personal Information is up to date. We  will take reasonable steps to make sure that
+It is an important to us that your Personal Information is up to date. We will take reasonable steps to make sure that
 your Personal Information is accurate, complete and up-to-date. If you find that the information we have is not up to
 date or is inaccurate, please advise us as soon as practicable so we can update our records and ensure we can continue
 to provide quality services to you.
@@ -85,6 +85,11 @@ Statement or at the time of collection.
 Foragd uses Auth0 to provide accounts and logins for the service. When you sign up for Foragd, you are signing up for an
 account that will be stored in Auth0's infrastructure. By using Foragd, you consent to Auth0 processing data about you.
 Check [Auth0's Privacy Policies](https://auth0.com/docs/secure/data-privacy-and-compliance) for more information.
+
+Signing up will require the following details to create your Foragd account:
+
+- A username.
+- An email address.
 
 <!-- ### Google Analytics
 
