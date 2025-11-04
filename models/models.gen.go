@@ -809,7 +809,7 @@ type User struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Email is the email address of the user.
-	Email string `form:"email" json:"email,omitempty,omitzero" validate:"required,email"`
+	Email string `form:"email" json:"email,omitempty,omitzero" validate:"omitempty,email"`
 
 	// ExternalUserId is the ID of the user on the external backend that was used to create the account.
 	ExternalUserId string `json:"external_user_id" validate:"required"`
@@ -848,7 +848,7 @@ type UserCustomisation struct {
 	AvatarURL string `form:"avatar_url" json:"avatar_url,omitempty,omitzero" validate:"omitempty,url"`
 
 	// Email is the email address of the user.
-	Email string `form:"email" json:"email,omitempty,omitzero" validate:"required,email"`
+	Email string `form:"email" json:"email,omitempty,omitzero" validate:"omitempty,email"`
 
 	// Nickname is a nickname for the user.
 	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero"`

@@ -220,7 +220,7 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'email'
-            validate: 'required,email'
+            validate: 'omitempty,email'
         avatar_url:
           description: >
             is a link to an image file to user as an avatar for the user.
