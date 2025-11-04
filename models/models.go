@@ -154,6 +154,7 @@ type Object interface {
 	Type() ObjectType
 	ViewURL() string
 	MarkURL() string
+	GetLink() string
 }
 
 type Objects interface {

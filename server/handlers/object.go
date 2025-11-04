@@ -245,7 +245,7 @@ func ConfirmRemoveObject(api *elastic.API) http.HandlerFunc {
 				)).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("could not retrieve subscriptions: %w", err), http.StatusInternalServerError)
 			}
-			renderPartial(templates.UnsubscribeModal(subscriptions[0])).ServeHTTP(res, req)
+			renderPartial(templates.RemoveObjectModal(subscriptions[0])).ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}
@@ -301,6 +301,37 @@ func RemoveObject(api *elastic.API) http.HandlerFunc {
 		return nil
 	})).ServeHTTP
 }
+
+// func ShareObject(api *elastic.API) http.HandlerFunc {
+// 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+// 		// Extract request parameters.
+// 		params := &models.ObjectParams{
+// 			ObjectID: chi.URLParam(req, models.ParamObjectID),
+// 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
+// 		}
+// 		valid, err := params.Valid()
+// 		if err != nil || !valid {
+// 			renderPartial(templates.ServerErrorNotification(
+// 				models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again."),
+// 			)).ServeHTTP(res, req)
+// 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+// 		}
+// 		switch params.Object {
+// 		case models.ObjectTypeArticle:
+// 			articles, err := models.GetArticles(req.Context(), api, params.ObjectID)
+// 			if err != nil || len(articles) == 0 || len(articles) > 1 {
+// 				renderPartial(templates.ServerErrorNotification(
+// 					models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again."),
+// 				)).ServeHTTP(res, req)
+// 				return models.NewAPIError(fmt.Errorf("could not retrieve subscriptions: %w", err), http.StatusInternalServerError)
+// 			}
+// 			renderPartial(templates.ShareObjectModal(articles[0])).ServeHTTP(res, req)
+// 		default:
+// 			res.WriteHeader(http.StatusNotImplemented)
+// 		}
+// 		return nil
+// 	})).ServeHTTP
+// }
 
 // GetObjectIssues presents a form for entering issues about a particular object (subscription/article).
 func GetObjectIssues(api *elastic.API) http.HandlerFunc {

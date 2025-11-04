@@ -136,10 +136,11 @@ templ ArticleCard(article *models.Article) {
 							</form>
 							// Share action.
 							@NewLink(
-								WithCustomAttribute("_",
-									"on click set currentValue to (my innerHTML) then writeText('"+article.GetLink()+"') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me",
-								),
+								// WithHXMethod(http.MethodGet, article.ViewURL()+"/share"),
+								// WithHXTarget(ModalContainerID.Target()),
 								WithClasses("context-menu-item-base"),
+								WithCustomAttribute("_", "on click if navigator.share then "+shareAPIDialog(article)+" else call document.getElementById('share-"+article.GetID()+"').show() "),
+								// WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('share').show()"),
 							) {
 								@tabler.Share(i.Props{Class: "size-4"})
 								Share
@@ -158,6 +159,7 @@ templ ArticleCard(article *models.Article) {
 				</div>
 			</div>
 		</div>
+		@ShareObjectModal(article)
 	</li>
 }
 
