@@ -13,7 +13,10 @@
     night,
     dim,
     nord,
-    garden --default;
+    garden,
+    winter,
+    pastel,
+    silk --default;
 }
 
 /* Inter font styling */

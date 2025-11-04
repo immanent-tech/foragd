@@ -321,7 +321,7 @@ components:
           description: >
             the user interface theme chosen by the user.
           type: string
-          default: forest
+          default: silk
           x-oapi-codegen-extra-tags:
             form: '-'
         show_onboarding:
