@@ -26,8 +26,8 @@ type Authenticator struct {
 
 var AuthClient *Authenticator
 
-// Connect will create a client connection with the GitHub API. The connection will be cached for re-use. It is safe to
-// call multiple times, with subsequent calls being no-ops.
+// InitAuthenticator will the setup and initialisation of the Auth0 tenant. It can be called multiple times but will only
+// perform initialisation once (so it can be lazily loaded by calling it before any Auth0 actions).
 var InitAuthenticator = func(ctx context.Context) error {
 	err := sync.OnceValue(func() error {
 		err := LoadConfigOnce()
