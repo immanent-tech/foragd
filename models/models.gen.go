@@ -674,9 +674,6 @@ type Subscription struct {
 
 	// Stats contains stats about a subscription.
 	Stats SubscriptionStats `json:"stats,omitempty,omitzero"`
-
-	// UnreadCount is the value of items that are not explicitly marked unread by the user for this subscription.
-	UnreadCount int `json:"-" validate:"gte=0"`
 }
 
 // SubscriptionArticleFilters holds filters to apply to the articles within a subscription.
@@ -787,8 +784,11 @@ type SubscriptionSettings struct {
 
 // SubscriptionStats contains stats about a subscription.
 type SubscriptionStats struct {
-	// AvgDailyUpdates is the avergage number of updates per day.
-	AvgDailyUpdates float64 `json:"avg_daily_updates,omitempty,omitzero"`
+	// AvgDailyUpdates is the avergage number of articles published per day.
+	AvgDailyUpdates float64 `json:"-" validate:"gte=0"`
+
+	// UnreadCount is the value of items that are not explicitly marked unread by the user for this subscription.
+	UnreadCount int `json:"-" validate:"gte=0"`
 }
 
 // Timestamp is when the document was created.

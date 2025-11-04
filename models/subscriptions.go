@@ -24,14 +24,11 @@ var ErrInvalidSubscriptionState = errors.New("invalid subscription state")
 
 // GenerateSubscription creates a subscription from the given data sources: a feed, any user customisation of feed
 // values, subscription state and an unread count. All data besides the feed is optional.
-func GenerateSubscription(user *User, metadata *SubscriptionMetadata, feed *Feed, count int) (*Subscription, error) {
+func GenerateSubscription(metadata *SubscriptionMetadata, feed *Feed, favorite bool) (*Subscription, error) {
 	subscription := &Subscription{
-		Metadata:    *metadata,
-		Feed:        *feed,
-		UnreadCount: count,
-	}
-	if user.IsFavorite(subscription.GetID()) {
-		subscription.Favorite = true
+		Metadata: *metadata,
+		Feed:     *feed,
+		Favorite: favorite,
 	}
 	// Validate the subscription.
 	valid, err := subscription.Valid()
@@ -112,16 +109,16 @@ func (s *Subscription) GetImage() *types.ImageInfo {
 }
 
 func (s *Subscription) GetUnreadCount() int {
-	return s.UnreadCount
+	return s.Stats.UnreadCount
 }
 
 func (s *Subscription) SetUnreadCount(count int) {
-	s.UnreadCount = count
+	s.Stats.UnreadCount = count
 }
 
 // IsUnread returns a boolean indicating whether the subscription is considered unread.
 func (s *Subscription) IsUnread() bool {
-	return s.UnreadCount > 0
+	return s.Stats.UnreadCount > 0
 }
 
 // IsFavorite returns a boolean indicating whether the subscription has been favorited.

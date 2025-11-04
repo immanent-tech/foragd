@@ -125,7 +125,7 @@ func CreateSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*Subsc
 			continue
 		}
 		// Generate subscription.
-		subscription, err := GenerateSubscription(user, metadata, &result.Feed, 0)
+		subscription, err := GenerateSubscription(metadata, &result.Feed, false)
 		if err != nil {
 			result.Error = fmt.Errorf("unable to create subscription: %w", err)
 			continue
@@ -168,11 +168,11 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	if len(allMetadata) == 0 {
 		return nil, nil
 	}
-	// Get unread counts.
-	unreadCounts, err := GetSubscriptionUnreadCounts(ctx, dataAPI, allMetadata)
-	if err != nil {
-		return nil, fmt.Errorf("could not retrieve unread counts: %w", err)
-	}
+	// // Get unread counts.
+	// unreadCounts, err := getSubscriptionUnreadCounts(ctx, dataAPI, allMetadata)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("could not retrieve unread counts: %w", err)
+	// }
 	// Get subscription stats.
 	stats, err := GetSubscriptionStats(ctx, dataAPI, allMetadata)
 	if err != nil {
@@ -188,16 +188,13 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	subscriptions := make(Subscriptions, 0, len(feeds))
 	for feed := range slices.Values(feeds) {
 		var metadata *SubscriptionMetadata
-		var count int64
 		if metadata = allMetadata.GetByFeedID(feed.GetID()); metadata == nil {
 			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved feed.",
 				slog.String("feed_id", feed.GetID()),
 			)
 			continue
 		}
-		count = unreadCounts[metadata.GetID()]
-
-		subscription, err := GenerateSubscription(user, metadata, feed, int(count))
+		subscription, err := GenerateSubscription(metadata, feed, user.IsFavorite(metadata.GetID()))
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not generate subscription from data.",
 				slog.Any("error", err),
@@ -209,64 +206,6 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	}
 
 	return subscriptions, nil
-}
-
-func GetSubscriptionUnreadCounts(ctx context.Context, dataAPI DataAPI, subscriptionMetadata SubscriptionMetadataSlice) (map[SubscriptionID]int64, error) {
-	// Retrieve user object.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
-	}
-	// Generate unread count query.
-	subscriptionQueries := make([]query.Option, 0, len(subscriptionMetadata))
-	for m := range slices.Values(subscriptionMetadata) {
-		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, m))
-	}
-	// Build query.
-	query := query.Bool(
-		query.Filter(
-			query.Bool(
-				query.Should(subscriptionQueries...),
-			),
-		),
-	)
-	// Build aggregations.
-	termsField := "feed_id"
-	termsCount := len(subscriptionMetadata)
-	aggs := aggregations.Aggs{
-		"UnreadCounts": types.Aggregations{
-			Terms: &types.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-		},
-	}
-	// Perform aggregation.
-	results, err := dataAPI.ItemsAggregation(ctx, query, 0, aggs)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
-	}
-
-	unreadCounts, ok := results.Aggregations["UnreadCounts"].(*types.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf("unable to get unread counts: feed aggregations invalid")
-	}
-	unreadCountsBuckets, ok := unreadCounts.Buckets.([]types.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf("unable to get unread counts: feed aggregations invalid")
-	}
-
-	stats := make(map[SubscriptionID]int64)
-
-	for feed := range slices.Values(unreadCountsBuckets) {
-		feedID, ok := feed.Key.(string)
-		if !ok {
-			slogctx.FromCtx(ctx).Debug("Unable to extract feed ID for aggregation", slog.Any("feed_id", feed.Key))
-			continue
-		}
-		stats[user.GetSubscriptionMetadata().GetByFeedID(feedID).GetID()] = feed.DocCount
-	}
-	return stats, nil
 }
 
 func GetSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscriptions SubscriptionMetadataSlice) (map[SubscriptionID]SubscriptionStats, error) {
@@ -343,6 +282,76 @@ func GetSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscriptions Su
 		stats[user.GetSubscriptionMetadata().GetByFeedID(feedID).GetID()] = SubscriptionStats{
 			AvgDailyUpdates: float64(*updatesResult.Value),
 		}
+	}
+
+	unreadCounts, err := getSubscriptionUnreadCounts(ctx, dataAPI, subscriptions)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate subscription stats: %w", err)
+	}
+	for feedID, unreadCount := range unreadCounts {
+		if feedStats, found := stats[feedID]; found {
+			feedStats.UnreadCount = int(unreadCount)
+			stats[feedID] = feedStats
+		}
+	}
+
+	return stats, nil
+}
+
+func getSubscriptionUnreadCounts(ctx context.Context, dataAPI DataAPI, subscriptionMetadata SubscriptionMetadataSlice) (map[SubscriptionID]int64, error) {
+	// Retrieve user object.
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
+	}
+	// Generate unread count query.
+	subscriptionQueries := make([]query.Option, 0, len(subscriptionMetadata))
+	for m := range slices.Values(subscriptionMetadata) {
+		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, m))
+	}
+	// Build query.
+	query := query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(subscriptionQueries...),
+			),
+		),
+	)
+	// Build aggregations.
+	termsField := "feed_id"
+	termsCount := len(subscriptionMetadata)
+	aggs := aggregations.Aggs{
+		"UnreadCounts": types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+		},
+	}
+	// Perform aggregation.
+	results, err := dataAPI.ItemsAggregation(ctx, query, 0, aggs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
+	}
+
+	unreadCounts, ok := results.Aggregations["UnreadCounts"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf("unable to get unread counts: feed aggregations invalid")
+	}
+	unreadCountsBuckets, ok := unreadCounts.Buckets.([]types.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf("unable to get unread counts: feed aggregations invalid")
+	}
+
+	stats := make(map[SubscriptionID]int64)
+
+	for feed := range slices.Values(unreadCountsBuckets) {
+		feedID, ok := feed.Key.(string)
+		if !ok {
+			slogctx.FromCtx(ctx).Debug("Unable to extract feed ID for aggregation", slog.Any("feed_id", feed.Key))
+			continue
+		}
+		stats[user.GetSubscriptionMetadata().GetByFeedID(feedID).GetID()] = feed.DocCount
 	}
 	return stats, nil
 }

@@ -638,8 +638,18 @@ components:
       properties:
         avg_daily_updates:
           description: >
-            is the avergage number of updates per day.
+            is the avergage number of articles published per day.
           x-go-type: float64
+          x-oapi-codegen-extra-tags:
+            json: '-'
+            validate: 'gte=0'
+        unread_count:
+          description: >
+            is the value of items that are not explicitly marked unread by the user for this subscription.
+          type: integer
+          x-oapi-codegen-extra-tags:
+            json: '-'
+            validate: 'gte=0'
 
     Subscription:
       description: >
@@ -653,13 +663,6 @@ components:
           $ref: '#/components/schemas/Feed'
         metadata:
           $ref: '#/components/schemas/SubscriptionMetadata'
-        unread_count:
-          description: >
-            is the value of items that are not explicitly marked unread by the user for this subscription.
-          type: integer
-          x-oapi-codegen-extra-tags:
-            json: '-'
-            validate: 'gte=0'
         stats:
           $ref: '#/components/schemas/SubscriptionStats'
         favorite:
@@ -668,6 +671,16 @@ components:
           type: boolean
           x-oapi-codegen-extra-tags:
             json: '-'
+    # CustomSubscription:
+    #   description: >
+    #     is a custom subscription created from a search request.
+    #   type: object
+    #   allOf:
+    #     - $ref: '#/components/schemas/SearchRequest'
+    #     - type: object
+    #       properties:
+    #         stats:
+    #           $ref: '#/components/schemas/SubscriptionStats'
     SubscriptionArticleFilters:
       description: >
         holds filters to apply to the articles within a subscription.
