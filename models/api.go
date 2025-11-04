@@ -526,7 +526,7 @@ func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID
 		),
 	)
 	// Query for similar articles.
-	items, _, err := dataAPI.SearchItems(ctx, similarQuery, 10, nil, nil)
+	items, _, err := dataAPI.SearchItems(ctx, similarQuery, 15, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}
@@ -560,7 +560,7 @@ func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms stri
 			),
 		),
 	)
-	itemResults, _, err := dataAPI.SearchItems(ctx, itemsQuery, 10, &SortLastUpdatedDesc, nil)
+	itemResults, _, err := dataAPI.SearchItems(ctx, itemsQuery, 5, &SortLastUpdatedDesc, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not get item matches: %w", err)
 	}
@@ -589,7 +589,7 @@ func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchReque
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not fetch user: %w", err)
 	}
-	itemResults, _, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, request), 10, &SortLastUpdatedDesc, nil)
+	itemResults, _, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, request), 15, &SortLastUpdatedDesc, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not get item matches: %w", err)
 	}
