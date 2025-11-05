@@ -50,7 +50,7 @@ func (a Articles) GetCategoryCounts() CategoryCounts {
 
 // GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
 // and state is required.
-func GenerateArticle(user *User, item *Item, state *Subscription) (*Article, error) {
+func GenerateArticle(user *User, item *Item, state *FeedSubscription) (*Article, error) {
 	article := &Article{
 		Item:           *item,
 		SubscriptionID: state.GetID(),
@@ -157,6 +157,11 @@ func (a *Article) GetContent() string {
 	}
 }
 
+// IsRemoteContent returns a boolean indicating whether the full content of the article should be shown.
+func (a *Article) IsRemoteContent() bool {
+	return a.ShowFullContent
+}
+
 func (a *Article) GetImage() *types.ImageInfo {
 	if a.Item.GetImage() != nil && a.Item.GetImage().GetURL() != "" {
 		return a.Item.GetImage()
@@ -203,30 +208,8 @@ func (s *Article) IsFavorite() bool {
 }
 
 // Type returns the type of the object, in this case, "article".
-func (a *Article) Type() ObjectType {
+func (a *Article) GetObjectType() ObjectType {
 	return ObjectTypeArticle
-}
-
-func (a *Article) ViewURL() string {
-	return "/view/article/" + a.GetID()
-}
-
-func (a *Article) MarkURL() string {
-	if a.IsUnread() {
-		return "/mark/article/" + a.GetID() + "/read"
-	}
-	return "/mark/article/" + a.GetID() + "/unread"
-}
-
-func (a *Article) IssueURL() string {
-	return "/issue/article/" + a.GetID()
-}
-
-func (a *Article) FavoriteURL() string {
-	if a.IsFavorite() {
-		return "/user/favorite/remove/article/" + a.GetID()
-	}
-	return "/user/favorite/add/article/" + a.GetID()
 }
 
 // Sanitise will sanitise the input values.

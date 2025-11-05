@@ -88,6 +88,12 @@ const (
 	StateUnread State = "unread"
 )
 
+// Defines values for SubscriptionType.
+const (
+	SubscriptionTypeFeed   SubscriptionType = "feed"
+	SubscriptionTypeSearch SubscriptionType = "search"
+)
+
 // Defines values for UserLevel.
 const (
 	UserLevelBasic    UserLevel = "basic"
@@ -407,6 +413,42 @@ type FeedSourceType string
 // FeedID is the unique ID of a feed.
 type FeedID = string
 
+// FeedSubscription defines model for FeedSubscription.
+type FeedSubscription struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+
+	// Customisation contains object fields that can be customised (overridden) by a user
+	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
+
+	// Favorite indicates whether this subscription has been marked as a favorite by the user.
+	Favorite bool `json:"-"`
+
+	// Feed is the original feed content.
+	Feed Feed `json:"-"`
+
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+
+	// ItemStates contains the states of items marked explicitly as read/unread/saved by the user.
+	ItemStates map[ItemID]ArticleState `json:"item_states,omitempty,omitzero"`
+
+	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
+	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
+
+	// Settings contains options that control how the subscription is stored/displayed.
+	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
+
+	// Stats contains stats about a subscription.
+	Stats SubscriptionStats `json:"-"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+}
+
 // IssueRequest contains details about an issue with the service.
 type IssueRequest struct {
 	// Details is the user-submitted text about the issue.
@@ -638,6 +680,36 @@ type SearchRequest struct {
 // SearchRequestPublishedWithin represents a time range within which the objects should be published
 type SearchRequestPublishedWithin string
 
+// SearchSubscription defines model for SearchSubscription.
+type SearchSubscription struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+
+	// Customisation contains object fields that can be customised (overridden) by a user
+	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
+
+	// Favorite indicates whether this subscription has been marked as a favorite by the user.
+	Favorite bool `json:"-"`
+
+	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
+	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
+
+	// Search represents a search request by the user.
+	Search SearchRequest `json:"search,omitempty,omitzero"`
+
+	// Settings contains options that control how the subscription is stored/displayed.
+	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
+
+	// Stats contains stats about a subscription.
+	Stats SubscriptionStats `json:"-"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+}
+
 // Sort contains information on sorting objects.
 type Sort struct {
 	// SortBy represents the selected field to sort on.
@@ -661,41 +733,25 @@ type StoredImage struct {
 	Data image.Image `json:"data"`
 }
 
-// Subscription defines model for Subscription.
+// Subscription represents a user subscription.
 type Subscription struct {
-	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at" validate:"required"`
-
-	// Customisation contains object fields that can be customised (overridden) by a user
-	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
-
-	// Favorite indicates whether this subscription has been marked as a favorite by the user.
-	Favorite bool `json:"-"`
-
-	// Feed is the original feed content.
-	Feed Feed `json:"-"`
-
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-
-	// ItemStates contains the states of items marked explicitly as read/unread/saved by the user.
-	ItemStates map[ItemID]ArticleState `json:"item_states,omitempty,omitzero"`
-
-	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
-	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
-
-	// Settings contains options that control how the subscription is stored/displayed.
-	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
-
-	// Stats contains stats about a subscription.
-	Stats SubscriptionStats `json:"-"`
+	// Data is the raw data represeting the subscription type.
+	Data Subscription_Data `json:"data,omitempty,omitzero"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+	// Type is the type of subscription.
+	Type SubscriptionType `json:"type,omitempty,omitzero" validate:"required,oneof=feed search"`
 }
+
+// Subscription_Data is the raw data represeting the subscription type.
+type Subscription_Data struct {
+	union json.RawMessage
+}
+
+// SubscriptionType is the type of subscription.
+type SubscriptionType string
 
 // SubscriptionArticleFilters holds filters to apply to the articles within a subscription.
 type SubscriptionArticleFilters struct {
@@ -714,11 +770,23 @@ type SubscriptionCommon struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
+	// Customisation contains object fields that can be customised (overridden) by a user
+	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
+
 	// Favorite indicates whether this subscription has been marked as a favorite by the user.
 	Favorite bool `json:"-"`
 
 	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
 	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
+
+	// Settings contains options that control how the subscription is stored/displayed.
+	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
+
+	// Stats contains stats about a subscription.
+	Stats SubscriptionStats `json:"-"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -782,7 +850,7 @@ type SubscriptionResult struct {
 	Request SubscriptionRequest `json:"request"`
 
 	// Subscription represents a feed a user has subscribed to.
-	Subscription Subscription `json:"subscription,omitempty,omitzero"`
+	Subscription FeedSubscription `json:"subscription,omitempty,omitzero"`
 }
 
 // SubscriptionSettings contains options that control how the subscription is stored/displayed.
@@ -1037,6 +1105,68 @@ func (t Favorite_ObjectData) MarshalJSON() ([]byte, error) {
 }
 
 func (t *Favorite_ObjectData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsFeedSubscription returns the union data inside the Subscription_Data as a FeedSubscription
+func (t Subscription_Data) AsFeedSubscription() (FeedSubscription, error) {
+	var body FeedSubscription
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFeedSubscription overwrites any union data inside the Subscription_Data as the provided FeedSubscription
+func (t *Subscription_Data) FromFeedSubscription(v FeedSubscription) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFeedSubscription performs a merge with any union data inside the Subscription_Data, using the provided FeedSubscription
+func (t *Subscription_Data) MergeFeedSubscription(v FeedSubscription) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsSearchSubscription returns the union data inside the Subscription_Data as a SearchSubscription
+func (t Subscription_Data) AsSearchSubscription() (SearchSubscription, error) {
+	var body SearchSubscription
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSearchSubscription overwrites any union data inside the Subscription_Data as the provided SearchSubscription
+func (t *Subscription_Data) FromSearchSubscription(v SearchSubscription) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeSearchSubscription performs a merge with any union data inside the Subscription_Data, using the provided SearchSubscription
+func (t *Subscription_Data) MergeSearchSubscription(v SearchSubscription) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Subscription_Data) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Subscription_Data) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

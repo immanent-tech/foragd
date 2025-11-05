@@ -16,8 +16,6 @@ import (
 
 	"github.com/go-shiori/go-readability"
 
-	"github.com/immanent-tech/go-syndication/types"
-
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -93,33 +91,6 @@ func ValidateDatetime(dt time.Time) (bool, error) {
 	}
 }
 
-type List[T any] struct {
-	Head, Tail *Element[T]
-}
-
-type Element[T any] struct {
-	Next *Element[T]
-	Val  T
-}
-
-func (lst *List[T]) Push(v T) {
-	if lst.Tail == nil {
-		lst.Head = &Element[T]{Val: v}
-		lst.Tail = lst.Head
-	} else {
-		lst.Tail.Next = &Element[T]{Val: v}
-		lst.Tail = lst.Tail.Next
-	}
-}
-
-func (lst *List[T]) AllElements() []T {
-	var elems []T
-	for e := lst.Head; e != nil; e = e.Next {
-		elems = append(elems, e.Val)
-	}
-	return elems
-}
-
 // GenerateHXVals generates a JSON-formatted object containing the given key-value pairs suitable for use as a hx-vals attribute.
 // See also: https://htmx.org/attributes/hx-vals/
 func GenerateHXVals(values map[string]string) string {
@@ -139,27 +110,6 @@ func ExtractText(content string) (string, error) {
 		return "", fmt.Errorf("could not extract content as text: %w", err)
 	}
 	return article.TextContent, nil
-}
-
-// Object is an abstraction of any content (subscription or article).
-type Object interface {
-	GetID() string
-	GetImage() *types.ImageInfo
-	GetUpdatedDate() time.Time
-	GetTitle() string
-	GetDescription() string
-	GetCategories(count int) Categories
-	IsUnread() bool
-	IsFavorite() bool
-	Type() ObjectType
-	ViewURL() string
-	MarkURL() string
-	GetLink() string
-}
-
-type Objects interface {
-	GetCategoryCounts() CategoryCounts
-	Values() iter.Seq[Object]
 }
 
 func (p *ObjectParams) Valid() (bool, error) {

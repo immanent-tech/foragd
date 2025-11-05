@@ -99,7 +99,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 			{{ filters[models.ParamSubscriptions] = subscription.GetID() }}
 			<a
 				href="#"
-				hx-get={ subscription.ViewURL() }
+				hx-get="/list/articles"
 				hx-vals={ models.GenerateHXVals(filters) }
 				hx-target={ ContentID.Target() }
 				hx-push-url="true"
@@ -119,7 +119,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 		for article := range slices.Values(articles) {
 			<a
 				href="#"
-				hx-get={ article.ViewURL() }
+				hx-get={ "/view/article/" + article.GetID() }
 				hx-target={ ContentID.Target() }
 				hx-push-url="true"
 				hidden
@@ -544,50 +544,59 @@ templ RemoveFavoriteSearchButton(id models.FavoriteID) {
 	</div>
 }
 
-templ showSearchResult(result models.Object) {
-	<li>
-		<div class="flex gap-x-4 py-5">
-			// Show article image or placeholder thumbnail.
-			if img := result.GetImage(); img != nil {
-				<div class="avatar">
-					<div class="rounded-box size-12">
-						<img
-							src={ img.GetURL() }
-							if img.GetTitle() != "" {
-								alt={ img.GetTitle() }
-							}
-						/>
-					</div>
-				</div>
-			} else {
-				<div class="avatar avatar-placeholder">
-					<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
-						<span class="text-3xl capitalize">{ result.GetTitle()[0:1] }</span>
-					</div>
-				</div>
-			}
-			<div class="flex-auto">
-				// Show article title.
-				<div class="flex items-baseline justify-between gap-x-4">
-					@ViewObjectLink(result, "", nil) {
-						<p class="text-sm/6 font-semibold text-pretty line-clamp-2">{ result.GetTitle() }</p>
-					}
-					<p class="flex-none text-xs text-base-content/80">
-						@ShowTimestamp(result.GetUpdatedDate())
-					</p>
-				</div>
-			</div>
-		</div>
-		// Show article description (if exists).
-		if result.GetDescription() != "" {
-			<div class="flex">
-				<article class="mt-1 prose prose-sm prose-img:hidden prose-figure:hidden dark:prose-invert line-clamp-2">
-					@templ.Raw(result.GetDescription())
-				</article>
-			</div>
-		}
-	</li>
-}
+// templ showSearchResult(result object) {
+// 	<li>
+// 		<div class="flex gap-x-4 py-5">
+// 			// Show article image or placeholder thumbnail.
+// 			if img := result.GetImage(); img != nil {
+// 				<div class="avatar">
+// 					<div class="rounded-box size-12">
+// 						<img
+// 							src={ img.GetURL() }
+// 							if img.GetTitle() != "" {
+// 								alt={ img.GetTitle() }
+// 							}
+// 						/>
+// 					</div>
+// 				</div>
+// 			} else {
+// 				<div class="avatar avatar-placeholder">
+// 					<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
+// 						<span class="text-3xl capitalize">{ result.GetTitle()[0:1] }</span>
+// 					</div>
+// 				</div>
+// 			}
+// 			<div class="flex-auto">
+// 				// Show article title.
+// 				<div class="flex items-baseline justify-between gap-x-4">
+// 					{{ var viewURL string }}
+// 					switch result.GetObjectType() {
+// 						case models.ObjectTypeSubscription:
+// 							{{ viewURL = "/list/articles" }}
+// 						case models.ObjectTypeArticle:
+// 							{{ viewURL = "/view/article/" + result.GetID() }}
+// 					}
+// 					@NewLink(
+// 						WithHXMethod(http.MethodGet, viewURL),
+// 					) {
+// 						<p class="text-sm/6 font-semibold text-pretty line-clamp-2">{ result.GetTitle() }</p>
+// 					}
+// 					<p class="flex-none text-xs text-base-content/80">
+// 						@ShowTimestamp(result.GetUpdatedDate())
+// 					</p>
+// 				</div>
+// 			</div>
+// 		</div>
+// 		// Show article description (if exists).
+// 		if result.GetDescription() != "" {
+// 			<div class="flex">
+// 				<article class="mt-1 prose prose-sm prose-img:hidden prose-figure:hidden dark:prose-invert line-clamp-2">
+// 					@templ.Raw(result.GetDescription())
+// 				</article>
+// 			</div>
+// 		}
+// 	</li>
+// }
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {

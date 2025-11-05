@@ -105,7 +105,30 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 											</a>
 											// Mark action.
 											<form id={ "mark-" + subscription.GetID() }>
-												@MarkObjectLink(subscription, "#"+subscription.GetID(), "outerHTML", "context-menu-item-base")
+												// MarkURL returns the app URL for marking the subscription.
+												{{ var markURL string }}
+												if subscription.GetStats().IsUnread() {
+													{{ markURL = "/mark/subscription/" + subscription.GetID() + "/read" }}
+												} else {
+													{{ markURL = "/mark/subscription/" + subscription.GetID() + "/unread" }}
+												}
+												@NewLink(
+													WithHXMethod(http.MethodPost, markURL),
+													WithHXInclude("[name='csrf_token']"),
+													WithHXTarget("#"+subscription.GetID()),
+													WithHXSwap("outerHTML"),
+													WithClasses("context-menu-item-base"),
+												) {
+													switch subscription.GetStats().IsUnread() {
+														case true:
+															@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+															Mark Read
+														case false:
+															@tabler.MailFilled(i.Props{Class: "size-4"})
+															Mark Unread
+													}
+												}
+												// @MarkObjectLink(subscription, , "outerHTML", "context-menu-item-base")
 											</form>
 											// Edit action.
 											<a
@@ -119,7 +142,7 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 											</a>
 											// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 											<div id={ "favorite_" + subscription.GetID() }>
-												@FavoriteObjectLink(subscription, "context-menu-item-base")
+												@ToggleFavorite(subscription)
 											</div>
 											// Unsubscribe action.
 											<a
@@ -175,7 +198,7 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 									// Title.
 									<div class="space-y-4">
 										<a
-											hx-get={ article.ViewURL() }
+											hx-get={ "/view/article/" + article.GetID() }
 											hx-target={ ContentID.Target() }
 											hx-push-url="true"
 											hx-swap="innerHTML show:top"

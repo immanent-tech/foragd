@@ -264,9 +264,9 @@ func (page *Home) Template() templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var12 string
-					templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(article.ViewURL())
+					templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("/view/article/" + article.GetID())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 102, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 102, Col: 54}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 					if templ_7745c5c3_Err != nil {
@@ -572,7 +572,7 @@ func (page *Home) Template() templ.Component {
 						return nil
 					})
 					templ_7745c5c3_Err = NewLink(
-						WithHXMethod(http.MethodGet, article.ViewURL()),
+						WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
 						WithHXSwap("innerHTML show:top"),

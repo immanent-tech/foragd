@@ -222,9 +222,9 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
 		// Get the subscription state.
-		metadata := user.GetSubscriptions().GetByID(id)
+		subscription := user.GetSubscriptions().GetByID(id)
 		// Create a new favorite subscription.
-		err = user.AddFavoriteSubscription(id, metadata.Customisation.Nickname)
+		err = user.AddFavoriteSubscription(id, subscription.Customisation.Nickname)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite subscription", "This might be a temporary error, please try again.")),
@@ -240,14 +240,10 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to update user object: %w", err), http.StatusInternalServerError)
 		}
-		subscriptions, err := models.GetSubscriptions(req.Context(), a.Elastic, id)
-		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite subscription", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve updated subscriptions: %w", err), http.StatusInternalServerError)
-		}
-		renderPartial(templates.ToggleFavorite(subscriptions[0])).ServeHTTP(res, req)
+		// Update the favorite flag on the subscription.
+		subscription.Favorite = true
+		// Update the display.
+		renderPartial(templates.ToggleFavorite(subscription)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -281,14 +277,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
 		}
 		// Update the favorite button.
-		subscriptions, err := models.GetSubscriptions(req.Context(), a.Elastic, id)
-		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite subscription", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve updated subscriptions: %w", err), http.StatusInternalServerError)
-		}
-		renderPartial(templates.ToggleFavorite(subscriptions[0])).ServeHTTP(res, req)
+		renderPartial(templates.ToggleFavorite(user.GetSubscriptions().GetByID(id))).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

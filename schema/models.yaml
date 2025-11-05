@@ -591,6 +591,31 @@ components:
             - $ref: '#/components/schemas/StoredImage'
         article_filters:
           $ref: '#/components/schemas/SubscriptionArticleFilters'
+    SubscriptionArticleFilters:
+      description: >
+        holds filters to apply to the articles within a subscription.
+      type: object
+      properties:
+        text:
+          description: >
+            is the filters on the title/content to apply.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'text'
+        categories:
+          description: >
+            is the category filters to apply.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'categories'
+        authors:
+          description: >
+            is the author filters to apply.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'authors'
+      x-oapi-codegen-extra-tags:
+        form: 'article_filters'
     SubscriptionSettings:
       description: >
         contains options that control how the subscription is stored/displayed.
@@ -626,11 +651,22 @@ components:
     SubscriptionCommon:
       description: >
         contains common fields across all subscription types.
+      type: object
+      required:
+        - subscription_id
       properties:
         created_at:
           $ref: '#/components/schemas/CreatedAt'
         updated_at:
           $ref: '#/components/schemas/UpdatedAt'
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        customisation:
+          $ref: '#/components/schemas/SubscriptionCustomisation'
+        settings:
+          $ref: '#/components/schemas/SubscriptionSettings'
+        stats:
+          $ref: '#/components/schemas/SubscriptionStats'
         marked_read_at:
           description: >
             indicates when the subscription was last marked read. Any articles older than this timestamp are considered
@@ -642,7 +678,7 @@ components:
           type: boolean
           x-oapi-codegen-extra-tags:
             json: '-'
-    Subscription:
+    FeedSubscription:
       description: >
         represents a feed a user has subscribed to.
       type: object
@@ -650,17 +686,10 @@ components:
         - $ref: '#/components/schemas/SubscriptionCommon'
         - type: object
           required:
-            - subscription_id
             - feed_id
           properties:
-            subscription_id:
-              $ref: '#/components/schemas/SubscriptionID'
             feed_id:
               $ref: '#/components/schemas/FeedID'
-            customisation:
-              $ref: '#/components/schemas/SubscriptionCustomisation'
-            settings:
-              $ref: '#/components/schemas/SubscriptionSettings'
             item_states:
               description: >
                 contains the states of items marked explicitly as read/unread/saved by the user.
@@ -673,43 +702,38 @@ components:
                 - $ref: '#/components/schemas/Feed'
               x-oapi-codegen-extra-tags:
                 json: '-'
-            stats:
-              $ref: '#/components/schemas/SubscriptionStats'
-    # CustomSubscription:
-    #   description: >
-    #     is a custom subscription created from a search request.
-    #   type: object
-    #   allOf:
-    #     - $ref: '#/components/schemas/SearchRequest'
-    #     - type: object
-    #       properties:
-    #         stats:
-    #           $ref: '#/components/schemas/SubscriptionStats'
-    SubscriptionArticleFilters:
+    SearchSubscription:
       description: >
-        holds filters to apply to the articles within a subscription.
+        is a custom subscription created from a search request.
       type: object
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionCommon'
+        - type: object
+          properties:
+            search:
+              $ref: '#/components/schemas/SearchRequest'
+    Subscription:
+      description: >
+        represents a user subscription.
+      type: object
+      required:
+        - subscription_id
       properties:
-        text:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        type:
           description: >
-            is the filters on the title/content to apply.
+            is the type of subscription.
           type: string
+          enum: ['feed','search']
           x-oapi-codegen-extra-tags:
-            form: 'text'
-        categories:
+            validate: 'required,oneof=feed search'
+        data:
           description: >
-            is the category filters to apply.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'categories'
-        authors:
-          description: >
-            is the author filters to apply.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'authors'
-      x-oapi-codegen-extra-tags:
-        form: 'article_filters'
+            is the raw data represeting the subscription type.
+          oneOf:
+            - $ref: '#/components/schemas/FeedSubscription'
+            - $ref: '#/components/schemas/SearchSubscription'
     SubscriptionRequest:
       description: >
         represents a request to create a subscription.
@@ -771,7 +795,7 @@ components:
         feed:
           $ref: '#/components/schemas/Feed'
         subscription:
-          $ref: '#/components/schemas/Subscription'
+          $ref: '#/components/schemas/FeedSubscription'
         message:
           $ref: '#/components/schemas/UserMessage'
         error:

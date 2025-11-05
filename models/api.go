@@ -118,7 +118,7 @@ func CreateSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*Subsc
 	subscriptions := make(Subscriptions, 0, len(results))
 	for result := range slices.Values(results) {
 		// Generate metadata.
-		subscription := NewSubscription(&result.Feed, &result.Request, false)
+		subscription := NewFeedSubscription(&result.Feed, &result.Request, false)
 		subscription.Mark(MarkRead, user.GetMaxHistory())
 		valid, err := subscription.Valid()
 		if err != nil || !valid {
@@ -635,7 +635,7 @@ func BuildItemsQuery(ctx context.Context, filters Filters, subscriptionIDs ...Su
 }
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
-func BuildSubscriptionQueries(user *User, view View, subscriptions ...*Subscription) []query.Option {
+func BuildSubscriptionQueries(user *User, view View, subscriptions ...*FeedSubscription) []query.Option {
 	queries := make([]query.Option, 0, len(user.Subscriptions))
 	// Work out what query to use based on the state filter.
 	if len(subscriptions) == 0 {
@@ -722,7 +722,7 @@ func BuildSearchResultsQuery(user *User, request *SearchRequest) query.Option {
 }
 
 // queryReadItems generates a query for finding read items for the given subscription.
-func queryReadItems(user *User, subscription *Subscription) query.Option {
+func queryReadItems(user *User, subscription *FeedSubscription) query.Option {
 	return query.Bool(
 		query.BoolQueryName(subscription.GetFeedID()+"_read_items"),
 		query.Filter(
@@ -751,7 +751,7 @@ func queryReadItems(user *User, subscription *Subscription) query.Option {
 }
 
 // QueryUnreadItems generates a query for finding unread items for the given subscription.
-func queryUnreadItems(user *User, subscription *Subscription) query.Option {
+func queryUnreadItems(user *User, subscription *FeedSubscription) query.Option {
 	return query.Bool(
 		query.BoolQueryName(subscription.GetFeedID()+"_unread_items"),
 		query.Filter(
@@ -779,7 +779,7 @@ func queryUnreadItems(user *User, subscription *Subscription) query.Option {
 }
 
 // subscriptionQueryReadItems generates a query for finding all items for the given subscription.
-func queryAllItems(user *User, subscription *Subscription) query.Option {
+func queryAllItems(user *User, subscription *FeedSubscription) query.Option {
 	maxHistory := user.GetMaxHistory()
 	return query.Bool(
 		query.BoolQueryName(subscription.GetFeedID()+"_all_items"),

@@ -102,12 +102,17 @@ func (u *User) GetSettings() *UserSettings {
 
 // GetSubscriptions retrieves a slice of the user subscriptions.
 func (u *User) GetSubscriptions() Subscriptions {
-	return u.Subscriptions
+	subscriptions := make(Subscriptions, 0, len(u.Subscriptions))
+	for s := range slices.Values(u.Subscriptions) {
+		s.Favorite = u.IsFavorite(s.GetID())
+		subscriptions = append(subscriptions, s)
+	}
+	return subscriptions
 }
 
 // IsSubscribedToFeed returns a boolean indicating whether the user is subscribed to a feed with the given id.
 func (u *User) IsSubscribedToFeed(id FeedID) bool {
-	idx := slices.IndexFunc(u.Subscriptions, func(e *Subscription) bool {
+	idx := slices.IndexFunc(u.Subscriptions, func(e *FeedSubscription) bool {
 		return e.GetFeedID() == id
 	})
 	return idx != -1
@@ -130,7 +135,7 @@ func (u *User) MarkSubscriptions(mark Mark, ids ...SubscriptionID) {
 
 // MarkItems marks the given items in a user subscription the given mark.
 func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...ItemID) {
-	idx := slices.IndexFunc(u.Subscriptions, func(e *Subscription) bool {
+	idx := slices.IndexFunc(u.Subscriptions, func(e *FeedSubscription) bool {
 		return e.GetID() == subscriptionID
 	})
 	if idx != -1 {
@@ -145,15 +150,15 @@ func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...It
 }
 
 // AddSubscriptions adds to the user subscriptions the given metadata.
-func (u *User) AddSubscriptions(subscriptions ...*Subscription) {
+func (u *User) AddSubscriptions(subscriptions ...*FeedSubscription) {
 	for s := range slices.Values(subscriptions) {
 		u.Subscriptions = append(u.Subscriptions, s)
 	}
 }
 
 // UpdateSubscription replaces existing subscription metadata in the user object with the given data.
-func (u *User) UpdateSubscription(update *Subscription) error {
-	idx := slices.IndexFunc(u.Subscriptions, func(e *Subscription) bool {
+func (u *User) UpdateSubscription(update *FeedSubscription) error {
+	idx := slices.IndexFunc(u.Subscriptions, func(e *FeedSubscription) bool {
 		return e.GetID() == update.GetID()
 	})
 	if idx != -1 {
@@ -166,7 +171,7 @@ func (u *User) UpdateSubscription(update *Subscription) error {
 // RemoveSubscriptions removes the user subscriptions with the matching id.
 func (u *User) RemoveSubscriptions(ids ...SubscriptionID) {
 	u.Subscriptions = slices.Collect(
-		FilterSlice(u.Subscriptions, func(e *Subscription) bool {
+		FilterSlice(u.Subscriptions, func(e *FeedSubscription) bool {
 			return !slices.Contains(ids, e.GetID())
 		}),
 	)

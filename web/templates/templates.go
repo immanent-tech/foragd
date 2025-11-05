@@ -5,6 +5,11 @@ package templates
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/immanent-tech/go-syndication/types"
+
+	"github.com/immanent-tech/foragd/models"
 )
 
 var (
@@ -34,4 +39,22 @@ func (a ID) Target() string {
 // String returns the id attribute as a string.
 func (a ID) String() string {
 	return string(a)
+}
+
+type objectDetails interface {
+	GetTitle() string
+	GetDescription() string
+	GetLink() string
+	GetCategories(maxCount int) models.Categories
+	GetAuthors() []string
+	GetUpdatedDate() time.Time
+	GetImage() *types.ImageInfo
+}
+
+type object[T ~string] interface {
+	objectDetails
+
+	GetID() T
+	GetObjectType() models.ObjectType
+	IsFavorite() bool
 }

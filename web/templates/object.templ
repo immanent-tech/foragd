@@ -5,14 +5,59 @@ package templates
 
 import (
 	"fmt"
-	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"html"
+	"net/http"
 )
 
+// ToggleFavorite renders an updated favorite link based on the object's favorite status.
+templ ToggleFavorite[T ~string](obj object[T]) {
+	{{ var favoriteURL string }}
+	if obj.IsFavorite() {
+		{{ favoriteURL = "/user/favorite/remove/" + string(obj.GetObjectType()) + "/" + string(obj.GetID()) }}
+	} else {
+		{{ favoriteURL = "/user/favorite/add/" + string(obj.GetObjectType()) + "/" + string(obj.GetID()) }}
+	}
+	@NewLink(
+		WithHXMethod(http.MethodPost, favoriteURL),
+		WithHXTarget("#favorite_"+string(obj.GetID())),
+		WithHXInclude("[name='csrf_token']"),
+		WithClasses("context-menu-item-base"),
+	) {
+		switch obj.IsFavorite() {
+			case true:
+				@tabler.HeartFilled(i.Props{Class: "size-4"})
+				Remove Favorite
+			case false:
+				@tabler.Heart(i.Props{Class: "size-4"})
+				Add Favorite
+		}
+	}
+}
+
+// // MarkObjectLink will render a link for toggling the mark status of the object.
+// templ MarkObjectLink[T ~string](obj object[T], target, swap string, classes ...string) {
+// 	<a
+// 		hx-post={ obj.MarkURL() }
+// 		hx-include="[name='csrf_token']"
+// 		hx-target={ target }
+// 		hx-swap={ swap }
+// 		class={ "link link-hover", classes }
+// 	>
+// 		switch obj.IsUnread() {
+// 			case true:
+// 				@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+// 				Mark Read
+// 			case false:
+// 				@tabler.MailFilled(i.Props{Class: "size-4"})
+// 				Mark Unread
+// 		}
+// 	</a>
+// }
+
 // RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.
-templ RemoveObjectModal(obj models.Object) {
+templ RemoveObjectModal[T ~string](obj object[T]) {
 	{{ id := "unsubscribe" }}
 	@Modal(id) {
 		<div class="sm:flex sm:items-start">
@@ -29,7 +74,7 @@ templ RemoveObjectModal(obj models.Object) {
 		<div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
 			<button
 				type="button"
-				hx-post={ "/remove/" + string(obj.Type()) + "/" + obj.GetID() }
+				hx-post={ "/remove/" + string(obj.GetObjectType()) + "/" + string(obj.GetID()) }
 				hx-target={ "#" + obj.GetID() }
 				hx-swap="outerHTML"
 				_="on htmx:afterRequest(successful) if successful remove #unsubscribe-modal"
@@ -48,8 +93,8 @@ templ RemoveObjectModal(obj models.Object) {
 }
 
 // RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.
-templ ShareObjectModal(obj models.Object) {
-	{{ id := "share-" + obj.GetID() }}
+templ ShareObjectModal[T ~string](obj object[T]) {
+	{{ id := string("share-" + obj.GetID()) }}
 	@Modal(id) {
 		<div class="sm:flex sm:items-start">
 			<div class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
@@ -97,6 +142,6 @@ templ ShareObjectModal(obj models.Object) {
 	}
 }
 
-func shareAPIDialog(obj models.Object) string {
+func shareAPIDialog(obj objectDetails) string {
 	return fmt.Sprintf("navigator.share({title: %q, url: %q})", obj.GetTitle(), obj.GetLink())
 }

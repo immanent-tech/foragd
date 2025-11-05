@@ -13,8 +13,18 @@ import (
 	"strings"
 )
 
+type article interface {
+	object[models.ItemID]
+
+	IsUnread() bool
+	GetSubscriptionID() models.SubscriptionID
+	GetFeedTitle() string
+	GetContent() string
+	IsRemoteContent() bool
+}
+
 // Card renders an article as a card, for displaying in a list.
-templ ArticleCard(article *models.Article) {
+templ ArticleCard(article article) {
 	<li id={ article.GetID() }>
 		<div
 			class={ "card-base", templ.KV("opacity-50",!article.IsUnread()) }
@@ -24,7 +34,7 @@ templ ArticleCard(article *models.Article) {
 				<div class="flex flex-1 px-4 py-5 sm:px-6">
 					if img := article.GetImage(); img != nil {
 						@NewLink(
-							WithHXMethod(http.MethodGet, article.ViewURL()),
+							WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
 						) {
@@ -52,7 +62,7 @@ templ ArticleCard(article *models.Article) {
 						}
 					} else {
 						@NewLink(
-							WithHXMethod(http.MethodGet, article.ViewURL()),
+							WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
 						) {
@@ -110,7 +120,7 @@ templ ArticleCard(article *models.Article) {
 						@ContextMenu(article.GetTitle() + " Actions") {
 							// Find similar action.
 							@NewLink(
-								WithHXMethod(http.MethodGet, article.ViewURL()+"/similar"),
+								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
 								WithHXTarget(ContentID.Target()),
 								WithHXPushURL(),
 								WithClasses("context-menu-item-base"),
@@ -121,17 +131,43 @@ templ ArticleCard(article *models.Article) {
 							// Mark action.
 							<form id={ "mark-" + article.GetID() }>
 								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+								{{ var markSwap string }}
 								if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewAll {
-									@MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "context-menu-item-base")
+									{{ markSwap = "outerHTML " }}
+									// @MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "context-menu-item-base")
 								} else {
-									@MarkObjectLink(article, "#"+article.GetID(), "delete", "context-menu-item-base")
+									{{ markSwap = "delete " }}
+									// @MarkObjectLink(article, "#"+article.GetID(), "delete", "context-menu-item-base")
 								}
-								// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+								{{ var markURL string }}
+								if article.IsUnread() {
+									{{ markURL = "/mark/article/" + article.GetID() + "/read" }}
+								} else {
+									{{ markURL = "/mark/article/" + article.GetID() + "/unread" }}
+								}
+								@NewLink(
+									WithHXMethod(http.MethodPost, markURL),
+									WithHXTarget("#"+article.GetID()),
+									WithHXSwap(markSwap),
+									WithHXInclude("[name='csrf_token']"),
+									WithClasses("context-menu-item-base"),
+								) {
+									switch article.IsUnread() {
+										case true:
+											@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+											Mark Read
+										case false:
+											@tabler.MailFilled(i.Props{Class: "size-4"})
+											Mark Unread
+									}
+								}
 							</form>
+							// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 							<form>
 								<input type="hidden" name="display" value="card"/>
 								<div id={ "favorite_" + article.GetID() }>
-									@FavoriteObjectLink(article, "context-menu-item-base")
+									@ToggleFavorite(article)
+									// @FavoriteObjectLink(article, "context-menu-item-base")
 								</div>
 							</form>
 							// Share action.
@@ -147,7 +183,7 @@ templ ArticleCard(article *models.Article) {
 							}
 							// Report issue action.
 							@NewLink(
-								WithHXMethod(http.MethodGet, article.IssueURL()),
+								WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
 								WithHXTarget(ContentID.Target()),
 								WithClasses("context-menu-item-base"),
 							) {
@@ -164,7 +200,7 @@ templ ArticleCard(article *models.Article) {
 }
 
 // ArticleContent renders the complete content of an article.
-templ ArticleContent(article *models.Article) {
+templ ArticleContent(article article) {
 	// Add the subscription ID as a hidden input that htmx can use for actions.
 	<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 	@Main() {
@@ -185,14 +221,14 @@ templ ArticleContent(article *models.Article) {
 						<el-menu anchor="bottom end" popover class="context-menu-base py-2">
 							// Toggle view full content action.
 							@NewLink(
-								WithHXMethod(http.MethodGet, article.ViewURL()),
+								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 								WithHXTarget(ContentID.Target()),
 								WithHXInclude("#content-filters,[name='csrf_token']"),
-								WithHXVals(map[string]string{models.ParamFullArticleContent: strconv.FormatBool(!article.ShowFullContent)}),
+								WithHXVals(map[string]string{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
 								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 							) {
 								@tabler.FileDownloadFilled(i.Props{Class: "size-4"})
-								if article.ShowFullContent {
+								if article.IsRemoteContent() {
 									Show Feed Content
 								} else {
 									Show Remote Article
@@ -222,7 +258,7 @@ templ ArticleContent(article *models.Article) {
 								</div>
 							</form>
 							@NewLink(
-								WithHXMethod(http.MethodGet, article.IssueURL()),
+								WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
 								WithHXTarget(ContentID.Target()),
 								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 							) {
@@ -259,7 +295,7 @@ templ ArticleContent(article *models.Article) {
 			{{ user, _ := models.UserFromCtx(ctx) }}
 			if user.GetSettings().MarkArticleReadOnView && article.IsUnread() {
 				<div
-					hx-post={ article.MarkURL() }
+					hx-post={ "/mark/article/" + article.GetID() + "/read" }
 					hx-target={ "#mark_" + article.GetID() }
 					hx-include="[name='csrf_token']"
 					hx-vals={ models.GenerateHXVals(map[string]string{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
@@ -274,9 +310,15 @@ templ ArticleContent(article *models.Article) {
 }
 
 // UpdateViewArticleMark updates the mark action when viewing an article.
-templ UpdateViewArticleMark(article *models.Article) {
+templ UpdateViewArticleMark(article article) {
+	{{ var markURL string }}
+	if article.IsUnread() {
+		{{ markURL = "/mark/article/" + article.GetID() + "/read" }}
+	} else {
+		{{ markURL = "/mark/article/" + article.GetID() + "/unread" }}
+	}
 	@NewLink(
-		WithHXMethod(http.MethodPost, article.MarkURL()),
+		WithHXMethod(http.MethodPost, markURL),
 		WithHXTarget("#mark_"+article.GetID()),
 		WithHXInclude("[name='csrf_token']"),
 		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
@@ -293,15 +335,21 @@ templ UpdateViewArticleMark(article *models.Article) {
 }
 
 // UpdateViewArticleFavorite updates the favorite action when viewing an article.
-templ UpdateViewArticleFavorite(article *models.Article) {
+templ UpdateViewArticleFavorite(article article) {
+	{{ var favoriteURL string }}
+	if article.IsFavorite() {
+		{{ favoriteURL = "/user/favorite/remove/article/" + article.GetID() }}
+	} else {
+		{{ favoriteURL = "/user/favorite/add/article/" + article.GetID() }}
+	}
 	@NewLink(
-		WithHXMethod(http.MethodPost, article.FavoriteURL()),
+		WithHXMethod(http.MethodPost, favoriteURL),
 		WithHXTarget("#favorite_"+article.GetID()),
 		WithHXInclude("[name='csrf_token']"),
 		WithHXVals(map[string]string{"display": "content"}),
 		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 	) {
-		switch article.Favorite {
+		switch article.IsFavorite() {
 			case true:
 				@tabler.HeartFilled(i.Props{Class: "size-4"})
 				Remove Favorite

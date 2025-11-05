@@ -99,7 +99,7 @@ templ (page *Home) Template() {
 									<div class="space-y-4">
 										// Article title.
 										<a
-											hx-get={ article.ViewURL() }
+											hx-get={ "/view/article/" + article.GetID() }
 											hx-target={ ContentID.Target() }
 											hx-push-url="true"
 											hx-swap="innerHTML show:top"
@@ -196,7 +196,7 @@ templ (page *Home) Template() {
 									<div class="space-y-4">
 										// Article title.
 										@NewLink(
-											WithHXMethod(http.MethodGet, article.ViewURL()),
+											WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 											WithHXTarget(ContentID.Target()),
 											WithHXPushURL(),
 											WithHXSwap("innerHTML show:top"),
