@@ -51,6 +51,39 @@ type DataAPI interface {
 	UserAPI
 }
 
+// SubscriptionResults contains slices of each type of subscription was returned by an API request.
+type SubscriptionResults struct {
+	FeedSubscriptions   FeedSubscriptions
+	SearchSubscriptions SearchSubscriptions
+}
+
+func NewSubscriptionResults() *SubscriptionResults {
+	return &SubscriptionResults{
+		FeedSubscriptions:   make(FeedSubscriptions, 0),
+		SearchSubscriptions: make(SearchSubscriptions, 0),
+	}
+}
+
+// GetSubscriptionIDs retrieves the subscription IDs of all subscriptions in the results.
+func (r *SubscriptionResults) GetSubscriptionIDs() []SubscriptionID {
+	return slices.Concat(r.FeedSubscriptions.GetIDs(), r.SearchSubscriptions.GetIDs())
+}
+
+// GetFeedSubscriptionByID retrieves the FeedSubscription with the given ID.
+func (r *SubscriptionResults) GetFeedSubscriptionByID(id SubscriptionID) *FeedSubscription {
+	if idx := slices.IndexFunc(r.FeedSubscriptions, func(e *FeedSubscription) bool {
+		return e.GetID() == id
+	}); idx != -1 {
+		return r.FeedSubscriptions[idx]
+	}
+	return nil
+}
+
+// Count returns the number of subscriptions.
+func (r *SubscriptionResults) Count() int {
+	return len(r.FeedSubscriptions) + len(r.SearchSubscriptions)
+}
+
 // TODO: set account level appropriately.
 func CreateUser(ctx context.Context, dataAPI DataAPI, externalID, email string) error {
 	user := NewUser(externalID, email, "auth0", UserLevelStandard)
@@ -95,34 +128,71 @@ func UpdateUser(ctx context.Context, dataAPI DataAPI, request *EditUserRequest) 
 	return nil
 }
 
+// AddSubscriptions adds the given subscriptions to a user.
+func AddSubscriptions(ctx context.Context, dataAPI DataAPI, user *User, subscriptions ...*Subscription) error {
+	for s := range slices.Values(subscriptions) {
+		user.Subscriptions = append(user.Subscriptions, s)
+		user.MarkSubscriptions(MarkUnread, s.GetID())
+	}
+	// Disable onboarding once a subscription has been added.
+	settings := user.GetSettings()
+	if settings.ShowOnboarding {
+		settings.ShowOnboarding = false
+	}
+	// Update the user object.
+	err := dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
+		"subscriptions": user.Subscriptions,
+		"item_states":   user.ItemStates,
+		"settings":      settings,
+	})
+	if err != nil {
+		return fmt.Errorf("unable to add subscriptions: %w", err)
+	}
+	return nil
+}
+
 func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (FeedSubscriptions, Pagination, error) {
 	// Get subscriptions by ID.
 	subscriptions, err := GetSubscriptions(ctx, dataAPI, filters.GetSubscriptions()...)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to filter subscriptions: %w", err)
 	}
+	if subscriptions.Count() == 0 {
+		return nil, "", nil
+	}
 	// Filter subscriptions.
 	sort := filters.GetSort()
-	subscriptions = subscriptions.FilterByCategories(filters.Categories...).
+	feedSubscriptions := subscriptions.FeedSubscriptions.FilterByCategories(filters.Categories...).
 		FilterByView(filters.View).
 		Sort(&sort)
 	// Set up pagination.
-	subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
-	return subscriptions, pagination, nil
+	feedSubscriptions, pagination = feedSubscriptions.Paginate(pagination, filters.GetCount())
+	return feedSubscriptions, pagination, nil
 }
 
-func CreateSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*SubscriptionResult) error {
+func CreateSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*AddFeedSubscriptionResult) error {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to create subscription: could not determine user: %w", err)
 	}
-	subscriptions := make(FeedSubscriptions, 0, len(results))
+	subscriptions := make(Subscriptions, 0, len(results))
 	for result := range slices.Values(results) {
+		slogctx.FromCtx(ctx).Debug("Creating new subscription.",
+			slog.String("feed", result.Feed.GetTitle()),
+			slog.String("url", result.Feed.GetLink()),
+		)
 		// Generate metadata.
-		subscription := NewFeedSubscription(&result.Feed, &result.Request, false)
-		subscription.Mark(MarkRead, user.GetMaxHistory())
+		subscription, err := NewFeedSubscription(&result.Feed, &result.Request, false)
+		if err != nil {
+			slogctx.FromCtx(ctx).Error("Could not create subscription",
+				slog.Any("error", err))
+			result.Error = fmt.Errorf("unable to create subscription: %w", err)
+			continue
+		}
 		valid, err := subscription.Valid()
 		if err != nil || !valid {
+			slogctx.FromCtx(ctx).Error("Could not create subscription",
+				slog.Any("error", err))
 			result.Error = fmt.Errorf("unable to create subscription: invalid metadata: %w", err)
 			continue
 		}
@@ -130,34 +200,26 @@ func CreateSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*Subsc
 		subscriptions = append(subscriptions, subscription)
 		result.Message = *NewSuccessMessage("Subscription Created: "+result.Feed.GetTitle(), "Articles will be fetched shortly...")
 	}
-	// Add metadata to user.
-	user.AddSubscriptions(subscriptions...)
-	// Disable onboarding once a subscription has been added.
-	settings := user.GetSettings()
-	if settings.ShowOnboarding {
-		settings.ShowOnboarding = false
-	}
-	// Update the user object.
-	err = dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
-		"subscriptions": user.Subscriptions,
-		"settings":      settings,
-	})
+	// Add subscriptions
+	err = AddSubscriptions(ctx, dataAPI, user, subscriptions...)
 	if err != nil {
 		return fmt.Errorf("unable to create subscriptions: %w", err)
 	}
 	return nil
 }
 
-func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (FeedSubscriptions, error) {
+func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (*SubscriptionResults, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not determine user: %w", err)
 	}
+	results := NewSubscriptionResults()
+
 	// Get the subscription states.
 	subscriptions := user.GetSubscriptions(FilterByIDs(ids...))
 	// Return early if there the user has no subscriptions (i.e., new user).
 	if len(subscriptions) == 0 {
-		return nil, nil
+		return results, nil
 	}
 
 	fetchJobs, ctx := errgroup.WithContext(ctx)
@@ -190,7 +252,8 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve subscriptions: %w", err)
 	}
-	return feedSubscriptions, nil
+	results.FeedSubscriptions = feedSubscriptions
+	return results, nil
 }
 
 func GetFeedSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscriptions FeedSubscriptions) (map[SubscriptionID]SubscriptionStats, error) {
@@ -264,7 +327,7 @@ func GetFeedSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscription
 			continue
 		}
 
-		stats[user.Subscriptions.GetByFeedID(feedID).GetID()] = SubscriptionStats{
+		stats[user.GetSubscriptions().GetFeedSubscriptions().GetByFeedID(feedID).GetID()] = SubscriptionStats{
 			AvgDailyUpdates: float64(*updatesResult.Value),
 		}
 	}
@@ -336,7 +399,7 @@ func getSubscriptionUnreadCounts(ctx context.Context, dataAPI DataAPI, subscript
 			slogctx.FromCtx(ctx).Debug("Unable to extract feed ID for aggregation", slog.Any("feed_id", feed.Key))
 			continue
 		}
-		stats[user.Subscriptions.GetByFeedID(feedID).GetID()] = feed.DocCount
+		stats[user.GetSubscriptions().GetFeedSubscriptions().GetByFeedID(feedID).GetID()] = feed.DocCount
 	}
 	return stats, nil
 }
@@ -358,7 +421,7 @@ func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscrip
 	return nil
 }
 
-func MatchRequestToFeed(ctx context.Context, dataAPI DataAPI, req *SubscriptionRequest) (*Feed, error) {
+func MatchRequestToFeed(ctx context.Context, dataAPI DataAPI, req *AddFeedSubscriptionRequest) (*Feed, error) {
 	// Find matches.
 	feeds, _, err := dataAPI.SearchFeeds(ctx, query.Term("source_urls", req.GetURL()), 1, nil, nil)
 	if err != nil {
@@ -391,10 +454,7 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 	}
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	subscriptions := user.Subscriptions
-	if len(filters.Subscriptions) > 0 {
-		subscriptions = subscriptions.FilterByIDs(filters.Subscriptions...)
-	}
+	subscriptions := user.GetSubscriptions(FilterByIDs(filters.Subscriptions...)).GetFeedSubscriptions()
 	// Return early if there the user has no subscriptions (i.e., new user).
 	if len(subscriptions) == 0 {
 		return nil, "", nil
@@ -572,11 +632,12 @@ func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms stri
 		slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
 	}
 	// Truncate subscription matches to 3 results.
-	if len(subscriptions) > 3 {
-		subscriptions = subscriptions[:3]
+	var feedSubscriptions FeedSubscriptions
+	if len(subscriptions.FeedSubscriptions) > 3 {
+		feedSubscriptions = subscriptions.FeedSubscriptions[:3]
 	}
 
-	return subscriptions, articles, nil
+	return feedSubscriptions, articles, nil
 }
 
 // GetSearchResults will find results for the global search from available subscriptions and articles.
@@ -599,7 +660,7 @@ func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchReque
 	// }
 
 	// Generate subscriptions from data sources.
-	subscriptions := make(FeedSubscriptions, 0)
+	var feedSubscriptions FeedSubscriptions
 	metadataMatches := user.GetSubscriptions().GetFeedSubscriptions().Search(request.Text)
 	if len(metadataMatches) > 0 {
 		subscriptions, err := GetSubscriptions(ctx, dataAPI, metadataMatches.GetIDs()...)
@@ -607,14 +668,14 @@ func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchReque
 			slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
 		}
 		// Truncate subscription matches to 3 results.
-		if len(subscriptions) > 3 {
-			subscriptions = subscriptions[:3]
+		if len(subscriptions.FeedSubscriptions) > 3 {
+			feedSubscriptions = subscriptions.FeedSubscriptions[:3]
 		}
 		// for s := range slices.Values(subscriptionMatches) {
 		// 	subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
 		// }
 	}
-	return subscriptions, articles, nil
+	return feedSubscriptions, articles, nil
 }
 
 func BuildItemsQuery(ctx context.Context, filters Filters, subscriptionIDs ...SubscriptionID) (query.Option, error) {
@@ -734,21 +795,21 @@ func queryReadItems(user *User, subscription *FeedSubscription) query.Option {
 			// And should be between the user max history and last read time.
 			query.Bool(
 				query.Should(
-					query.Between("published", user.GetMaxHistory(), subscription.MarkedReadAt),
-					query.Between("updated", user.GetMaxHistory(), subscription.MarkedReadAt),
-					query.Terms("item_id", subscription.GetReadItems()...),
+					query.Between("published", user.GetMaxHistory(), subscription.Metadata.MarkedReadAt),
+					query.Between("updated", user.GetMaxHistory(), subscription.Metadata.MarkedReadAt),
+					query.Terms("item_id", user.GetReadItems(subscription.GetID())...),
 				),
 				// Must not match any unread items for the feed
 				query.MustNot(
-					query.Terms("item_id", subscription.GetUnreadItems()...),
+					query.Terms("item_id", user.GetUnreadItems(subscription.GetID())...),
 				),
 			),
 		),
 		// User-specified field-level filtering.
 		query.Must(
-			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Text, "", "title", "description", "content"),
-			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Authors, "", "authors", "contributors"),
-			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Categories, "", "categories"),
+			query.SimpleQueryString(subscription.ArticleFilters.Text, "", "title", "description", "content"),
+			query.SimpleQueryString(subscription.ArticleFilters.Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(subscription.ArticleFilters.Categories, "", "categories"),
 		),
 	)
 }
@@ -762,21 +823,21 @@ func queryUnreadItems(user *User, subscription *FeedSubscription) query.Option {
 			query.Term("feed_id", subscription.GetFeedID()),
 			query.Bool(
 				query.Should(
-					query.Since("published", subscription.MarkedReadAt),
-					query.Since("updated", subscription.MarkedReadAt),
-					query.Terms("item_id", subscription.GetUnreadItems()...),
+					query.Since("published", subscription.Metadata.MarkedReadAt),
+					query.Since("updated", subscription.Metadata.MarkedReadAt),
+					query.Terms("item_id", user.GetUnreadItems(subscription.GetID())...),
 				),
 				// Must not match any read items for the feed
 				query.MustNot(
-					query.Terms("item_id", subscription.GetReadItems()...),
+					query.Terms("item_id", user.GetReadItems(subscription.GetID())...),
 				),
 			),
 		),
 		// User-specified field-level filtering.
 		query.Must(
-			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Text, "", "title", "description", "content"),
-			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Authors, "", "authors", "contributors"),
-			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Categories, "", "categories"),
+			query.SimpleQueryString(subscription.ArticleFilters.Text, "", "title", "description", "content"),
+			query.SimpleQueryString(subscription.ArticleFilters.Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(subscription.ArticleFilters.Categories, "", "categories"),
 		),
 	)
 }
@@ -799,9 +860,9 @@ func queryAllItems(user *User, subscription *FeedSubscription) query.Option {
 		),
 		// User-specified field-level filtering.
 		query.Must(
-			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Text, "", "title", "description", "content"),
-			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Authors, "", "authors", "contributors"),
-			query.SimpleQueryString(subscription.Customisation.ArticleFilters.Categories, "", "categories"),
+			query.SimpleQueryString(subscription.ArticleFilters.Text, "", "title", "description", "content"),
+			query.SimpleQueryString(subscription.ArticleFilters.Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(subscription.ArticleFilters.Categories, "", "categories"),
 		),
 	)
 }

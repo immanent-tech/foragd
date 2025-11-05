@@ -156,7 +156,7 @@ templ FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Ar
 											</a>
 											// Report issue action.
 											<a
-												hx-get={ subscription.IssueURL() }
+												hx-get={ "/issue/subscription/" + subscription.GetID() }
 												hx-target={ ContentID.Target() }
 												class="link link-hover context-menu-item-base"
 											>

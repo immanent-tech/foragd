@@ -87,7 +87,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	if err != nil {
 		return data, fmt.Errorf("unable to retrieve subscriptions: %w", err)
 	}
-	data.Subscriptions = subscriptions.FilterByView(models.ViewUnread)
+	data.Subscriptions = subscriptions.FeedSubscriptions.FilterByView(models.ViewUnread)
 	if len(data.Subscriptions) == 0 {
 		return data, nil
 	}

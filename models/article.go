@@ -50,26 +50,24 @@ func (a Articles) GetCategoryCounts() CategoryCounts {
 
 // GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
 // and state is required.
-func GenerateArticle(user *User, item *Item, state *FeedSubscription) (*Article, error) {
+func GenerateArticle(user *User, item *Item, subscription *FeedSubscription) (*Article, error) {
 	article := &Article{
 		Item:           *item,
-		SubscriptionID: state.GetID(),
-		State:          *state.GetItemState(item.GetID()),
+		SubscriptionID: subscription.GetID(),
+		State:          *user.GetItemState(subscription.GetID(), item.GetID()),
 	}
 	// If there is favorite data, mark article as a favorite.
 	if user.IsFavorite(article.GetID()) {
 		article.Favorite = true
 	}
 	// Add any appropriate feed customisation data.
-	if state.Customisation.Nickname != "" {
-		article.Item.FeedTitle = state.Customisation.Nickname
-	}
+	article.Item.FeedTitle = subscription.GetTitle()
 	// 	Update read status.
-	if item.GetTimestamp().Before(state.MarkedReadAt) {
-		article.State.MarkRead(state.MarkedReadAt)
+	if item.GetTimestamp().Before(subscription.Metadata.MarkedReadAt) {
+		article.State.MarkRead(subscription.Metadata.MarkedReadAt)
 	}
 	// Toggle showing remote article content.
-	if state.Settings.ShowFullArticleContent {
+	if subscription.Metadata.Settings.ShowFullArticleContent {
 		article.ShowFullContent = true
 	}
 	// Validate the article.

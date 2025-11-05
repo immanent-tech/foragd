@@ -56,5 +56,4 @@ type object[T ~string] interface {
 
 	GetID() T
 	GetObjectType() models.ObjectType
-	IsFavorite() bool
 }

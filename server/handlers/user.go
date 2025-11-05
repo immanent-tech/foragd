@@ -224,7 +224,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		// Get the subscription state.
 		subscription := user.GetSubscriptions().GetFeedSubscriptions().GetByID(id)
 		// Create a new favorite subscription.
-		err = user.AddFavoriteSubscription(id, subscription.Customisation.Nickname)
+		err = user.AddFavoriteSubscription(id, subscription.Metadata.Customisation.Nickname)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite subscription", "This might be a temporary error, please try again.")),
@@ -241,7 +241,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to update user object: %w", err), http.StatusInternalServerError)
 		}
 		// Update the favorite flag on the subscription.
-		subscription.Favorite = true
+		subscription.Metadata.Favorite = true
 		// Update the display.
 		renderPartial(templates.ToggleFavorite(subscription)).ServeHTTP(res, req)
 		return nil
@@ -584,7 +584,7 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
 		// Process requested feedsets and generate subscription requests.
-		var subscriptionRequests []*models.SubscriptionRequest
+		var subscriptionRequests []*models.AddFeedSubscriptionRequest
 		for set := range slices.Values(request.Feedset) {
 			var (
 				data []byte
@@ -620,7 +620,7 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 			subscriptionRequests = append(subscriptionRequests, models.GenerateRequestsFromOutlines(opmlImport.Body...)...)
 		}
 		// Process requests.
-		resultsCh := make(chan models.SubscriptionResult)
+		resultsCh := make(chan models.AddFeedSubscriptionResult)
 		var wg sync.WaitGroup
 		for request := range slices.Values(subscriptionRequests) {
 			wg.Go(func() {
@@ -632,7 +632,7 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 			defer close(resultsCh)
 			wg.Wait()
 		}()
-		results := make([]*models.SubscriptionResult, 0, len(subscriptionRequests))
+		results := make([]*models.AddFeedSubscriptionResult, 0, len(subscriptionRequests))
 		// Process results
 		for result := range resultsCh {
 			results = append(results, &result)

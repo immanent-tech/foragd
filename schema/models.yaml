@@ -271,9 +271,13 @@ components:
             subscriptions:
               description: >
                 is a list of the states of all subscriptions the user has.
-              x-go-type: 'FeedSubscriptions'
+              x-go-type: 'Subscriptions'
               x-oapi-codegen-extra-tags:
                 validate: 'omitempty,dive'
+            item_states:
+              description: >
+                contains the states of items marked explicitly as read/unread/saved by the user.
+              x-go-type: 'map[SubscriptionID]map[ItemID]ArticleState'
             favorites:
               description: >
                 contains the user favorites.
@@ -589,8 +593,6 @@ components:
           oneOf:
             - $ref: '../pkg/go-syndication/schema/types.yaml#/components/schemas/ImageInfo'
             - $ref: '#/components/schemas/StoredImage'
-        article_filters:
-          $ref: '#/components/schemas/SubscriptionArticleFilters'
     SubscriptionArticleFilters:
       description: >
         holds filters to apply to the articles within a subscription.
@@ -648,7 +650,7 @@ components:
             validate: 'gte=0'
       x-oapi-codegen-extra-tags:
         json: '-'
-    SubscriptionCommon:
+    SubscriptionMetadata:
       description: >
         contains common fields across all subscription types.
       type: object
@@ -665,8 +667,6 @@ components:
           $ref: '#/components/schemas/SubscriptionCustomisation'
         settings:
           $ref: '#/components/schemas/SubscriptionSettings'
-        stats:
-          $ref: '#/components/schemas/SubscriptionStats'
         marked_read_at:
           description: >
             indicates when the subscription was last marked read. Any articles older than this timestamp are considered
@@ -682,63 +682,74 @@ components:
       description: >
         represents a feed a user has subscribed to.
       type: object
-      allOf:
-        - $ref: '#/components/schemas/SubscriptionCommon'
-        - type: object
-          required:
-            - feed_id
-          properties:
-            feed_id:
-              $ref: '#/components/schemas/FeedID'
-            item_states:
-              description: >
-                contains the states of items marked explicitly as read/unread/saved by the user.
-              x-go-type: 'map[ItemID]ArticleState'
-            feed:
-              description: >
-                is the original feed content.
-              type: object
-              allOf:
-                - $ref: '#/components/schemas/Feed'
-              x-oapi-codegen-extra-tags:
-                json: '-'
+      required:
+        - feed_id
+        - subscription_id
+      properties:
+        feed_id:
+          $ref: '#/components/schemas/FeedID'
+        metadata:
+          description: >
+            the subscription metadata.
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionMetadata'
+          x-oapi-codegen-extra-tags:
+            json: '-'
+        stats:
+          $ref: '#/components/schemas/SubscriptionStats'
+        feed:
+          description: >
+            is the original feed content.
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/Feed'
+          x-oapi-codegen-extra-tags:
+            json: '-'
+        article_filters:
+          $ref: '#/components/schemas/SubscriptionArticleFilters'
     SearchSubscription:
       description: >
         is a custom subscription created from a search request.
       type: object
-      allOf:
-        - $ref: '#/components/schemas/SubscriptionCommon'
-        - type: object
-          properties:
-            search:
-              $ref: '#/components/schemas/SearchRequest'
+      properties:
+        search:
+          $ref: '#/components/schemas/SearchRequest'
+        metadata:
+          description: >
+            the subscription metadata.
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionMetadata'
+          x-oapi-codegen-extra-tags:
+            json: '-'
+        stats:
+          $ref: '#/components/schemas/SubscriptionStats'
     Subscription:
       description: >
         represents a user subscription.
       type: object
-      allOf:
-        - $ref: '#/components/schemas/SubscriptionCommon'
-        - type: object
-          required:
-            - type
-            - data
-          properties:
-            type:
-              description: >
-                is the type of subscription.
-              type: string
-              enum: ['feed','search']
-              x-oapi-codegen-extra-tags:
-                validate: 'required,oneof=feed search'
-            data:
-              description: >
-                is the raw data represeting the subscription type.
-              oneOf:
-                - $ref: '#/components/schemas/FeedSubscription'
-                - $ref: '#/components/schemas/SearchSubscription'
-    SubscriptionRequest:
+      required:
+        - metadata
+        - data
+        - type
+      properties:
+        metadata:
+          $ref: '#/components/schemas/SubscriptionMetadata'
+        type:
+          description: >
+            is the type of subscription.
+          type: string
+          enum: ['feed','search']
+          x-oapi-codegen-extra-tags:
+            validate: 'required,oneof=feed search'
+        data:
+          description: >
+            is the raw data represeting the subscription type.
+          oneOf:
+            - $ref: '#/components/schemas/FeedSubscription'
+            - $ref: '#/components/schemas/SearchSubscription'
+    AddFeedSubscriptionRequest:
       description: >
-        represents a request to create a subscription.
+        represents a request to create a subscription to a feed.
       type: object
       required:
         - URL
@@ -785,7 +796,7 @@ components:
           x-oapi-codegen-extra-tags:
             form: '-'
             json: '-'
-    SubscriptionResult:
+    AddFeedSubscriptionResult:
       description: >
         contains the result of adding/importing a subscription from a request.
       type: object
@@ -793,11 +804,11 @@ components:
         - request
       properties:
         request:
-          $ref: '#/components/schemas/SubscriptionRequest'
+          $ref: '#/components/schemas/AddFeedSubscriptionRequest'
         feed:
           $ref: '#/components/schemas/Feed'
         subscription:
-          $ref: '#/components/schemas/FeedSubscription'
+          $ref: '#/components/schemas/Subscription'
         message:
           $ref: '#/components/schemas/UserMessage'
         error:
@@ -846,6 +857,8 @@ components:
                 form: '-'
                 json: '-'
               x-go-type-skip-optional-pointer: true
+            article_filters:
+              $ref: '#/components/schemas/SubscriptionArticleFilters'
     ArticleMetadata:
       description: >
         contains the stored data that represents an article.

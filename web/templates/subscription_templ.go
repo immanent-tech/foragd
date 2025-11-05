@@ -1536,7 +1536,7 @@ func EditSubscriptionSuccessNotification(subscription subscription) templ.Compon
 }
 
 // AddSubscription is a page for adding a new subscription.
-func AddSubscription(request *models.SubscriptionRequest) templ.Component {
+func AddSubscription(request *models.AddFeedSubscriptionRequest) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1745,7 +1745,7 @@ func ImportSubscriptions() templ.Component {
 }
 
 // ImportResults is a partial template that displays the results of an import.
-func ImportResults(results []*models.SubscriptionResult) templ.Component {
+func ImportResults(results []*models.AddFeedSubscriptionResult) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1961,14 +1961,14 @@ func ImportResults(results []*models.SubscriptionResult) templ.Component {
 	})
 }
 
-func filterSuccessfulResults(results []*models.SubscriptionResult) []*models.SubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result *models.SubscriptionResult) bool {
+func filterSuccessfulResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result *models.AddFeedSubscriptionResult) bool {
 		return result.Message.Status == models.UserMessageStatusSuccess
 	}))
 }
 
-func filterUnsuccessfulResults(results []*models.SubscriptionResult) []*models.SubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result *models.SubscriptionResult) bool {
+func filterUnsuccessfulResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result *models.AddFeedSubscriptionResult) bool {
 		return result.Message.Status != models.UserMessageStatusSuccess
 	}))
 }

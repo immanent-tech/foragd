@@ -149,7 +149,6 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 											"search": types.NewSearchAsYouTypeProperty(),
 										},
 									}),
-									WithExistingMappings(FeedItemCommonMappings),
 								),
 								WithDynamicProperties(false),
 							),
@@ -337,8 +336,20 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 									WithDatetimeMapping("updated_at"),
 									WithKeywordMapping("max_history"),
 									WithFlattenedMapping("settings"),
-									WithFlattenedMapping("subscriptions"),
+									WithObjectMapping("subscriptions",
+										WithObjectMapping("metadata",
+											WithDatetimeMapping("created_at"),
+											WithDatetimeMapping("updated_at"),
+											WithDatetimeMapping("marked_read_at"),
+											WithKeywordMapping("subscription_id"),
+											WithFlattenedMapping("customisation"),
+											WithFlattenedMapping("settings"),
+										),
+										WithKeywordMapping("type"),
+										WithFlattenedMapping("data"),
+									),
 									WithFlattenedMapping("favorites"),
+									WithFlattenedMapping("item_states"),
 								),
 								WithDynamicProperties(false),
 							),
@@ -582,14 +593,24 @@ func migrateIndexData(ctx context.Context, api *elasticsearch.TypedClient, index
 	}
 	if found && !migration.noReindex {
 		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index)).WaitForCompletion(true).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("could not reindex: %w", err)
+		switch {
+		case err != nil:
+			if getStatusCode(err) >= 500 {
+				return fmt.Errorf("could not reindex: %w", err)
+			}
+			slogctx.FromCtx(ctx).Info("Reindex completed with warnings.",
+				slog.String("src", readAlias),
+				slog.String("dest", index),
+				slog.Int64("took", *reindexResp.Took),
+				slog.Any("warnings", err),
+			)
+		default:
+			slogctx.FromCtx(ctx).Info("Reindex completed.",
+				slog.String("src", readAlias),
+				slog.String("dest", index),
+				slog.Int64("took", *reindexResp.Took),
+			)
 		}
-		slogctx.FromCtx(ctx).Info("Reindex completed.",
-			slog.String("src", readAlias),
-			slog.String("dest", index),
-			slog.Int64("took", *reindexResp.Took),
-		)
 	}
 	// Update the read alias.
 	err = updateAlias(ctx, api, readAlias, index)

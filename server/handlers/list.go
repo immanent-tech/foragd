@@ -132,10 +132,11 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			// Get favorite subscriptions and articles.
 			var subscriptions models.FeedSubscriptions
 			if len(favSubscriptionIDs) > 0 {
-				subscriptions, err = models.GetSubscriptions(req.Context(), api, favSubscriptionIDs...)
+				results, err := models.GetSubscriptions(req.Context(), api, favSubscriptionIDs...)
 				if err != nil {
 					return fmt.Errorf("unable to get favorite subscriptions: %w", err)
 				}
+				subscriptions = results.FeedSubscriptions
 			}
 			articles, err := models.GetArticles(req.Context(), api, favArticleIDs...)
 			if err != nil {

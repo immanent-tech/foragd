@@ -239,13 +239,13 @@ func ConfirmRemoveObject(api *elastic.API) http.HandlerFunc {
 		switch params.Object {
 		case models.ObjectTypeSubscription:
 			subscriptions, err := models.GetSubscriptions(req.Context(), api, params.ObjectID)
-			if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
+			if err != nil || subscriptions.Count() == 0 || subscriptions.Count() > 1 {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again."),
 				)).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("could not retrieve subscriptions: %w", err), http.StatusInternalServerError)
 			}
-			renderPartial(templates.RemoveObjectModal(subscriptions[0])).ServeHTTP(res, req)
+			renderPartial(templates.RemoveObjectModal(subscriptions.FeedSubscriptions[0])).ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}
@@ -353,14 +353,14 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 		switch params.Object {
 		case models.ObjectTypeSubscription:
 			subscriptions, err := models.GetSubscriptions(req.Context(), api, params.ObjectID)
-			if err != nil || len(subscriptions) == 0 {
+			if err != nil || subscriptions.Count() == 0 {
 				renderPartial(
 					templates.ServerErrorNotification(
 						models.NewErrorMessage("Unable to process request", "This might be a temporary error, please try again.")),
 				).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable to retrieve subscription details: %w", err), http.StatusInternalServerError)
 			}
-			template = templates.ReportObjectIssues(subscriptions[0], models.NewObjectIssue(params, currentURL))
+			template = templates.ReportObjectIssues(subscriptions.FeedSubscriptions[0], models.NewObjectIssue(params, currentURL))
 		case models.ObjectTypeArticle:
 			// Get the current URL on which the issue is being reported.
 			if !found {

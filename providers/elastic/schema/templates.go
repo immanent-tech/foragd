@@ -162,15 +162,6 @@ func NewProperties(options ...PropertiesOption) Properties {
 	return p
 }
 
-// WithExistingMappings option will merge the given existing mappings with any new mappings created.
-func WithExistingMappings(properties Properties) PropertiesOption {
-	return func(mp Properties) {
-		for k, v := range properties {
-			mp[k] = v
-		}
-	}
-}
-
 // WithDatetimeMapping option creates a new field with a datetime mapping.
 func WithDatetimeMapping(fieldname string) PropertiesOption {
 	return func(mp Properties) {

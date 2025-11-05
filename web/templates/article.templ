@@ -336,8 +336,9 @@ templ UpdateViewArticleMark(article article) {
 
 // UpdateViewArticleFavorite updates the favorite action when viewing an article.
 templ UpdateViewArticleFavorite(article article) {
+	{{ user, _ := models.UserFromCtx(ctx) }}
 	{{ var favoriteURL string }}
-	if article.IsFavorite() {
+	if user.IsFavorite(article.GetID()) {
 		{{ favoriteURL = "/user/favorite/remove/article/" + article.GetID() }}
 	} else {
 		{{ favoriteURL = "/user/favorite/add/article/" + article.GetID() }}
@@ -349,7 +350,7 @@ templ UpdateViewArticleFavorite(article article) {
 		WithHXVals(map[string]string{"display": "content"}),
 		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 	) {
-		switch article.IsFavorite() {
+		switch user.IsFavorite(article.GetID()) {
 			case true:
 				@tabler.HeartFilled(i.Props{Class: "size-4"})
 				Remove Favorite

@@ -5,6 +5,7 @@ package templates
 
 import (
 	"fmt"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"html"
@@ -13,8 +14,9 @@ import (
 
 // ToggleFavorite renders an updated favorite link based on the object's favorite status.
 templ ToggleFavorite[T ~string](obj object[T]) {
+	{{ user, _ := models.UserFromCtx(ctx) }}
 	{{ var favoriteURL string }}
-	if obj.IsFavorite() {
+	if user.IsFavorite(string(obj.GetID())) {
 		{{ favoriteURL = "/user/favorite/remove/" + string(obj.GetObjectType()) + "/" + string(obj.GetID()) }}
 	} else {
 		{{ favoriteURL = "/user/favorite/add/" + string(obj.GetObjectType()) + "/" + string(obj.GetID()) }}
@@ -25,7 +27,7 @@ templ ToggleFavorite[T ~string](obj object[T]) {
 		WithHXInclude("[name='csrf_token']"),
 		WithClasses("context-menu-item-base"),
 	) {
-		switch obj.IsFavorite() {
+		switch user.IsFavorite(string(obj.GetID())) {
 			case true:
 				@tabler.HeartFilled(i.Props{Class: "size-4"})
 				Remove Favorite

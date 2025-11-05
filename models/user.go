@@ -103,22 +103,11 @@ func (u *User) GetSettings() *UserSettings {
 
 // GetSubscriptions retrieves a slice of the user subscriptions.
 func (u *User) GetSubscriptions(options ...subscriptionFilterOption) Subscriptions {
-	subscriptions := make(Subscriptions, 0, len(u.Subscriptions))
-	for subscriptionData := range slices.Values(u.Subscriptions) {
-		subscription := Subscription{
-			CreatedAt:      subscriptionData.CreatedAt,
-			Customisation:  subscriptionData.Customisation,
-			Favorite:       u.IsFavorite(subscriptionData.GetID()),
-			MarkedReadAt:   subscriptionData.MarkedReadAt,
-			Settings:       subscriptionData.Settings,
-			SubscriptionID: subscriptionData.GetID(),
-			Type:           SubscriptionTypeFeed,
-			UpdatedAt:      subscriptionData.UpdatedAt,
-		}
-		// ! No error check...
-		subscription.Data.FromFeedSubscription(*subscriptionData) //nolint:errcheck
-		subscriptions = append(subscriptions, &subscription)
+	// Add favorite status.
+	for subscription := range slices.Values(u.Subscriptions) {
+		subscription.Metadata.Favorite = u.IsFavorite(subscription.GetID())
 	}
+	subscriptions := u.Subscriptions
 	// Apply filtering options.
 	for option := range slices.Values(options) {
 		subscriptions = option(subscriptions)
@@ -152,57 +141,24 @@ func SortByTitle() subscriptionFilterOption {
 
 // IsSubscribedToFeed returns a boolean indicating whether the user is subscribed to a feed with the given id.
 func (u *User) IsSubscribedToFeed(id FeedID) bool {
-	idx := slices.IndexFunc(u.Subscriptions, func(e *FeedSubscription) bool {
-		return e.GetFeedID() == id
-	})
-	return idx != -1
+	return u.GetSubscriptions().GetFeedSubscriptions().GetByID(id) != nil
 }
 
-// MarkSubscriptions marks user subscriptions with the given ids with the given mark.
-func (u *User) MarkSubscriptions(mark Mark, ids ...SubscriptionID) {
-	var markedAt time.Time
-	if mark == MarkRead {
-		// Set marked at to now when marking read.
-		markedAt = time.Now().UTC()
-	} else {
-		// Set marked at to max history when marking unread.
-		markedAt = u.GetMaxHistory()
+// UpdateFeedSubscription updates a FeedSubscription for the user.
+func (u *User) UpdateFeedSubscription(update *FeedSubscription) error {
+	// TODO: validation?
+	subscription := u.GetSubscriptions().GetByID(update.GetID())
+	subscription.Metadata = update.Metadata
+	subscription.Metadata.UpdatedAt = time.Now().UTC()
+	err := subscription.Data.FromFeedSubscription(*update)
+	if err != nil {
+		return fmt.Errorf("could not update subscription: %w", err)
 	}
-	for subscription := range slices.Values(u.Subscriptions.FilterByIDs(ids...)) {
-		subscription.Mark(mark, markedAt)
-	}
-}
-
-// MarkItems marks the given items in a user subscription the given mark.
-func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...ItemID) {
-	idx := slices.IndexFunc(u.Subscriptions, func(e *FeedSubscription) bool {
-		return e.GetID() == subscriptionID
-	})
-	if idx != -1 {
-		switch mark {
-		case MarkRead:
-			u.Subscriptions[idx].MarkItemsRead(itemIDs...)
-		case MarkUnread:
-			u.Subscriptions[idx].MarkItemsUnread(itemIDs...)
-		}
-		u.Subscriptions[idx].UpdatedAt = time.Now().UTC()
-	}
-}
-
-// AddSubscriptions adds to the user subscriptions the given metadata.
-func (u *User) AddSubscriptions(subscriptions ...*FeedSubscription) {
-	for s := range slices.Values(subscriptions) {
-		u.Subscriptions = append(u.Subscriptions, s)
-	}
-}
-
-// UpdateSubscription replaces existing subscription metadata in the user object with the given data.
-func (u *User) UpdateSubscription(update *FeedSubscription) error {
-	idx := slices.IndexFunc(u.Subscriptions, func(e *FeedSubscription) bool {
+	idx := slices.IndexFunc(u.Subscriptions, func(e *Subscription) bool {
 		return e.GetID() == update.GetID()
 	})
 	if idx != -1 {
-		u.Subscriptions[idx] = update
+		u.Subscriptions[idx] = subscription
 		return nil
 	}
 	return ErrUserNotSubscribed
@@ -211,10 +167,115 @@ func (u *User) UpdateSubscription(update *FeedSubscription) error {
 // RemoveSubscriptions removes the user subscriptions with the matching id.
 func (u *User) RemoveSubscriptions(ids ...SubscriptionID) {
 	u.Subscriptions = slices.Collect(
-		FilterSlice(u.Subscriptions, func(e *FeedSubscription) bool {
+		FilterSlice(u.Subscriptions, func(e *Subscription) bool {
 			return !slices.Contains(ids, e.GetID())
 		}),
 	)
+}
+
+// MarkSubscriptions marks user subscriptions with the given ids with the given mark.
+func (u *User) MarkSubscriptions(mark Mark, ids ...SubscriptionID) {
+	for subscription := range slices.Values(u.GetSubscriptions(FilterByIDs(ids...))) {
+		switch mark {
+		case MarkRead:
+			// Set marked at to now when marking read.
+			subscription.Metadata.MarkedReadAt = time.Now().UTC()
+		case MarkUnread:
+			// Set marked at to max history when marking unread.
+			subscription.Metadata.MarkedReadAt = u.GetMaxHistory()
+		}
+		// Reset subscription item states as well.
+		if _, found := u.ItemStates[subscription.GetID()]; found {
+			u.ItemStates[subscription.GetID()] = nil
+		}
+	}
+}
+
+// GetUnreadItems retrieves a list of ItemIDs for the subscription feed that
+// user has explicitly marked as unread.
+func (u *User) GetUnreadItems(id SubscriptionID) []ItemID {
+	itemStates, found := u.ItemStates[id]
+	if !found {
+		return nil
+	}
+	ids := make([]ItemID, 0, len(itemStates))
+	for id, state := range itemStates {
+		if !state.Read {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+// GetReadItems retrieves a list of ItemIDs for the subscription feed that
+// user has explicitly marked as read.
+func (u *User) GetReadItems(id SubscriptionID) []ItemID {
+	itemStates, found := u.ItemStates[id]
+	if !found {
+		return nil
+	}
+	ids := make([]ItemID, 0, len(itemStates))
+	for id, state := range itemStates {
+		if state.Read {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+// GetItemState retrieves the item state (read/unread/saved) from the
+// subscription. By default it will return unread unless the user has explicitly
+// marked or saved the item.
+func (u *User) GetItemState(subscriptionID SubscriptionID, itemID ItemID) *ArticleState {
+	itemStates, found := u.ItemStates[subscriptionID]
+	if found {
+		// Retrieve any explicitly set state of the item.
+		if state, found := itemStates[itemID]; found {
+			return &state
+		}
+	}
+	// If an item doesn't have an explicit state, its state should reflect the subscription state.
+	return &ArticleState{
+		Read:      false,
+		UpdatedAt: u.GetSubscriptions().GetByID(subscriptionID).Metadata.UpdatedAt,
+	}
+}
+
+// SetItemState will set the state of the item to the given state.
+func (u *User) SetItemState(subscriptionID SubscriptionID, itemID ItemID, state *ArticleState) {
+	if u.ItemStates == nil {
+		u.ItemStates = make(map[SubscriptionID]map[ItemID]ArticleState)
+	}
+	u.ItemStates[subscriptionID][itemID] = *state
+}
+
+// MarkItemsRead will mark the given items as read for the subscription.
+func (u *User) MarkItemsRead(subscriptionID SubscriptionID, itemIDs ...ItemID) {
+	for itemID := range slices.Values(itemIDs) {
+		if !u.GetItemState(subscriptionID, itemID).Read {
+			u.SetItemState(subscriptionID, itemID, &ArticleState{Read: true, UpdatedAt: time.Now().UTC()})
+		}
+	}
+}
+
+// MarkItemsUnread will mark the given items as unread for the subscription.
+func (u *User) MarkItemsUnread(subscriptionID SubscriptionID, itemIDs ...ItemID) {
+	for itemID := range slices.Values(itemIDs) {
+		if u.GetItemState(subscriptionID, itemID).Read {
+			u.SetItemState(subscriptionID, itemID, &ArticleState{Read: false, UpdatedAt: time.Now().UTC()})
+		}
+	}
+}
+
+// MarkItems marks the given items in a user subscription the given mark.
+func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...ItemID) {
+	switch mark {
+	case MarkRead:
+		u.MarkItemsRead(subscriptionID, itemIDs...)
+	case MarkUnread:
+		u.MarkItemsUnread(subscriptionID, itemIDs...)
+	}
+	// u.Subscriptions[idx].UpdatedAt = time.Now().UTC()
 }
 
 // GetAllFavorites returns the slice of user favorites.
