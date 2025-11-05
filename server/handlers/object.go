@@ -283,7 +283,7 @@ func RemoveObject(api *elastic.API) http.HandlerFunc {
 			user.RemoveSubscriptions(params.ObjectID)
 			// Update the user.
 			err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{
-				"subscriptions": user.GetSubscriptionMetadata(),
+				"subscriptions": user.GetSubscriptions(),
 			})
 			if err != nil {
 				renderPartial(

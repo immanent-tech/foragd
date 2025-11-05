@@ -29,7 +29,7 @@ type Home struct {
 	TopCategories  models.CategoryCounts
 	TopArticles    models.Articles
 	RareCategories models.CategoryCounts
-	Favorites      models.FavoritesSlice
+	Favorites      models.Favorites
 }
 
 // content renders the home page content.
@@ -95,9 +95,9 @@ func (page *Home) Template() templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(page.User.GetSubscriptionMetadata())))
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(len(page.User.GetSubscriptions())))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 53, Col: 98}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 53, Col: 91}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {

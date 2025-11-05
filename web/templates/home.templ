@@ -20,7 +20,7 @@ type Home struct {
 	TopCategories  models.CategoryCounts
 	TopArticles    models.Articles
 	RareCategories models.CategoryCounts
-	Favorites      models.FavoritesSlice
+	Favorites      models.Favorites
 }
 
 // content renders the home page content.
@@ -50,7 +50,7 @@ templ (page *Home) Template() {
 								<p class="ml-16 text-sm font-medium ">Subscriptions</p>
 							</dt>
 							<dd class="ml-16 flex items-baseline">
-								<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.User.GetSubscriptionMetadata())) }</p>
+								<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.User.GetSubscriptions())) }</p>
 							</dd>
 						}
 					</div>

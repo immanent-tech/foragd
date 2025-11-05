@@ -217,7 +217,7 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 			mark = models.MarkUnread
 		}
 		if len(filters.Subscriptions) == 0 {
-			subscriptions = user.GetSubscriptionMetadata().GetIDs()
+			subscriptions = user.GetSubscriptions().GetIDs()
 		} else {
 			subscriptions = filters.GetSubscriptions()
 		}

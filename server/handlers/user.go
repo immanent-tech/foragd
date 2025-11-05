@@ -222,7 +222,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
 		// Get the subscription state.
-		metadata := user.GetSubscriptionMetadata().GetByID(id)
+		metadata := user.GetSubscriptions().GetByID(id)
 		// Create a new favorite subscription.
 		err = user.AddFavoriteSubscription(id, metadata.Customisation.Nickname)
 		if err != nil {

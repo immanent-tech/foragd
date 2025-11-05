@@ -8,8 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"sort"
-	"strings"
 	"time"
 
 	"github.com/immanent-tech/foragd/validation"
@@ -85,7 +83,7 @@ func (u *User) GetNickname() string {
 	return u.Nickname
 }
 
-// GetNickname retrieves the nickname of the user.
+// GetEmail retrieves the email of the user.
 func (u *User) GetEmail() string {
 	return u.Email
 }
@@ -102,14 +100,14 @@ func (u *User) GetSettings() *UserSettings {
 	return &u.Settings
 }
 
-// GetSubscriptionMetadata retrieves a slice of the metadata for the user subscriptions.
-func (u *User) GetSubscriptionMetadata() SubscriptionMetadataSlice {
+// GetSubscriptions retrieves a slice of the user subscriptions.
+func (u *User) GetSubscriptions() Subscriptions {
 	return u.Subscriptions
 }
 
 // IsSubscribedToFeed returns a boolean indicating whether the user is subscribed to a feed with the given id.
 func (u *User) IsSubscribedToFeed(id FeedID) bool {
-	idx := slices.IndexFunc(u.Subscriptions, func(e *SubscriptionMetadata) bool {
+	idx := slices.IndexFunc(u.Subscriptions, func(e *Subscription) bool {
 		return e.GetFeedID() == id
 	})
 	return idx != -1
@@ -125,14 +123,14 @@ func (u *User) MarkSubscriptions(mark Mark, ids ...SubscriptionID) {
 		// Set marked at to max history when marking unread.
 		markedAt = u.GetMaxHistory()
 	}
-	for subscription := range slices.Values(u.GetSubscriptionMetadata().FilterByIDs(ids...)) {
+	for subscription := range slices.Values(u.GetSubscriptions().FilterByIDs(ids...)) {
 		subscription.Mark(mark, markedAt)
 	}
 }
 
 // MarkItems marks the given items in a user subscription the given mark.
 func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...ItemID) {
-	idx := slices.IndexFunc(u.Subscriptions, func(e *SubscriptionMetadata) bool {
+	idx := slices.IndexFunc(u.Subscriptions, func(e *Subscription) bool {
 		return e.GetID() == subscriptionID
 	})
 	if idx != -1 {
@@ -147,15 +145,15 @@ func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...It
 }
 
 // AddSubscriptions adds to the user subscriptions the given metadata.
-func (u *User) AddSubscriptions(subscriptions ...*SubscriptionMetadata) {
+func (u *User) AddSubscriptions(subscriptions ...*Subscription) {
 	for s := range slices.Values(subscriptions) {
 		u.Subscriptions = append(u.Subscriptions, s)
 	}
 }
 
 // UpdateSubscription replaces existing subscription metadata in the user object with the given data.
-func (u *User) UpdateSubscription(update *SubscriptionMetadata) error {
-	idx := slices.IndexFunc(u.Subscriptions, func(e *SubscriptionMetadata) bool {
+func (u *User) UpdateSubscription(update *Subscription) error {
+	idx := slices.IndexFunc(u.Subscriptions, func(e *Subscription) bool {
 		return e.GetID() == update.GetID()
 	})
 	if idx != -1 {
@@ -168,14 +166,14 @@ func (u *User) UpdateSubscription(update *SubscriptionMetadata) error {
 // RemoveSubscriptions removes the user subscriptions with the matching id.
 func (u *User) RemoveSubscriptions(ids ...SubscriptionID) {
 	u.Subscriptions = slices.Collect(
-		FilterSlice(u.Subscriptions, func(e *SubscriptionMetadata) bool {
+		FilterSlice(u.Subscriptions, func(e *Subscription) bool {
 			return !slices.Contains(ids, e.GetID())
 		}),
 	)
 }
 
 // GetAllFavorites returns the slice of user favorites.
-func (u *User) GetAllFavorites() FavoritesSlice {
+func (u *User) GetAllFavorites() Favorites {
 	return u.Favorites
 }
 
@@ -244,6 +242,7 @@ func (u *User) AddFavoriteSearch(nickname string, search *SearchRequest) error {
 	return nil
 }
 
+// UpdateFavoriteSearch updates the details of a favorite search.
 func (u *User) UpdateFavoriteSearch(nickname string, search *SearchRequest) error {
 	// Find the index of the existing favorite search entry in the user favorites.
 	idx := slices.IndexFunc(u.GetAllFavorites(), func(f *Favorite) bool {
@@ -354,32 +353,35 @@ func newFavorite(favType FavoriteType, nickname string) *Favorite {
 	}
 }
 
+// GetID returns the ID of the favorite.
 func (f *Favorite) GetID() string {
 	return f.ObjectID
 }
 
+// SetID sets the ID of a favorite.
 func (f *Favorite) SetID(id string) {
 	f.ObjectID = id
 }
 
-type FavoritesSlice []*Favorite
+// Favorites is a slice of favorites.
+type Favorites []*Favorite
 
 // FilterByType will return a new slice filtered to the given favorite type.
-func (f FavoritesSlice) FilterByType(favoriteType FavoriteType) FavoritesSlice {
+func (f Favorites) FilterByType(favoriteType FavoriteType) Favorites {
 	return slices.Collect(FilterSlice(f, func(f *Favorite) bool {
 		return f.Type == favoriteType
 	}))
 }
 
 // HasFavorite returns a boolean indicating whether the user has a favorite with the given object id.
-func (f FavoritesSlice) HasFavorite(id string) bool {
+func (f Favorites) HasFavorite(id string) bool {
 	return slices.ContainsFunc(f, func(f *Favorite) bool {
 		return f.GetID() == id
 	})
 }
 
 // Get retrieves the favorite with the given id.
-func (f FavoritesSlice) Get(id string) *Favorite {
+func (f Favorites) Get(id string) *Favorite {
 	idx := slices.IndexFunc(f, func(f *Favorite) bool {
 		return f.GetID() == id
 	})
@@ -387,190 +389,4 @@ func (f FavoritesSlice) Get(id string) *Favorite {
 		return f[idx]
 	}
 	return nil
-}
-
-//
-// SubscriptionMetadata
-//
-
-func (s *SubscriptionMetadata) GetID() SubscriptionID {
-	return s.SubscriptionID
-}
-
-func (s *SubscriptionMetadata) GetFeedID() FeedID {
-	return s.FeedID
-}
-
-// MarkRead will mark the subscription as read. This involves setting the MarkedRead field to the given value and
-// removing any individual unread/read items.
-func (s *SubscriptionMetadata) Mark(mark Mark, markedAt time.Time) {
-	switch mark {
-	case MarkRead:
-		s.MarkedReadAt = markedAt
-	case MarkUnread:
-		s.MarkedReadAt = markedAt
-	}
-	s.ItemStates = nil
-}
-
-// GetUnreadItems retrieves a list of ItemIDs for the subscription feed that
-// user has explicitly marked as unread.
-func (s *SubscriptionMetadata) GetUnreadItems() []ItemID {
-	ids := make([]ItemID, 0, len(s.ItemStates))
-	for id, state := range s.ItemStates {
-		if !state.Read {
-			ids = append(ids, id)
-		}
-	}
-	return ids
-}
-
-// GetReadItems retrieves a list of ItemIDs for the subscription feed that
-// user has explicitly marked as read.
-func (s *SubscriptionMetadata) GetReadItems() []ItemID {
-	ids := make([]ItemID, 0, len(s.ItemStates))
-	for id, state := range s.ItemStates {
-		if state.Read {
-			ids = append(ids, id)
-		}
-	}
-	return ids
-}
-
-// GetItemState retrieves the item state (read/unread/saved) from the
-// subscription. By default it will return unread unless the user has explicitly
-// marked or saved the item.
-func (s *SubscriptionMetadata) GetItemState(id ItemID) *ArticleState {
-	// Retrieve any explicitly set state of the item.
-	if state, found := s.ItemStates[id]; found {
-		return &state
-	}
-	// If an item doesn't have an explicit state, its state should reflect the subscription state.
-	return &ArticleState{
-		Read:      false,
-		UpdatedAt: s.UpdatedAt,
-	}
-}
-
-func (s *SubscriptionMetadata) SetItemState(id ItemID, state *ArticleState) {
-	if s.ItemStates == nil {
-		s.ItemStates = make(map[ItemID]ArticleState)
-	}
-	s.ItemStates[id] = *state
-}
-
-// MarkItemsRead will mark the given items as read for the subscription.
-func (s *SubscriptionMetadata) MarkItemsRead(ids ...ItemID) {
-	for id := range slices.Values(ids) {
-		state := s.GetItemState(id)
-		if state == nil {
-			state = &ArticleState{}
-		}
-		state.MarkRead(time.Now().UTC())
-		s.SetItemState(id, state)
-	}
-}
-
-// MarkItemsUnread will mark the given items as unread for the subscription.
-func (s *SubscriptionMetadata) MarkItemsUnread(ids ...ItemID) {
-	for id := range slices.Values(ids) {
-		state := s.GetItemState(id)
-		if state == nil {
-			state = &ArticleState{}
-		}
-		state.MarkUnread(time.Now().UTC())
-		s.SetItemState(id, state)
-	}
-}
-
-// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
-// (false) a non-nil error is also returned which contains validation issues.
-func (s *SubscriptionMetadata) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(s)
-	if err != nil || !valid {
-		return false, fmt.Errorf("subscription is invalid: %w", err)
-	}
-	return true, nil
-}
-
-// SubscriptionMetadataSlice is a slice of subscription metadata.
-type SubscriptionMetadataSlice []*SubscriptionMetadata
-
-// FilterByIDs returns a new slice containing the metadata for subscriptions with the given ids only.
-func (s SubscriptionMetadataSlice) FilterByIDs(ids ...SubscriptionID) SubscriptionMetadataSlice {
-	return slices.Collect(
-		FilterSlice(s, func(e *SubscriptionMetadata) bool {
-			return slices.Contains(ids, e.GetID())
-		}),
-	)
-}
-
-// FilterByFeedIDs returns a new slice containing the metadata for subscriptions with the given feed ids only. If no ids are
-// provided, it returns the unfiltered slice.
-func (s SubscriptionMetadataSlice) FilterByFeedIDs(ids ...FeedID) SubscriptionMetadataSlice {
-	if len(ids) == 0 {
-		return s
-	}
-	return slices.Collect(
-		FilterSlice(s, func(e *SubscriptionMetadata) bool {
-			return slices.Contains(ids, e.GetFeedID())
-		}),
-	)
-}
-
-// Search performs a case-insensitive substring search for the given text in the title and categories customisations for
-// the subscriptions, returning a slice of those subscriptions that match.
-func (s SubscriptionMetadataSlice) Search(text string) SubscriptionMetadataSlice {
-	return slices.Collect(
-		FilterSlice(s, func(e *SubscriptionMetadata) bool {
-			return strings.Contains(strings.ToLower(e.Customisation.Nickname), strings.ToLower(text)) ||
-				slices.ContainsFunc(e.Customisation.Categories, func(e Category) bool {
-					return strings.Contains(strings.ToLower(e), strings.ToLower(text))
-				})
-		}),
-	)
-}
-
-// GetFeedIDs returns the feed ids for all subscription states in the slice.
-func (s SubscriptionMetadataSlice) GetFeedIDs() []FeedID {
-	ids := make([]FeedID, 0, len(s))
-	for state := range slices.Values(s) {
-		ids = append(ids, state.GetFeedID())
-	}
-	return ids
-}
-
-// GetIDs returns the subscription ids for all subscription states in the slice.
-func (s SubscriptionMetadataSlice) GetIDs() []SubscriptionID {
-	ids := make([]SubscriptionID, 0, len(s))
-	for state := range slices.Values(s) {
-		ids = append(ids, state.GetID())
-	}
-	return ids
-}
-
-// GetByID retrieves a state by the subscription id from the slice.
-func (s SubscriptionMetadataSlice) GetByID(id SubscriptionID) *SubscriptionMetadata {
-	if idx := slices.IndexFunc(s, func(e *SubscriptionMetadata) bool {
-		return e.GetID() == id
-	}); idx != -1 {
-		return s[idx]
-	}
-	return nil
-}
-
-// GetByFeedID retrieves a state by the FeedID from the slice.
-func (s SubscriptionMetadataSlice) GetByFeedID(id FeedID) *SubscriptionMetadata {
-	if idx := slices.IndexFunc(s, func(e *SubscriptionMetadata) bool {
-		return e.GetFeedID() == id
-	}); idx != -1 {
-		return s[idx]
-	}
-	return nil
-}
-
-// SortByTitle sorts the slice of subscriptions by their title.
-func (s SubscriptionMetadataSlice) SortByTitle() SubscriptionMetadataSlice {
-	sort.Slice(s, func(i, j int) bool { return s[i].Customisation.Nickname < s[j].Customisation.Nickname })
-	return s
 }

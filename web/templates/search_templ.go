@@ -391,7 +391,7 @@ func SearchFilters(request *models.SearchRequest) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			for s := range slices.Values(user.GetSubscriptionMetadata().SortByTitle()) {
+			for s := range slices.Values(user.GetSubscriptions().SortByTitle()) {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<option value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -428,7 +428,7 @@ func SearchFilters(request *models.SearchRequest) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			for id := range slices.Values(request.Subscriptions) {
-				subscription := user.GetSubscriptionMetadata().GetByID(id)
+				subscription := user.GetSubscriptions().GetByID(id)
 				if subscription != nil {
 					templ_7745c5c3_Err = SubscriptionFilter(id, subscription.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {

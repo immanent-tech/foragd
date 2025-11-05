@@ -50,7 +50,7 @@ func (a Articles) GetCategoryCounts() CategoryCounts {
 
 // GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
 // and state is required.
-func GenerateArticle(user *User, item *Item, state *SubscriptionMetadata) (*Article, error) {
+func GenerateArticle(user *User, item *Item, state *Subscription) (*Article, error) {
 	article := &Article{
 		Item:           *item,
 		SubscriptionID: state.GetID(),
@@ -89,7 +89,7 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 		return nil, fmt.Errorf("unable to generate articles: %w", err)
 	}
 	// Retrieve subscription customisations for feed subscriptions.
-	subscriptions := user.GetSubscriptionMetadata().FilterByFeedIDs(items.GetFeedIDs()...)
+	subscriptions := user.GetSubscriptions().FilterByFeedIDs(items.GetFeedIDs()...)
 	// Create articles from the items.
 	articles := make(Articles, 0, len(items))
 	for item := range slices.Values(items) {

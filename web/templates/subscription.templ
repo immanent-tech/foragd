@@ -470,7 +470,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 	}
 }
 
-templ EditSubscriptionSuccessNotification(metadata *models.SubscriptionMetadata) {
+templ EditSubscriptionSuccessNotification(metadata *models.Subscription) {
 	@Notification(&models.UserMessage{
 		Status:  models.UserMessageStatusSuccess,
 		Summary: metadata.Customisation.Nickname + " updated",

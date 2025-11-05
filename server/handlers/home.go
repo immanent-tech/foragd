@@ -79,11 +79,11 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	data.User = user
 	data.Favorites = user.GetAllFavorites()
 	// User has no subscriptions, show empty page
-	if len(user.GetSubscriptionMetadata()) == 0 {
+	if len(user.GetSubscriptions()) == 0 {
 		return data, nil
 	}
 	// Get subscriptions.
-	subscriptions, err := models.GetSubscriptions(ctx, a.Elastic, user.GetSubscriptionMetadata().GetIDs()...)
+	subscriptions, err := models.GetSubscriptions(ctx, a.Elastic, user.GetSubscriptions().GetIDs()...)
 	if err != nil {
 		return data, fmt.Errorf("unable to retrieve subscriptions: %w", err)
 	}
@@ -98,7 +98,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()...),
 			query.Bool(
-				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, data.Subscriptions.GetSubscriptionMetadata()...)...),
+				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, data.Subscriptions...)...),
 			),
 		),
 	)

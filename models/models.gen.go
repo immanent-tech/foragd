@@ -661,19 +661,40 @@ type StoredImage struct {
 	Data image.Image `json:"data"`
 }
 
-// Subscription represents a feed a user has subscribed to.
+// Subscription defines model for Subscription.
 type Subscription struct {
-	// Favorite indicates whether this subscription has been marked as a Favorite by the user.
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+
+	// Customisation contains object fields that can be customised (overridden) by a user
+	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
+
+	// Favorite indicates whether this subscription has been marked as a favorite by the user.
 	Favorite bool `json:"-"`
 
-	// Feed represents a feed object.
-	Feed Feed `json:"feed"`
+	// Feed is the original feed content.
+	Feed Feed `json:"-"`
 
-	// Metadata contains the stored data that represents a subscription
-	Metadata SubscriptionMetadata `json:"metadata"`
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+
+	// ItemStates contains the states of items marked explicitly as read/unread/saved by the user.
+	ItemStates map[ItemID]ArticleState `json:"item_states,omitempty,omitzero"`
+
+	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
+	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
+
+	// Settings contains options that control how the subscription is stored/displayed.
+	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
 
 	// Stats contains stats about a subscription.
-	Stats SubscriptionStats `json:"stats,omitempty,omitzero"`
+	Stats SubscriptionStats `json:"-"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
 // SubscriptionArticleFilters holds filters to apply to the articles within a subscription.
@@ -686,6 +707,21 @@ type SubscriptionArticleFilters struct {
 
 	// Text is the filters on the title/content to apply.
 	Text string `form:"text" json:"text,omitempty,omitzero"`
+}
+
+// SubscriptionCommon contains common fields across all subscription types.
+type SubscriptionCommon struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+
+	// Favorite indicates whether this subscription has been marked as a favorite by the user.
+	Favorite bool `json:"-"`
+
+	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
+	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
 // SubscriptionCustomisation contains object fields that can be customised (overridden) by a user
@@ -710,33 +746,6 @@ type SubscriptionCustomisation_Image struct {
 
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
-
-// SubscriptionMetadata contains the stored data that represents a subscription
-type SubscriptionMetadata struct {
-	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at" validate:"required"`
-
-	// Customisation contains object fields that can be customised (overridden) by a user
-	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
-
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-
-	// ItemStates contains the states of items marked explicitly as read/unread/saved by the user.
-	ItemStates map[ItemID]ArticleState `json:"item_states,omitempty,omitzero"`
-
-	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
-	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
-
-	// Settings contains options that control how the subscription is stored/displayed.
-	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
-}
 
 // SubscriptionRequest represents a request to create a subscription.
 type SubscriptionRequest struct {
@@ -830,7 +839,7 @@ type User struct {
 	Settings UserSettings `json:"settings,omitempty,omitzero"`
 
 	// Subscriptions is a list of the states of all subscriptions the user has.
-	Subscriptions []*SubscriptionMetadata `json:"subscriptions,omitempty,omitzero" validate:"omitempty,dive"`
+	Subscriptions Subscriptions `json:"subscriptions,omitempty,omitzero" validate:"omitempty,dive"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`

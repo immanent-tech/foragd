@@ -16,7 +16,7 @@ var (
 )
 
 var ErrUserNotFound = NewAPIError(
-	errors.New("no valid user found"),
+	errors.New("no valid user found"), //nolint:err113
 	http.StatusForbidden,
 )
 

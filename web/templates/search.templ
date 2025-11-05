@@ -208,7 +208,7 @@ templ SearchFilters(request *models.SearchRequest) {
 							_="on htmx:afterRequest halt"
 						>
 							<option disabled selected>Choose...</option>
-							for s := range slices.Values(user.GetSubscriptionMetadata().SortByTitle()) {
+							for s := range slices.Values(user.GetSubscriptions().SortByTitle()) {
 								<option value={ s.GetID() + "|" + s.Customisation.Nickname }>{ s.Customisation.Nickname }</option>
 							}
 						</select>
@@ -216,7 +216,7 @@ templ SearchFilters(request *models.SearchRequest) {
 							<div class="mt-2 sm:mt-0">
 								<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
 									for id := range slices.Values(request.Subscriptions) {
-										{{ subscription := user.GetSubscriptionMetadata().GetByID(id) }}
+										{{ subscription := user.GetSubscriptions().GetByID(id) }}
 										if subscription != nil {
 											@SubscriptionFilter(id, subscription.Customisation.Nickname)
 										}
