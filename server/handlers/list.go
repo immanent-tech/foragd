@@ -130,7 +130,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				favArticleIDs = append(favArticleIDs, favArticle.GetID())
 			}
 			// Get favorite subscriptions and articles.
-			var subscriptions models.Subscriptions
+			var subscriptions models.FeedSubscriptions
 			if len(favSubscriptionIDs) > 0 {
 				subscriptions, err = models.GetSubscriptions(req.Context(), api, favSubscriptionIDs...)
 				if err != nil {
@@ -206,8 +206,8 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		}
 		// Generate request details
 		var (
-			mark          models.Mark
-			subscriptions []models.SubscriptionID
+			mark            models.Mark
+			subscriptionIDs []models.SubscriptionID
 		)
 
 		switch filters.GetView() {
@@ -216,13 +216,9 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		default:
 			mark = models.MarkUnread
 		}
-		if len(filters.Subscriptions) == 0 {
-			subscriptions = user.GetSubscriptions().GetIDs()
-		} else {
-			subscriptions = filters.GetSubscriptions()
-		}
+		subscriptionIDs = user.GetSubscriptions(models.FilterByIDs(filters.Subscriptions...)).GetIDs()
 		// Mark subscriptions.
-		err = models.MarkSubscriptions(req.Context(), api, mark, subscriptions...)
+		err = models.MarkSubscriptions(req.Context(), api, mark, subscriptionIDs...)
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(

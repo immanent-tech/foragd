@@ -197,7 +197,7 @@ templ ViewSubscriptionLink(s subscription) {
 	}
 }
 
-templ SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pagination) {
+templ SubscriptionsGrid(subscriptions models.FeedSubscriptions, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	@Main() {
 		<div class="flex items-center justify-between mt-4">
@@ -277,7 +277,7 @@ templ SubscriptionsGrid(subscriptions models.Subscriptions, pagination models.Pa
 	}
 }
 
-templ SubscriptionsList(subscriptions models.Subscriptions, pagination models.Pagination) {
+templ SubscriptionsList(subscriptions models.FeedSubscriptions, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	for subscription := range slices.Values(subscriptions) {
 		@SubscriptionCard(subscription)

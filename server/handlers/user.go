@@ -222,7 +222,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
 		// Get the subscription state.
-		subscription := user.GetSubscriptions().GetByID(id)
+		subscription := user.GetSubscriptions().GetFeedSubscriptions().GetByID(id)
 		// Create a new favorite subscription.
 		err = user.AddFavoriteSubscription(id, subscription.Customisation.Nickname)
 		if err != nil {
@@ -277,7 +277,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
 		}
 		// Update the favorite button.
-		renderPartial(templates.ToggleFavorite(user.GetSubscriptions().GetByID(id))).ServeHTTP(res, req)
+		renderPartial(templates.ToggleFavorite(user.GetSubscriptions().GetFeedSubscriptions().GetByID(id))).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

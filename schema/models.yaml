@@ -271,7 +271,7 @@ components:
             subscriptions:
               description: >
                 is a list of the states of all subscriptions the user has.
-              x-go-type: 'Subscriptions'
+              x-go-type: 'FeedSubscriptions'
               x-oapi-codegen-extra-tags:
                 validate: 'omitempty,dive'
             favorites:
@@ -716,24 +716,26 @@ components:
       description: >
         represents a user subscription.
       type: object
-      required:
-        - subscription_id
-      properties:
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
-        type:
-          description: >
-            is the type of subscription.
-          type: string
-          enum: ['feed','search']
-          x-oapi-codegen-extra-tags:
-            validate: 'required,oneof=feed search'
-        data:
-          description: >
-            is the raw data represeting the subscription type.
-          oneOf:
-            - $ref: '#/components/schemas/FeedSubscription'
-            - $ref: '#/components/schemas/SearchSubscription'
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionCommon'
+        - type: object
+          required:
+            - type
+            - data
+          properties:
+            type:
+              description: >
+                is the type of subscription.
+              type: string
+              enum: ['feed','search']
+              x-oapi-codegen-extra-tags:
+                validate: 'required,oneof=feed search'
+            data:
+              description: >
+                is the raw data represeting the subscription type.
+              oneOf:
+                - $ref: '#/components/schemas/FeedSubscription'
+                - $ref: '#/components/schemas/SearchSubscription'
     SubscriptionRequest:
       description: >
         represents a request to create a subscription.

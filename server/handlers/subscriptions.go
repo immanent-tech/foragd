@@ -43,7 +43,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle("Error")).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
-		metadata := user.GetSubscriptions().GetByID(id)
+		metadata := user.GetSubscriptions().GetFeedSubscriptions().GetByID(id)
 		// Convert metadata into edit request data.
 		request := &models.EditSubscriptionRequest{
 			SubscriptionID:         id,
@@ -83,7 +83,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
 		// Update the subscription metadata.
-		metadata := user.GetSubscriptions().GetByID(request.SubscriptionID)
+		metadata := user.GetSubscriptions().GetFeedSubscriptions().GetByID(request.SubscriptionID)
 		metadata.Customisation.Nickname = request.GetNickname()
 		metadata.Customisation.Categories = request.GetCategories()
 		metadata.Settings.ShowFullArticleContent = request.ShowFullArticleContent
@@ -409,7 +409,7 @@ func processSubscriptionRequest(ctx context.Context, api *elastic.API, user *mod
 	}
 	// Check if user already subscribed.
 	if user.IsSubscribedToFeed(feed.GetID()) {
-		subscription := user.GetSubscriptions().GetByFeedID(feed.GetID())
+		subscription := user.GetSubscriptions().GetFeedSubscriptions().GetByFeedID(feed.GetID())
 		result.Error = fmt.Errorf("already subscribed")
 		result.Message = *models.NewWarningMessage("Already subscribed to feed", fmt.Sprintf("%s %q", subscription.Customisation.Nickname, request.GetURL()))
 		resultsCh <- result

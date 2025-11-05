@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articles, searches map[string]models.FavoriteSearch) {
+templ FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Articles, searches map[string]models.FavoriteSearch) {
 	@Main() {
 		<div id="top" class="flex items-center justify-between mt-4">
 			<div class="min-w-0 flex-1">

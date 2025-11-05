@@ -10,7 +10,7 @@ import (
 )
 
 // SearchSuggestions will render suggestions for a given search.
-templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subscriptions, articles models.Articles) {
+templ SearchSuggestions(request *models.SearchRequest, subscriptions models.FeedSubscriptions, articles models.Articles) {
 	// Always generate a suggestion to execute a full search.
 	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="search-group-label">
 		<form
@@ -208,8 +208,8 @@ templ SearchFilters(request *models.SearchRequest) {
 							_="on htmx:afterRequest halt"
 						>
 							<option disabled selected>Choose...</option>
-							for s := range slices.Values(user.GetSubscriptions().SortByTitle()) {
-								<option value={ s.GetID() + "|" + s.Customisation.Nickname }>{ s.Customisation.Nickname }</option>
+							for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
+								<option value={ s.GetID() + "|" + s.GetTitle() }>{ s.GetTitle() }</option>
 							}
 						</select>
 						<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
@@ -218,7 +218,7 @@ templ SearchFilters(request *models.SearchRequest) {
 									for id := range slices.Values(request.Subscriptions) {
 										{{ subscription := user.GetSubscriptions().GetByID(id) }}
 										if subscription != nil {
-											@SubscriptionFilter(id, subscription.Customisation.Nickname)
+											@SubscriptionFilter(id, subscription.GetTitle())
 										}
 									}
 								</div>
@@ -436,13 +436,13 @@ templ GlobalSearch() {
 
 type SearchResultsPage struct {
 	user          *models.User
-	subscriptions models.Subscriptions
+	subscriptions models.FeedSubscriptions
 	articles      models.Articles
 	search        *models.SearchRequest
 	favoriteID    models.FavoriteID
 }
 
-func NewSearchResultsPage(user *models.User, fav *models.Favorite, search *models.SearchRequest, subscriptions models.Subscriptions, articles models.Articles) *SearchResultsPage {
+func NewSearchResultsPage(user *models.User, fav *models.Favorite, search *models.SearchRequest, subscriptions models.FeedSubscriptions, articles models.Articles) *SearchResultsPage {
 	page := &SearchResultsPage{
 		user:          user,
 		search:        search,

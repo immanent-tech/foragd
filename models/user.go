@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sort"
 	"time"
 
 	"github.com/immanent-tech/foragd/validation"
@@ -101,13 +102,52 @@ func (u *User) GetSettings() *UserSettings {
 }
 
 // GetSubscriptions retrieves a slice of the user subscriptions.
-func (u *User) GetSubscriptions() Subscriptions {
+func (u *User) GetSubscriptions(options ...subscriptionFilterOption) Subscriptions {
 	subscriptions := make(Subscriptions, 0, len(u.Subscriptions))
-	for s := range slices.Values(u.Subscriptions) {
-		s.Favorite = u.IsFavorite(s.GetID())
-		subscriptions = append(subscriptions, s)
+	for subscriptionData := range slices.Values(u.Subscriptions) {
+		subscription := Subscription{
+			CreatedAt:      subscriptionData.CreatedAt,
+			Customisation:  subscriptionData.Customisation,
+			Favorite:       u.IsFavorite(subscriptionData.GetID()),
+			MarkedReadAt:   subscriptionData.MarkedReadAt,
+			Settings:       subscriptionData.Settings,
+			SubscriptionID: subscriptionData.GetID(),
+			Type:           SubscriptionTypeFeed,
+			UpdatedAt:      subscriptionData.UpdatedAt,
+		}
+		// ! No error check...
+		subscription.Data.FromFeedSubscription(*subscriptionData) //nolint:errcheck
+		subscriptions = append(subscriptions, &subscription)
+	}
+	// Apply filtering options.
+	for option := range slices.Values(options) {
+		subscriptions = option(subscriptions)
 	}
 	return subscriptions
+}
+
+type subscriptionFilterOption func(Subscriptions) Subscriptions
+
+// FilterByIDs option will filter the subscriptions by the given IDs.
+func FilterByIDs(ids ...SubscriptionID) subscriptionFilterOption {
+	return func(s Subscriptions) Subscriptions {
+		if len(ids) == 0 {
+			return s
+		}
+		return slices.Collect(
+			FilterSlice(s, func(e *Subscription) bool {
+				return slices.Contains(ids, e.GetID())
+			}),
+		)
+	}
+}
+
+// SortByTitle sorts the subscriptions by their title.
+func SortByTitle() subscriptionFilterOption {
+	return func(s Subscriptions) Subscriptions {
+		sort.Slice(s, func(i, j int) bool { return s[i].GetTitle() < s[j].GetTitle() })
+		return s
+	}
 }
 
 // IsSubscribedToFeed returns a boolean indicating whether the user is subscribed to a feed with the given id.
@@ -128,7 +168,7 @@ func (u *User) MarkSubscriptions(mark Mark, ids ...SubscriptionID) {
 		// Set marked at to max history when marking unread.
 		markedAt = u.GetMaxHistory()
 	}
-	for subscription := range slices.Values(u.GetSubscriptions().FilterByIDs(ids...)) {
+	for subscription := range slices.Values(u.Subscriptions.FilterByIDs(ids...)) {
 		subscription.Mark(mark, markedAt)
 	}
 }

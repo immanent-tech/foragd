@@ -244,11 +244,11 @@ func (s *FeedSubscription) IssueURL() string {
 	return "/issue/subscription/" + s.GetID()
 }
 
-// Subscriptions is a slice of Subscription objects.
-type Subscriptions []*FeedSubscription
+// FeedSubscriptions is a slice of Subscription objects.
+type FeedSubscriptions []*FeedSubscription
 
 // FilterByIDs returns a new slice containing the subscriptions with the given ids only.
-func (s Subscriptions) FilterByIDs(ids ...SubscriptionID) Subscriptions {
+func (s FeedSubscriptions) FilterByIDs(ids ...SubscriptionID) FeedSubscriptions {
 	return slices.Collect(
 		FilterSlice(s, func(e *FeedSubscription) bool {
 			return slices.Contains(ids, e.GetID())
@@ -258,7 +258,7 @@ func (s Subscriptions) FilterByIDs(ids ...SubscriptionID) Subscriptions {
 
 // FilterByFeedIDs returns a new slice containing the subscriptions with the given feed ids only. If no ids are
 // provided, it returns the unfiltered slice.
-func (s Subscriptions) FilterByFeedIDs(ids ...FeedID) Subscriptions {
+func (s FeedSubscriptions) FilterByFeedIDs(ids ...FeedID) FeedSubscriptions {
 	if len(ids) == 0 {
 		return s
 	}
@@ -271,7 +271,7 @@ func (s Subscriptions) FilterByFeedIDs(ids ...FeedID) Subscriptions {
 
 // FilterByCategories returns a new slice containing the subscriptions which have a category matching the given
 // categories.
-func (s Subscriptions) FilterByCategories(categories ...Category) Subscriptions {
+func (s FeedSubscriptions) FilterByCategories(categories ...Category) FeedSubscriptions {
 	if len(categories) == 0 {
 		return s
 	}
@@ -284,7 +284,7 @@ func (s Subscriptions) FilterByCategories(categories ...Category) Subscriptions 
 }
 
 // FilterByView returns a slice containing the subscription which match the given view state.
-func (s Subscriptions) FilterByView(view View) Subscriptions {
+func (s FeedSubscriptions) FilterByView(view View) FeedSubscriptions {
 	switch view {
 	case ViewRead:
 		return slices.Collect(FilterSlice(s, func(subscription *FeedSubscription) bool {
@@ -301,7 +301,7 @@ func (s Subscriptions) FilterByView(view View) Subscriptions {
 
 // Search performs a case-insensitive substring search for the given text in the title and categories customisations for
 // the subscriptions, returning a slice of those subscriptions that match.
-func (s Subscriptions) Search(text string) Subscriptions {
+func (s FeedSubscriptions) Search(text string) FeedSubscriptions {
 	return slices.Collect(
 		FilterSlice(s, func(e *FeedSubscription) bool {
 			return strings.Contains(strings.ToLower(e.Customisation.Nickname), strings.ToLower(text)) ||
@@ -313,7 +313,7 @@ func (s Subscriptions) Search(text string) Subscriptions {
 }
 
 // GetFeedIDs returns the feed ids for all subscription states in the slice.
-func (s Subscriptions) GetFeedIDs() []FeedID {
+func (s FeedSubscriptions) GetFeedIDs() []FeedID {
 	ids := make([]FeedID, 0, len(s))
 	for state := range slices.Values(s) {
 		ids = append(ids, state.GetFeedID())
@@ -322,7 +322,7 @@ func (s Subscriptions) GetFeedIDs() []FeedID {
 }
 
 // GetIDs returns the subscription ids for all subscription states in the slice.
-func (s Subscriptions) GetIDs() []SubscriptionID {
+func (s FeedSubscriptions) GetIDs() []SubscriptionID {
 	ids := make([]SubscriptionID, 0, len(s))
 	for state := range slices.Values(s) {
 		ids = append(ids, state.GetID())
@@ -331,7 +331,7 @@ func (s Subscriptions) GetIDs() []SubscriptionID {
 }
 
 // GetByID retrieves a state by the subscription id from the slice.
-func (s Subscriptions) GetByID(id SubscriptionID) *FeedSubscription {
+func (s FeedSubscriptions) GetByID(id SubscriptionID) *FeedSubscription {
 	if idx := slices.IndexFunc(s, func(e *FeedSubscription) bool {
 		return e.GetID() == id
 	}); idx != -1 {
@@ -341,7 +341,7 @@ func (s Subscriptions) GetByID(id SubscriptionID) *FeedSubscription {
 }
 
 // GetByFeedID retrieves a state by the FeedID from the slice.
-func (s Subscriptions) GetByFeedID(id FeedID) *FeedSubscription {
+func (s FeedSubscriptions) GetByFeedID(id FeedID) *FeedSubscription {
 	if idx := slices.IndexFunc(s, func(e *FeedSubscription) bool {
 		return e.GetFeedID() == id
 	}); idx != -1 {
@@ -351,13 +351,13 @@ func (s Subscriptions) GetByFeedID(id FeedID) *FeedSubscription {
 }
 
 // SortByTitle sorts the slice of subscriptions by their title.
-func (s Subscriptions) SortByTitle() Subscriptions {
+func (s FeedSubscriptions) SortByTitle() FeedSubscriptions {
 	sort.Slice(s, func(i, j int) bool { return s[i].Customisation.Nickname < s[j].Customisation.Nickname })
 	return s
 }
 
 // Sort will sort the slice of subscriptions by the given sort.
-func (s Subscriptions) Sort(sort *Sort) Subscriptions {
+func (s FeedSubscriptions) Sort(sort *Sort) FeedSubscriptions {
 	if sort == nil {
 		sort = &Sort{
 			SortBy:    SortByUnreadCount,
@@ -386,7 +386,7 @@ func (s Subscriptions) Sort(sort *Sort) Subscriptions {
 
 // Paginate will paginate through a slice of subscriptions, returning a new slice of subscriptions and the next
 // pagination value (if any).
-func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions, Pagination) {
+func (s FeedSubscriptions) Paginate(pagination Pagination, count int) (FeedSubscriptions, Pagination) {
 	var from, to int
 	if pagination != "" {
 		value, err := strconv.Atoi(pagination)
@@ -400,7 +400,7 @@ func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions
 }
 
 // GetTotalUnreadCount calculates the total unread articles across all subscriptions in the slice.
-func (s Subscriptions) GetTotalUnreadCount() int {
+func (s FeedSubscriptions) GetTotalUnreadCount() int {
 	var unread int
 	for subscription := range slices.Values(s) {
 		unread += subscription.GetStats().UnreadTotal()
@@ -410,7 +410,7 @@ func (s Subscriptions) GetTotalUnreadCount() int {
 
 // GetCategoryCounts returns a count of the occurrence of a Category across all
 // the Subscriptions.
-func (s Subscriptions) GetCategoryCounts() CategoryCounts {
+func (s FeedSubscriptions) GetCategoryCounts() CategoryCounts {
 	countsMap := make(map[Category]int)
 	for object := range slices.Values(s) {
 		for category := range slices.Values(object.GetCategories(0)) {
@@ -423,6 +423,72 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 	}
 
 	return counts
+}
+
+// SearchSubscriptions is a slice of SearchSubscription subscriptions.
+type SearchSubscriptions []*SearchSubscription
+
+func (s *Subscription) GetID() SubscriptionID {
+	return s.SubscriptionID
+}
+
+func (s *Subscription) GetType() SubscriptionType {
+	return s.Type
+}
+
+func (s *Subscription) GetTitle() string {
+	return s.Customisation.Nickname
+}
+
+type Subscriptions []*Subscription
+
+// GetIDs returns the subscription ids for all subscription states in the slice.
+func (s Subscriptions) GetIDs() []SubscriptionID {
+	ids := make([]SubscriptionID, 0, len(s))
+	for state := range slices.Values(s) {
+		ids = append(ids, state.GetID())
+	}
+	return ids
+}
+
+// GetByID retrieves a state by the subscription id from the slice.
+func (s Subscriptions) GetByID(id SubscriptionID) *Subscription {
+	if idx := slices.IndexFunc(s, func(e *Subscription) bool {
+		return e.GetID() == id
+	}); idx != -1 {
+		return s[idx]
+	}
+	return nil
+}
+
+// GetFeedSubscriptions returns a new slice containing just the FeedSubscription subscriptions.
+func (s Subscriptions) GetFeedSubscriptions() FeedSubscriptions {
+	feedSubscriptions := make(FeedSubscriptions, 0, len(s))
+	for s := range slices.Values(s) {
+		if s.GetType() == SubscriptionTypeFeed {
+			subscription, err := s.Data.AsFeedSubscription()
+			if err != nil {
+				continue
+			}
+			feedSubscriptions = append(feedSubscriptions, &subscription)
+		}
+	}
+	return feedSubscriptions
+}
+
+// GetSearchSubscriptions returns a new slice containing just the SearchSubscription subscriptions.
+func (s Subscriptions) GetSearchSubscriptions() SearchSubscriptions {
+	searchSubscriptions := make(SearchSubscriptions, 0, len(s))
+	for s := range slices.Values(s) {
+		if s.GetType() == SubscriptionTypeFeed {
+			subscription, err := s.Data.AsSearchSubscription()
+			if err != nil {
+				continue
+			}
+			searchSubscriptions = append(searchSubscriptions, &subscription)
+		}
+	}
+	return searchSubscriptions
 }
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,

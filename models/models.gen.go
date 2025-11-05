@@ -733,16 +733,37 @@ type StoredImage struct {
 	Data image.Image `json:"data"`
 }
 
-// Subscription represents a user subscription.
+// Subscription defines model for Subscription.
 type Subscription struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+
+	// Customisation contains object fields that can be customised (overridden) by a user
+	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
+
 	// Data is the raw data represeting the subscription type.
-	Data Subscription_Data `json:"data,omitempty,omitzero"`
+	Data Subscription_Data `json:"data"`
+
+	// Favorite indicates whether this subscription has been marked as a favorite by the user.
+	Favorite bool `json:"-"`
+
+	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
+	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
+
+	// Settings contains options that control how the subscription is stored/displayed.
+	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
+
+	// Stats contains stats about a subscription.
+	Stats SubscriptionStats `json:"-"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// Type is the type of subscription.
-	Type SubscriptionType `json:"type,omitempty,omitzero" validate:"required,oneof=feed search"`
+	Type SubscriptionType `json:"type" validate:"required,oneof=feed search"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
 // Subscription_Data is the raw data represeting the subscription type.
@@ -907,7 +928,7 @@ type User struct {
 	Settings UserSettings `json:"settings,omitempty,omitzero"`
 
 	// Subscriptions is a list of the states of all subscriptions the user has.
-	Subscriptions Subscriptions `json:"subscriptions,omitempty,omitzero" validate:"omitempty,dive"`
+	Subscriptions FeedSubscriptions `json:"subscriptions,omitempty,omitzero" validate:"omitempty,dive"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`

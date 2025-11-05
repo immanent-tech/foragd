@@ -83,7 +83,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 		return data, nil
 	}
 	// Get subscriptions.
-	subscriptions, err := models.GetSubscriptions(ctx, a.Elastic, user.GetSubscriptions().GetIDs()...)
+	subscriptions, err := models.GetSubscriptions(ctx, a.Elastic)
 	if err != nil {
 		return data, fmt.Errorf("unable to retrieve subscriptions: %w", err)
 	}

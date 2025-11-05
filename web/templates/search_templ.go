@@ -20,7 +20,7 @@ import (
 )
 
 // SearchSuggestions will render suggestions for a given search.
-func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subscriptions, articles models.Articles) templ.Component {
+func SearchSuggestions(request *models.SearchRequest, subscriptions models.FeedSubscriptions, articles models.Articles) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -378,15 +378,15 @@ func SearchFilters(request *models.SearchRequest) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			for s := range slices.Values(user.GetSubscriptions().SortByTitle()) {
+			for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<option value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var17 string
-				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(s.GetID() + "|" + s.Customisation.Nickname)
+				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(s.GetID() + "|" + s.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 212, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 212, Col: 54}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -397,9 +397,9 @@ func SearchFilters(request *models.SearchRequest) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var18 string
-				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(s.Customisation.Nickname)
+				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(s.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 212, Col: 95}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 212, Col: 71}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -417,7 +417,7 @@ func SearchFilters(request *models.SearchRequest) templ.Component {
 			for id := range slices.Values(request.Subscriptions) {
 				subscription := user.GetSubscriptions().GetByID(id)
 				if subscription != nil {
-					templ_7745c5c3_Err = SubscriptionFilter(id, subscription.Customisation.Nickname).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = SubscriptionFilter(id, subscription.GetTitle()).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -738,13 +738,13 @@ func GlobalSearch() templ.Component {
 
 type SearchResultsPage struct {
 	user          *models.User
-	subscriptions models.Subscriptions
+	subscriptions models.FeedSubscriptions
 	articles      models.Articles
 	search        *models.SearchRequest
 	favoriteID    models.FavoriteID
 }
 
-func NewSearchResultsPage(user *models.User, fav *models.Favorite, search *models.SearchRequest, subscriptions models.Subscriptions, articles models.Articles) *SearchResultsPage {
+func NewSearchResultsPage(user *models.User, fav *models.Favorite, search *models.SearchRequest, subscriptions models.FeedSubscriptions, articles models.Articles) *SearchResultsPage {
 	page := &SearchResultsPage{
 		user:          user,
 		search:        search,
