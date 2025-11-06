@@ -282,7 +282,8 @@ func (s FeedSubscriptions) SortByTitle() FeedSubscriptions {
 	return s
 }
 
-// Sort will sort the slice of subscriptions by the given sort.
+// Sort will sort the slice of subscriptions by the given sort option. Favorite subscriptions are always sorted before
+// other subscriptions, and the sort option is used as a tiebreaker.
 func (s FeedSubscriptions) Sort(sort *Sort) FeedSubscriptions {
 	if sort == nil {
 		sort = &Sort{
@@ -292,16 +293,30 @@ func (s FeedSubscriptions) Sort(sort *Sort) FeedSubscriptions {
 	}
 	switch sort.SortBy {
 	case SortByLastUpdated:
-		slices.SortFunc(s, func(a, b *FeedSubscription) int {
-			return a.GetUpdatedDate().Compare(b.GetUpdatedDate())
+		slices.SortFunc(s, func(subscriptionA, subscriptionB *FeedSubscription) int {
+			switch {
+			case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite():
+				return 1
+			case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite():
+				return -1
+			default:
+				return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
+			}
 		})
 	case SortByUnreadCount:
-		slices.SortFunc(s, func(a, b *FeedSubscription) int {
-			cmpValue := cmp.Compare(a.GetStats().UnreadTotal(), b.GetStats().UnreadTotal())
-			if cmpValue == 0 {
-				return a.GetUpdatedDate().Compare(b.GetUpdatedDate())
+		slices.SortFunc(s, func(subscriptionA, subscriptionB *FeedSubscription) int {
+			switch {
+			case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite():
+				return 1
+			case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite():
+				return -1
+			default:
+				cmpValue := cmp.Compare(subscriptionA.GetStats().UnreadTotal(), subscriptionB.GetStats().UnreadTotal())
+				if cmpValue == 0 {
+					return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
+				}
+				return cmpValue
 			}
-			return cmpValue
 		})
 	}
 	if sort.SortOrder == SortOrderDesc {
