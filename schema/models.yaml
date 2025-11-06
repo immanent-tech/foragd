@@ -109,14 +109,6 @@ components:
         json: 'user_id'
         validate: 'required,startswith=user_'
         form: 'user_id'
-    FavoriteID:
-      description: is the unique ID of a Favorite.
-      type: string
-      x-go-name: FavoriteID
-      x-oapi-codegen-extra-tags:
-        validate: 'required,startswith=fav_'
-        json: 'favorite_id'
-        form: 'favorite_id'
     Nickname:
       description: >
         is an optional friendly name.
@@ -278,14 +270,14 @@ components:
               description: >
                 contains the states of items marked explicitly as read/unread/saved by the user.
               x-go-type: 'map[SubscriptionID]map[ItemID]ArticleState'
-            favorites:
+            item_favorites:
               description: >
-                contains the user favorites.
+                is the IDs of items (articles) the user has favorited.
               type: array
               items:
-                x-go-type: '*Favorite'
+                $ref: '#/components/schemas/ItemID'
               x-oapi-codegen-extra-tags:
-                validate: 'omitempty,dive'
+                validate: 'omitempty,dive,startswith=item_'
     EditUserRequest:
       description: >
         contains details for editing a user account.
@@ -369,56 +361,6 @@ components:
             form: 'mark_article_read_on_view'
           x-omitzero: false
           x-omitempty: false
-    Favorite:
-      description: >
-        is an object that the user has marked as a Favorite. Favorites  have higher visibility in the display and
-        score higher in search results.
-      type: object
-      required:
-        - type
-        - created_at
-        - object_id
-      properties:
-        created_at:
-          $ref: '#/components/schemas/CreatedAt'
-        nickname:
-          $ref: '#/components/schemas/Nickname'
-        type:
-          description: >
-            is the type of Favorite.
-          type: string
-          enum: ['subscription', 'article', 'search']
-        object_id:
-          description: >
-            an ID of the object that has been favorited.
-          type: string
-          x-go-name: ObjectID
-        object_data:
-          description: >
-            contains the (optional) data pertaining to the favorite object.
-          oneOf:
-            - $ref: '#/components/schemas/FavoriteSearch'
-            # - $ref: '#/components/schemas/FavoriteSubscription'
-            - $ref: '#/components/schemas/FavoriteArticle'
-    # FavoriteSubscription:
-    #   description: >
-    #     is a subscription that the user has marked as a Favorite.
-    #   type: object
-    #   allOf:
-    #     - $ref: '#/components/schemas/ObjectCustomisation'
-    FavoriteArticle:
-      description: >
-        is an article that the user has marked as a Favorite.
-      type: object
-      properties:
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
-    FavoriteSearch:
-      description: >
-        is a search that the user has marked as a Favorite.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/SearchRequest'
     UserSession:
       description: tracks a user session.
       type: object

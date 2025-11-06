@@ -82,7 +82,7 @@ templ SubscriptionCard(s subscription) {
 						}
 						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 						<div id={ "favorite_" + s.GetID() }>
-							@ToggleFavorite(s)
+							@ToggleFavorite(s.GetID(), string(models.ObjectTypeSubscription), s.IsFavorite())
 						</div>
 						// Unsubscribe action.
 						@NewLink(

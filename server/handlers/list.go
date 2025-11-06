@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"slices"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -106,57 +105,57 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 					return nil
 				}
 			}
-		case "favorites":
-			// Get user info.
-			user, err := models.UserFromCtx(req.Context())
-			if err != nil {
-				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
-				switch req.Method {
-				case http.MethodGet:
-					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
-				case http.MethodPost:
-					template := templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req)
-				}
-				return models.NewAPIError(fmt.Errorf("could not fetch user info from context: %w", err), http.StatusInternalServerError)
-			}
-			favorites := user.GetAllFavorites()
-			// Get IDs of favorite subscriptions and articles.
-			var favSubscriptionIDs, favArticleIDs []string
-			for favSubscription := range slices.Values(favorites.FilterByType(models.FavoriteTypeSubscription)) {
-				favSubscriptionIDs = append(favSubscriptionIDs, favSubscription.GetID())
-			}
-			for favArticle := range slices.Values(favorites.FilterByType(models.FavoriteTypeArticle)) {
-				favArticleIDs = append(favArticleIDs, favArticle.GetID())
-			}
-			// Get favorite subscriptions and articles.
-			var subscriptions models.FeedSubscriptions
-			if len(favSubscriptionIDs) > 0 {
-				results, err := models.GetSubscriptions(req.Context(), api, favSubscriptionIDs...)
-				if err != nil {
-					return fmt.Errorf("unable to get favorite subscriptions: %w", err)
-				}
-				subscriptions = results.FeedSubscriptions
-			}
-			articles, err := models.GetArticles(req.Context(), api, favArticleIDs...)
-			if err != nil {
-				return fmt.Errorf("unable to get favorite articles: %w", err)
-			}
-			searches := make(map[string]models.FavoriteSearch)
-			for favSearch := range slices.Values(favorites.FilterByType(models.FavoriteTypeSearch)) {
-				search, err := favSearch.ObjectData.AsFavoriteSearch()
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Could not extract favorite search data.",
-						slog.Any("error", err))
-					continue
-				}
-				searches[favSearch.Nickname] = search
-			}
-			if len(subscriptions)+len(articles)+len(searches) == 0 {
-				template = templates.EmptyContent()
-			} else {
-				template = templates.FavoritesLayout(subscriptions, articles, searches)
-			}
+		// case "favorites":
+		// 	// Get user info.
+		// 	user, err := models.UserFromCtx(req.Context())
+		// 	if err != nil {
+		// 		msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
+		// 		switch req.Method {
+		// 		case http.MethodGet:
+		// 			renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+		// 		case http.MethodPost:
+		// 			template := templates.ServerErrorNotification(msg)
+		// 			renderPartial(template).ServeHTTP(res, req)
+		// 		}
+		// 		return models.NewAPIError(fmt.Errorf("could not fetch user info from context: %w", err), http.StatusInternalServerError)
+		// 	}
+		// 	favorites := user.GetAllFavorites()
+		// 	// Get IDs of favorite subscriptions and articles.
+		// 	var favSubscriptionIDs, favArticleIDs []string
+		// 	for favSubscription := range slices.Values(favorites.FilterByType(models.FavoriteTypeSubscription)) {
+		// 		favSubscriptionIDs = append(favSubscriptionIDs, favSubscription.GetID())
+		// 	}
+		// 	for favArticle := range slices.Values(favorites.FilterByType(models.FavoriteTypeArticle)) {
+		// 		favArticleIDs = append(favArticleIDs, favArticle.GetID())
+		// 	}
+		// 	// Get favorite subscriptions and articles.
+		// 	var subscriptions models.FeedSubscriptions
+		// 	if len(favSubscriptionIDs) > 0 {
+		// 		results, err := models.GetSubscriptions(req.Context(), api, favSubscriptionIDs...)
+		// 		if err != nil {
+		// 			return fmt.Errorf("unable to get favorite subscriptions: %w", err)
+		// 		}
+		// 		subscriptions = results.FeedSubscriptions
+		// 	}
+		// 	articles, err := models.GetArticles(req.Context(), api, favArticleIDs...)
+		// 	if err != nil {
+		// 		return fmt.Errorf("unable to get favorite articles: %w", err)
+		// 	}
+		// 	searches := make(map[string]models.FavoriteSearch)
+		// 	for favSearch := range slices.Values(favorites.FilterByType(models.FavoriteTypeSearch)) {
+		// 		search, err := favSearch.ObjectData.AsFavoriteSearch()
+		// 		if err != nil {
+		// 			slogctx.FromCtx(req.Context()).Warn("Could not extract favorite search data.",
+		// 				slog.Any("error", err))
+		// 			continue
+		// 		}
+		// 		searches[favSearch.Nickname] = search
+		// 	}
+		// 	if len(subscriptions)+len(articles)+len(searches) == 0 {
+		// 		template = templates.EmptyContent()
+		// 	} else {
+		// 		template = templates.FavoritesLayout(subscriptions, articles, searches)
+		// 	}
 		default:
 			slogctx.FromCtx(req.Context()).Error("Unsupported list type requested.",
 				slog.String("type", listType))

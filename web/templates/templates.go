@@ -49,6 +49,7 @@ type objectDetails interface {
 	GetAuthors() []string
 	GetUpdatedDate() time.Time
 	GetImage() *types.ImageInfo
+	IsFavorite() bool
 }
 
 type object[T ~string] interface {

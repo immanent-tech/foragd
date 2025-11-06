@@ -350,6 +350,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 									),
 									WithFlattenedMapping("favorites"),
 									WithFlattenedMapping("item_states"),
+									WithKeywordMapping("item_favorites"),
 								),
 								WithDynamicProperties(false),
 							),

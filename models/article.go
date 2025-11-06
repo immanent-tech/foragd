@@ -57,7 +57,7 @@ func GenerateArticle(user *User, item *Item, subscription *FeedSubscription) (*A
 		State:          *user.GetItemState(subscription.GetID(), item.GetID()),
 	}
 	// If there is favorite data, mark article as a favorite.
-	if user.IsFavorite(article.GetID()) {
+	if slices.Contains(user.ItemFavorites, item.GetID()) {
 		article.Favorite = true
 	}
 	// Add any appropriate feed customisation data.

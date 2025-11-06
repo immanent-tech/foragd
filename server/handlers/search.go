@@ -80,32 +80,32 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 		}
-		// Retrieve favorite data for this search
-		fav := user.GetFavorite(favoriteID)
-		if fav != nil {
-			// Update favorite in user.
-			err := user.UpdateFavoriteSearch(fav.Nickname, request)
-			if err != nil {
-				msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
-				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to update search favorite: %w", err),
-					http.StatusInternalServerError,
-				)
-			}
-			// Update user.
-			err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-				"favorites": user.Favorites,
-			})
-			if err != nil {
-				msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
-				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to update user data: %w", err),
-					http.StatusInternalServerError,
-				)
-			}
-		}
+		// // Retrieve favorite data for this search
+		// fav := user.GetFavorite(favoriteID)
+		// if fav != nil {
+		// 	// Update favorite in user.
+		// 	err := user.UpdateFavoriteSearch(fav.Nickname, request)
+		// 	if err != nil {
+		// 		msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+		// 		renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+		// 		return models.NewAPIError(
+		// 			fmt.Errorf("unable to update search favorite: %w", err),
+		// 			http.StatusInternalServerError,
+		// 		)
+		// 	}
+		// 	// Update user.
+		// 	err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
+		// 		"favorites": user.Favorites,
+		// 	})
+		// 	if err != nil {
+		// 		msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+		// 		renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+		// 		return models.NewAPIError(
+		// 			fmt.Errorf("unable to update user data: %w", err),
+		// 			http.StatusInternalServerError,
+		// 		)
+		// 	}
+		// }
 		// Find subscriptions and articles that match search request.
 		subscriptions, articles, err := models.GetSearchResults(req.Context(), a.Elastic, request)
 		switch {
@@ -117,11 +117,11 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				http.StatusInternalServerError,
 			)
 		case len(subscriptions) > 0 || len(articles) > 0:
-			template := templates.NewSearchResultsPage(user, fav, request, subscriptions, articles).Content()
+			template := templates.NewSearchResultsPage(user, request, subscriptions, articles).Content()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req)
 		default:
-			template := templates.NoSearchResults(fav)
+			template := templates.NoSearchResults()
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req)
 		}

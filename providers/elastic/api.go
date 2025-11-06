@@ -380,6 +380,39 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 	return BulkUpdate(ctx, e, index, items...)
 }
 
+// ArchiveArticle will index the given article content to the article archive for permanent storage.
+func (a *API) ArchiveArticle(ctx context.Context, article *models.ArticleArchive) error {
+	index, err := FavoriteItemsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return ErrNoIndexInCtx
+	}
+	err = CreateDoc(ctx, a.GetAPI(), index, article.ItemID, article)
+	if err != nil {
+		return toAPIError(err)
+	}
+	return nil
+}
+
+// UnarchiveArticle will delete an article from the archive.
+func (a *API) UnarchiveArticle(ctx context.Context, userID models.UserID, itemID models.ItemID) error {
+	index, err := FavoriteItemsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return ErrNoIndexInCtx
+	}
+	// Set up the query to match the user's favorited article.
+	query := query.Bool(
+		query.Filter(
+			query.Term("user_id", userID),
+			query.Term("item_id", itemID),
+		),
+	)
+	err = DeleteDocs(ctx, a.GetAPI(), index, query)
+	if err != nil {
+		return toAPIError(err)
+	}
+	return nil
+}
+
 func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
 	index, err := SchedulerReadIndexFromCtx(ctx)
 	if err != nil {

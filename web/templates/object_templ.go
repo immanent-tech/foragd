@@ -14,7 +14,6 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"html"
@@ -22,7 +21,7 @@ import (
 )
 
 // ToggleFavorite renders an updated favorite link based on the object's favorite status.
-func ToggleFavorite[T ~string](obj object[T]) templ.Component {
+func ToggleFavorite(id string, objectType string, isFavorite bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -43,12 +42,11 @@ func ToggleFavorite[T ~string](obj object[T]) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		user, _ := models.UserFromCtx(ctx)
 		var favoriteURL string
-		if user.IsFavorite(string(obj.GetID())) {
-			favoriteURL = "/user/favorite/remove/" + string(obj.GetObjectType()) + "/" + string(obj.GetID())
+		if isFavorite {
+			favoriteURL = "/user/favorite/remove/" + objectType + "/" + id
 		} else {
-			favoriteURL = "/user/favorite/add/" + string(obj.GetObjectType()) + "/" + string(obj.GetID())
+			favoriteURL = "/user/favorite/add/" + objectType + "/" + id
 		}
 		templ_7745c5c3_Var2 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -62,7 +60,7 @@ func ToggleFavorite[T ~string](obj object[T]) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			switch user.IsFavorite(string(obj.GetID())) {
+			switch isFavorite {
 			case true:
 				templ_7745c5c3_Err = tabler.HeartFilled(i.Props{Class: "size-4"}).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
@@ -86,7 +84,7 @@ func ToggleFavorite[T ~string](obj object[T]) templ.Component {
 		})
 		templ_7745c5c3_Err = NewLink(
 			WithHXMethod(http.MethodPost, favoriteURL),
-			WithHXTarget("#favorite_"+string(obj.GetID())),
+			WithHXTarget("#favorite_"+id),
 			WithHXInclude("[name='csrf_token']"),
 			WithClasses("context-menu-item-base"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
@@ -167,7 +165,7 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(obj.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 72, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 70, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -180,7 +178,7 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs("/remove/" + string(obj.GetObjectType()) + "/" + string(obj.GetID()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 79, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 77, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -193,7 +191,7 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs("#" + obj.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 80, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 78, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -206,7 +204,7 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 89, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 87, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -219,7 +217,7 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs("on click remove #" + id + "-modal")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 90, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 88, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -289,7 +287,7 @@ func ShareObjectModal[T ~string](obj object[T]) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(obj.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 108, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 106, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -335,7 +333,7 @@ func ShareObjectModal[T ~string](obj object[T]) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(obj.GetLink())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 130, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 128, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {

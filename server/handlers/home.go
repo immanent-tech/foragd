@@ -77,7 +77,6 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 		return data, fmt.Errorf("unable to retrieve user: %w", err)
 	}
 	data.User = user
-	data.Favorites = user.GetAllFavorites()
 	// User has no subscriptions, show empty page
 	if len(user.GetSubscriptions()) == 0 {
 		return data, nil
@@ -98,7 +97,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()...),
 			query.Bool(
-				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, data.Subscriptions...)...),
+				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, data.Subscriptions)...),
 			),
 		),
 	)

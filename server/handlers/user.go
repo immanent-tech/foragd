@@ -222,28 +222,15 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
 		// Get the subscription state.
-		subscription := user.GetSubscriptions().GetFeedSubscriptions().GetByID(id)
-		// Create a new favorite subscription.
-		err = user.AddFavoriteSubscription(id, subscription.Metadata.Customisation.Nickname)
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite subscription", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to add favorite subscription to user: %w", err), http.StatusInternalServerError)
-		}
-		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-			"favorites": user.Favorites,
-		})
+		err = models.UpdateFavoriteSubscription(req.Context(), a.Elastic, user, id, true)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite subscription", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to update user object: %w", err), http.StatusInternalServerError)
 		}
-		// Update the favorite flag on the subscription.
-		subscription.Metadata.Favorite = true
 		// Update the display.
-		renderPartial(templates.ToggleFavorite(subscription)).ServeHTTP(res, req)
+		renderPartial(templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), true)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -266,10 +253,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
-		user.RemoveFavorite(id)
-		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-			"favorites": user.Favorites,
-		})
+		err = models.UpdateFavoriteSubscription(req.Context(), a.Elastic, user, id, false)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite subscription", "This might be a temporary error, please try again.")),
@@ -277,7 +261,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
 		}
 		// Update the favorite button.
-		renderPartial(templates.ToggleFavorite(user.GetSubscriptions().GetFeedSubscriptions().GetByID(id))).ServeHTTP(res, req)
+		renderPartial(templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), false)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -300,56 +284,22 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
-		// Get the article details.
-		articles, err := models.GetArticles(req.Context(), a.Elastic, id)
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite article", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to get articles: %w", err), http.StatusInternalServerError)
-		}
-		if len(articles) != 1 {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite article", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: expected single result, got %d", ErrInvalidAPIResponse, len(articles)), http.StatusInternalServerError)
-		}
-		article := articles[0]
-		// Create a new favorite article.
-		err = user.AddFavoriteArticle(article.GetTitle(), article)
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite article", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to add favorite article to user: %w", err), http.StatusInternalServerError)
-		}
-		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-			"favorites": user.Favorites,
-		})
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite article", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
-		}
-		// Archive the article.
-		err = a.archiveArticle(req.Context(), article)
+		err = models.UpdateFavoriteArticle(req.Context(), a.Elastic, user, id, true)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite article", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to archive article: %w", err), http.StatusInternalServerError)
 		}
-		article.Favorite = true
 		// Get the display type.
 		display := req.FormValue("display")
 		// Update the content as appropriate.
 		var template templ.Component
 		switch display {
 		case "card":
-			template = templates.ToggleFavorite(article)
+			template = templates.ToggleFavorite(id, string(models.ObjectTypeArticle), true)
 		case "content":
-			template = templates.UpdateViewArticleFavorite(article)
+			template = templates.UpdateViewArticleFavorite(id, true)
 		}
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
@@ -374,145 +324,122 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
-		user.RemoveFavorite(id)
-		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-			"favorites": user.Favorites,
-		})
+		err = models.UpdateFavoriteArticle(req.Context(), a.Elastic, user, id, false)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite article", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("unable to archive article: %w", err), http.StatusInternalServerError)
 		}
-		err = a.unarchiveArticle(req.Context(), id)
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite article", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to remove article archive: %w", err), http.StatusInternalServerError)
-		}
-		articles, err := models.GetArticles(req.Context(), a.Elastic, id)
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite article", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to get updated articles: %w", err), http.StatusInternalServerError)
-		}
-		if len(articles) != 1 {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite article", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: expected single result, got %d", ErrInvalidAPIResponse, len(articles)), http.StatusInternalServerError)
-		}
-		article := articles[0]
+
 		// Get the display type.
 		display := req.FormValue("display")
 		// Update the content as appropriate.
 		var template templ.Component
 		switch display {
 		case "card":
-			template = templates.ToggleFavorite(article)
+			template = templates.ToggleFavorite(id, string(models.ObjectTypeArticle), false)
 		case "content":
-			template = templates.UpdateViewArticleFavorite(article)
+			template = templates.UpdateViewArticleFavorite(id, false)
 		}
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
 
-// AddFavoriteSearch handles adding a new favorite search for a user.
-func (a *API) AddFavoriteSearch() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Retrieve the search details.
-		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
-		if err != nil || !valid {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite search", "Data is invalid."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
-		}
-		name := req.FormValue("search_name")
-		// Add the favorite.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
-		}
-		err = user.AddFavoriteSearch(name, request)
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to add favorite search to user: %w", err), http.StatusInternalServerError)
-		}
-		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-			"favorites": user.Favorites,
-		})
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
-		}
-		// Update the favorite button.
-		id, err := request.ID()
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusInternalServerError)
-		}
-		fav := user.GetAllFavorites().Get(id)
-		// Update the favorite button and list of favorites.
-		renderPartial(templates.RemoveFavoriteSearchButton(fav.GetID())).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
+// // AddFavoriteSearch handles adding a new favorite search for a user.
+// func (a *API) AddFavoriteSearch() http.HandlerFunc {
+// 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+// 		// Retrieve the search details.
+// 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
+// 		if err != nil || !valid {
+// 			renderPartial(templates.ServerErrorNotification(
+// 				models.NewErrorMessage("Unable to add favorite search", "Data is invalid."),
+// 			)).ServeHTTP(res, req)
+// 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+// 		}
+// 		name := req.FormValue("search_name")
+// 		// Add the favorite.
+// 		user, err := models.UserFromCtx(req.Context())
+// 		if err != nil {
+// 			renderPartial(templates.ServerErrorNotification(
+// 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
+// 			).ServeHTTP(res, req)
+// 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+// 		}
+// 		err = user.AddFavoriteSearch(name, request)
+// 		if err != nil {
+// 			renderPartial(templates.ServerErrorNotification(
+// 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
+// 			).ServeHTTP(res, req)
+// 			return models.NewAPIError(fmt.Errorf("unable to add favorite search to user: %w", err), http.StatusInternalServerError)
+// 		}
+// 		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
+// 			"favorites": user.Favorites,
+// 		})
+// 		if err != nil {
+// 			renderPartial(templates.ServerErrorNotification(
+// 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
+// 			).ServeHTTP(res, req)
+// 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
+// 		}
+// 		// Update the favorite button.
+// 		id, err := request.ID()
+// 		if err != nil {
+// 			renderPartial(templates.ServerErrorNotification(
+// 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
+// 			).ServeHTTP(res, req)
+// 			return models.NewAPIError(err, http.StatusInternalServerError)
+// 		}
+// 		fav := user.GetAllFavorites().Get(id)
+// 		// Update the favorite button and list of favorites.
+// 		renderPartial(templates.RemoveFavoriteSearchButton(fav.GetID())).ServeHTTP(res, req)
+// 		return nil
+// 	})).ServeHTTP
+// }
 
-// RemoveFavoriteSearch handles removing a favorite article for a user.
-func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Retrieve the search details.
-		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
-		if err != nil || !valid {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite search", "Data is invalid."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
-		}
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite search", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
-		}
-		// Derive the favorite id.
-		id, err := request.ID()
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(err, http.StatusInternalServerError)
-		}
-		// Remove the favorite.
-		user.RemoveFavorite(id)
-		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-			"favorites": user.Favorites,
-		})
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite search", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
-		}
-		// Update the favorite button and list of favorites.
-		renderPartial(templates.AddFavoriteSearchButton()).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
+// // RemoveFavoriteSearch handles removing a favorite article for a user.
+// func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
+// 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+// 		// Retrieve the search details.
+// 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
+// 		if err != nil || !valid {
+// 			renderPartial(templates.ServerErrorNotification(
+// 				models.NewErrorMessage("Unable to remove favorite search", "Data is invalid."),
+// 			)).ServeHTTP(res, req)
+// 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+// 		}
+// 		user, err := models.UserFromCtx(req.Context())
+// 		if err != nil {
+// 			renderPartial(templates.ServerErrorNotification(
+// 				models.NewErrorMessage("Unable to remove favorite search", "This might be a temporary error, please try again.")),
+// 			).ServeHTTP(res, req)
+// 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+// 		}
+// 		// Derive the favorite id.
+// 		id, err := request.ID()
+// 		if err != nil {
+// 			renderPartial(templates.ServerErrorNotification(
+// 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
+// 			).ServeHTTP(res, req)
+// 			return models.NewAPIError(err, http.StatusInternalServerError)
+// 		}
+// 		// Remove the favorite.
+// 		user.RemoveFavorite(id)
+// 		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
+// 			"favorites": user.Favorites,
+// 		})
+// 		if err != nil {
+// 			renderPartial(templates.ServerErrorNotification(
+// 				models.NewErrorMessage("Unable to remove favorite search", "This might be a temporary error, please try again.")),
+// 			).ServeHTTP(res, req)
+// 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
+// 		}
+// 		// Update the favorite button and list of favorites.
+// 		renderPartial(templates.AddFavoriteSearchButton()).ServeHTTP(res, req)
+// 		return nil
+// 	})).ServeHTTP
+// }
 
 // DeleteUser handles removing a user account from the local and backend databases. Once the account is removed, any
 // active session is destroyed and the browser is redirected back to the landing page.

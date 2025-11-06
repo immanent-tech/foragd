@@ -270,8 +270,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 				r.Post("/remove/subscription/{subscription_id}", handler.RemoveFavoriteSubscription())
 				r.Post("/add/article/{item_id}", handler.AddFavoriteArticle())
 				r.Post("/remove/article/{item_id}", handler.RemoveFavoriteArticle())
-				r.Post("/add/search", handler.AddFavoriteSearch())
-				r.Post("/remove/search", handler.RemoveFavoriteSearch())
+				// r.Post("/add/search", handler.AddFavoriteSearch())
+				// r.Post("/remove/search", handler.RemoveFavoriteSearch())
 			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {

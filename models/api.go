@@ -16,6 +16,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -23,7 +24,10 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-var ErrNotFound = errors.New("not found")
+var (
+	ErrNotFound         = errors.New("not found")
+	ErrInvalidAPIResult = errors.New("invalid backend API result")
+)
 
 // FeedsAPI contains API methods for Feeds.
 type FeedsAPI interface {
@@ -36,6 +40,8 @@ type FeedsAPI interface {
 type ItemsAPI interface {
 	SearchItems(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Items, Pagination, error)
 	ItemsAggregation(ctx context.Context, query query.Option, count int, agg aggregations.Aggs) (*search.Response, error)
+	ArchiveArticle(ctx context.Context, article *ArticleArchive) error
+	UnarchiveArticle(ctx context.Context, userID UserID, itemID ItemID) error
 }
 
 // UserAPI contains API methods for Users.
@@ -147,6 +153,80 @@ func AddSubscriptions(ctx context.Context, dataAPI DataAPI, user *User, subscrip
 	})
 	if err != nil {
 		return fmt.Errorf("unable to add subscriptions: %w", err)
+	}
+	return nil
+}
+
+// UpdateFavoriteSubscription changes the favorite status of a subscription.
+func UpdateFavoriteSubscription(ctx context.Context, dataAPI DataAPI, user *User, id SubscriptionID, favorite bool) error {
+	idx := slices.IndexFunc(user.Subscriptions, func(e *Subscription) bool {
+		return e.GetID() == id
+	})
+	if idx != -1 {
+		if user.Subscriptions[idx].Metadata.Favorite != favorite {
+			user.Subscriptions[idx].Metadata.Favorite = favorite
+			godump.Dump(user.Subscriptions[idx])
+			err := dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
+				"subscriptions": user.Subscriptions,
+			})
+			if err != nil {
+				return fmt.Errorf("unable to add favorite: %w", err)
+			}
+			godump.Dump(user.Subscriptions[idx])
+		}
+	} else {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func UpdateFavoriteArticle(ctx context.Context, dataAPI DataAPI, user *User, id ItemID, favorite bool) error {
+	switch favorite {
+	case true:
+		// Don't do anything if article is already a favorite.
+		if slices.Contains(user.ItemFavorites, id) {
+			return ErrUserAlreadyFavorited
+		}
+		// Get the article details.
+		articles, err := GetArticles(ctx, dataAPI, id)
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+		if len(articles) != 1 {
+			return ErrInvalidAPIResult
+		}
+		article := articles[0]
+		// Archive the article.
+		archive, err := NewArchivedArticle(user.GetID(), article.GetSubscriptionID(), &article.Item)
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+		err = dataAPI.ArchiveArticle(ctx, archive)
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+		// Update the list of favorites items in the user object
+		user.ItemFavorites = append(user.ItemFavorites, id)
+		err = dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
+			"item_favorites": user.ItemFavorites,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+	case false:
+		err := dataAPI.UnarchiveArticle(ctx, user.GetID(), id)
+		if err != nil {
+			return fmt.Errorf("unable to remove favorite article: %w", err)
+		}
+		newFavorites := slices.DeleteFunc(user.ItemFavorites, func(e ItemID) bool {
+			return e == id
+		})
+		err = dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
+			"item_favorites": newFavorites,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to remove favorite article: %w", err)
+		}
 	}
 	return nil
 }
@@ -471,7 +551,7 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 			// Must match any of the given categories.
 			query.Terms("categories.raw", filters.GetCategories()...),
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, filters.GetView(), subscriptions...)...),
+				query.Should(BuildSubscriptionQueries(user, filters.GetView(), subscriptions)...),
 			),
 		),
 	)
@@ -581,7 +661,7 @@ func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID
 	similarQuery := query.Bool(
 		query.Filter(
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, ViewUnread, subscriptions...)...),
+				query.Should(BuildSubscriptionQueries(user, ViewUnread, subscriptions)...),
 			),
 		),
 		query.Must(
@@ -702,14 +782,14 @@ func BuildItemsQuery(ctx context.Context, filters Filters, subscriptionIDs ...Su
 			query.Terms("categories.raw", filters.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, filters.GetView(), subscriptions.GetFeedSubscriptions()...)...),
+				query.Should(BuildSubscriptionQueries(user, filters.GetView(), subscriptions.GetFeedSubscriptions())...),
 			),
 		),
 	), nil
 }
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
-func BuildSubscriptionQueries(user *User, view View, subscriptions ...*FeedSubscription) []query.Option {
+func BuildSubscriptionQueries(user *User, view View, subscriptions FeedSubscriptions) []query.Option {
 	queries := make([]query.Option, 0, len(user.Subscriptions))
 	// Work out what query to use based on the state filter.
 	if len(subscriptions) == 0 {
@@ -765,7 +845,7 @@ func BuildSearchResultsQuery(user *User, request *SearchRequest) query.Option {
 	return query.Bool(
 		query.Filter(
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, request.View, subscriptions.GetFeedSubscriptions()...)...),
+				query.Should(BuildSubscriptionQueries(user, request.View, subscriptions.GetFeedSubscriptions())...),
 			),
 			query.Bool(
 				query.Should(

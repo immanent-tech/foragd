@@ -210,7 +210,7 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 			if len(articles) > 0 {
 				template = templates.SimilarArticles(articles)
 			} else {
-				template = templates.NoSearchResults(nil)
+				template = templates.NoSearchResults()
 			}
 			renderPage(template, templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
 		default:
@@ -245,7 +245,7 @@ func ConfirmRemoveObject(api *elastic.API) http.HandlerFunc {
 				)).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("could not retrieve subscriptions: %w", err), http.StatusInternalServerError)
 			}
-			renderPartial(templates.RemoveObjectModal(subscriptions.FeedSubscriptions[0])).ServeHTTP(res, req)
+			renderPartial(templates.RemoveObjectModal[models.SubscriptionID](subscriptions.FeedSubscriptions[0])).ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}
@@ -360,7 +360,7 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 				).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable to retrieve subscription details: %w", err), http.StatusInternalServerError)
 			}
-			template = templates.ReportObjectIssues(subscriptions.FeedSubscriptions[0], models.NewObjectIssue(params, currentURL))
+			template = templates.ReportObjectIssues[models.SubscriptionID](subscriptions.FeedSubscriptions[0], models.NewObjectIssue(params, currentURL))
 		case models.ObjectTypeArticle:
 			// Get the current URL on which the issue is being reported.
 			if !found {
@@ -374,7 +374,7 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 				).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable to retrieve article details: %w", err), http.StatusInternalServerError)
 			}
-			template = templates.ReportObjectIssues(articles[0], models.NewObjectIssue(params, currentURL))
+			template = templates.ReportObjectIssues[models.ItemID](articles[0], models.NewObjectIssue(params, currentURL))
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}

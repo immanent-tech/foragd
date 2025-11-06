@@ -103,10 +103,6 @@ func (u *User) GetSettings() *UserSettings {
 
 // GetSubscriptions retrieves a slice of the user subscriptions.
 func (u *User) GetSubscriptions(options ...subscriptionFilterOption) Subscriptions {
-	// Add favorite status.
-	for subscription := range slices.Values(u.Subscriptions) {
-		subscription.Metadata.Favorite = u.IsFavorite(subscription.GetID())
-	}
 	subscriptions := u.Subscriptions
 	// Apply filtering options.
 	for option := range slices.Values(options) {
@@ -278,107 +274,6 @@ func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...It
 	// u.Subscriptions[idx].UpdatedAt = time.Now().UTC()
 }
 
-// GetAllFavorites returns the slice of user favorites.
-func (u *User) GetAllFavorites() Favorites {
-	return u.Favorites
-}
-
-// GetFavorite returns the user favorite with the given ID or nil if there is no favorite.
-func (u *User) GetFavorite(id string) *Favorite {
-	idx := slices.IndexFunc(u.Favorites, func(f *Favorite) bool {
-		return f.GetID() == id
-	})
-	if idx != -1 {
-		return u.Favorites[idx]
-	}
-	return nil
-}
-
-// IsFavorite returns a boolean indicating whether the user marked an object with the given ID as a favorite.
-func (u *User) IsFavorite(id string) bool {
-	return slices.ContainsFunc(u.Favorites, func(f *Favorite) bool {
-		return f.GetID() == id
-	})
-}
-
-// AddFavoriteSubscription creates a new favorite subscription for the user.
-func (u *User) AddFavoriteSubscription(id SubscriptionID, nickname string) error {
-	if u.GetAllFavorites().FilterByType(FavoriteTypeSubscription).HasFavorite(id) {
-		return ErrUserAlreadyFavorited
-	}
-	fav := newFavorite(FavoriteTypeSubscription, nickname)
-	fav.SetID(id)
-	u.Favorites = append(u.Favorites, fav)
-	return nil
-}
-
-// AddFavoriteArticle creates a new favorite article for the user.
-func (u *User) AddFavoriteArticle(nickname string, article *Article) error {
-	if u.GetAllFavorites().FilterByType(FavoriteTypeArticle).HasFavorite(article.GetID()) {
-		return ErrUserAlreadyFavorited
-	}
-	fav := newFavorite(FavoriteTypeArticle, nickname)
-	fav.SetID(article.GetID())
-	err := fav.ObjectData.FromFavoriteArticle(FavoriteArticle{
-		SubscriptionID: article.GetSubscriptionID(),
-	})
-	if err != nil {
-		return fmt.Errorf("could not create favorite article: %w", err)
-	}
-	u.Favorites = append(u.Favorites, fav)
-	return nil
-}
-
-// AddFavoriteSearch creates a new favorite search for the user.
-func (u *User) AddFavoriteSearch(nickname string, search *SearchRequest) error {
-	id, err := search.ID()
-	if id == "" {
-		return fmt.Errorf("could not favorite search: %w", err)
-	}
-	if u.GetAllFavorites().FilterByType(FavoriteTypeSearch).HasFavorite(id) {
-		return ErrUserAlreadyFavorited
-	}
-	fav := newFavorite(FavoriteTypeSearch, nickname)
-	fav.SetID(id)
-	err = fav.ObjectData.FromFavoriteSearch(*search)
-	if err != nil {
-		return fmt.Errorf("could not create favorite search: %w", err)
-	}
-	u.Favorites = append(u.Favorites, fav)
-	return nil
-}
-
-// UpdateFavoriteSearch updates the details of a favorite search.
-func (u *User) UpdateFavoriteSearch(nickname string, search *SearchRequest) error {
-	// Find the index of the existing favorite search entry in the user favorites.
-	idx := slices.IndexFunc(u.GetAllFavorites(), func(f *Favorite) bool {
-		return f.Nickname == nickname
-	})
-	// Replace the existing favorite entry.
-	if idx != -1 {
-		fav := newFavorite(FavoriteTypeSearch, nickname)
-		id, err := search.ID()
-		if err != nil {
-			return fmt.Errorf("could not update favorite search: %w", err)
-		}
-		fav.SetID(id)
-		err = fav.ObjectData.FromFavoriteSearch(*search)
-		if err != nil {
-			return fmt.Errorf("could not update favorite search: %w", err)
-		}
-		u.Favorites[idx] = fav
-	}
-	return nil
-}
-
-// RemoveFavorite removes the favorite with the given id from the user.
-func (u *User) RemoveFavorite(id string) {
-	favorites := slices.DeleteFunc(u.Favorites, func(f *Favorite) bool {
-		return f.GetID() == id
-	})
-	u.Favorites = favorites
-}
-
 // NewUserSettings returns a new instance of the default user settings.
 func NewUserSettings() *UserSettings {
 	return &UserSettings{
@@ -444,55 +339,5 @@ func (r *ChangePasswordRequest) Valid() (bool, error) {
 
 // Sanitise will sanitise the user input for a ChangePasswordRequest.
 func (r *ChangePasswordRequest) Sanitise() error {
-	return nil
-}
-
-//
-// Favorites.
-//
-
-func newFavorite(favType FavoriteType, nickname string) *Favorite {
-	return &Favorite{
-		CreatedAt: time.Now().UTC(),
-		Type:      favType,
-		Nickname:  nickname,
-	}
-}
-
-// GetID returns the ID of the favorite.
-func (f *Favorite) GetID() string {
-	return f.ObjectID
-}
-
-// SetID sets the ID of a favorite.
-func (f *Favorite) SetID(id string) {
-	f.ObjectID = id
-}
-
-// Favorites is a slice of favorites.
-type Favorites []*Favorite
-
-// FilterByType will return a new slice filtered to the given favorite type.
-func (f Favorites) FilterByType(favoriteType FavoriteType) Favorites {
-	return slices.Collect(FilterSlice(f, func(f *Favorite) bool {
-		return f.Type == favoriteType
-	}))
-}
-
-// HasFavorite returns a boolean indicating whether the user has a favorite with the given object id.
-func (f Favorites) HasFavorite(id string) bool {
-	return slices.ContainsFunc(f, func(f *Favorite) bool {
-		return f.GetID() == id
-	})
-}
-
-// Get retrieves the favorite with the given id.
-func (f Favorites) Get(id string) *Favorite {
-	idx := slices.IndexFunc(f, func(f *Favorite) bool {
-		return f.GetID() == id
-	})
-	if idx != -1 {
-		return f[idx]
-	}
 	return nil
 }

@@ -19,13 +19,6 @@ const (
 	ArticleArchiveSourceTypeRSS      ArticleArchiveSourceType = "RSS"
 )
 
-// Defines values for FavoriteType.
-const (
-	FavoriteTypeArticle      FavoriteType = "article"
-	FavoriteTypeSearch       FavoriteType = "search"
-	FavoriteTypeSubscription FavoriteType = "subscription"
-)
-
 // Defines values for FeedSourceType.
 const (
 	FeedSourceTypeAtom     FeedSourceType = "Atom"
@@ -359,44 +352,6 @@ type EditSubscriptionRequest_Image struct {
 
 // EditUserRequest contains account fields that a user can customize.
 type EditUserRequest = UserCustomisation
-
-// Favorite is an object that the user has marked as a Favorite. Favorites  have higher visibility in the display and score higher in search results.
-type Favorite struct {
-	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at" validate:"required"`
-
-	// Nickname is an optional friendly name.
-	Nickname Nickname `form:"nickname" json:"nickname,omitempty,omitzero"`
-
-	// ObjectData contains the (optional) data pertaining to the favorite object.
-	ObjectData Favorite_ObjectData `json:"object_data,omitempty,omitzero"`
-
-	// ObjectID an ID of the object that has been favorited.
-	ObjectID string `json:"object_id"`
-
-	// Type is the type of Favorite.
-	Type FavoriteType `json:"type"`
-}
-
-// Favorite_ObjectData contains the (optional) data pertaining to the favorite object.
-type Favorite_ObjectData struct {
-	union json.RawMessage
-}
-
-// FavoriteType is the type of Favorite.
-type FavoriteType string
-
-// FavoriteArticle is an article that the user has marked as a Favorite.
-type FavoriteArticle struct {
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-}
-
-// FavoriteID is the unique ID of a Favorite.
-type FavoriteID = string
-
-// FavoriteSearch represents a search request by the user.
-type FavoriteSearch = SearchRequest
 
 // Feed defines model for Feed.
 type Feed struct {
@@ -849,8 +804,8 @@ type User struct {
 	// ExternalUserId is the ID of the user on the external backend that was used to create the account.
 	ExternalUserId string `json:"external_user_id" validate:"required"`
 
-	// Favorites contains the user favorites.
-	Favorites []*Favorite `json:"favorites,omitempty,omitzero" validate:"omitempty,dive"`
+	// ItemFavorites is the IDs of items (articles) the user has favorited.
+	ItemFavorites []ItemID `json:"item_favorites,omitempty,omitzero" validate:"omitempty,dive,startswith=item_"`
 
 	// ItemStates contains the states of items marked explicitly as read/unread/saved by the user.
 	ItemStates map[SubscriptionID]map[ItemID]ArticleState `json:"item_states,omitempty,omitzero"`
@@ -1004,68 +959,6 @@ func (t EditSubscriptionRequest_Image) MarshalJSON() ([]byte, error) {
 }
 
 func (t *EditSubscriptionRequest_Image) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsFavoriteSearch returns the union data inside the Favorite_ObjectData as a FavoriteSearch
-func (t Favorite_ObjectData) AsFavoriteSearch() (FavoriteSearch, error) {
-	var body FavoriteSearch
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFavoriteSearch overwrites any union data inside the Favorite_ObjectData as the provided FavoriteSearch
-func (t *Favorite_ObjectData) FromFavoriteSearch(v FavoriteSearch) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeFavoriteSearch performs a merge with any union data inside the Favorite_ObjectData, using the provided FavoriteSearch
-func (t *Favorite_ObjectData) MergeFavoriteSearch(v FavoriteSearch) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsFavoriteArticle returns the union data inside the Favorite_ObjectData as a FavoriteArticle
-func (t Favorite_ObjectData) AsFavoriteArticle() (FavoriteArticle, error) {
-	var body FavoriteArticle
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFavoriteArticle overwrites any union data inside the Favorite_ObjectData as the provided FavoriteArticle
-func (t *Favorite_ObjectData) FromFavoriteArticle(v FavoriteArticle) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeFavoriteArticle performs a merge with any union data inside the Favorite_ObjectData, using the provided FavoriteArticle
-func (t *Favorite_ObjectData) MergeFavoriteArticle(v FavoriteArticle) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t Favorite_ObjectData) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *Favorite_ObjectData) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

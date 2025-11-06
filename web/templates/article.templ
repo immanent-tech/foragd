@@ -166,7 +166,7 @@ templ ArticleCard(article article) {
 							<form>
 								<input type="hidden" name="display" value="card"/>
 								<div id={ "favorite_" + article.GetID() }>
-									@ToggleFavorite(article)
+									@ToggleFavorite(article.GetID(), string(article.GetObjectType()), article.IsFavorite())
 									// @FavoriteObjectLink(article, "context-menu-item-base")
 								</div>
 							</form>
@@ -254,7 +254,7 @@ templ ArticleContent(article article) {
 							<form>
 								<input type="hidden" name="display" value="content"/>
 								<div id={ "favorite_" + article.GetID() }>
-									@UpdateViewArticleFavorite(article)
+									@UpdateViewArticleFavorite(article.GetID(), article.IsFavorite())
 								</div>
 							</form>
 							@NewLink(
@@ -335,22 +335,21 @@ templ UpdateViewArticleMark(article article) {
 }
 
 // UpdateViewArticleFavorite updates the favorite action when viewing an article.
-templ UpdateViewArticleFavorite(article article) {
-	{{ user, _ := models.UserFromCtx(ctx) }}
+templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 	{{ var favoriteURL string }}
-	if user.IsFavorite(article.GetID()) {
-		{{ favoriteURL = "/user/favorite/remove/article/" + article.GetID() }}
+	if isFavorite {
+		{{ favoriteURL = "/user/favorite/remove/article/" + id }}
 	} else {
-		{{ favoriteURL = "/user/favorite/add/article/" + article.GetID() }}
+		{{ favoriteURL = "/user/favorite/add/article/" + id }}
 	}
 	@NewLink(
 		WithHXMethod(http.MethodPost, favoriteURL),
-		WithHXTarget("#favorite_"+article.GetID()),
+		WithHXTarget("#favorite_"+id),
 		WithHXInclude("[name='csrf_token']"),
 		WithHXVals(map[string]string{"display": "content"}),
 		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 	) {
-		switch user.IsFavorite(article.GetID()) {
+		switch isFavorite {
 			case true:
 				@tabler.HeartFilled(i.Props{Class: "size-4"})
 				Remove Favorite
