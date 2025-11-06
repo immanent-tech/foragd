@@ -682,17 +682,17 @@ func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID
 	return articles, nil
 }
 
-// GetSearchSuggestions will find suggestions for the global search from available subscriptions and articles.
-func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms string) (FeedSubscriptions, Articles, error) {
+// GetSearchSuggestions will perform a "search-as-you-type" query to present articles that match what the user is
+// typing.
+func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms string) (Articles, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not fetch user: %w", err)
+		return nil, fmt.Errorf("get search suggestions: get user failed: %w", err)
 	}
-	// Get article suggestions.
-	feedIDs := user.GetSubscriptions().GetFeedSubscriptions().GetFeedIDs()
+	// Suggestions query will match in title/description/categories across all feed subscriptions.
 	itemsQuery := query.Bool(
 		query.Filter(
-			query.Terms("feed_id", feedIDs...),
+			query.Terms("feed_id", user.GetSubscriptions().GetFeedSubscriptions().GetFeedIDs()...),
 		),
 		query.Must(
 			query.Bool(
@@ -704,66 +704,33 @@ func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms stri
 			),
 		),
 	)
-	itemResults, _, err := dataAPI.SearchItems(ctx, itemsQuery, 5, &SortLastUpdatedDesc, nil)
+	itemResults, _, err := dataAPI.SearchItems(ctx, itemsQuery, 10, &SortLastUpdatedDesc, nil)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not get item matches: %w", err)
+		return nil, fmt.Errorf("get search suggestions: search items failed: %w", err)
 	}
 	articles, err := GenerateArticles(ctx, itemResults)
 	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Error generating articles from items.", slog.Any("error", err))
+		return nil, fmt.Errorf("get search suggestion: generate articles failed: %w", err)
 	}
 
-	// Generate subscriptions from data sources.
-	metadataMatches := user.GetSubscriptions().GetFeedSubscriptions().Search(searchTerms)
-	subscriptions, err := GetSubscriptions(ctx, dataAPI, metadataMatches.GetIDs()...)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
-	}
-	// Truncate subscription matches to 3 results.
-	var feedSubscriptions FeedSubscriptions
-	if len(subscriptions.FeedSubscriptions) > 3 {
-		feedSubscriptions = subscriptions.FeedSubscriptions[:3]
-	}
-
-	return feedSubscriptions, articles, nil
+	return articles, nil
 }
 
-// GetSearchResults will find results for the global search from available subscriptions and articles.
-func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchRequest) (FeedSubscriptions, []*Article, error) {
+// GetSearchResults will return articles matching the search query.
+func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchRequest, pagination Pagination) (Articles, Pagination, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not fetch user: %w", err)
+		return nil, "", fmt.Errorf("get search results: get user failed: %w", err)
 	}
-	itemResults, _, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, request), 15, &SortLastUpdatedDesc, nil)
+	itemResults, pagination, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, request), 15, &SortLastUpdatedDesc, &pagination)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not get item matches: %w", err)
+		return nil, "", fmt.Errorf("get search resuls: search items failed: %w", err)
 	}
 	articles, err := GenerateArticles(ctx, itemResults)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not generate articles: %w", err)
+		return nil, "", fmt.Errorf("get search results: generate articles failed: %w", err)
 	}
-	// articles := make([]*partials.Article, 0, len(itemResults))
-	// for article := range slices.Values(details) {
-	// 	articles = append(articles, partials.NewArticleContent(article))
-	// }
-
-	// Generate subscriptions from data sources.
-	var feedSubscriptions FeedSubscriptions
-	metadataMatches := user.GetSubscriptions().GetFeedSubscriptions().Search(request.Text)
-	if len(metadataMatches) > 0 {
-		subscriptions, err := GetSubscriptions(ctx, dataAPI, metadataMatches.GetIDs()...)
-		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
-		}
-		// Truncate subscription matches to 3 results.
-		if len(subscriptions.FeedSubscriptions) > 3 {
-			feedSubscriptions = subscriptions.FeedSubscriptions[:3]
-		}
-		// for s := range slices.Values(subscriptionMatches) {
-		// 	subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
-		// }
-	}
-	return feedSubscriptions, articles, nil
+	return articles, pagination, nil
 }
 
 func BuildItemsQuery(ctx context.Context, filters Filters, subscriptionIDs ...SubscriptionID) (query.Option, error) {

@@ -114,6 +114,18 @@ func WithHXVals(vals map[string]string) Option[element] {
 	}
 }
 
+func WithHXValsJS(val string) Option[element] {
+	return func(e element) {
+		e.SetAttribute("hx-vals", val)
+	}
+}
+
+func WithHXTrigger(trigger string) Option[element] {
+	return func(e element) {
+		e.SetAttribute("hx-trigger", trigger)
+	}
+}
+
 func WithHXPushURL() Option[element] {
 	return func(e element) {
 		e.SetAttribute("hx-push-url", "true")
@@ -172,6 +184,25 @@ templ NewButton(options ...Option[element]) {
 	>
 		{ children... }
 	</button>
+}
+
+type Div struct {
+	HTMLElement
+}
+
+templ NewDiv(options ...Option[element]) {
+	{{ div := &Div{HTMLElement: NewHTMLElement()} }}
+	for option := range slices.Values(options) {
+		{{ option(div) }}
+	}
+	<div
+		if div.GetID() != "" {
+			id={ div.GetID() }
+		}
+		{ div.attributes... }
+	>
+		{ children... }
+	</div>
 }
 
 func generateHXVals(values map[string]string) string {

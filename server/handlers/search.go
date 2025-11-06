@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -24,7 +26,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			slogctx.FromCtx(req.Context()).Debug("Invalid search suggestion input.",
+			slogctx.FromCtx(req.Context()).Debug("Get search suggestions failed.",
 				slog.Any("error", err))
 			res.WriteHeader(http.StatusUnprocessableEntity)
 			return
@@ -34,16 +36,16 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 			return
 		}
 		// Get results.
-		subscriptions, articles, err := models.GetSearchSuggestions(req.Context(), a.Elastic, request.Text)
+		articles, err := models.GetSearchSuggestions(req.Context(), a.Elastic, request.Text)
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Debug("Unable to retrieve suggestion data.",
+			slogctx.FromCtx(req.Context()).Debug("Get search suggestions failed.",
 				slog.Any("error", err))
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if len(subscriptions) > 0 || len(articles) > 0 {
+		if len(articles) > 0 {
 			// Render suggestions.
-			renderPartial(templates.SearchSuggestions(request, subscriptions, articles)).ServeHTTP(res, req)
+			renderPartial(templates.SearchSuggestions(request, articles)).ServeHTTP(res, req)
 		} else {
 			// No suggestions, indicate no change.
 			res.WriteHeader(http.StatusNoContent)
@@ -55,12 +57,6 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 func (a *API) GetSearchResults() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		pageTitle := templates.GeneratePageTitle("Search Results")
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
-			renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
-		}
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -70,60 +66,44 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
-		var favoriteID string
-		favoriteID = req.FormValue("search_id")
-		if favoriteID == "" {
-			favoriteID, err = request.ID()
-			if err != nil {
-				msg := models.NewErrorMessage("Unable to parse search request", "This might be a temporary issue, please try again.")
-				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-				return models.NewAPIError(err, http.StatusUnprocessableEntity)
-			}
-		}
-		// // Retrieve favorite data for this search
-		// fav := user.GetFavorite(favoriteID)
-		// if fav != nil {
-		// 	// Update favorite in user.
-		// 	err := user.UpdateFavoriteSearch(fav.Nickname, request)
-		// 	if err != nil {
-		// 		msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
-		// 		renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-		// 		return models.NewAPIError(
-		// 			fmt.Errorf("unable to update search favorite: %w", err),
-		// 			http.StatusInternalServerError,
-		// 		)
-		// 	}
-		// 	// Update user.
-		// 	err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-		// 		"favorites": user.Favorites,
-		// 	})
-		// 	if err != nil {
-		// 		msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
-		// 		renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-		// 		return models.NewAPIError(
-		// 			fmt.Errorf("unable to update user data: %w", err),
-		// 			http.StatusInternalServerError,
-		// 		)
-		// 	}
-		// }
+		pagination := req.FormValue(models.ParamPagination)
+
+		ctx := models.SearchRequestToCtx(req.Context(), *request)
+
+		var articles models.Articles
+		var template templ.Component
 		// Find subscriptions and articles that match search request.
-		subscriptions, articles, err := models.GetSearchResults(req.Context(), a.Elastic, request)
-		switch {
-		case err != nil:
+		articles, pagination, err = models.GetSearchResults(ctx, a.Elastic, request, pagination)
+		if err != nil {
 			msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
 			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve subscriptions: %w", err),
 				http.StatusInternalServerError,
 			)
-		case len(subscriptions) > 0 || len(articles) > 0:
-			template := templates.NewSearchResultsPage(user, request, subscriptions, articles).Content()
+		}
+		if strings.HasSuffix(chi.RouteContext(ctx).RoutePattern(), "/paginate") {
+			// Pagination request, just display next set of results.
+			switch {
+			case len(articles) > 0:
+				renderPartial(templates.ResultsList(articles, pagination)).ServeHTTP(res, req.WithContext(ctx))
+			default:
+				res.WriteHeader(http.StatusNoContent)
+				return nil
+			}
+		} else {
+			// Generate appropriate template.
+			switch {
+			case len(articles) > 0:
+				template = templates.SearchResults(request, articles, pagination)
+			default:
+				template = templates.NoSearchResults()
+			}
+			if IsHTMX(req) {
+				template = templ.Join(template, templates.SearchFilters(templ.Attributes{"hx-swap-oob": "true"}))
+			}
 			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
-			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req)
-		default:
-			template := templates.NoSearchResults()
-			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
-			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req)
+			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		}
 		return nil
 	})).ServeHTTP

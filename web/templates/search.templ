@@ -3,14 +3,16 @@
 package templates
 
 import (
+	"fmt"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"net/http"
 	"slices"
 )
 
 // SearchSuggestions will render suggestions for a given search.
-templ SearchSuggestions(request *models.SearchRequest, subscriptions models.FeedSubscriptions, articles models.Articles) {
+templ SearchSuggestions(request *models.SearchRequest, articles models.Articles) {
 	// Always generate a suggestion to execute a full search.
 	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="search-group-label">
 		<form
@@ -68,6 +70,16 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Feed
 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 		</a>
 		<a
+			href="/favorites"
+			hidden
+			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
+		>
+			@tabler.Heart(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+			<span class="ml-3 flex-auto truncate">Favorites</span>
+			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+		</a>
+		<a
 			href="/user/settings"
 			hidden
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
@@ -91,28 +103,28 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Feed
 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 		</a>
 	</el-command-group>
-	// Subscription suggestions.
-	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="subscriptions-group-label">
-		<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
-		for subscription := range slices.Values(subscriptions) {
-			{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
-			{{ filters[models.ParamSubscriptions] = subscription.GetID() }}
-			<a
-				href="#"
-				hx-get="/list/articles"
-				hx-vals={ models.GenerateHXVals(filters) }
-				hx-target={ ContentID.Target() }
-				hx-push-url="true"
-				hidden
-				_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
-				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-			>
-				@tabler.Rss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-				<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
-				<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-			</a>
-		}
-	</el-command-group>
+	// // Subscription suggestions.
+	// <el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="subscriptions-group-label">
+	// 	<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
+	// 	for subscription := range slices.Values(subscriptions) {
+	// 		{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
+	// 		{{ filters[models.ParamSubscriptions] = subscription.GetID() }}
+	// 		<a
+	// 			href="#"
+	// 			hx-get="/list/articles"
+	// 			hx-vals={ models.GenerateHXVals(filters) }
+	// 			hx-target={ ContentID.Target() }
+	// 			hx-push-url="true"
+	// 			hidden
+	// 			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
+	// 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 		>
+	// 			@tabler.Rss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 			<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
+	// 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 		</a>
+	// 	}
+	// </el-command-group>
 	// Article suggestions.
 	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="articles-group-label">
 		<div id="articles-group-label" class="text-base-content/80 px-3 py-2">Articles</div>
@@ -134,16 +146,131 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Feed
 	</el-command-group>
 }
 
-templ SearchFilters(request *models.SearchRequest) {
+templ SearchResults(request *models.SearchRequest, articles models.Articles, pagination models.Pagination) {
+	@Main() {
+		// Dynamic title with view and sort state.
+		<div class="flex items-center justify-between mt-4">
+			<div class="min-w-0 flex-1">
+				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">
+					Search Results
+				</h2>
+			</div>
+			// Actions menu.
+			<el-dropdown class="inline-block flex-none">
+				<button class="inline-flex flex-col items-center">
+					<span class="sr-only">Articles Actions</span>
+					@tabler.DotsVertical(i.Props{Class: "size-6"})
+				</button>
+				<el-menu anchor="bottom end" popover class="context-menu-base">
+					<div class="py-1">
+						// Mark all subscriptions action.
+						@NewLink(
+							WithHXMethod(http.MethodPost, "/list/articles/mark"),
+							WithHXTarget(ContentID.Target()),
+							WithHXInclude("#content-filters,[name='csrf_token']"),
+							WithClasses("context-menu-item-base"),
+						) {
+							if models.PageFiltersFromCtx(ctx,"/list/articles").GetView() == models.ViewUnread {
+								@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+								<span class="sr-only">Mark All Read</span>
+								Mark all Read
+							} else {
+								@tabler.MailFilled(i.Props{Class: "size-4"})
+								<span class="sr-only">Mark All Unread</span>
+								Mark all Unread
+							}
+						}
+						if len(articles.GetSubscriptionIDs()) == 1 {
+							@NewLink(
+								WithHXMethod(http.MethodGet, "/edit/subscription/"+articles.GetSubscriptionIDs()[0]),
+								WithHXTarget(ContentID.Target()),
+								WithHXPushURL(),
+								WithClasses("context-menu-item-base"),
+							) {
+								@tabler.Edit(i.Props{Class: "size-4"})
+								Edit Subscription
+							}
+						}
+					</div>
+				</el-menu>
+			</el-dropdown>
+		</div>
+		// <div class="py-6 mt-4">
+		// 	<dt>
+		// 		<button type="button" command="--toggle" commandfor="faq-0" class="flex w-full items-start justify-between text-left text-base-content">
+		// 			<span class="text-base/7 font-semibold">Filters</span>
+		// 			<span class="ml-6 flex h-7 items-center">
+		// 				@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
+		// 				@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
+		// 			</span>
+		// 		</button>
+		// 	</dt>
+		// 	<el-disclosure id="faq-0" hidden class="contents">
+		// 		<dd id="current-search-filters" class="mt-2 pr-12">
+		// 			@SearchFilters(request) {
+		// 				<button type="submit" class="btn btn-sm btn-primary">Update</button>
+		// 			}
+		// 		</dd>
+		// 	</el-disclosure>
+		// </div>
+		// Show results.
+		<div id="update-notifications" sse-connect={ "/search/updates?" + request.Query() } sse-swap="message" class="toast toast-center z-50"></div>
+		<section class="mt-4">
+			@Grid() {
+				@ResultsList(articles, pagination)
+				// for article := range slices.Values(articles) {
+				// 	@ArticleCard(article)
+				// }
+			}
+		</section>
+	}
+}
+
+templ ResultsList(articles models.Articles, pagination models.Pagination) {
+	for article := range slices.Values(articles) {
+		@ArticleCard(article)
+	}
+	// Add pagination element if pagination is required.
+	if pagination != "" && len(articles) == 15 {
+		// Add pagination htmx props to last article.
+		// @NewDiv(
+		// 	WithClasses("invisible"),
+		// 	WithHXMethod(http.MethodPost, "/search"),
+		// 	WithHXTarget("#grid-objects"),
+		// 	WithHXPushURL(),
+		// 	WithHXInclude("[name='csrf_token']"),
+		// 	WithHXValsJS("js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"),
+		// 	WithHXTrigger("intersect once"),
+		// 	WithHXSwap("beforeend"),
+		// 	WithCustomAttribute("preload")
+		// )
+		<div
+			class="invisible"
+			hx-post="/search/paginate"
+			hx-include="#search-filters,[name='csrf_token']"
+			hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
+			hx-trigger="intersect once"
+			hx-target="#grid-objects"
+			hx-swap="beforeend"
+			hx-indicator="#content-loading"
+			preload
+			preload-images="true"
+			_="on htmx:afterRequest remove me"
+		></div>
+	}
+}
+
+templ SearchFilters(attributes templ.Attributes) {
+	{{ request := models.SearchRequestFromCtx(ctx) }}
 	// Search form.
-	<div class="mx-auto max-w-3xl mt-4 p-4 overflow-y-auto">
+	<div id="search-filters" class="mx-auto max-w-3xl mt-4 p-4 overflow-y-auto" { attributes... }>
 		<form
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
 			hx-include="[name='csrf_token']"
 			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
-			_="on htmx:afterRequest(successful) if successful add .hidden to #search-filters"
+			_="on htmx:afterRequest(successful) if successful add .hidden to #search-filters-dialog"
 		>
 			<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
 				// Full text search filter.
@@ -405,7 +532,7 @@ templ GlobalSearch() {
 			// Filters button.
 			<button
 				type="button"
-				_="on click toggle .hidden on #search-filters then toggle .disabled on #global-search then halt bubbling"
+				_="on click toggle .hidden on #search-filters-dialog then toggle .disabled on #global-search then halt bubbling"
 			>
 				@tabler.Filter(i.Props{Class: "flex-none text-accent"})
 			</button>
@@ -417,12 +544,12 @@ templ GlobalSearch() {
 			_="on keydown[key is 'Escape'] add .hidden"
 		></el-command-list>
 		<div
-			id="search-filters"
+			id="search-filters-dialog"
 			class="hidden absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl h-auto lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2 outline-1 -outline-offset-1 outline-base-content/10"
 			_="on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end"
 		>
 			// or focusout from body
-			@SearchFilters(models.NewSearchRequest()) {
+			@SearchFilters(nil) {
 				<div class="mt-6 flex items-center justify-end gap-x-6">
 					<button type="button" class="btn btn-sm btn-seconday btn-soft" _="on click add .hidden to #search-filters">Cancel</button>
 					<button type="submit" class="btn btn-sm btn-primary btn-soft">Search</button>
@@ -430,56 +557,6 @@ templ GlobalSearch() {
 			}
 		</div>
 	</el-command-palette>
-}
-
-// _="on click from elsewhere add .hidden to me"
-
-type SearchResultsPage struct {
-	user          *models.User
-	subscriptions models.FeedSubscriptions
-	articles      models.Articles
-	search        *models.SearchRequest
-}
-
-func NewSearchResultsPage(user *models.User, search *models.SearchRequest, subscriptions models.FeedSubscriptions, articles models.Articles) *SearchResultsPage {
-	page := &SearchResultsPage{
-		user:          user,
-		search:        search,
-		subscriptions: subscriptions,
-		articles:      articles,
-	}
-	return page
-}
-
-templ (page *SearchResultsPage) Content() {
-	@Main() {
-		<div class="py-6 mt-4">
-			<dt>
-				<button type="button" command="--toggle" commandfor="faq-0" class="flex w-full items-start justify-between text-left text-base-content">
-					<span class="text-base/7 font-semibold">Filters</span>
-					<span class="ml-6 flex h-7 items-center">
-						@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
-						@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
-					</span>
-				</button>
-			</dt>
-			<el-disclosure id="faq-0" hidden class="contents">
-				<dd id="current-search-filters" class="mt-2 pr-12">
-					@SearchFilters(page.search) {
-						<input type="hidden" name="search_id" value={ page.search.ID() }/>
-						<button type="submit" class="btn btn-sm btn-primary">Update</button>
-					}
-				</dd>
-			</el-disclosure>
-		</div>
-		// Show results.
-		@Grid() {
-			for article := range slices.Values(page.articles) {
-				@ArticleCard(article)
-			}
-		}
-		<div id="update-notifications" sse-connect={ "/search/updates?" + page.search.Query() } sse-swap="message" class="toast toast-center z-50"></div>
-	}
 }
 
 // // AddFavoriteSearchButton renders a button that the user can action to favorite the search. It presents a modal to name

@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	userCtxKey      contextKey = "user"
-	filtersCtxKey   contextKey = "filters_"
-	csrfTokenCtxKey contextKey = "csrfToken"
-	pathCtxKey      contextKey = "req_path"
+	userCtxKey          contextKey = "user"
+	filtersCtxKey       contextKey = "filters_"
+	csrfTokenCtxKey     contextKey = "csrfToken"
+	pathCtxKey          contextKey = "req_path"
+	searchRequestCtxKey contextKey = "search_request"
 )
 
 type contextKey string
@@ -64,4 +65,20 @@ func PathFromCtx(ctx context.Context) string {
 		return ""
 	}
 	return path
+}
+
+// SearchRequestToCtx stores a SearchRequest in the context. This is used to update the search filters dialog in the
+// page header as appropriate.
+func SearchRequestToCtx(ctx context.Context, request SearchRequest) context.Context {
+	return context.WithValue(ctx, searchRequestCtxKey, request)
+}
+
+// SearchRequestFromCtx retrieves a SearchRequest from the context. This is used to update the search filters dialog in the
+// page header as appropriate.
+func SearchRequestFromCtx(ctx context.Context) *SearchRequest {
+	request, found := ctx.Value(searchRequestCtxKey).(SearchRequest)
+	if !found {
+		return NewSearchRequest()
+	}
+	return &request
 }
