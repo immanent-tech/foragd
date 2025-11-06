@@ -217,42 +217,49 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 
 	// Get the subscription states.
 	subscriptions := user.GetSubscriptions(FilterByIDs(ids...))
-	// Return early if there the user has no subscriptions (i.e., new user).
-	if len(subscriptions) == 0 {
-		return results, nil
-	}
 
 	fetchJobs, ctx := errgroup.WithContext(ctx)
 
 	// Fetch FeedSubscription details.
 	feedSubscriptions := subscriptions.GetFeedSubscriptions()
-	fetchJobs.Go(func() error {
-		// Get subscription stats.
-		stats, err := GetFeedSubscriptionStats(ctx, dataAPI, feedSubscriptions)
-		if err != nil {
-			return fmt.Errorf("could not retrieve stats: %w", err)
-		}
-		// Get feed data for subscriptions.
-		feeds, err := dataAPI.GetFeeds(ctx, feedSubscriptions.GetFeedIDs()...)
-		if err != nil {
-			return fmt.Errorf("getSubscriptions: %w", err)
-		}
-		// Add feed and stats data to subscriptions.
-		for feed := range slices.Values(feeds) {
-			if subscription := feedSubscriptions.GetByFeedID(feed.GetID()); subscription != nil {
-				subscription.Feed = *feed
-				subscription.Stats = stats[subscription.GetID()]
+	if len(feedSubscriptions) > 0 {
+		fetchJobs.Go(func() error {
+			// Get subscription stats.
+			stats, err := GetFeedSubscriptionStats(ctx, dataAPI, feedSubscriptions)
+			if err != nil {
+				return fmt.Errorf("could not retrieve stats: %w", err)
 			}
-		}
-		return nil
-	})
+			// Get feed data for subscriptions.
+			feeds, err := dataAPI.GetFeeds(ctx, feedSubscriptions.GetFeedIDs()...)
+			if err != nil {
+				return fmt.Errorf("getSubscriptions: %w", err)
+			}
+			// Add feed and stats data to subscriptions.
+			for feed := range slices.Values(feeds) {
+				if subscription := feedSubscriptions.GetByFeedID(feed.GetID()); subscription != nil {
+					subscription.Feed = *feed
+					subscription.Stats = stats[subscription.GetID()]
+				}
+			}
+			results.FeedSubscriptions = feedSubscriptions
+
+			return nil
+		})
+	}
+
+	searchSubscriptions := subscriptions.GetSearchSubscriptions()
+	if len(searchSubscriptions) > 0 {
+		fetchJobs.Go(func() error {
+			// TODO: do something here
+			return nil
+		})
+	}
 
 	// Wait for all data fetching to complete and process any error.
 	err = fetchJobs.Wait()
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve subscriptions: %w", err)
 	}
-	results.FeedSubscriptions = feedSubscriptions
 	return results, nil
 }
 
