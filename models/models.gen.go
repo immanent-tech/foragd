@@ -411,6 +411,9 @@ type FeedSubscription struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
 	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters,omitempty,omitzero"`
 
+	// Favorite indicates whether this subscription has been marked as a favorite by the user.
+	Favorite bool `json:"-"`
+
 	// Feed is the original feed content.
 	Feed Feed `json:"-"`
 
@@ -693,7 +696,10 @@ type StoredImage struct {
 // Subscription represents a user subscription.
 type Subscription struct {
 	// Data is the raw data represeting the subscription type.
-	Data Subscription_Data `json:"data"`
+	Data Subscription_Data `json:"data" validate:"required"`
+
+	// Favorite indicates whether this subscription has been marked as a favorite by the user.
+	Favorite bool `json:"favorite,omitempty,omitzero"`
 
 	// Metadata contains common fields across all subscription types.
 	Metadata SubscriptionMetadata `json:"metadata"`
@@ -749,9 +755,6 @@ type SubscriptionMetadata struct {
 
 	// Customisation contains object fields that can be customised (overridden) by a user
 	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
-
-	// Favorite indicates whether this subscription has been marked as a favorite by the user.
-	Favorite bool `json:"-"`
 
 	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
 	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`

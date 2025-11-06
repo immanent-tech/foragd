@@ -163,9 +163,10 @@ func UpdateFavoriteSubscription(ctx context.Context, dataAPI DataAPI, user *User
 		return e.GetID() == id
 	})
 	if idx != -1 {
-		if user.Subscriptions[idx].Metadata.Favorite != favorite {
-			user.Subscriptions[idx].Metadata.Favorite = favorite
-			godump.Dump(user.Subscriptions[idx])
+		subscription := user.Subscriptions[idx]
+		if subscription.Favorite != favorite {
+			subscription.Favorite = favorite
+			user.Subscriptions[idx] = subscription
 			err := dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
 				"subscriptions": user.Subscriptions,
 			})

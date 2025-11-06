@@ -35,9 +35,9 @@ func NewFeedSubscription(feed *Feed, request *AddFeedSubscriptionRequest, favori
 				Nickname:   feed.GetTitle(),
 				Categories: feed.GetCategories(),
 			},
-			Favorite: favorite,
 		},
-		Type: SubscriptionTypeFeed,
+		Favorite: favorite,
+		Type:     SubscriptionTypeFeed,
 	}
 	// Add any user customisations.
 	if request != nil {
@@ -142,7 +142,7 @@ func (s *FeedSubscription) GetStats() *SubscriptionStats {
 
 // IsFavorite returns a boolean indicating whether the subscription has been favorited.
 func (s *FeedSubscription) IsFavorite() bool {
-	return s.Metadata.Favorite
+	return s.Favorite
 }
 
 // Type returns the type of the object, in this case, "subscription".
@@ -436,6 +436,7 @@ func (s Subscriptions) GetFeedSubscriptions() FeedSubscriptions {
 				continue
 			}
 			subscription.Metadata = s.Metadata
+			subscription.Favorite = s.Favorite
 			feedSubscriptions = append(feedSubscriptions, &subscription)
 		}
 	}

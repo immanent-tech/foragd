@@ -614,12 +614,6 @@ components:
             indicates when the subscription was last marked read. Any articles older than this timestamp are considered
             read, any newer unread.
           x-go-type: time.Time
-        favorite:
-          description: >
-            indicates whether this subscription has been marked as a favorite by the user.
-          type: boolean
-          x-oapi-codegen-extra-tags:
-            json: '-'
     FeedSubscription:
       description: >
         represents a feed a user has subscribed to.
@@ -649,6 +643,12 @@ components:
             json: '-'
         article_filters:
           $ref: '#/components/schemas/SubscriptionArticleFilters'
+        favorite:
+          description: >
+            indicates whether this subscription has been marked as a favorite by the user.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: '-'
     SearchSubscription:
       description: >
         is a custom subscription created from a search request.
@@ -689,6 +689,12 @@ components:
           oneOf:
             - $ref: '#/components/schemas/FeedSubscription'
             - $ref: '#/components/schemas/SearchSubscription'
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        favorite:
+          description: >
+            indicates whether this subscription has been marked as a favorite by the user.
+          type: boolean
     AddFeedSubscriptionRequest:
       description: >
         represents a request to create a subscription to a feed.
