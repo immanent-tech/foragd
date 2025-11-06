@@ -169,6 +169,13 @@ func WithDatetimeMapping(fieldname string) PropertiesOption {
 	}
 }
 
+// WithBooleanMapping option creates a new field with a boolean mapping.
+func WithBooleanMapping(fieldname string) PropertiesOption {
+	return func(mp Properties) {
+		mp[fieldname] = types.NewBooleanProperty()
+	}
+}
+
 // WithTextMapping option creates a new field with a text mapping.
 func WithTextMapping(fieldname string, settings *types.TextProperty) PropertiesOption {
 	return func(mp Properties) {
