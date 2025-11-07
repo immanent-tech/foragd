@@ -590,6 +590,21 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 	return articles, pagination, nil
 }
 
+func MarkArticles(ctx context.Context, dataAPI DataAPI, mark Mark, subscriptionID SubscriptionID, itemIDs ...ItemID) error {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("mark articles: get user failed: %w", err)
+	}
+	user.MarkItems(mark, subscriptionID, itemIDs...)
+	err = dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
+		"item_states": user.ItemStates,
+	})
+	if err != nil {
+		return fmt.Errorf("mark articles: update user object failed: %w", err)
+	}
+	return nil
+}
+
 func GetArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Articles, error) {
 	// Search through items matching any given feeds filters, excluding any read
 	// items.

@@ -141,11 +141,7 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 				).ServeHTTP(res, req)
 				return models.NewAPIError(ErrInvalidRequestParams, http.StatusBadRequest)
 			}
-			user.MarkItems(params.Mark, subscriptionID, params.ObjectID)
-			// Update the user object.
-			err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{
-				"subscriptions": user.Subscriptions,
-			})
+			err = models.MarkArticles(req.Context(), api, params.Mark, subscriptionID, params.ObjectID)
 			if err != nil {
 				renderPartial(
 					templates.ServerErrorNotification(

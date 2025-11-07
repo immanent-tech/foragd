@@ -284,6 +284,9 @@ func (u *User) SetItemState(subscriptionID SubscriptionID, itemID ItemID, state 
 	if u.ItemStates == nil {
 		u.ItemStates = make(map[SubscriptionID]map[ItemID]ArticleState)
 	}
+	if u.ItemStates[subscriptionID] == nil {
+		u.ItemStates[subscriptionID] = make(map[ItemID]ArticleState)
+	}
 	u.ItemStates[subscriptionID][itemID] = *state
 }
 

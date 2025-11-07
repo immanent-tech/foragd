@@ -199,7 +199,7 @@ templ viewFeedSubscriptionLink(s models.AnySubscription) {
 				}
 			</div>
 			<div>
-				<h4 class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
+				<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
 			</div>
 		</div>
 	}
@@ -245,7 +245,7 @@ templ viewSearchSubscriptionLink(s models.AnySubscription) {
 					}
 				</div>
 				<div>
-					<h4 class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
+					<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
 				</div>
 			</div>
 		}
