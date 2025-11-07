@@ -197,6 +197,7 @@ func UpdateFavoriteArticle(ctx context.Context, dataAPI DataAPI, user *User, id 
 	return nil
 }
 
+// FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
 func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Subscriptions, Pagination, error) {
 	// Get subscriptions by ID.
 	subscriptions, err := GetSubscriptions(ctx, dataAPI, filters.GetSubscriptions()...)
@@ -547,6 +548,7 @@ func CreateFeed(ctx context.Context, dataAPI DataAPI, feed *Feed) error {
 	return nil
 }
 
+// FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.
 func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Articles, Pagination, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -554,9 +556,15 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 	}
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	subscriptions := user.GetFeedSubscriptions().FilterByIDs(filters.Subscriptions...)
+	// Fetch FeedSubscription details.
+	var feedSubscriptions FeedSubscriptions
+	if len(filters.Subscriptions) > 0 {
+		feedSubscriptions = user.GetFeedSubscriptions().FilterByIDs(filters.Subscriptions...)
+	} else {
+		feedSubscriptions = user.GetFeedSubscriptions()
+	}
 	// Return early if there the user has no subscriptions (i.e., new user).
-	if len(subscriptions) == 0 {
+	if len(feedSubscriptions) == 0 {
 		return nil, "", nil
 	}
 	query := query.Bool(
@@ -564,7 +572,7 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 			// Must match any of the given categories.
 			query.Terms("categories.raw", filters.GetCategories()...),
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, filters.GetView(), subscriptions)...),
+				query.Should(BuildSubscriptionQueries(user, filters.GetView(), feedSubscriptions)...),
 			),
 		),
 	)
