@@ -11,7 +11,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -26,7 +25,6 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters, setCacheControl).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		godump.Dump(filters)
 		pagination := req.FormValue(models.ParamPagination)
 		// Redirect to include query parameters in address bar.
 		if req.Method == http.MethodGet && len(req.URL.Query()) == 0 && listType != "favorites" {

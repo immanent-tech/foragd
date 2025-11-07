@@ -16,7 +16,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -140,7 +139,6 @@ func UpdateFavoriteSubscription(ctx context.Context, dataAPI DataAPI, user *User
 			if err != nil {
 				return fmt.Errorf("unable to add favorite: %w", err)
 			}
-			godump.Dump(user.Subscriptions[idx])
 		}
 	} else {
 		return ErrNotFound
@@ -209,7 +207,6 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 		return nil, "", nil
 	}
 	// Filter subscriptions.
-	godump.Dump(filters)
 	sort := filters.GetSort()
 	subscriptions = subscriptions.
 		FilterByFavorites(filters.OnlyFavorites).
@@ -355,8 +352,6 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve subscriptions: %w", err)
 	}
-
-	godump.Dump(len(results))
 
 	return results, nil
 }
