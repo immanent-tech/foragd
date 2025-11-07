@@ -835,10 +835,17 @@ func BuildSearchResultsQuery(user *User, request *SearchRequest) query.Option {
 		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
 	}
 
+	var subscriptions FeedSubscriptions
+	if len(request.Subscriptions) > 0 {
+		subscriptions = user.GetFeedSubscriptions().FilterByIDs(request.Subscriptions...)
+	} else {
+		subscriptions = user.GetFeedSubscriptions()
+	}
+
 	return query.Bool(
 		query.Filter(
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, request.View, user.GetFeedSubscriptions().FilterByIDs(request.Subscriptions...))...),
+				query.Should(BuildSubscriptionQueries(user, request.View, subscriptions)...),
 			),
 			query.Bool(
 				query.Should(
