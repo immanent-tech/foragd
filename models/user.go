@@ -135,6 +135,7 @@ func SortByTitle() subscriptionFilterOption {
 	}
 }
 
+// GetSubscriptionByID returns the Subscription that matches the given ID or nil if none match.
 func (u *User) GetSubscriptionByID(id SubscriptionID) *Subscription {
 	if idx := slices.IndexFunc(u.GetSubscriptions(), func(e *Subscription) bool {
 		return e.GetID() == id

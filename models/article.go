@@ -160,6 +160,7 @@ func (a *Article) IsRemoteContent() bool {
 	return a.ShowFullContent
 }
 
+// GetImage returns the image associated with the article.
 func (a *Article) GetImage() *types.ImageInfo {
 	if a.Item.GetImage() != nil && a.Item.GetImage().GetURL() != "" {
 		return a.Item.GetImage()
@@ -167,23 +168,27 @@ func (a *Article) GetImage() *types.ImageInfo {
 	return nil
 }
 
+// GetAuthors returns a slice of authors (if any) of the article.
 func (a *Article) GetAuthors() []string {
 	return a.Item.GetAuthors()
 }
 
+// GetUpdatedDate returns the timestamp when the article was last updated (or created if no updates).
 func (a *Article) GetUpdatedDate() time.Time {
 	return a.Item.GetTimestamp()
 }
 
+// GetLink returns the URL pointing to the original article content.
 func (a *Article) GetLink() string {
 	return a.Item.GetLink()
 }
 
-func (a *Article) GetCategories(max int) Categories {
+// GetCategories returns the categories of the article (if any).
+func (a *Article) GetCategories(num int) Categories {
 	categories := a.Item.GetCategories()
-	if max != 0 {
-		if len(categories) > max {
-			return categories[:max]
+	if num != 0 {
+		if len(categories) > num {
+			return categories[:num]
 		} else {
 			return categories
 		}
@@ -191,6 +196,7 @@ func (a *Article) GetCategories(max int) Categories {
 	return categories
 }
 
+// GetFeedTitle returns the title of the feed the article belongs to.
 func (a *Article) GetFeedTitle() string {
 	return a.Item.FeedTitle
 }
@@ -205,7 +211,7 @@ func (s *Article) IsFavorite() bool {
 	return s.Favorite
 }
 
-// Type returns the type of the object, in this case, "article".
+// GetObjectType returns the type of the object, in this case, "article".
 func (a *Article) GetObjectType() ObjectType {
 	return ObjectTypeArticle
 }

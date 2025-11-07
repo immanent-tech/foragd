@@ -69,6 +69,7 @@ func (s *Sort) ID() string {
 	return "sort-" + string(s.SortBy) + "-" + string(s.SortOrder)
 }
 
+// IsEqual returns true if the sort is equal to the given value.
 func (s Sort) IsEqual(value Sort) bool {
 	return s.SortBy == value.SortBy && s.SortOrder == value.SortOrder
 }
@@ -93,6 +94,7 @@ type Filters interface {
 	QueryString() string
 }
 
+// NewListDisplayFilters creates a new set of display filters with sensible defaults.
 func NewListDisplayFilters() ListDisplayFilters {
 	return ListDisplayFilters{
 		SortBy:    SortByLastUpdated,
@@ -102,10 +104,12 @@ func NewListDisplayFilters() ListDisplayFilters {
 	}
 }
 
+// GetSubscriptions retrieves any subscription filters.
 func (f *ListDisplayFilters) GetSubscriptions() []SubscriptionID {
 	return f.Subscriptions
 }
 
+// Sanitise performs sanitisation of the filter values to ensure correctness.
 func (f *ListDisplayFilters) Sanitise() error {
 	if f == nil {
 		newFilters := NewListDisplayFilters()
@@ -129,7 +133,7 @@ func (f *ListDisplayFilters) Valid() (bool, error) {
 	return validation.ValidateStruct(f)
 }
 
-// Sort returns the Sort object for the Filters.
+// GetSort returns the Sort object for the Filters.
 func (f *ListDisplayFilters) GetSort() Sort {
 	return Sort{
 		SortBy:    f.SortBy,
@@ -146,14 +150,17 @@ func (f *ListDisplayFilters) GetCount() int {
 	return value
 }
 
+// GetView returns the view filter.
 func (f *ListDisplayFilters) GetView() View {
 	return f.View
 }
 
+// GetCategories returns any category filters.
 func (f *ListDisplayFilters) GetCategories() []Category {
 	return f.Categories
 }
 
+// QueryParams converts the filters into query parameters.
 func (f *ListDisplayFilters) QueryParams() url.Values {
 	params := make(url.Values)
 	if len(f.Subscriptions) > 0 {
@@ -169,10 +176,13 @@ func (f *ListDisplayFilters) QueryParams() url.Values {
 	return params
 }
 
+// QueryString converts the filters into a string that can be appended to a URL to represent the filters.
 func (f *ListDisplayFilters) QueryString() string {
 	return f.QueryParams().Encode()
 }
 
+// Values converts the filters into a map[string]string object, that can be further manipulated before being (most
+// likely) used as the value of hx-vals in a HTMX request.
 func (f *ListDisplayFilters) Values() map[string]string {
 	params := make(map[string]string)
 	if len(f.Subscriptions) > 0 {

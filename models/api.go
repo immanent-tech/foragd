@@ -70,6 +70,7 @@ func CreateUser(ctx context.Context, dataAPI DataAPI, externalID, email string) 
 	return nil
 }
 
+// UpdateUser updates the local user object from the given request details.
 func UpdateUser(ctx context.Context, dataAPI DataAPI, request *EditUserRequest) error {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -123,7 +124,8 @@ func AddSubscriptions(ctx context.Context, dataAPI DataAPI, user *User, subscrip
 	return nil
 }
 
-// UpdateFavoriteSubscription changes the favorite status of a subscription.
+// UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
+// subscription as appropriate.
 func UpdateFavoriteSubscription(ctx context.Context, dataAPI DataAPI, user *User, id SubscriptionID, favorite bool) error {
 	idx := slices.IndexFunc(user.Subscriptions, func(e *Subscription) bool {
 		return e.GetID() == id
@@ -146,6 +148,9 @@ func UpdateFavoriteSubscription(ctx context.Context, dataAPI DataAPI, user *User
 	return nil
 }
 
+// UpdateFavoriteArticle changes the favorite status of an article. For adding a favorite article, the content is stored
+// in a separate and the user object is updated with a link to the content. For removing a favorite, the stored content
+// is removed and user object updated appropriately.
 func UpdateFavoriteArticle(ctx context.Context, dataAPI DataAPI, user *User, id ItemID, favorite bool) error {
 	switch favorite {
 	case true:
@@ -288,6 +293,8 @@ func CreateSearchSubscriptions(ctx context.Context, dataAPI DataAPI, requests ..
 	return nil
 }
 
+// GetSubscriptions will fetch Subscriptions with the given IDs. All dynamic subscription data (stats, unread status)
+// will be fetched and inserted into each Subscription object.
 func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (Subscriptions, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -357,6 +364,8 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	return results, nil
 }
 
+// GetFeedSubscriptionStats fetches the stats for FeedSubscriptions and returns a map of the SubscriptionID to
+// SubscriptionStats that can be used to lookup the stats pertaining to a particular subscription.
 func GetFeedSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscriptions FeedSubscriptions) (map[SubscriptionID]SubscriptionStats, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -403,15 +412,15 @@ func GetFeedSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscription
 
 	results, err := dataAPI.ItemsAggregation(ctx, query, len(subscriptions), aggs)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
+		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", ErrInvalidAPIResult)
 	}
 	feedStats, ok := results.Aggregations["feed"].(*types.StringTermsAggregate)
 	if !ok {
-		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
+		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", ErrInvalidAPIResult)
 	}
 	feedStatsBuckets, ok := feedStats.Buckets.([]types.StringTermsBucket)
 	if !ok {
-		return nil, fmt.Errorf("unable to get feed stats: feed aggregations invalid")
+		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", ErrInvalidAPIResult)
 	}
 
 	stats := make(map[FeedID]SubscriptionStats)
@@ -485,11 +494,11 @@ func getFeedSubscriptionUnreadCounts(ctx context.Context, dataAPI DataAPI, subsc
 
 	unreadCounts, ok := results.Aggregations["UnreadCounts"].(*types.StringTermsAggregate)
 	if !ok {
-		return nil, fmt.Errorf("unable to get unread counts: feed aggregations invalid")
+		return nil, fmt.Errorf("unable to get feed stats: UnreadCounts aggregations invalid: %w", ErrInvalidAPIResult)
 	}
 	unreadCountsBuckets, ok := unreadCounts.Buckets.([]types.StringTermsBucket)
 	if !ok {
-		return nil, fmt.Errorf("unable to get unread counts: feed aggregations invalid")
+		return nil, fmt.Errorf("unable to get feed stats: UnreadCounts aggregations invalid: %w", ErrInvalidAPIResult)
 	}
 
 	stats := make(map[SubscriptionID]int64)
@@ -505,6 +514,8 @@ func getFeedSubscriptionUnreadCounts(ctx context.Context, dataAPI DataAPI, subsc
 	return stats, nil
 }
 
+// MarkSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
+// subscription data in the user object and clearing any individual item states for a subscription.
 func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscriptions ...SubscriptionID) error {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -522,6 +533,7 @@ func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscrip
 	return nil
 }
 
+// MatchRequestToFeed matches a FeedSubscriptionRequest to an existing Feed (if one exists), by the URL.
 func MatchRequestToFeed(ctx context.Context, dataAPI DataAPI, req *AddFeedSubscriptionRequest) (*Feed, error) {
 	// Find matches.
 	feeds, _, err := dataAPI.SearchFeeds(ctx, query.Term("source_urls", req.GetURL()), 1, nil, nil)
@@ -540,6 +552,7 @@ func MatchRequestToFeed(ctx context.Context, dataAPI DataAPI, req *AddFeedSubscr
 	return feeds[0], nil
 }
 
+// CreateFeed stores a new Feed.
 func CreateFeed(ctx context.Context, dataAPI DataAPI, feed *Feed) error {
 	err := dataAPI.CreateFeed(ctx, feed)
 	if err != nil {
@@ -593,6 +606,8 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 	return articles, pagination, nil
 }
 
+// MarkArticles will mark Articles for a Subscription as appropriate. Marking Articles involves updating the User object
+// with an ItemState that tracks the mark status for the underlying Item an Article represents.
 func MarkArticles(ctx context.Context, dataAPI DataAPI, mark Mark, subscriptionID SubscriptionID, itemIDs ...ItemID) error {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -608,6 +623,7 @@ func MarkArticles(ctx context.Context, dataAPI DataAPI, mark Mark, subscriptionI
 	return nil
 }
 
+// GetArticles generates Article objects from the Items with the given IDs.
 func GetArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Articles, error) {
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
@@ -629,6 +645,7 @@ func GetArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Artic
 	return articles, nil
 }
 
+// GetArticleTopCategories performs an aggregation to return the top Item categories across the given Feeds.
 func GetArticleTopCategories(ctx context.Context, dataAPI DataAPI, feeds ...FeedID) ([]Category, error) {
 	// Build query.
 	query := query.Bool(
@@ -656,11 +673,11 @@ func GetArticleTopCategories(ctx context.Context, dataAPI DataAPI, feeds ...Feed
 
 	topCategoriesAgg, ok := results.Aggregations["TopCategories"].(*types.StringTermsAggregate)
 	if !ok {
-		return nil, fmt.Errorf("unable to get top categories: aggregations invalid")
+		return nil, fmt.Errorf("unable to get top categories: aggregations invalid: %w", ErrInvalidAPIResult)
 	}
 	topCategoriesBuckets, ok := topCategoriesAgg.Buckets.([]types.StringTermsBucket)
 	if !ok {
-		return nil, fmt.Errorf("unable to get top categories: aggregations invalid")
+		return nil, fmt.Errorf("unable to get top categories: aggregations invalid: %w", ErrInvalidAPIResult)
 	}
 
 	topCategories := make([]Category, 0)
@@ -675,6 +692,8 @@ func GetArticleTopCategories(ctx context.Context, dataAPI DataAPI, feeds ...Feed
 	return topCategories, nil
 }
 
+// FindSimilarArticles performs a "more like this" search to find other Articles that are similar to the Items with the
+// given IDs.
 func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Articles, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -768,6 +787,7 @@ func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchReque
 	return articles, pagination, nil
 }
 
+// BuildItemsQuery generates a query to fetch the Items that match the given Filters from the given Subscriptions.
 func BuildItemsQuery(ctx context.Context, filters Filters, subscriptionIDs ...SubscriptionID) (query.Option, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -817,6 +837,8 @@ func BuildSubscriptionQueries(user *User, view View, subscriptions FeedSubscript
 	return queries
 }
 
+// BuildSearchResultsQuery generates a query that can be used to fetch appropriate results for a given SearchRequest
+// criteria.
 func BuildSearchResultsQuery(user *User, request *SearchRequest) query.Option {
 	// var err error
 	var loc *time.Location

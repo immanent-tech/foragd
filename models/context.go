@@ -31,10 +31,12 @@ func UserFromCtx(ctx context.Context) (*User, error) {
 	return user, nil
 }
 
+// CSRFTokenToCtx stores the current valid CSRF token in the context.
 func CSRFTokenToCtx(ctx context.Context, token string) context.Context {
 	return context.WithValue(ctx, csrfTokenCtxKey, token)
 }
 
+// CSRFTokenFromCtx retrieves the current valid CSRF token from the context.
 func CSRFTokenFromCtx(ctx context.Context) string {
 	if token, ok := ctx.Value(csrfTokenCtxKey).(string); ok {
 		return token
@@ -42,10 +44,12 @@ func CSRFTokenFromCtx(ctx context.Context) string {
 	return ""
 }
 
+// PageFiltersToCtx stores the current page display filters in the context.
 func PageFiltersToCtx(ctx context.Context, path string, filters Filters) context.Context {
 	return context.WithValue(ctx, filtersCtxKey+contextKey(path), filters)
 }
 
+// PageFiltersFromCtx retrieves the current page display filters from the context.
 func PageFiltersFromCtx(ctx context.Context, path string) *ListDisplayFilters {
 	filters, found := ctx.Value(filtersCtxKey + contextKey(path)).(*ListDisplayFilters)
 	if !found {
@@ -55,10 +59,12 @@ func PageFiltersFromCtx(ctx context.Context, path string) *ListDisplayFilters {
 	return filters
 }
 
+// PathToCtx stores the URL path in the context.
 func PathToCtx(ctx context.Context, path string) context.Context {
 	return context.WithValue(ctx, pathCtxKey, path)
 }
 
+// PathFromCtx retrieves the URL path from the context.
 func PathFromCtx(ctx context.Context) string {
 	path, found := ctx.Value(pathCtxKey).(string)
 	if !found {
