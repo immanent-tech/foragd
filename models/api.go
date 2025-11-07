@@ -38,6 +38,7 @@ type FeedsAPI interface {
 // ItemsAPI contains API methods for Items.
 type ItemsAPI interface {
 	SearchItems(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Items, Pagination, error)
+	CountItems(ctx context.Context, query query.Option) (int64, error)
 	ItemsAggregation(ctx context.Context, query query.Option, count int, agg aggregations.Aggs) (*search.Response, error)
 	ArchiveArticle(ctx context.Context, article *ArticleArchive) error
 	UnarchiveArticle(ctx context.Context, userID UserID, itemID ItemID) error
@@ -344,13 +345,22 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	}
 	if len(searchSubscriptions) > 0 {
 		fetchJobs.Go(func() error {
-			// TODO: do something here
+			for subscription := range slices.Values(searchSubscriptions) {
+				count, err := dataAPI.CountItems(ctx, BuildSearchResultsQuery(user, &subscription.Search))
+				if err != nil {
+					return fmt.Errorf("fetch search subscriptions failed: unable to count items: %w", err)
+				}
+				subscription.Stats.UnreadCount = int(count)
+			}
 			return nil
 		})
 	}
 
 	// Wait for all data fetching to complete and process any error.
 	err = fetchJobs.Wait()
+	if err != nil {
+		return nil, fmt.Errorf("get subscriptions: fetch job failed: %w", err)
+	}
 	for s := range slices.Values(feedSubscriptions) {
 		results = append(results, s)
 	}

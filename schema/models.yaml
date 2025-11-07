@@ -664,6 +664,12 @@ components:
             - $ref: '#/components/schemas/SubscriptionMetadata'
           x-oapi-codegen-extra-tags:
             json: '-'
+        newest_item_timestamp:
+          description: >
+            is the timestamp of the most newest item that matches the search.
+          x-go-type: time.Time
+          x-oapi-codegen-extra-tags:
+            json: '-'
         stats:
           $ref: '#/components/schemas/SubscriptionStats'
     Subscription:

@@ -669,6 +669,9 @@ type SearchSubscription struct {
 	// Metadata the subscription metadata.
 	Metadata SubscriptionMetadata `json:"-"`
 
+	// NewestItemTimestamp is the timestamp of the most newest item that matches the search.
+	NewestItemTimestamp time.Time `json:"-"`
+
 	// Search represents a search request by the user.
 	Search SearchRequest `json:"search,omitempty,omitzero"`
 
