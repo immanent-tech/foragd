@@ -138,34 +138,36 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 				>Filters</button>
 				<div class="hidden sm:flex">
 					<div class="flex gap-x-4 ">
-						<el-dropdown class="inline-block">
-							<button class="inline-flex btn btn-wide">
-								Category
-								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
-							</button>
-							<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content rounded-md bg-base-300 shadow-lg outline-1 outline-accent/5 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
-								<div class="py-1">
-									// Top 10 categories only.
-									for idx, category := range categories.GetTopCategories(10) {
-										@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
-									}
-								</div>
-								<div class="py-1">
-									<a
-										hx-get={ path }
-										hx-push-url="true"
-										hx-target={ ContentID.Target() }
-										hx-trigger="click"
-										hx-vals={ models.GenerateHXVals(filters.Values()) }
-										hx-params="not categories"
-										class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-accent focus:outline-hidden capitalize"
-									>
-										@tabler.X(i.Props{Class: "size-4"})
-										Clear
-									</a>
-								</div>
-							</el-menu>
-						</el-dropdown>
+						if len(categories.GetTopCategories(10)) > 0 {
+							<el-dropdown class="inline-block">
+								<button class="inline-flex btn btn-wide">
+									Category
+									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+								</button>
+								<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content rounded-md bg-base-300 shadow-lg outline-1 outline-accent/5 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+									<div class="py-1">
+										// Top 10 categories only.
+										for idx, category := range categories.GetTopCategories(10) {
+											@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
+										}
+									</div>
+									<div class="py-1">
+										<a
+											hx-get={ path }
+											hx-push-url="true"
+											hx-target={ ContentID.Target() }
+											hx-trigger="click"
+											hx-vals={ models.GenerateHXVals(filters.Values()) }
+											hx-params="not categories"
+											class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-accent focus:outline-hidden capitalize"
+										>
+											@tabler.X(i.Props{Class: "size-4"})
+											Clear
+										</a>
+									</div>
+								</el-menu>
+							</el-dropdown>
+						}
 						// View filters.
 						<el-dropdown class="inline-block">
 							<button class="inline-flex btn btn-wide">
