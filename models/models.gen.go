@@ -508,6 +508,9 @@ type ListDisplayFilters struct {
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
 
+	// OnlyFavorites indicates whether to filter by favorites only.
+	OnlyFavorites bool `form:"only_favorites" json:"only_favorites" validate:"omitempty,boolean"`
+
 	// SortBy represents the selected field to sort on.
 	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
 

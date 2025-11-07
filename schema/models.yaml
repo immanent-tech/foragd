@@ -1073,6 +1073,14 @@ components:
                 form: 'subscriptions'
                 validate: 'omitnil,unique,dive,startswith=sub_'
               x-go-type-skip-optional-pointer: true
+            onlyFavorites:
+              description: >
+                indicates whether to filter by favorites only.
+              type: boolean
+              x-oapi-codegen-extra-tags:
+                json: 'only_favorites'
+                form: 'only_favorites'
+                validate: 'omitempty,boolean'
     ObjectParams:
       description: >
         contains the parameters for viewing an object.

@@ -48,19 +48,10 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 							</h3>
 							<el-disclosure id="filter-section-category" hidden class="block pt-6">
 								<div class="flex flex-col">
-									<form
-										hx-get={ path }
-										hx-push-url="true"
-										hx-target={ ContentID.Target() }
-										hx-trigger="click"
-										hx-vals={ models.GenerateHXVals(filters.Values()) }
-										class="mt-4 space-y-4"
-									>
-										// Top 10 categories only.
-										for idx, category := range categories.GetTopCategories(10) {
-											@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
-										}
-									</form>
+									// Top 10 categories only.
+									for idx, category := range categories.GetTopCategories(10) {
+										@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
+									}
 									<div class="flex justify-end">
 										<button
 											hx-get={ path }
@@ -104,14 +95,13 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 		<h2 id="filter-heading" class="sr-only">Filters</h2>
 		<div class="border-b border-base-content/40 py-4">
 			<div class="mx-auto flex max-w-7xl items-center justify-between">
-				@filtersButton("sort-menu") {
-					<span class="sr-only">Sort options</span>
-					Sort
-					@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
-				}
-				@filtersMenu("sort-menu", "bottom start") {
-					<fieldset>
-						<div class="space-y-4">
+				<el-dropdown class="inline-block">
+					<button class="inline-flex btn btn-wide">
+						Sort
+						@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+					</button>
+					<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content rounded-md bg-base-300 shadow-lg outline-1 outline-accent/5 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+						<div class="py-1">
 							@sortOption(path, models.SortLastUpdatedDesc, filters.GetSort())
 							@sortOption(path, models.SortLastUpdatedAsc, filters.GetSort())
 							if path == "/subscriptions" {
@@ -119,74 +109,88 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 								@sortOption(path, models.SortUnreadCountAsc, filters.GetSort())
 							}
 						</div>
-					</fieldset>
-				}
+					</el-menu>
+				</el-dropdown>
 				<button
 					type="button"
 					command="show-modal"
 					commandfor="mobile-filters-menu"
-					class="inline-block text-sm font-medium hover:bg-accent/50 btn btn-ghost sm:hidden"
+					class="inline-block sm:hidden btn"
 				>Filters</button>
-				<div class="hidden sm:block">
-					<div class="flow-root">
-						<el-popover-group class="-mx-4 flex items-center divide-x divide-gray-200">
-							<div class="relative inline-block px-4 text-left">
-								// Category filters.
-								if len(categories) > 0 {
-									@filtersButton("desktop-filters-menu-category") {
-										<span class="sr-only">Category Filters</span>
-										Category
-										@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
+				<div class="hidden sm:flex">
+					<div class="flex gap-x-4 ">
+						<el-dropdown class="inline-block">
+							<button class="inline-flex btn btn-wide">
+								Category
+								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+							</button>
+							<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content rounded-md bg-base-300 shadow-lg outline-1 outline-accent/5 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+								<div class="py-1">
+									// Top 10 categories only.
+									for idx, category := range categories.GetTopCategories(10) {
+										@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
 									}
-									@filtersMenu("desktop-filters-menu-category", "bottom end") {
-										<div class="space-y-4">
-											<form
-												hx-get={ path }
-												hx-push-url="true"
-												hx-target={ ContentID.Target() }
-												hx-trigger="click"
-												hx-vals={ models.GenerateHXVals(filters.Values()) }
-												class="mt-4 space-y-4"
-											>
-												// Top 10 categories only.
-												for idx, category := range categories.GetTopCategories(10) {
-													@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
-												}
-											</form>
-											<a
-												hx-get={ path }
-												hx-push-url="true"
-												hx-target={ ContentID.Target() }
-												hx-trigger="click"
-												hx-vals={ models.GenerateHXVals(filters.Values()) }
-												hx-params="not categories"
-												class="link link-hover"
-											>
-												<div class="flex items-center">
-													@tabler.X(i.Props{Class: "size-4"})
-													<p class="ml-3 text-sm font-medium capitalize hover:underline">Clear</p>
-												</div>
-											</a>
-										</div>
+								</div>
+								<div class="py-1">
+									<a
+										hx-get={ path }
+										hx-push-url="true"
+										hx-target={ ContentID.Target() }
+										hx-trigger="click"
+										hx-vals={ models.GenerateHXVals(filters.Values()) }
+										hx-params="not categories"
+										class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-accent focus:outline-hidden capitalize"
+									>
+										@tabler.X(i.Props{Class: "size-4"})
+										Clear
+									</a>
+								</div>
+							</el-menu>
+						</el-dropdown>
+						// View filters.
+						<el-dropdown class="inline-block">
+							<button class="inline-flex btn btn-wide">
+								View
+								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+							</button>
+							<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content rounded-md bg-base-300 shadow-lg outline-1 outline-accent/5 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+								<div class="py-1">
+									@viewFilter(path, "filter-view-unread", models.ViewUnread, filters.GetView())
+									@viewFilter(path, "filter-view-read", models.ViewRead, filters.GetView())
+									@viewFilter(path, "filter-view-all", models.ViewAll, filters.GetView())
+								</div>
+								<div class="py-1">
+									{{ var onlyFavoritesActiveClass string }}
+									if filters.OnlyFavorites {
+										{{ onlyFavoritesActiveClass = "text-accent font-semibold" }}
 									}
-								}
-								// View filter.
-								@filtersButton("desktop-filters-menu-view") {
-									<span class="sr-only">View Filters</span>
-									View
-									@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
-								}
-								@filtersMenu("desktop-filters-menu-view", "bottom end") {
-									<fieldset>
-										<div class="space-y-4">
-											@viewFilter(path, "filter-view-unread", models.ViewUnread, filters.GetView())
-											@viewFilter(path, "filter-view-read", models.ViewRead, filters.GetView())
-											@viewFilter(path, "filter-view-all", models.ViewAll, filters.GetView())
-										</div>
-									</fieldset>
-								}
-							</div>
-						</el-popover-group>
+									@NewLink(
+										WithHXMethod(http.MethodGet, path),
+										WithHXInclude("#content-filters"),
+										WithHXTarget(ContentID.Target()),
+										WithHXPushURL(),
+										WithHXVals(map[string]string{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
+										WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
+									) {
+										Only Favorites
+									}
+								</div>
+							</el-menu>
+						</el-dropdown>
+						// // View filter.
+						// @filtersButton("desktop-filters-menu-view") {
+						// 	<span class="sr-only">View Filters</span>
+						// 	View
+						// 	@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
+						// }
+						// @filtersMenu("desktop-filters-menu-view", "bottom end") {
+						// 	<fieldset>
+						// 		<div class="space-y-4">
+						// 		</div>
+						// 	</fieldset>
+						// }
+						// </div>
+						// </el-popover-group>
 					</div>
 				</div>
 			</div>
@@ -218,49 +222,10 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 	</section>
 }
 
-templ filtersButton(id string) {
-	<button
-		class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-ghost"
-		popovertarget={ id }
-		type="button"
-	>
-		{ children... }
-	</button>
-}
-
-templ filtersMenu(id, anchor string) {
-	<el-popover
-		id={ id }
-		anchor={ anchor }
-		popover
-		class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
-	>
-		{ children... }
-	</el-popover>
-}
-
-// controlForm wraps controls in a form that will handle applying the given controls.
-templ listDisplayFiltersForm(path string, filters *models.ListDisplayFilters, classes ...string) {
-	<form
-		hx-get={ path }
-		hx-push-url="true"
-		hx-target={ ContentID.Target() }
-		class={ classes }
-		hx-trigger="change,selectionchange"
-		hx-include="#content-filters,[name='subscriptions'],[name='csrf_token']"
-	>
-		// // Add other filters.
-		// <input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
-		// <input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
-		// <input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-		{ children... }
-	</form>
-}
-
 // viewFilter renders a checkbox for a view filter.
 templ viewFilter(path, id string, view models.View, current models.View) {
 	{{ var class string }}
-	if view ==current {
+	if view == current {
 		{{ class = "text-accent font-semibold" }}
 	}
 	@NewLink(
@@ -270,30 +235,32 @@ templ viewFilter(path, id string, view models.View, current models.View) {
 		WithHXPushURL(),
 		WithHXVals(map[string]string{models.ParamView: string(view)}),
 		WithID(id),
-		WithClasses("group/item", "flex", "items-center", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden", "capitalize", class),
+		WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", class),
 	) {
 		{ string(view) }
 	}
 }
 
 // categoryFilter renders a checkbox for a category filter.
-templ categoryFilter(id string, category models.CategoryCount, current models.Categories) {
-	<div class="flex items-center">
-		<input
-			id={ id }
-			type="radio"
-			name={ models.ParamCategories }
-			value={ category.Category }
-			if current.HasCategory(category.Category) {
-				checked
-				_="on click toggle @checked on me"
-			} else {
-				hx-vals={ models.GenerateHXVals(map[string]string{models.ParamCategories: category.Category}) }
-			}
-			class={ "radio radio-sm", templ.KV("radio-accent",current.HasCategory(category.Category)) }
-		/>
-		<label for={ id } class="ml-3 text-sm font-medium capitalize hover:underline">{ category.Category }</label>
-	</div>
+templ categoryFilter(path, id string, category models.CategoryCount, current models.Categories) {
+	{{ var class string }}
+	{{ overrides := make(map[string]string) }}
+	if current.HasCategory(category.Category) {
+		{{ class = "text-accent font-semibold" }}
+	} else {
+		{{ overrides[models.ParamCategories] = category.Category }}
+	}
+	@NewLink(
+		WithHXMethod(http.MethodGet, path),
+		WithHXInclude("#content-filters"),
+		WithHXTarget(ContentID.Target()),
+		WithHXPushURL(),
+		WithHXVals(overrides),
+		WithID(id),
+		WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", class),
+	) {
+		{ string(category.Category) }
+	}
 }
 
 templ activeCategoryFilterBadge(category models.Category) {
@@ -332,7 +299,7 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 		WithHXPushURL(),
 		WithHXVals(map[string]string{models.ParamSortBy: string(sort.SortBy), models.ParamSortOrder: string(sort.SortOrder)}),
 		WithID(sort.ID()),
-		WithClasses("group/item", "flex", "items-center", "text-sm", "gap-x-2", "focus:text-accent", "focus:outline-hidden", class),
+		WithClasses("flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", class),
 	) {
 		switch sort.SortOrder {
 			case models.SortOrderDesc:
