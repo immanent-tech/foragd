@@ -93,7 +93,7 @@ templ FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Ar
 							<div class="bg-base-200 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border shadow-sm dark:shadow-none">
 								<div class="flex items-center p-4">
 									<div class="flex flex-1">
-										@ViewSubscriptionLink(subscription)
+										@viewFeedSubscriptionLink(subscription)
 									</div>
 									<div class="flex flex-none">
 										@ContextMenu(subscription.GetTitle() + " Actions") {

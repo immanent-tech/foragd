@@ -57,39 +57,6 @@ type DataAPI interface {
 	UserAPI
 }
 
-// SubscriptionResults contains slices of each type of subscription was returned by an API request.
-type SubscriptionResults struct {
-	FeedSubscriptions   FeedSubscriptions
-	SearchSubscriptions SearchSubscriptions
-}
-
-func NewSubscriptionResults() *SubscriptionResults {
-	return &SubscriptionResults{
-		FeedSubscriptions:   make(FeedSubscriptions, 0),
-		SearchSubscriptions: make(SearchSubscriptions, 0),
-	}
-}
-
-// GetSubscriptionIDs retrieves the subscription IDs of all subscriptions in the results.
-func (r *SubscriptionResults) GetSubscriptionIDs() []SubscriptionID {
-	return slices.Concat(r.FeedSubscriptions.GetIDs(), r.SearchSubscriptions.GetIDs())
-}
-
-// GetFeedSubscriptionByID retrieves the FeedSubscription with the given ID.
-func (r *SubscriptionResults) GetFeedSubscriptionByID(id SubscriptionID) *FeedSubscription {
-	if idx := slices.IndexFunc(r.FeedSubscriptions, func(e *FeedSubscription) bool {
-		return e.GetID() == id
-	}); idx != -1 {
-		return r.FeedSubscriptions[idx]
-	}
-	return nil
-}
-
-// Count returns the number of subscriptions.
-func (r *SubscriptionResults) Count() int {
-	return len(r.FeedSubscriptions) + len(r.SearchSubscriptions)
-}
-
 // TODO: set account level appropriately.
 func CreateUser(ctx context.Context, dataAPI DataAPI, externalID, email string) error {
 	user := NewUser(externalID, email, "auth0", UserLevelStandard)
@@ -232,31 +199,32 @@ func UpdateFavoriteArticle(ctx context.Context, dataAPI DataAPI, user *User, id 
 	return nil
 }
 
-func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (FeedSubscriptions, Pagination, error) {
+func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Subscriptions, Pagination, error) {
 	// Get subscriptions by ID.
 	subscriptions, err := GetSubscriptions(ctx, dataAPI, filters.GetSubscriptions()...)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to filter subscriptions: %w", err)
+		return nil, "", fmt.Errorf("filter subscriptions: failed to get subscriptions: %w", err)
 	}
-	if subscriptions.Count() == 0 {
+	if len(subscriptions) == 0 {
 		return nil, "", nil
 	}
 	// Filter subscriptions.
 	sort := filters.GetSort()
-	feedSubscriptions := subscriptions.FeedSubscriptions.FilterByCategories(filters.Categories...).
+	subscriptions = subscriptions.FilterByCategories(filters.Categories...).
 		FilterByView(filters.View).
 		Sort(&sort)
 	// Set up pagination.
-	feedSubscriptions, pagination = feedSubscriptions.Paginate(pagination, filters.GetCount())
-	return feedSubscriptions, pagination, nil
+	subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
+	return subscriptions, pagination, nil
 }
 
-func CreateSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*AddFeedSubscriptionResult) error {
+// CreateFeedSubscriptions will create new FeedSubscriptions for the user from the given requests.
+func CreateFeedSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*AddFeedSubscriptionResult) error {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to create subscription: could not determine user: %w", err)
 	}
-	subscriptions := make(Subscriptions, 0, len(results))
+	subscriptions := make([]*Subscription, 0, len(results))
 	for result := range slices.Values(results) {
 		slogctx.FromCtx(ctx).Debug("Creating new subscription.",
 			slog.String("feed", result.Feed.GetTitle()),
@@ -289,20 +257,54 @@ func CreateSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*AddFe
 	return nil
 }
 
-func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (*SubscriptionResults, error) {
+// CreateSearchSubscriptions will create new SearchSubscriptions for the user from the given requests.
+func CreateSearchSubscriptions(ctx context.Context, dataAPI DataAPI, requests ...*SearchSubscriptionRequest) error {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to create subscription: could not determine user: %w", err)
+	}
+	subscriptions := make([]*Subscription, 0, len(requests))
+	for request := range slices.Values(requests) {
+		slogctx.FromCtx(ctx).Debug("Creating new search subscription.",
+			slog.String("feed", request.Customisation.Nickname),
+		)
+		// Generate metadata.
+		subscription, err := NewSearchSubscription(request)
+		if err != nil {
+			return fmt.Errorf("create search subscription: generate subscription failed: %w", err)
+		}
+		valid, err := subscription.Valid()
+		if err != nil || !valid {
+			return fmt.Errorf("create search subscription: invalid data: %w", err)
+		}
+		subscriptions = append(subscriptions, subscription)
+	}
+	// Add subscriptions
+	err = AddSubscriptions(ctx, dataAPI, user, subscriptions...)
+	if err != nil {
+		return fmt.Errorf("create search subscription: add subscriptions failed: %w", err)
+	}
+	return nil
+}
+
+func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (Subscriptions, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not determine user: %w", err)
 	}
-	results := NewSubscriptionResults()
 
 	// Get the subscription states.
-	subscriptions := user.GetSubscriptions(FilterByIDs(ids...))
+	results := make(Subscriptions, 0, len(user.GetSubscriptions()))
 
 	fetchJobs, ctx := errgroup.WithContext(ctx)
 
 	// Fetch FeedSubscription details.
-	feedSubscriptions := subscriptions.GetFeedSubscriptions()
+	var feedSubscriptions FeedSubscriptions
+	if len(ids) > 0 {
+		feedSubscriptions = user.GetFeedSubscriptions().FilterByIDs(ids...)
+	} else {
+		feedSubscriptions = user.GetFeedSubscriptions()
+	}
 	if len(feedSubscriptions) > 0 {
 		fetchJobs.Go(func() error {
 			// Get subscription stats.
@@ -322,13 +324,16 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 					subscription.Stats = stats[subscription.GetID()]
 				}
 			}
-			results.FeedSubscriptions = feedSubscriptions
-
 			return nil
 		})
 	}
 
-	searchSubscriptions := subscriptions.GetSearchSubscriptions()
+	var searchSubscriptions SearchSubscriptions
+	if len(ids) > 0 {
+		searchSubscriptions = user.GetSearchSubscriptions().FilterByIDs(ids...)
+	} else {
+		searchSubscriptions = user.GetSearchSubscriptions()
+	}
 	if len(searchSubscriptions) > 0 {
 		fetchJobs.Go(func() error {
 			// TODO: do something here
@@ -338,9 +343,18 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 
 	// Wait for all data fetching to complete and process any error.
 	err = fetchJobs.Wait()
+	for s := range slices.Values(feedSubscriptions) {
+		results = append(results, s)
+	}
+	for s := range slices.Values(searchSubscriptions) {
+		results = append(results, s)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve subscriptions: %w", err)
 	}
+
+	godump.Dump(len(results))
+
 	return results, nil
 }
 
@@ -415,7 +429,7 @@ func GetFeedSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscription
 			continue
 		}
 
-		stats[user.GetSubscriptions().GetFeedSubscriptions().GetByFeedID(feedID).GetID()] = SubscriptionStats{
+		stats[user.GetFeedSubscriptions().GetByFeedID(feedID).GetID()] = SubscriptionStats{
 			AvgDailyUpdates: float64(*updatesResult.Value),
 		}
 	}
@@ -487,7 +501,7 @@ func getSubscriptionUnreadCounts(ctx context.Context, dataAPI DataAPI, subscript
 			slogctx.FromCtx(ctx).Debug("Unable to extract feed ID for aggregation", slog.Any("feed_id", feed.Key))
 			continue
 		}
-		stats[user.GetSubscriptions().GetFeedSubscriptions().GetByFeedID(feedID).GetID()] = feed.DocCount
+		stats[user.GetFeedSubscriptions().GetByFeedID(feedID).GetID()] = feed.DocCount
 	}
 	return stats, nil
 }
@@ -542,7 +556,7 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 	}
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	subscriptions := user.GetSubscriptions(FilterByIDs(filters.Subscriptions...)).GetFeedSubscriptions()
+	subscriptions := user.GetFeedSubscriptions().FilterByIDs(filters.Subscriptions...)
 	// Return early if there the user has no subscriptions (i.e., new user).
 	if len(subscriptions) == 0 {
 		return nil, "", nil
@@ -645,7 +659,7 @@ func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID
 	if err != nil {
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}
-	subscriptions := user.GetSubscriptions().GetFeedSubscriptions()
+	subscriptions := user.GetFeedSubscriptions()
 
 	// Build the More Like This query.
 	// TODO: tweak values and fields for optimum results matching...
@@ -692,7 +706,7 @@ func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms stri
 	// Suggestions query will match in title/description/categories across all feed subscriptions.
 	itemsQuery := query.Bool(
 		query.Filter(
-			query.Terms("feed_id", user.GetSubscriptions().GetFeedSubscriptions().GetFeedIDs()...),
+			query.Terms("feed_id", user.GetFeedSubscriptions().GetFeedIDs()...),
 		),
 		query.Must(
 			query.Bool(
@@ -740,17 +754,17 @@ func BuildItemsQuery(ctx context.Context, filters Filters, subscriptionIDs ...Su
 	}
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	subscriptions := user.GetSubscriptions(FilterByIDs(subscriptionIDs...))
+	subscriptions := user.GetFeedSubscriptions().FilterByIDs(subscriptionIDs...)
 	return query.Bool(
 		query.BoolQueryName("get_items"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", subscriptions.GetFeedSubscriptions().GetFeedIDs()...),
+			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
 			// Must match any of the given categories.
 			query.Terms("categories.raw", filters.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, filters.GetView(), subscriptions.GetFeedSubscriptions())...),
+				query.Should(BuildSubscriptionQueries(user, filters.GetView(), subscriptions)...),
 			),
 		),
 	), nil
@@ -808,12 +822,10 @@ func BuildSearchResultsQuery(user *User, request *SearchRequest) query.Option {
 		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
 	}
 
-	subscriptions := user.GetSubscriptions(FilterByIDs(request.Subscriptions...))
-
 	return query.Bool(
 		query.Filter(
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, request.View, subscriptions.GetFeedSubscriptions())...),
+				query.Should(BuildSubscriptionQueries(user, request.View, user.GetFeedSubscriptions().FilterByIDs(request.Subscriptions...))...),
 			),
 			query.Bool(
 				query.Should(

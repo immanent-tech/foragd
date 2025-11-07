@@ -263,7 +263,7 @@ components:
             subscriptions:
               description: >
                 is a list of the states of all subscriptions the user has.
-              x-go-type: 'Subscriptions'
+              x-go-type: '[]*Subscription'
               x-oapi-codegen-extra-tags:
                 validate: 'omitempty,dive'
             item_states:
@@ -518,6 +518,7 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'user_nickname'
+            validate: 'required'
           x-go-type-skip-optional-pointer: true
         categories:
           description: >
@@ -761,6 +762,28 @@ components:
           $ref: '#/components/schemas/UserMessage'
         error:
           x-go-type: error
+    SearchSubscriptionRequest:
+      description: >
+        represents a request to create a search subscription.
+      type: object
+      required:
+        - search
+      properties:
+        search:
+          allOf:
+            - $ref: '#/components/schemas/SearchRequest'
+          x-oapi-codegen-extra-tags:
+            form: 'search'
+        customisation:
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionCustomisation'
+          x-oapi-codegen-extra-tags:
+            form: 'customisation'
+        settings:
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionSettings'
+          x-oapi-codegen-extra-tags:
+            form: 'settings'
     EditSubscriptionRequest:
       description: >
         is the request details for editing a subscription.
@@ -929,6 +952,16 @@ components:
         - published_within
         - timezone
       properties:
+        id:
+          description: >
+            will be a subscription ID if the user has created a SearchSubscription for this request.
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionID'
+          x-go-name: ID
+          x-oapi-codegen-extra-tags:
+            json: '-'
+            form: 'subscription_id'
+            validate: 'omitempty,startswith=sub_'
         text:
           description: >
             is the text to search.

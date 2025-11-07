@@ -102,7 +102,7 @@ func (u *User) GetSettings() *UserSettings {
 }
 
 // GetSubscriptions retrieves a slice of the user subscriptions.
-func (u *User) GetSubscriptions(options ...subscriptionFilterOption) Subscriptions {
+func (u *User) GetSubscriptions(options ...subscriptionFilterOption) []*Subscription {
 	subscriptions := u.Subscriptions
 	// Apply filtering options.
 	for option := range slices.Values(options) {
@@ -111,11 +111,11 @@ func (u *User) GetSubscriptions(options ...subscriptionFilterOption) Subscriptio
 	return subscriptions
 }
 
-type subscriptionFilterOption func(Subscriptions) Subscriptions
+type subscriptionFilterOption func([]*Subscription) []*Subscription
 
 // FilterByIDs option will filter the subscriptions by the given IDs.
 func FilterByIDs(ids ...SubscriptionID) subscriptionFilterOption {
-	return func(s Subscriptions) Subscriptions {
+	return func(s []*Subscription) []*Subscription {
 		if len(ids) == 0 {
 			return s
 		}
@@ -129,21 +129,63 @@ func FilterByIDs(ids ...SubscriptionID) subscriptionFilterOption {
 
 // SortByTitle sorts the subscriptions by their title.
 func SortByTitle() subscriptionFilterOption {
-	return func(s Subscriptions) Subscriptions {
+	return func(s []*Subscription) []*Subscription {
 		sort.Slice(s, func(i, j int) bool { return s[i].GetTitle() < s[j].GetTitle() })
 		return s
 	}
 }
 
+func (u *User) GetSubscriptionByID(id SubscriptionID) *Subscription {
+	if idx := slices.IndexFunc(u.GetSubscriptions(), func(e *Subscription) bool {
+		return e.GetID() == id
+	}); idx != -1 {
+		return u.GetSubscriptions()[idx]
+	}
+	return nil
+}
+
+// GetFeedSubscriptions returns a new slice containing just the FeedSubscription subscriptions.
+func (u *User) GetFeedSubscriptions() FeedSubscriptions {
+	feedSubscriptions := make(FeedSubscriptions, 0, len(u.GetSubscriptions()))
+	for anySubscription := range slices.Values(u.GetSubscriptions()) {
+		if anySubscription.GetType() == SubscriptionTypeFeed {
+			subscription, err := anySubscription.Data.AsFeedSubscription()
+			if err != nil {
+				continue
+			}
+			subscription.Metadata = anySubscription.Metadata
+			subscription.Favorite = anySubscription.Favorite
+			feedSubscriptions = append(feedSubscriptions, &subscription)
+		}
+	}
+	return feedSubscriptions
+}
+
+// GetSearchSubscriptions returns a new slice containing just the SearchSubscription subscriptions.
+func (u *User) GetSearchSubscriptions() SearchSubscriptions {
+	searchSubscriptions := make(SearchSubscriptions, 0, len(u.GetSubscriptions()))
+	for anySubscription := range slices.Values(u.GetSubscriptions()) {
+		if anySubscription.GetType() == SubscriptionTypeSearch {
+			subscription, err := anySubscription.Data.AsSearchSubscription()
+			if err != nil {
+				continue
+			}
+			subscription.Metadata = anySubscription.Metadata
+			searchSubscriptions = append(searchSubscriptions, &subscription)
+		}
+	}
+	return searchSubscriptions
+}
+
 // IsSubscribedToFeed returns a boolean indicating whether the user is subscribed to a feed with the given id.
 func (u *User) IsSubscribedToFeed(id FeedID) bool {
-	return u.GetSubscriptions().GetFeedSubscriptions().GetByID(id) != nil
+	return u.GetFeedSubscriptions().GetByID(id) != nil
 }
 
 // UpdateFeedSubscription updates a FeedSubscription for the user.
 func (u *User) UpdateFeedSubscription(update *FeedSubscription) error {
 	// TODO: validation?
-	subscription := u.GetSubscriptions().GetByID(update.GetID())
+	subscription := u.GetSubscriptionByID(update.GetID())
 	subscription.Metadata = update.Metadata
 	subscription.Metadata.UpdatedAt = time.Now().UTC()
 	err := subscription.Data.FromFeedSubscription(*update)
@@ -233,7 +275,7 @@ func (u *User) GetItemState(subscriptionID SubscriptionID, itemID ItemID) *Artic
 	// If an item doesn't have an explicit state, its state should reflect the subscription state.
 	return &ArticleState{
 		Read:      false,
-		UpdatedAt: u.GetSubscriptions().GetByID(subscriptionID).Metadata.UpdatedAt,
+		UpdatedAt: u.GetSubscriptionByID(subscriptionID).Metadata.UpdatedAt,
 	}
 }
 

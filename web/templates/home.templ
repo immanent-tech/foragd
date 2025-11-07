@@ -16,7 +16,7 @@ import (
 type Home struct {
 	User           *models.User
 	LatestArticles models.Articles
-	Subscriptions  models.FeedSubscriptions
+	Subscriptions  models.Subscriptions
 	TopCategories  models.CategoryCounts
 	TopArticles    models.Articles
 	RareCategories models.CategoryCounts
@@ -69,7 +69,7 @@ templ (page *Home) Template() {
 								<p class="ml-16 text-sm font-medium ">Unread Articles</p>
 							</dt>
 							<dd class="ml-16 flex items-baseline">
-								<p class="text-2xl font-semibold">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</p>
+								<p class="text-2xl font-semibold">{ strconv.Itoa(models.GetTotalUnreadCount(page.Subscriptions...)) }</p>
 							</dd>
 						}
 					</div>
@@ -281,13 +281,13 @@ templ NewUserHome() {
 			<div>
 				<h3 class="text-sm font-medium ">
 					<a
-						hx-get="/user/subscription/add"
+						hx-get="/user/subscription/add/feed"
 						hx-target={ ContentID.Target() }
 						hx-push-url="true"
 						class="link link-hover focus:outline-hidden"
 					>
 						<span aria-hidden="true" class="absolute inset-0"></span>
-						<span>Add a subscription</span>
+						<span>Add a feed subscription</span>
 						<span aria-hidden="true">&rarr;</span>
 					</a>
 				</h3>

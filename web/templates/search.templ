@@ -91,7 +91,7 @@ templ SearchSuggestions(request *models.SearchRequest, articles models.Articles)
 		</a>
 		<a
 			href="#"
-			hx-get="/user/subscription/add"
+			hx-get="/user/subscription/add/feed"
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
 			hidden
@@ -99,7 +99,7 @@ templ SearchSuggestions(request *models.SearchRequest, articles models.Articles)
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 		>
 			@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-			<span class="ml-3 flex-auto truncate">Add subscription</span>
+			<span class="ml-3 flex-auto truncate">Add a feed subscription</span>
 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 		</a>
 	</el-command-group>
@@ -148,8 +148,8 @@ templ SearchSuggestions(request *models.SearchRequest, articles models.Articles)
 
 templ SearchResults(request *models.SearchRequest, articles models.Articles, pagination models.Pagination) {
 	@Main() {
-		// Dynamic title with view and sort state.
 		<div class="flex items-center justify-between mt-4">
+			// Page title.
 			<div class="min-w-0 flex-1">
 				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">
 					Search Results
@@ -162,65 +162,43 @@ templ SearchResults(request *models.SearchRequest, articles models.Articles, pag
 					@tabler.DotsVertical(i.Props{Class: "size-6"})
 				</button>
 				<el-menu anchor="bottom end" popover class="context-menu-base">
-					<div class="py-1">
-						// Mark all subscriptions action.
-						@NewLink(
-							WithHXMethod(http.MethodPost, "/list/articles/mark"),
-							WithHXTarget(ContentID.Target()),
-							WithHXInclude("#content-filters,[name='csrf_token']"),
-							WithClasses("context-menu-item-base"),
-						) {
-							if models.PageFiltersFromCtx(ctx,"/list/articles").GetView() == models.ViewUnread {
-								@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-								<span class="sr-only">Mark All Read</span>
-								Mark all Read
-							} else {
-								@tabler.MailFilled(i.Props{Class: "size-4"})
-								<span class="sr-only">Mark All Unread</span>
-								Mark all Unread
-							}
-						}
-						if len(articles.GetSubscriptionIDs()) == 1 {
+					if request.ID != "" {
+						<div class="py-1">
+							// Edit action.
 							@NewLink(
-								WithHXMethod(http.MethodGet, "/edit/subscription/"+articles.GetSubscriptionIDs()[0]),
+								WithHXMethod(http.MethodGet, "/edit/subscription/"+request.ID),
 								WithHXTarget(ContentID.Target()),
+								WithHXSwap("innerHTML show:top"),
 								WithHXPushURL(),
 								WithClasses("context-menu-item-base"),
 							) {
 								@tabler.Edit(i.Props{Class: "size-4"})
 								Edit Subscription
 							}
-						}
-					</div>
+						</div>
+					} else {
+						<div class="py-1">
+							@NewLink(
+								WithHXMethod(http.MethodGet, "/user/subscription/add/search"),
+								WithHXTarget(ContentID.Target()),
+								WithHXInclude("#search-filters"),
+								WithHXPushURL(),
+								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
+							) {
+								@tabler.Plus(i.Props{Class: "size-4"})
+								Add Subscription
+							}
+						</div>
+					}
 				</el-menu>
 			</el-dropdown>
 		</div>
-		// <div class="py-6 mt-4">
-		// 	<dt>
-		// 		<button type="button" command="--toggle" commandfor="faq-0" class="flex w-full items-start justify-between text-left text-base-content">
-		// 			<span class="text-base/7 font-semibold">Filters</span>
-		// 			<span class="ml-6 flex h-7 items-center">
-		// 				@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
-		// 				@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
-		// 			</span>
-		// 		</button>
-		// 	</dt>
-		// 	<el-disclosure id="faq-0" hidden class="contents">
-		// 		<dd id="current-search-filters" class="mt-2 pr-12">
-		// 			@SearchFilters(request) {
-		// 				<button type="submit" class="btn btn-sm btn-primary">Update</button>
-		// 			}
-		// 		</dd>
-		// 	</el-disclosure>
-		// </div>
-		// Show results.
+		// Watch for updates.
 		<div id="update-notifications" sse-connect={ "/search/updates?" + request.Query() } sse-swap="message" class="toast toast-center z-50"></div>
+		// Articles grid.
 		<section class="mt-4">
 			@Grid() {
 				@ResultsList(articles, pagination)
-				// for article := range slices.Values(articles) {
-				// 	@ArticleCard(article)
-				// }
 			}
 		</section>
 	}
@@ -324,30 +302,33 @@ templ SearchFilters(attributes templ.Attributes) {
 					// Include subscriptions filter.
 					<div class="sm:col-span-full">
 						<label for="subscriptions-filter-select" class="block text-sm/6 font-medium">In subscriptions</label>
-						<select
-							id="subscriptions-filter-select"
-							hx-post="/search/filter/subscription"
-							hx-target="next #subscription-filters"
-							hx-swap="beforeend"
-							hx-push-url="false"
-							name="subscription-filter-select"
-							class="select select-sm w-full bg-base-300"
-							_="on htmx:afterRequest halt"
-						>
-							<option disabled selected>Choose...</option>
-							for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
-								<option value={ s.GetID() + "|" + s.GetTitle() }>{ s.GetTitle() }</option>
-							}
-						</select>
-						<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
-							<div class="mt-2 sm:mt-0">
-								<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
-									for id := range slices.Values(request.Subscriptions) {
-										{{ subscription := user.GetSubscriptions().GetByID(id) }}
-										if subscription != nil {
-											@SubscriptionFilter(id, subscription.GetTitle())
+						<div class="mt-2">
+							<select
+								id="subscriptions-filter-select"
+								hx-post="/search/filter/subscription"
+								hx-target="next #subscription-filters"
+								hx-vals='{"inputName": "subscriptions"}'
+								hx-swap="beforeend"
+								hx-push-url="false"
+								name="subscription-filter-select"
+								class="select select-sm w-full bg-base-300"
+								_="on htmx:afterRequest halt"
+							>
+								<option disabled selected>Choose...</option>
+								for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
+									<option value={ s.GetID() + "|" + s.GetTitle() }>{ s.GetTitle() }</option>
+								}
+							</select>
+							<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
+								<div class="mt-2 sm:mt-0">
+									<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
+										for id := range slices.Values(request.Subscriptions) {
+											{{ subscription := user.GetFeedSubscriptions().GetByID(id) }}
+											if subscription != nil {
+												@SubscriptionFilter(id, subscription.GetTitle(), "subscriptions")
+											}
 										}
-									}
+									</div>
 								</div>
 							</div>
 						</div>
@@ -496,10 +477,10 @@ templ SearchFilters(attributes templ.Attributes) {
 	// </el-dialog>
 }
 
-templ SubscriptionFilter(id, name string) {
+templ SubscriptionFilter(id, name, inputName string) {
 	<span id={ id } class="m-1 inline-flex items-center rounded-full border border-base-content/90 bg-base-300 py-1.5 pr-2 pl-3 text-sm font-medium text-base-content">
 		<span>{ name }</span>
-		<input type="hidden" name="subscriptions" value={ id }/>
+		<input type="hidden" name={ inputName } value={ id }/>
 		<button type="button" _={ "on click remove #" + id } class="ml-1 inline-flex size-4 shrink-0 rounded-full p-1">
 			<span class="sr-only">Remove filter for { name }</span>
 			@tabler.X(i.Props{Class: "size-2"})

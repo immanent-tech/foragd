@@ -22,7 +22,7 @@ import (
 )
 
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
-func (a *API) GetSearchSuggestions() http.HandlerFunc {
+func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -36,7 +36,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 			return
 		}
 		// Get results.
-		articles, err := models.GetSearchSuggestions(req.Context(), a.Elastic, request.Text)
+		articles, err := models.GetSearchSuggestions(req.Context(), api, request.Text)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Debug("Get search suggestions failed.",
 				slog.Any("error", err))
@@ -54,7 +54,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 }
 
 // GetSearchResults performs a search with the user input and renders a page with the search results.
-func (a *API) GetSearchResults() http.HandlerFunc {
+func GetSearchResults(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		pageTitle := templates.GeneratePageTitle("Search Results")
 		// Extract the search request.
@@ -66,14 +66,19 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
+		// Extract the current pagination value.
 		pagination := req.FormValue(models.ParamPagination)
-
+		// Extract any subscription ID for the search and add to the request object.
+		subscriptionID := req.FormValue(models.ParamSubscriptionID)
+		if subscriptionID != "" {
+			request.ID = subscriptionID
+		}
+		// Embed the request in the context.
 		ctx := models.SearchRequestToCtx(req.Context(), *request)
-
+		// Find subscriptions and articles that match search request.
 		var articles models.Articles
 		var template templ.Component
-		// Find subscriptions and articles that match search request.
-		articles, pagination, err = models.GetSearchResults(ctx, a.Elastic, request, pagination)
+		articles, pagination, err = models.GetSearchResults(ctx, api, request, pagination)
 		if err != nil {
 			msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
 			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
@@ -102,7 +107,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			if IsHTMX(req) {
 				template = templ.Join(template, templates.SearchFilters(templ.Attributes{"hx-swap-oob": "true"}))
 			}
-			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
+			res.Header().Add(htmx.HeaderPushURL, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		}
 		return nil
@@ -134,11 +139,13 @@ func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 func AddSubscriptionFilter() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		data := req.FormValue("subscription-filter-select")
-		if data != "" {
-			values := strings.Split(data, "|")
-			renderPartial(templates.SubscriptionFilter(values[0], values[1])).ServeHTTP(res, req)
+		inputName := req.FormValue("inputName")
+		if data == "" || inputName == "" {
+			res.WriteHeader(http.StatusNoContent)
+			return nil
 		}
-		res.WriteHeader(http.StatusOK)
+		values := strings.Split(data, "|")
+		renderPartial(templates.SubscriptionFilter(values[0], values[1], inputName)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

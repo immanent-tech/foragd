@@ -87,7 +87,7 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 		return nil, fmt.Errorf("unable to generate articles: %w", err)
 	}
 	// Retrieve subscription customisations for feed subscriptions.
-	subscriptions := user.GetSubscriptions().GetFeedSubscriptions().FilterByFeedIDs(items.GetFeedIDs()...)
+	subscriptions := user.GetFeedSubscriptions().FilterByFeedIDs(items.GetFeedIDs()...)
 	// Create articles from the items.
 	articles := make(Articles, 0, len(items))
 	for item := range slices.Values(items) {

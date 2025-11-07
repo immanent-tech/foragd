@@ -108,7 +108,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = ViewSubscriptionLink(subscription).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = viewFeedSubscriptionLink(subscription).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

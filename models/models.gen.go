@@ -330,7 +330,7 @@ type EditSubscriptionRequest struct {
 	ImageErr error `form:"-" json:"-"`
 
 	// Nickname is an optional alias or label for an object.
-	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero"`
+	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero" validate:"required"`
 
 	// NicknameErr is an error associated with the nickname field.
 	NicknameErr error `form:"-" json:"-"`
@@ -639,6 +639,9 @@ type SearchRequest struct {
 	// Categories a list of search terms for categories.
 	Categories string `form:"categories" json:"categories,omitempty,omitzero"`
 
+	// ID will be a subscription ID if the user has created a SearchSubscription for this request.
+	ID SubscriptionID `form:"subscription_id" json:"-" validate:"omitempty,startswith=sub_"`
+
 	// PublishedWithin represents a time range within which the objects should be published
 	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within" validate:"required,oneof=all_time last_hour last_12hours last_day last_week last_month"`
 
@@ -668,6 +671,13 @@ type SearchSubscription struct {
 
 	// Stats contains stats about a subscription.
 	Stats SubscriptionStats `json:"-"`
+}
+
+// SearchSubscriptionRequest represents a request to create a search subscription.
+type SearchSubscriptionRequest struct {
+	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`
+	Search        SearchRequest             `form:"search" json:"search"`
+	Settings      SubscriptionSettings      `form:"settings" json:"settings,omitempty,omitzero"`
 }
 
 // Sort contains information on sorting objects.
@@ -737,7 +747,7 @@ type SubscriptionCustomisation struct {
 	Image SubscriptionCustomisation_Image `json:"image,omitempty,omitzero"`
 
 	// Nickname is an optional alias or label for an object.
-	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero"`
+	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero" validate:"required"`
 }
 
 // SubscriptionCustomisation_Image is a custom image to represent the object.
@@ -826,7 +836,7 @@ type User struct {
 	Settings UserSettings `json:"settings,omitempty,omitzero"`
 
 	// Subscriptions is a list of the states of all subscriptions the user has.
-	Subscriptions Subscriptions `json:"subscriptions,omitempty,omitzero" validate:"omitempty,dive"`
+	Subscriptions []*Subscription `json:"subscriptions,omitempty,omitzero" validate:"omitempty,dive"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`

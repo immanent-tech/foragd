@@ -15,60 +15,65 @@ import (
 	"time"
 )
 
-type subscription interface {
-	object[models.SubscriptionID]
-
-	GetStats() *models.SubscriptionStats
-}
-
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
-templ SubscriptionCard(s subscription) {
+templ SubscriptionCard(s models.AnySubscription) {
 	{{ user, _ := models.UserFromCtx(ctx) }}
 	<li id={ s.GetID() }>
-		<div class={ "card-base", templ.KV("opacity-50",!s.GetStats().IsUnread()) }>
+		<div class={ "card-base", templ.KV("opacity-50",s.GetType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread()) }>
 			<div class="flex items-center card-section">
 				<div class="flex flex-1">
-					@ViewSubscriptionLink(s)
+					switch s.GetType() {
+						case models.SubscriptionTypeFeed:
+							@viewFeedSubscriptionLink(s)
+						case models.SubscriptionTypeSearch:
+							@viewSearchSubscriptionLink(s)
+					}
 				</div>
 				<div class="flex flex-none">
 					@ContextMenu(s.GetTitle() + " Actions") {
 						// View action.
-						@NewLink(
-							WithCustomAttribute("href", s.GetLink()),
-							WithCustomAttribute("rel", "noopener"),
-							WithCustomAttribute("target", "_blank"),
-							WithClasses("context-menu-item-base"),
-						) {
-							@tabler.ExternalLink(i.Props{Class: "size-4"})
-							Feed Website
-						}
-						// Mark action.
-						<form id={ "mark-" + s.GetID() }>
-							// MarkURL returns the app URL for marking the subscription.
-							{{ var markURL string }}
-							if s.GetStats().IsUnread() {
-								{{ markURL = "/mark/subscription/" + s.GetID() + "/read" }}
-							} else {
-								{{ markURL = "/mark/subscription/" + s.GetID() + "/unread" }}
-							}
+						if s.GetType() == models.SubscriptionTypeFeed {
 							@NewLink(
-								WithHXMethod(http.MethodPost, markURL),
-								WithHXInclude("[name='csrf_token']"),
-								WithHXTarget("#"+s.GetID()),
-								WithHXSwap("outerHTML"),
+								WithCustomAttribute("href", s.GetLink()),
+								WithCustomAttribute("rel", "noopener"),
+								WithCustomAttribute("target", "_blank"),
 								WithClasses("context-menu-item-base"),
 							) {
-								switch s.GetStats().IsUnread() {
-									case true:
-										@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-										Mark Read
-									case false:
-										@tabler.MailFilled(i.Props{Class: "size-4"})
-										Mark Unread
-								}
+								@tabler.ExternalLink(i.Props{Class: "size-4"})
+								Feed Website
 							}
-							// @MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "context-menu-item-base")
-						</form>
+							// Mark action.
+							<form id={ "mark-" + s.GetID() }>
+								// MarkURL returns the app URL for marking the subscription.
+								{{ var markURL string }}
+								if s.GetStats().IsUnread() {
+									{{ markURL = "/mark/subscription/" + s.GetID() + "/read" }}
+								} else {
+									{{ markURL = "/mark/subscription/" + s.GetID() + "/unread" }}
+								}
+								@NewLink(
+									WithHXMethod(http.MethodPost, markURL),
+									WithHXInclude("[name='csrf_token']"),
+									WithHXTarget("#"+s.GetID()),
+									WithHXSwap("outerHTML"),
+									WithClasses("context-menu-item-base"),
+								) {
+									switch s.GetStats().IsUnread() {
+										case true:
+											@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+											Mark Read
+										case false:
+											@tabler.MailFilled(i.Props{Class: "size-4"})
+											Mark Unread
+									}
+								}
+								// @MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "context-menu-item-base")
+							</form>
+							// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+							<div id={ "favorite_" + s.GetID() }>
+								@ToggleFavorite(s.GetID(), string(models.ObjectTypeSubscription), s.IsFavorite())
+							</div>
+						}
 						// Edit action.
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
@@ -80,10 +85,6 @@ templ SubscriptionCard(s subscription) {
 							@tabler.Edit(i.Props{Class: "size-4"})
 							Edit Subscription
 						}
-						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-						<div id={ "favorite_" + s.GetID() }>
-							@ToggleFavorite(s.GetID(), string(models.ObjectTypeSubscription), s.IsFavorite())
-						</div>
 						// Unsubscribe action.
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/remove/subscription/"+s.GetID()),
@@ -127,28 +128,35 @@ templ SubscriptionCard(s subscription) {
 					</div>
 				</div>
 			}
-			// Display some subscription metrics.
-			<dl class="-my-3 px-6 card-section">
-				if user.GetSettings().ShowUnreadCounts {
+			if s.GetType() == models.SubscriptionTypeFeed {
+				// Display some subscription metrics.
+				<dl class="-my-3 px-6 card-section">
+					if user.GetSettings().ShowUnreadCounts {
+						<div class="flex justify-between gap-x-4 text-sm/6">
+							<dt class="">Unread Count</dt>
+							<dd class="text-base-content/90">{ s.GetStats().UnreadTotal() }</dd>
+						</div>
+					}
 					<div class="flex justify-between gap-x-4 text-sm/6">
-						<dt class="">Unread Count</dt>
-						<dd class="text-base-content/90">{ s.GetStats().UnreadTotal() }</dd>
+						<dt class="">Update frequency</dt>
+						<dd class="text-base-content/90">{ s.GetStats().DailyUpdateFrequency() }</dd>
 					</div>
-				}
-				<div class="flex justify-between gap-x-4 text-sm/6">
-					<dt class="">Update frequency</dt>
-					<dd class="text-base-content/90">{ s.GetStats().DailyUpdateFrequency() }</dd>
+					<div class="flex justify-between gap-x-4 text-sm/6">
+						<dt class="">Last update</dt>
+						<dd class="text-base-content/90">{ humanize.Time(s.GetUpdatedDate()) }</dd>
+					</div>
+				</dl>
+			}
+			if s.GetType() == models.SubscriptionTypeSearch {
+				<div class="flex justify-center">
+					<p>Search</p>
 				</div>
-				<div class="flex justify-between gap-x-4 text-sm/6">
-					<dt class="">Last update</dt>
-					<dd class="text-base-content/90">{ humanize.Time(s.GetUpdatedDate()) }</dd>
-				</div>
-			</dl>
+			}
 		</div>
 	</li>
 }
 
-templ ViewSubscriptionLink(s subscription) {
+templ viewFeedSubscriptionLink(s models.AnySubscription) {
 	{{ overrides := map[string]string{models.ParamSortBy: string(models.SortByLastUpdated), "subscriptions": s.GetID()} }}
 	if s.GetStats().IsUnread() {
 		{{ overrides[models.ParamView] = string(models.ViewUnread) }}
@@ -197,24 +205,64 @@ templ ViewSubscriptionLink(s subscription) {
 	}
 }
 
-templ SubscriptionsGrid(subscriptions models.FeedSubscriptions, pagination models.Pagination) {
+templ viewSearchSubscriptionLink(s models.AnySubscription) {
+	{{ subscription, _ := s.(*models.SearchSubscription) }}
+	<form>
+		<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
+		@NewLink(
+			WithHXMethod(http.MethodPost, "/search"),
+			WithHXInclude("[name='csrf_token']"),
+			WithHXValsJS(subscription.Search.HXVals()),
+			WithHXTarget(ContentID.Target()),
+			WithHXPushURL(),
+			WithHXSwap("innerHTML show:top"),
+			WithClasses("flex", "items-center", "gap-x-4", "hover:text-accent"),
+		) {
+			<div class="flex items-center">
+				<div class="mr-4 shrink-0 self-center">
+					// Generate a thumbnail to display next to the title.
+					if img := s.GetImage(); img != nil {
+						// If the source has an image, use that as the avatar.
+						<div class="avatar">
+							<div class="rounded-box size-12">
+								<img
+									src={ "/img-proxy/48x48/" + img.GetURL() }
+									width="48"
+									height="48"
+									if img.GetTitle() != "" {
+										alt={ img.GetTitle() }
+									}
+								/>
+							</div>
+						</div>
+					} else {
+						// Otherwise, take the first letter of the title and create a placeholder avatar.
+						<div class="avatar avatar-placeholder">
+							<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
+								<span class="text-3xl capitalize">{ s.GetTitle()[0:1] }</span>
+							</div>
+						</div>
+					}
+				</div>
+				<div>
+					<h4 class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
+				</div>
+			</div>
+		}
+	</form>
+}
+
+templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...models.AnySubscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	@Main() {
 		<div class="flex items-center justify-between mt-4">
-			// Dynamic title containing view and sort state.
+			// Page heading.
 			<div class="min-w-0 flex-1">
 				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">
-					// { filters.GetView() }
 					Subscriptions
-					// switch  {
-					// 	case filters.GetSort() == models.SortLastUpdatedDesc:
-					// 		Newest First
-					// 	case filters.GetSort() == models.SortLastUpdatedAsc:
-					// 		Oldest First
-					// }
 				</h2>
 			</div>
-			// Actions menu.
+			// Subscriptions actions menu.
 			<el-dropdown class="inline-block flex-none">
 				<button class="inline-flex flex-col items-center">
 					<span class="sr-only">Subscriptions Actions</span>
@@ -242,7 +290,7 @@ templ SubscriptionsGrid(subscriptions models.FeedSubscriptions, pagination model
 					</div>
 					<div class="py-1">
 						@NewLink(
-							WithHXMethod(http.MethodGet, "/user/subscription/add"),
+							WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
 							WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
@@ -268,16 +316,16 @@ templ SubscriptionsGrid(subscriptions models.FeedSubscriptions, pagination model
 			}
 		</div>
 		<div id="update-notifications" sse-connect={ "/list/subscriptions/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
-		@FilterControls(subscriptions.GetCategoryCounts(), filters)
+		@FilterControls(models.GetCategoryCounts(subscriptions...), filters)
 		<section class="mt-4">
 			@Grid() {
-				@SubscriptionsList(subscriptions, pagination)
+				@SubscriptionsList(pagination, subscriptions...)
 			}
 		</section>
 	}
 }
 
-templ SubscriptionsList(subscriptions models.FeedSubscriptions, pagination models.Pagination) {
+templ SubscriptionsList(pagination models.Pagination, subscriptions ...models.AnySubscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	for subscription := range slices.Values(subscriptions) {
 		@SubscriptionCard(subscription)
@@ -318,7 +366,7 @@ templ SubscriptionsDockActions() {
 				</div>
 				<div class="py-1">
 					@NewLink(
-						WithHXMethod(http.MethodGet, "/user/subscription/add"),
+						WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
 						WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
@@ -356,7 +404,7 @@ templ SubscriptionsSidebarActions() {
 	// Add new subscription action.
 	<li>
 		@NewLink(
-			WithHXMethod(http.MethodGet, "/user/subscription/add"),
+			WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
 			WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
@@ -474,7 +522,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			</form>
 			// Categories
 			{{ categoryMgmtPath := "/user/subscription/category" }}
-			@CategoryManagement(categoryMgmtPath, nil, request.Categories)
+			@CategoryManagement(categoryMgmtPath, "user_categories", nil, request.Categories)
 			// Action buttons.
 			<div class="flex flex-1 items-center justify-end gap-x-6">
 				<div id="processing" class="htmx-indicator">
@@ -488,7 +536,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 	}
 }
 
-templ EditSubscriptionSuccessNotification(subscription subscription) {
+templ EditSubscriptionSuccessNotification(subscription models.AnySubscription) {
 	@Notification(&models.UserMessage{
 		Status:  models.UserMessageStatusSuccess,
 		Summary: subscription.GetTitle() + " updated",
@@ -506,8 +554,8 @@ templ EditSubscriptionSuccessNotification(subscription subscription) {
 	}
 }
 
-// AddSubscription is a page for adding a new subscription.
-templ AddSubscription(request *models.AddFeedSubscriptionRequest) {
+// AddFeedSubscription is a page for adding a new subscription to a feed.
+templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 	@Main() {
 		<div class="min-w-0 flex-1 pb-8">
 			<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">Add A Subscription</h2>
@@ -525,7 +573,7 @@ templ AddSubscription(request *models.AddFeedSubscriptionRequest) {
 		<div class="space-y-8">
 			<form
 				id="add-subscription"
-				hx-post="/user/subscription/add"
+				hx-post="/user/subscription/add/feed"
 				hx-swap="none"
 				hx-include="[name='user_categories'],[name='csrf_token']"
 				hx-indicator="#processing"
@@ -579,7 +627,7 @@ templ AddSubscription(request *models.AddFeedSubscriptionRequest) {
 			</form>
 			// Categories
 			{{ categoryMgmtPath := "/user/subscription/category" }}
-			@CategoryManagement(categoryMgmtPath, nil, request.Categories)
+			@CategoryManagement(categoryMgmtPath, "user_categories", nil, request.Categories)
 			// Action buttons.
 			<div class="flex flex-1 items-center justify-end gap-x-6">
 				<div id="processing" class="htmx-indicator">
@@ -588,6 +636,226 @@ templ AddSubscription(request *models.AddFeedSubscriptionRequest) {
 				</div>
 				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
 				<button type="submit" form="add-subscription" class="btn btn-primary btn-soft">Add</button>
+			</div>
+		</div>
+	}
+}
+
+// AddSearchSubscription is a page for adding a new search subscription.
+templ AddSearchSubscription(request *models.SearchSubscriptionRequest) {
+	@manageSearchSubscription(request, "add")
+}
+
+// EditSearchSubscription is a page for editing a search subscription.
+templ EditSearchSubscription(request *models.SearchSubscriptionRequest) {
+	@manageSearchSubscription(request, "add")
+}
+
+templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action string) {
+	@Main() {
+		<div class="min-w-0 flex-1 pb-8">
+			switch action {
+				case "add":
+					<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">Add A Search Subscription</h2>
+				case "edit":
+					<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">{ "Editing "+request.Customisation.Nickname }</h2>
+			}
+		</div>
+		// if request.HasError() {
+		// 	<div role="alert" class="alert alert-error alert-outline mt-12">
+		// 		<div class="px-4 py-5 sm:p-6 space-y-4">
+		// 			<span class="gap-y-2">
+		// 				<p class="font-semibold text-base">Invalid Details</p>
+		// 				<p class="text-sm">There is a problem with the details. Please check and try again.</p>
+		// 			</span>
+		// 		</div>
+		// 	</div>
+		// }
+		<div class="flex items-center border-b border-base-content/60">
+			<h3 class="text-base font-semibold">Search Filters</h3>
+			// Help dialog.
+			<div class="ml-4">
+				@HelpPopover("filter-operators-help", "bottom end") {
+					<div tabindex="0" class="card-body card-sm bg-base-300">
+						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+						<ul class="gap-y-2">
+							<li>+ signifies AND operation (i.e., food AND beverages)</li>
+							<li>| signifies OR operation (i.e., food OR beverages)</li>
+							<li>- negates a the word (i.e., NOT alcoholic)</li>
+							<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
+							<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
+						</ul>
+					</div>
+				}
+			</div>
+		</div>
+		<div class="space-y-8">
+			// hx-on::after-request="if(event.detail.successful) this.reset()"
+			<form
+				id="manage-search-subscription"
+				if action == "add" {
+					hx-post="/user/subscription/add/search"
+				} else {
+					hx-post={ "/user/subscription/edit/" + request.Search.ID }
+				}
+				hx-swap="none"
+				hx-include="[name='customisation.user_categories'],[name='csrf_token']"
+				hx-vals="js:{'search.timezone': Intl.DateTimeFormat().resolvedOptions().timeZone}"
+				hx-indicator="#processing"
+			>
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">Includes the words</h2>
+						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2">
+							<input
+								id="text"
+								type="text"
+								name="search.text"
+								value={ request.Search.Text }
+								placeholder={ `e.g., "Breaking News" | Live` }
+								class="input input-primary bg-base-content/10 w-full"
+							/>
+						</div>
+					</div>
+				</div>
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">Article Category Filters</h2>
+						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2">
+							<input
+								id="text"
+								type="text"
+								name="search.categories"
+								value={ request.Search.Categories }
+								placeholder="e.g., drinks + mediation"
+								class="input input-primary bg-base-content/10 w-full"
+							/>
+						</div>
+					</div>
+				</div>
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">Article Author Filters</h2>
+						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2">
+							<input
+								id="text"
+								type="text"
+								name="search.authors"
+								value={ request.Search.Authors }
+								placeholder={ `e.g., -"John Smith"` }
+								class="input input-primary bg-base-content/10 w-full"
+							/>
+						</div>
+					</div>
+				</div>
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">In Subscriptions</h2>
+						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<select
+							id="subscriptions-filter-select"
+							hx-post="/search/filter/subscription"
+							hx-target="next #subscription-filters"
+							hx-vals='{"inputName": "search.subscriptions"}'
+							hx-swap="beforeend"
+							hx-push-url="false"
+							name="subscription-filter-select"
+							class="select select-primary bg-base-300 col-span-full"
+							_="on htmx:afterRequest halt"
+						>
+							{{ user, _ := models.UserFromCtx(ctx) }}
+							<option disabled selected>Choose...</option>
+							for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
+								<option value={ s.GetID() + "|" + s.GetTitle() }>{ s.GetTitle() }</option>
+							}
+						</select>
+						<div class="mt-4 col-span-full">
+							<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
+								for id := range slices.Values(request.Search.Subscriptions) {
+									{{ subscription := user.GetFeedSubscriptions().GetByID(id) }}
+									if subscription != nil {
+										@SubscriptionFilter(id, subscription.GetTitle(), "search.subscriptions")
+									}
+								}
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">Published Within</h2>
+						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full">
+							<select id="published_within" name="published_within" class="select select-primary my-2 bg-base-300">
+								<option
+									value="last_hour"
+								>Last hour</option>
+								<option
+									value="last_half_day"
+								>Last 12 hours</option>
+								<option
+									value="last_day"
+								>Last day</option>
+								<option
+									value="last_week"
+									selected
+								>Last week</option>
+								<option
+									value="last_month"
+								>Last month</option>
+							</select>
+						</div>
+					</div>
+				</div>
+			</form>
+			<div class="border-b border-base-content/60">
+				<h3 class="text-base font-semibold">Subscription Info</h3>
+			</div>
+			// Nickname.
+			<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+				<div>
+					<h2 class="text-base/7 font-semibold">Nickname</h2>
+					// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+				</div>
+				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+					<div class="col-span-full mt-2">
+						<input
+							id="text"
+							type="text"
+							required
+							name="customisation.user_nickname"
+							value={ request.Customisation.Nickname }
+							placeholder="My Search Subscription"
+							class="input input-primary bg-base-content/10 w-full"
+							form="manage-search-subscription"
+						/>
+					</div>
+				</div>
+			</div>
+			// Categories
+			{{ categoryMgmtPath := "/user/subscription/category" }}
+			@CategoryManagement(categoryMgmtPath, "customisation.user_categories", nil, request.Customisation.Categories)
+			// Action buttons.
+			<div class="flex flex-1 items-center justify-end gap-x-6">
+				<div id="processing" class="htmx-indicator">
+					Processing...
+					<span class="loading loading-spinner loading-md"></span>
+				</div>
+				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
+				<button type="submit" form="manage-search-subscription" class="btn btn-primary btn-soft">Add</button>
 			</div>
 		</div>
 	}

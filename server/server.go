@@ -211,10 +211,10 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		)
 		r.Get("/home", handler.Home())
 		r.Get("/home/updates", handlers.WatchHome(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handler.GetSearchSuggestions())
-		r.With(middlewares.RequireHTMX).Post("/search", handler.GetSearchResults())
-		r.With(middlewares.RequireHTMX).Post("/search/paginate", handler.GetSearchResults())
-		r.Get("/search", handler.GetSearchResults())
+		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.GetSearchSuggestions(handler.Elastic))
+		r.With(middlewares.RequireHTMX).Post("/search", handlers.GetSearchResults(handler.Elastic))
+		r.With(middlewares.RequireHTMX).Post("/search/paginate", handlers.GetSearchResults(handler.Elastic))
+		r.Get("/search", handlers.GetSearchResults(handler.Elastic))
 		r.Get("/search/updates", handlers.WatchSearchResults(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/search/filter/subscription", handlers.AddSubscriptionFilter())
 
@@ -249,9 +249,12 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.Route("/user", func(r chi.Router) {
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
-				// Add subscription.
-				r.Get("/add", handler.AddSubscription())
-				r.With(middlewares.RequireHTMX).Post("/add", handler.AddSubscription())
+				// Add feed subscription.
+				r.Get("/add/feed", handlers.AddFeedSubscription(handler.Elastic))
+				r.With(middlewares.RequireHTMX).Post("/add/feed", handlers.AddFeedSubscription(handler.Elastic))
+				// Add search subscription.
+				r.Get("/add/search", handlers.AddSearchSubscription(handler.Elastic))
+				r.With(middlewares.RequireHTMX).Post("/add/search", handlers.AddSearchSubscription(handler.Elastic))
 				// Edit subscription.
 				r.Get("/edit/{subscription_id}", handler.EditSubscription())
 				r.With(middlewares.RequireHTMX).Post("/edit/{subscription_id}", handler.SaveSubscription())

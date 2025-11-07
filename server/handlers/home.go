@@ -86,7 +86,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	if err != nil {
 		return data, fmt.Errorf("unable to retrieve subscriptions: %w", err)
 	}
-	data.Subscriptions = subscriptions.FeedSubscriptions.FilterByView(models.ViewUnread)
+	data.Subscriptions = subscriptions.FilterByView(models.ViewUnread)
 	if len(data.Subscriptions) == 0 {
 		return data, nil
 	}
@@ -95,9 +95,9 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 		query.BoolQueryName("item_filters"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()...),
+			query.Terms("feed_id", user.GetFeedSubscriptions().GetFeedIDs()...),
 			query.Bool(
-				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, data.Subscriptions)...),
+				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, user.GetFeedSubscriptions())...),
 			),
 		),
 	)

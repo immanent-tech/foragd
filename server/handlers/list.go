@@ -29,7 +29,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 		// Redirect to include query parameters in address bar.
 		if req.Method == http.MethodGet && len(req.URL.Query()) == 0 && listType != "favorites" {
 			if IsHTMX(req) {
-				res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+filters.QueryString())
+				res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
 			} else {
 				http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
 			}
@@ -62,13 +62,13 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			switch req.Method {
 			case http.MethodGet:
 				if len(subscriptions) > 0 {
-					template = templates.SubscriptionsGrid(subscriptions, pagination)
+					template = templates.SubscriptionsGrid(pagination, subscriptions...)
 				} else {
 					template = templates.EmptyContent()
 				}
 			case http.MethodPost:
 				if len(subscriptions) > 0 {
-					template = templates.SubscriptionsList(subscriptions, pagination)
+					template = templates.SubscriptionsList(pagination, subscriptions...)
 				} else {
 					res.WriteHeader(http.StatusNoContent)
 					return nil
@@ -216,7 +216,7 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		default:
 			mark = models.MarkUnread
 		}
-		subscriptionIDs = user.GetSubscriptions(models.FilterByIDs(filters.Subscriptions...)).GetIDs()
+		subscriptionIDs = user.GetFeedSubscriptions().FilterByIDs(filters.Subscriptions...).GetIDs()
 		// Mark subscriptions.
 		err = models.MarkSubscriptions(req.Context(), api, mark, subscriptionIDs...)
 		if err != nil {

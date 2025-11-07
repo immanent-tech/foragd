@@ -8,11 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"reflect"
-	"strconv"
 	"strings"
 
-	"github.com/gohugoio/hashstructure"
 	"github.com/immanent-tech/go-syndication/sanitization"
 
 	"github.com/immanent-tech/foragd/validation"
@@ -39,6 +36,9 @@ func (r *SearchRequest) Valid() (bool, error) {
 
 // Sanitise will sanitise the search request data.
 func (r *SearchRequest) Sanitise() error {
+	if r == nil {
+		return nil
+	}
 	// Split and sanitise subscriptions field.
 	if len(r.Subscriptions) == 1 {
 		r.Subscriptions = strings.Split(r.Subscriptions[0], ",")
@@ -62,17 +62,17 @@ func (r *SearchRequest) Sanitise() error {
 	return nil
 }
 
-// ID generates an ID (hash) from the search data.
-func (r *SearchRequest) ID() (string, error) {
-	if reflect.ValueOf(r).IsZero() {
-		return "", fmt.Errorf("%w: empty search request", ErrInvalidSearchID)
-	}
-	hash, err := hashstructure.Hash(r, nil)
-	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrInvalidSearchID, err)
-	}
-	return strconv.FormatUint(hash, 10), nil
-}
+// // ID generates an ID (hash) from the search data.
+// func (r *SearchRequest) ID() (string, error) {
+// 	if reflect.ValueOf(r).IsZero() {
+// 		return "", fmt.Errorf("%w: empty search request", ErrInvalidSearchID)
+// 	}
+// 	hash, err := hashstructure.Hash(r, nil)
+// 	if err != nil {
+// 		return "", fmt.Errorf("%w: %w", ErrInvalidSearchID, err)
+// 	}
+// 	return strconv.FormatUint(hash, 10), nil
+// }
 
 // Query returns a string that represents the search as query parameters.
 func (r *SearchRequest) Query() string {
@@ -95,13 +95,16 @@ func (r *SearchRequest) params() url.Values {
 		params.Set("authors", r.Authors)
 	}
 	if r.Categories != "" {
-		params.Set("categories", r.Categories)
+		params.Set(ParamCategories, r.Categories)
 	}
 	if len(r.Subscriptions) > 0 {
-		params.Set("subscriptions", strings.Join(r.Subscriptions, ","))
+		params.Set(ParamSubscriptions, strings.Join(r.Subscriptions, ","))
 	}
-	params.Set("view", string(r.View))
+	params.Set(ParamView, string(r.View))
 	params.Set("published_within", string(r.PublishedWithin))
 	params.Set("timezone", r.Timezone)
+	if r.ID != "" {
+		params.Set(ParamSubscriptionID, r.ID)
+	}
 	return params
 }

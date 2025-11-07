@@ -333,7 +333,7 @@ templ ContextMenu(name string) {
 	</el-dropdown>
 }
 
-templ CategoryManagement(path string, suggested []models.Category, existing []models.Category) {
+templ CategoryManagement(path, inputName string, suggested []models.Category, existing []models.Category) {
 	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 		<div>
 			<h2 class="text-base/7 font-semibold">Add Categories</h2>
@@ -370,6 +370,7 @@ templ CategoryManagement(path string, suggested []models.Category, existing []mo
 					hx-post={ path }
 					hx-on::after-request="if(event.detail.successful) this.reset()"
 					hx-include="[name='csrf_token'],[name='user_categories']"
+					hx-vals={ models.GenerateHXVals(map[string]string{"inputName": inputName}) }
 					hx-push-url="false"
 					hx-target="#current-categories"
 					hx-swap="beforeend"
@@ -397,7 +398,7 @@ templ CategoryManagement(path string, suggested []models.Category, existing []mo
 				<div class="flex gap-2 p-2 m-2">
 					<div id="current-categories" class="flex flex-row flex-wrap p-2 gap-2">
 						for category := range slices.Values(existing) {
-							@AddCategory(path, category)
+							@AddCategory(path, inputName, category)
 						}
 					</div>
 				</div>
@@ -407,7 +408,7 @@ templ CategoryManagement(path string, suggested []models.Category, existing []mo
 }
 
 // AddCategory renders a new category item to the list of categories of a subscription.
-templ AddCategory(path string, category models.Category) {
+templ AddCategory(path, inputName string, category models.Category) {
 	{{ csrf_token := models.CSRFTokenFromCtx(ctx) }}
 	<button
 		hx-delete={ path }
@@ -416,7 +417,7 @@ templ AddCategory(path string, category models.Category) {
 		hx-swap="delete"
 		hx-headers={ `{"X-CSRF-Token": "` + csrf_token + `"}` }
 	>
-		<input type="hidden" name="user_categories" value={ category }/>
+		<input type="hidden" name={ inputName } value={ category }/>
 		<div class="flex gap-2 text-sm capitalize">
 			<div
 				class="badge badge-soft badge-primary"
