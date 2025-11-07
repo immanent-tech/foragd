@@ -321,18 +321,23 @@ func setCacheControl(next http.Handler) http.Handler {
 	})
 }
 
+//nolint:gocognit
 func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			res.WriteHeader(http.StatusNoContent)
-			slogctx.FromCtx(req.Context()).Error("cannot watch for updates: %w", models.ErrNoUserCtx)
+			slogctx.FromCtx(req.Context()).Error("Unable to watch for updates.",
+				slog.Any("error", models.ErrNoUserCtx),
+			)
 			return
 		}
 		updateInterval, err := time.ParseDuration(user.GetSettings().UpdatesFrequency)
 		if err != nil {
 			res.WriteHeader(http.StatusNoContent)
-			slogctx.FromCtx(req.Context()).Error("cannot watch for updates: %w", err)
+			slogctx.FromCtx(req.Context()).Error("Unable to watch for updates.",
+				slog.Any("error", err),
+			)
 			return
 		}
 
