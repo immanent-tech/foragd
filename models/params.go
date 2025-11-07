@@ -24,4 +24,5 @@ const (
 	ParamRedirect           = "redirect"
 	ParamArticles           = "articles"
 	ParamFullArticleContent = "show_full_content"
+	ParamOnlyFavorites      = "only_favorites"
 )

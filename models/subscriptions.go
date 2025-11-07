@@ -451,6 +451,19 @@ func (s Subscriptions) FilterByView(view View) Subscriptions {
 	}
 }
 
+// FilterByView returns a slice containing the subscription which match the given view state.
+func (s Subscriptions) FilterByFavorites(value bool) Subscriptions {
+	if !value {
+		return s
+	}
+	return slices.Collect(FilterSlice(s, func(subscription AnySubscription) bool {
+		if subscription.GetType() == SubscriptionTypeSearch || subscription.IsFavorite() {
+			return true
+		}
+		return false
+	}))
+}
+
 // Sort will sort the slice of subscriptions by the given sort option. Favorite subscriptions are always sorted before
 // other subscriptions, and the sort option is used as a tiebreaker.
 func (s Subscriptions) Sort(sort *Sort) Subscriptions {

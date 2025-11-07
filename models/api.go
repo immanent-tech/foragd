@@ -209,8 +209,11 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 		return nil, "", nil
 	}
 	// Filter subscriptions.
+	godump.Dump(filters)
 	sort := filters.GetSort()
-	subscriptions = subscriptions.FilterByCategories(filters.Categories...).
+	subscriptions = subscriptions.
+		FilterByFavorites(filters.OnlyFavorites).
+		FilterByCategories(filters.Categories...).
 		FilterByView(filters.View).
 		Sort(&sort)
 	// Set up pagination.

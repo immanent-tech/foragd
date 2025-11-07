@@ -84,6 +84,25 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 								@viewFilter(path, "filter-mobile-view-unread", models.ViewUnread, filters.GetView())
 								@viewFilter(path, "filter-mobile-view-read", models.ViewRead, filters.GetView())
 								@viewFilter(path, "filter-mobile-view-all", models.ViewAll, filters.GetView())
+								if chi.RouteContext(ctx).URLParam(models.ParamListType) == "subscriptions" {
+									{{ var onlyFavoritesActiveClass string }}
+									{{ overrides := make(map[string]string) }}
+									if filters.OnlyFavorites {
+										{{ onlyFavoritesActiveClass = "text-accent font-semibold" }}
+										{{ overrides[models.ParamOnlyFavorites] = "false" }}
+									}
+									@NewLink(
+										WithHXMethod(http.MethodGet, path),
+										WithHXInclude("#content-filters"),
+										WithHXTarget(ContentID.Target()),
+										WithHXVals(overrides),
+										WithHXPushURL(),
+										WithHXVals(map[string]string{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
+										WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
+									) {
+										Only Favorites
+									}
+								}
 							</div>
 						</el-disclosure>
 					</div>
@@ -159,22 +178,27 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 									@viewFilter(path, "filter-view-read", models.ViewRead, filters.GetView())
 									@viewFilter(path, "filter-view-all", models.ViewAll, filters.GetView())
 								</div>
-								<div class="py-1">
-									{{ var onlyFavoritesActiveClass string }}
-									if filters.OnlyFavorites {
-										{{ onlyFavoritesActiveClass = "text-accent font-semibold" }}
-									}
-									@NewLink(
-										WithHXMethod(http.MethodGet, path),
-										WithHXInclude("#content-filters"),
-										WithHXTarget(ContentID.Target()),
-										WithHXPushURL(),
-										WithHXVals(map[string]string{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
-										WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
-									) {
-										Only Favorites
-									}
-								</div>
+								if chi.RouteContext(ctx).URLParam(models.ParamListType) == "subscriptions" {
+									<div class="py-1">
+										{{ var onlyFavoritesActiveClass string }}
+										{{ overrides := make(map[string]string) }}
+										if filters.OnlyFavorites {
+											{{ onlyFavoritesActiveClass = "text-accent font-semibold" }}
+											{{ overrides[models.ParamOnlyFavorites] = "false" }}
+										}
+										@NewLink(
+											WithHXMethod(http.MethodGet, path),
+											WithHXInclude("#content-filters"),
+											WithHXTarget(ContentID.Target()),
+											WithHXVals(overrides),
+											WithHXPushURL(),
+											WithHXVals(map[string]string{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
+											WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
+										) {
+											Only Favorites
+										}
+									</div>
+								}
 							</el-menu>
 						</el-dropdown>
 						// // View filter.
