@@ -432,7 +432,7 @@ func GetFeedSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscription
 		}
 	}
 
-	unreadCounts, err := getSubscriptionUnreadCounts(ctx, dataAPI, subscriptions)
+	unreadCounts, err := getFeedSubscriptionUnreadCounts(ctx, dataAPI, subscriptions)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate subscription stats: %w", err)
 	}
@@ -446,7 +446,7 @@ func GetFeedSubscriptionStats(ctx context.Context, dataAPI DataAPI, subscription
 	return stats, nil
 }
 
-func getSubscriptionUnreadCounts(ctx context.Context, dataAPI DataAPI, subscriptionMetadata FeedSubscriptions) (map[SubscriptionID]int64, error) {
+func getFeedSubscriptionUnreadCounts(ctx context.Context, dataAPI DataAPI, subscriptionMetadata FeedSubscriptions) (map[SubscriptionID]int64, error) {
 	// Retrieve user object.
 	user, err := UserFromCtx(ctx)
 	if err != nil {
