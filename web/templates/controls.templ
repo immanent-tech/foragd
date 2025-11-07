@@ -183,16 +183,13 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 								if chi.RouteContext(ctx).URLParam(models.ParamListType) == "subscriptions" {
 									<div class="py-1">
 										{{ var onlyFavoritesActiveClass string }}
-										{{ overrides := make(map[string]string) }}
 										if filters.OnlyFavorites {
 											{{ onlyFavoritesActiveClass = "text-accent font-semibold" }}
-											{{ overrides[models.ParamOnlyFavorites] = "false" }}
 										}
 										@NewLink(
 											WithHXMethod(http.MethodGet, path),
 											WithHXInclude("#content-filters"),
 											WithHXTarget(ContentID.Target()),
-											WithHXVals(overrides),
 											WithHXPushURL(),
 											WithHXVals(map[string]string{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
 											WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
@@ -230,12 +227,30 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 				<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>
 				<div class="mt-2 sm:mt-0 sm:ml-4">
 					<div class="-m-1 flex flex-wrap items-center">
+						// Show view filter badge indicator.
 						<div class="badge badge-accent badge-soft m-1 capitalize">
 							{ filters.GetView() }
 						</div>
+						// Show sort filter badge indicator.
 						<div class="badge badge-accent badge-soft m-1 capitalize">
 							{ filters.GetSort().String() }
 						</div>
+						// Add favorites filter badge if listing subscriptions and favorites filter is active.
+						if chi.RouteContext(ctx).URLParam(models.ParamListType) == "subscriptions" && filters.OnlyFavorites {
+							<div class="badge badge-accent badge-soft m-1">
+								Favorites
+								<button
+									hx-get={ models.PathFromCtx(ctx) }
+									hx-push-url="true"
+									hx-target={ ContentID.Target() }
+									hx-include="#content-filters"
+									hx-vals={ `{"only_favorites": "false"}` }
+								>
+									@tabler.X(i.Props{Class: "size-4"})
+								</button>
+							</div>
+						}
+						// Add filter badges for any active category filters.
 						for category := range slices.Values(categories.GetTopCategories(10)) {
 							if slices.Contains(filters.GetCategories(),category.Category) {
 								@activeCategoryFilterBadge(category.Category)
