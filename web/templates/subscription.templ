@@ -128,30 +128,26 @@ templ SubscriptionCard(s models.AnySubscription) {
 					</div>
 				</div>
 			}
-			if s.GetType() == models.SubscriptionTypeFeed {
-				// Display some subscription metrics.
-				<dl class="-my-3 px-6 card-section">
-					if user.GetSettings().ShowUnreadCounts {
-						<div class="flex justify-between gap-x-4 text-sm/6">
-							<dt class="">Unread Count</dt>
-							<dd class="text-base-content/90">{ s.GetStats().UnreadTotal() }</dd>
-						</div>
-					}
-					<div class="flex justify-between gap-x-4 text-sm/6">
-						<dt class="">Update frequency</dt>
-						<dd class="text-base-content/90">{ s.GetStats().DailyUpdateFrequency() }</dd>
+			// Show stats and info as appropriate.
+			<div class="grid grid-cols-3 px-4 sm:px-6">
+				<p class="grid self-end col-span-2 text-xs/4 text-base-content/80">
+					Last update
+					{ humanize.Time(s.GetUpdatedDate()) }
+				</p>
+				if s.GetType() == models.SubscriptionTypeFeed {
+					<div class="inline-grid space-y-2">
+						if user.GetSettings().ShowUnreadCounts {
+							<p class="grid justify-end text-xs/4 text-base-content/80">
+								{ s.GetStats().UnreadTotal() }
+								Unread
+							</p>
+							<p class="grid justify-end text-xs/4 text-base-content/80">
+								{ s.GetStats().DailyUpdateFrequency() }
+							</p>
+						}
 					</div>
-					<div class="flex justify-between gap-x-4 text-sm/6">
-						<dt class="">Last update</dt>
-						<dd class="text-base-content/90">{ humanize.Time(s.GetUpdatedDate()) }</dd>
-					</div>
-				</dl>
-			}
-			if s.GetType() == models.SubscriptionTypeSearch {
-				<div class="flex justify-center">
-					<p>Search</p>
-				</div>
-			}
+				}
+			</div>
 		</div>
 	</li>
 }
