@@ -52,19 +52,21 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 									for idx, category := range categories.GetTopCategories(10) {
 										@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
 									}
-									<div class="flex justify-end">
-										<button
-											hx-get={ path }
-											hx-push-url="true"
-											hx-target={ ContentID.Target() }
-											hx-trigger="click"
-											hx-vals={ models.GenerateHXVals(filters.Values()) }
-											hx-params="not categories"
-											class="btn btn-secondary btn-soft btn-sm"
-										>
-											Clear
-										</button>
-									</div>
+									if len(filters.GetCategories()) > 0 {
+										<div class="flex justify-end">
+											<button
+												hx-get={ path }
+												hx-push-url="true"
+												hx-target={ ContentID.Target() }
+												hx-trigger="click"
+												hx-vals={ models.GenerateHXVals(filters.Values()) }
+												hx-params="not categories"
+												class="btn btn-secondary btn-soft btn-sm"
+											>
+												Clear
+											</button>
+										</div>
+									}
 								</div>
 							</el-disclosure>
 						</div>
@@ -151,20 +153,22 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 											@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
 										}
 									</div>
-									<div class="py-1">
-										<a
-											hx-get={ path }
-											hx-push-url="true"
-											hx-target={ ContentID.Target() }
-											hx-trigger="click"
-											hx-vals={ models.GenerateHXVals(filters.Values()) }
-											hx-params="not categories"
-											class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-accent focus:outline-hidden capitalize"
-										>
-											@tabler.X(i.Props{Class: "size-4"})
-											Clear
-										</a>
-									</div>
+									if len(filters.GetCategories()) > 0 {
+										<div class="py-1">
+											<a
+												hx-get={ path }
+												hx-push-url="true"
+												hx-target={ ContentID.Target() }
+												hx-trigger="click"
+												hx-vals={ models.GenerateHXVals(filters.Values()) }
+												hx-params="not categories"
+												class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-accent focus:outline-hidden capitalize"
+											>
+												@tabler.X(i.Props{Class: "size-4"})
+												Clear
+											</a>
+										</div>
+									}
 								</el-menu>
 							</el-dropdown>
 						}
