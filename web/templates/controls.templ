@@ -119,7 +119,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 						Sort
 						@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 					</button>
-					<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content rounded-md bg-base-300 shadow-lg outline-1 outline-accent/5 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+					<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/15 rounded-md bg-base-300 shadow-lg outline-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 						<div class="py-1">
 							@sortOption(path, models.SortLastUpdatedDesc, filters.GetSort())
 							@sortOption(path, models.SortLastUpdatedAsc, filters.GetSort())
@@ -144,7 +144,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 									Category
 									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 								</button>
-								<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content rounded-md bg-base-300 shadow-lg outline-1 outline-accent/5 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+								<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/15 rounded-md bg-base-300 shadow-lg outline-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 									<div class="py-1">
 										// Top 10 categories only.
 										for idx, category := range categories.GetTopCategories(10) {
@@ -174,7 +174,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 								View
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
-							<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content rounded-md bg-base-300 shadow-lg outline-1 outline-accent/5 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+							<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/15 rounded-md bg-base-300 shadow-lg outline-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 								<div class="py-1">
 									@viewFilter(path, "filter-view-unread", models.ViewUnread, filters.GetView())
 									@viewFilter(path, "filter-view-read", models.ViewRead, filters.GetView())
