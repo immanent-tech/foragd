@@ -191,7 +191,27 @@ func (u *User) UpdateFeedSubscription(update *FeedSubscription) error {
 	subscription.Metadata.UpdatedAt = time.Now().UTC()
 	err := subscription.Data.FromFeedSubscription(*update)
 	if err != nil {
-		return fmt.Errorf("could not update subscription: %w", err)
+		return fmt.Errorf("update feed subscription: encode feed data failed: %w", err)
+	}
+	idx := slices.IndexFunc(u.Subscriptions, func(e *Subscription) bool {
+		return e.GetID() == update.GetID()
+	})
+	if idx != -1 {
+		u.Subscriptions[idx] = subscription
+		return nil
+	}
+	return ErrUserNotSubscribed
+}
+
+// UpdateFeedSubscription updates a FeedSubscription for the user.
+func (u *User) UpdateSearchSubscription(update *SearchSubscription) error {
+	// TODO: validation?
+	subscription := u.GetSubscriptionByID(update.GetID())
+	subscription.Metadata = update.Metadata
+	subscription.Metadata.UpdatedAt = time.Now().UTC()
+	err := subscription.Data.FromSearchSubscription(*update)
+	if err != nil {
+		return fmt.Errorf("update search subscription: encode search data failed: %w", err)
 	}
 	idx := slices.IndexFunc(u.Subscriptions, func(e *Subscription) bool {
 		return e.GetID() == update.GetID()

@@ -341,6 +341,16 @@ func (s SearchSubscriptions) GetIDs() []SubscriptionID {
 	return ids
 }
 
+// GetByID retrieves a state by the subscription id from the slice.
+func (s SearchSubscriptions) GetByID(id SubscriptionID) *SearchSubscription {
+	if idx := slices.IndexFunc(s, func(e *SearchSubscription) bool {
+		return e.GetID() == id
+	}); idx != -1 {
+		return s[idx]
+	}
+	return nil
+}
+
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *Subscription) Valid() (bool, error) {

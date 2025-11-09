@@ -96,7 +96,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 }
 
 // SaveSubscription handles saving the edits made by a user to a subscription.
-func (a *API) SaveSubscription() http.HandlerFunc {
+func SaveSubscription(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve user object.
 		user, err := models.UserFromCtx(req.Context())
@@ -105,39 +105,65 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 		}
-		request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
-		if err != nil || !valid {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to save subscription", "Data is invalid."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+		switch models.SubscriptionType(req.FormValue("subscription_type")) {
+		case models.SubscriptionTypeFeed:
+			request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
+			if err != nil || !valid {
+				renderPartial(templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to save subscription", "Data is invalid."),
+				)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			}
+			// Update the subscription.
+			feedSubscription := user.GetFeedSubscriptions().GetByID(request.SubscriptionID)
+			if feedSubscription == nil {
+				renderPartial(templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to save subscription", "Data in invalid."),
+				)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			}
+			feedSubscription.Metadata.Customisation.Nickname = request.GetNickname()
+			feedSubscription.Metadata.Customisation.Categories = request.GetCategories()
+			feedSubscription.Metadata.Settings.ShowFullArticleContent = request.ShowFullArticleContent
+			feedSubscription.ArticleFilters.Text = request.ArticleFilters.Text
+			feedSubscription.ArticleFilters.Authors = request.ArticleFilters.Authors
+			feedSubscription.ArticleFilters.Categories = request.ArticleFilters.Categories
+			err = models.UpdateSubscription(req.Context(), api, feedSubscription)
+			if err != nil {
+				renderPartial(templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to save subscription", "This might be a temporary problem, please try again."),
+				)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
+			}
+			renderPartial(templates.EditSubscriptionSuccessNotification(feedSubscription)).ServeHTTP(res, req)
+		case models.SubscriptionTypeSearch:
+			request, valid, err := forms.DecodeForm[*models.SearchSubscriptionRequest](req)
+			if err != nil || !valid {
+				renderPartial(templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to save subscription", "Data is invalid."),
+				)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			}
+			searchSubscription := user.GetSearchSubscriptions().GetByID(chi.URLParam(req, models.ParamSubscriptionID))
+			if searchSubscription == nil {
+				renderPartial(templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to save subscription", "Data in invalid."),
+				)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			}
+			searchSubscription.Metadata.Customisation = request.Customisation
+			searchSubscription.Metadata.Settings = request.Settings
+			searchSubscription.Search = request.Search
+
+			err = models.UpdateSubscription(req.Context(), api, searchSubscription)
+			if err != nil {
+				renderPartial(templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to save subscription", "This might be a temporary problem, please try again."),
+				)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
+			}
+			renderPartial(templates.EditSubscriptionSuccessNotification(searchSubscription)).ServeHTTP(res, req)
 		}
-		// Update the subscription.
-		feedSubscription := user.GetFeedSubscriptions().GetByID(request.SubscriptionID)
-		feedSubscription.Metadata.Customisation.Nickname = request.GetNickname()
-		feedSubscription.Metadata.Customisation.Categories = request.GetCategories()
-		feedSubscription.Metadata.Settings.ShowFullArticleContent = request.ShowFullArticleContent
-		feedSubscription.ArticleFilters.Text = request.ArticleFilters.Text
-		feedSubscription.ArticleFilters.Authors = request.ArticleFilters.Authors
-		feedSubscription.ArticleFilters.Categories = request.ArticleFilters.Categories
-		err = user.UpdateFeedSubscription(feedSubscription)
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to save subscription", "This might be a temporary problem, please try again."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update subscription object: %w", err), http.StatusInternalServerError)
-		}
-		// Update the user.
-		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-			"subscriptions": user.GetSubscriptions(),
-		})
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to save subscription", "This might be a temporary problem, please try again."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
-		}
-		renderPartial(templates.EditSubscriptionSuccessNotification(feedSubscription)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

@@ -203,6 +203,42 @@ func UpdateFavoriteArticle(ctx context.Context, dataAPI DataAPI, user *User, id 
 	return nil
 }
 
+func UpdateSubscription(ctx context.Context, dataAPI DataAPI, subscription AnySubscription) error {
+	// Retrieve user object.
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("update subscription: get user failed: %w", err)
+	}
+	switch subscription.GetType() {
+	case SubscriptionTypeFeed:
+		feedSubscription, ok := subscription.(*FeedSubscription)
+		if !ok {
+			return fmt.Errorf("update subscription: update feed subscription failed: %w", ErrInvalidAPIResult)
+		}
+		err = user.UpdateFeedSubscription(feedSubscription)
+		if err != nil {
+			return fmt.Errorf("update subscription: update feed subscription failed: %w", err)
+		}
+	case SubscriptionTypeSearch:
+		searchSubscription, ok := subscription.(*SearchSubscription)
+		if !ok {
+			return fmt.Errorf("update subscription: update feed subscription failed: %w", ErrInvalidAPIResult)
+		}
+		err = user.UpdateSearchSubscription(searchSubscription)
+		if err != nil {
+			return fmt.Errorf("update subscription: update search subscription failed: %w", err)
+		}
+	}
+	// Update the user.
+	err = dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
+		"subscriptions": user.GetSubscriptions(),
+	})
+	if err != nil {
+		return fmt.Errorf("update subscription: update user failed: %w", err)
+	}
+	return nil
+}
+
 // FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
 func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Subscriptions, Pagination, error) {
 	// Get subscriptions by ID.

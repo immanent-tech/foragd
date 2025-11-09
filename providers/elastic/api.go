@@ -186,6 +186,8 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 	return users[0], nil
 }
 
+
+
 // GetFeed retrieves a single feed with the given ID.
 func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 	index, err := FeedsReadIndexFromCtx(ctx)

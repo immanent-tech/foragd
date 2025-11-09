@@ -436,6 +436,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				hx-indicator="#processing"
 			>
 				<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
+				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
 				// Nickname.
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
@@ -645,7 +646,7 @@ templ AddSearchSubscription(request *models.SearchSubscriptionRequest) {
 
 // EditSearchSubscription is a page for editing a search subscription.
 templ EditSearchSubscription(request *models.SearchSubscriptionRequest) {
-	@manageSearchSubscription(request, "add")
+	@manageSearchSubscription(request, "edit")
 }
 
 templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action string) {
@@ -700,6 +701,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				hx-vals="js:{'search.timezone': Intl.DateTimeFormat().resolvedOptions().timeZone}"
 				hx-indicator="#processing"
 			>
+				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeSearch) }/>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Includes the words</h2>
@@ -852,7 +854,13 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
 				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
-				<button type="submit" form="manage-search-subscription" class="btn btn-primary btn-soft">Add</button>
+				<button type="submit" form="manage-search-subscription" class="btn btn-primary btn-soft">
+					if action == "add" {
+						Add
+					} else {
+						Save
+					}
+				</button>
 			</div>
 		</div>
 	}
