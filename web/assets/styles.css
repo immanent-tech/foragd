@@ -40,6 +40,7 @@
   }
 }
 
+/* Use page view transitions. */
 @view-transition {
   navigation: auto;
 }
@@ -52,23 +53,6 @@
     .context-menu-item-base {
       @apply focus:text-accent flex items-center gap-4 px-4 py-2 text-sm no-underline hover:underline focus:outline-hidden;
     }
-  }
-
-  .responsive-img {
-    width: 100%;
-    height: auto;
-    aspect-ratio: var(--aspect-ratio);
-    object-fit: cover;
-    /* Prevent haptic touch previews */
-    -webkit-touch-callout: none;
-    -webkit-user-drag: none;
-  }
-
-  .responsive-video {
-    max-width: fit-content;
-    height: auto;
-    aspect-ratio: var(--aspect-ratio);
-    object-fit: cover;
   }
 
   .toast {
@@ -124,4 +108,21 @@
       @apply stroke-accent;
     }
   }
+}
+
+@utility responsive-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--aspect-ratio);
+  object-fit: cover;
+  /* Prevent haptic touch previews */
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+
+@utility responsive-video {
+  max-width: fit-content;
+  height: auto;
+  aspect-ratio: var(--aspect-ratio);
+  object-fit: cover;
 }

@@ -227,12 +227,20 @@ templ ArticleContent(article article) {
 	@Main() {
 		// Title and actions menu.
 		<div class="flex justify-center">
-			<article id={ article.GetID() } class="prose prose-sm sm:prose-lg dark:prose-invert w-full sm:w-prose">
+			<article id={ article.GetID() } class="prose prose-sm sm:prose-lg dark:prose-invert w-full sm:w-prose prose-video:responsive-video">
 				<div class="flex mt-4 items-center">
 					<div class="flex flex-1">
-						<h2 class=" text-2xl/7 sm:text-3xl font-bold tracking-tight">
-							{ article.GetTitle() }
-						</h2>
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+							WithHXTarget(ContentID.Target()),
+							WithHXInclude("#content-filters,[name='csrf_token']"),
+							WithHXVals(map[string]string{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
+							WithClasses("no-underline", "hover:underline"),
+						) {
+							<h2 class=" text-2xl/7 sm:text-3xl font-bold tracking-tight">
+								{ article.GetTitle() }
+							</h2>
+						}
 					</div>
 					<el-dropdown class="flex justify-self-end self-center">
 						<button>
@@ -290,26 +298,26 @@ templ ArticleContent(article article) {
 					</el-dropdown>
 				</div>
 				// Author(s) and Published Time.
-				<div class="flex flex-col">
-					if len(article.GetAuthors()) > 0 {
-						<p class="flex flex-1 text-sm/6 text-base-content/80 italic truncate">
-							{ strings.Join(article.GetAuthors(),",") }
-						</p>
-					}
-					<p class="flex flex-1 text-sm/6 text-base-content/80 capitalize">
-						Updated&nbsp;
-						@ShowTimestamp(article.GetUpdatedDate())
+				if len(article.GetAuthors()) > 0 {
+					<p class="flex flex-1 text-sm/6 text-base-content/80 italic truncate">
+						{ strings.Join(article.GetAuthors(),",") }
 					</p>
-				</div>
+				}
+				<p class="flex flex-1 text-sm/6 text-base-content/80 capitalize">
+					Updated&nbsp;
+					@ShowTimestamp(article.GetUpdatedDate())
+				</p>
 				// Content.
-				<section>
-					switch  {
-						case article.GetContent() != "":
-							@templ.Raw(article.GetContent())
-						case article.GetDescription() != "":
-							@templ.Raw(article.GetDescription())
-					}
-				</section>
+				if article.GetContent() != "" || article.GetDescription() != "" {
+					<section>
+						switch  {
+							case article.GetContent() != "":
+								@templ.Raw(article.GetContent())
+							case article.GetDescription() != "":
+								@templ.Raw(article.GetDescription())
+						}
+					</section>
+				}
 			</article>
 			// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 			// read and mark it so (when the user has set this option).
