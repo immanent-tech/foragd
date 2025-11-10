@@ -206,9 +206,7 @@ templ SearchResults(request *models.SearchRequest, articles models.Articles, pag
 
 templ ResultsList(articles models.Articles, pagination models.Pagination) {
 	for article := range slices.Values(articles) {
-		<li id={ article.GetID() }>
-			@ArticleCard(article)
-		</li>
+		@ArticleCard(article)
 	}
 	// Add pagination element if pagination is required.
 	if pagination != "" && len(articles) == 15 {

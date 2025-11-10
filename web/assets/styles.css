@@ -44,7 +44,7 @@
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
   .card-base {
-    @apply bg-base-200 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border pb-4 shadow-sm dark:shadow-none;
+    @apply bg-base-200 border-base-content/20 hover:border-base-content/40 h-full overflow-hidden rounded-lg border pb-4 shadow-sm;
     .card-section {
       @apply p-4;
     }

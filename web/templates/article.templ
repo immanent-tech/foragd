@@ -80,6 +80,7 @@ templ articleSummary(article *models.Article) {
 // Card renders an article as a card, for displaying in a list.
 templ ArticleCard(article article) {
 	<div
+		id={ article.GetID() }
 		class={ "card-base", templ.KV("opacity-50",!article.IsUnread()) }
 	>
 		// Header.
@@ -161,7 +162,7 @@ templ ArticleCard(article article) {
 			</div>
 		}
 		// Footer.
-		<div class="px-4 py-4 sm:px-6">
+		<div class="px-4 sm:px-6 mt-auto">
 			<div class="flex justify-between items-center">
 				<div class="flex flex-1 gap-x-2">
 					<p class="text-xs/4 text-base-content/80 capitalize">
@@ -247,8 +248,8 @@ templ ArticleCard(article article) {
 				</div>
 			</div>
 		</div>
+		@ShareObjectModal(article)
 	</div>
-	@ShareObjectModal(article)
 }
 
 // ArticleContent renders the complete content of an article.
@@ -490,9 +491,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 templ ArticlesList(articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	for article := range slices.Values(articles) {
-		<li id={ article.GetID() }>
-			@ArticleCard(article)
-		</li>
+		@ArticleCard(article)
 	}
 	// Add pagination element if pagination is required.
 	if pagination != "" && len(articles) == filters.GetCount() {
