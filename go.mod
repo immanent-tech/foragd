@@ -21,13 +21,12 @@ require (
 	github.com/knadh/koanf/v2 v2.3.0
 	github.com/lmittmann/tint v1.1.2
 	github.com/mattn/go-isatty v0.0.20
-	github.com/nbio/xml v0.0.0-20251016084110-a619c1115f34
 	github.com/oapi-codegen/runtime v1.1.2
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-chi v1.17.0
 	github.com/samber/slog-multi v1.5.0
 	github.com/sebasvil20/templicons v1.1.0
-	golang.org/x/oauth2 v0.32.0
+	golang.org/x/oauth2 v0.33.0
 )
 
 require (
@@ -124,7 +123,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goforj/godump v1.6.0
-	github.com/gohugoio/hashstructure v0.6.0
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
