@@ -16,144 +16,150 @@ import (
 )
 
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
-templ SubscriptionCard(s models.AnySubscription) {
+templ subscriptionCard(s models.AnySubscription) {
 	{{ user, _ := models.UserFromCtx(ctx) }}
-	<li id={ s.GetID() }>
-		<div class={ "card-base", templ.KV("opacity-50",s.GetType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread()) }>
-			<div class="flex items-center card-section">
-				<div class="flex flex-1">
-					switch s.GetType() {
-						case models.SubscriptionTypeFeed:
-							@viewFeedSubscriptionLink(s)
-						case models.SubscriptionTypeSearch:
-							@viewSearchSubscriptionLink(s)
-					}
-				</div>
-				<div class="flex flex-none">
-					@ContextMenu(s.GetTitle() + " Actions") {
-						// View action.
-						if s.GetType() == models.SubscriptionTypeFeed {
-							@NewLink(
-								WithCustomAttribute("href", s.GetLink()),
-								WithCustomAttribute("rel", "noopener"),
-								WithCustomAttribute("target", "_blank"),
-								WithClasses("context-menu-item-base"),
-							) {
-								@tabler.ExternalLink(i.Props{Class: "size-4"})
-								Feed Website
-							}
-							// Mark action.
-							<form id={ "mark-" + s.GetID() }>
-								// MarkURL returns the app URL for marking the subscription.
-								{{ var markURL string }}
-								if s.GetStats().IsUnread() {
-									{{ markURL = "/mark/subscription/" + s.GetID() + "/read" }}
-								} else {
-									{{ markURL = "/mark/subscription/" + s.GetID() + "/unread" }}
-								}
-								@NewLink(
-									WithHXMethod(http.MethodPost, markURL),
-									WithHXInclude("[name='csrf_token']"),
-									WithHXTarget("#"+s.GetID()),
-									WithHXSwap("outerHTML"),
-									WithClasses("context-menu-item-base"),
-								) {
-									switch s.GetStats().IsUnread() {
-										case true:
-											@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-											Mark Read
-										case false:
-											@tabler.MailFilled(i.Props{Class: "size-4"})
-											Mark Unread
-									}
-								}
-								// @MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "context-menu-item-base")
-							</form>
-							// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-							<div id={ "favorite_" + s.GetID() }>
-								@ToggleFavorite(s.GetID(), string(models.ObjectTypeSubscription), s.IsFavorite())
-							</div>
-						}
-						// Edit action.
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
-							WithHXTarget(ContentID.Target()),
-							WithHXSwap("innerHTML show:top"),
-							WithHXPushURL(),
-							WithClasses("context-menu-item-base"),
-						) {
-							@tabler.Edit(i.Props{Class: "size-4"})
-							Edit Subscription
-						}
-						// Unsubscribe action.
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/remove/subscription/"+s.GetID()),
-							WithHXTarget(ModalContainerID.Target()),
-							WithClasses("context-menu-item-base"),
-							WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"),
-						) {
-							@tabler.TrashFilled(i.Props{Class: "size-4"})
-							Remove Subscription
-						}
-						// Report issue action.
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/issue/subscription/"+s.GetID()),
-							WithHXTarget(ContentID.Target()),
-							WithClasses("context-menu-item-base"),
-						) {
-							@tabler.FlagFilled(i.Props{Class: "size-4"})
-							Report an issue
-						}
-					}
-				</div>
+	<div class={ "card-base", templ.KV("opacity-50",s.GetType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread()) }>
+		<div class="flex items-center card-section">
+			<div class="flex flex-1">
+				@subscriptionHeading(s)
 			</div>
-			// Display up to 5 of the subscription categories.
-			if len(s.GetCategories(0)) > 0 {
-				<div class="flex justify-center">
-					<div class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-						for category := range slices.Values(s.GetCategories(5)) {
-							{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
-							{{ filters[models.ParamCategories] = category }}
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/list/subscriptions"),
-								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(),
-								WithHXVals(filters),
-							) {
-								<div class="flex gap-2 capitalize">
-									<div class="badge badge-accent badge-soft badge-sm">{ category }</div>
-								</div>
-							}
-						}
-					</div>
-				</div>
-			}
-			// Show stats and info as appropriate.
-			<div class="grid grid-cols-3 px-4 sm:px-6">
-				<p class="grid self-end col-span-2 text-xs/4 text-base-content/80">
-					Last update
-					if !s.GetUpdatedDate().IsZero() {
-						{ humanize.Time(s.GetUpdatedDate()) }
-					} else {
-						unknown
-					}
-				</p>
-				// if s.GetType() == models.SubscriptionTypeFeed {
-				<div class="inline-grid space-y-2">
-					if user.GetSettings().ShowUnreadCounts {
-						<p class="grid justify-end text-xs/4 text-base-content/80">
-							{ s.GetStats().UnreadTotal() }
-							Unread
-						</p>
-						<p class="grid justify-end text-xs/4 text-base-content/80">
-							{ s.GetStats().DailyUpdateFrequency() }
-						</p>
-					}
-				</div>
-				// }
+			<div class="flex flex-none">
+				@subscriptionContextMenu(s)
 			</div>
 		</div>
-	</li>
+		// Display up to 5 of the subscription categories.
+		if len(s.GetCategories(0)) > 0 {
+			<div class="flex justify-center">
+				<div class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+					for category := range slices.Values(s.GetCategories(5)) {
+						{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
+						{{ filters[models.ParamCategories] = category }}
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/list/subscriptions"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithHXVals(filters),
+						) {
+							<div class="flex gap-2 capitalize">
+								<div class="badge badge-accent badge-soft badge-sm">{ category }</div>
+							</div>
+						}
+					}
+				</div>
+			</div>
+		}
+		// Show stats and info as appropriate.
+		<div class="grid grid-cols-3 px-4 sm:px-6">
+			<p class="grid self-end col-span-2 text-xs/4 text-base-content/80">
+				Last update
+				if !s.GetUpdatedDate().IsZero() {
+					{ humanize.Time(s.GetUpdatedDate()) }
+				} else {
+					unknown
+				}
+			</p>
+			// if s.GetType() == models.SubscriptionTypeFeed {
+			<div class="inline-grid space-y-2">
+				if user.GetSettings().ShowUnreadCounts {
+					<p class="grid justify-end text-xs/4 text-base-content/80">
+						{ s.GetStats().UnreadTotal() }
+						Unread
+					</p>
+					<p class="grid justify-end text-xs/4 text-base-content/80">
+						{ s.GetStats().DailyUpdateFrequency() }
+					</p>
+				}
+			</div>
+			// }
+		</div>
+	</div>
+}
+
+templ subscriptionContextMenu(s models.AnySubscription) {
+	@ContextMenu(s.GetTitle() + " Actions") {
+		// View action.
+		if s.GetType() == models.SubscriptionTypeFeed {
+			@NewLink(
+				WithCustomAttribute("href", s.GetLink()),
+				WithCustomAttribute("rel", "noopener"),
+				WithCustomAttribute("target", "_blank"),
+				WithClasses("context-menu-item-base"),
+			) {
+				@tabler.ExternalLink(i.Props{Class: "size-4"})
+				Feed Website
+			}
+			// Mark action.
+			<form id={ "mark-" + s.GetID() }>
+				// MarkURL returns the app URL for marking the subscription.
+				{{ var markURL string }}
+				if s.GetStats().IsUnread() {
+					{{ markURL = "/mark/subscription/" + s.GetID() + "/read" }}
+				} else {
+					{{ markURL = "/mark/subscription/" + s.GetID() + "/unread" }}
+				}
+				@NewLink(
+					WithHXMethod(http.MethodPost, markURL),
+					WithHXInclude("[name='csrf_token']"),
+					WithHXTarget("#"+s.GetID()),
+					WithHXSwap("outerHTML"),
+					WithClasses("context-menu-item-base"),
+				) {
+					switch s.GetStats().IsUnread() {
+						case true:
+							@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+							Mark Read
+						case false:
+							@tabler.MailFilled(i.Props{Class: "size-4"})
+							Mark Unread
+					}
+				}
+				// @MarkObjectLink(s, "#"+s.GetID(), "outerHTML", "context-menu-item-base")
+			</form>
+			// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+			<div id={ "favorite_" + s.GetID() }>
+				@ToggleFavorite(s.GetID(), string(models.ObjectTypeSubscription), s.IsFavorite())
+			</div>
+		}
+		// Edit action.
+		@NewLink(
+			WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
+			WithHXTarget(ContentID.Target()),
+			WithHXSwap("innerHTML show:top"),
+			WithHXPushURL(),
+			WithClasses("context-menu-item-base"),
+		) {
+			@tabler.Edit(i.Props{Class: "size-4"})
+			Edit Subscription
+		}
+		// Unsubscribe action.
+		@NewLink(
+			WithHXMethod(http.MethodGet, "/remove/subscription/"+s.GetID()),
+			WithHXTarget(ModalContainerID.Target()),
+			WithClasses("context-menu-item-base"),
+			WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"),
+		) {
+			@tabler.TrashFilled(i.Props{Class: "size-4"})
+			Remove Subscription
+		}
+		// Report issue action.
+		@NewLink(
+			WithHXMethod(http.MethodGet, "/issue/subscription/"+s.GetID()),
+			WithHXTarget(ContentID.Target()),
+			WithClasses("context-menu-item-base"),
+		) {
+			@tabler.FlagFilled(i.Props{Class: "size-4"})
+			Report an issue
+		}
+	}
+}
+
+templ subscriptionHeading(s models.AnySubscription) {
+	switch s.GetType() {
+		case models.SubscriptionTypeFeed:
+			@viewFeedSubscriptionLink(s)
+		case models.SubscriptionTypeSearch:
+			@viewSearchSubscriptionLink(s)
+	}
 }
 
 templ viewFeedSubscriptionLink(s models.AnySubscription) {
@@ -328,7 +334,9 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...models.An
 templ SubscriptionsList(pagination models.Pagination, subscriptions ...models.AnySubscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	for subscription := range slices.Values(subscriptions) {
-		@SubscriptionCard(subscription)
+		<li id={ subscription.GetID() }>
+			@subscriptionCard(subscription)
+		</li>
 	}
 	if pagination != "" && len(subscriptions) == filters.GetCount() {
 		// Add pagination htmx props to last article.

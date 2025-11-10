@@ -23,65 +23,38 @@ type article interface {
 	IsRemoteContent() bool
 }
 
-// Card renders an article as a card, for displaying in a list.
-templ ArticleCard(article article) {
-	<li id={ article.GetID() }>
-		<div
-			class={ "card-base", templ.KV("opacity-50",!article.IsUnread()) }
-		>
-			// Header.
-			<div class="flex items-center">
-				<div class="flex flex-1 px-4 py-5 sm:px-6">
-					if img := article.GetImage(); img != nil {
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
-						) {
-							<div class="relative w-full">
-								<img
-									class="w-full rounded-2xl bg-base-content-10 object-cover aspect-3/2"
-									src={ "/img-proxy/300x200/" + img.GetURL() }
-									if img.GetTitle() != "" {
-										alt={ img.GetTitle() }
-									}
-								/>
-								<div class="inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
-							</div>
-							<div class="flex max-w-xl grow flex-col justify-between">
-								<div class="group relative grow">
-									<h3 class="mt-3 text-lg/6 font-semibold text-pretty">
-										if article.GetTitle() != "" {
-											{ article.GetTitle() }
-										} else {
-											(no title)
-										}
-									</h3>
-								</div>
-							</div>
-						}
-					} else {
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
-						) {
-							<div class="group relative grow">
-								<h3 class="mt-3 text-lg/6 font-semibold text-pretty line-clamp-3">
-									if article.GetTitle() != "" {
-										{ article.GetTitle() }
-									} else {
-										(no title)
-									}
-								</h3>
-							</div>
-						}
+templ articleSummary(article *models.Article) {
+	<div class={ "sm:flex items-center", templ.KV("opacity-50",!article.IsUnread()) }>
+		// Article image.
+		if img := article.GetImage(); img != nil {
+			<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
+				<img
+					src={ "/img-proxy/300x200/" + img.GetURL() }
+					if img.GetTitle() != "" {
+						alt={ article.GetImage().GetTitle() }
 					}
-				</div>
+					class="h-32 sm:w-32 w-full object-cover rounded-box border border-base-content"
+				/>
 			</div>
-			// Body.
-			<div class="grid grid-flow-row items-center px-4 sm:px-6">
-				<p class="grid text-xs/4 text-base-content/80 truncate">
+		}
+		<div class="gap-y-2">
+			// Article title.
+			<a
+				hx-get={ "/view/article/" + article.GetID() }
+				hx-target={ ContentID.Target() }
+				hx-push-url="true"
+				hx-swap="innerHTML show:top"
+				class={ "link link-hover" }
+			>
+				<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
+			</a>
+			// Timestamp, Subscription.
+			<div class="grid grid-flow-row justify-between">
+				<p class="flex text-xs text-base-content/80">
+					Updated&nbsp;
+					@ShowTimestamp(article.GetUpdatedDate())
+				</p>
+				<p class="grid justify-self-end text-xs text-base-content/80 truncate">
 					@NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
@@ -92,111 +65,190 @@ templ ArticleCard(article article) {
 						{ article.GetFeedTitle() }
 					}
 				</p>
-				if len(article.GetAuthors()) > 0 {
-					<p class="inline-block text-xs/4 text-base-content/80 italic truncate">
-						{ strings.Join(article.GetAuthors(),",") }
-					</p>
+			</div>
+			// Article content summary.
+			{{ text, err := models.ExtractText(article.GetContent()) }}
+			if err == nil {
+				<article class="mt-4 prose prose-sm line-clamp-3">
+					{ text }
+				</article>
+			}
+		</div>
+	</div>
+}
+
+// Card renders an article as a card, for displaying in a list.
+templ ArticleCard(article article) {
+	<div
+		class={ "card-base", templ.KV("opacity-50",!article.IsUnread()) }
+	>
+		// Header.
+		<div class="flex items-center">
+			<div class="flex flex-1 px-4 py-5 sm:px-6">
+				if img := article.GetImage(); img != nil {
+					@NewLink(
+						WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+						WithHXTarget(ContentID.Target()),
+						WithHXPushURL(),
+					) {
+						<div class="relative w-full">
+							<img
+								class="w-full rounded-2xl bg-base-content-10 object-cover aspect-3/2"
+								src={ "/img-proxy/300x200/" + img.GetURL() }
+								if img.GetTitle() != "" {
+									alt={ img.GetTitle() }
+								}
+							/>
+							<div class="inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
+						</div>
+						<div class="flex max-w-xl grow flex-col justify-between">
+							<div class="group relative grow">
+								<h3 class="mt-3 text-lg/6 font-semibold text-pretty">
+									if article.GetTitle() != "" {
+										{ article.GetTitle() }
+									} else {
+										(no title)
+									}
+								</h3>
+							</div>
+						</div>
+					}
+				} else {
+					@NewLink(
+						WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+						WithHXTarget(ContentID.Target()),
+						WithHXPushURL(),
+					) {
+						<div class="group relative grow">
+							<h3 class="mt-3 text-lg/6 font-semibold text-pretty line-clamp-3">
+								if article.GetTitle() != "" {
+									{ article.GetTitle() }
+								} else {
+									(no title)
+								}
+							</h3>
+						</div>
+					}
 				}
 			</div>
-			{{ text, err := models.ExtractText(article.GetContent()) }}
-			// No error and text content is more than 5 words.
-			if err == nil && len(strings.Fields(text)) > 5 {
-				<div class="px-4 py-5 sm:p-6">
-					<article class="prose prose-sm line-clamp-3">
-						{ text }
-					</article>
-				</div>
+		</div>
+		// Body.
+		<div class="grid grid-flow-row items-center px-4 sm:px-6">
+			<p class="grid text-xs/4 text-base-content/80 truncate">
+				@NewLink(
+					WithHXMethod(http.MethodGet, "/list/articles"),
+					WithHXTarget(ContentID.Target()),
+					WithHXPushURL(),
+					WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+					WithClasses("truncate"),
+				) {
+					{ article.GetFeedTitle() }
+				}
+			</p>
+			if len(article.GetAuthors()) > 0 {
+				<p class="inline-block text-xs/4 text-base-content/80 italic truncate">
+					{ strings.Join(article.GetAuthors(),",") }
+				</p>
 			}
-			// Footer.
-			<div class="px-4 py-4 sm:px-6">
-				<div class="flex justify-between items-center">
-					<div class="flex flex-1 gap-x-2">
-						<p class="text-xs/4 text-base-content/80 capitalize">
-							Updated&nbsp;
-							@ShowTimestamp(article.GetUpdatedDate())
-						</p>
-					</div>
-					<div class="flex flex-none">
-						@ContextMenu(article.GetTitle() + " Actions") {
-							// Find similar action.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
-								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(),
-								WithClasses("context-menu-item-base"),
-							) {
-								@tabler.FileSearch(i.Props{Class: "size-4"})
-								Find similar...
-							}
-							// Mark action.
-							<form id={ "mark-" + article.GetID() }>
-								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-								{{ var markSwap string }}
-								if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewAll {
-									{{ markSwap = "outerHTML " }}
-									// @MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "context-menu-item-base")
-								} else {
-									{{ markSwap = "delete " }}
-									// @MarkObjectLink(article, "#"+article.GetID(), "delete", "context-menu-item-base")
-								}
-								{{ var markURL string }}
-								if article.IsUnread() {
-									{{ markURL = "/mark/article/" + article.GetID() + "/read" }}
-								} else {
-									{{ markURL = "/mark/article/" + article.GetID() + "/unread" }}
-								}
-								@NewLink(
-									WithHXMethod(http.MethodPost, markURL),
-									WithHXTarget("#"+article.GetID()),
-									WithHXSwap(markSwap),
-									WithHXInclude("[name='csrf_token']"),
-									WithClasses("context-menu-item-base"),
-								) {
-									switch article.IsUnread() {
-										case true:
-											@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-											Mark Read
-										case false:
-											@tabler.MailFilled(i.Props{Class: "size-4"})
-											Mark Unread
-									}
-								}
-							</form>
-							// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-							<form>
-								<input type="hidden" name="display" value="card"/>
-								<div id={ "favorite_" + article.GetID() }>
-									@ToggleFavorite(article.GetID(), string(article.GetObjectType()), article.IsFavorite())
-									// @FavoriteObjectLink(article, "context-menu-item-base")
-								</div>
-							</form>
-							// Share action.
-							@NewLink(
-								// WithHXMethod(http.MethodGet, article.ViewURL()+"/share"),
-								// WithHXTarget(ModalContainerID.Target()),
-								WithClasses("context-menu-item-base"),
-								WithCustomAttribute("_", "on click if navigator.share then "+shareAPIDialog(article)+" else call document.getElementById('share-"+article.GetID()+"').show() "),
-								// WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('share').show()"),
-							) {
-								@tabler.Share(i.Props{Class: "size-4"})
-								Share
-							}
-							// Report issue action.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
-								WithHXTarget(ContentID.Target()),
-								WithClasses("context-menu-item-base"),
-							) {
-								@tabler.FlagFilled(i.Props{Class: "size-4"})
-								Report an issue
-							}
+		</div>
+		{{ text, err := models.ExtractText(article.GetContent()) }}
+		// No error and text content is more than 5 words.
+		if err == nil && len(strings.Fields(text)) > 5 {
+			<div class="px-4 py-5 sm:p-6">
+				<article class="prose prose-sm line-clamp-3">
+					{ text }
+				</article>
+			</div>
+		}
+		// Footer.
+		<div class="px-4 py-4 sm:px-6">
+			<div class="flex justify-between items-center">
+				<div class="flex flex-1 gap-x-2">
+					<p class="text-xs/4 text-base-content/80 capitalize">
+						Updated&nbsp;
+						@ShowTimestamp(article.GetUpdatedDate())
+					</p>
+				</div>
+				<div class="flex flex-none">
+					@ContextMenu(article.GetTitle() + " Actions") {
+						// Find similar action.
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithClasses("context-menu-item-base"),
+						) {
+							@tabler.FileSearch(i.Props{Class: "size-4"})
+							Find similar...
 						}
-					</div>
+						// Mark action.
+						<form id={ "mark-" + article.GetID() }>
+							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+							{{ var markSwap string }}
+							if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewAll {
+								{{ markSwap = "outerHTML " }}
+								// @MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "context-menu-item-base")
+							} else {
+								{{ markSwap = "delete " }}
+								// @MarkObjectLink(article, "#"+article.GetID(), "delete", "context-menu-item-base")
+							}
+							{{ var markURL string }}
+							if article.IsUnread() {
+								{{ markURL = "/mark/article/" + article.GetID() + "/read" }}
+							} else {
+								{{ markURL = "/mark/article/" + article.GetID() + "/unread" }}
+							}
+							@NewLink(
+								WithHXMethod(http.MethodPost, markURL),
+								WithHXTarget("#"+article.GetID()),
+								WithHXSwap(markSwap),
+								WithHXInclude("[name='csrf_token']"),
+								WithClasses("context-menu-item-base"),
+							) {
+								switch article.IsUnread() {
+									case true:
+										@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+										Mark Read
+									case false:
+										@tabler.MailFilled(i.Props{Class: "size-4"})
+										Mark Unread
+								}
+							}
+						</form>
+						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+						<form>
+							<input type="hidden" name="display" value="card"/>
+							<div id={ "favorite_" + article.GetID() }>
+								@ToggleFavorite(article.GetID(), string(article.GetObjectType()), article.IsFavorite())
+								// @FavoriteObjectLink(article, "context-menu-item-base")
+							</div>
+						</form>
+						// Share action.
+						@NewLink(
+							// WithHXMethod(http.MethodGet, article.ViewURL()+"/share"),
+							// WithHXTarget(ModalContainerID.Target()),
+							WithClasses("context-menu-item-base"),
+							WithCustomAttribute("_", "on click if navigator.share then "+shareAPIDialog(article)+" else call document.getElementById('share-"+article.GetID()+"').show() "),
+							// WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('share').show()"),
+						) {
+							@tabler.Share(i.Props{Class: "size-4"})
+							Share
+						}
+						// Report issue action.
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
+							WithHXTarget(ContentID.Target()),
+							WithClasses("context-menu-item-base"),
+						) {
+							@tabler.FlagFilled(i.Props{Class: "size-4"})
+							Report an issue
+						}
+					}
 				</div>
 			</div>
 		</div>
-		@ShareObjectModal(article)
-	</li>
+	</div>
+	@ShareObjectModal(article)
 }
 
 // ArticleContent renders the complete content of an article.
@@ -438,7 +490,9 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 templ ArticlesList(articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	for article := range slices.Values(articles) {
-		@ArticleCard(article)
+		<li id={ article.GetID() }>
+			@ArticleCard(article)
+		</li>
 	}
 	// Add pagination element if pagination is required.
 	if pagination != "" && len(articles) == filters.GetCount() {

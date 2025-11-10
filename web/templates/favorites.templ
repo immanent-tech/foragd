@@ -6,9 +6,6 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
-	"net/http"
 	"slices"
 )
 
@@ -47,82 +44,7 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 				@Grid() {
 					for subscription := range slices.Values(subscriptions) {
 						<li id={ subscription.GetID() }>
-							<div class="bg-base-200 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border shadow-sm dark:shadow-none">
-								<div class="flex items-center p-4">
-									<div class="flex flex-1">
-										@viewFeedSubscriptionLink(subscription)
-									</div>
-									<div class="flex flex-none">
-										@ContextMenu(subscription.GetTitle() + " Actions") {
-											// View action.
-											<a href={ subscription.GetLink() } target="_blank" rel="noopener" class="context-menu-item-base">
-												@tabler.ExternalLink(i.Props{Class: "size-4"})
-												Feed Website
-											</a>
-											// Mark action.
-											<form id={ "mark-" + subscription.GetID() }>
-												// MarkURL returns the app URL for marking the subscription.
-												{{ var markURL string }}
-												if subscription.GetStats().IsUnread() {
-													{{ markURL = "/mark/subscription/" + subscription.GetID() + "/read" }}
-												} else {
-													{{ markURL = "/mark/subscription/" + subscription.GetID() + "/unread" }}
-												}
-												@NewLink(
-													WithHXMethod(http.MethodPost, markURL),
-													WithHXInclude("[name='csrf_token']"),
-													WithHXTarget("#"+subscription.GetID()),
-													WithHXSwap("outerHTML"),
-													WithClasses("context-menu-item-base"),
-												) {
-													switch subscription.GetStats().IsUnread() {
-														case true:
-															@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-															Mark Read
-														case false:
-															@tabler.MailFilled(i.Props{Class: "size-4"})
-															Mark Unread
-													}
-												}
-												// @MarkObjectLink(subscription, , "outerHTML", "context-menu-item-base")
-											</form>
-											// Edit action.
-											<a
-												hx-get={ "/edit/subscription/" + subscription.GetID() }
-												hx-target={ ContentID.Target() }
-												hx-push-url="true"
-												class="link link-hover context-menu-item-base"
-											>
-												@tabler.Edit(i.Props{Class: "size-4"})
-												Edit Subscription
-											</a>
-											// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-											<div id={ "favorite_" + subscription.GetID() }>
-												@ToggleFavorite(subscription.GetID(), string(subscription.GetObjectType()), subscription.IsFavorite())
-											</div>
-											// Unsubscribe action.
-											<a
-												hx-get={ "/remove/subscription/" + subscription.GetID() }
-												hx-target={ ModalContainerID.Target() }
-												class="link link-hover context-menu-item-base"
-												_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
-											>
-												@tabler.TrashFilled(i.Props{Class: "size-4"})
-												Remove Subscription
-											</a>
-											// Report issue action.
-											<a
-												hx-get={ "/issue/subscription/" + subscription.GetID() }
-												hx-target={ ContentID.Target() }
-												class="link link-hover context-menu-item-base"
-											>
-												@tabler.FlagFilled(i.Props{Class: "size-4"})
-												Report an issue
-											</a>
-										}
-									</div>
-								</div>
-							</div>
+							@subscriptionCard(subscription)
 						</li>
 					}
 				}
@@ -137,57 +59,7 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 				@Grid() {
 					for article := range slices.Values(articles) {
 						<li id={ article.GetID() }>
-							<div class="bg-base-200 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border shadow-sm dark:shadow-none">
-								<div class="flex flex-col sm:flex-row items-center p-4">
-									// Article image.
-									if img := article.GetImage(); img != nil {
-										<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
-											<img
-												src={ img.GetURL() }
-												if img.GetTitle() != "" {
-													alt={ article.GetImage().GetTitle() }
-												}
-												class="h-32 sm:w-32 w-full object-cover sm:aspect-2/1 lg:aspect-3/2 rounded-box border border-base-content"
-											/>
-										</div>
-									}
-									// Title.
-									<div class="space-y-4">
-										<a
-											hx-get={ "/view/article/" + article.GetID() }
-											hx-target={ ContentID.Target() }
-											hx-push-url="true"
-											hx-swap="innerHTML show:top"
-											class={ "link link-hover" }
-										>
-											<h4 class="text-lg font-bold">{ article.GetTitle() }</h4>
-										</a>
-										// Timestamp, subscription info.
-										<div class="flex gap-x-4">
-											<p class="flex-none text-xs text-base-content/80">
-												@ShowTimestamp(article.GetUpdatedDate())
-											</p>
-											<p class="flex-none text-xs text-base-content/80">
-												@NewLink(
-													WithHXMethod(http.MethodGet, "/list/articles"),
-													WithHXTarget(ContentID.Target()),
-													WithHXPushURL(),
-													WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
-												) {
-													{ article.GetFeedTitle() }
-												}
-											</p>
-										</div>
-										// Truncated summary.
-										{{ text, err := models.ExtractText(article.GetContent()) }}
-										if err == nil {
-											<article class="prose prose-sm line-clamp-3">
-												{ text }
-											</article>
-										}
-									</div>
-								</div>
-							</div>
+							@ArticleCard(article)
 						</li>
 					}
 				}

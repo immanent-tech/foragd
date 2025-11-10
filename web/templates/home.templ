@@ -82,57 +82,7 @@ templ (page *Home) Template() {
 					<ul role="list" class="grid grid-cols-1 justify-center">
 						for article := range slices.Values(page.LatestArticles) {
 							<li class="py-4 sm:px-4 space-y-2">
-								<div class={ "sm:flex items-center", templ.KV("opacity-50",!article.IsUnread()) }>
-									// Article image.
-									if img := article.GetImage(); img != nil {
-										<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
-											<img
-												src={ "/img-proxy/300x200/" + img.GetURL() }
-												if img.GetTitle() != "" {
-													alt={ article.GetImage().GetTitle() }
-												}
-												class="h-32 sm:w-32 w-full object-cover rounded-box border border-base-content"
-											/>
-										</div>
-									}
-									<div class="gap-y-2">
-										// Article title.
-										<a
-											hx-get={ "/view/article/" + article.GetID() }
-											hx-target={ ContentID.Target() }
-											hx-push-url="true"
-											hx-swap="innerHTML show:top"
-											class={ "link link-hover" }
-										>
-											<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
-										</a>
-										// Timestamp, Subscription.
-										<div class="grid grid-flow-row justify-between">
-											<p class="flex text-xs text-base-content/80">
-												Updated&nbsp;
-												@ShowTimestamp(article.GetUpdatedDate())
-											</p>
-											<p class="grid justify-self-end text-xs text-base-content/80 truncate">
-												@NewLink(
-													WithHXMethod(http.MethodGet, "/list/articles"),
-													WithHXTarget(ContentID.Target()),
-													WithHXPushURL(),
-													WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
-													WithClasses("truncate"),
-												) {
-													{ article.GetFeedTitle() }
-												}
-											</p>
-										</div>
-										// Article content summary.
-										{{ text, err := models.ExtractText(article.GetContent()) }}
-										if err == nil {
-											<article class="mt-4 prose prose-sm line-clamp-3">
-												{ text }
-											</article>
-										}
-									</div>
-								</div>
+								@articleSummary(article)
 							</li>
 						}
 					</ul>
