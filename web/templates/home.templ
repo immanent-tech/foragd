@@ -95,7 +95,7 @@ templ (page *Home) Template() {
 											/>
 										</div>
 									}
-									<div class="space-y-4">
+									<div class="gap-y-2">
 										// Article title.
 										<a
 											hx-get={ "/view/article/" + article.GetID() }
@@ -107,8 +107,9 @@ templ (page *Home) Template() {
 											<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
 										</a>
 										// Timestamp, Subscription.
-										<div class="grid grid-flow-col justify-between px-4">
-											<p class="grid text-xs text-base-content/80">
+										<div class="grid grid-flow-row justify-between">
+											<p class="flex text-xs text-base-content/80">
+												Updated&nbsp;
 												@ShowTimestamp(article.GetUpdatedDate())
 											</p>
 											<p class="grid justify-self-end text-xs text-base-content/80 truncate">
@@ -126,7 +127,7 @@ templ (page *Home) Template() {
 										// Article content summary.
 										{{ text, err := models.ExtractText(article.GetContent()) }}
 										if err == nil {
-											<article class="prose prose-sm line-clamp-3">
+											<article class="mt-4 prose prose-sm line-clamp-3">
 												{ text }
 											</article>
 										}
@@ -192,7 +193,7 @@ templ (page *Home) Template() {
 											/>
 										</div>
 									}
-									<div class="space-y-4">
+									<div class="gap-y-2">
 										// Article title.
 										@NewLink(
 											WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
@@ -203,11 +204,12 @@ templ (page *Home) Template() {
 											<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
 										}
 										// Timestamp, Subscription.
-										<div class="flex gap-x-4">
-											<p class="flex-none text-xs text-base-content/80">
+										<div class="grid grid-flow-row justify-between">
+											<p class="flex text-xs text-base-content/80">
+												Updated&nbsp;
 												@ShowTimestamp(article.GetUpdatedDate())
 											</p>
-											<p class="flex-none text-xs text-base-content/80">
+											<p class="flex text-xs text-base-content/80">
 												@NewLink(
 													WithHXMethod(http.MethodGet, "/list/articles"),
 													WithHXTarget(ContentID.Target()),
@@ -222,7 +224,7 @@ templ (page *Home) Template() {
 										// Article content summary.
 										{{ text, err := models.ExtractText(article.GetContent()) }}
 										if err == nil {
-											<article class="prose prose-sm line-clamp-3">
+											<article class="mt-4 prose prose-sm line-clamp-3">
 												{ text }
 											</article>
 										}
