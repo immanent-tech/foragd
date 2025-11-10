@@ -60,7 +60,7 @@ type DataAPI interface {
 	UserAPI
 }
 
-// TODO: set account level appropriately.
+// CreateUser creates a new local user object.
 func CreateUser(ctx context.Context, dataAPI DataAPI, externalID, email string) error {
 	user := NewUser(externalID, email, "auth0", UserLevelStandard)
 	valid, err := user.Valid(ctx)
@@ -206,6 +206,7 @@ func UpdateFavoriteArticle(ctx context.Context, dataAPI DataAPI, user *User, id 
 	return nil
 }
 
+// UpdateSubscription will update the subscription details for a user.
 func UpdateSubscription(ctx context.Context, dataAPI DataAPI, subscription AnySubscription) error {
 	// Retrieve user object.
 	user, err := UserFromCtx(ctx)
@@ -335,6 +336,8 @@ func CreateSearchSubscriptions(ctx context.Context, dataAPI DataAPI, requests ..
 
 // GetSubscriptions will fetch Subscriptions with the given IDs. All dynamic subscription data (stats, unread status)
 // will be fetched and inserted into each Subscription object.
+//
+//nolint:gocognit
 func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (Subscriptions, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -423,11 +426,22 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 	for s := range slices.Values(searchSubscriptions) {
 		results = append(results, s)
 	}
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve subscriptions: %w", err)
-	}
 
 	return results, nil
+}
+
+// GetUserFavoriteSubscriptions retrieves the favorite subscriptions of a user.
+func GetUserFavoriteSubscriptions(ctx context.Context, dataAPI DataAPI) (Subscriptions, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get favorite subscriptions: get user object failed: %w", err)
+	}
+	ids := slices.Concat(user.GetSearchSubscriptions().GetIDs(), user.GetFeedSubscriptions().FilterByFavorites().GetIDs())
+	subscriptions, err := GetSubscriptions(ctx, dataAPI, ids...)
+	if err != nil {
+		return nil, fmt.Errorf("get favorite subscriptions: get subscriptions failed: %w", err)
+	}
+	return subscriptions, nil
 }
 
 // GetFeedSubscriptionStats fetches the stats for FeedSubscriptions and returns a map of the SubscriptionID to
@@ -708,6 +722,19 @@ func GetArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Artic
 		return nil, fmt.Errorf("get articles failed: %w", err)
 	}
 
+	return articles, nil
+}
+
+// GetUserFavoriteArticles retrieves the favorite articles of a user.
+func GetUserFavoriteArticles(ctx context.Context, dataAPI DataAPI) (Articles, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get user favorite articles: get user failed: %w", err)
+	}
+	articles, err := GetArticles(ctx, dataAPI, user.ItemFavorites...)
+	if err != nil {
+		return nil, fmt.Errorf("get user favorite articles: get articles: %w", err)
+	}
 	return articles, nil
 }
 

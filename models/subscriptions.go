@@ -178,6 +178,15 @@ func (s FeedSubscriptions) FilterByFeedIDs(ids ...FeedID) FeedSubscriptions {
 	)
 }
 
+// FilterByFavorites returns a new slic containing only the favorited FeedSubscriptions.
+func (s FeedSubscriptions) FilterByFavorites() FeedSubscriptions {
+	return slices.Collect(
+		FilterSlice(s, func(e *FeedSubscription) bool {
+			return e.IsFavorite()
+		}),
+	)
+}
+
 // // Search performs a case-insensitive substring search for the given text in the title and categories customisations for
 // // the subscriptions, returning a slice of those subscriptions that match.
 // func (s FeedSubscriptions) Search(text string) FeedSubscriptions {

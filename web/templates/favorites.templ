@@ -12,7 +12,7 @@ import (
 	"slices"
 )
 
-templ FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Articles) {
+templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articles) {
 	@Main() {
 		<div id="top" class="flex items-center justify-between mt-4">
 			<div class="min-w-0 flex-1">
@@ -28,10 +28,6 @@ templ FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Ar
 					Jump To:
 				</h3>
 				<div class="flex items-center px-2">
-					// if len(searches) > 0 {
-					// 	<a href="#searches" class="link link-hover">Searches</a>
-					// 	<div aria-hidden="true" class="h-5 w-px bg-base-content/40 m-4 block"></div>
-					// }
 					if len(subscriptions) > 0 {
 						<a href="#subscriptions" class="link link-hover">Subscriptions</a>
 						<div aria-hidden="true" class="h-5 w-px bg-base-content/40 m-4 block"></div>
@@ -42,45 +38,6 @@ templ FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Ar
 				</div>
 			</div>
 		</section>
-		// Favorite searches.
-		// if len(searches) > 0 {
-		// 	<section id="searches" class="mt-4">
-		// 		<div class="pb-5">
-		// 			<h3 class="text-base font-semibold">Searches</h3>
-		// 		</div>
-		// 		@Grid() {
-		// 			for nickname, search := range searches {
-		// 				<li>
-		// 					<form
-		// 						hx-post="/search"
-		// 						hx-target={ ContentID.Target() }
-		// 						hx-push-url="true"
-		// 						hx-include="[name='csrf_token']"
-		// 						hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
-		// 					>
-		// 						<input type="hidden" name="text" value={ search.Text }/>
-		// 						<input type="hidden" name="view" value={ search.View }/>
-		// 						<input type="hidden" name="published_within" value={ string(search.PublishedWithin) }/>
-		// 						if len(search.Subscriptions) > 0 {
-		// 							<input type="hidden" name="subscriptions" value={ strings.Join(search.Subscriptions, ",") }/>
-		// 						}
-		// 						if search.Authors != "" {
-		// 							<input type="hidden" name="authors" value={ search.Authors }/>
-		// 						}
-		// 						if search.Categories != "" {
-		// 							<input type="hidden" name="categories" value={ search.Categories }/>
-		// 						}
-		// 						@NewButton(
-		// 							WithCustomAttribute("type", "submit"),
-		// 						) {
-		// 							{ nickname }
-		// 						}
-		// 					</form>
-		// 				</li>
-		// 			}
-		// 		}
-		// 	</section>
-		// }
 		// Favorite subscriptions.
 		if len(subscriptions) > 0 {
 			<section id="subscriptions" class="mt-4">

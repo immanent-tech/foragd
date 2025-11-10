@@ -20,7 +20,7 @@ import (
 	"slices"
 )
 
-func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Articles) templ.Component {
+func FavoritesLayout(subscriptions models.Subscriptions, articles models.Articles) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -69,7 +69,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div></section>                                        ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div></section> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -98,7 +98,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 						var templ_7745c5c3_Var4 string
 						templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetID())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 92, Col: 35}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 49, Col: 35}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 						if templ_7745c5c3_Err != nil {
@@ -135,7 +135,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var6 templ.SafeURL
 							templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(subscription.GetLink())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 101, Col: 43}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 58, Col: 43}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 							if templ_7745c5c3_Err != nil {
@@ -156,7 +156,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var7 string
 							templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs("mark-" + subscription.GetID())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 106, Col: 52}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 63, Col: 52}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 							if templ_7745c5c3_Err != nil {
@@ -223,7 +223,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var9 string
 							templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs("/edit/subscription/" + subscription.GetID())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 134, Col: 65}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 91, Col: 65}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 							if templ_7745c5c3_Err != nil {
@@ -236,7 +236,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var10 string
 							templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 135, Col: 42}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 92, Col: 42}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 							if templ_7745c5c3_Err != nil {
@@ -257,7 +257,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var11 string
 							templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("favorite_" + subscription.GetID())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 143, Col: 55}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 100, Col: 55}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 							if templ_7745c5c3_Err != nil {
@@ -278,7 +278,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var12 string
 							templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("/remove/subscription/" + subscription.GetID())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 148, Col: 67}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 105, Col: 67}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 							if templ_7745c5c3_Err != nil {
@@ -291,7 +291,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var13 string
 							templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(ModalContainerID.Target())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 149, Col: 49}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 106, Col: 49}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 							if templ_7745c5c3_Err != nil {
@@ -312,7 +312,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var14 string
 							templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("/issue/subscription/" + subscription.GetID())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 158, Col: 66}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 115, Col: 66}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 							if templ_7745c5c3_Err != nil {
@@ -325,7 +325,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var15 string
 							templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 159, Col: 42}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 116, Col: 42}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 							if templ_7745c5c3_Err != nil {
@@ -394,7 +394,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 						var templ_7745c5c3_Var17 string
 						templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetID())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 182, Col: 30}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 139, Col: 30}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 						if templ_7745c5c3_Err != nil {
@@ -412,7 +412,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var18 string
 							templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 189, Col: 30}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 146, Col: 30}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 							if templ_7745c5c3_Err != nil {
@@ -430,7 +430,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 								var templ_7745c5c3_Var19 string
 								templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetImage().GetTitle())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 191, Col: 48}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 148, Col: 48}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 								if templ_7745c5c3_Err != nil {
@@ -462,7 +462,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 						var templ_7745c5c3_Var21 string
 						templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("/view/article/" + article.GetID())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 200, Col: 54}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 157, Col: 54}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 						if templ_7745c5c3_Err != nil {
@@ -475,7 +475,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 						var templ_7745c5c3_Var22 string
 						templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 201, Col: 41}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 158, Col: 41}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 						if templ_7745c5c3_Err != nil {
@@ -501,7 +501,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 						var templ_7745c5c3_Var24 string
 						templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetTitle())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 206, Col: 61}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 163, Col: 61}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 						if templ_7745c5c3_Err != nil {
@@ -534,7 +534,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var26 string
 							templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetFeedTitle())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 220, Col: 37}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 177, Col: 37}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 							if templ_7745c5c3_Err != nil {
@@ -564,7 +564,7 @@ func FavoritesLayout(subscriptions models.FeedSubscriptions, articles models.Art
 							var templ_7745c5c3_Var27 string
 							templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 228, Col: 18}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/favorites.templ`, Line: 185, Col: 18}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 							if templ_7745c5c3_Err != nil {
