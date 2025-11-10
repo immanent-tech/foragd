@@ -165,35 +165,13 @@ components:
       x-oapi-codegen-extra-tags:
         form: 'pagination'
         validate: 'omitempty,url_encoded'
-    SortBy:
-      description: >
-        represents the selected field to sort on.
-      type: string
-      enum: ['unread_count', 'last_updated']
-      x-oapi-codegen-extra-tags:
-        validate: 'oneof=unread_count last_updated'
-        form: 'sort_by'
-    SortOrder:
-      description: >
-        represents the order for sorting the selected field.
-      type: string
-      enum: ['asc', 'desc']
-      x-oapi-codegen-extra-tags:
-        validate: 'oneof=asc desc'
-        form: 'sort_order'
     Sort:
-      description: contains information on sorting objects.
-      type: object
-      required:
-        - sort_by
-        - sort_order
-      properties:
-        sort_by:
-          $ref: '#/components/schemas/SortBy'
-        sort_order:
-          $ref: '#/components/schemas/SortOrder'
+      description: is how a list of objects is sorted.
+      type: string
+      enum: ['newest_first','oldest_first','most_unread','least_unread','most_relevant']
       x-oapi-codegen-extra-tags:
-        json: 'sort'
+        form: 'sort'
+        validate: 'oneof=newest_first oldest_first most_unread least_unread most_relevant'
     # Objects.
     UserCustomisation:
       description: >
@@ -1014,6 +992,8 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'published_within'
             validate: 'required,oneof=all_time last_hour last_12hours last_day last_week last_month'
+        sort:
+          $ref: '#/components/schemas/Sort'
         timezone:
           description: >
             represents the timezone of the browser (i.e., user), used for calculating published_within offset.
@@ -1046,10 +1026,12 @@ components:
           $ref: '#/components/schemas/Count'
         view:
           $ref: '#/components/schemas/View'
-        sort_by:
-          $ref: '#/components/schemas/SortBy'
-        sort_order:
-          $ref: '#/components/schemas/SortOrder'
+        sort:
+          $ref: '#/components/schemas/Sort'
+        # sort_by:
+        #   $ref: '#/components/schemas/SortBy'
+        # sort_order:
+        #   $ref: '#/components/schemas/SortOrder'
         categories:
           description: is a list of categories.
           type: array

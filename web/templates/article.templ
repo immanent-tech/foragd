@@ -417,8 +417,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 		<div id="content-filters" class="hidden">
 			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-			<input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
-			<input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
+			<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
 			if len(filters.GetCategories()) > 0 {
 				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>
 			}

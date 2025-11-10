@@ -16,6 +16,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -243,6 +244,7 @@ func UpdateSubscription(ctx context.Context, dataAPI DataAPI, subscription AnySu
 
 // FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
 func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Subscriptions, Pagination, error) {
+	godump.Dump(filters)
 	// Get subscriptions by ID.
 	subscriptions, err := GetSubscriptions(ctx, dataAPI, filters.GetSubscriptions()...)
 	if err != nil {
@@ -252,12 +254,11 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 		return nil, "", nil
 	}
 	// Filter subscriptions.
-	sort := filters.GetSort()
 	subscriptions = subscriptions.
 		FilterByFavorites(filters.OnlyFavorites).
 		FilterByCategories(filters.Categories...).
 		FilterByView(filters.View).
-		Sort(&sort)
+		Sort(filters.Sort)
 	// Set up pagination.
 	subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
 	return subscriptions, pagination, nil
@@ -389,7 +390,8 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 					return fmt.Errorf("fetch search subscriptions failed: unable to count items: %w", err)
 				}
 				subscription.Stats.UnreadCount = int(count)
-				items, _, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, &subscription.Search), 1, &SortLastUpdatedDesc, nil)
+				sort := SortNewestFirst
+				items, _, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, &subscription.Search), 1, &sort, nil)
 				if err != nil {
 					return fmt.Errorf("fetch search subscriptions failed: unable to get last update: %w", err)
 				}
@@ -788,7 +790,8 @@ func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID
 		),
 	)
 	// Query for similar articles.
-	items, _, err := dataAPI.SearchItems(ctx, similarQuery, 15, nil, nil)
+	sort := SortMostRelevant
+	items, _, err := dataAPI.SearchItems(ctx, similarQuery, 15, &sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}
@@ -822,7 +825,8 @@ func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms stri
 			),
 		),
 	)
-	itemResults, _, err := dataAPI.SearchItems(ctx, itemsQuery, 10, &SortLastUpdatedDesc, nil)
+	sort := SortMostRelevant
+	itemResults, _, err := dataAPI.SearchItems(ctx, itemsQuery, 10, &sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("get search suggestions: search items failed: %w", err)
 	}
@@ -840,7 +844,8 @@ func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchReque
 	if err != nil {
 		return nil, "", fmt.Errorf("get search results: get user failed: %w", err)
 	}
-	itemResults, pagination, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, request), 15, &SortLastUpdatedDesc, &pagination)
+	sort := SortMostRelevant
+	itemResults, pagination, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, request), 15, &sort, &pagination)
 	if err != nil {
 		return nil, "", fmt.Errorf("get search resuls: search items failed: %w", err)
 	}
@@ -1058,6 +1063,16 @@ func (s *DocSorting) SortCombinationsCaster() *types.SortCombinations {
 	return &c
 }
 
+type ScoreSorting types.SortOptions
+
+func (s *ScoreSorting) SortCombinationsCaster() *types.SortCombinations {
+	opts := &types.SortOptions{
+		Score_: types.NewScoreSort(),
+	}
+	c := types.SortCombinations(opts)
+	return &c
+}
+
 // ItemSorting contains the sort options for sorting item search results.
 type ItemSorting struct {
 	Updated   string `json:"updated"`
@@ -1071,14 +1086,25 @@ func (s *ItemSorting) SortCombinationsCaster() *types.SortCombinations {
 }
 
 func NewItemSortOptions(sort *Sort) []types.SortCombinationsVariant {
+	if sort == nil {
+		return []types.SortCombinationsVariant{&DocSorting{}}
+	}
 	var opts []types.SortCombinationsVariant
-	switch {
-	case sort != nil:
+	switch *sort {
+	case SortNewestFirst:
 		opts = append(opts, &ItemSorting{
-			Updated:   string(sort.SortOrder),
-			Published: string(sort.SortOrder),
-			ItemID:    string(sort.SortOrder),
+			Updated:   "desc",
+			Published: "desc",
+			ItemID:    "desc",
 		})
+	case SortOldestFirst:
+		opts = append(opts, &ItemSorting{
+			Updated:   "asc",
+			Published: "asc",
+			ItemID:    "asc",
+		})
+	case SortMostRelevant:
+		opts = append(opts, &ScoreSorting{})
 	default:
 		opts = append(opts, &DocSorting{})
 	}
@@ -1086,14 +1112,25 @@ func NewItemSortOptions(sort *Sort) []types.SortCombinationsVariant {
 }
 
 func NewItemSortCombinations(sort *Sort) []types.SortCombinations {
+	if sort == nil {
+		return []types.SortCombinations{&DocSorting{}}
+	}
 	var opts []types.SortCombinations
-	switch {
-	case sort != nil:
+	switch *sort {
+	case SortNewestFirst:
 		opts = append(opts, &ItemSorting{
-			Updated:   string(sort.SortOrder),
-			Published: string(sort.SortOrder),
-			ItemID:    string(sort.SortOrder),
+			Updated:   "desc",
+			Published: "desc",
+			ItemID:    "desc",
 		})
+	case SortOldestFirst:
+		opts = append(opts, &ItemSorting{
+			Updated:   "asc",
+			Published: "asc",
+			ItemID:    "asc",
+		})
+	case SortMostRelevant:
+		opts = append(opts, &ScoreSorting{})
 	default:
 		opts = append(opts, &DocSorting{})
 	}
@@ -1113,14 +1150,25 @@ func (s *FeedSorting) SortCombinationsCaster() *types.SortCombinations {
 }
 
 func NewFeedSortOptions(sort *Sort) []types.SortCombinationsVariant {
+	if sort == nil {
+		return []types.SortCombinationsVariant{&DocSorting{}}
+	}
 	var opts []types.SortCombinationsVariant
-	switch {
-	case sort != nil:
+	switch *sort {
+	case SortNewestFirst:
 		opts = append(opts, &FeedSorting{
-			Updated:   string(sort.SortOrder),
-			Published: string(sort.SortOrder),
-			FeedID:    string(sort.SortOrder),
+			Updated:   "desc",
+			Published: "desc",
+			FeedID:    "desc",
 		})
+	case SortOldestFirst:
+		opts = append(opts, &FeedSorting{
+			Updated:   "asc",
+			Published: "asc",
+			FeedID:    "asc",
+		})
+	case SortMostRelevant:
+		opts = append(opts, &ScoreSorting{})
 	default:
 		opts = append(opts, &DocSorting{})
 	}
@@ -1128,14 +1176,25 @@ func NewFeedSortOptions(sort *Sort) []types.SortCombinationsVariant {
 }
 
 func NewFeedSortCombinations(sort *Sort) []types.SortCombinations {
+	if sort == nil {
+		return []types.SortCombinations{&DocSorting{}}
+	}
 	var opts []types.SortCombinations
-	switch {
-	case sort != nil:
+	switch *sort {
+	case SortNewestFirst:
 		opts = append(opts, &FeedSorting{
-			Updated:   string(sort.SortOrder),
-			Published: string(sort.SortOrder),
-			FeedID:    string(sort.SortOrder),
+			Updated:   "desc",
+			Published: "desc",
+			FeedID:    "desc",
 		})
+	case SortOldestFirst:
+		opts = append(opts, &FeedSorting{
+			Updated:   "asc",
+			Published: "asc",
+			FeedID:    "asc",
+		})
+	case SortMostRelevant:
+		opts = append(opts, &ScoreSorting{})
 	default:
 		opts = append(opts, &DocSorting{})
 	}

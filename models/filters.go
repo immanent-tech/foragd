@@ -21,17 +21,6 @@ func init() {
 
 var ErrParseFilters = errors.New("error parsing filters")
 
-var (
-	// SortLastUpdatedDesc sorts by last updated, newest->oldest.
-	SortLastUpdatedDesc = Sort{SortBy: SortByLastUpdated, SortOrder: SortOrderDesc}
-	// SortLastUpdatedAsc sorts by last updated, oldest->newest.
-	SortLastUpdatedAsc = Sort{SortBy: SortByLastUpdated, SortOrder: SortOrderAsc}
-	// SortUnreadCountDesc sorts by unread count, highest->lowest.
-	SortUnreadCountDesc = Sort{SortBy: SortByUnreadCount, SortOrder: SortOrderDesc}
-	// SortUnreadCountAsc sorts by unread count, lowest->highest.
-	SortUnreadCountAsc = Sort{SortBy: SortByUnreadCount, SortOrder: SortOrderAsc}
-)
-
 const (
 	// MaxUserCount is the maximum number of results a user can retrieve at a single time.
 	MaxUserCount = 20
@@ -41,46 +30,28 @@ const (
 	DefaultCount = "10"
 	// DefaultView is to show unread objects.
 	DefaultView = ViewUnread
-	// DefaultSortBy is to sort on updated.
-	DefaultSortBy = SortByLastUpdated
-	// DefaultSortOrder is to sort newest->oldest.
-	DefaultSortOrder = SortOrderDesc
 	// DefaultSince is maximum duration (approx 290 years).
 	DefaultSince = math.MaxInt64
 )
 
+// DefaultSort is newest first.
+var DefaultSort = SortNewestFirst
+
 func (s Sort) String() string {
 	switch s {
-	case SortLastUpdatedDesc:
-		return "Newest First"
-	case SortLastUpdatedAsc:
-		return "Oldest First"
-	case SortUnreadCountDesc:
-		return "Most Unread"
-	case SortUnreadCountAsc:
+	case SortLeastUnread:
 		return "Least Unread"
+	case SortMostUnread:
+		return "Most Unread"
+	case SortNewestFirst:
+		return "Newest First"
+	case SortOldestFirst:
+		return "Oldest First"
+	case SortMostRelevant:
+		return "Most Relevant"
 	default:
-		return "Unknown Sort"
+		return "Unknown"
 	}
-}
-
-// ID returns a string that can be used as an id for the sort.
-func (s *Sort) ID() string {
-	return "sort-" + string(s.SortBy) + "-" + string(s.SortOrder)
-}
-
-// IsEqual returns true if the sort is equal to the given value.
-func (s Sort) IsEqual(value Sort) bool {
-	return s.SortBy == value.SortBy && s.SortOrder == value.SortOrder
-}
-
-// Valid checks whether the Sort options are valid values.
-func (s *Sort) Valid() bool {
-	valid, err := validation.ValidateStruct(s)
-	if !valid || err != nil {
-		return false
-	}
-	return true
 }
 
 // Filters represents either Subscription or Article filters.
@@ -97,10 +68,9 @@ type Filters interface {
 // NewListDisplayFilters creates a new set of display filters with sensible defaults.
 func NewListDisplayFilters() ListDisplayFilters {
 	return ListDisplayFilters{
-		SortBy:    SortByLastUpdated,
-		SortOrder: SortOrderDesc,
-		Count:     DefaultCount,
-		View:      DefaultView,
+		Sort:  SortNewestFirst,
+		Count: DefaultCount,
+		View:  DefaultView,
 	}
 }
 
@@ -117,8 +87,7 @@ func (f *ListDisplayFilters) Sanitise() error {
 		return nil
 	}
 	// Set required filters to valid values as necessary.
-	f.SortBy = setValidSortBy(f.SortBy)
-	f.SortOrder = setValidSortOrder(f.SortOrder)
+	f.Sort = setValidSort(f.Sort)
 	f.Count = setValidCount(f.Count)
 	f.View = setValidView(f.View)
 	return nil
@@ -135,10 +104,7 @@ func (f *ListDisplayFilters) Valid() (bool, error) {
 
 // GetSort returns the Sort object for the Filters.
 func (f *ListDisplayFilters) GetSort() Sort {
-	return Sort{
-		SortBy:    f.SortBy,
-		SortOrder: f.SortOrder,
-	}
+	return f.Sort
 }
 
 // GetCount returns the count value (encoded as a string in the filters) as an int.
@@ -169,8 +135,7 @@ func (f *ListDisplayFilters) QueryParams() url.Values {
 	if len(f.Categories) > 0 {
 		params.Set(ParamCategories, strings.Join(f.Categories, ","))
 	}
-	params.Set(ParamSortBy, string(f.SortBy))
-	params.Set(ParamSortOrder, string(f.SortOrder))
+	params.Set(ParamSort, string(f.Sort))
 	params.Set(ParamView, string(f.View))
 	params.Set(ParamCount, f.Count)
 	return params
@@ -191,8 +156,7 @@ func (f *ListDisplayFilters) Values() map[string]string {
 	if len(f.Categories) > 0 {
 		params[ParamCategories] = strings.Join(f.Categories, ",")
 	}
-	params[ParamSortBy] = string(f.SortBy)
-	params[ParamSortOrder] = string(f.SortOrder)
+	params[ParamSort] = string(f.Sort)
 	params[ParamView] = string(f.View)
 	params[ParamCount] = f.Count
 	return params
@@ -201,28 +165,12 @@ func (f *ListDisplayFilters) Values() map[string]string {
 // setValidSortBy takes a string value and returns the SortBy value it
 // represents. If the string is not a valid SortBy value, the default SortBy
 // value is returned.
-func setValidSortBy(value SortBy) SortBy {
+func setValidSort(value Sort) Sort {
 	switch value {
-	case SortByUnreadCount:
-		return value
-	case SortByLastUpdated:
+	case SortLeastUnread, SortMostUnread, SortNewestFirst, SortOldestFirst, SortMostRelevant:
 		return value
 	default:
-		return DefaultSortBy
-	}
-}
-
-// setValidSortOrder takes a string value and returns the SortOrder value it
-// represents. If the string is not a valid SortOrder value, the default SortOrder
-// value is returned.
-func setValidSortOrder(value SortOrder) SortOrder {
-	switch value {
-	case SortOrderAsc:
-		return value
-	case SortOrderDesc:
-		return value
-	default:
-		return DefaultSortOrder
+		return DefaultSort
 	}
 }
 

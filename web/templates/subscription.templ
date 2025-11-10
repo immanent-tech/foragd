@@ -157,7 +157,7 @@ templ SubscriptionCard(s models.AnySubscription) {
 }
 
 templ viewFeedSubscriptionLink(s models.AnySubscription) {
-	{{ overrides := map[string]string{models.ParamSortBy: string(models.SortByLastUpdated), "subscriptions": s.GetID()} }}
+	{{ overrides := map[string]string{models.ParamSort: string(models.SortNewestFirst), "subscriptions": s.GetID()} }}
 	if s.GetStats().IsUnread() {
 		{{ overrides[models.ParamView] = string(models.ViewUnread) }}
 	} else {
@@ -306,8 +306,7 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...models.An
 		<div id="content-filters" class="hidden">
 			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-			<input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
-			<input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
+			<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
 			<input type="hidden" name={ models.ParamOnlyFavorites } value={ strconv.FormatBool(filters.OnlyFavorites) }/>
 			if len(filters.GetCategories()) > 0 {
 				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>

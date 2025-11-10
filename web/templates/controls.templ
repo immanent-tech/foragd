@@ -14,8 +14,9 @@ import (
 )
 
 templ FilterControls(categories models.CategoryCounts, filters *models.ListDisplayFilters) {
+	{{ listType := chi.RouteContext(ctx).URLParam(models.ParamListType) }}
 	{{ var path string }}
-	switch chi.RouteContext(ctx).URLParam(models.ParamListType) {
+	switch listType {
 		case "subscriptions":
 			{{ path = "/list/subscriptions" }}
 		case "articles":
@@ -123,11 +124,11 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 					</button>
 					<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/15 rounded-md bg-base-300 shadow-lg outline-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 						<div class="py-1">
-							@sortOption(path, models.SortLastUpdatedDesc, filters.GetSort())
-							@sortOption(path, models.SortLastUpdatedAsc, filters.GetSort())
-							if path == "/subscriptions" {
-								@sortOption(path, models.SortUnreadCountDesc, filters.GetSort())
-								@sortOption(path, models.SortUnreadCountAsc, filters.GetSort())
+							@sortOption(path, models.SortNewestFirst, filters.GetSort())
+							@sortOption(path, models.SortOldestFirst, filters.GetSort())
+							if listType == "subscriptions" {
+								@sortOption(path, models.SortMostUnread, filters.GetSort())
+								@sortOption(path, models.SortLeastUnread, filters.GetSort())
 							}
 						</div>
 					</el-menu>
@@ -344,7 +345,7 @@ templ activeCategoryFilterBadge(category models.Category) {
 
 templ sortOption(path string, sort models.Sort, current models.Sort) {
 	{{ var class string }}
-	if current.IsEqual(sort) {
+	if current == sort {
 		{{ class = "text-accent font-semibold" }}
 	}
 	@NewLink(
@@ -352,15 +353,19 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 		WithHXInclude("#content-filters"),
 		WithHXTarget(ContentID.Target()),
 		WithHXPushURL(),
-		WithHXVals(map[string]string{models.ParamSortBy: string(sort.SortBy), models.ParamSortOrder: string(sort.SortOrder)}),
-		WithID(sort.ID()),
+		WithHXVals(map[string]string{models.ParamSort: string(sort)}),
+		WithID(string(sort)),
 		WithClasses("flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", class),
 	) {
-		switch sort.SortOrder {
-			case models.SortOrderDesc:
+		switch sort {
+			case models.SortNewestFirst:
 				@tabler.SortDescending2(i.Props{Class: "size-4"})
-			case models.SortOrderAsc:
+			case models.SortOldestFirst:
 				@tabler.SortAscending2(i.Props{Class: "size-4"})
+			case models.SortMostUnread:
+				@tabler.SortDescendingNumbers(i.Props{Class: "size-4"})
+			case models.SortLeastUnread:
+				@tabler.SortAscendingNumbers(i.Props{Class: "size-4"})
 		}
 		{ sort.String() }
 	}

@@ -277,7 +277,6 @@ func parseFilters(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters, valid, err := forms.DecodeForm[*models.ListDisplayFilters](req)
 		ctx := req.Context()
-		slog.Info("foo")
 		switch {
 		case err != nil:
 			if errors.Is(err, forms.ErrNoFormData) {

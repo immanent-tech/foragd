@@ -62,16 +62,13 @@ const (
 	SearchRequestPublishedWithinLastWeek    SearchRequestPublishedWithin = "last_week"
 )
 
-// Defines values for SortBy.
+// Defines values for Sort.
 const (
-	SortByLastUpdated SortBy = "last_updated"
-	SortByUnreadCount SortBy = "unread_count"
-)
-
-// Defines values for SortOrder.
-const (
-	SortOrderAsc  SortOrder = "asc"
-	SortOrderDesc SortOrder = "desc"
+	SortLeastUnread  Sort = "least_unread"
+	SortMostRelevant Sort = "most_relevant"
+	SortMostUnread   Sort = "most_unread"
+	SortNewestFirst  Sort = "newest_first"
+	SortOldestFirst  Sort = "oldest_first"
 )
 
 // Defines values for State.
@@ -293,11 +290,8 @@ type CommonDisplayFilters struct {
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
 
-	// SortBy represents the selected field to sort on.
-	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
-
-	// SortOrder represents the order for sorting the selected field.
-	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
+	// Sort is how a list of objects is sorted.
+	Sort Sort `form:"sort" json:"sort,omitempty,omitzero" validate:"oneof=newest_first oldest_first most_unread least_unread most_relevant"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`
@@ -511,11 +505,8 @@ type ListDisplayFilters struct {
 	// OnlyFavorites indicates whether to filter by favorites only.
 	OnlyFavorites bool `form:"only_favorites" json:"only_favorites" validate:"omitempty,boolean"`
 
-	// SortBy represents the selected field to sort on.
-	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
-
-	// SortOrder represents the order for sorting the selected field.
-	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
+	// Sort is how a list of objects is sorted.
+	Sort Sort `form:"sort" json:"sort,omitempty,omitzero" validate:"oneof=newest_first oldest_first most_unread least_unread most_relevant"`
 
 	// Subscriptions is a list of subscription IDs.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
@@ -648,6 +639,9 @@ type SearchRequest struct {
 	// PublishedWithin represents a time range within which the objects should be published
 	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within" validate:"required,oneof=all_time last_hour last_12hours last_day last_week last_month"`
 
+	// Sort is how a list of objects is sorted.
+	Sort Sort `form:"sort" json:"sort,omitempty,omitzero" validate:"oneof=newest_first oldest_first most_unread least_unread most_relevant"`
+
 	// Subscriptions is a list of subscription IDs.
 	Subscriptions []string `form:"subscriptions" json:"subscriptions,omitempty,omitzero" validate:"omitempty,unique,dive,startswith=sub_"`
 
@@ -686,20 +680,8 @@ type SearchSubscriptionRequest struct {
 	Settings      SubscriptionSettings      `form:"settings" json:"settings,omitempty,omitzero"`
 }
 
-// Sort contains information on sorting objects.
-type Sort struct {
-	// SortBy represents the selected field to sort on.
-	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
-
-	// SortOrder represents the order for sorting the selected field.
-	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
-}
-
-// SortBy represents the selected field to sort on.
-type SortBy string
-
-// SortOrder represents the order for sorting the selected field.
-type SortOrder string
+// Sort is how a list of objects is sorted.
+type Sort string
 
 // State Tracks the state of an object.
 type State string

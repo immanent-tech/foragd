@@ -476,15 +476,11 @@ func (s Subscriptions) FilterByFavorites(value bool) Subscriptions {
 
 // Sort will sort the slice of subscriptions by the given sort option. Favorite subscriptions are always sorted before
 // other subscriptions, and the sort option is used as a tiebreaker.
-func (s Subscriptions) Sort(sort *Sort) Subscriptions {
-	if sort == nil {
-		sort = &Sort{
-			SortBy:    SortByUnreadCount,
-			SortOrder: SortOrderDesc,
-		}
-	}
-	switch sort.SortBy {
-	case SortByLastUpdated:
+func (s Subscriptions) Sort(sort Sort) Subscriptions {
+	sort = setValidSort(sort)
+	switch sort {
+	case SortNewestFirst, SortOldestFirst:
+		// Sort by date ascending, with favorites before non-favorites.
 		slices.SortFunc(s, func(subscriptionA, subscriptionB AnySubscription) int {
 			switch {
 			case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite():
@@ -495,7 +491,12 @@ func (s Subscriptions) Sort(sort *Sort) Subscriptions {
 				return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
 			}
 		})
-	case SortByUnreadCount:
+		// Reverse sort for newest first.
+		if sort == SortNewestFirst {
+			slices.Reverse(s)
+		}
+	case SortMostUnread, SortLeastUnread:
+		// Sort by unread count, with favorite or search subscriptions before non-favorites/non-search subscriptions.
 		slices.SortFunc(s, func(subscriptionA, subscriptionB AnySubscription) int {
 			switch {
 			case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite():
@@ -516,9 +517,10 @@ func (s Subscriptions) Sort(sort *Sort) Subscriptions {
 				return cmpValue
 			}
 		})
-	}
-	if sort.SortOrder == SortOrderDesc {
-		slices.Reverse(s)
+		// Reverse sort for most unread.
+		if sort == SortMostUnread {
+			slices.Reverse(s)
+		}
 	}
 	return s
 }
