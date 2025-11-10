@@ -21,6 +21,7 @@ import (
 
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/results"
 )
 
 var (
@@ -32,6 +33,7 @@ var (
 type FeedsAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
 	SearchFeeds(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Feeds, Pagination, error)
+	MultiSearchFeeds(ctx context.Context, queries ...*MultiSearchQuery) (results.MSearchResults, error)
 	CreateFeed(ctx context.Context, feed *Feed) error
 }
 
@@ -387,6 +389,22 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 					return fmt.Errorf("fetch search subscriptions failed: unable to count items: %w", err)
 				}
 				subscription.Stats.UnreadCount = int(count)
+				items, _, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, &subscription.Search), 1, &SortLastUpdatedDesc, nil)
+				if err != nil {
+					return fmt.Errorf("fetch search subscriptions failed: unable to get last update: %w", err)
+				}
+				if len(items) > 0 {
+					subscription.NewestItemTimestamp = items[0].GetTimestamp()
+				}
+				// TODO: use multisearch query.
+				// results, err := dataAPI.MultiSearchFeeds(ctx,
+				// 	&MultiSearchQuery{
+				// 		Index: "items_ro",
+				// 		Query: ,
+				// 		Sort:  &SortLastUpdatedDesc,
+				// 		Size:  1,
+				// 	},
+				// )
 			}
 			return nil
 		})
@@ -1028,4 +1046,107 @@ func queryAllItems(user *User, subscription *FeedSubscription) query.Option {
 			query.SimpleQueryString(subscription.ArticleFilters.Categories, "", "categories"),
 		),
 	)
+}
+
+type DocSorting types.SortOptions
+
+func (s *DocSorting) SortCombinationsCaster() *types.SortCombinations {
+	opts := &types.SortOptions{
+		Doc_: types.NewScoreSort(),
+	}
+	c := types.SortCombinations(opts)
+	return &c
+}
+
+// ItemSorting contains the sort options for sorting item search results.
+type ItemSorting struct {
+	Updated   string `json:"updated"`
+	Published string `json:"published"`
+	ItemID    string `json:"item_id"`
+}
+
+func (s *ItemSorting) SortCombinationsCaster() *types.SortCombinations {
+	c := types.SortCombinations(s)
+	return &c
+}
+
+func NewItemSortOptions(sort *Sort) []types.SortCombinationsVariant {
+	var opts []types.SortCombinationsVariant
+	switch {
+	case sort != nil:
+		opts = append(opts, &ItemSorting{
+			Updated:   string(sort.SortOrder),
+			Published: string(sort.SortOrder),
+			ItemID:    string(sort.SortOrder),
+		})
+	default:
+		opts = append(opts, &DocSorting{})
+	}
+	return opts
+}
+
+func NewItemSortCombinations(sort *Sort) []types.SortCombinations {
+	var opts []types.SortCombinations
+	switch {
+	case sort != nil:
+		opts = append(opts, &ItemSorting{
+			Updated:   string(sort.SortOrder),
+			Published: string(sort.SortOrder),
+			ItemID:    string(sort.SortOrder),
+		})
+	default:
+		opts = append(opts, &DocSorting{})
+	}
+	return opts
+}
+
+// FeedSorting contains the sort options for sorting item search results.
+type FeedSorting struct {
+	Updated   string `json:"updated"`
+	Published string `json:"published"`
+	FeedID    string `json:"feed_id"`
+}
+
+func (s *FeedSorting) SortCombinationsCaster() *types.SortCombinations {
+	c := types.SortCombinations(s)
+	return &c
+}
+
+func NewFeedSortOptions(sort *Sort) []types.SortCombinationsVariant {
+	var opts []types.SortCombinationsVariant
+	switch {
+	case sort != nil:
+		opts = append(opts, &FeedSorting{
+			Updated:   string(sort.SortOrder),
+			Published: string(sort.SortOrder),
+			FeedID:    string(sort.SortOrder),
+		})
+	default:
+		opts = append(opts, &DocSorting{})
+	}
+	return opts
+}
+
+func NewFeedSortCombinations(sort *Sort) []types.SortCombinations {
+	var opts []types.SortCombinations
+	switch {
+	case sort != nil:
+		opts = append(opts, &FeedSorting{
+			Updated:   string(sort.SortOrder),
+			Published: string(sort.SortOrder),
+			FeedID:    string(sort.SortOrder),
+		})
+	default:
+		opts = append(opts, &DocSorting{})
+	}
+	return opts
+}
+
+type MultiSearchQuery struct {
+	Name       string
+	Index      string
+	Query      query.Option
+	Sort       *Sort
+	Pagination *Pagination
+	Size       int
 }

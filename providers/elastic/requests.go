@@ -5,6 +5,7 @@ package elastic
 
 import (
 	"log/slog"
+	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/count"
@@ -162,17 +163,27 @@ func NewSearchRequest(api *elasticsearch.TypedClient, options ...Option[SearchRe
 }
 
 // query *types.Query, sort []types.SortCombinations
-func WithSearch(search *query.MsearchSearch) Option[MsearchRequest] {
+func WithSearch(search *models.MultiSearchQuery) Option[MsearchRequest] {
 	return func(req MsearchRequest) {
-		if search == nil {
-			return
-		}
-
 		hdr := types.NewMultisearchHeader()
 		hdr.Index = append(hdr.Index, search.Index)
 		searchBody := types.NewSearchRequestBody()
-		searchBody.Query = search.Query
-		searchBody.Sort = search.Sort
+		if query := query.Build(search.Query); query != nil {
+			searchBody.Query = query
+		}
+		switch {
+		case strings.HasPrefix(search.Index, "feeds"):
+			searchBody.Sort = models.NewFeedSortCombinations(search.Sort)
+		case strings.HasPrefix(search.Index, "items"):
+			searchBody.Sort = models.NewItemSortCombinations(search.Sort)
+		default:
+			opts := &types.SortOptions{
+				Doc_: types.NewScoreSort(),
+			}
+			c := types.SortCombinations(opts)
+			searchBody.Sort = []types.SortCombinations{c}
+		}
+		searchBody.Size = &search.Size
 
 		err := req.AddSearch(*hdr, *searchBody)
 		if err != nil {
@@ -283,68 +294,4 @@ func sortByScore() types.SortOptions {
 	return types.SortOptions{
 		Score_: types.NewScoreSort(),
 	}
-}
-
-type DocSorting types.SortOptions
-
-func (s *DocSorting) SortCombinationsCaster() *types.SortCombinations {
-	opts := &types.SortOptions{
-		Doc_: types.NewScoreSort(),
-	}
-	c := types.SortCombinations(opts)
-	return &c
-}
-
-// ItemSorting contains the sort options for sorting item search results.
-type ItemSorting struct {
-	Updated   string `json:"updated"`
-	Published string `json:"published"`
-	ItemID    string `json:"item_id"`
-}
-
-func (s *ItemSorting) SortCombinationsCaster() *types.SortCombinations {
-	c := types.SortCombinations(s)
-	return &c
-}
-
-func newItemSortOptions(sort *models.Sort) []types.SortCombinationsVariant {
-	var opts []types.SortCombinationsVariant
-	switch {
-	case sort != nil:
-		opts = append(opts, &ItemSorting{
-			Updated:   string(sort.SortOrder),
-			Published: string(sort.SortOrder),
-			ItemID:    string(sort.SortOrder),
-		})
-	default:
-		opts = append(opts, &DocSorting{})
-	}
-	return opts
-}
-
-// FeedSorting contains the sort options for sorting item search results.
-type FeedSorting struct {
-	Updated   string `json:"updated"`
-	Published string `json:"published"`
-	FeedID    string `json:"feed_id"`
-}
-
-func (s *FeedSorting) SortCombinationsCaster() *types.SortCombinations {
-	c := types.SortCombinations(s)
-	return &c
-}
-
-func newFeedSortOptions(sort *models.Sort) []types.SortCombinationsVariant {
-	var opts []types.SortCombinationsVariant
-	switch {
-	case sort != nil:
-		opts = append(opts, &FeedSorting{
-			Updated:   string(sort.SortOrder),
-			Published: string(sort.SortOrder),
-			FeedID:    string(sort.SortOrder),
-		})
-	default:
-		opts = append(opts, &DocSorting{})
-	}
-	return opts
 }

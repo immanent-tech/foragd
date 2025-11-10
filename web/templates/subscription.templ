@@ -132,7 +132,11 @@ templ SubscriptionCard(s models.AnySubscription) {
 			<div class="grid grid-cols-3 px-4 sm:px-6">
 				<p class="grid self-end col-span-2 text-xs/4 text-base-content/80">
 					Last update
-					{ humanize.Time(s.GetUpdatedDate()) }
+					if !s.GetUpdatedDate().IsZero() {
+						{ humanize.Time(s.GetUpdatedDate()) }
+					} else {
+						unknown
+					}
 				</p>
 				// if s.GetType() == models.SubscriptionTypeFeed {
 				<div class="inline-grid space-y-2">

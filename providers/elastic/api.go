@@ -186,8 +186,6 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 	return users[0], nil
 }
 
-
-
 // GetFeed retrieves a single feed with the given ID.
 func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 	index, err := FeedsReadIndexFromCtx(ctx)
@@ -255,7 +253,7 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 
 	// Perform search.
 	feeds, newSearchAfter, err := Search[*models.Feed](ctx, e.GetAPI(), index, query, count,
-		WithSortOptions[*search.Search, SearchRequest](newFeedSortOptions(sort)...),
+		WithSortOptions[*search.Search, SearchRequest](models.NewFeedSortOptions(sort)...),
 		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 	)
 	if err != nil {
@@ -271,6 +269,10 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 	}
 
 	return feeds, "", nil
+}
+
+func (e *API) MultiSearchFeeds(ctx context.Context, queries ...*models.MultiSearchQuery) (results.MSearchResults, error) {
+	return MultiSearch(ctx, e.GetAPI(), queries...)
 }
 
 // GetNewFeedsSince will return a slice of all feeds that have been created since the given timestamp.
@@ -322,7 +324,7 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 	}
 	// Perform search.
 	items, newSearchAfter, err := Search[*models.Item](ctx, e.GetAPI(), index, query, count,
-		WithSortOptions[*search.Search, SearchRequest](newItemSortOptions(sort)...),
+		WithSortOptions[*search.Search, SearchRequest](models.NewItemSortOptions(sort)...),
 		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 	)
 	if err != nil {
@@ -347,7 +349,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int
 		WithIndex[*search.Search, SearchRequest](index),
 		WithQueryOptions[*search.Search, SearchRequest](query),
 		WithSize[*search.Search, SearchRequest](size),
-		WithSortOptions[*search.Search, SearchRequest](&DocSorting{}),
+		WithSortOptions[*search.Search, SearchRequest](&models.DocSorting{}),
 		WithAggregations2[*search.Search, SearchRequest](aggregations),
 	)
 	resp, err := req.Do(ctx)
@@ -712,7 +714,7 @@ func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index
 	// Loop until we've paginated through all results.
 	var loops int
 	for {
-		sortOptions := &DocSorting{}
+		sortOptions := &models.DocSorting{}
 		resultsPage, nextSearchAfter, err := Search[O](ctx, api, index, query, paginationSize,
 			WithSortOptions[*search.Search, SearchRequest](sortOptions),
 			WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
@@ -743,7 +745,7 @@ func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index
 }
 
 // MultiSearch performs an msearch request.
-func MultiSearch(ctx context.Context, api *elasticsearch.TypedClient, searches ...*query.MsearchSearch) (results.MSearchResults, error) {
+func MultiSearch(ctx context.Context, api *elasticsearch.TypedClient, searches ...*models.MultiSearchQuery) (results.MSearchResults, error) {
 	// subscriptionsIndex, err := FeedsReadIndexFromCtx(ctx)
 	// if err != nil {
 	// 	return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)

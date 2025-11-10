@@ -364,13 +364,6 @@ func Build(options ...Option) *types.Query {
 	return nil
 }
 
-type MsearchSearch struct {
-	Name  string
-	Index string
-	Query *types.Query
-	Sort  []types.SortCombinations
-}
-
 // func (mso *MsearchSearch) GenerateSortCombination() []types.SortCombinations {
 // 	combos := make([]types.SortCombinations, 0, len(mso.Sort))
 // 	for sort := range slices.Values(mso.Sort) {
