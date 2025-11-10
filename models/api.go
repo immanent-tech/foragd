@@ -16,7 +16,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -245,7 +244,6 @@ func UpdateSubscription(ctx context.Context, dataAPI DataAPI, subscription AnySu
 
 // FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
 func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Subscriptions, Pagination, error) {
-	godump.Dump(filters)
 	// Get subscriptions by ID.
 	subscriptions, err := GetSubscriptions(ctx, dataAPI, filters.GetSubscriptions()...)
 	if err != nil {
@@ -441,7 +439,7 @@ func GetUserFavoriteSubscriptions(ctx context.Context, dataAPI DataAPI) (Subscri
 	if err != nil {
 		return nil, fmt.Errorf("get favorite subscriptions: get subscriptions failed: %w", err)
 	}
-	return subscriptions, nil
+	return subscriptions.Sort(SortNewestFirst), nil
 }
 
 // GetFeedSubscriptionStats fetches the stats for FeedSubscriptions and returns a map of the SubscriptionID to
