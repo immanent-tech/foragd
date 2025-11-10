@@ -291,7 +291,7 @@ func SearchResults(request *models.SearchRequest, articles models.Articles, pagi
 				templ_7745c5c3_Err = NewLink(
 					WithHXMethod(http.MethodGet, "/edit/subscription/"+request.ID),
 					WithHXTarget(ContentID.Target()),
-					WithHXSwap("innerHTML show:top"),
+					WithHXSwap("innerHTML show:top transition:true"),
 					WithHXPushURL(),
 					WithClasses("context-menu-item-base"),
 				).Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)

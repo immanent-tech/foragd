@@ -129,7 +129,7 @@ templ subscriptionContextMenu(s models.AnySubscription) {
 		@NewLink(
 			WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
 			WithHXTarget(ContentID.Target()),
-			WithHXSwap("innerHTML show:top"),
+			WithHXSwap("innerHTML show:top transition:true"),
 			WithHXPushURL(),
 			WithClasses("context-menu-item-base"),
 		) {
@@ -180,7 +180,7 @@ templ viewFeedSubscriptionLink(s models.AnySubscription) {
 		WithHXVals(overrides),
 		WithHXTarget(ContentID.Target()),
 		WithHXPushURL(),
-		WithHXSwap("innerHTML show:top"),
+		WithHXSwap("innerHTML show:top transition:true"),
 		WithClasses("flex", "items-center", "gap-x-4", "hover:text-accent"),
 	) {
 		<div class="flex items-center">
@@ -226,7 +226,7 @@ templ viewSearchSubscriptionLink(s models.AnySubscription) {
 			WithHXValsJS(subscription.Search.HXVals()),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
-			WithHXSwap("innerHTML show:top"),
+			WithHXSwap("innerHTML show:top transition:true"),
 			WithClasses("flex", "items-center", "gap-x-4", "hover:text-accent"),
 		) {
 			<div class="flex items-center">

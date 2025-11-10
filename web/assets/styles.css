@@ -40,6 +40,10 @@
   }
 }
 
+@view-transition {
+  navigation: auto;
+}
+
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {

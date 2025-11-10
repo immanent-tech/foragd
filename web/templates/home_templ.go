@@ -258,7 +258,7 @@ func (page *Home) Template() templ.Component {
 					templ_7745c5c3_Err = NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
-						WithHXSwap("innerHTML show:top"),
+						WithHXSwap("innerHTML show:top transition:true"),
 						WithHXVals(params),
 						WithHXPushURL(),
 					).Render(templ.WithChildren(ctx, templ_7745c5c3_Var7), templ_7745c5c3_Buffer)
@@ -384,7 +384,7 @@ func (page *Home) Template() templ.Component {
 						WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
-						WithHXSwap("innerHTML show:top"),
+						WithHXSwap("innerHTML show:top transition:true"),
 					).Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -427,7 +427,7 @@ func (page *Home) Template() templ.Component {
 					templ_7745c5c3_Err = NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
-						WithHXSwap("innerHTML show:top"),
+						WithHXSwap("innerHTML show:top transition:true"),
 						WithHXPushURL(),
 						WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
 					).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
@@ -511,7 +511,7 @@ func (page *Home) Template() templ.Component {
 						templ_7745c5c3_Err = NewLink(
 							WithHXMethod(http.MethodGet, "/list/articles"),
 							WithHXTarget(ContentID.Target()),
-							WithHXSwap("innerHTML show:top"),
+							WithHXSwap("innerHTML show:top transition:true"),
 							WithHXVals(params),
 							WithHXPushURL(),
 						).Render(templ.WithChildren(ctx, templ_7745c5c3_Var18), templ_7745c5c3_Buffer)

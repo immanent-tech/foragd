@@ -108,7 +108,7 @@ templ (page *Home) Template() {
 								@NewLink(
 									WithHXMethod(http.MethodGet, "/list/articles"),
 									WithHXTarget(ContentID.Target()),
-									WithHXSwap("innerHTML show:top"),
+									WithHXSwap("innerHTML show:top transition:true"),
 									WithHXVals(params),
 									WithHXPushURL(),
 								) {
@@ -149,7 +149,7 @@ templ (page *Home) Template() {
 											WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 											WithHXTarget(ContentID.Target()),
 											WithHXPushURL(),
-											WithHXSwap("innerHTML show:top"),
+											WithHXSwap("innerHTML show:top transition:true"),
 										) {
 											<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
 										}
@@ -163,7 +163,7 @@ templ (page *Home) Template() {
 												@NewLink(
 													WithHXMethod(http.MethodGet, "/list/articles"),
 													WithHXTarget(ContentID.Target()),
-													WithHXSwap("innerHTML show:top"),
+													WithHXSwap("innerHTML show:top transition:true"),
 													WithHXPushURL(),
 													WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
 												) {
@@ -199,7 +199,7 @@ templ (page *Home) Template() {
 										@NewLink(
 											WithHXMethod(http.MethodGet, "/list/articles"),
 											WithHXTarget(ContentID.Target()),
-											WithHXSwap("innerHTML show:top"),
+											WithHXSwap("innerHTML show:top transition:true"),
 											WithHXVals(params),
 											WithHXPushURL(),
 										) {

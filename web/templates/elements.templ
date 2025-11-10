@@ -46,6 +46,13 @@ func (e *HTMLElement) SetAttribute(key string, value any) {
 	e.attributes[key] = value
 }
 
+func (e *HTMLElement) HasAttribute(key string) bool {
+	e.Lock()
+	defer e.Unlock()
+	_, ok := e.attributes[key]
+	return ok
+}
+
 func (e *HTMLElement) AddClasses(classes ...string) {
 	e.Lock()
 	defer e.Unlock()
@@ -155,6 +162,9 @@ templ NewLink(options ...Option[element]) {
 		{{ option(link) }}
 	}
 	{{ link.SetAttribute("class", strings.Join(link.GetClasses(), " ")) }}
+	if !link.HasAttribute("hx-swap") {
+		{{ link.SetAttribute("hx-swap", "innerHTML transition:true") }}
+	}
 	<a
 		if link.GetID() != "" {
 			id={ link.GetID() }

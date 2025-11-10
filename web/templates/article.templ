@@ -43,7 +43,7 @@ templ articleSummary(article *models.Article) {
 				hx-get={ "/view/article/" + article.GetID() }
 				hx-target={ ContentID.Target() }
 				hx-push-url="true"
-				hx-swap="innerHTML show:top"
+				hx-swap="innerHTML show:top transition:true"
 				class={ "link link-hover" }
 			>
 				<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>

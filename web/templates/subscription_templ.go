@@ -419,7 +419,7 @@ func subscriptionContextMenu(s models.AnySubscription) templ.Component {
 			templ_7745c5c3_Err = NewLink(
 				WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
 				WithHXTarget(ContentID.Target()),
-				WithHXSwap("innerHTML show:top"),
+				WithHXSwap("innerHTML show:top transition:true"),
 				WithHXPushURL(),
 				WithClasses("context-menu-item-base"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
@@ -670,7 +670,7 @@ func viewFeedSubscriptionLink(s models.AnySubscription) templ.Component {
 			WithHXVals(overrides),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
-			WithHXSwap("innerHTML show:top"),
+			WithHXSwap("innerHTML show:top transition:true"),
 			WithClasses("flex", "items-center", "gap-x-4", "hover:text-accent"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var21), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -833,7 +833,7 @@ func viewSearchSubscriptionLink(s models.AnySubscription) templ.Component {
 			WithHXValsJS(subscription.Search.HXVals()),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
-			WithHXSwap("innerHTML show:top"),
+			WithHXSwap("innerHTML show:top transition:true"),
 			WithClasses("flex", "items-center", "gap-x-4", "hover:text-accent"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var29), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

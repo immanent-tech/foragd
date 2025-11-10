@@ -168,7 +168,7 @@ templ SearchResults(request *models.SearchRequest, articles models.Articles, pag
 							@NewLink(
 								WithHXMethod(http.MethodGet, "/edit/subscription/"+request.ID),
 								WithHXTarget(ContentID.Target()),
-								WithHXSwap("innerHTML show:top"),
+								WithHXSwap("innerHTML show:top transition:true"),
 								WithHXPushURL(),
 								WithClasses("context-menu-item-base"),
 							) {
