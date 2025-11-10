@@ -20,7 +20,7 @@ templ subscriptionCard(s models.AnySubscription) {
 	{{ user, _ := models.UserFromCtx(ctx) }}
 	<div
 		id={ s.GetID() }
-		class={ "card h-full bg-base-100 shadow-sm border border-base-content/15",
+		class={ "card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
 			templ.KV("row-span-2",len(s.GetCategories(0)) >0),
 			templ.KV("opacity-50",s.GetType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread()) }
 	>

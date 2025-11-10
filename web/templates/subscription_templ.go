@@ -47,7 +47,7 @@ func subscriptionCard(s models.AnySubscription) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		user, _ := models.UserFromCtx(ctx)
-		var templ_7745c5c3_Var2 = []any{"card h-full bg-base-100 shadow-sm border border-base-content/15",
+		var templ_7745c5c3_Var2 = []any{"card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
 			templ.KV("row-span-2", len(s.GetCategories(0)) > 0),
 			templ.KV("opacity-50", s.GetType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread())}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)

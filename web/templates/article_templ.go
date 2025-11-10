@@ -277,7 +277,7 @@ func ArticleCard(article article) templ.Component {
 			templ_7745c5c3_Var14 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var15 = []any{"card h-full bg-base-100 shadow-sm border border-base-content/15", templ.KV("row-span-2", article.GetImage() != nil), templ.KV("opacity-50", !article.IsUnread())}
+		var templ_7745c5c3_Var15 = []any{"card card-border border-base-content/15 h-full bg-base-100 shadow-sm", templ.KV("row-span-2", article.GetImage() != nil), templ.KV("opacity-50", !article.IsUnread())}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var15...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
