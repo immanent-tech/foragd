@@ -43,9 +43,7 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 				</div>
 				@Grid() {
 					for subscription := range slices.Values(subscriptions) {
-						<li id={ subscription.GetID() }>
-							@subscriptionCard(subscription)
-						</li>
+						@subscriptionCard(subscription)
 					}
 				}
 			</section>

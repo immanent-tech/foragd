@@ -43,13 +43,6 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
-  .card-base {
-    @apply bg-base-200 border-base-content/20 hover:border-base-content/40 h-full overflow-hidden rounded-lg border pb-4 shadow-sm;
-    .card-section {
-      @apply p-4;
-    }
-  }
-
   .context-menu-base {
     @apply bg-base-300 outline-base-content/15 origin-top-right rounded-md py-2 outline-1 -outline-offset-1 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
     .context-menu-item-base {

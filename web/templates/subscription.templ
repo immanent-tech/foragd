@@ -18,59 +18,64 @@ import (
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
 templ subscriptionCard(s models.AnySubscription) {
 	{{ user, _ := models.UserFromCtx(ctx) }}
-	<div class={ "card-base", templ.KV("opacity-50",s.GetType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread()) }>
-		<div class="flex items-center card-section">
-			<div class="flex flex-1">
-				@subscriptionHeading(s)
-			</div>
-			<div class="flex flex-none">
-				@subscriptionContextMenu(s)
-			</div>
-		</div>
-		// Display up to 5 of the subscription categories.
-		if len(s.GetCategories(0)) > 0 {
-			<div class="flex justify-center">
-				<div class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-					for category := range slices.Values(s.GetCategories(5)) {
-						{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
-						{{ filters[models.ParamCategories] = category }}
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/list/subscriptions"),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
-							WithHXVals(filters),
-						) {
-							<div class="flex gap-2 capitalize">
-								<div class="badge badge-accent badge-soft badge-sm">{ category }</div>
-							</div>
-						}
-					}
+	<div
+		id={ s.GetID() }
+		class={ "card h-full bg-base-100 shadow-sm border border-base-content/15",
+			templ.KV("row-span-2",len(s.GetCategories(0)) >0),
+			templ.KV("opacity-50",s.GetType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread()) }
+	>
+		<div class="card-body">
+			<div class="flex items-center card-section">
+				<div class="flex flex-1">
+					@subscriptionHeading(s)
+				</div>
+				<div class="flex flex-none">
+					@subscriptionContextMenu(s)
 				</div>
 			</div>
-		}
-		// Show stats and info as appropriate.
-		<div class="grid grid-cols-3 px-4 sm:px-6">
-			<p class="grid self-end col-span-2 text-xs/4 text-base-content/80">
-				Last update
-				if !s.GetUpdatedDate().IsZero() {
-					{ humanize.Time(s.GetUpdatedDate()) }
-				} else {
-					unknown
+			// Display up to 5 of the subscription categories.
+			if len(s.GetCategories(0)) > 0 {
+				<div class="flex justify-center my-auto">
+					<div class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+						for category := range slices.Values(s.GetCategories(5)) {
+							{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
+							{{ filters[models.ParamCategories] = category }}
+							@NewLink(
+								WithHXMethod(http.MethodGet, "/list/subscriptions"),
+								WithHXTarget(ContentID.Target()),
+								WithHXPushURL(),
+								WithHXVals(filters),
+							) {
+								<div class="flex gap-2 capitalize">
+									<div class="badge badge-accent badge-soft badge-sm">{ category }</div>
+								</div>
+							}
+						}
+					</div>
+				</div>
+			}
+			// Show stats and info as appropriate.
+			<div class="card-actions mt-auto grid grid-cols-3 px-4 sm:px-6">
+				if s.GetType() == models.SubscriptionTypeFeed {
+					<p class="grid justify-end col-span-3 text-xs/4 text-base-content/80">
+						{ s.GetStats().DailyUpdateFrequency() }
+					</p>
 				}
-			</p>
-			// if s.GetType() == models.SubscriptionTypeFeed {
-			<div class="inline-grid space-y-2">
+				<p class="col-span-2 text-xs/4 text-base-content/80">
+					Last update
+					if !s.GetUpdatedDate().IsZero() {
+						{ humanize.Time(s.GetUpdatedDate()) }
+					} else {
+						unknown
+					}
+				</p>
 				if user.GetSettings().ShowUnreadCounts {
 					<p class="grid justify-end text-xs/4 text-base-content/80">
 						{ s.GetStats().UnreadTotal() }
 						Unread
 					</p>
-					<p class="grid justify-end text-xs/4 text-base-content/80">
-						{ s.GetStats().DailyUpdateFrequency() }
-					</p>
 				}
 			</div>
-			// }
 		</div>
 	</div>
 }
@@ -334,9 +339,7 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...models.An
 templ SubscriptionsList(pagination models.Pagination, subscriptions ...models.AnySubscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	for subscription := range slices.Values(subscriptions) {
-		<li id={ subscription.GetID() }>
-			@subscriptionCard(subscription)
-		</li>
+		@subscriptionCard(subscription)
 	}
 	if pagination != "" && len(subscriptions) == filters.GetCount() {
 		// Add pagination htmx props to last article.
