@@ -335,7 +335,7 @@ templ SearchFilters(attributes templ.Attributes) {
 					</div>
 				}
 				// View filter.
-				<div class="sm:col-span-3">
+				<div class="sm:col-span-2">
 					<fieldset>
 						<legend class="text-sm/6 font-medium">View</legend>
 						<div>
@@ -382,8 +382,8 @@ templ SearchFilters(attributes templ.Attributes) {
 					</fieldset>
 				</div>
 				// Date range filter.
-				<div class="sm:col-span-3">
-					<label for="published_within" class="block text-sm/6 font-medium">Published within</label>
+				<div class="sm:col-span-2">
+					<label for="published_within" class="block text-sm/6 font-medium">Published Within</label>
 					<select id="published_within" name="published_within" class="select select-sm my-2 bg-base-300">
 						<option
 							value="last_hour"
@@ -421,6 +421,32 @@ templ SearchFilters(attributes templ.Attributes) {
 								selected
 							}
 						>All time</option>
+					</select>
+				</div>
+				// Sort option.
+				<div class="sm:col-span-2">
+					<label for="sort" class="block text-sm/6 font-medium">Sort By</label>
+					<select id="sort" name="sort" class="select select-sm my-2 bg-base-300">
+						<option
+							value={ string(models.SortMostRelevant) }
+							if request.Sort == models.SortMostRelevant {
+								selected
+							}
+						>
+							Most Relevant
+						</option>
+						<option
+							value={ string(models.SortNewestFirst) }
+							if request.Sort == models.SortNewestFirst {
+								selected
+							}
+						>Newest First</option>
+						<option
+							value={ string(models.SortOldestFirst) }
+							if request.Sort == models.SortOldestFirst {
+								selected
+							}
+						>Oldest First</option>
 					</select>
 				</div>
 			</div>

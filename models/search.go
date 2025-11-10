@@ -46,18 +46,25 @@ func (r *SearchRequest) Sanitise() error {
 	for idx, subscription := range r.Subscriptions {
 		r.Subscriptions[idx] = sanitization.SanitizeString(subscription)
 	}
+	// Sanitise text inputs.
 	r.Text = sanitization.SanitizeString(r.Text)
 	r.Authors = sanitization.SanitizeString(r.Authors)
 	r.Categories = sanitization.SanitizeString(r.Categories)
-	// Set some defaults if for some reason these fields do not have values.
+	// Default timezone is UTC.
 	if r.Timezone == "" {
 		r.Timezone = "UTC"
 	}
+	// Default published within is last week.
 	if r.PublishedWithin == "" {
 		r.PublishedWithin = SearchRequestPublishedWithinLastWeek
 	}
+	// Default view is unread.
 	if r.View == "" {
 		r.View = ViewUnread
+	}
+	// Default sort is most relevant.
+	if r.Sort == "" {
+		r.Sort = SortMostRelevant
 	}
 	return nil
 }

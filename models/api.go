@@ -844,8 +844,7 @@ func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchReque
 	if err != nil {
 		return nil, "", fmt.Errorf("get search results: get user failed: %w", err)
 	}
-	sort := SortMostRelevant
-	itemResults, pagination, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, request), 15, &sort, &pagination)
+	itemResults, pagination, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, request), 15, &request.Sort, &pagination)
 	if err != nil {
 		return nil, "", fmt.Errorf("get search resuls: search items failed: %w", err)
 	}
