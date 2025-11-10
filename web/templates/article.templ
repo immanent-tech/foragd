@@ -81,89 +81,58 @@ templ articleSummary(article *models.Article) {
 templ ArticleCard(article article) {
 	<div
 		id={ article.GetID() }
-		class={ "card-base", templ.KV("opacity-50",!article.IsUnread()) }
+		class={ "card h-full bg-base-100 shadow-sm border border-base-content/15", templ.KV("row-span-2",article.GetImage() != nil) }
 	>
-		// Header.
-		<div class="flex items-center">
-			<div class="flex flex-1 px-4 py-5 sm:px-6">
-				if img := article.GetImage(); img != nil {
-					@NewLink(
-						WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
-					) {
-						<div class="relative w-full">
-							<img
-								class="w-full rounded-2xl bg-base-content-10 object-cover aspect-3/2"
-								src={ "/img-proxy/300x200/" + img.GetURL() }
-								if img.GetTitle() != "" {
-									alt={ img.GetTitle() }
-								}
-							/>
-							<div class="inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
-						</div>
-						<div class="flex max-w-xl grow flex-col justify-between">
-							<div class="group relative grow">
-								<h3 class="mt-3 text-lg/6 font-semibold text-pretty">
-									if article.GetTitle() != "" {
-										{ article.GetTitle() }
-									} else {
-										(no title)
-									}
-								</h3>
-							</div>
-						</div>
-					}
-				} else {
-					@NewLink(
-						WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
-					) {
-						<div class="group relative grow">
-							<h3 class="mt-3 text-lg/6 font-semibold text-pretty line-clamp-3">
-								if article.GetTitle() != "" {
-									{ article.GetTitle() }
-								} else {
-									(no title)
-								}
-							</h3>
-						</div>
-					}
-				}
-			</div>
-		</div>
-		// Body.
-		<div class="grid grid-flow-row items-center px-4 sm:px-6">
-			<p class="grid text-xs/4 text-base-content/80 truncate">
+		if img := article.GetImage(); img != nil {
+			<figure>
 				@NewLink(
-					WithHXMethod(http.MethodGet, "/list/articles"),
+					WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 					WithHXTarget(ContentID.Target()),
 					WithHXPushURL(),
-					WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
-					WithClasses("truncate"),
 				) {
-					{ article.GetFeedTitle() }
+					<img
+						class="rounded-box"
+						src={ "/img-proxy/300x200/" + img.GetURL() }
+						if img.GetTitle() != "" {
+							alt={ img.GetTitle() }
+						}
+					/>
 				}
-			</p>
-			if len(article.GetAuthors()) > 0 {
-				<p class="inline-block text-xs/4 text-base-content/80 italic truncate">
-					{ strings.Join(article.GetAuthors(),",") }
-				</p>
-			}
-		</div>
-		{{ text, err := models.ExtractText(article.GetContent()) }}
-		// No error and text content is more than 5 words.
-		if err == nil && len(strings.Fields(text)) > 5 {
-			<div class="px-4 py-5 sm:p-6">
-				<article class="prose prose-sm line-clamp-3">
-					{ text }
-				</article>
-			</div>
+			</figure>
 		}
-		// Footer.
-		<div class="px-4 sm:px-6 mt-auto">
-			<div class="flex justify-between items-center">
+		<div class="card-body">
+			@NewLink(
+				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+				WithHXTarget(ContentID.Target()),
+				WithHXPushURL(),
+			) {
+				<h2 class="card-title text-pretty line-clamp-3">
+					if article.GetTitle() != "" {
+						{ article.GetTitle() }
+					} else {
+						(no title)
+					}
+				</h2>
+			}
+			<div class="flex">
+				<p class="grid text-xs/4 text-base-content/80 truncate">
+					@NewLink(
+						WithHXMethod(http.MethodGet, "/list/articles"),
+						WithHXTarget(ContentID.Target()),
+						WithHXPushURL(),
+						WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+						WithClasses("truncate"),
+					) {
+						{ article.GetFeedTitle() }
+					}
+				</p>
+				if len(article.GetAuthors()) > 0 {
+					<p class="inline-block text-xs/4 text-base-content/80 italic truncate">
+						{ strings.Join(article.GetAuthors(),",") }
+					</p>
+				}
+			</div>
+			<div class="card-actions mt-auto justify-between items-center">
 				<div class="flex flex-1 gap-x-2">
 					<p class="text-xs/4 text-base-content/80 capitalize">
 						Updated&nbsp;
@@ -248,8 +217,178 @@ templ ArticleCard(article article) {
 				</div>
 			</div>
 		</div>
-		@ShareObjectModal(article)
 	</div>
+	// <div
+	// 	id={ article.GetID() }
+	// 	class={ "card-base", templ.KV("opacity-50",!article.IsUnread()) }
+	// >
+	// 	// Header.
+	// 	<div class="flex items-center">
+	// 		<div class="flex flex-1 px-4 py-5 sm:px-6">
+	// 			if img := article.GetImage(); img != nil {
+	// 				@NewLink(
+	// 					WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+	// 					WithHXTarget(ContentID.Target()),
+	// 					WithHXPushURL(),
+	// 				) {
+	// 					<div class="relative w-full">
+	// 						<img
+	// 							class="w-full rounded-2xl bg-base-content-10 object-cover aspect-3/2"
+	// 							src={ "/img-proxy/300x200/" + img.GetURL() }
+	// 							if img.GetTitle() != "" {
+	// 								alt={ img.GetTitle() }
+	// 							}
+	// 						/>
+	// 						<div class="inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
+	// 					</div>
+	// 					<div class="flex max-w-xl grow flex-col justify-between">
+	// 						<div class="group relative grow">
+	// 							<h3 class="mt-3 text-lg/6 font-semibold text-pretty">
+	// 								if article.GetTitle() != "" {
+	// 									{ article.GetTitle() }
+	// 								} else {
+	// 									(no title)
+	// 								}
+	// 							</h3>
+	// 						</div>
+	// 					</div>
+	// 				}
+	// 			} else {
+	// 				@NewLink(
+	// 					WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+	// 					WithHXTarget(ContentID.Target()),
+	// 					WithHXPushURL(),
+	// 				) {
+	// 					<div class="group relative grow">
+	// 						<h3 class="mt-3 text-lg/6 font-semibold text-pretty line-clamp-3">
+	// 							if article.GetTitle() != "" {
+	// 								{ article.GetTitle() }
+	// 							} else {
+	// 								(no title)
+	// 							}
+	// 						</h3>
+	// 					</div>
+	// 				}
+	// 			}
+	// 		</div>
+	// 	</div>
+	// 	// Body.
+	// 	<div class="grid grid-flow-row items-center px-4 sm:px-6">
+	// 		<p class="grid text-xs/4 text-base-content/80 truncate">
+	// 			@NewLink(
+	// 				WithHXMethod(http.MethodGet, "/list/articles"),
+	// 				WithHXTarget(ContentID.Target()),
+	// 				WithHXPushURL(),
+	// 				WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+	// 				WithClasses("truncate"),
+	// 			) {
+	// 				{ article.GetFeedTitle() }
+	// 			}
+	// 		</p>
+	// 		if len(article.GetAuthors()) > 0 {
+	// 			<p class="inline-block text-xs/4 text-base-content/80 italic truncate">
+	// 				{ strings.Join(article.GetAuthors(),",") }
+	// 			</p>
+	// 		}
+	// 	</div>
+	// 	{{ text, err := models.ExtractText(article.GetContent()) }}
+	// 	// No error and text content is more than 5 words.
+	// 	if err == nil && len(strings.Fields(text)) > 5 {
+	// 		<div class="px-4 py-5 sm:p-6">
+	// 			<article class="prose prose-sm line-clamp-3">
+	// 				{ text }
+	// 			</article>
+	// 		</div>
+	// 	}
+	// 	// Footer.
+	// 	<div class="px-4 sm:px-6 mt-auto">
+	// 		<div class="flex justify-between items-center">
+	// 			<div class="flex flex-1 gap-x-2">
+	// 				<p class="text-xs/4 text-base-content/80 capitalize">
+	// 					Updated&nbsp;
+	// 					@ShowTimestamp(article.GetUpdatedDate())
+	// 				</p>
+	// 			</div>
+	// 			<div class="flex flex-none">
+	// 				@ContextMenu(article.GetTitle() + " Actions") {
+	// 					// Find similar action.
+	// 					@NewLink(
+	// 						WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
+	// 						WithHXTarget(ContentID.Target()),
+	// 						WithHXPushURL(),
+	// 						WithClasses("context-menu-item-base"),
+	// 					) {
+	// 						@tabler.FileSearch(i.Props{Class: "size-4"})
+	// 						Find similar...
+	// 					}
+	// 					// Mark action.
+	// 					<form id={ "mark-" + article.GetID() }>
+	// 						<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+	// 						{{ var markSwap string }}
+	// 						if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewAll {
+	// 							{{ markSwap = "outerHTML " }}
+	// 							// @MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "context-menu-item-base")
+	// 						} else {
+	// 							{{ markSwap = "delete " }}
+	// 							// @MarkObjectLink(article, "#"+article.GetID(), "delete", "context-menu-item-base")
+	// 						}
+	// 						{{ var markURL string }}
+	// 						if article.IsUnread() {
+	// 							{{ markURL = "/mark/article/" + article.GetID() + "/read" }}
+	// 						} else {
+	// 							{{ markURL = "/mark/article/" + article.GetID() + "/unread" }}
+	// 						}
+	// 						@NewLink(
+	// 							WithHXMethod(http.MethodPost, markURL),
+	// 							WithHXTarget("#"+article.GetID()),
+	// 							WithHXSwap(markSwap),
+	// 							WithHXInclude("[name='csrf_token']"),
+	// 							WithClasses("context-menu-item-base"),
+	// 						) {
+	// 							switch article.IsUnread() {
+	// 								case true:
+	// 									@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+	// 									Mark Read
+	// 								case false:
+	// 									@tabler.MailFilled(i.Props{Class: "size-4"})
+	// 									Mark Unread
+	// 							}
+	// 						}
+	// 					</form>
+	// 					// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+	// 					<form>
+	// 						<input type="hidden" name="display" value="card"/>
+	// 						<div id={ "favorite_" + article.GetID() }>
+	// 							@ToggleFavorite(article.GetID(), string(article.GetObjectType()), article.IsFavorite())
+	// 							// @FavoriteObjectLink(article, "context-menu-item-base")
+	// 						</div>
+	// 					</form>
+	// 					// Share action.
+	// 					@NewLink(
+	// 						// WithHXMethod(http.MethodGet, article.ViewURL()+"/share"),
+	// 						// WithHXTarget(ModalContainerID.Target()),
+	// 						WithClasses("context-menu-item-base"),
+	// 						WithCustomAttribute("_", "on click if navigator.share then "+shareAPIDialog(article)+" else call document.getElementById('share-"+article.GetID()+"').show() "),
+	// 						// WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('share').show()"),
+	// 					) {
+	// 						@tabler.Share(i.Props{Class: "size-4"})
+	// 						Share
+	// 					}
+	// 					// Report issue action.
+	// 					@NewLink(
+	// 						WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
+	// 						WithHXTarget(ContentID.Target()),
+	// 						WithClasses("context-menu-item-base"),
+	// 					) {
+	// 						@tabler.FlagFilled(i.Props{Class: "size-4"})
+	// 						Report an issue
+	// 					}
+	// 				}
+	// 			</div>
+	// 		</div>
+	// 	</div>
+	// 	@ShareObjectModal(article)
+	// </div>
 }
 
 // ArticleContent renders the complete content of an article.
