@@ -81,7 +81,10 @@ templ articleSummary(article *models.Article) {
 templ ArticleCard(article article) {
 	<div
 		id={ article.GetID() }
-		class={ "card card-border border-base-content/15 h-full bg-base-100 shadow-sm", templ.KV("row-span-2",article.GetImage() != nil), templ.KV("opacity-50",!article.IsUnread()) }
+		class={ "card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
+		templ.KV("row-span-2",article.GetImage() == nil),
+		templ.KV("row-span-3",article.GetImage() != nil),
+		templ.KV("opacity-50",!article.IsUnread()) }
 	>
 		if img := article.GetImage(); img != nil {
 			<figure>
@@ -91,8 +94,10 @@ templ ArticleCard(article article) {
 					WithHXPushURL(),
 				) {
 					<img
-						class="rounded-box"
+						class="rounded-box responsive-img"
 						src={ "/img-proxy/300x200/" + img.GetURL() }
+						height="300"
+						width="200"
 						if img.GetTitle() != "" {
 							alt={ img.GetTitle() }
 						}
