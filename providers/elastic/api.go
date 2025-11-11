@@ -19,10 +19,10 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/mget"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/core/msearch"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
 	feeds "github.com/immanent-tech/go-syndication"
 	slogctx "github.com/veqryn/slog-context"
@@ -38,8 +38,10 @@ import (
 )
 
 var (
-	ErrNotFound     = models.NewAPIError(errors.New("not found"), http.StatusNotFound)
-	ErrNoIndexInCtx = models.NewAPIError(errors.New("no index in context"), http.StatusInternalServerError)
+	errNotFound     = errors.New("not found")
+	ErrNotFound     = models.NewAPIError(errNotFound, http.StatusNotFound)
+	ErrNoIndexInCtx = models.NewAPIError(fmt.Errorf("get index from context: %w", errNotFound), http.StatusInternalServerError)
+	errParseFailed  = errors.New("parsing value failed")
 )
 
 var (
@@ -52,6 +54,14 @@ var (
 type API struct {
 	*elasticsearch.TypedClient
 }
+
+// Object represents any kind of object that has an ID. Effectively the object can be indexed in Elasticsearch.
+type Object[T ~string] interface {
+	GetID() T
+}
+
+// Option is a generic type for functional options.
+type Option[T any] func(T)
 
 // GetSession retrieves session data with the given token.
 func (a *API) GetSession(ctx context.Context, token string) (*models.UserSession, error) {
@@ -102,11 +112,11 @@ func (a *API) GetAPI() *elasticsearch.TypedClient {
 	return a.TypedClient
 }
 
-// UserExists checks if a user with the given ID exists.
+// UserExists checks if a user doc with the given ID exists.
 func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
 	index, err := UserReadIndexFromCtx(ctx)
 	if err != nil {
-		return false, ErrNoIndexInCtx
+		return false, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	found, err := exists(ctx, a.TypedClient, index, id)
 	if err != nil {
@@ -115,10 +125,11 @@ func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
 	return found, nil
 }
 
+// CreateUser creates a new user doc in Elasticsearch.
 func (a *API) CreateUser(ctx context.Context, user *models.User) error {
 	index, err := UserWriteIndexFromCtx(ctx)
 	if err != nil {
-		return ErrNoIndexInCtx
+		return ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	err = CreateDoc(ctx, a.GetAPI(), index, user.GetID(), user)
 	if err != nil {
@@ -127,11 +138,11 @@ func (a *API) CreateUser(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-// GetUser retrieves the user with the given id.
+// GetUser retrieves the user doc with the given id.
 func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
 	index, err := UserReadIndexFromCtx(ctx)
 	if err != nil {
-		return nil, ErrNoIndexInCtx
+		return nil, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	user, err := GetDoc[models.UserID, *models.User](ctx, a.GetAPI(), index, id)
 	if err != nil {
@@ -140,10 +151,11 @@ func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, erro
 	return user, nil
 }
 
+// DeleteUser removes the user doc with the given ID.
 func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
 	index, err := UserWriteIndexFromCtx(ctx)
 	if err != nil {
-		return ErrNoIndexInCtx
+		return ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	err = DeleteDoc(ctx, a.GetAPI(), index, id)
 	if err != nil {
@@ -157,7 +169,7 @@ func (a *API) UpdateUser(ctx context.Context, userID models.UserID, updates map[
 	updates["updated_at"] = time.Now().UTC()
 	index, err := UserWriteIndexFromCtx(ctx)
 	if err != nil {
-		return ErrNoIndexInCtx
+		return ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	err = UpdateDoc(ctx, a.GetAPI(), index, userID, updates,
 		WithRefresh("true"),
@@ -173,7 +185,7 @@ func (a *API) UpdateUser(ctx context.Context, userID models.UserID, updates map[
 func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
 	index, err := UserReadIndexFromCtx(ctx)
 	if err != nil {
-		return nil, ErrNoIndexInCtx
+		return nil, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	// Get the user.
 	users, _, err := Search[*models.User](ctx, a.GetAPI(), index, query.Term("external_user_id", externalID), 1)
@@ -181,7 +193,7 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 		return nil, toAPIError(err)
 	}
 	if len(users) == 0 {
-		return nil, ErrNotFound
+		return nil, ErrNotFound //nolint:wrapcheck
 	}
 	return users[0], nil
 }
@@ -190,7 +202,7 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 	index, err := FeedsReadIndexFromCtx(ctx)
 	if err != nil {
-		return nil, ErrNoIndexInCtx
+		return nil, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	feed, err := GetDoc[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, id)
 	if err != nil {
@@ -199,10 +211,11 @@ func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, erro
 	return feed, nil
 }
 
+// CreateFeed creates a new feed doc in Elasticsearch.
 func (a *API) CreateFeed(ctx context.Context, feed *models.Feed) error {
 	index, err := FeedsWriteIndexFromCtx(ctx)
 	if err != nil {
-		return ErrNoIndexInCtx
+		return ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	err = CreateDoc(ctx, a.GetAPI(), index, feed.GetID(), feed)
 	if err != nil {
@@ -211,10 +224,11 @@ func (a *API) CreateFeed(ctx context.Context, feed *models.Feed) error {
 	return nil
 }
 
+// DeleteFeed deletes a feed doc with the given ID from Elasticsearch.
 func (a *API) DeleteFeed(ctx context.Context, id models.FeedID) error {
 	index, err := FeedsWriteIndexFromCtx(ctx)
 	if err != nil {
-		return ErrNoIndexInCtx
+		return ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	// Delete the feed.
 	err = DeleteDoc(ctx, a.GetAPI(), index, id)
@@ -228,7 +242,7 @@ func (a *API) DeleteFeed(ctx context.Context, id models.FeedID) error {
 func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 	index, err := FeedsReadIndexFromCtx(ctx)
 	if err != nil {
-		return nil, ErrNoIndexInCtx
+		return nil, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 
 	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, ids...)
@@ -243,17 +257,17 @@ func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds,
 func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error) {
 	index, err := FeedsReadIndexFromCtx(ctx)
 	if err != nil {
-		return nil, "", ErrNoIndexInCtx
+		return nil, "", ErrNoIndexInCtx //nolint:wrapcheck
 	}
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
-		return nil, "", models.NewAPIError(fmt.Errorf("decode pagination failed: %w", err), http.StatusInternalServerError)
+		return nil, "", models.NewAPIError(fmt.Errorf("search feeds: decode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
 	}
 
 	// Perform search.
 	feeds, newSearchAfter, err := Search[*models.Feed](ctx, e.GetAPI(), index, query, count,
-		WithSortOptions[*search.Search, SearchRequest](models.NewFeedSortOptions(sort)...),
+		WithSortOptions[*search.Search, SearchRequest](newFeedSortOptions(sort)...),
 		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 	)
 	if err != nil {
@@ -263,7 +277,7 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 	if pagination != nil {
 		*pagination, err = encodePagination(newSearchAfter)
 		if err != nil {
-			return nil, "", models.NewAPIError(fmt.Errorf("encode pagination failed: %w", err), http.StatusInternalServerError)
+			return nil, "", models.NewAPIError(fmt.Errorf("search feeds: encode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
 		}
 		return feeds, *pagination, nil
 	}
@@ -271,16 +285,16 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 	return feeds, "", nil
 }
 
-func (e *API) MultiSearchFeeds(ctx context.Context, queries ...*models.MultiSearchQuery) (results.MSearchResults, error) {
-	return MultiSearch(ctx, e.GetAPI(), queries...)
-}
+// func (e *API) MultiSearchFeeds(ctx context.Context, queries ...*models.MultiSearchQuery) (results.MSearchResults, error) {
+// 	return MultiSearch(ctx, e.GetAPI(), queries...)
+// }
 
 // GetNewFeedsSince will return a slice of all feeds that have been created since the given timestamp.
 func (e *API) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error) {
 	// Get all new feeds created since last checkpoint.
 	index, err := FeedsReadIndexFromCtx(ctx)
 	if err != nil {
-		return nil, ErrNoIndexInCtx
+		return nil, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	// Generate query. We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
 	// don't have a job scheduled for updating their items.
@@ -298,7 +312,7 @@ func (e *API) UpdateFeed(ctx context.Context, id models.FeedID, updated *feeds.F
 	// Update the feed timestamp.
 	index, err := FeedsWriteIndexFromCtx(ctx)
 	if err != nil {
-		return ErrNoIndexInCtx
+		return ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	updates := map[string]any{
 		"last_fetched": time.Now().UTC(),
@@ -315,16 +329,16 @@ func (e *API) UpdateFeed(ctx context.Context, id models.FeedID, updated *feeds.F
 func (e *API) SearchItems(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Items, models.Pagination, error) {
 	index, err := ItemsReadIndexFromCtx(ctx)
 	if err != nil {
-		return nil, "", ErrNoIndexInCtx
+		return nil, "", ErrNoIndexInCtx //nolint:wrapcheck
 	}
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
-		return nil, "", models.NewAPIError(fmt.Errorf("decode pagination failed: %w", err), http.StatusInternalServerError)
+		return nil, "", models.NewAPIError(fmt.Errorf("search items: decode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
 	}
 	// Perform search.
 	items, newSearchAfter, err := Search[*models.Item](ctx, e.GetAPI(), index, query, count,
-		WithSortOptions[*search.Search, SearchRequest](models.NewItemSortOptions(sort)...),
+		WithSortOptions[*search.Search, SearchRequest](newItemSortOptions(sort)...),
 		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 	)
 	if err != nil {
@@ -333,11 +347,13 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 	// Parse last search after value into pagination.
 	newPagination, err := encodePagination(newSearchAfter)
 	if err != nil {
-		return nil, "", models.NewAPIError(fmt.Errorf("encode pagination failed: %w", err), http.StatusInternalServerError)
+		return nil, "", models.NewAPIError(fmt.Errorf("search items: encode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
 	}
 	return items, newPagination, nil
 }
 
+// ItemsAggregation performs an aggregation-only (i.e., search request with no hits returned) using the given query as
+// the set of documents and performing the given aggregations across the documents.
 func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int, aggregations aggregations.Aggs) (*search.Response, error) {
 	index, err := ItemsReadIndexFromCtx(ctx)
 	if err != nil {
@@ -350,7 +366,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int
 		WithQueryOptions[*search.Search, SearchRequest](query),
 		WithSize[*search.Search, SearchRequest](size),
 		WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
-		WithAggregations2[*search.Search, SearchRequest](aggregations),
+		WithAggregations[*search.Search, SearchRequest](aggregations),
 	)
 	resp, err := req.Do(ctx)
 	if err != nil {
@@ -364,7 +380,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int
 func (e *API) CountItems(ctx context.Context, query query.Option) (int64, error) {
 	index, err := ItemsReadIndexFromCtx(ctx)
 	if err != nil {
-		return 0, ErrNoIndexInCtx
+		return 0, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 
 	count, err := Count(ctx, e.GetAPI(), index, query)
@@ -379,7 +395,7 @@ func (e *API) CountItems(ctx context.Context, query query.Option) (int64, error)
 func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.ItemID]*bulk.OperationResponse, error) {
 	index, err := ItemsWriteIndexFromCtx(ctx)
 	if err != nil {
-		return nil, ErrNoIndexInCtx
+		return nil, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	return BulkUpdate(ctx, e, index, items...)
 }
@@ -388,7 +404,7 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 func (a *API) ArchiveArticle(ctx context.Context, article *models.ArticleArchive) error {
 	index, err := FavoriteItemsWriteIndexFromCtx(ctx)
 	if err != nil {
-		return ErrNoIndexInCtx
+		return ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	err = CreateDoc(ctx, a.GetAPI(), index, article.ItemID, article)
 	if err != nil {
@@ -401,7 +417,7 @@ func (a *API) ArchiveArticle(ctx context.Context, article *models.ArticleArchive
 func (a *API) UnarchiveArticle(ctx context.Context, userID models.UserID, itemID models.ItemID) error {
 	index, err := FavoriteItemsWriteIndexFromCtx(ctx)
 	if err != nil {
-		return ErrNoIndexInCtx
+		return ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	// Set up the query to match the user's favorited article.
 	query := query.Bool(
@@ -417,10 +433,11 @@ func (a *API) UnarchiveArticle(ctx context.Context, userID models.UserID, itemID
 	return nil
 }
 
+// GetJobState retrieves the job state doc with the given ID from Elasticsearch.
 func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
 	index, err := SchedulerReadIndexFromCtx(ctx)
 	if err != nil {
-		return nil, ErrNoIndexInCtx
+		return nil, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	state, err := GetDoc[string, *models.JobState](ctx, a.GetAPI(), index, id)
 	if err != nil {
@@ -429,10 +446,11 @@ func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, err
 	return state, nil
 }
 
+// UpdateJobState updates the job state doc with the given ID in Elasticsearch.
 func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
 	index, err := SchedulerWriteIndexFromCtx(ctx)
 	if err != nil {
-		return ErrNoIndexInCtx
+		return ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	updates["updated_at"] = time.Now().UTC()
 	err = UpdateDoc(ctx, a.GetAPI(), index, id, updates,
@@ -445,11 +463,11 @@ func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]
 	return nil
 }
 
-// CountItems returns a count of items that match the given query.
+// CountJobs returns a count of the scheduler jobs in the jobs index.
 func (e *API) CountJobs(ctx context.Context) (int64, error) {
 	index, err := SchedulerReadIndexFromCtx(ctx)
 	if err != nil {
-		return 0, ErrNoIndexInCtx
+		return 0, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	count, err := Count(ctx, e.GetAPI(), index, query.Exists("job_type"))
 	if err != nil {
@@ -543,7 +561,7 @@ func exists[T ~string](ctx context.Context, api *elasticsearch.TypedClient, inde
 		Header(ReqIDHeader, middleware.GetReqID(ctx)).
 		Do(ctx)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("exists request failed: %w", errNotFound)
 	}
 	return found, nil
 }
@@ -556,7 +574,7 @@ func Count(ctx context.Context, api *elasticsearch.TypedClient, index string, qu
 		WithQueryOptions[*count.Count, CountRequest](queries...),
 	).Do(ctx)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("count request failed: %w", err)
 	}
 
 	return resp.Count, nil
@@ -575,7 +593,7 @@ func GetDocs[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClie
 		WithIDs[*mget.Mget, MgetRequest](docIDs...),
 	).Do(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get docs: mget request failed: %w", err)
 	}
 	objects, warnings := results.ExtractSourceFromDocs[O](resp.Docs)
 	if warnings != nil {
@@ -592,14 +610,14 @@ func GetDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClien
 		WithRequestID[*get.Get, RequestCommon[*get.Get]](middleware.GetReqID(ctx)),
 	).Do(ctx)
 	if err != nil {
-		return doc, err
+		return doc, fmt.Errorf("get doc: get request failed: %w", err)
 	}
 	if !resp.Found {
-		return doc, ErrNotFound
+		return doc, ErrNotFound //nolint:wrapcheck
 	}
 	doc, err = results.ExtractSource[O](resp.Source_)
 	if err != nil {
-		return doc, models.NewAPIError(fmt.Errorf("extract doc failed: %w", err), http.StatusInternalServerError)
+		return doc, fmt.Errorf("get doc: extract doc failed: %w", err)
 	}
 	return doc, nil
 }
@@ -612,7 +630,7 @@ func CreateDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedCl
 		Refresh(refresh.True).
 		Do(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("create doc: create request failed: %w", err)
 	}
 	if resp != nil {
 		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Created document.",
@@ -628,7 +646,7 @@ func CreateDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedCl
 func UpdateDoc[T ~string](ctx context.Context, api *elasticsearch.TypedClient, index string, id T, updates map[string]any, options ...Option[UpdateDocRequest]) error {
 	resp, err := NewUpdateDocRequest(api, index, string(id), updates, options...).Do(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("update doc: update doc request failed: %w", err)
 	}
 	if resp != nil {
 		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Updated document.",
@@ -647,7 +665,7 @@ func DeleteDoc[T ~string](ctx context.Context, api *elasticsearch.TypedClient, i
 		Refresh(refresh.True).
 		Do(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("delete doc: delete request failed: %w", err)
 	}
 	if resp != nil {
 		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Deleted document.",
@@ -665,7 +683,7 @@ func DeleteDocs(ctx context.Context, api *elasticsearch.TypedClient, index strin
 		WithQueryOptions[*deletebyquery.DeleteByQuery, RequestWithQuery[*deletebyquery.DeleteByQuery]](queries...),
 	).Do(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("delete docs: delete by query request failed: %w", err)
 	}
 	if resp != nil {
 		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Delete documents.",
@@ -687,7 +705,7 @@ func Search[O any](ctx context.Context, api *elasticsearch.TypedClient, index st
 	req := NewSearchRequest(api, defaultOptions...)
 	resp, err := req.Do(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("search: search request failed: %w", err)
 	}
 	var warnings error
 	var docs []O
@@ -719,15 +737,15 @@ func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index
 			WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("search all: search request failed: %w", err)
 		}
 		pagination, err := encodePagination(nextSearchAfter)
 		if err != nil {
-			return nil, models.NewAPIError(fmt.Errorf("encode pagination failed: %w", err), http.StatusInternalServerError)
+			return nil, models.NewAPIError(fmt.Errorf("search all: encode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
 		}
 		searchAfter, err = decodePagination(&pagination)
 		if err != nil {
-			return nil, models.NewAPIError(fmt.Errorf("decode pagination failed: %w", err), http.StatusInternalServerError)
+			return nil, models.NewAPIError(fmt.Errorf("search all: decode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
 		}
 
 		allResults = append(allResults, resultsPage...)
@@ -743,39 +761,40 @@ func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index
 	return allResults, nil
 }
 
-// MultiSearch performs an msearch request.
-func MultiSearch(ctx context.Context, api *elasticsearch.TypedClient, searches ...*models.MultiSearchQuery) (results.MSearchResults, error) {
-	// subscriptionsIndex, err := FeedsReadIndexFromCtx(ctx)
-	// if err != nil {
-	// 	return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
-	// }
-	// itemsIndex, err := ItemsReadIndexFromCtx(ctx)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("unable to perform multi-search: %w", err)
-	// }
+// // MultiSearch performs an msearch request.
+// func MultiSearch(ctx context.Context, api *elasticsearch.TypedClient, searches ...*models.MultiSearchQuery) (results.MSearchResults, error) {
+// 	// subscriptionsIndex, err := FeedsReadIndexFromCtx(ctx)
+// 	// if err != nil {
+// 	// 	return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
+// 	// }
+// 	// itemsIndex, err := ItemsReadIndexFromCtx(ctx)
+// 	// if err != nil {
+// 	// 	return nil, fmt.Errorf("unable to perform multi-search: %w", err)
+// 	// }
 
-	options := make([]Option[MsearchRequest], 0, len(searches)+1)
-	options = append(options, WithRequestID[*msearch.Msearch, MsearchRequest](middleware.GetReqID(ctx)))
-	for search := range slices.Values(searches) {
-		options = append(options, WithSearch(search))
-	}
+// 	options := make([]Option[MsearchRequest], 0, len(searches)+1)
+// 	options = append(options, WithRequestID[*msearch.Msearch, MsearchRequest](middleware.GetReqID(ctx)))
+// 	for search := range slices.Values(searches) {
+// 		options = append(options, WithSearch(search))
+// 	}
 
-	req := NewMSearchRequest(api, options...)
-	resp, err := req.Do(ctx)
-	if err != nil {
-		return nil, err
-	}
+// 	req := NewMSearchRequest(api, options...)
+// 	resp, err := req.Do(ctx)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("multisearch: msearch request failed: %w", err)
+// 	}
 
-	results := make(map[string]*types.MultiSearchItem)
-	for idx, search := range searches {
-		if result, ok := resp.Responses[idx].(*types.MultiSearchItem); ok {
-			results[search.Name] = result
-		}
-	}
+// 	results := make(map[string]*types.MultiSearchItem)
+// 	for idx, search := range searches {
+// 		if result, ok := resp.Responses[idx].(*types.MultiSearchItem); ok {
+// 			results[search.Name] = result
+// 		}
+// 	}
 
-	return results, nil
-}
+// 	return results, nil
+// }
 
+//nolint:wrapcheck,err113
 func toAPIError(err error) error {
 	var esErr *types.ElasticsearchError
 	if errors.As(err, &esErr) {
@@ -859,4 +878,174 @@ func decodePagination(pagination *models.Pagination) ([]types.FieldValueVariant,
 
 	// Return sort values.
 	return casted, nil
+}
+
+// ItemSorting contains the sort options for sorting item search results.
+type ItemSorting struct {
+	Updated   string `json:"updated"`
+	Published string `json:"published"`
+	ItemID    string `json:"item_id"`
+}
+
+// SortCombinationsCaster is required to allow ItemSorting to be used as Elasticsearch sort values.
+func (s *ItemSorting) SortCombinationsCaster() *types.SortCombinations {
+	c := types.SortCombinations(s)
+	return &c
+}
+
+func newItemSortOptions(sort *models.Sort) []types.SortCombinationsVariant {
+	var opts []types.SortCombinationsVariant
+	switch *sort {
+	case models.SortNewestFirst:
+		opts = append(opts, &ItemSorting{
+			Updated:   "desc",
+			Published: "desc",
+			ItemID:    "desc",
+		})
+	case models.SortOldestFirst:
+		opts = append(opts, &ItemSorting{
+			Updated:   "asc",
+			Published: "asc",
+			ItemID:    "asc",
+		})
+	case models.SortMostRelevant:
+		opts = append(opts, &types.SortOptions{
+			Score_: &types.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&ItemSorting{
+				Updated:   "asc",
+				Published: "asc",
+				ItemID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &types.SortOptions{
+			Doc_: &types.ScoreSort{},
+		})
+	}
+	return opts
+}
+
+func newItemSortCombinations(sort *models.Sort) []types.SortCombinations {
+	var opts []types.SortCombinations
+	switch *sort {
+	case models.SortNewestFirst:
+		opts = append(opts, &ItemSorting{
+			Updated:   "desc",
+			Published: "desc",
+			ItemID:    "desc",
+		})
+	case models.SortOldestFirst:
+		opts = append(opts, &ItemSorting{
+			Updated:   "asc",
+			Published: "asc",
+			ItemID:    "asc",
+		})
+	case models.SortMostRelevant:
+		opts = append(opts, &types.SortOptions{
+			Score_: &types.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&ItemSorting{
+				Updated:   "asc",
+				Published: "asc",
+				ItemID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &types.SortOptions{
+			Doc_: types.NewScoreSort(),
+		})
+	}
+	return opts
+}
+
+// FeedSorting contains the sort options for sorting item search results.
+type FeedSorting struct {
+	Updated   string `json:"updated"`
+	Published string `json:"published"`
+	FeedID    string `json:"feed_id"`
+}
+
+// SortCombinationsCaster is required to allow FeedSorting to be used as Elasticsearch sort values.
+func (s *FeedSorting) SortCombinationsCaster() *types.SortCombinations {
+	c := types.SortCombinations(s)
+	return &c
+}
+
+func newFeedSortOptions(sort *models.Sort) []types.SortCombinationsVariant {
+	var opts []types.SortCombinationsVariant
+	switch *sort {
+	case models.SortNewestFirst:
+		opts = append(opts, &FeedSorting{
+			Updated:   "desc",
+			Published: "desc",
+			FeedID:    "desc",
+		})
+	case models.SortOldestFirst:
+		opts = append(opts, &FeedSorting{
+			Updated:   "asc",
+			Published: "asc",
+			FeedID:    "asc",
+		})
+	case models.SortMostRelevant:
+		opts = append(opts, &types.SortOptions{
+			Score_: &types.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&FeedSorting{
+				Updated:   "asc",
+				Published: "asc",
+				FeedID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &types.SortOptions{
+			Doc_: types.NewScoreSort(),
+		})
+	}
+	return opts
+}
+
+func newFeedSortCombinations(sort *models.Sort) []types.SortCombinations {
+	var opts []types.SortCombinations
+	switch *sort {
+	case models.SortNewestFirst:
+		opts = append(opts, &FeedSorting{
+			Updated:   "desc",
+			Published: "desc",
+			FeedID:    "desc",
+		})
+	case models.SortOldestFirst:
+		opts = append(opts, &FeedSorting{
+			Updated:   "asc",
+			Published: "asc",
+			FeedID:    "asc",
+		})
+	case models.SortMostRelevant:
+		opts = append(opts, &types.SortOptions{
+			Score_: &types.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&FeedSorting{
+				Updated:   "asc",
+				Published: "asc",
+				FeedID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &types.SortOptions{
+			Doc_: types.NewScoreSort(),
+		})
+	}
+	return opts
 }

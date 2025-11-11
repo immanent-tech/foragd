@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+//nolint:goconst
 package elastic
 
 import (
@@ -61,20 +62,4 @@ func Connect(ctx context.Context) (*API, error) {
 	}
 
 	return &API{TypedClient: esclient}, nil
-}
-
-func RawConnection(ctx context.Context) (*elasticsearch.Client, error) {
-	env := os.Getenv("FORAGD_ENVIRONMENT")
-	if env == "" {
-		env = "development"
-	}
-	clientConfig, err := loadConfigOnce(env)
-	if err != nil {
-		return nil, fmt.Errorf("could not load config: %w", err)
-	}
-	es, err := elasticsearch.NewClient(*clientConfig)
-	if err != nil {
-		return nil, fmt.Errorf("could not generate client: %w", err)
-	}
-	return es, nil
 }

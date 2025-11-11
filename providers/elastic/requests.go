@@ -21,9 +21,12 @@ import (
 )
 
 const (
+	// ReqIDHeader is the value that will be used to assign a unique ID to an Elasticsearch API request (that can be
+	// used to associate the API request with a web server request).
 	ReqIDHeader = "X-Opaque-Id"
 )
 
+// RequestCommon represents the common methods for any Elasticsearch request,.
 type RequestCommon[T any] interface {
 	Header(key string, value string) T
 }
@@ -37,6 +40,7 @@ func WithRequestID[T any, V RequestCommon[T]](id string) Option[V] {
 	}
 }
 
+// RequestWithQuery represents any Elasticsearch request that can accept a query.
 type RequestWithQuery[T any] interface {
 	Query(query types.QueryVariant) T
 }
@@ -50,35 +54,24 @@ func WithQueryOptions[T any, R RequestWithQuery[T]](options ...query.Option) Opt
 	}
 }
 
+// RequestWithAggregations represents any Elasticsearch request that can accept aggregations.
 type RequestWithAggregations[T any] interface {
 	Aggregations(aggs map[string]types.Aggregations) T
 }
 
 // WithAggregations adds the given aggregation definitions to the search.
-func WithAggregations[T any, R RequestWithAggregations[T]](definitions ...aggregations.Aggregation) Option[R] {
-	return func(req R) {
-		aggregations := make(map[string]types.Aggregations)
-
-		for _, definition := range definitions {
-			aggregations[definition.Name] = definition.Definition
-		}
-
-		req.Aggregations(aggregations)
-	}
-}
-
-// WithAggregations adds the given aggregation definitions to the search.
-func WithAggregations2[T any, R RequestWithAggregations[T]](aggs aggregations.Aggs) Option[R] {
+func WithAggregations[T any, R RequestWithAggregations[T]](aggs aggregations.Aggs) Option[R] {
 	return func(req R) {
 		req.Aggregations(aggs)
 	}
 }
 
+// RequestWithIndex represents any Elasticsearch request that can specify an index to operate on.
 type RequestWithIndex[T any] interface {
 	Index(index string) T
 }
 
-// WithRequestID option sets the appropriate request ID header to the given value in the request.
+// WithIndex option specifies the index for the request to operate on.
 func WithIndex[T any, V RequestWithIndex[T]](index string) Option[V] {
 	return func(t V) {
 		if index != "" {
@@ -87,32 +80,37 @@ func WithIndex[T any, V RequestWithIndex[T]](index string) Option[V] {
 	}
 }
 
+// RequestWithIDs represents any Elasticsearch request that can accept a list of document IDs.
 type RequestWithIDs[T any] interface {
 	Ids(id ...string) T
 }
 
+// WithIDs option specifies the document IDs to operate on.
 func WithIDs[T any, V RequestWithIDs[T]](ids ...string) Option[V] {
 	return func(v V) {
 		v.Ids(ids...)
 	}
 }
 
+// RequestWithSize represents any Elasticsearch request that allows specifying a size (or number of results).
 type RequestWithSize[T any] interface {
 	Size(size int) T
 }
 
-// WithSearchSize defines the number of results returned.
+// WithSize option defines the number of results returned.
 func WithSize[T any, V RequestWithSize[T]](size int) Option[V] {
 	return func(v V) {
 		v.Size(size)
 	}
 }
 
+// RequestWithSearchAfter represents any Elasticsearch request that can accept a "search after" value (i.e.,
+// pagination).
 type RequestWithSearchAfter[T any] interface {
 	SearchAfter(values ...types.FieldValueVariant) T
 }
 
-// WithSearchAfter sets the sort value to fetch the next set of results. It can
+// WithSearchAfter option sets the sort value to fetch the next set of results. It can
 // accept either a []types.FieldValue or a []byte (html-encoded
 // []types.FieldValue).
 //
@@ -126,11 +124,12 @@ func WithSearchAfter[T any, V RequestWithSearchAfter[T]](values ...types.FieldVa
 	}
 }
 
+// RequestWithSort represents any Elasticsearch request that can be sorted.
 type RequestWithSort[T any] interface {
 	Sort(sort ...types.SortCombinationsVariant) T
 }
 
-// WithSortOptions adds the given sorting options to the search.
+// WithSortOptions option adds the given sorting options to the search.
 func WithSortOptions[T any, V RequestWithSort[T]](options ...types.SortCombinationsVariant) Option[V] {
 	return func(req V) {
 		req.Sort(options...)
@@ -162,7 +161,7 @@ func NewSearchRequest(api *elasticsearch.TypedClient, options ...Option[SearchRe
 	return req
 }
 
-// query *types.Query, sort []types.SortCombinations
+// WithSearch option adds a search to a multisearch request.
 func WithSearch(search *models.MultiSearchQuery) Option[MsearchRequest] {
 	return func(req MsearchRequest) {
 		hdr := types.NewMultisearchHeader()
@@ -173,9 +172,9 @@ func WithSearch(search *models.MultiSearchQuery) Option[MsearchRequest] {
 		}
 		switch {
 		case strings.HasPrefix(search.Index, "feeds"):
-			searchBody.Sort = models.NewFeedSortCombinations(search.Sort)
+			searchBody.Sort = newFeedSortCombinations(search.Sort)
 		case strings.HasPrefix(search.Index, "items"):
-			searchBody.Sort = models.NewItemSortCombinations(search.Sort)
+			searchBody.Sort = newItemSortCombinations(search.Sort)
 		default:
 			opts := &types.SortOptions{
 				Doc_: types.NewScoreSort(),
@@ -192,11 +191,13 @@ func WithSearch(search *models.MultiSearchQuery) Option[MsearchRequest] {
 	}
 }
 
+// MsearchRequest represents an Elasticsearch _msearch request.
 type MsearchRequest interface {
 	RequestCommon[*msearch.Msearch]
 	AddSearch(header types.MultisearchHeader, body types.SearchRequestBody) error
 }
 
+// NewMSearchRequest creates a new multisearch request with the given options.
 func NewMSearchRequest(api *elasticsearch.TypedClient, options ...Option[MsearchRequest]) *msearch.Msearch {
 	req := api.Msearch()
 
@@ -275,6 +276,12 @@ type FieldValue struct {
 	value any
 }
 
+// NewFieldValue converts any value into a FieldValue.
+func NewFieldValue(value any) FieldValue {
+	return FieldValue{value: value}
+}
+
+// FieldValueCaster is required to allow FieldValue to be used as an Elasticsearch  field value.
 func (v FieldValue) FieldValueCaster() *types.FieldValue {
 	switch data := v.value.(type) {
 	case types.FieldValue:
@@ -282,16 +289,5 @@ func (v FieldValue) FieldValueCaster() *types.FieldValue {
 	default:
 		fv := types.FieldValue(data)
 		return &fv
-	}
-}
-
-// NewFieldValue converts any value into a FieldValue.
-func NewFieldValue(value any) FieldValue {
-	return FieldValue{value: value}
-}
-
-func sortByScore() types.SortOptions {
-	return types.SortOptions{
-		Score_: types.NewScoreSort(),
 	}
 }

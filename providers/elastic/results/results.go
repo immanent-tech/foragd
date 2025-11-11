@@ -1,5 +1,6 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
+
 package results
 
 import (
@@ -12,9 +13,10 @@ import (
 )
 
 var (
-	ErrExtractSource = errors.New("could not extract document _source")
-	ErrRequestFailed = errors.New("request failed")
-	ErrFieldNotFound = errors.New("field not found")
+	ErrExtractSource      = errors.New("could not extract document _source")
+	ErrRequestFailed      = errors.New("request failed")
+	ErrFieldNotFound      = errors.New("field not found")
+	ErrInvalidAPIResponse = errors.New("invalid API response")
 )
 
 // ExtractSourceFromHits loops through the given hits array and extracts the `_source`
@@ -73,7 +75,7 @@ func ExtractSourceFromDocs[T any](docs []types.MgetResponseItem) ([]T, error) {
 			}
 			sources = append(sources, source)
 		default:
-			warnings = errors.Join(warnings, errors.New("unknown doc type"))
+			warnings = errors.Join(warnings, fmt.Errorf("%w: %T", ErrInvalidAPIResponse, obj))
 		}
 	}
 
@@ -84,11 +86,10 @@ func ExtractSourceFromDocs[T any](docs []types.MgetResponseItem) ([]T, error) {
 // returned if the source cannot be extracted.
 func ExtractSource[T any](doc json.RawMessage) (T, error) {
 	var source T
-
-	if err := json.Unmarshal(doc, &source); err != nil {
+	err := json.Unmarshal(doc, &source)
+	if err != nil {
 		return source, fmt.Errorf("%w: %w", ErrExtractSource, err)
 	}
-
 	return source, nil
 }
 
@@ -135,22 +136,22 @@ func ExtractFieldValue[T any](field string, fields map[string]json.RawMessage) (
 	return fieldValue[0], nil
 }
 
-type MSearchResults map[string]*types.MultiSearchItem
+// type MSearchResults map[string]*types.MultiSearchItem
 
-func GetHits[O any](key string, results MSearchResults) ([]O, error) {
-	searchResults, found := results[key]
-	if !found {
-		return nil, fmt.Errorf("%w: results key %s not found", ErrExtractSource, key)
-	}
-	if searchResults.Hits.Total.Value == 0 {
-		return nil, fmt.Errorf("%w: no hits found", ErrExtractSource)
-	}
-	docs, _, err := ExtractSourceFromHits[O](searchResults.Hits.Hits)
-	if err != nil {
-		return nil, fmt.Errorf("could not get hits: %w", err)
-	}
-	return docs, nil
-}
+// func GetHits[O any](key string, results MSearchResults) ([]O, error) {
+// 	searchResults, found := results[key]
+// 	if !found {
+// 		return nil, fmt.Errorf("%w: results key %s not found", ErrExtractSource, key)
+// 	}
+// 	if searchResults.Hits.Total.Value == 0 {
+// 		return nil, fmt.Errorf("%w: no hits found", ErrExtractSource)
+// 	}
+// 	docs, _, err := ExtractSourceFromHits[O](searchResults.Hits.Hits)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("could not get hits: %w", err)
+// 	}
+// 	return docs, nil
+// }
 
 // formatError formats an error cause from Elasticsearch into an error value.
 func formatError(err types.ErrorCause) error {

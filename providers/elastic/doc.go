@@ -34,6 +34,7 @@ func NewDeleteByQueryRequest(api *elasticsearch.TypedClient, index string, optio
 	return req
 }
 
+// NewGetRequest creates a new get doc request that will operate on the given index with the given options.
 func NewGetRequest(api *elasticsearch.TypedClient, index, id string, options ...any) *get.Get {
 	req := api.Get(index, id)
 	for option := range slices.Values(options) {
@@ -50,6 +51,7 @@ func NewGetRequest(api *elasticsearch.TypedClient, index, id string, options ...
 	return req
 }
 
+// MgetRequest represents an Elasticsearch _mget request.
 type MgetRequest interface {
 	RequestCommon[*mget.Mget]
 	RequestWithIDs[*mget.Mget]

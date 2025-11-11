@@ -16,13 +16,11 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/results"
 )
 
 var (
@@ -34,7 +32,7 @@ var (
 type FeedsAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
 	SearchFeeds(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Feeds, Pagination, error)
-	MultiSearchFeeds(ctx context.Context, queries ...*MultiSearchQuery) (results.MSearchResults, error)
+	// MultiSearchFeeds(ctx context.Context, queries ...*MultiSearchQuery) (results.MSearchResults, error)
 	CreateFeed(ctx context.Context, feed *Feed) error
 }
 
@@ -1076,174 +1074,6 @@ func queryAllItems(user *User, subscription *FeedSubscription) query.Option {
 			query.SimpleQueryString(subscription.ArticleFilters.Categories, "", "categories"),
 		),
 	)
-}
-
-// ItemSorting contains the sort options for sorting item search results.
-type ItemSorting struct {
-	Updated   string `json:"updated"`
-	Published string `json:"published"`
-	ItemID    string `json:"item_id"`
-}
-
-func (s *ItemSorting) SortCombinationsCaster() *types.SortCombinations {
-	c := types.SortCombinations(s)
-	return &c
-}
-
-func NewItemSortOptions(sort *Sort) []types.SortCombinationsVariant {
-	var opts []types.SortCombinationsVariant
-	switch *sort {
-	case SortNewestFirst:
-		opts = append(opts, &ItemSorting{
-			Updated:   "desc",
-			Published: "desc",
-			ItemID:    "desc",
-		})
-	case SortOldestFirst:
-		opts = append(opts, &ItemSorting{
-			Updated:   "asc",
-			Published: "asc",
-			ItemID:    "asc",
-		})
-	case SortMostRelevant:
-		opts = append(opts, &types.SortOptions{
-			Score_: &types.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&ItemSorting{
-				Updated:   "asc",
-				Published: "asc",
-				ItemID:    "asc",
-			},
-		)
-	default:
-		opts = append(opts, &types.SortOptions{
-			Doc_: &types.ScoreSort{},
-		})
-	}
-	return opts
-}
-
-func NewItemSortCombinations(sort *Sort) []types.SortCombinations {
-	var opts []types.SortCombinations
-	switch *sort {
-	case SortNewestFirst:
-		opts = append(opts, &ItemSorting{
-			Updated:   "desc",
-			Published: "desc",
-			ItemID:    "desc",
-		})
-	case SortOldestFirst:
-		opts = append(opts, &ItemSorting{
-			Updated:   "asc",
-			Published: "asc",
-			ItemID:    "asc",
-		})
-	case SortMostRelevant:
-		opts = append(opts, &types.SortOptions{
-			Score_: &types.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&ItemSorting{
-				Updated:   "asc",
-				Published: "asc",
-				ItemID:    "asc",
-			},
-		)
-	default:
-		opts = append(opts, &types.SortOptions{
-			Doc_: types.NewScoreSort(),
-		})
-	}
-	return opts
-}
-
-// FeedSorting contains the sort options for sorting item search results.
-type FeedSorting struct {
-	Updated   string `json:"updated"`
-	Published string `json:"published"`
-	FeedID    string `json:"feed_id"`
-}
-
-func (s *FeedSorting) SortCombinationsCaster() *types.SortCombinations {
-	c := types.SortCombinations(s)
-	return &c
-}
-
-func NewFeedSortOptions(sort *Sort) []types.SortCombinationsVariant {
-	var opts []types.SortCombinationsVariant
-	switch *sort {
-	case SortNewestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "desc",
-			Published: "desc",
-			FeedID:    "desc",
-		})
-	case SortOldestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "asc",
-			Published: "asc",
-			FeedID:    "asc",
-		})
-	case SortMostRelevant:
-		opts = append(opts, &types.SortOptions{
-			Score_: &types.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&FeedSorting{
-				Updated:   "asc",
-				Published: "asc",
-				FeedID:    "asc",
-			},
-		)
-	default:
-		opts = append(opts, &types.SortOptions{
-			Doc_: types.NewScoreSort(),
-		})
-	}
-	return opts
-}
-
-func NewFeedSortCombinations(sort *Sort) []types.SortCombinations {
-	var opts []types.SortCombinations
-	switch *sort {
-	case SortNewestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "desc",
-			Published: "desc",
-			FeedID:    "desc",
-		})
-	case SortOldestFirst:
-		opts = append(opts, &FeedSorting{
-			Updated:   "asc",
-			Published: "asc",
-			FeedID:    "asc",
-		})
-	case SortMostRelevant:
-		opts = append(opts, &types.SortOptions{
-			Score_: &types.ScoreSort{
-				Order: &sortorder.Desc,
-			},
-		})
-		opts = append(opts,
-			&FeedSorting{
-				Updated:   "asc",
-				Published: "asc",
-				FeedID:    "asc",
-			},
-		)
-	default:
-		opts = append(opts, &types.SortOptions{
-			Doc_: types.NewScoreSort(),
-		})
-	}
-	return opts
 }
 
 type MultiSearchQuery struct {
