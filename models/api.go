@@ -16,6 +16,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -1128,7 +1129,18 @@ func NewItemSortOptions(sort *Sort) []types.SortCombinationsVariant {
 			ItemID:    "asc",
 		})
 	case SortMostRelevant:
-		opts = append(opts, &ScoreSorting{})
+		opts = append(opts, &ScoreSorting{
+			Score_: &types.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&ItemSorting{
+				Updated:   "asc",
+				Published: "asc",
+				ItemID:    "asc",
+			},
+		)
 	default:
 		opts = append(opts, &DocSorting{})
 	}
@@ -1154,7 +1166,18 @@ func NewItemSortCombinations(sort *Sort) []types.SortCombinations {
 			ItemID:    "asc",
 		})
 	case SortMostRelevant:
-		opts = append(opts, &ScoreSorting{})
+		opts = append(opts, &ScoreSorting{
+			Score_: &types.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&ItemSorting{
+				Updated:   "asc",
+				Published: "asc",
+				ItemID:    "asc",
+			},
+		)
 	default:
 		opts = append(opts, &DocSorting{})
 	}
@@ -1192,7 +1215,18 @@ func NewFeedSortOptions(sort *Sort) []types.SortCombinationsVariant {
 			FeedID:    "asc",
 		})
 	case SortMostRelevant:
-		opts = append(opts, &ScoreSorting{})
+		opts = append(opts, &ScoreSorting{
+			Score_: &types.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&FeedSorting{
+				Updated:   "asc",
+				Published: "asc",
+				FeedID:    "asc",
+			},
+		)
 	default:
 		opts = append(opts, &DocSorting{})
 	}
@@ -1218,7 +1252,18 @@ func NewFeedSortCombinations(sort *Sort) []types.SortCombinations {
 			FeedID:    "asc",
 		})
 	case SortMostRelevant:
-		opts = append(opts, &ScoreSorting{})
+		opts = append(opts, &ScoreSorting{
+			Score_: &types.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&FeedSorting{
+				Updated:   "asc",
+				Published: "asc",
+				FeedID:    "asc",
+			},
+		)
 	default:
 		opts = append(opts, &DocSorting{})
 	}
