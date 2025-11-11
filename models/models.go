@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-shiori/go-readability"
 
+	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -168,4 +169,19 @@ func (i *IssueRequest) Valid() (bool, error) {
 func (i *IssueRequest) Sanitise() error {
 	i.Details = validation.SanitizeString(i.Details)
 	return nil
+}
+
+type Screenshot struct {
+	*forms.FileUpload
+}
+
+func (s *Screenshot) Valid() (bool, error) {
+	mimeType, err := s.ParseMimetype()
+	if err != nil {
+		return false, fmt.Errorf("screenshot invalid: %w", err)
+	}
+	if !slices.Contains([]string{"image/jpeg", "image/png"}, mimeType) {
+		return false, fmt.Errorf("screenshot invalid: %w", mimeType)
+	}
+	return true, nil
 }

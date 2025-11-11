@@ -290,10 +290,9 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle("Error")).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
 			}
-
-			opmlFile := &models.OPMLFile{}
-			opmlFile, valid, err := forms.DecodeMultipartFile(req, "source", opmlFile)
-			if err != nil || !valid {
+			// Extract OPML file.
+			opmlFileUpload, err := forms.DecodeMultipartFile(req, "source")
+			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				msg := models.NewErrorMessage(
 					"Failed to read OPML file",
@@ -301,6 +300,10 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable process import request: %w", err), http.StatusUnprocessableEntity)
 			}
+			opmlFile := &models.OPMLFile{
+				FileUpload: opmlFileUpload,
+			}
+			// Generate subscription requests from OPML file contents.
 			requests, err := opmlFile.GenerateRequests()
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")

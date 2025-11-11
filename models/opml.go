@@ -6,33 +6,24 @@ package models
 import (
 	"fmt"
 	"io"
-	"mime"
-	"mime/multipart"
 	"slices"
 
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/types"
 
+	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 )
 
-// OPMLFile represents an OPML file.
+// OPMLFile is an opml file used for importing/exporting subscriptions.
 type OPMLFile struct {
-	data multipart.File
-	hdr  *multipart.FileHeader
-}
-
-// Load will load the OPMLFile object with the data representing an OPML file contained in the given multipart form values.
-func (f *OPMLFile) Load(data multipart.File, hdr *multipart.FileHeader) error {
-	f.data = data
-	f.hdr = hdr
-	return nil
+	*forms.FileUpload
 }
 
 // Valid returns a boolean indicating if the OPML file is valid. If not valid, a non-nil error is also returned which
 // will contain details about validation failures.
 func (f *OPMLFile) Valid() (bool, error) {
-	mediaType, _, err := mime.ParseMediaType(f.hdr.Header.Get("Content-Type"))
+	mediaType, err := f.ParseMimetype()
 	if err != nil {
 		return false, fmt.Errorf("%w: %w", ErrInvalidMimeType, err)
 	}
@@ -54,7 +45,7 @@ func (f *OPMLFile) GenerateRequests() ([]*AddFeedSubscriptionRequest, error) {
 
 func (f *OPMLFile) parse() (*opml.OPML, error) {
 	// Read the OPML file data into a byte array.
-	data, err := io.ReadAll(f.data)
+	data, err := io.ReadAll(f.Data)
 	if err != nil {
 		return nil, fmt.Errorf("decode OPML file data failed: %w", err)
 	}

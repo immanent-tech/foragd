@@ -1163,3 +1163,39 @@ components:
           enum: ['info', 'success', 'warning', 'error']
           x-oapi-codegen-extra-tags:
             validate: 'required'
+    FileUpload:
+      description: >
+        represents a file upload by a user.
+      type: object
+      required:
+        - data
+        - name
+        - header
+        - size
+      properties:
+        data:
+          description: >
+            is the file data/content.
+          x-go-type: multipart.File
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        name:
+          description: >
+            is the file name.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        header:
+          description: >
+            is the mime header information of the file.
+          x-go-type: textproto.MIMEHeader
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        size:
+          description: >
+            is the size of the file.
+          type: integer
+          x-oapi-codegen-extra-tags:
+            validate: 'required,gte=0'
+
+

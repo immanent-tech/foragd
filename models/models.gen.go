@@ -6,6 +6,8 @@ package models
 import (
 	"encoding/json"
 	"image"
+	"mime/multipart"
+	"net/textproto"
 	"time"
 
 	externalRef0 "github.com/immanent-tech/go-syndication/types"
@@ -419,6 +421,21 @@ type FeedSubscription struct {
 
 	// Stats contains stats about a subscription.
 	Stats SubscriptionStats `json:"-"`
+}
+
+// FileUpload represents a file upload by a user.
+type FileUpload struct {
+	// Data is the file data/content.
+	Data multipart.File `json:"data" validate:"required"`
+
+	// Header is the mime header information of the file.
+	Header textproto.MIMEHeader `json:"header" validate:"required"`
+
+	// Name is the file name.
+	Name string `json:"name" validate:"required"`
+
+	// Size is the size of the file.
+	Size int `json:"size" validate:"required,gte=0"`
 }
 
 // IssueRequest contains details about an issue with the service.

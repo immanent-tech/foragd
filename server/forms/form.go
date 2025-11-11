@@ -8,8 +8,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"mime"
 	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
 
 	"github.com/go-playground/form/v4"
@@ -40,6 +42,30 @@ const defaultMaxSize = 32 << 20
 type FormInput interface {
 	Valid() (bool, error)
 	Sanitise() error
+}
+
+// FileUpload represents a file upload by a user.
+type FileUpload struct {
+	// Data is the file data/content.
+	Data multipart.File `json:"data" validate:"required"`
+
+	// Header is the mime header information of the file.
+	Header textproto.MIMEHeader `json:"header" validate:"required"`
+
+	// Name is the file name.
+	Name string `json:"name" validate:"required"`
+
+	// Size is the size of the file.
+	Size int64 `json:"size" validate:"required,gte=0"`
+}
+
+// ParseMimetype attempts to parse and return the mimetype of the file from its mime header.
+func (f *FileUpload) ParseMimetype() (string, error) {
+	mediaType, _, err := mime.ParseMediaType(f.Header.Get("Content-Type"))
+	if err != nil {
+		return "unknown", fmt.Errorf("cannot parse mime type of file %s: %w", f.Name, err)
+	}
+	return mediaType, nil
 }
 
 // File is an object to store an uploaded file.
@@ -109,28 +135,23 @@ func DecodeCustom[T FormInput](req *http.Request, decoderFunc func(params url.Va
 // submission. It will perform validation of the file and will return the file
 // object and a boolean true if it is valid. If decoding fails, a non-nill error
 // is returned.
-func DecodeMultipartFile[T File](req *http.Request, field string, file T) (T, bool, error) {
+func DecodeMultipartFile(req *http.Request, field string) (*FileUpload, error) {
 	// Parse form values in request.
 	err := req.ParseMultipartForm(defaultMaxSize)
 	if err != nil {
-		return file, false, fmt.Errorf("%w: %w", ErrDecode, err)
+		return nil, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Decode the form values.
 	data, hdr, err := req.FormFile(field)
 	if err != nil {
-		return file, false, fmt.Errorf("%w: %w", ErrDecode, err)
+		return nil, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
-	// Load file data.
-	err = file.Load(data, hdr)
-	if err != nil {
-		return file, false, fmt.Errorf("%w: %w", ErrDecode, err)
-	}
-	// Validate the file data.
-	if ok, err := file.Valid(); !ok {
-		return file, false, fmt.Errorf("%w: %w", ErrValidation, err)
-	}
-
-	return file, true, nil
+	return &FileUpload{
+		Data:   data,
+		Name:   hdr.Filename,
+		Header: hdr.Header,
+		Size:   hdr.Size,
+	}, nil
 }
 
 // DecodeMultipartValue will the file represented by the given field in a multipart form
