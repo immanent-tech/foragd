@@ -488,6 +488,8 @@ func (a *API) DeleteUser() http.HandlerFunc {
 }
 
 // AddFeedset handles adding a feedset as subscriptions.
+//
+//nolint:gocognit
 func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve user object.
@@ -559,10 +561,8 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 			defer close(resultsCh)
 			wg.Wait()
 		}()
-		results := make([]*models.AddFeedSubscriptionResult, 0, len(subscriptionRequests))
 		// Process results
 		for result := range resultsCh {
-			results = append(results, &result)
 			if result.Error != nil {
 				switch result.Message.Status {
 				case models.UserMessageStatusError:
@@ -578,10 +578,16 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 						slog.Any("error", result.Error),
 					)
 				}
+			} else {
+				err = models.CreateFeedSubscriptions(req.Context(), api, &result)
+				if err != nil {
+					msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
+					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+					return models.NewAPIError(fmt.Errorf("unable process import request: %w", err), http.StatusInternalServerError)
+				}
 			}
 		}
-		msg := models.NewSuccessMessage("Added sets", "Request sets added to your subscriptions.")
-		renderPartial(templates.Notification(msg, 0)).ServeHTTP(res, req)
+		renderPartial(templates.AddFeedsetsSuccessNotification(request.Feedset)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

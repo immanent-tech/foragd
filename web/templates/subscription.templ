@@ -15,6 +15,21 @@ import (
 	"time"
 )
 
+// AddFeedsetsSuccessNotification renders a notification when a new user is successfully subscribed to one or more curated feedsets.
+templ AddFeedsetsSuccessNotification(feedsets []string) {
+	@Notification(models.NewSuccessMessage("Subscribed!", "You are now subscribed to the "+strings.Join(feedsets, ", ")+" feedsets(s)."), 10*time.Second) {
+		<div class="mt-3 flex space-x-7">
+			@NewLink(
+				WithHXMethod(http.MethodGet, "/list/subscriptions"),
+				WithHXTarget(ContentID.Target()),
+				WithHXPushURL(),
+			) {
+				Go to Subscriptions <span aria-hidden="true">&rarr;</span>
+			}
+		</div>
+	}
+}
+
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
 templ subscriptionCard(s models.AnySubscription) {
 	{{ user, _ := models.UserFromCtx(ctx) }}
