@@ -18,6 +18,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-resty/resty/v2"
 	"github.com/justinas/nosurf"
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
@@ -36,11 +37,14 @@ import (
 // for static content.
 type Server struct {
 	*http.Server
+	client *resty.Client
 }
 
 // NewServer sets up a new server.
 func NewServer(ctx context.Context, env string) (Server, error) {
-	svr := Server{}
+	svr := Server{
+		client: resty.New(),
+	}
 	// Load the server config.
 	err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, cfg)
 	if err != nil {
@@ -177,7 +181,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.Handle("/content/*", handlers.StaticFileServerHandler(http.FS(web.StaticContent)))
 	})
 
-	router.Get("/img-proxy/{image_opts}/*", handlers.ImageProxy(cfg.ImgproxyKey, cfg.ImgproxyURL))
+	router.Get("/img-proxy/{image_opts}/*", handlers.ImageProxy(s.client, cfg.ImgproxyKey, cfg.ImgproxyURL))
 
 	// Error handling.
 	router.NotFound(handlers.NotFound())

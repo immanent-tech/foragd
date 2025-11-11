@@ -23,6 +23,7 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-resty/resty/v2"
 	"github.com/justinas/alice"
 	"github.com/russross/blackfriday/v2"
 	slogchi "github.com/samber/slog-chi"
@@ -101,7 +102,7 @@ func StaticFileServerHandler(fs http.FileSystem) http.Handler {
 }
 
 // ImageProxy handles proxying images through the image proxy service, which can resize and cache remote images.
-func ImageProxy(key, proxyURLBase string) http.HandlerFunc {
+func ImageProxy(client *resty.Client, key, proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		opts := chi.URLParam(req, "image_opts")
 		url := chi.URLParam(req, "*")
@@ -126,12 +127,14 @@ func ImageProxy(key, proxyURLBase string) http.HandlerFunc {
 			imageURL = url
 		}
 		// Fetch the image (either from proxy or direct).
-		resp, err := http.Get(imageURL)
+		resp, err := client.R().
+			SetDoNotParseResponse(true).
+			Get(imageURL)
 		if err != nil {
-			res.WriteHeader(resp.StatusCode)
-			return fmt.Errorf("unable to proxy image: %w", err)
+			res.WriteHeader(resp.StatusCode())
+			return fmt.Errorf("unable to proxy image: %w", resp.Error())
 		}
-		imageData, err := io.ReadAll(resp.Body)
+		imageData, err := io.ReadAll(resp.RawBody())
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			return fmt.Errorf("unable to proxy image: %w", err)
