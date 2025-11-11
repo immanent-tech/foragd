@@ -1078,26 +1078,6 @@ func queryAllItems(user *User, subscription *FeedSubscription) query.Option {
 	)
 }
 
-type DocSorting types.SortOptions
-
-func (s *DocSorting) SortCombinationsCaster() *types.SortCombinations {
-	opts := &types.SortOptions{
-		Doc_: types.NewScoreSort(),
-	}
-	c := types.SortCombinations(opts)
-	return &c
-}
-
-type ScoreSorting types.SortOptions
-
-func (s *ScoreSorting) SortCombinationsCaster() *types.SortCombinations {
-	opts := &types.SortOptions{
-		Score_: types.NewScoreSort(),
-	}
-	c := types.SortCombinations(opts)
-	return &c
-}
-
 // ItemSorting contains the sort options for sorting item search results.
 type ItemSorting struct {
 	Updated   string `json:"updated"`
@@ -1111,9 +1091,6 @@ func (s *ItemSorting) SortCombinationsCaster() *types.SortCombinations {
 }
 
 func NewItemSortOptions(sort *Sort) []types.SortCombinationsVariant {
-	if sort == nil {
-		return []types.SortCombinationsVariant{&DocSorting{}}
-	}
 	var opts []types.SortCombinationsVariant
 	switch *sort {
 	case SortNewestFirst:
@@ -1129,7 +1106,7 @@ func NewItemSortOptions(sort *Sort) []types.SortCombinationsVariant {
 			ItemID:    "asc",
 		})
 	case SortMostRelevant:
-		opts = append(opts, &ScoreSorting{
+		opts = append(opts, &types.SortOptions{
 			Score_: &types.ScoreSort{
 				Order: &sortorder.Desc,
 			},
@@ -1142,15 +1119,14 @@ func NewItemSortOptions(sort *Sort) []types.SortCombinationsVariant {
 			},
 		)
 	default:
-		opts = append(opts, &DocSorting{})
+		opts = append(opts, &types.SortOptions{
+			Doc_: &types.ScoreSort{},
+		})
 	}
 	return opts
 }
 
 func NewItemSortCombinations(sort *Sort) []types.SortCombinations {
-	if sort == nil {
-		return []types.SortCombinations{&DocSorting{}}
-	}
 	var opts []types.SortCombinations
 	switch *sort {
 	case SortNewestFirst:
@@ -1166,7 +1142,7 @@ func NewItemSortCombinations(sort *Sort) []types.SortCombinations {
 			ItemID:    "asc",
 		})
 	case SortMostRelevant:
-		opts = append(opts, &ScoreSorting{
+		opts = append(opts, &types.SortOptions{
 			Score_: &types.ScoreSort{
 				Order: &sortorder.Desc,
 			},
@@ -1179,7 +1155,9 @@ func NewItemSortCombinations(sort *Sort) []types.SortCombinations {
 			},
 		)
 	default:
-		opts = append(opts, &DocSorting{})
+		opts = append(opts, &types.SortOptions{
+			Doc_: types.NewScoreSort(),
+		})
 	}
 	return opts
 }
@@ -1197,9 +1175,6 @@ func (s *FeedSorting) SortCombinationsCaster() *types.SortCombinations {
 }
 
 func NewFeedSortOptions(sort *Sort) []types.SortCombinationsVariant {
-	if sort == nil {
-		return []types.SortCombinationsVariant{&DocSorting{}}
-	}
 	var opts []types.SortCombinationsVariant
 	switch *sort {
 	case SortNewestFirst:
@@ -1215,7 +1190,7 @@ func NewFeedSortOptions(sort *Sort) []types.SortCombinationsVariant {
 			FeedID:    "asc",
 		})
 	case SortMostRelevant:
-		opts = append(opts, &ScoreSorting{
+		opts = append(opts, &types.SortOptions{
 			Score_: &types.ScoreSort{
 				Order: &sortorder.Desc,
 			},
@@ -1228,15 +1203,14 @@ func NewFeedSortOptions(sort *Sort) []types.SortCombinationsVariant {
 			},
 		)
 	default:
-		opts = append(opts, &DocSorting{})
+		opts = append(opts, &types.SortOptions{
+			Doc_: types.NewScoreSort(),
+		})
 	}
 	return opts
 }
 
 func NewFeedSortCombinations(sort *Sort) []types.SortCombinations {
-	if sort == nil {
-		return []types.SortCombinations{&DocSorting{}}
-	}
 	var opts []types.SortCombinations
 	switch *sort {
 	case SortNewestFirst:
@@ -1252,7 +1226,7 @@ func NewFeedSortCombinations(sort *Sort) []types.SortCombinations {
 			FeedID:    "asc",
 		})
 	case SortMostRelevant:
-		opts = append(opts, &ScoreSorting{
+		opts = append(opts, &types.SortOptions{
 			Score_: &types.ScoreSort{
 				Order: &sortorder.Desc,
 			},
@@ -1265,7 +1239,9 @@ func NewFeedSortCombinations(sort *Sort) []types.SortCombinations {
 			},
 		)
 	default:
-		opts = append(opts, &DocSorting{})
+		opts = append(opts, &types.SortOptions{
+			Doc_: types.NewScoreSort(),
+		})
 	}
 	return opts
 }

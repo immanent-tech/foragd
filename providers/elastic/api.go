@@ -349,7 +349,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int
 		WithIndex[*search.Search, SearchRequest](index),
 		WithQueryOptions[*search.Search, SearchRequest](query),
 		WithSize[*search.Search, SearchRequest](size),
-		WithSortOptions[*search.Search, SearchRequest](&models.DocSorting{}),
+		WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
 		WithAggregations2[*search.Search, SearchRequest](aggregations),
 	)
 	resp, err := req.Do(ctx)
@@ -714,9 +714,8 @@ func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index
 	// Loop until we've paginated through all results.
 	var loops int
 	for {
-		sortOptions := &models.DocSorting{}
 		resultsPage, nextSearchAfter, err := Search[O](ctx, api, index, query, paginationSize,
-			WithSortOptions[*search.Search, SearchRequest](sortOptions),
+			WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
 			WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 		)
 		if err != nil {
