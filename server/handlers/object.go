@@ -382,7 +382,7 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 // SubmitObjectIssues handles processing the issue form and creating a github issue with the details.
 func SubmitObjectIssues(esapi *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Validate the subscription issue request.
+		// Extract the issue request details.
 		request, valid, err := forms.DecodeForm[*models.ObjectIssueRequest](req)
 		if err != nil || !valid {
 			renderPartial(templates.ServerErrorNotification(
@@ -390,6 +390,23 @@ func SubmitObjectIssues(esapi *elastic.API) http.HandlerFunc {
 			)).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
+		// // Extract any attached screenshot.
+		// screenshot, err := forms.DecodeMultipartFile2(req, "screenshot")
+		// // Validate the screenshot is an image file.
+		// mimeType, err := screenshot.ParseMimetype()
+		// if err != nil {
+		// 	renderPartial(templates.ServerErrorNotification(
+		// 		models.NewErrorMessage("Invalid request data", "This might be temporary, please try again."),
+		// 	)).ServeHTTP(res, req)
+		// 	return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+		// }
+		// if !slices.Contains([]string{"image/jpeg", "image/png"}, mimeType) {
+		// 	renderPartial(templates.ServerErrorNotification(
+		// 		models.NewErrorMessage("Invalid request data", "This might be temporary, please try again."),
+		// 	)).ServeHTTP(res, req)
+		// 	return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+		// }
+
 		err = github.Connect()
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
