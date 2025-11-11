@@ -4,9 +4,6 @@
 package elastic
 
 import (
-	"log/slog"
-	"strings"
-
 	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/msearch"
@@ -15,7 +12,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
@@ -161,35 +157,35 @@ func NewSearchRequest(api *elasticsearch.TypedClient, options ...Option[SearchRe
 	return req
 }
 
-// WithSearch option adds a search to a multisearch request.
-func WithSearch(search *models.MultiSearchQuery) Option[MsearchRequest] {
-	return func(req MsearchRequest) {
-		hdr := types.NewMultisearchHeader()
-		hdr.Index = append(hdr.Index, search.Index)
-		searchBody := types.NewSearchRequestBody()
-		if query := query.Build(search.Query); query != nil {
-			searchBody.Query = query
-		}
-		switch {
-		case strings.HasPrefix(search.Index, "feeds"):
-			searchBody.Sort = newFeedSortCombinations(search.Sort)
-		case strings.HasPrefix(search.Index, "items"):
-			searchBody.Sort = newItemSortCombinations(search.Sort)
-		default:
-			opts := &types.SortOptions{
-				Doc_: types.NewScoreSort(),
-			}
-			c := types.SortCombinations(opts)
-			searchBody.Sort = []types.SortCombinations{c}
-		}
-		searchBody.Size = &search.Size
+// // WithSearch option adds a search to a multisearch request.
+// func WithSearch(search *models.MultiSearchQuery) Option[MsearchRequest] {
+// 	return func(req MsearchRequest) {
+// 		hdr := types.NewMultisearchHeader()
+// 		hdr.Index = append(hdr.Index, search.Index)
+// 		searchBody := types.NewSearchRequestBody()
+// 		if query := query.Build(search.Query); query != nil {
+// 			searchBody.Query = query
+// 		}
+// 		switch {
+// 		case strings.HasPrefix(search.Index, "feeds"):
+// 			searchBody.Sort = newFeedSortCombinations(search.Sort)
+// 		case strings.HasPrefix(search.Index, "items"):
+// 			searchBody.Sort = newItemSortCombinations(search.Sort)
+// 		default:
+// 			opts := &types.SortOptions{
+// 				Doc_: types.NewScoreSort(),
+// 			}
+// 			c := types.SortCombinations(opts)
+// 			searchBody.Sort = []types.SortCombinations{c}
+// 		}
+// 		searchBody.Size = &search.Size
 
-		err := req.AddSearch(*hdr, *searchBody)
-		if err != nil {
-			slog.Warn("error occurred", slog.Any("error", err))
-		}
-	}
-}
+// 		err := req.AddSearch(*hdr, *searchBody)
+// 		if err != nil {
+// 			slog.Warn("error occurred", slog.Any("error", err))
+// 		}
+// 	}
+// }
 
 // MsearchRequest represents an Elasticsearch _msearch request.
 type MsearchRequest interface {

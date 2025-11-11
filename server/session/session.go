@@ -54,7 +54,7 @@ func SaveToSession[T any](ctx context.Context, key string, obj T) {
 func RestoreFromSession[T any](ctx context.Context, key string, defaultFunc func() T) T {
 	value, ok := Manager.Get(ctx, key).(T)
 	if !ok {
-		slogctx.FromCtx(ctx).Debug("Not valid!",
+		slogctx.FromCtx(ctx).Debug("Invalid session data found.",
 			slog.String("error", fmt.Sprintf("wanted %T, got %T", value, Manager.Get(ctx, key))))
 		return defaultFunc()
 	}

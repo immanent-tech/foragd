@@ -434,11 +434,15 @@ func GetUserFavoriteSubscriptions(ctx context.Context, dataAPI DataAPI) (Subscri
 		return nil, fmt.Errorf("get favorite subscriptions: get user object failed: %w", err)
 	}
 	ids := slices.Concat(user.GetSearchSubscriptions().GetIDs(), user.GetFeedSubscriptions().FilterByFavorites().GetIDs())
-	subscriptions, err := GetSubscriptions(ctx, dataAPI, ids...)
-	if err != nil {
-		return nil, fmt.Errorf("get favorite subscriptions: get subscriptions failed: %w", err)
+	var subscriptions Subscriptions
+	if len(ids) > 0 {
+		subscriptions, err := GetSubscriptions(ctx, dataAPI, ids...)
+		if err != nil {
+			return nil, fmt.Errorf("get favorite subscriptions: get subscriptions failed: %w", err)
+		}
+		return subscriptions.Sort(SortNewestFirst), nil
 	}
-	return subscriptions.Sort(SortNewestFirst), nil
+	return subscriptions, nil
 }
 
 // GetFeedSubscriptionStats fetches the stats for FeedSubscriptions and returns a map of the SubscriptionID to
@@ -728,9 +732,12 @@ func GetUserFavoriteArticles(ctx context.Context, dataAPI DataAPI) (Articles, er
 	if err != nil {
 		return nil, fmt.Errorf("get user favorite articles: get user failed: %w", err)
 	}
-	articles, err := GetArticles(ctx, dataAPI, user.ItemFavorites...)
-	if err != nil {
-		return nil, fmt.Errorf("get user favorite articles: get articles: %w", err)
+	var articles Articles
+	if len(user.ItemFavorites) > 0 {
+		articles, err = GetArticles(ctx, dataAPI, user.ItemFavorites...)
+		if err != nil {
+			return nil, fmt.Errorf("get user favorite articles: get articles: %w", err)
+		}
 	}
 	return articles, nil
 }
@@ -1076,11 +1083,11 @@ func queryAllItems(user *User, subscription *FeedSubscription) query.Option {
 	)
 }
 
-type MultiSearchQuery struct {
-	Name       string
-	Index      string
-	Query      query.Option
-	Sort       *Sort
-	Pagination *Pagination
-	Size       int
-}
+// type MultiSearchQuery struct {
+// 	Name       string
+// 	Index      string
+// 	Query      query.Option
+// 	Sort       *Sort
+// 	Pagination *Pagination
+// 	Size       int
+// }

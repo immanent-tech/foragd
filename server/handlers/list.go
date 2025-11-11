@@ -132,7 +132,11 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				}
 				return models.NewAPIError(fmt.Errorf("could not fetch user info from context: %w", err), http.StatusInternalServerError)
 			}
-			template = templates.FavoritesLayout(subscriptions, articles)
+			if len(subscriptions) > 0 || len(articles) > 0 {
+				template = templates.FavoritesLayout(subscriptions, articles)
+			} else {
+				template = templates.EmptyContent()
+			}
 		default:
 			slogctx.FromCtx(req.Context()).Error("Unsupported list type requested.",
 				slog.String("type", listType))
