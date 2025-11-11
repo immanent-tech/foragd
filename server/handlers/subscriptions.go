@@ -221,13 +221,14 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 						slog.Any("error", result.Error),
 					)
 				}
-			}
-			err = models.CreateFeedSubscriptions(req.Context(), api, &result)
-			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable process import request: %w", err), http.StatusInternalServerError)
+			} else {
+				err = models.CreateFeedSubscriptions(req.Context(), api, &result)
+				if err != nil {
+					res.Header().Add(htmx.HeaderReswap, "none")
+					msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
+					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+					return models.NewAPIError(fmt.Errorf("unable process import request: %w", err), http.StatusInternalServerError)
+				}
 			}
 
 			renderPartial(templates.Notification(&result.Message, 0)).ServeHTTP(res, req)
