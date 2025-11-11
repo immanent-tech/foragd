@@ -59,6 +59,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.0.4 // indirect
 	github.com/jmank88/nuts v0.4.0 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
@@ -94,6 +95,7 @@ require (
 	github.com/ulikunitz/xz v0.5.14 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
+	go.uber.org/nilaway v0.0.0-20251107192516-561521d33d7b // indirect
 	golang.org/x/tools v0.37.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -175,5 +177,6 @@ require (
 tool (
 	github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 	github.com/sonatype-nexus-community/nancy
+	go.uber.org/nilaway/cmd/nilaway
 	golang.org/x/tools/cmd/stringer
 )
