@@ -180,7 +180,7 @@ func (u *User) GetSearchSubscriptions() SearchSubscriptions {
 
 // IsSubscribedToFeed returns a boolean indicating whether the user is subscribed to a feed with the given id.
 func (u *User) IsSubscribedToFeed(id FeedID) bool {
-	return u.GetFeedSubscriptions().GetByID(id) != nil
+	return u.GetFeedSubscriptions().GetByFeedID(id) != nil
 }
 
 // UpdateFeedSubscription updates a FeedSubscription for the user.
