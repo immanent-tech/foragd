@@ -894,6 +894,9 @@ func (s *ItemSorting) SortCombinationsCaster() *types.SortCombinations {
 }
 
 func newItemSortOptions(sort *models.Sort) []types.SortCombinationsVariant {
+	if sort == nil {
+		return []types.SortCombinationsVariant{&types.SortOptions{Doc_: types.NewScoreSort()}}
+	}
 	var opts []types.SortCombinationsVariant
 	switch *sort {
 	case models.SortNewestFirst:
@@ -979,6 +982,9 @@ func (s *FeedSorting) SortCombinationsCaster() *types.SortCombinations {
 }
 
 func newFeedSortOptions(sort *models.Sort) []types.SortCombinationsVariant {
+	if sort == nil {
+		return []types.SortCombinationsVariant{&types.SortOptions{Doc_: types.NewScoreSort()}}
+	}
 	var opts []types.SortCombinationsVariant
 	switch *sort {
 	case models.SortNewestFirst:
