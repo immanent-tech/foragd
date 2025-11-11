@@ -841,6 +841,9 @@ func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms stri
 	if err != nil {
 		return nil, fmt.Errorf("get search suggestions: get user failed: %w", err)
 	}
+	if len(user.GetSubscriptions()) == 0 {
+		return nil, nil
+	}
 	// Suggestions query will match in title/description/categories across all feed subscriptions.
 	itemsQuery := query.Bool(
 		query.Filter(
@@ -875,6 +878,10 @@ func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchReque
 	if err != nil {
 		return nil, "", fmt.Errorf("get search results: get user failed: %w", err)
 	}
+	if len(user.GetSubscriptions()) == 0 {
+		return nil, "", nil
+	}
+
 	itemResults, pagination, err := dataAPI.SearchItems(ctx, BuildSearchResultsQuery(user, request), 15, &request.Sort, &pagination)
 	if err != nil {
 		return nil, "", fmt.Errorf("get search resuls: search items failed: %w", err)
