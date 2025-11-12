@@ -43,8 +43,8 @@ var (
 	ErrInvalidContent = errors.New("invalid content")
 	// ErrInvalidRequestParams indicates that the request parameters received were invalid.
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
-	// ErrInvalidAPIResponse indicates that an invalid response was received from a backend API.
-	ErrInvalidAPIResponse = errors.New("invalid backend API response received")
+	// ErrBackendAPIError indicates that an invalid response was received from a backend API.
+	ErrBackendAPIError = errors.New("backend API reported error")
 )
 
 var defaultHandlerChain = alice.New(
@@ -132,21 +132,24 @@ func ImageProxy(client *resty.Client, key, proxyURLBase string) http.HandlerFunc
 			Get(imageURL)
 		if err != nil {
 			res.WriteHeader(resp.StatusCode())
-			return fmt.Errorf("unable to proxy image: %w", resp.Error())
+			return models.NewAPIError(fmt.Errorf("unable to proxy image: %w", err), resp.StatusCode())
+		}
+		if resp.IsError() {
+			res.WriteHeader(resp.StatusCode())
+			return models.NewAPIError(fmt.Errorf("unable to proxy image: %w: %s", ErrBackendAPIError, resp.Status()), resp.StatusCode())
 		}
 		imageData, err := io.ReadAll(resp.RawBody())
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			return fmt.Errorf("unable to proxy image: %w", err)
+			return models.NewAPIError(fmt.Errorf("unable to proxy image: %w", err), http.StatusInternalServerError)
 		}
 		// Write the image to the response.
-		res.WriteHeader(http.StatusOK)
 		_, err = res.Write(imageData)
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Unable to proxy image.",
-				slog.Any("error", err),
-			)
+			res.WriteHeader(http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("unable to proxy image: %w", err), http.StatusInternalServerError)
 		}
+		res.WriteHeader(http.StatusOK)
 		return nil
 	})).ServeHTTP
 }
