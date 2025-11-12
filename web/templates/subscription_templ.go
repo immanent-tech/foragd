@@ -437,7 +437,7 @@ func subscriptionContextMenu(s models.AnySubscription) templ.Component {
 					WithHXMethod(http.MethodPost, markURL),
 					WithHXInclude("[name='csrf_token']"),
 					WithHXTarget("#"+s.GetID()),
-					WithHXSwap("outerHTML"),
+					WithHXSwap("outerHTML swap:1s"),
 					WithClasses("context-menu-item-base"),
 				).Render(templ.WithChildren(ctx, templ_7745c5c3_Var17), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
