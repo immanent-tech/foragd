@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 	"time"
 
 	feeds "github.com/immanent-tech/go-syndication"
@@ -217,7 +218,7 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 
 // Description returns the description of the job.
 func (job *UpdateFeedJob) Description() string {
-	return "Update feed " + job.FeedID
+	return "Update feed checks for new items in the feed " + job.FeedID
 }
 
 // NewGetNewFeedsJob creates a job for checking for new feeds.
@@ -272,7 +273,7 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 	}
 	// Update the checkpoint.
 	state.Checkpoint = time.Now().UTC()
-	err = manager.db.UpdateJobState(ctx, "get_new_feeds", map[string]any{
+	err = manager.db.UpdateJobState(ctx, "get_new_feeds_state", map[string]any{
 		"job_data": state,
 	})
 	if err != nil {
@@ -345,15 +346,15 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 
 // Description returns the description of the job.
 func (job *GetNewFeedsJob) Description() string {
-	return "Get new feeds"
+	return "Get new feeds checks for any new feeds added since the last job run."
 }
 
 // GenerateJobKey generates an appropriate job key based on the type of job.
 func GenerateJobKey(jobID string) *quartz.JobKey {
-	switch models.IdentifyID(jobID) {
-	case models.FeedPFX:
-		return quartz.NewJobKeyWithGroup(jobID, feedJobGroup)
+	switch {
+	case strings.HasPrefix(jobID, "feed_"):
+		return quartz.NewJobKeyWithGroup(jobID, string(ScheduledJobJobTypeUpdateFeed))
 	default:
-		return quartz.NewJobKey(jobID)
+		return quartz.NewJobKeyWithGroup(jobID, string(ScheduledJobJobTypeGetNewFeeds))
 	}
 }
