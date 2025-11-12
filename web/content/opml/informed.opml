@@ -13,6 +13,12 @@
             title="World news | The Guardian"
             type="rss"
             xmlUrl="https://www.theguardian.com/world/rss"></outline>
+            <outline
+            description="Breaking News, US News, World News and Videos"
+            htmlUrl="https://www.nytimes.com/section/world"
+            title="New York Times: World News"
+            text="New York Times: World News"
+            xmlUrl="https://rss.nytimes.com/services/xml/rss/nyt/World.xml"></outline>
     </body>
     <head>
         <dateCreated>2025-09-23T09:21:01.533444703+10:00</dateCreated>
