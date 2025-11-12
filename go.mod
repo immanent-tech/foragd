@@ -26,7 +26,7 @@ require (
 	github.com/samber/slog-chi v1.17.0
 	github.com/samber/slog-multi v1.5.0
 	github.com/sebasvil20/templicons v1.1.0
-	golang.org/x/oauth2 v0.32.0
+	golang.org/x/oauth2 v0.33.0
 )
 
 require (
