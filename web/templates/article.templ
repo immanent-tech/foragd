@@ -235,11 +235,10 @@ templ ArticleContent(article article) {
 			<div class="flex mt-4 items-center">
 				<div class="flex flex-1">
 					@NewLink(
-						WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-						WithHXTarget(ContentID.Target()),
-						WithHXInclude("#content-filters,[name='csrf_token']"),
-						WithHXVals(map[string]string{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
-						WithClasses("no-underline", "hover:underline"),
+						WithCustomAttribute("href", article.GetLink()),
+						WithCustomAttribute("target", "_blank"),
+						WithCustomAttribute("rel", "noopener"),
+						WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 					) {
 						<h2 class=" text-2xl/7 sm:text-3xl font-bold tracking-tight pb-4">
 							{ article.GetTitle() }
