@@ -54,7 +54,7 @@ templ articleSummary(article *models.Article) {
 					Updated&nbsp;
 					@ShowTimestamp(article.GetUpdatedDate())
 				</p>
-				<p class="grid justify-self-end text-xs text-base-content/80 truncate">
+				<p class="flex text-xs text-base-content/80 truncate">
 					@NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
@@ -119,8 +119,13 @@ templ ArticleCard(article article) {
 					}
 				</h2>
 			}
-			<div class="flex">
-				<p class="grid text-xs/4 text-base-content/80 truncate">
+			<div class="grid grid-cols-1 grid-flow-row mb-4">
+				if len(article.GetAuthors()) > 0 {
+					<p class="inline-block text-xs/4 text-base-content/80 italic truncate">
+						{ strings.Join(article.GetAuthors(),",") }
+					</p>
+				}
+				<p class="inline-block text-xs/4 text-base-content/80 truncate">
 					@NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
@@ -131,11 +136,6 @@ templ ArticleCard(article article) {
 						{ article.GetFeedTitle() }
 					}
 				</p>
-				if len(article.GetAuthors()) > 0 {
-					<p class="inline-block text-xs/4 text-base-content/80 italic truncate">
-						{ strings.Join(article.GetAuthors(),",") }
-					</p>
-				}
 			</div>
 			<div class="card-actions mt-auto justify-between items-center">
 				<div class="flex flex-1 gap-x-2">
