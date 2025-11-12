@@ -40,6 +40,10 @@
   }
 }
 
+@theme {
+  --aspect-ratio: 3 / 2;
+}
+
 /* Use page view transitions. */
 @view-transition {
   navigation: auto;
