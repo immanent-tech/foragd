@@ -65,6 +65,19 @@ func MultiMatch(value string, fields ...string) Option {
 	}
 }
 
+// Distance adds a Distance Feature query.
+//
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-distance-feature-query
+func Distance(field, pivot, origin string) Option {
+	return func(query *types.Query) {
+		query.DistanceFeature = &types.DateDistanceFeatureQuery{
+			Field:  field,
+			Pivot:  pivot,
+			Origin: origin,
+		}
+	}
+}
+
 // MoreLikeThisQuery represents a "More Like This" query.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-mlt-query

@@ -958,17 +958,23 @@ func BuildSearchResultsQuery(user *User, request *SearchRequest) query.Option {
 		loc, _ = time.LoadLocation("UTC")
 	}
 	var since time.Time
+	var pivot string
 	switch request.PublishedWithin {
 	case SearchRequestPublishedWithinLastHour:
 		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
+		pivot = "30m"
 	case SearchRequestPublishedWithinLast12hours:
 		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), loc)
+		pivot = "6h"
 	case SearchRequestPublishedWithinLastDay:
 		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), loc)
+		pivot = "12h"
 	case SearchRequestPublishedWithinLastWeek:
 		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
+		pivot = "3d"
 	case SearchRequestPublishedWithinLastMonth:
 		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
+		pivot = "14d"
 	}
 
 	var subscriptions FeedSubscriptions
@@ -980,9 +986,11 @@ func BuildSearchResultsQuery(user *User, request *SearchRequest) query.Option {
 
 	return query.Bool(
 		query.Filter(
+			// Must be in the given user subscriptions.
 			query.Bool(
 				query.Should(BuildSubscriptionQueries(user, request.View, subscriptions)...),
 			),
+			// Must be published/updated since the given time.
 			query.Bool(
 				query.Should(
 					query.Since("published", since),
@@ -990,19 +998,20 @@ func BuildSearchResultsQuery(user *User, request *SearchRequest) query.Option {
 				),
 			),
 		),
+		// Boost documents closer to the current time.
+		query.Should(
+			query.Distance("published", pivot, "now"),
+			query.Distance("updated", pivot, "now"),
+		),
 		// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
 		// search suggestion).
 		query.Must(
 			// Search across title, description and content fields, with preference for match in that order (via field
 			// boosting).
 			query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
-			// query.Bool(
-			// 	query.Should(
-			// 		query.MultiMatch(request.Text, "title", "description", "content"),
-			// 		query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
-			// 	),
-			// ),
+			// Search in categories.
 			query.SimpleQueryString(request.Categories, "", "categories"),
+			// Search in authors, contributors.
 			query.SimpleQueryString(request.Authors, "", "authors", "contributors"),
 		),
 	)
