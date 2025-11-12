@@ -50,7 +50,6 @@ require (
 	github.com/golang/dep v0.5.4 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-github/v30 v30.1.0 // indirect
-	github.com/google/go-github/v74 v74.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -120,7 +119,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-resty/resty/v2 v2.16.5 // indirect
+	github.com/go-resty/resty/v2 v2.16.5
 	github.com/go-shiori/go-readability v0.0.0-20250217085726-9f5bf5ca7612
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
@@ -128,7 +127,7 @@ require (
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
-	github.com/jferrl/go-githubauth v1.4.2
+	github.com/jferrl/go-githubauth v1.5.0
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/justinas/alice v1.2.0
 	github.com/justinas/nosurf v1.2.0
