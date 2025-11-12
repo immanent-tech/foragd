@@ -1,9 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <opml version="2.0">
     <body>
-        <outline description="A directory of mostly wonderful things" htmlUrl="https://boingboing.net/" text="Boing Boing" title="Boing Boing" type="rss" xmlUrl="https://feeds.feedburner.com/boingboing/"></outline>
-        <outline description="Andy Baio lives here" htmlUrl="https://waxy.org/" text="Waxy.org" title="Waxy.org" type="rss" xmlUrl="https://waxy.org/feed/"></outline>
-        <outline description="Noema is a magazine exploring the transformations sweeping our world" htmlUrl="https://www.noemamag.com/" text="Noema Magazine" title="Noema" type="rss" xmlUrl="https://www.noemamag.com/feed/"></outline>
+        <outline description="A directory of mostly wonderful things"
+            htmlUrl="https://boingboing.net/"
+            text="Boing Boing"
+            title="Boing Boing"
+            type="rss"
+            xmlUrl="https://feeds.feedburner.com/boingboing/"></outline>
+        <outline description="Andy Baio lives here"
+            htmlUrl="https://waxy.org/"
+            text="Waxy.org"
+            title="Waxy.org"
+            type="rss"
+            xmlUrl="https://waxy.org/feed/"></outline>
+        <outline description="Noema is a magazine exploring the transformations sweeping our world"
+            htmlUrl="https://www.noemamag.com/"
+            text="Noema Magazine"
+            title="Noema"
+            type="rss"
+            xmlUrl="https://www.noemamag.com/feed/"></outline>
+        <outline description="Search and Discover Quality RSS Feeds from Thousands of Blogs and Podcasts"
+            htmlUrl="https://feedle.world/"
+            text="Feedle: Top Stories"
+            title="Feedle: Top Stories"
+            type="rss"
+            xmlUrl="https://feedle.world/top-stories/rss"></outline>
+        <outline description="The Pudding is an editorial publication that explains ideas debated in culture with visual essays."
+            htmlUrl="https://pudding.cool"
+            text="The Pudding"
+            title="The Pudding"
+            type="rss"
+            xmlUrl="https://pudding.cool/rss.xml"></outline>
     </body>
     <head>
         <dateCreated>2025-09-23T09:21:01.533444703+10:00</dateCreated>
