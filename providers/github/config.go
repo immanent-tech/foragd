@@ -36,8 +36,8 @@ func loadConfig() error {
 	if err != nil {
 		return fmt.Errorf("github: unable to load config: %w", err)
 	}
-	valid, err := validation.ValidateStruct(cfg)
-	if err != nil || !valid {
+	err = validation.Validate.Struct(cfg)
+	if err != nil {
 		return fmt.Errorf("github: unable to validate config: %w", err)
 	}
 	return nil

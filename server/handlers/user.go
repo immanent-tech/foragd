@@ -207,8 +207,8 @@ func (a *API) SetTheme() http.HandlerFunc {
 func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
-		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
-		if !valid || err != nil {
+		err := validation.Validate.Var(id, "required,startswith=sub_")
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite subscription", "Data is invalid."),
 			)).ServeHTTP(res, req)
@@ -239,8 +239,8 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
-		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
-		if !valid || err != nil {
+		err := validation.Validate.Var(id, "required,startswith=sub_")
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite subscription", "Data is invalid."),
 			)).ServeHTTP(res, req)
@@ -270,8 +270,8 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 func (a *API) AddFavoriteArticle() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamItemID)
-		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
-		if !valid || err != nil {
+		err := validation.Validate.Var(id, "required,startswith=item_")
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite article", "Data is invalid."),
 			)).ServeHTTP(res, req)
@@ -310,8 +310,8 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamItemID)
-		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
-		if !valid || err != nil {
+		err := validation.Validate.Var(id, "required,startswith=item_")
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite article", "Data is invalid."),
 			)).ServeHTTP(res, req)

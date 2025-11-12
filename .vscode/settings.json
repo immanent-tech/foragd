@@ -1,4 +1,7 @@
 {
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "[go.mod]": {
     "editor.codeActionsOnSave": {
       "source.organizeImports": "always"
@@ -12,13 +15,20 @@
     },
     "editor.defaultFormatter": "golang.go"
   },
-  "[css]": {
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
   },
+  "[xml]": {
+    "editor.defaultFormatter": "DotJoshJohnson.xml"
+  },
   "conventionalCommits.lineBreak": "\\n",
+  "conventionalCommits.promptBody": false,
   "conventionalCommits.scopes": [
     "models",
     "devcontainer",
@@ -92,24 +102,17 @@
   "licenser.useSPDXLicenseFormat": true,
   "ltex.language": "en-AU",
   "prettier.bracketSameLine": true,
+  "prettier.singleAttributePerLine": true,
+  // "editor.wordWrap": "wordWrapColumn",
+  // "editor.wordWrapColumn": 120,
+  "rewrap.wrappingColumn": 120,
+  "tailwindCSS.emmetCompletions": true,
   "tailwindCSS.includeLanguages": {
     "templ": "html"
   },
   "templ.goplsRemote": "auto",
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000,
-  "conventionalCommits.promptBody": false,
-  "tailwindCSS.emmetCompletions": true,
-  "prettier.singleAttributePerLine": true,
-  "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "xmlTools.splitAttributesOnFormat": true,
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
-  // "editor.wordWrap": "wordWrapColumn",
-  // "editor.wordWrapColumn": 120,
-  "rewrap.wrappingColumn": 120
+  "xmlTools.splitAttributesOnFormat": true
 }

@@ -74,14 +74,13 @@ func loadConfigOnce(environment string) (*elasticsearch.Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
 		}
-		var valid bool
 		switch environment {
 		case "development":
-			valid, err = validation.ValidateStruct(cfg.Development)
+			err = validation.Validate.Struct(cfg.Development)
 		case "production":
-			valid, err = validation.ValidateStruct(cfg.Production)
+			err = validation.Validate.Struct(cfg.Production)
 		}
-		if err != nil || !valid {
+		if err != nil {
 			return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
 		}
 

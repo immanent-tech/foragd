@@ -37,8 +37,8 @@ func loadConfig() error {
 	if err != nil {
 		return fmt.Errorf("auth0: unable to load config: %w", err)
 	}
-	valid, err := validation.ValidateStruct(cfg)
-	if err != nil || !valid {
+	err = validation.Validate.Struct(cfg)
+	if err != nil {
 		return fmt.Errorf("auth0: unable to validate config: %w", err)
 	}
 	return nil

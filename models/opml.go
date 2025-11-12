@@ -73,15 +73,12 @@ func GenerateRequestsFromOutlines(outlines ...opml.Outline) []*AddFeedSubscripti
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
-func (r *AddFeedsetRequest) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(r)
+func (r *AddFeedsetRequest) Valid() error {
+	err := validation.Validate.Struct(r)
 	if err != nil {
-		return false, fmt.Errorf("add feedset validation error: %w", err)
+		return fmt.Errorf("add feedset validation error: %w", err)
 	}
-	if !valid {
-		return false, nil
-	}
-	return true, nil
+	return nil
 }
 
 // Sanitise will sanitise the input values of the SubscriptionRequest.

@@ -26,12 +26,12 @@ func NewSearchRequest() *SearchRequest {
 }
 
 // Valid returns a boolean indicating whether the search request data is valid.
-func (r *SearchRequest) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(r)
-	if !valid || err != nil {
-		return false, fmt.Errorf("search request is invalid: %w", err)
+func (r *SearchRequest) Valid() error {
+	err := validation.Validate.Struct(r)
+	if err != nil {
+		return fmt.Errorf("search request is invalid: %w", err)
 	}
-	return true, nil
+	return nil
 }
 
 // Sanitise will sanitise the search request data.

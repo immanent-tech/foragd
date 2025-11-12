@@ -29,8 +29,8 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
-		valid, err := params.Valid()
-		if err != nil || !valid {
+		err := params.Valid()
+		if err != nil {
 			renderPage(templates.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
@@ -98,8 +98,8 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 			Mark:     models.Mark(chi.URLParam(req, models.ParamMark)),
 		}
-		valid, err := params.Valid()
-		if err != nil || !valid {
+		err := params.Valid()
+		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to mark objects", "The request data is invalid.")),
@@ -185,8 +185,8 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
-		valid, err := params.Valid()
-		if err != nil || !valid {
+		err := params.Valid()
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again."),
 			)).ServeHTTP(res, req)
@@ -225,8 +225,8 @@ func ConfirmRemoveObject(api *elastic.API) http.HandlerFunc {
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
-		valid, err := params.Valid()
-		if err != nil || !valid {
+		err := params.Valid()
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again."),
 			)).ServeHTTP(res, req)
@@ -257,8 +257,8 @@ func RemoveObject(api *elastic.API) http.HandlerFunc {
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
-		valid, err := params.Valid()
-		if err != nil || !valid {
+		err := params.Valid()
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Server could not complete request", "This might be temporary, please try again."),
 			)).ServeHTTP(res, req)
@@ -337,8 +337,8 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
-		valid, err := params.Valid()
-		if err != nil || !valid {
+		err := params.Valid()
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Server could not complete request", "This might be temporary, please try again."),
 			)).ServeHTTP(res, req)

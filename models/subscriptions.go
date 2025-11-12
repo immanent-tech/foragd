@@ -57,12 +57,12 @@ func NewFeedSubscription(feed *Feed, request *AddFeedSubscriptionRequest, favori
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *FeedSubscription) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(s)
-	if err != nil || !valid {
-		return false, fmt.Errorf("subscription is invalid: %w", err)
+func (s *FeedSubscription) Valid() error {
+	err := validation.Validate.Struct(s)
+	if err != nil {
+		return fmt.Errorf("subscription is invalid: %w", err)
 	}
-	return true, nil
+	return nil
 }
 
 // GetID returns the subscription ID.
@@ -362,12 +362,12 @@ func (s SearchSubscriptions) GetByID(id SubscriptionID) *SearchSubscription {
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *Subscription) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(s)
-	if err != nil || !valid {
-		return false, fmt.Errorf("subscription is invalid: %w", err)
+func (s *Subscription) Valid() error {
+	err := validation.Validate.Struct(s)
+	if err != nil {
+		return fmt.Errorf("subscription is invalid: %w", err)
 	}
-	return true, nil
+	return nil
 }
 
 func (s *Subscription) GetID() SubscriptionID {
@@ -551,15 +551,12 @@ func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
-func (r *AddFeedSubscriptionRequest) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(r)
+func (r *AddFeedSubscriptionRequest) Valid() error {
+	err := validation.Validate.Struct(r)
 	if err != nil {
-		return false, fmt.Errorf("subscription validation error: %w", err)
+		return fmt.Errorf("subscription validation error: %w", err)
 	}
-	if !valid {
-		return false, nil
-	}
-	return true, nil
+	return nil
 }
 
 // Sanitise will sanitise the input values of the SubscriptionRequest.
@@ -598,15 +595,12 @@ func (r *AddFeedSubscriptionRequest) HasError() bool {
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
-func (r *SearchSubscriptionRequest) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(r)
+func (r *SearchSubscriptionRequest) Valid() error {
+	err := validation.Validate.Struct(r)
 	if err != nil {
-		return false, fmt.Errorf("subscription validation error: %w", err)
+		return fmt.Errorf("subscription validation error: %w", err)
 	}
-	if !valid {
-		return false, nil
-	}
-	return true, nil
+	return nil
 }
 
 // Sanitise will sanitise the input values of the SubscriptionRequest.
@@ -644,12 +638,12 @@ func (s *EditSubscriptionRequest) GetCategories() Categories {
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *EditSubscriptionRequest) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(s)
-	if err != nil || !valid {
-		return false, fmt.Errorf("subscription is invalid: %w", err)
+func (s *EditSubscriptionRequest) Valid() error {
+	err := validation.Validate.Struct(s)
+	if err != nil {
+		return fmt.Errorf("subscription is invalid: %w", err)
 	}
-	return true, nil
+	return nil
 }
 
 // Sanitise will sanitise the user input for a SubscriptionCustomisation.

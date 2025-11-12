@@ -113,24 +113,24 @@ func ExtractText(content string) (string, error) {
 	return article.TextContent, nil
 }
 
-func (p *ObjectParams) Valid() (bool, error) {
+func (p *ObjectParams) Valid() error {
 	err := validation.Validate.Struct(p)
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }
 
 func (v *ObjectParams) Sanitise() error {
 	return nil
 }
 
-func (m *MarkObjectParams) Valid() (bool, error) {
+func (m *MarkObjectParams) Valid() error {
 	err := validation.Validate.Struct(m)
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }
 
 func (m *MarkObjectParams) Sanitise() error {
@@ -145,12 +145,12 @@ func NewObjectIssue(obj *ObjectParams, url string) *ObjectIssueRequest {
 	}
 }
 
-func (i *ObjectIssueRequest) Valid() (bool, error) {
+func (i *ObjectIssueRequest) Valid() error {
 	err := validation.Validate.Struct(i)
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }
 
 func (i *ObjectIssueRequest) Sanitise() error {
@@ -158,12 +158,12 @@ func (i *ObjectIssueRequest) Sanitise() error {
 	return nil
 }
 
-func (i *IssueRequest) Valid() (bool, error) {
+func (i *IssueRequest) Valid() error {
 	err := validation.Validate.Struct(i)
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }
 
 func (i *IssueRequest) Sanitise() error {
@@ -175,13 +175,13 @@ type Screenshot struct {
 	*forms.FileUpload
 }
 
-func (s *Screenshot) Valid() (bool, error) {
+func (s *Screenshot) Valid() error {
 	mimeType, err := s.ParseMimetype()
 	if err != nil {
-		return false, fmt.Errorf("screenshot invalid: %w", err)
+		return fmt.Errorf("screenshot invalid: %w", err)
 	}
 	if !slices.Contains([]string{"image/jpeg", "image/png"}, mimeType) {
-		return false, fmt.Errorf("screenshot invalid: %w", mimeType)
+		return fmt.Errorf("screenshot invalid: %w", mimeType)
 	}
-	return true, nil
+	return nil
 }

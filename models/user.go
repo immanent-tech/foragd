@@ -380,12 +380,12 @@ func GetUserTheme(ctx context.Context) string {
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *EditUserRequest) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(s)
-	if err != nil || !valid {
-		return false, fmt.Errorf("request is invalid: %w", err)
+func (s *EditUserRequest) Valid() error {
+	err := validation.Validate.Struct(s)
+	if err != nil {
+		return fmt.Errorf("request is invalid: %w", err)
 	}
-	return true, nil
+	return nil
 }
 
 // Sanitise will sanitise the user input for a SubscriptionCustomisation.
@@ -395,12 +395,12 @@ func (s *EditUserRequest) Sanitise() error {
 }
 
 // Valid returns a boolean indicating whether the ChangePasswordRequest contains valid data.
-func (r *ChangePasswordRequest) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(r)
-	if err != nil || !valid {
-		return false, fmt.Errorf("request is invalid: %w", err)
+func (r *ChangePasswordRequest) Valid() error {
+	err := validation.Validate.Struct(r)
+	if err != nil {
+		return fmt.Errorf("request is invalid: %w", err)
 	}
-	return true, nil
+	return nil
 }
 
 // Sanitise will sanitise the user input for a ChangePasswordRequest.

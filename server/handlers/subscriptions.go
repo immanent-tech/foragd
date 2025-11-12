@@ -493,8 +493,8 @@ func processSubscriptionRequest(ctx context.Context, api *elastic.API, user *mod
 			resultsCh <- result
 			return
 		}
-		valid, err := validation.ValidateStruct(newFeed)
-		if !valid || err != nil {
+		err = validation.Validate.Struct(newFeed)
+		if err != nil {
 			result.Error = err
 			result.Message = *models.NewErrorMessage("Unable to create subscription", fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL()))
 			resultsCh <- result

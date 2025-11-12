@@ -282,8 +282,8 @@ func CreateFeedSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*A
 			result.Error = fmt.Errorf("unable to create subscription: %w", err)
 			continue
 		}
-		valid, err := subscription.Valid()
-		if err != nil || !valid {
+		err = subscription.Valid()
+		if err != nil {
 			slogctx.FromCtx(ctx).Error("Could not create subscription",
 				slog.Any("error", err))
 			result.Error = fmt.Errorf("unable to create subscription: invalid metadata: %w", err)
@@ -317,8 +317,8 @@ func CreateSearchSubscriptions(ctx context.Context, dataAPI DataAPI, requests ..
 		if err != nil {
 			return fmt.Errorf("create search subscription: generate subscription failed: %w", err)
 		}
-		valid, err := subscription.Valid()
-		if err != nil || !valid {
+		err = subscription.Valid()
+		if err != nil {
 			return fmt.Errorf("create search subscription: invalid data: %w", err)
 		}
 		subscriptions = append(subscriptions, subscription)

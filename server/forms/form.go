@@ -40,7 +40,7 @@ const defaultMaxSize = 32 << 20
 
 // FormInput represents form input data. It has methods to test if the data is valid and to sanitise the input data.
 type FormInput interface {
-	Valid() (bool, error)
+	Valid() error
 	Sanitise() error
 }
 
@@ -68,12 +68,6 @@ func (f *FileUpload) ParseMimetype() (string, error) {
 	return mediaType, nil
 }
 
-// File is an object to store an uploaded file.
-type File interface {
-	Valid() (bool, error)
-	Load(data multipart.File, hdr *multipart.FileHeader) error
-}
-
 // DecodeForm will decode submitted form contents into the passed in type. It
 // will perform validation of the type and will return the type and a boolean
 // true if it is valid. If decoding the form submission fails, a non-nill error
@@ -96,7 +90,8 @@ func DecodeForm[T FormInput](req *http.Request) (T, bool, error) {
 		return obj, false, fmt.Errorf("%w: %w", ErrSanitise, err)
 	}
 	// Validate the object.
-	if ok, err := obj.Valid(); !ok {
+	err = obj.Valid()
+	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrValidation, err)
 	}
 	return obj, true, nil
@@ -125,7 +120,8 @@ func DecodeCustom[T FormInput](req *http.Request, decoderFunc func(params url.Va
 		return obj, false, fmt.Errorf("%w: %w", ErrSanitise, err)
 	}
 	// Validate the object.
-	if ok, err := obj.Valid(); !ok {
+	err = obj.Valid()
+	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrValidation, err)
 	}
 	return obj, true, nil
@@ -194,7 +190,8 @@ func EncodeForm[T FormInput](obj T) (url.Values, error) {
 		return nil, fmt.Errorf("%w: %w", ErrSanitise, err)
 	}
 	// Validate the object.
-	if ok, err := obj.Valid(); !ok {
+	err = obj.Valid()
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrValidation, err)
 	}
 	values, err := encoder.Encode(&obj)

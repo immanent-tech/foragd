@@ -6,6 +6,7 @@ package models
 import (
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"math"
 	"net/url"
 	"strconv"
@@ -56,7 +57,7 @@ func (s Sort) String() string {
 
 // Filters represents either Subscription or Article filters.
 type Filters interface {
-	Valid() (bool, error)
+	Valid() error
 	GetSort() Sort
 	GetCount() int
 	GetView() View
@@ -95,11 +96,15 @@ func (f *ListDisplayFilters) Sanitise() error {
 
 // Valid will return a boolean indicating whether the filters are valid and a
 // non-nil error with details if not.
-func (f *ListDisplayFilters) Valid() (bool, error) {
+func (f *ListDisplayFilters) Valid() error {
 	if f == nil {
-		return false, forms.ErrNoFormData
+		return forms.ErrNoFormData
 	}
-	return validation.ValidateStruct(f)
+	err := validation.Validate.Struct(f)
+	if err != nil {
+		return fmt.Errorf("filters are invalid: %w", err)
+	}
+	return nil
 }
 
 // GetSort returns the Sort object for the Filters.

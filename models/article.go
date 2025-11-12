@@ -71,8 +71,8 @@ func GenerateArticle(user *User, item *Item, subscription *FeedSubscription) (*A
 		article.ShowFullContent = true
 	}
 	// Validate the article.
-	valid, err := article.Valid()
-	if err != nil || !valid {
+	err := article.Valid()
+	if err != nil {
 		return nil, fmt.Errorf("could not generate article: %w", err)
 	}
 
@@ -106,12 +106,12 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 
 // Valid returns a boolean indicating if the article contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (a *Article) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(a)
-	if err != nil || !valid {
-		return false, fmt.Errorf("article is invalid: %w", err)
+func (a *Article) Valid() error {
+	err := validation.Validate.Struct(a)
+	if err != nil {
+		return fmt.Errorf("article is invalid: %w", err)
 	}
-	return true, nil
+	return nil
 }
 
 // GetID returns the article ID.
@@ -238,9 +238,9 @@ func (r *MarkArticleRequest) Valid() (bool, error) {
 	if r == nil {
 		return false, fmt.Errorf("request is invalid: %w", validation.ErrNilObject)
 	}
-	valid, err := validation.ValidateStruct(r)
-	if !valid || err != nil {
-		return false, fmt.Errorf("request is invalid: %w", err)
+	err := validation.Validate.Struct(r)
+	if err != nil {
+		return false, fmt.Errorf("mark article request: %w", err)
 	}
 	return true, nil
 }
