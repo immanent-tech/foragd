@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -130,25 +129,22 @@ func (s *FeedSubscription) GetImage() *types.ImageInfo {
 	return nil
 }
 
+// GetStats returns the stats object for the subscription.
 func (s *FeedSubscription) GetStats() *SubscriptionStats {
 	return &s.Stats
 }
-
-// // SetUnreadCount sets the unread count of the subscription to the given value.
-// func (s *FeedSubscription) SetUnreadCount(count int) {
-// 	s.Stats.UnreadCount = count
-// }
 
 // IsFavorite returns a boolean indicating whether the subscription has been favorited.
 func (s *FeedSubscription) IsFavorite() bool {
 	return s.Favorite
 }
 
-// Type returns the type of the object, in this case, "subscription".
+// GetObjectType returns the type of the object, in this case, "subscription".
 func (s *FeedSubscription) GetObjectType() ObjectType {
 	return ObjectTypeSubscription
 }
 
+// GetType returns the type of subscription.
 func (s *FeedSubscription) GetType() SubscriptionType {
 	return SubscriptionTypeFeed
 }
@@ -187,20 +183,7 @@ func (s FeedSubscriptions) FilterByFavorites() FeedSubscriptions {
 	)
 }
 
-// // Search performs a case-insensitive substring search for the given text in the title and categories customisations for
-// // the subscriptions, returning a slice of those subscriptions that match.
-// func (s FeedSubscriptions) Search(text string) FeedSubscriptions {
-// 	return slices.Collect(
-// 		FilterSlice(s, func(e *FeedSubscription) bool {
-// 			return strings.Contains(strings.ToLower(e.Metadata.Customisation.Nickname), strings.ToLower(text)) ||
-// 				slices.ContainsFunc(e.Metadata.Customisation.Categories, func(e Category) bool {
-// 					return strings.Contains(strings.ToLower(e), strings.ToLower(text))
-// 				})
-// 		}),
-// 	)
-// }
-
-// GetFeedIDs returns the feed ids for all subscription states in the slice.
+// GetIDs returns the subscription IDs for all subscriptions in the slice.
 func (s FeedSubscriptions) GetIDs() []SubscriptionID {
 	ids := make([]SubscriptionID, 0, len(s))
 	for state := range slices.Values(s) {
@@ -238,7 +221,7 @@ func (s FeedSubscriptions) GetByFeedID(id FeedID) *FeedSubscription {
 	return nil
 }
 
-// NewFeedSubscription creates a new subscription for a feed from the request and feed details.
+// NewSearchSubscription creates a new subscription based off a search request.
 func NewSearchSubscription(request *SearchSubscriptionRequest) (*Subscription, error) {
 	ts := time.Now().UTC()
 	// Create state based on feed and user data.
@@ -303,28 +286,38 @@ func (s *SearchSubscription) GetImage() *types.ImageInfo {
 	return nil
 }
 
+// GetLink returns the source feed link. For a search subscription, there is no source so this returns an empty string.
 func (s *SearchSubscription) GetLink() string {
 	return ""
 }
 
-// GetUpdatedDate returns the timestamp when the search subscription was last updated.
+// GetUpdatedDate returns the timestamp when the search subscription was last updated. Last updated will be the
+// timestamp of the most recent article matching the search if sorted by newest/oldest, otherwise, the timestamp when
+// the subscription itself was updated for sorting by relevance.
 func (s *SearchSubscription) GetUpdatedDate() time.Time {
+	if s.Search.Sort != SortMostRelevant {
+		return s.NewestItemTimestamp
+	}
 	return s.Metadata.UpdatedAt
 }
 
+// GetStats returns the stats object for the subscription.
 func (s *SearchSubscription) GetStats() *SubscriptionStats {
 	return &s.Stats
 }
 
+// GetType returns the subscription type of the subscription.
 func (s *SearchSubscription) GetType() SubscriptionType {
 	return SubscriptionTypeSearch
 }
 
-// Type returns the type of the object, in this case, "subscription".
+// GetObjectType returns the type of the object, in this case, "subscription".
 func (s *SearchSubscription) GetObjectType() ObjectType {
 	return ObjectTypeSubscription
 }
 
+// IsFavorite returns whether this subscription is a favorite. For search subscriptions, this is assumed to always be
+// true.
 func (s *SearchSubscription) IsFavorite() bool {
 	return true
 }
@@ -370,18 +363,22 @@ func (s *Subscription) Valid() error {
 	return nil
 }
 
+// GetID returns the subscription ID.
 func (s *Subscription) GetID() SubscriptionID {
 	return s.Metadata.SubscriptionID
 }
 
+// GetType returns the type of subscription.
 func (s *Subscription) GetType() SubscriptionType {
 	return s.Type
 }
 
+// GetTitle returns the subscription title.
 func (s *Subscription) GetTitle() string {
 	return s.Metadata.Customisation.Nickname
 }
 
+// AnySubscription represents any type of subscription (feed or search).
 type AnySubscription interface {
 	IsFavorite() bool
 	GetID() string
@@ -423,6 +420,7 @@ func GetTotalUnreadCount(subscriptions ...AnySubscription) int {
 	return unread
 }
 
+// Subscriptions is a slice of subscriptions of any type.
 type Subscriptions []AnySubscription
 
 // GetIDs returns the subscription ids for all subscription states in the slice.
@@ -470,7 +468,7 @@ func (s Subscriptions) FilterByView(view View) Subscriptions {
 	}
 }
 
-// FilterByView returns a slice containing the subscription which match the given view state.
+// FilterByFavorites returns a slice containing only favorite subscriptions.
 func (s Subscriptions) FilterByFavorites(value bool) Subscriptions {
 	if !value {
 		return s
@@ -681,15 +679,11 @@ func NewSubscriptionResult(subscription *Subscription, msg *UserMessage) *AddSub
 	}
 }
 
-// GetDailyUpdates returns a nicely formatted value of daily update interval for a subscription.
-func (s *SubscriptionStats) DailyUpdates() int {
-	return int(math.Round(s.AvgDailyUpdates))
-}
-
-func (s *SubscriptionStats) DailyUpdateFrequency() string {
+// UpdateFrequency returns a string that roughly indicates how often the subscription is updated.
+func (s *SubscriptionStats) UpdateFrequency() string {
 	switch {
-	case s.DailyUpdates() > 1:
-		return fmt.Sprintf("%d articles/day", s.DailyUpdates())
+	case s.AvgDailyUpdates > 1:
+		return fmt.Sprintf("%.0f articles/day", s.AvgDailyUpdates)
 	case s.AvgDailyUpdates < 1 && s.AvgDailyUpdates > 0.5:
 		return "A few times a week"
 	case s.AvgDailyUpdates < 0.5 && s.AvgDailyUpdates > 0.25:
@@ -699,7 +693,7 @@ func (s *SubscriptionStats) DailyUpdateFrequency() string {
 	}
 }
 
-// GetUnreadCount returns the unread count of items in the subscription.
+// UnreadTotal returns the unread count of items in the subscription.
 func (s *SubscriptionStats) UnreadTotal() int {
 	return s.UnreadCount
 }

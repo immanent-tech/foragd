@@ -74,7 +74,7 @@ templ subscriptionCard(s models.AnySubscription) {
 			<div class="card-actions mt-auto grid grid-cols-3 px-4 sm:px-6">
 				if s.GetType() == models.SubscriptionTypeFeed {
 					<p class="grid justify-end col-span-3 text-xs/4 text-base-content/80">
-						{ s.GetStats().DailyUpdateFrequency() }
+						{ s.GetStats().UpdateFrequency() }
 					</p>
 				}
 				<p class="col-span-2 text-xs/4 text-base-content/80">
@@ -828,7 +828,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full">
-							<select id="published_within" name="published_within" class="select select-primary my-2 bg-base-300">
+							<select id="published_within" name="search.published_within" class="select select-primary my-2 bg-base-300">
 								<option
 									value="last_hour"
 								>Last hour</option>
@@ -845,6 +845,38 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 								<option
 									value="last_month"
 								>Last month</option>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">Sort By</h2>
+						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full">
+							<select id="sort" name="search.sort" class="select select-primary my-2 bg-base-300">
+								<option
+									value={ string(models.SortMostRelevant) }
+									if request.Search.Sort == models.SortMostRelevant {
+										selected
+									}
+								>
+									Most Relevant
+								</option>
+								<option
+									value={ string(models.SortNewestFirst) }
+									if request.Search.Sort == models.SortNewestFirst {
+										selected
+									}
+								>Newest First</option>
+								<option
+									value={ string(models.SortOldestFirst) }
+									if request.Search.Sort == models.SortOldestFirst {
+										selected
+									}
+								>Oldest First</option>
 							</select>
 						</div>
 					</div>

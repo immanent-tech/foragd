@@ -109,6 +109,7 @@ func (r *SearchRequest) params() url.Values {
 	}
 	params.Set(ParamView, string(r.View))
 	params.Set("published_within", string(r.PublishedWithin))
+	params.Set(ParamSort, string(r.Sort))
 	params.Set("timezone", r.Timezone)
 	if r.ID != "" {
 		params.Set(ParamSubscriptionID, r.ID)
