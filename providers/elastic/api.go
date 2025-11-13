@@ -188,7 +188,10 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 		return nil, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 	// Get the user.
-	users, _, err := Search[*models.User](ctx, a.GetAPI(), index, query.Term("external_user_id", externalID), 1)
+	users, _, err := Search[*models.User](ctx, a.GetAPI(), index, query.Term("external_user_id", externalID), 1,
+		WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
+		WithTrackTotalHits(false),
+	)
 	if err != nil {
 		return nil, toAPIError(err)
 	}
@@ -196,6 +199,69 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 		return nil, ErrNotFound //nolint:wrapcheck
 	}
 	return users[0], nil
+}
+
+// SearchSubscriptions returns the subscriptions that match the given query.
+func (e *API) SearchSubscriptions(ctx context.Context, query query.Option) (models.Subscriptions, error) {
+	index, err := SubscriptionsReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, ErrNoIndexInCtx //nolint:wrapcheck
+	}
+
+	var subscriptions models.Subscriptions
+	subscriptions, err = SearchAll[*models.Subscription](ctx, e.GetAPI(), index, query, 5000)
+	if err != nil {
+		return nil, toAPIError(err)
+	}
+	return subscriptions, nil
+}
+
+// // GetSubscription retrieves the subscription with the given ID.
+// func (a *API) GetSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.Subscriptions, error) {
+// 	index, err := UserReadIndexFromCtx(ctx)
+// 	if err != nil {
+// 		return nil, ErrNoIndexInCtx //nolint:wrapcheck
+// 	}
+// 	subscriptions, err := GetDocs[models.SubscriptionID, *models.Subscription](ctx, a.GetAPI(), index, ids...)
+// 	if err != nil {
+// 		return nil, toAPIError(err)
+// 	}
+// 	return subscriptions, nil
+// }
+
+// // GetSubscription retrieves the subscription with the given ID.
+// func (a *API) GetSubscription(ctx context.Context, id models.SubscriptionID) (*models.Subscription, error) {
+// 	index, err := UserReadIndexFromCtx(ctx)
+// 	if err != nil {
+// 		return nil, ErrNoIndexInCtx //nolint:wrapcheck
+// 	}
+// 	subscription, err := GetDoc[models.SubscriptionID, *models.Subscription](ctx, a.GetAPI(), index, id)
+// 	if err != nil {
+// 		return nil, toAPIError(err)
+// 	}
+// 	return subscription, nil
+// }
+
+// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
+func (e *API) UpdateSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
+	index, err := SubscriptionsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return nil, ErrNoIndexInCtx //nolint:wrapcheck
+	}
+	return BulkUpdate(ctx, e, index, subscriptions...)
+}
+
+// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
+func (e *API) RemoveSubscriptions(ctx context.Context, query query.Option) error {
+	index, err := SubscriptionsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return ErrNoIndexInCtx //nolint:wrapcheck
+	}
+	err = DeleteDocs(ctx, e.GetAPI(), index, query)
+	if err != nil {
+		return toAPIError(err)
+	}
+	return nil
 }
 
 // GetFeed retrieves a single feed with the given ID.
@@ -350,6 +416,20 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 		return nil, "", models.NewAPIError(fmt.Errorf("search items: encode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
 	}
 	return items, newPagination, nil
+}
+
+func (e *API) GetLastUpdatedItems(ctx context.Context, feedIDs ...models.FeedID) (models.Items, error) {
+	index, err := ItemsReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, ErrNoIndexInCtx //nolint:wrapcheck
+	}
+
+	items, _, err := Search[*models.Item](ctx, e.GetAPI(), index, query.Terms("feed_id", feedIDs...), len(feedIDs), WithCollapseField("feed_id"))
+	if err != nil {
+		return nil, fmt.Errorf("unable to get feed last updates: %w", err)
+	}
+
+	return items, nil
 }
 
 // ItemsAggregation performs an aggregation-only (i.e., search request with no hits returned) using the given query as
@@ -735,6 +815,7 @@ func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index
 		resultsPage, nextSearchAfter, err := Search[O](ctx, api, index, query, paginationSize,
 			WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
 			WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
+			WithTrackTotalHits(false),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("search all: search request failed: %w", err)

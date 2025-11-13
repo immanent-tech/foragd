@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -47,7 +48,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			}
 			// Get subscriptions matching filters.
 			subscriptions, pagination, err := models.FilterSubscriptions(req.Context(), api, filters, pagination)
-			if err != nil {
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
 				switch req.Method {
 				case http.MethodGet:
@@ -77,7 +78,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 		case "articles":
 			// Get articles matching filters.
 			articles, pagination, err := models.FilterArticles(req.Context(), api, filters, pagination)
-			if err != nil {
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
 				switch req.Method {
 				case http.MethodGet:
@@ -108,7 +109,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 		case "favorites":
 			// Get favorite articles.
 			articles, err := models.GetUserFavoriteArticles(req.Context(), api)
-			if err != nil {
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
 				switch req.Method {
 				case http.MethodGet:
@@ -121,7 +122,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			}
 			// Get favorite feed and search subscriptions
 			subscriptions, err := models.GetUserFavoriteSubscriptions(req.Context(), api)
-			if err != nil {
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
 				switch req.Method {
 				case http.MethodGet:
@@ -158,7 +159,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 func WatchList(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		query, err := models.BuildItemsQuery(req.Context(), filters)
+		query, err := models.BuildItemsQuery(req.Context(), api, filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
 				slog.Any("error", err))
@@ -176,19 +177,9 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		// Retrieve user data.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to mark objects!", "")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("to retrieve user data: %w", err), http.StatusInternalServerError)
-		}
 		// Generate request details
 		var (
-			mark            models.Mark
-			subscriptionIDs []models.SubscriptionID
+			mark models.Mark
 		)
 
 		switch filters.GetView() {
@@ -197,9 +188,8 @@ func MarkList(api *elastic.API) http.HandlerFunc {
 		default:
 			mark = models.MarkUnread
 		}
-		subscriptionIDs = user.GetFeedSubscriptions().FilterByIDs(filters.Subscriptions...).GetIDs()
 		// Mark subscriptions.
-		err = models.MarkSubscriptions(req.Context(), api, mark, subscriptionIDs...)
+		err := models.MarkSubscriptions(req.Context(), api, mark, filters.Subscriptions...)
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(

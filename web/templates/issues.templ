@@ -64,7 +64,7 @@ templ ReportPageIssue(details *models.IssueRequest) {
 	}
 }
 
-templ ReportObjectIssues[T ~string](obj object[T], details *models.ObjectIssueRequest) {
+templ ReportObjectIssues(objectType, id string, details *models.ObjectIssueRequest) {
 	@Main() {
 		<div class="mx-auto max-w-3xl">
 			<div class="md:flex md:items-center md:justify-between">
@@ -80,7 +80,7 @@ templ ReportObjectIssues[T ~string](obj object[T], details *models.ObjectIssueRe
 			</p>
 			<form
 				id="report-subscription-issue"
-				hx-post={ "/issue/" + string(obj.GetObjectType()) + "/" + string(obj.GetID()) }
+				hx-post={ "/issue/" + objectType + "/" + id }
 				hx-encoding="multipart/form-data"
 				hx-target={ ContentID.Target() }
 				hx-target-error={ ContentID.Target() }

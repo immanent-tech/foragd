@@ -116,7 +116,14 @@ func (mlt *MoreLikeThisQuery) ToQueryOption() Option {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
 func Term(field string, value any) Option {
 	return func(query *types.Query) {
-		if value != nil {
+		switch v := value.(type) {
+		case string:
+			if v != "" {
+				query.Term = map[string]types.TermQuery{
+					field: {Value: value},
+				}
+			}
+		default:
 			query.Term = map[string]types.TermQuery{
 				field: {Value: value},
 			}
@@ -124,15 +131,15 @@ func Term(field string, value any) Option {
 	}
 }
 
-// Terms adds a "Terms" query on the given field with the given value.
+// Terms adds a "Terms" query on the given field with the given string value.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query
-func Terms[T ~string](field string, values ...T) Option {
+func Terms[T any](field string, values ...T) Option {
 	return func(query *types.Query) {
 		if len(values) > 0 {
-			terms := make([]string, 0, len(values))
+			terms := make([]T, 0, len(values))
 			for value := range slices.Values(values) {
-				terms = append(terms, string(value))
+				terms = append(terms, value)
 			}
 			query.Terms = &types.TermsQuery{
 				TermsQuery: map[string]types.TermsQueryField{
@@ -266,6 +273,11 @@ func Bool(options ...BoolOption) Option {
 type BoolOption func(*types.BoolQuery)
 
 // Filter sets the given query options as the "filter" clause of the bool query.
+//
+// The clause (query) must appear in matching documents. However unlike must the score of the query will be ignored.
+// Filter clauses are executed in filter context, meaning that scoring is ignored and clauses are considered for
+// caching. Each query defined under a filter acts as a logical "AND", returning only documents that match all the
+// specified queries.
 func Filter(queryOptions ...Option) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		var filters []types.Query
@@ -288,6 +300,9 @@ func Filter(queryOptions ...Option) BoolOption {
 }
 
 // Must sets the given query options as the "must" clause of the bool query.
+//
+// The clause (query) must appear in matching documents and will contribute to the score. Each query defined under a
+// must acts as a logical "AND", returning only documents that match all the specified queries.
 func Must(queryOptions ...Option) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		var musts []types.Query
@@ -309,6 +324,11 @@ func Must(queryOptions ...Option) BoolOption {
 }
 
 // MustNot sets the given query options as the "must_not" clause of the bool query.
+//
+// The clause (query) must not appear in the matching documents. Clauses are executed in filter context meaning that
+// scoring is ignored and clauses are considered for caching. Because scoring is ignored, a score of 0 for all documents
+// is returned. Each query defined under a must_not acts as a logical "NOT", returning only documents that do not match
+// any of the specified queries.
 func MustNot(queryOptions ...Option) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		var mustNots []types.Query
@@ -330,6 +350,9 @@ func MustNot(queryOptions ...Option) BoolOption {
 }
 
 // Should sets the given query options as the "should" clause of the bool query.
+//
+// The clause (query) should appear in the matching document. Each query defined under a should acts as a logical "OR",
+// returning documents that match any of the specified queries.
 func Should(queryOptions ...Option) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		var shoulds []types.Query

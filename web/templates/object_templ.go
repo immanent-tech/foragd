@@ -14,6 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"html"
@@ -116,7 +117,7 @@ func ToggleFavorite(id string, objectType string, isFavorite bool) templ.Compone
 // }
 
 // RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.
-func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
+func RemoveSubscriptionModal(subscription *models.Subscription) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -163,9 +164,9 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(obj.GetTitle())
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 70, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 71, Col: 91}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -176,9 +177,9 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs("/remove/" + string(obj.GetObjectType()) + "/" + string(obj.GetID()))
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs("/remove/subscription/" + string(subscription.GetID()))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 77, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 78, Col: 68}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -189,9 +190,9 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var7 string
-			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs("#" + obj.GetID())
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs("#" + subscription.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 78, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 79, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -204,7 +205,7 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 87, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 88, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -217,7 +218,7 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs("on click remove #" + id + "-modal")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 88, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 89, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -238,7 +239,7 @@ func RemoveObjectModal[T ~string](obj object[T]) templ.Component {
 }
 
 // RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.
-func ShareObjectModal[T ~string](obj object[T]) templ.Component {
+func ShareObjectModal(id, title, link string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -259,7 +260,7 @@ func ShareObjectModal[T ~string](obj object[T]) templ.Component {
 			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		id := string("share-" + obj.GetID())
+		id := string("share-" + id)
 		templ_7745c5c3_Var11 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -285,9 +286,9 @@ func ShareObjectModal[T ~string](obj object[T]) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(obj.GetTitle())
+			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 106, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 107, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -320,7 +321,7 @@ func ShareObjectModal[T ~string](obj object[T]) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("href", fmt.Sprintf("mailto:?subject=%q&body=%s&NewLine;&NewLine;%s", html.EscapeString(obj.GetTitle()), obj.GetDescription(), obj.GetLink())),
+				WithCustomAttribute("href", fmt.Sprintf("mailto:?subject=%q&body=%s", html.EscapeString(title), link)),
 				WithClasses("btn", "col-span-1", "col-start-2"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -331,9 +332,9 @@ func ShareObjectModal[T ~string](obj object[T]) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(obj.GetLink())
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(link)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 128, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/object.templ`, Line: 129, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -367,7 +368,7 @@ func ShareObjectModal[T ~string](obj object[T]) templ.Component {
 			})
 			templ_7745c5c3_Err = NewButton(
 				WithCustomAttribute("_",
-					"on click set currentValue to (my innerHTML) then writeText('"+obj.GetLink()+"') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me",
+					"on click set currentValue to (my innerHTML) then writeText('"+link+"') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me",
 				),
 				WithClasses("join-item"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
@@ -388,8 +389,8 @@ func ShareObjectModal[T ~string](obj object[T]) templ.Component {
 	})
 }
 
-func shareAPIDialog(obj objectDetails) string {
-	return fmt.Sprintf("navigator.share({title: %q, url: %q})", obj.GetTitle(), obj.GetLink())
+func shareAPIDialog(title, link string) string {
+	return fmt.Sprintf("navigator.share({title: %q, url: %q})", title, link)
 }
 
 var _ = templruntime.GeneratedTemplate

@@ -11,7 +11,6 @@ import (
 	"time"
 
 	externalRef0 "github.com/immanent-tech/go-syndication/types"
-	"github.com/oapi-codegen/runtime"
 )
 
 // Defines values for ArticleArchiveSourceType.
@@ -83,7 +82,15 @@ const (
 // Defines values for SubscriptionType.
 const (
 	SubscriptionTypeFeed   SubscriptionType = "feed"
+	SubscriptionTypeGroup  SubscriptionType = "group"
 	SubscriptionTypeSearch SubscriptionType = "search"
+)
+
+// Defines values for SubscriptionMetadataType.
+const (
+	SubscriptionMetadataTypeFeed   SubscriptionMetadataType = "feed"
+	SubscriptionMetadataTypeGroup  SubscriptionMetadataType = "group"
+	SubscriptionMetadataTypeSearch SubscriptionMetadataType = "search"
 )
 
 // Defines values for UserLevel.
@@ -152,7 +159,7 @@ type AddFeedSubscriptionResult struct {
 	// Request represents a request to create a subscription to a feed.
 	Request AddFeedSubscriptionRequest `json:"request"`
 
-	// Subscription represents a user subscription.
+	// Subscription represents any kind of subscription.
 	Subscription Subscription `json:"subscription,omitempty,omitzero"`
 }
 
@@ -314,19 +321,19 @@ type EditSubscriptionRequest struct {
 	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters,omitempty,omitzero"`
 
 	// Categories is a custom list of categories for an object.
-	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
+	Categories []Category `form:"categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
 
 	// CategoriesErr is an error associated with the categories field.
 	CategoriesErr error `form:"-" json:"-"`
 
-	// Image is a custom image to represent the object.
-	Image EditSubscriptionRequest_Image `json:"image,omitempty,omitzero"`
-
 	// ImageErr is an error associated with the image field.
 	ImageErr error `form:"-" json:"-"`
 
+	// ImageURL is a custom image to represent the object.
+	ImageURL string `json:"image_url,omitempty,omitzero" validate:"omitempty,url"`
+
 	// Nickname is an optional alias or label for an object.
-	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero" validate:"required"`
+	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero" validate:"required"`
 
 	// NicknameErr is an error associated with the nickname field.
 	NicknameErr error `form:"-" json:"-"`
@@ -339,11 +346,6 @@ type EditSubscriptionRequest struct {
 
 	// SuggestedCategories is a list of suggested categories for the subscription.
 	SuggestedCategories []Category `form:"-" json:"-"`
-}
-
-// EditSubscriptionRequest_Image is a custom image to represent the object.
-type EditSubscriptionRequest_Image struct {
-	union json.RawMessage
 }
 
 // EditUserRequest contains account fields that a user can customize.
@@ -407,20 +409,14 @@ type FeedSubscription struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
 	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters,omitempty,omitzero"`
 
-	// Favorite indicates whether this subscription has been marked as a favorite by the user.
-	Favorite bool `json:"-"`
-
-	// Feed is the original feed content.
-	Feed Feed `json:"-"`
+	// ArticleStates contains the states of items marked explicitly as read/unread/saved by the user.
+	ArticleStates map[ItemID]ArticleState `json:"article_states" validate:"required"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
-	// Metadata the subscription metadata.
-	Metadata SubscriptionMetadata `json:"-"`
-
-	// Stats contains stats about a subscription.
-	Stats SubscriptionStats `json:"-"`
+	// URL is a URL pointing to the original website that publishes the feed.
+	URL string `json:"url" validate:"required,url"`
 }
 
 // FileUpload represents a file upload by a user.
@@ -436,6 +432,21 @@ type FileUpload struct {
 
 	// Size is the size of the file.
 	Size int `json:"size" validate:"required,gte=0"`
+}
+
+// GroupSubscription represents a subscription that combines other subscriptions.
+type GroupSubscription struct {
+	// Subscriptions is the list of subscription IDs belonging to the group.
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,unique,startswith=sub_"`
+}
+
+// GroupSubscriptionRequest represents a request to create a group subscription.
+type GroupSubscriptionRequest struct {
+	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`
+	Settings      SubscriptionSettings      `form:"settings" json:"settings,omitempty,omitzero"`
+
+	// Subscriptions is the list of subscription IDs belonging to the group.
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,unique,startswith=sub_"`
 }
 
 // IssueRequest contains details about an issue with the service.
@@ -677,17 +688,8 @@ type SearchRequestPublishedWithin string
 
 // SearchSubscription is a custom subscription created from a search request.
 type SearchSubscription struct {
-	// Metadata the subscription metadata.
-	Metadata SubscriptionMetadata `json:"-"`
-
-	// NewestItemTimestamp is the timestamp of the most newest item that matches the search.
-	NewestItemTimestamp time.Time `json:"-"`
-
 	// Search represents a search request by the user.
-	Search SearchRequest `json:"search,omitempty,omitzero"`
-
-	// Stats contains stats about a subscription.
-	Stats SubscriptionStats `json:"-"`
+	Search SearchRequest `json:"search" validate:"required"`
 }
 
 // SearchSubscriptionRequest represents a request to create a search subscription.
@@ -708,24 +710,46 @@ type StoredImage struct {
 	Data image.Image `json:"data"`
 }
 
-// Subscription represents a user subscription.
+// Subscription defines model for Subscription.
 type Subscription struct {
-	// Data is the raw data represeting the subscription type.
-	Data Subscription_Data `json:"data" validate:"required"`
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+
+	// Customisation contains object fields that can be customised (overridden) by a user
+	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
 
 	// Favorite indicates whether this subscription has been marked as a favorite by the user.
-	Favorite bool `json:"favorite,omitempty,omitzero"`
+	Favorite bool `json:"favorite"`
 
-	// Metadata contains common fields across all subscription types.
-	Metadata SubscriptionMetadata `json:"metadata"`
+	// FeedData represents a feed a user has subscribed to.
+	FeedData FeedSubscription `json:"feed_data,omitempty,omitzero" validate:"omitempty"`
+
+	// GroupData represents a subscription that combines other subscriptions.
+	GroupData GroupSubscription `json:"group_data,omitempty,omitzero" validate:"omitempty"`
+
+	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
+	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
+
+	// SearchData is a custom subscription created from a search request.
+	SearchData SearchSubscription `json:"search_data,omitempty,omitzero" validate:"omitempty"`
+
+	// Settings contains options that control how the subscription is stored/displayed.
+	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
+
+	// Stats contains stats about a subscription.
+	Stats SubscriptionStats `json:"-" validate:"-"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// Type is the type of subscription.
-	Type SubscriptionType `json:"type" validate:"required,oneof=feed search"`
-}
+	Type SubscriptionType `json:"type" validate:"required,oneof=feed search group"`
 
-// Subscription_Data is the raw data represeting the subscription type.
-type Subscription_Data struct {
-	union json.RawMessage
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+
+	// UserID is the unique ID of a user.
+	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
 }
 
 // SubscriptionType is the type of subscription.
@@ -746,18 +770,13 @@ type SubscriptionArticleFilters struct {
 // SubscriptionCustomisation contains object fields that can be customised (overridden) by a user
 type SubscriptionCustomisation struct {
 	// Categories is a custom list of categories for an object.
-	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
+	Categories []Category `form:"categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
 
-	// Image is a custom image to represent the object.
-	Image SubscriptionCustomisation_Image `json:"image,omitempty,omitzero"`
+	// ImageURL is a custom image to represent the object.
+	ImageURL string `json:"image_url,omitempty,omitzero" validate:"omitempty,url"`
 
 	// Nickname is an optional alias or label for an object.
-	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero" validate:"required"`
-}
-
-// SubscriptionCustomisation_Image is a custom image to represent the object.
-type SubscriptionCustomisation_Image struct {
-	union json.RawMessage
+	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero" validate:"required"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
@@ -771,6 +790,9 @@ type SubscriptionMetadata struct {
 	// Customisation contains object fields that can be customised (overridden) by a user
 	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
 
+	// Favorite indicates whether this subscription has been marked as a favorite by the user.
+	Favorite bool `json:"favorite"`
+
 	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
 	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
 
@@ -780,9 +802,18 @@ type SubscriptionMetadata struct {
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
+	// Type is the type of subscription.
+	Type SubscriptionMetadataType `json:"type" validate:"required,oneof=feed search group"`
+
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+
+	// UserID is the unique ID of a user.
+	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
 }
+
+// SubscriptionMetadataType is the type of subscription.
+type SubscriptionMetadataType string
 
 // SubscriptionSettings contains options that control how the subscription is stored/displayed.
 type SubscriptionSettings struct {
@@ -794,6 +825,9 @@ type SubscriptionSettings struct {
 type SubscriptionStats struct {
 	// AvgDailyUpdates is the avergage number of articles published per day.
 	AvgDailyUpdates float64 `json:"-" validate:"gte=0"`
+
+	// LastUpdate is the timestamp of the most newest item that matches the search.
+	LastUpdate time.Time `json:"-" validate:"required"`
 
 	// UnreadCount is the value of items that are not explicitly marked unread by the user for this subscription.
 	UnreadCount int `json:"-" validate:"gte=0"`
@@ -825,9 +859,6 @@ type User struct {
 	// ItemFavorites is the IDs of items (articles) the user has favorited.
 	ItemFavorites []ItemID `json:"item_favorites,omitempty,omitzero" validate:"omitempty,dive,startswith=item_"`
 
-	// ItemStates contains the states of items marked explicitly as read/unread/saved by the user.
-	ItemStates map[SubscriptionID]map[ItemID]ArticleState `json:"item_states,omitempty,omitzero"`
-
 	// Level is the subscription level that the account is paying for.
 	Level UserLevel `json:"level,omitempty,omitzero" validate:"required,oneof=basic standard premium custom"`
 
@@ -839,9 +870,6 @@ type User struct {
 
 	// Settings contains user-specific settings for the application.
 	Settings UserSettings `json:"settings,omitempty,omitzero"`
-
-	// Subscriptions is a list of the states of all subscriptions the user has.
-	Subscriptions []*Subscription `json:"subscriptions,omitempty,omitzero" validate:"omitempty,dive"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -918,189 +946,3 @@ type UserSettings struct {
 
 // View The state of objects to view.
 type View string
-
-// AsExternalRef0ImageInfo returns the union data inside the EditSubscriptionRequest_Image as a externalRef0.ImageInfo
-func (t EditSubscriptionRequest_Image) AsExternalRef0ImageInfo() (externalRef0.ImageInfo, error) {
-	var body externalRef0.ImageInfo
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromExternalRef0ImageInfo overwrites any union data inside the EditSubscriptionRequest_Image as the provided externalRef0.ImageInfo
-func (t *EditSubscriptionRequest_Image) FromExternalRef0ImageInfo(v externalRef0.ImageInfo) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeExternalRef0ImageInfo performs a merge with any union data inside the EditSubscriptionRequest_Image, using the provided externalRef0.ImageInfo
-func (t *EditSubscriptionRequest_Image) MergeExternalRef0ImageInfo(v externalRef0.ImageInfo) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsStoredImage returns the union data inside the EditSubscriptionRequest_Image as a StoredImage
-func (t EditSubscriptionRequest_Image) AsStoredImage() (StoredImage, error) {
-	var body StoredImage
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromStoredImage overwrites any union data inside the EditSubscriptionRequest_Image as the provided StoredImage
-func (t *EditSubscriptionRequest_Image) FromStoredImage(v StoredImage) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeStoredImage performs a merge with any union data inside the EditSubscriptionRequest_Image, using the provided StoredImage
-func (t *EditSubscriptionRequest_Image) MergeStoredImage(v StoredImage) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t EditSubscriptionRequest_Image) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *EditSubscriptionRequest_Image) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsFeedSubscription returns the union data inside the Subscription_Data as a FeedSubscription
-func (t Subscription_Data) AsFeedSubscription() (FeedSubscription, error) {
-	var body FeedSubscription
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFeedSubscription overwrites any union data inside the Subscription_Data as the provided FeedSubscription
-func (t *Subscription_Data) FromFeedSubscription(v FeedSubscription) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeFeedSubscription performs a merge with any union data inside the Subscription_Data, using the provided FeedSubscription
-func (t *Subscription_Data) MergeFeedSubscription(v FeedSubscription) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsSearchSubscription returns the union data inside the Subscription_Data as a SearchSubscription
-func (t Subscription_Data) AsSearchSubscription() (SearchSubscription, error) {
-	var body SearchSubscription
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromSearchSubscription overwrites any union data inside the Subscription_Data as the provided SearchSubscription
-func (t *Subscription_Data) FromSearchSubscription(v SearchSubscription) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeSearchSubscription performs a merge with any union data inside the Subscription_Data, using the provided SearchSubscription
-func (t *Subscription_Data) MergeSearchSubscription(v SearchSubscription) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t Subscription_Data) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *Subscription_Data) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsExternalRef0ImageInfo returns the union data inside the SubscriptionCustomisation_Image as a externalRef0.ImageInfo
-func (t SubscriptionCustomisation_Image) AsExternalRef0ImageInfo() (externalRef0.ImageInfo, error) {
-	var body externalRef0.ImageInfo
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromExternalRef0ImageInfo overwrites any union data inside the SubscriptionCustomisation_Image as the provided externalRef0.ImageInfo
-func (t *SubscriptionCustomisation_Image) FromExternalRef0ImageInfo(v externalRef0.ImageInfo) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeExternalRef0ImageInfo performs a merge with any union data inside the SubscriptionCustomisation_Image, using the provided externalRef0.ImageInfo
-func (t *SubscriptionCustomisation_Image) MergeExternalRef0ImageInfo(v externalRef0.ImageInfo) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsStoredImage returns the union data inside the SubscriptionCustomisation_Image as a StoredImage
-func (t SubscriptionCustomisation_Image) AsStoredImage() (StoredImage, error) {
-	var body StoredImage
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromStoredImage overwrites any union data inside the SubscriptionCustomisation_Image as the provided StoredImage
-func (t *SubscriptionCustomisation_Image) FromStoredImage(v StoredImage) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeStoredImage performs a merge with any union data inside the SubscriptionCustomisation_Image, using the provided StoredImage
-func (t *SubscriptionCustomisation_Image) MergeStoredImage(v StoredImage) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t SubscriptionCustomisation_Image) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *SubscriptionCustomisation_Image) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}

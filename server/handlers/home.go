@@ -54,7 +54,7 @@ func (a *API) Home() http.HandlerFunc {
 func WatchHome(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		query, err := models.BuildItemsQuery(req.Context(), filters)
+		query, err := models.BuildItemsQuery(req.Context(), api, filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
 				slog.Any("error", err))
@@ -77,27 +77,30 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 		return data, fmt.Errorf("unable to retrieve user: %w", err)
 	}
 	data.User = user
-	// User has no subscriptions, show empty page
-	if len(user.GetSubscriptions()) == 0 {
-		return data, nil
-	}
-	// Get subscriptions.
-	subscriptions, err := models.GetSubscriptions(ctx, a.Elastic)
+
+	subscriptionQuery := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+		),
+	)
+	subscriptions, err := a.DataAPI().SearchSubscriptions(ctx, subscriptionQuery)
 	if err != nil {
-		return data, fmt.Errorf("unable to retrieve subscriptions: %w", err)
+		return nil, fmt.Errorf("filter articles: get subscriptions: %w", err)
 	}
-	data.Subscriptions = subscriptions.FilterByView(models.ViewUnread)
-	if len(data.Subscriptions) == 0 {
-		return data, nil
+	// Return early if there the user has no subscriptions (i.e., new user).
+	if len(subscriptions) == 0 {
+		return nil, models.ErrNotFound
 	}
+
+	data.SubscriptionsCount = len(subscriptions)
 	// Query definition for fetching unread items for all subscriptions.
 	query := query.Bool(
 		query.BoolQueryName("item_filters"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", user.GetFeedSubscriptions().GetFeedIDs()...),
+			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
 			query.Bool(
-				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, user.GetFeedSubscriptions())...),
+				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, subscriptions)...),
 			),
 		),
 	)
@@ -108,7 +111,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
 	}
-	data.LatestArticles, err = models.GenerateArticles(ctx, latestItems)
+	data.LatestArticles, err = models.GenerateArticles(ctx, a.DataAPI(), latestItems)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate articles: %w", err)
 	}
@@ -189,7 +192,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 					if err != nil {
 						continue
 					}
-					articles, err := models.GenerateArticles(ctx, items)
+					articles, err := models.GenerateArticles(ctx, a.DataAPI(), items)
 					if err != nil {
 						continue
 					}

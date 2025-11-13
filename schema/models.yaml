@@ -238,16 +238,6 @@ components:
                 validate: 'required,oneof=basic standard premium custom'
             settings:
               $ref: '#/components/schemas/UserSettings'
-            subscriptions:
-              description: >
-                is a list of the states of all subscriptions the user has.
-              x-go-type: '[]*Subscription'
-              x-oapi-codegen-extra-tags:
-                validate: 'omitempty,dive'
-            item_states:
-              description: >
-                contains the states of items marked explicitly as read/unread/saved by the user.
-              x-go-type: 'map[SubscriptionID]map[ItemID]ArticleState'
             item_favorites:
               description: >
                 is the IDs of items (articles) the user has favorited.
@@ -495,7 +485,7 @@ components:
             is an optional alias or label for an object.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'user_nickname'
+            form: 'nickname'
             validate: 'required'
           x-go-type-skip-optional-pointer: true
         categories:
@@ -505,15 +495,16 @@ components:
           items:
             $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
-            form: 'user_categories'
+            form: 'categories'
             validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
-        image:
+        image_url:
           description: >
             is a custom image to represent the object.
-          oneOf:
-            - $ref: '../pkg/go-syndication/schema/types.yaml#/components/schemas/ImageInfo'
-            - $ref: '#/components/schemas/StoredImage'
+          type: string
+          x-go-name: ImageURL
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty,url'
     SubscriptionArticleFilters:
       description: >
         holds filters to apply to the articles within a subscription.
@@ -569,14 +560,25 @@ components:
           x-oapi-codegen-extra-tags:
             json: '-'
             validate: 'gte=0'
+        last_update:
+          description: >
+            is the timestamp of the most newest item that matches the search.
+          x-go-type: time.Time
+          x-oapi-codegen-extra-tags:
+            json: '-'
+            validate: 'required'
       x-oapi-codegen-extra-tags:
         json: '-'
+        validate: '-'
     SubscriptionMetadata:
       description: >
         contains common fields across all subscription types.
       type: object
       required:
+        - created_at
         - subscription_id
+        - user_id
+        - type
       properties:
         created_at:
           $ref: '#/components/schemas/CreatedAt'
@@ -584,102 +586,105 @@ components:
           $ref: '#/components/schemas/UpdatedAt'
         subscription_id:
           $ref: '#/components/schemas/SubscriptionID'
+        user_id:
+          $ref: '#/components/schemas/UserID'
+        type:
+          description: >
+            is the type of subscription.
+          type: string
+          enum: ['feed','search','group']
+          x-oapi-codegen-extra-tags:
+            validate: 'required,oneof=feed search group'
         customisation:
           $ref: '#/components/schemas/SubscriptionCustomisation'
         settings:
           $ref: '#/components/schemas/SubscriptionSettings'
+        favorite:
+          description: >
+            indicates whether this subscription has been marked as a favorite by the user.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
         marked_read_at:
           description: >
             indicates when the subscription was last marked read. Any articles older than this timestamp are considered
             read, any newer unread.
           x-go-type: time.Time
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
     FeedSubscription:
       description: >
         represents a feed a user has subscribed to.
       type: object
       required:
         - feed_id
-        - subscription_id
+        - url
+        - article_states
       properties:
         feed_id:
           $ref: '#/components/schemas/FeedID'
-        metadata:
+        url:
           description: >
-            the subscription metadata.
-          allOf:
-            - $ref: '#/components/schemas/SubscriptionMetadata'
+            is a URL pointing to the original website that publishes the feed.
+          type: string
+          x-go-name: URL
           x-oapi-codegen-extra-tags:
-            json: '-'
-        stats:
-          $ref: '#/components/schemas/SubscriptionStats'
-        feed:
+            validate: 'required,url'
+        article_states:
           description: >
-            is the original feed content.
-          type: object
-          allOf:
-            - $ref: '#/components/schemas/Feed'
+            contains the states of items marked explicitly as read/unread/saved by the user.
+          x-go-type: 'map[ItemID]ArticleState'
           x-oapi-codegen-extra-tags:
-            json: '-'
+            validate: 'required'
         article_filters:
           $ref: '#/components/schemas/SubscriptionArticleFilters'
-        favorite:
+      x-oapi-codegen-extra-tags:
+        validate: 'omitempty'
+    GroupSubscription:
+      description: >
+        represents a subscription that combines other subscriptions.
+      type: object
+      required:
+        - subscriptions
+      properties:
+        subscriptions:
           description: >
-            indicates whether this subscription has been marked as a favorite by the user.
-          type: boolean
+            is the list of subscription IDs belonging to the group.
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionID'
           x-oapi-codegen-extra-tags:
-            json: '-'
+            form: 'subscriptions'
+            validate: 'required,dive,unique,startswith=sub_'
+      x-oapi-codegen-extra-tags:
+        validate: 'omitempty'
     SearchSubscription:
       description: >
         is a custom subscription created from a search request.
       type: object
+      required:
+        - search
       properties:
         search:
           $ref: '#/components/schemas/SearchRequest'
-        metadata:
-          description: >
-            the subscription metadata.
-          allOf:
-            - $ref: '#/components/schemas/SubscriptionMetadata'
-          x-oapi-codegen-extra-tags:
-            json: '-'
-        newest_item_timestamp:
-          description: >
-            is the timestamp of the most newest item that matches the search.
-          x-go-type: time.Time
-          x-oapi-codegen-extra-tags:
-            json: '-'
-        stats:
-          $ref: '#/components/schemas/SubscriptionStats'
+      x-oapi-codegen-extra-tags:
+        validate: 'omitempty'
     Subscription:
       description: >
-        represents a user subscription.
+        represents any kind of subscription.
       type: object
-      required:
-        - metadata
-        - data
-        - type
-      properties:
-        metadata:
-          $ref: '#/components/schemas/SubscriptionMetadata'
-        type:
-          description: >
-            is the type of subscription.
-          type: string
-          enum: ['feed','search']
-          x-oapi-codegen-extra-tags:
-            validate: 'required,oneof=feed search'
-        data:
-          description: >
-            is the raw data represeting the subscription type.
-          oneOf:
-            - $ref: '#/components/schemas/FeedSubscription'
-            - $ref: '#/components/schemas/SearchSubscription'
-          x-oapi-codegen-extra-tags:
-            validate: 'required'
-        favorite:
-          description: >
-            indicates whether this subscription has been marked as a favorite by the user.
-          type: boolean
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionMetadata'
+        - type: object
+          properties:
+            feed_data:
+              $ref: '#/components/schemas/FeedSubscription'
+            search_data:
+              $ref: '#/components/schemas/SearchSubscription'
+            group_data:
+              $ref: '#/components/schemas/GroupSubscription'
+            stats:
+              $ref: '#/components/schemas/SubscriptionStats'
     AddFeedSubscriptionRequest:
       description: >
         represents a request to create a subscription to a feed.
@@ -758,6 +763,32 @@ components:
             - $ref: '#/components/schemas/SearchRequest'
           x-oapi-codegen-extra-tags:
             form: 'search'
+        customisation:
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionCustomisation'
+          x-oapi-codegen-extra-tags:
+            form: 'customisation'
+        settings:
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionSettings'
+          x-oapi-codegen-extra-tags:
+            form: 'settings'
+    GroupSubscriptionRequest:
+      description: >
+        represents a request to create a group subscription.
+      type: object
+      required:
+        - subscriptions
+      properties:
+        subscriptions:
+          description: >
+            is the list of subscription IDs belonging to the group.
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionID'
+          x-oapi-codegen-extra-tags:
+            form: 'subscriptions'
+            validate: 'required,dive,unique,startswith=sub_'
         customisation:
           allOf:
             - $ref: '#/components/schemas/SubscriptionCustomisation'
@@ -1001,6 +1032,8 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'timezone'
             validate: 'required,timezone'
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
     AddFeedsetRequest:
       description: >
         is a request from a user to add one or more feed sets as subscriptions.

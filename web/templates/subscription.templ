@@ -31,14 +31,14 @@ templ AddFeedsetsSuccessNotification(feedsets []string) {
 }
 
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
-templ subscriptionCard(s models.AnySubscription) {
+templ subscriptionCard(s *models.Subscription) {
 	{{ user, _ := models.UserFromCtx(ctx) }}
 	<div
 		id={ s.GetID() }
 		class={ "card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
 			templ.KV("row-span-2",len(s.GetCategories(0))== 0),
 			templ.KV("row-span-3",len(s.GetCategories(0)) >0),
-			templ.KV("opacity-50",s.GetType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread()) }
+			templ.KV("opacity-50",s.GetSubscriptionType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread()) }
 	>
 		<div class="card-body">
 			<div class="flex items-center card-section">
@@ -72,7 +72,7 @@ templ subscriptionCard(s models.AnySubscription) {
 			}
 			// Show stats and info as appropriate.
 			<div class="card-actions mt-auto grid grid-cols-3 px-4 sm:px-6">
-				if s.GetType() == models.SubscriptionTypeFeed {
+				if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
 					<p class="grid justify-end col-span-3 text-xs/4 text-base-content/80">
 						{ s.GetStats().UpdateFrequency() }
 					</p>
@@ -96,10 +96,10 @@ templ subscriptionCard(s models.AnySubscription) {
 	</div>
 }
 
-templ subscriptionContextMenu(s models.AnySubscription) {
+templ subscriptionContextMenu(s *models.Subscription) {
 	@ContextMenu(s.GetTitle() + " Actions") {
 		// View action.
-		if s.GetType() == models.SubscriptionTypeFeed {
+		if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
 			@NewLink(
 				WithCustomAttribute("href", s.GetLink()),
 				WithCustomAttribute("rel", "noopener"),
@@ -174,8 +174,8 @@ templ subscriptionContextMenu(s models.AnySubscription) {
 	}
 }
 
-templ subscriptionHeading(s models.AnySubscription) {
-	switch s.GetType() {
+templ subscriptionHeading(s *models.Subscription) {
+	switch s.GetSubscriptionType() {
 		case models.SubscriptionTypeFeed:
 			@viewFeedSubscriptionLink(s)
 		case models.SubscriptionTypeSearch:
@@ -183,7 +183,7 @@ templ subscriptionHeading(s models.AnySubscription) {
 	}
 }
 
-templ viewFeedSubscriptionLink(s models.AnySubscription) {
+templ viewFeedSubscriptionLink(s *models.Subscription) {
 	{{ overrides := map[string]string{models.ParamSort: string(models.SortNewestFirst), "subscriptions": s.GetID()} }}
 	if s.GetStats().IsUnread() {
 		{{ overrides[models.ParamView] = string(models.ViewUnread) }}
@@ -202,18 +202,18 @@ templ viewFeedSubscriptionLink(s models.AnySubscription) {
 		<div class="flex items-center">
 			<div class="mr-4 shrink-0 self-center">
 				// Generate a thumbnail to display next to the title.
-				if img := s.GetImage(); img != nil {
+				if img := s.GetImage(); img != "" {
 					// If the source has an image, use that as the avatar.
 					<div class="avatar">
 						<div class="rounded-box size-12">
 							<img
-								src={ "/img-proxy/48x48/" + img.GetURL() }
+								src={ "/img-proxy/48x48/" + img }
 								width="48"
 								height="48"
-								if img.GetTitle() != "" {
-									alt={ img.GetTitle() }
-								}
 							/>
+							// if img.GetTitle() != "" {
+							// 	alt={ img.GetTitle() }
+							// }
 						</div>
 					</div>
 				} else {
@@ -232,14 +232,13 @@ templ viewFeedSubscriptionLink(s models.AnySubscription) {
 	}
 }
 
-templ viewSearchSubscriptionLink(s models.AnySubscription) {
-	{{ subscription, _ := s.(*models.SearchSubscription) }}
+templ viewSearchSubscriptionLink(s *models.Subscription) {
 	<form>
 		<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
 		@NewLink(
 			WithHXMethod(http.MethodPost, "/search"),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXValsJS(subscription.Search.HXVals()),
+			WithHXValsJS(s.SearchData.Search.HXVals()),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
 			WithHXSwap("innerHTML show:top transition:true"),
@@ -248,18 +247,18 @@ templ viewSearchSubscriptionLink(s models.AnySubscription) {
 			<div class="flex items-center">
 				<div class="mr-4 shrink-0 self-center">
 					// Generate a thumbnail to display next to the title.
-					if img := s.GetImage(); img != nil {
+					if img := s.GetImage(); img != "" {
 						// If the source has an image, use that as the avatar.
 						<div class="avatar">
 							<div class="rounded-box size-12">
 								<img
-									src={ "/img-proxy/48x48/" + img.GetURL() }
+									src={ "/img-proxy/48x48/" + img }
 									width="48"
 									height="48"
-									if img.GetTitle() != "" {
-										alt={ img.GetTitle() }
-									}
 								/>
+								// if img.GetTitle() != "" {
+								// 	alt={ img.GetTitle() }
+								// }
 							</div>
 						</div>
 					} else {
@@ -279,7 +278,7 @@ templ viewSearchSubscriptionLink(s models.AnySubscription) {
 	</form>
 }
 
-templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...models.AnySubscription) {
+templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.Subscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	@Main() {
 		<div class="flex items-center justify-between mt-4">
@@ -352,7 +351,7 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...models.An
 	}
 }
 
-templ SubscriptionsList(pagination models.Pagination, subscriptions ...models.AnySubscription) {
+templ SubscriptionsList(pagination models.Pagination, subscriptions ...*models.Subscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	for subscription := range slices.Values(subscriptions) {
 		@subscriptionCard(subscription)
@@ -564,7 +563,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 	}
 }
 
-templ EditSubscriptionSuccessNotification(subscription models.AnySubscription) {
+templ EditSubscriptionSuccessNotification(subscription *models.Subscription) {
 	@Notification(&models.UserMessage{
 		Status:  models.UserMessageStatusSuccess,
 		Summary: subscription.GetTitle() + " updated",
@@ -786,41 +785,41 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 						</div>
 					</div>
 				</div>
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<h2 class="text-base/7 font-semibold">In Subscriptions</h2>
-						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<select
-							id="subscriptions-filter-select"
-							hx-post="/search/filter/subscription"
-							hx-target="next #subscription-filters"
-							hx-vals='{"inputName": "search.subscriptions"}'
-							hx-swap="beforeend"
-							hx-push-url="false"
-							name="subscription-filter-select"
-							class="select select-primary bg-base-300 col-span-full"
-							_="on htmx:afterRequest halt"
-						>
-							{{ user, _ := models.UserFromCtx(ctx) }}
-							<option disabled selected>Choose...</option>
-							for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
-								<option value={ s.GetID() + "|" + s.GetTitle() }>{ s.GetTitle() }</option>
-							}
-						</select>
-						<div class="mt-4 col-span-full">
-							<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
-								for id := range slices.Values(request.Search.Subscriptions) {
-									{{ subscription := user.GetFeedSubscriptions().GetByID(id) }}
-									if subscription != nil {
-										@SubscriptionFilter(id, subscription.GetTitle(), "search.subscriptions")
-									}
-								}
-							</div>
-						</div>
-					</div>
-				</div>
+				// <div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+				// 	<div>
+				// 		<h2 class="text-base/7 font-semibold">In Subscriptions</h2>
+				// 		// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+				// 	</div>
+				// 	<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+				// 		<select
+				// 			id="subscriptions-filter-select"
+				// 			hx-post="/search/filter/subscription"
+				// 			hx-target="next #subscription-filters"
+				// 			hx-vals='{"inputName": "search.subscriptions"}'
+				// 			hx-swap="beforeend"
+				// 			hx-push-url="false"
+				// 			name="subscription-filter-select"
+				// 			class="select select-primary bg-base-300 col-span-full"
+				// 			_="on htmx:afterRequest halt"
+				// 		>
+				// 			{{ user, _ := models.UserFromCtx(ctx) }}
+				// 			<option disabled selected>Choose...</option>
+				// 			for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
+				// 				<option value={ s.GetID() + "|" + s.GetTitle() }>{ s.GetTitle() }</option>
+				// 			}
+				// 		</select>
+				// 		<div class="mt-4 col-span-full">
+				// 			<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
+				// 				for id := range slices.Values(request.Search.Subscriptions) {
+				// 					{{ subscription := user.GetFeedSubscriptions().GetByID(id) }}
+				// 					if subscription != nil {
+				// 						@SubscriptionFilter(id, subscription.GetTitle(), "search.subscriptions")
+				// 					}
+				// 				}
+				// 			</div>
+				// 		</div>
+				// 	</div>
+				// </div>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Published Within</h2>

@@ -36,36 +36,29 @@ func (a *API) EditSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.ParamObjectID)
-		// Retrieve user object.
-		user, err := models.UserFromCtx(req.Context())
+		// Get the subscription.
+		subscription, err := models.GetSubscription(req.Context(), a.DataAPI(), id)
 		if err != nil {
-			msg := models.NewErrorMessage("Unable to edit subscription", "This might be a temporary problem, please try again.")
-			renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle("Error")).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+			renderPartial(templates.ServerErrorNotification(
+				models.NewErrorMessage("Unable to save subscription", "Data in invalid."),
+			)).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
-		subscription := user.GetSubscriptionByID(id)
 		var template templ.Component
 		var pageTitle string
-		switch subscription.GetType() {
+		switch subscription.GetSubscriptionType() {
 		case models.SubscriptionTypeFeed:
-			// Editing FeedSubscription.
-			feedSubscription, err := subscription.Data.AsFeedSubscription()
-			if err != nil {
-				msg := models.NewErrorMessage("Unable to edit subscription", "This might be a temporary problem, please try again.")
-				renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle("Error")).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("edit subscription failed: as feed subscription: %w", err), http.StatusInternalServerError)
-			}
 			// Convert metadata into edit request data.
 			request := &models.EditSubscriptionRequest{
 				SubscriptionID:         id,
-				Nickname:               subscription.Metadata.Customisation.Nickname,
-				Categories:             subscription.Metadata.Customisation.Categories,
-				ShowFullArticleContent: subscription.Metadata.Settings.ShowFullArticleContent,
-				ArticleFilters:         feedSubscription.ArticleFilters,
+				Nickname:               subscription.Customisation.Nickname,
+				Categories:             subscription.Customisation.Categories,
+				ShowFullArticleContent: subscription.Settings.ShowFullArticleContent,
+				ArticleFilters:         subscription.FeedData.ArticleFilters,
 			}
 			// Get top categories across items in subscription feed and add as suggested categories for the
 			// subscription.
-			categories, resp := models.GetArticleTopCategories(req.Context(), a.Elastic, feedSubscription.FeedID)
+			categories, resp := models.GetArticleTopCategories(req.Context(), a.Elastic, subscription.FeedData.GetFeedID())
 			if resp == nil {
 				request.SuggestedCategories = categories
 			}
@@ -74,16 +67,10 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			pageTitle = templates.GeneratePageTitle("Editing " + request.GetNickname())
 		case models.SubscriptionTypeSearch:
 			// Editing SearchSubscription.
-			searchSubscription, err := subscription.Data.AsSearchSubscription()
-			if err != nil {
-				msg := models.NewErrorMessage("Unable to edit subscription", "This might be a temporary problem, please try again.")
-				renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle("Error")).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("edit subscription failed: as search subscription: %w", err), http.StatusInternalServerError)
-			}
 			request := &models.SearchSubscriptionRequest{
-				Customisation: subscription.Metadata.Customisation,
-				Settings:      subscription.Metadata.Settings,
-				Search:        searchSubscription.Search,
+				Customisation: subscription.Customisation,
+				Settings:      subscription.Settings,
+				Search:        subscription.SearchData.Search,
 			}
 			request.Search.ID = subscription.GetID()
 			// Generate page template.
@@ -98,12 +85,13 @@ func (a *API) EditSubscription() http.HandlerFunc {
 // SaveSubscription handles saving the edits made by a user to a subscription.
 func SaveSubscription(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Retrieve user object.
-		user, err := models.UserFromCtx(req.Context())
+		// Get the subscription.
+		subscription, err := models.GetSubscription(req.Context(), api, req.FormValue(models.ParamSubscriptionID))
 		if err != nil {
-			msg := models.NewErrorMessage("Unable to save subscription", "This might be a temporary problem, please try again.")
-			renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+			renderPartial(templates.ServerErrorNotification(
+				models.NewErrorMessage("Unable to save subscription", "Data in invalid."),
+			)).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
 		switch models.SubscriptionType(req.FormValue("subscription_type")) {
 		case models.SubscriptionTypeFeed:
@@ -114,28 +102,12 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 				)).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 			}
-			// Update the subscription.
-			feedSubscription := user.GetFeedSubscriptions().GetByID(request.SubscriptionID)
-			if feedSubscription == nil {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save subscription", "Data in invalid."),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
-			}
-			feedSubscription.Metadata.Customisation.Nickname = request.GetNickname()
-			feedSubscription.Metadata.Customisation.Categories = request.GetCategories()
-			feedSubscription.Metadata.Settings.ShowFullArticleContent = request.ShowFullArticleContent
-			feedSubscription.ArticleFilters.Text = request.ArticleFilters.Text
-			feedSubscription.ArticleFilters.Authors = request.ArticleFilters.Authors
-			feedSubscription.ArticleFilters.Categories = request.ArticleFilters.Categories
-			err = models.UpdateSubscription(req.Context(), api, feedSubscription)
-			if err != nil {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save subscription", "This might be a temporary problem, please try again."),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
-			}
-			renderPartial(templates.EditSubscriptionSuccessNotification(feedSubscription)).ServeHTTP(res, req)
+			subscription.Customisation.Nickname = request.GetNickname()
+			subscription.Customisation.Categories = request.GetCategories()
+			subscription.Settings.ShowFullArticleContent = request.ShowFullArticleContent
+			subscription.FeedData.ArticleFilters.Text = request.ArticleFilters.Text
+			subscription.FeedData.ArticleFilters.Authors = request.ArticleFilters.Authors
+			subscription.FeedData.ArticleFilters.Categories = request.ArticleFilters.Categories
 		case models.SubscriptionTypeSearch:
 			request, valid, err := forms.DecodeForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {
@@ -144,26 +116,20 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 				)).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 			}
-			searchSubscription := user.GetSearchSubscriptions().GetByID(chi.URLParam(req, models.ParamSubscriptionID))
-			if searchSubscription == nil {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save subscription", "Data in invalid."),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
-			}
-			searchSubscription.Metadata.Customisation = request.Customisation
-			searchSubscription.Metadata.Settings = request.Settings
-			searchSubscription.Search = request.Search
-
-			err = models.UpdateSubscription(req.Context(), api, searchSubscription)
-			if err != nil {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save subscription", "This might be a temporary problem, please try again."),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
-			}
-			renderPartial(templates.EditSubscriptionSuccessNotification(searchSubscription)).ServeHTTP(res, req)
+			subscription.Customisation = request.Customisation
+			subscription.Settings = request.Settings
+			subscription.SearchData.Search = request.Search
 		}
+
+		_, err = api.UpdateSubscriptions(req.Context(), subscription)
+		if err != nil {
+			renderPartial(templates.ServerErrorNotification(
+				models.NewErrorMessage("Unable to save subscription", "This might be a temporary problem, please try again."),
+			)).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
+		}
+		renderPartial(templates.EditSubscriptionSuccessNotification(subscription)).ServeHTTP(res, req)
+
 		return nil
 	})).ServeHTTP
 }
@@ -386,7 +352,8 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			renderPage(templates.ExportSubscriptions(), templates.GeneratePageTitle("Export Subscriptions")).ServeHTTP(res, req)
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":
 			// Get all subscriptions.
-			subscriptions, err := models.GetSubscriptions(req.Context(), a.Elastic)
+			filters := models.NewListDisplayFilters()
+			subscriptions, _, err := models.FilterSubscriptions(req.Context(), a.Elastic, &filters, "")
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				msg := models.NewErrorMessage(
@@ -399,12 +366,10 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			// Create outlines for all subscriptions.
 			outlines := make([]opml.Outline, 0, len(subscriptions))
 			for subscription := range slices.Values(subscriptions) {
-				feedSubscription, ok := subscription.(*models.FeedSubscription)
-				if ok {
-					outlines = append(outlines, *opml.NewSubscriptionOutline(feedSubscription.GetTitle(), feedSubscription.Feed.GetSourceURLs()[0],
-						opml.WithHTMLURL(feedSubscription.GetLink()),
-						opml.WithOutlineTitle(feedSubscription.GetTitle()),
-						opml.WithDescription(feedSubscription.GetDescription()),
+				if subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
+					outlines = append(outlines, *opml.NewSubscriptionOutline(subscription.Customisation.Nickname, subscription.FeedData.URL,
+						opml.WithHTMLURL(subscription.FeedData.URL),
+						opml.WithOutlineTitle(subscription.Customisation.Nickname),
 					))
 				}
 			}
@@ -514,10 +479,17 @@ func processSubscriptionRequest(ctx context.Context, api *elastic.API, user *mod
 		feed = newFeed
 	}
 	// Check if user already subscribed.
-	if user.IsSubscribedToFeed(feed.GetID()) {
-		subscription := user.GetFeedSubscriptions().GetByFeedID(feed.GetID())
+
+	subscribed, err := models.IsUserSubscribedToFeed(ctx, api, feed.GetID())
+	if err != nil {
+		result.Error = err
+		result.Message = *models.NewErrorMessage("Unable to check for existing subscription", "The backend produced an error. This might be temporary, please try again.")
+		resultsCh <- result
+		return
+	}
+	if subscribed {
 		result.Error = fmt.Errorf("already subscribed")
-		result.Message = *models.NewWarningMessage("Already subscribed to feed", fmt.Sprintf("%s %q", subscription.Metadata.Customisation.Nickname, request.GetURL()))
+		result.Message = *models.NewWarningMessage("Already subscribed to feed", "")
 		resultsCh <- result
 		return
 	}

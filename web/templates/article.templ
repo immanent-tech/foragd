@@ -13,16 +13,6 @@ import (
 	"strings"
 )
 
-type article interface {
-	object[models.ItemID]
-
-	IsUnread() bool
-	GetSubscriptionID() models.SubscriptionID
-	GetFeedTitle() string
-	GetContent() string
-	IsRemoteContent() bool
-}
-
 templ articleSummary(article *models.Article) {
 	<div class={ "sm:flex items-center", templ.KV("opacity-50",!article.IsUnread()) }>
 		// Article image.
@@ -78,7 +68,7 @@ templ articleSummary(article *models.Article) {
 }
 
 // Card renders an article as a card, for displaying in a list.
-templ ArticleCard(article article) {
+templ ArticleCard(article *models.Article) {
 	<div
 		id={ article.GetID() }
 		class={ "card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
@@ -203,7 +193,7 @@ templ ArticleCard(article article) {
 							// WithHXMethod(http.MethodGet, article.ViewURL()+"/share"),
 							// WithHXTarget(ModalContainerID.Target()),
 							WithClasses("context-menu-item-base"),
-							WithCustomAttribute("_", "on click if navigator.share then "+shareAPIDialog(article)+" else call document.getElementById('share-"+article.GetID()+"').show() "),
+							WithCustomAttribute("_", "on click if navigator.share then "+shareAPIDialog(article.GetTitle(), article.GetLink())+" else call document.getElementById('share-"+article.GetID()+"').show() "),
 							// WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('share').show()"),
 						) {
 							@tabler.Share(i.Props{Class: "size-4"})
@@ -226,7 +216,7 @@ templ ArticleCard(article article) {
 }
 
 // ArticleContent renders the complete content of an article.
-templ ArticleContent(article article) {
+templ ArticleContent(article *models.Article) {
 	// Add the subscription ID as a hidden input that htmx can use for actions.
 	<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 	@Main() {
@@ -343,7 +333,7 @@ templ ArticleContent(article article) {
 }
 
 // UpdateViewArticleMark updates the mark action when viewing an article.
-templ UpdateViewArticleMark(article article) {
+templ UpdateViewArticleMark(article *models.Article) {
 	{{ var markURL string }}
 	if article.IsUnread() {
 		{{ markURL = "/mark/article/" + article.GetID() + "/read" }}

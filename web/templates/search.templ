@@ -310,43 +310,43 @@ templ SearchFilters(attributes templ.Attributes) {
 						/>
 					</div>
 				</div>
-				{{ user, _ := models.UserFromCtx(ctx) }}
-				if user != nil {
-					// Include subscriptions filter.
-					<div class="sm:col-span-full">
-						<label for="subscriptions-filter-select" class="block text-sm/6 font-medium">In subscriptions</label>
-						<div class="mt-2">
-							<select
-								id="subscriptions-filter-select"
-								hx-post="/search/filter/subscription"
-								hx-target="next #subscription-filters"
-								hx-vals='{"inputName": "subscriptions"}'
-								hx-swap="beforeend"
-								hx-push-url="false"
-								name="subscription-filter-select"
-								class="select select-sm w-full bg-base-300"
-								_="on htmx:afterRequest halt"
-							>
-								<option disabled selected>Choose...</option>
-								for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
-									<option value={ s.GetID() + "|" + s.GetTitle() }>{ s.GetTitle() }</option>
-								}
-							</select>
-							<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
-								<div class="mt-2 sm:mt-0">
-									<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
-										for id := range slices.Values(request.Subscriptions) {
-											{{ subscription := user.GetFeedSubscriptions().GetByID(id) }}
-											if subscription != nil {
-												@SubscriptionFilter(id, subscription.GetTitle(), "subscriptions")
-											}
-										}
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				}
+				// {{ user, _ := models.UserFromCtx(ctx) }}
+				// if user != nil {
+				// 	// Include subscriptions filter.
+				// 	<div class="sm:col-span-full">
+				// 		<label for="subscriptions-filter-select" class="block text-sm/6 font-medium">In subscriptions</label>
+				// 		<div class="mt-2">
+				// 			<select
+				// 				id="subscriptions-filter-select"
+				// 				hx-post="/search/filter/subscription"
+				// 				hx-target="next #subscription-filters"
+				// 				hx-vals='{"inputName": "subscriptions"}'
+				// 				hx-swap="beforeend"
+				// 				hx-push-url="false"
+				// 				name="subscription-filter-select"
+				// 				class="select select-sm w-full bg-base-300"
+				// 				_="on htmx:afterRequest halt"
+				// 			>
+				// 				<option disabled selected>Choose...</option>
+				// 				for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
+				// 					<option value={ s.GetID() + "|" + s.GetTitle() }>{ s.GetTitle() }</option>
+				// 				}
+				// 			</select>
+				// 			<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
+				// 				<div class="mt-2 sm:mt-0">
+				// 					<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
+				// 						for id := range slices.Values(request.Subscriptions) {
+				// 							{{ subscription := user.GetFeedSubscriptions().GetByID(id) }}
+				// 							if subscription != nil {
+				// 								@SubscriptionFilter(id, subscription.GetTitle(), "subscriptions")
+				// 							}
+				// 						}
+				// 					</div>
+				// 				</div>
+				// 			</div>
+				// 		</div>
+				// 	</div>
+				// }
 				// View filter.
 				<div class="sm:col-span-2">
 					<fieldset>

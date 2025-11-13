@@ -17,16 +17,18 @@ import (
 var ErrFetchCtx = errors.New("error fetching context value")
 
 const (
-	userReadIndexCtxKey          contextKey = "users_ro"
-	userWriteIndexCtxKey         contextKey = "users_rw"
-	feedsReadIndexCtxKey         contextKey = "feeds_ro"
-	feedsWriteIndexCtxKey        contextKey = "feeds_rw"
-	itemsArchiveReadIndexCtxKey  contextKey = "archive_ro"
-	itemsArchiveWriteIndexCtxKey contextKey = "archive_rw"
-	itemsReadIndexCtxKey         contextKey = "items_ro"
-	itemsWriteIndexCtxKey        contextKey = "items_rw"
-	schedulerReadIndexCtxKey     contextKey = "jobs_ro"
-	schedulerWriteIndexCtxKey    contextKey = "jobs_rw"
+	userReadIndexCtxKey           contextKey = "users_ro"
+	userWriteIndexCtxKey          contextKey = "users_rw"
+	subscriptionsReadIndexCtxKey  contextKey = "subscriptions_ro"
+	subscriptionsWriteIndexCtxKey contextKey = "subscriptions_rw"
+	feedsReadIndexCtxKey          contextKey = "feeds_ro"
+	feedsWriteIndexCtxKey         contextKey = "feeds_rw"
+	itemsArchiveReadIndexCtxKey   contextKey = "archive_ro"
+	itemsArchiveWriteIndexCtxKey  contextKey = "archive_rw"
+	itemsReadIndexCtxKey          contextKey = "items_ro"
+	itemsWriteIndexCtxKey         contextKey = "items_rw"
+	schedulerReadIndexCtxKey      contextKey = "jobs_ro"
+	schedulerWriteIndexCtxKey     contextKey = "jobs_rw"
 )
 
 type contextKey string
@@ -37,6 +39,8 @@ func SetupIndexAliases(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, userWriteIndexCtxKey, schema.UsersSchemaPrefix+schema.IndexWriteSuffix)
 	ctx = context.WithValue(ctx, feedsReadIndexCtxKey, schema.FeedsSchemaPrefix+schema.IndexReadSuffix)
 	ctx = context.WithValue(ctx, feedsWriteIndexCtxKey, schema.FeedsSchemaPrefix+schema.IndexWriteSuffix)
+	ctx = context.WithValue(ctx, subscriptionsReadIndexCtxKey, schema.SubscriptionsSchemaPrefix+schema.IndexReadSuffix)
+	ctx = context.WithValue(ctx, subscriptionsWriteIndexCtxKey, schema.SubscriptionsSchemaPrefix+schema.IndexWriteSuffix)
 	ctx = context.WithValue(ctx, itemsArchiveReadIndexCtxKey, schema.FavoriteItemsSchemaPrefix+schema.IndexReadSuffix)
 	ctx = context.WithValue(ctx, itemsArchiveWriteIndexCtxKey, schema.FavoriteItemsSchemaPrefix+schema.IndexWriteSuffix)
 	ctx = context.WithValue(ctx, schedulerReadIndexCtxKey, schema.SchedulerSchemaPrefix+schema.IndexReadSuffix)
@@ -60,6 +64,22 @@ func UserWriteIndexFromCtx(ctx context.Context) (string, error) {
 		return value, nil
 	}
 	return "", models.NewAPIError(fmt.Errorf("%w: user write index name not found", ErrFetchCtx), http.StatusNotFound)
+}
+
+// SubscriptionsReadIndexFromCtx retrieves the index alias for read operations against the feeds index.
+func SubscriptionsReadIndexFromCtx(ctx context.Context) (string, error) {
+	if value, ok := ctx.Value(subscriptionsReadIndexCtxKey).(string); ok {
+		return value, nil
+	}
+	return "", models.NewAPIError(fmt.Errorf("%w: subscriptions read index name not found", ErrFetchCtx), http.StatusNotFound)
+}
+
+// SubscriptionsWriteIndexFromCtx retrieves the index alias for write operations against the feeds index.
+func SubscriptionsWriteIndexFromCtx(ctx context.Context) (string, error) {
+	if value, ok := ctx.Value(subscriptionsWriteIndexCtxKey).(string); ok {
+		return value, nil
+	}
+	return "", models.NewAPIError(fmt.Errorf("%w: subscriptions write index name not found", ErrFetchCtx), http.StatusNotFound)
 }
 
 // FeedsReadIndexFromCtx retrieves the index alias for read operations against the feeds index.

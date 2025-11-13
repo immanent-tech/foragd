@@ -14,12 +14,12 @@ import (
 )
 
 type Home struct {
-	User           *models.User
-	LatestArticles models.Articles
-	Subscriptions  models.Subscriptions
-	TopCategories  models.CategoryCounts
-	TopArticles    models.Articles
-	RareCategories models.CategoryCounts
+	User               *models.User
+	SubscriptionsCount int
+	LatestArticles     models.Articles
+	TopCategories      models.CategoryCounts
+	TopArticles        models.Articles
+	RareCategories     models.CategoryCounts
 }
 
 // content renders the home page content.
@@ -49,7 +49,7 @@ templ (page *Home) Template() {
 								<p class="ml-16 text-sm font-medium ">Subscriptions</p>
 							</dt>
 							<dd class="ml-16 flex items-baseline">
-								<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.User.GetSubscriptions())) }</p>
+								<p class="text-2xl font-semibold">{ strconv.Itoa(page.SubscriptionsCount) }</p>
 							</dd>
 						}
 					</div>
@@ -68,9 +68,9 @@ templ (page *Home) Template() {
 								</div>
 								<p class="ml-16 text-sm font-medium ">Unread Articles</p>
 							</dt>
-							<dd class="ml-16 flex items-baseline">
-								<p class="text-2xl font-semibold">{ strconv.Itoa(models.GetTotalUnreadCount(page.Subscriptions...)) }</p>
-							</dd>
+							// <dd class="ml-16 flex items-baseline">
+							// 	<p class="text-2xl font-semibold">{ strconv.Itoa(models.GetTotalUnreadCount(page.Subscriptions...)) }</p>
+							// </dd>
 						}
 					</div>
 				</dl>

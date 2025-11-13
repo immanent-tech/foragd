@@ -144,17 +144,38 @@ type SearchRequest interface {
 	RequestWithSize[*search.Search]
 	RequestWithSearchAfter[*search.Search]
 	RequestWithSort[*search.Search]
+	TrackTotalHits(trackhits types.TrackHitsVariant) *search.Search
+	Collapse(collapse types.FieldCollapseVariant) *search.Search
 }
 
 // NewSearchRequest creates a new search request with the given options.
 func NewSearchRequest(api *elasticsearch.TypedClient, options ...Option[SearchRequest]) *search.Search {
 	req := api.Search()
-
 	for _, option := range options {
 		option(req)
 	}
-
 	return req
+}
+
+type TrackHits bool
+
+func (t TrackHits) TrackHitsCaster() *types.TrackHits {
+	value := types.TrackHits(t)
+	return &value
+}
+
+func WithTrackTotalHits(value bool) Option[SearchRequest] {
+	return func(search SearchRequest) {
+		search.TrackTotalHits(TrackHits(value))
+	}
+}
+
+func WithCollapseField(field string) Option[SearchRequest] {
+	return func(search SearchRequest) {
+		if field != "" {
+			search.Collapse(&types.FieldCollapse{Field: field})
+		}
+	}
 }
 
 // // WithSearch option adds a search to a multisearch request.

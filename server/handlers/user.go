@@ -214,15 +214,8 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			)).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite subscription", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
-		}
 		// Get the subscription state.
-		err = models.UpdateFavoriteSubscription(req.Context(), a.Elastic, user, id, true)
+		err = models.UpdateFavoriteSubscription(req.Context(), a.Elastic, id, true)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite subscription", "This might be a temporary error, please try again.")),
@@ -246,14 +239,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			)).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite subscription", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
-		}
-		err = models.UpdateFavoriteSubscription(req.Context(), a.Elastic, user, id, false)
+		err = models.UpdateFavoriteSubscription(req.Context(), a.Elastic, id, false)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite subscription", "This might be a temporary error, please try again.")),

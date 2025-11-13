@@ -22,6 +22,8 @@ const (
 	FavoriteItemsSchemaPrefix = "favorite-items"
 	// UsersSchemaPrefix is a prefix used for user related index/mapping/settings.
 	UsersSchemaPrefix = "users"
+	// SubscriptionsSchemaPrefix is a prefix used for subscription related index/mapping/settings.
+	SubscriptionsSchemaPrefix = "subscriptions"
 	// SchedulerSchemaPrefix is a prefix used for scheduler related index/mapping/settings.
 	SchedulerSchemaPrefix = "scheduler"
 	// SessionsSchemaPrefix is a prefix used for sessions related index/mapping/settings.

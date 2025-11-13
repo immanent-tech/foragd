@@ -106,22 +106,9 @@ func MarkObject(api *elastic.API) http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("mark object validation error: %w", err), http.StatusUnprocessableEntity)
 		}
-		// Extract user data.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to mark objects", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
-		}
 		switch params.Object {
 		case models.ObjectTypeSubscription:
-			user.MarkSubscriptions(params.Mark, params.ObjectID)
-			// Update the user object.
-			err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{
-				"subscriptions": user.Subscriptions,
-			})
+			err = models.MarkSubscriptions(req.Context(), api, params.Mark, params.ObjectID)
 			if err != nil {
 				renderPartial(
 					templates.ServerErrorNotification(
@@ -234,14 +221,14 @@ func ConfirmRemoveObject(api *elastic.API) http.HandlerFunc {
 		}
 		switch params.Object {
 		case models.ObjectTypeSubscription:
-			subscriptions, err := models.GetSubscriptions(req.Context(), api, params.ObjectID)
-			if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
+			subscription, err := models.GetSubscription(req.Context(), api, params.ObjectID)
+			if err != nil {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again."),
 				)).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("could not retrieve subscriptions: %w", err), http.StatusInternalServerError)
 			}
-			renderPartial(templates.RemoveObjectModal[models.SubscriptionID](subscriptions[0])).ServeHTTP(res, req)
+			renderPartial(templates.RemoveSubscriptionModal(subscription)).ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}
@@ -264,23 +251,9 @@ func RemoveObject(api *elastic.API) http.HandlerFunc {
 			)).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
-		// Retrieve user object.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to remove object", "This might be a temporary error, please try again.")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
-		}
 		switch params.Object {
 		case models.ObjectTypeSubscription:
-			// Remove metadata for given subscriptions from user.
-			user.RemoveSubscriptions(params.ObjectID)
-			// Update the user.
-			err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{
-				"subscriptions": user.GetSubscriptions(),
-			})
+			err := models.RemoveSubscriptions(req.Context(), api, params.ObjectID)
 			if err != nil {
 				renderPartial(
 					templates.ServerErrorNotification(
@@ -345,35 +318,10 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
 		currentURL, found := htmx.GetCurrentURL(req)
-		var template templ.Component
-		switch params.Object {
-		case models.ObjectTypeSubscription:
-			subscriptions, err := models.GetSubscriptions(req.Context(), api, params.ObjectID)
-			if err != nil || len(subscriptions) == 0 {
-				renderPartial(
-					templates.ServerErrorNotification(
-						models.NewErrorMessage("Unable to process request", "This might be a temporary error, please try again.")),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to retrieve subscription details: %w", err), http.StatusInternalServerError)
-			}
-			template = templates.ReportObjectIssues[models.SubscriptionID](subscriptions[0], models.NewObjectIssue(params, currentURL))
-		case models.ObjectTypeArticle:
-			// Get the current URL on which the issue is being reported.
-			if !found {
-				slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
-			}
-			articles, err := models.GetArticles(req.Context(), api, params.ObjectID)
-			if err != nil || len(articles) == 0 {
-				renderPartial(
-					templates.ServerErrorNotification(
-						models.NewErrorMessage("Unable to process request", "This might be a temporary error, please try again.")),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to retrieve article details: %w", err), http.StatusInternalServerError)
-			}
-			template = templates.ReportObjectIssues[models.ItemID](articles[0], models.NewObjectIssue(params, currentURL))
-		default:
-			res.WriteHeader(http.StatusNotImplemented)
+		if !found {
+			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
 		}
+		template := templates.ReportObjectIssues(string(params.Object), params.ObjectID, models.NewObjectIssue(params, currentURL))
 		renderPage(template, templates.GeneratePageTitle("Report an issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP

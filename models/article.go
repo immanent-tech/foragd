@@ -16,6 +16,7 @@ import (
 
 	"github.com/immanent-tech/go-syndication/types"
 
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -50,11 +51,11 @@ func (a Articles) GetCategoryCounts() CategoryCounts {
 
 // GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
 // and state is required.
-func GenerateArticle(user *User, item *Item, subscription *FeedSubscription) (*Article, error) {
+func GenerateArticle(user *User, item *Item, subscription *Subscription) (*Article, error) {
 	article := &Article{
 		Item:           *item,
 		SubscriptionID: subscription.GetID(),
-		State:          *user.GetItemState(subscription.GetID(), item.GetID()),
+		State:          *subscription.FeedData.GetItemState(item.GetID()),
 	}
 	// If there is favorite data, mark article as a favorite.
 	if slices.Contains(user.ItemFavorites, item.GetID()) {
@@ -63,11 +64,11 @@ func GenerateArticle(user *User, item *Item, subscription *FeedSubscription) (*A
 	// Add any appropriate feed customisation data.
 	article.Item.FeedTitle = subscription.GetTitle()
 	// 	Update read status.
-	if item.GetTimestamp().Before(subscription.Metadata.MarkedReadAt) {
-		article.State.MarkRead(subscription.Metadata.MarkedReadAt)
+	if item.GetTimestamp().Before(subscription.MarkedReadAt) {
+		article.State.MarkRead(subscription.MarkedReadAt)
 	}
 	// Toggle showing remote article content.
-	if subscription.Metadata.Settings.ShowFullArticleContent {
+	if subscription.Settings.ShowFullArticleContent {
 		article.ShowFullContent = true
 	}
 	// Validate the article.
@@ -81,13 +82,25 @@ func GenerateArticle(user *User, item *Item, subscription *FeedSubscription) (*A
 
 // GenerateArticles takes a slice of items and creates articles from them, grabbing the necessary data from the user
 // object.
-func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
+func GenerateArticles(ctx context.Context, dataAPI DataAPI, items Items) (Articles, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to generate articles: %w", err)
+		return nil, fmt.Errorf("generate articles: get user data: %w", err)
 	}
-	// Retrieve subscription customisations for feed subscriptions.
-	subscriptions := user.GetFeedSubscriptions().FilterByFeedIDs(items.GetFeedIDs()...)
+	query := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Terms("type", SubscriptionTypeFeed),
+			query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
+		),
+	)
+	subscriptions, err := dataAPI.SearchSubscriptions(ctx, query)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("generate articles: get subscriptions: %w", err)
+	case len(subscriptions) == 0:
+		return nil, fmt.Errorf("generate articles: get subscriptions: %w", ErrNotFound)
+	}
 	// Create articles from the items.
 	articles := make(Articles, 0, len(items))
 	for item := range slices.Values(items) {

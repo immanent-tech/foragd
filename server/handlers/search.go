@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -37,19 +38,18 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 		}
 		// Get results.
 		articles, err := models.GetSearchSuggestions(req.Context(), api, request.Text)
-		if err != nil {
+		switch {
+		case err != nil && !errors.Is(err, models.ErrNotFound):
 			slogctx.FromCtx(req.Context()).Debug("Get search suggestions failed.",
 				slog.Any("error", err))
 			res.WriteHeader(http.StatusInternalServerError)
 			return
-		}
-		if len(articles) > 0 {
-			// Render suggestions.
-			renderPartial(templates.SearchSuggestions(request, articles)).ServeHTTP(res, req)
-		} else {
-			// No suggestions, indicate no change.
+		case errors.Is(err, models.ErrNotFound):
+			fallthrough
+		case len(articles) == 0:
 			res.WriteHeader(http.StatusNoContent)
 		}
+		renderPartial(templates.SearchSuggestions(request, articles)).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
@@ -128,7 +128,10 @@ func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 			return fmt.Errorf("unable to get search request updates: %w", err)
 		}
 		// Build query.
-		query := models.BuildSearchResultsQuery(user, request)
+		query, err := models.BuildSearchResultsQuery(req.Context(), api, user, request)
+		if err != nil {
+			return fmt.Errorf("unable to get search request updates: %w", err)
+		}
 		// Watch for updates to search results.
 		watchForUpdates(api, query).ServeHTTP(res, req)
 		return nil
