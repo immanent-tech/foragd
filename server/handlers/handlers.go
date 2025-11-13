@@ -106,10 +106,10 @@ func ImageProxy(client *resty.Client, key, proxyURLBase string) http.HandlerFunc
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		opts := chi.URLParam(req, "image_opts")
 		url := chi.URLParam(req, "*")
-		// // Include any query parameters from the original image URL in the URL passed to the proxy.
-		// if len(req.URL.Query()) > 0 {
-		// 	url = url + "?" + req.URL.Query().Encode()
-		// }
+		// Include any query parameters from the original image URL in the URL passed to the proxy.
+		if len(req.URL.Query()) > 0 {
+			url = url + "?" + req.URL.Query().Encode()
+		}
 		var imageURL string
 		if proxyURLBase != "" { // Generate image URL through proxy.
 			if key == "" {
@@ -132,22 +132,22 @@ func ImageProxy(client *resty.Client, key, proxyURLBase string) http.HandlerFunc
 			Get(imageURL)
 		if err != nil {
 			res.WriteHeader(resp.StatusCode())
-			return models.NewAPIError(fmt.Errorf("unable to proxy image: %w", err), resp.StatusCode())
+			return models.NewAPIError(fmt.Errorf("image proxy: send image request: %w", err), resp.StatusCode())
 		}
 		if resp.IsError() {
 			res.WriteHeader(resp.StatusCode())
-			return models.NewAPIError(fmt.Errorf("unable to proxy image: %w: %s", ErrBackendAPIError, resp.Status()), resp.StatusCode())
+			return models.NewAPIError(fmt.Errorf("image proxy: send image request: %w: %s", ErrBackendAPIError, resp.Status()), resp.StatusCode())
 		}
 		imageData, err := io.ReadAll(resp.RawBody())
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(fmt.Errorf("unable to proxy image: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("image proxy: read image response: %w", err), http.StatusInternalServerError)
 		}
 		// Write the image to the response.
 		_, err = res.Write(imageData)
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(fmt.Errorf("unable to proxy image: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("image proxy: write image: %w", err), http.StatusInternalServerError)
 		}
 		res.WriteHeader(http.StatusOK)
 		return nil
