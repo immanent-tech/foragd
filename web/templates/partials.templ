@@ -348,7 +348,7 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 						id="add-categories"
 						hx-post={ path }
 						hx-on::after-request="if(event.detail.successful) this.reset()"
-						hx-include="[name='csrf_token'],[name='user_categories']"
+						hx-include="[name='csrf_token'],[name='categories']"
 						hx-push-url="false"
 						hx-target="#current-categories"
 						hx-swap="beforeend"
@@ -369,7 +369,7 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 					id="add-categories"
 					hx-post={ path }
 					hx-on::after-request="if(event.detail.successful) this.reset()"
-					hx-include="[name='csrf_token'],[name='user_categories']"
+					hx-include="[name='csrf_token'],[name='categories']"
 					hx-vals={ models.GenerateHXVals(map[string]string{"inputName": inputName}) }
 					hx-push-url="false"
 					hx-target="#current-categories"

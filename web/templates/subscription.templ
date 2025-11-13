@@ -460,7 +460,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			<form
 				id="edit-subscription"
 				hx-post={ "/edit/subscription/" + request.GetID() }
-				hx-include="[name='user_categories'],[name='show_full_article_content'],[id='article_category_filters'],[id='article_author_filters'],[name='csrf_token']"
+				hx-include="[name='categories'],[name='show_full_article_content'],[id='article_category_filters'],[id='article_author_filters'],[name='csrf_token']"
 				hx-swap="none"
 				hx-indicator="#processing"
 			>
@@ -474,7 +474,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
-							<input id="nickname" required type="text" name="user_nickname" value={ request.GetNickname() } placeholder="My Subscription" class="input input-primary bg-base-content/10"/>
+							<input id="nickname" required type="text" name="nickname" value={ request.GetNickname() } placeholder="My Subscription" class="input input-primary bg-base-content/10"/>
 						</div>
 					</div>
 				</div>
@@ -549,7 +549,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			</form>
 			// Categories
 			{{ categoryMgmtPath := "/user/subscription/category" }}
-			@CategoryManagement(categoryMgmtPath, "user_categories", nil, request.Categories)
+			@CategoryManagement(categoryMgmtPath, "categories", nil, request.Categories)
 			// Action buttons.
 			<div class="flex flex-1 items-center justify-end gap-x-6">
 				<div id="processing" class="htmx-indicator">
@@ -640,7 +640,7 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 							<input
 								id="nickname"
 								type="text"
-								name="user_nickname"
+								name="nickname"
 								value={ request.Nickname }
 								placeholder="My cool subscription"
 								class={ templ.KV("input input-primary bg-base-content/10",request.NicknameErr == nil), templ.KV("input input-error bg-base-content/10",request.NicknameErr !=nil) }
@@ -654,7 +654,7 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 			</form>
 			// Categories
 			{{ categoryMgmtPath := "/user/subscription/category" }}
-			@CategoryManagement(categoryMgmtPath, "user_categories", nil, request.Categories)
+			@CategoryManagement(categoryMgmtPath, "categories", nil, request.Categories)
 			// Action buttons.
 			<div class="flex flex-1 items-center justify-end gap-x-6">
 				<div id="processing" class="htmx-indicator">
@@ -896,7 +896,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 							id="text"
 							type="text"
 							required
-							name="customisation.user_nickname"
+							name="customisation.nickname"
 							value={ request.Customisation.Nickname }
 							placeholder="My Search Subscription"
 							class="input input-primary bg-base-content/10 w-full"
@@ -907,7 +907,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 			</div>
 			// Categories
 			{{ categoryMgmtPath := "/user/subscription/category" }}
-			@CategoryManagement(categoryMgmtPath, "customisation.user_categories", nil, request.Customisation.Categories)
+			@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
 			// Action buttons.
 			<div class="flex flex-1 items-center justify-end gap-x-6">
 				<div id="processing" class="htmx-indicator">
