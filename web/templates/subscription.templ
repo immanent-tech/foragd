@@ -344,8 +344,12 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 		<div id="update-notifications" sse-connect={ "/list/subscriptions/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
 		@FilterControls(models.GetCategoryCounts(subscriptions...), filters)
 		<section class="mt-4">
-			@Grid() {
-				@SubscriptionsList(pagination, subscriptions...)
+			if len(subscriptions) > 0 {
+				@Grid() {
+					@SubscriptionsList(pagination, subscriptions...)
+				}
+			} else {
+				@EmptyContent()
 			}
 		</section>
 	}

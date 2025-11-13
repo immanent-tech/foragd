@@ -62,11 +62,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			// Render appropriate content.
 			switch req.Method {
 			case http.MethodGet:
-				if len(subscriptions) > 0 {
-					template = templates.SubscriptionsGrid(pagination, subscriptions...)
-				} else {
-					template = templates.EmptyContent()
-				}
+				template = templates.SubscriptionsGrid(pagination, subscriptions...)
 			case http.MethodPost:
 				if len(subscriptions) > 0 {
 					template = templates.SubscriptionsList(pagination, subscriptions...)
@@ -92,12 +88,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			// Render appropriate content.
 			switch req.Method {
 			case http.MethodGet:
-				if len(articles) > 0 {
-					template = templates.ArticlesGrid(articles, pagination)
-				} else {
-					filters.Subscriptions = nil
-					template = templates.EmptyContent()
-				}
+				template = templates.ArticlesGrid(articles, pagination)
 			case http.MethodPost:
 				if len(articles) > 0 {
 					template = templates.ArticlesList(articles, pagination)
