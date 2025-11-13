@@ -1126,6 +1126,21 @@ components:
           properties:
             mark:
               $ref: '#/components/schemas/Mark'
+    MarkSubscriptionRequest:
+      description: >
+        contains the parameters for marking a subscription.
+      type: object
+      required:
+        - subscription_id
+        - mark
+        - view
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        mark:
+          $ref: '#/components/schemas/Mark'
+        view:
+          $ref: '#/components/schemas/View'
     ObjectIssueRequest:
       description: >
         contains details about issues with an object.

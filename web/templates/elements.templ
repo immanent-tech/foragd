@@ -162,9 +162,9 @@ templ NewLink(options ...Option[element]) {
 		{{ option(link) }}
 	}
 	{{ link.SetAttribute("class", strings.Join(link.GetClasses(), " ")) }}
-	if !link.HasAttribute("hx-swap") {
-		{{ link.SetAttribute("hx-swap", "innerHTML transition:true") }}
-	}
+	// if !link.HasAttribute("hx-swap") {
+	// 	{{ link.SetAttribute("hx-swap", "innerHTML transition:true") }}
+	// }
 	<a
 		if link.GetID() != "" {
 			id={ link.GetID() }

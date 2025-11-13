@@ -256,6 +256,10 @@ func GetSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID) (*
 	case len(subscriptions) != 1:
 		return nil, fmt.Errorf("get subscription: %w: too many subscriptions", ErrInvalidAPIResult)
 	}
+	err = addSubscriptionDynamicInfo(ctx, dataAPI, subscriptions)
+	if err != nil {
+		return nil, fmt.Errorf("get subscription: add dynamic info: %w", err)
+	}
 
 	return subscriptions[0], nil
 }

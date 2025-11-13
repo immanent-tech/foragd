@@ -88,7 +88,7 @@ func FavoritesLayout(subscriptions models.Subscriptions, articles models.Article
 					}
 					ctx = templ.InitializeContext(ctx)
 					for subscription := range slices.Values(subscriptions) {
-						templ_7745c5c3_Err = subscriptionCard(subscription).Render(ctx, templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = SubscriptionCard(subscription).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}

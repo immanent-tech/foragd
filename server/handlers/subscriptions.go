@@ -31,6 +31,56 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+// MarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
+func MarkSubscription(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Extract request values.
+		request := &models.MarkSubscriptionRequest{
+			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
+			Mark:           models.Mark(chi.URLParam(req, models.ParamMark)),
+			View:           models.View(req.FormValue(models.ParamView)),
+		}
+		err := request.Valid()
+		if err != nil {
+			res.Header().Add(htmx.HeaderReswap, "none")
+			renderPartial(templates.ServerErrorNotification(
+				models.NewErrorMessage("Unable to mark subscription", "This might be a temporary issue, please try again."),
+			)).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+		}
+		// Mark subscription.
+		err = models.MarkSubscriptions(req.Context(), api, request.Mark, request.SubscriptionID)
+		if err != nil {
+			res.Header().Add(htmx.HeaderReswap, "none")
+			renderPartial(
+				templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to mark subscription", "This might be a temporary error, please try again.")),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
+		}
+
+		switch request.View {
+		case models.ViewRead, models.ViewUnread:
+			res.Header().Set(htmx.HeaderReswap, "delete transition:true")
+			res.WriteHeader(http.StatusOK)
+		case models.ViewAll:
+			subscription, err := models.GetSubscription(req.Context(), api, request.SubscriptionID)
+			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
+				renderPartial(
+					templates.ServerErrorNotification(
+						models.NewErrorMessage("Unable to mark subscription", "This might be a temporary error, please try again.")),
+				).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
+			}
+			res.Header().Set(htmx.HeaderReswap, "outerHTML transition:true")
+			renderPartial(templates.SubscriptionCard(subscription)).ServeHTTP(res, req)
+		}
+
+		return nil
+	})).ServeHTTP
+}
+
 // EditSubscription handles presenting the user with a form for editing a subscription.
 func (a *API) EditSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {

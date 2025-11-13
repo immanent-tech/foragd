@@ -31,7 +31,7 @@ templ AddFeedsetsSuccessNotification(feedsets []string) {
 }
 
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
-templ subscriptionCard(s *models.Subscription) {
+templ SubscriptionCard(s *models.Subscription) {
 	{{ user, _ := models.UserFromCtx(ctx) }}
 	<div
 		id={ s.GetID() }
@@ -120,9 +120,8 @@ templ subscriptionContextMenu(s *models.Subscription) {
 				}
 				@NewLink(
 					WithHXMethod(http.MethodPost, markURL),
-					WithHXInclude("[name='csrf_token']"),
+					WithHXInclude("[name='csrf_token'],#content-filters"),
 					WithHXTarget("#"+s.GetID()),
-					WithHXSwap("outerHTML swap:1s"),
 					WithClasses("context-menu-item-base"),
 				) {
 					switch s.GetStats().IsUnread() {
@@ -358,7 +357,7 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 templ SubscriptionsList(pagination models.Pagination, subscriptions ...*models.Subscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	for subscription := range slices.Values(subscriptions) {
-		@subscriptionCard(subscription)
+		@SubscriptionCard(subscription)
 	}
 	if pagination != "" && len(subscriptions) == filters.GetCount() {
 		// Add pagination htmx props to last article.

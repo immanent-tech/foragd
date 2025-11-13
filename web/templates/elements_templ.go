@@ -191,9 +191,6 @@ func NewLink(options ...Option[element]) templ.Component {
 			option(link)
 		}
 		link.SetAttribute("class", strings.Join(link.GetClasses(), " "))
-		if !link.HasAttribute("hx-swap") {
-			link.SetAttribute("hx-swap", "innerHTML transition:true")
-		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

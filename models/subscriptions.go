@@ -566,6 +566,15 @@ func (r *EditSubscriptionRequest) HasError() bool {
 	return r.NicknameErr != nil || r.CategoriesErr != nil || r.ImageErr != nil
 }
 
+// Valid checks that the MarkSubscriptionRequest contains valid data.
+func (r *MarkSubscriptionRequest) Valid() error {
+	err := validation.Validate.Struct(r)
+	if err != nil {
+		return fmt.Errorf("mark subscription request is invalid: %w", err)
+	}
+	return nil
+}
+
 // AddSubscriptionResult represents the result of creating a new subscription.
 type AddSubscriptionResult struct {
 	Subscription *FeedSubscription
