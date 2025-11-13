@@ -15,6 +15,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/bulk"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operationtype"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	slogctx "github.com/veqryn/slog-context"
 )
 
@@ -87,6 +88,8 @@ func (r *Request) AddOperation(operation Operation) error {
 			err = r.CreateOp(types.CreateOperation{Index_: &operation.index, RequireAlias: &requireIndexAlias}, operation.document)
 		}
 	case BulkUpdate:
+		// If there is an update operation, trigger a refresh.
+		r.Bulk = r.Refresh(refresh.True)
 		if operation.id == "" {
 			return fmt.Errorf("%w: a doc id is required", ErrCreateOpFailed)
 		}
