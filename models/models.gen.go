@@ -546,7 +546,7 @@ type ListDisplayFilters struct {
 // Mark applies the given mark action to objects.
 type Mark string
 
-// MarkArticleRequest represents a user request for marking an article as read or unread.
+// MarkArticleRequest contains the parameters for marking an article.
 type MarkArticleRequest struct {
 	// ItemID is the unique ID of an item.
 	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
@@ -556,6 +556,9 @@ type MarkArticleRequest struct {
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// View The state of objects to view.
+	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
 // MarkObjectParams defines model for MarkObjectParams.

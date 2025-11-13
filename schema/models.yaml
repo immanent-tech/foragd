@@ -919,22 +919,6 @@ components:
               $ref: '#/components/schemas/UserID'
             subscription_id:
               $ref: '#/components/schemas/SubscriptionID'
-    MarkArticleRequest:
-      description: >
-        represents a user request for marking an article as read or unread.
-      type: object
-      required:
-        - subscription_id
-        - mark
-        - item_id
-        - view
-      properties:
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
-        item_id:
-          $ref: '#/components/schemas/ItemID'
-        mark:
-          $ref: '#/components/schemas/Mark'
     JobState:
       description: >
         represents the stored state of a scheduled job.
@@ -1137,6 +1121,24 @@ components:
       properties:
         subscription_id:
           $ref: '#/components/schemas/SubscriptionID'
+        mark:
+          $ref: '#/components/schemas/Mark'
+        view:
+          $ref: '#/components/schemas/View'
+    MarkArticleRequest:
+      description: >
+        contains the parameters for marking an article.
+      type: object
+      required:
+        - subscription_id
+        - item_id
+        - mark
+        - view
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        item_id:
+          $ref: '#/components/schemas/ItemID'
         mark:
           $ref: '#/components/schemas/Mark'
         view:

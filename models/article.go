@@ -247,15 +247,15 @@ func (s *ArticleState) MarkUnread(markedAt time.Time) {
 }
 
 // Valid returns a boolean indicating whether the object is valid.
-func (r *MarkArticleRequest) Valid() (bool, error) {
+func (r *MarkArticleRequest) Valid() error {
 	if r == nil {
-		return false, fmt.Errorf("request is invalid: %w", validation.ErrNilObject)
+		return fmt.Errorf("request is invalid: %w", validation.ErrNilObject)
 	}
 	err := validation.Validate.Struct(r)
 	if err != nil {
-		return false, fmt.Errorf("mark article request: %w", err)
+		return fmt.Errorf("mark article request: %w", err)
 	}
-	return true, nil
+	return nil
 }
 
 // NewArchivedArticle creates a new archived article for long-term storage.

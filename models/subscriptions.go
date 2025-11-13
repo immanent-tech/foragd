@@ -257,7 +257,7 @@ func (s *Subscription) MarkItemsRead(itemIDs ...ItemID) {
 // MarkItemsUnread will mark the given items as unread for the subscription.
 func (s *Subscription) MarkItemsUnread(itemIDs ...ItemID) {
 	for itemID := range slices.Values(itemIDs) {
-		if !s.FeedData.GetItemState(itemID).Read {
+		if s.FeedData.GetItemState(itemID).Read {
 			s.FeedData.SetItemState(itemID, &ArticleState{Read: false, UpdatedAt: time.Now().UTC()})
 		}
 	}

@@ -231,7 +231,6 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		})
 		// Objects.
 		r.Get("/view/{object}/{id}", handlers.ViewObject(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/mark/{object}/{id}/{mark}", handlers.MarkObject(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/similar", handlers.FindSimilar(handler.Elastic))
 		// r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/share", handlers.ShareObject(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues(handler.Elastic))
@@ -246,6 +245,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
 			r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
 		})
+		// Article specific.
+		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}/{mark}", handlers.MarkArticle(handler.Elastic))
 		// General.
 		r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues(handler))
 		r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues(handler))

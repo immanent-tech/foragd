@@ -149,14 +149,14 @@ templ ArticleCard(article *models.Article) {
 						// Mark action.
 						<form id={ "mark-" + article.GetID() }>
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-							{{ var markSwap string }}
-							if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewAll {
-								{{ markSwap = "outerHTML " }}
-								// @MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "context-menu-item-base")
-							} else {
-								{{ markSwap = "delete " }}
-								// @MarkObjectLink(article, "#"+article.GetID(), "delete", "context-menu-item-base")
-							}
+							// {{ var markSwap string }}
+							// if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewAll {
+							// 	{{ markSwap = "outerHTML " }}
+							// 	// @MarkObjectLink(article, "#"+article.GetID(), "outerHTML", "context-menu-item-base")
+							// } else {
+							// 	{{ markSwap = "delete " }}
+							// 	// @MarkObjectLink(article, "#"+article.GetID(), "delete", "context-menu-item-base")
+							// }
 							{{ var markURL string }}
 							if article.IsUnread() {
 								{{ markURL = "/mark/article/" + article.GetID() + "/read" }}
@@ -166,8 +166,7 @@ templ ArticleCard(article *models.Article) {
 							@NewLink(
 								WithHXMethod(http.MethodPost, markURL),
 								WithHXTarget("#"+article.GetID()),
-								WithHXSwap(markSwap),
-								WithHXInclude("[name='csrf_token']"),
+								WithHXInclude("[name='csrf_token'],#content-filters"),
 								WithClasses("context-menu-item-base"),
 							) {
 								switch article.IsUnread() {
@@ -270,7 +269,7 @@ templ ArticleContent(article *models.Article) {
 							<form>
 								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 								<div id={ "mark_" + article.GetID() }>
-									@UpdateViewArticleMark(article)
+									@UpdateViewArticleMark(article.GetID(), article.IsUnread())
 								</div>
 							</form>
 							// Favorite action.
@@ -317,10 +316,11 @@ templ ArticleContent(article *models.Article) {
 			// read and mark it so (when the user has set this option).
 			{{ user, _ := models.UserFromCtx(ctx) }}
 			if user.GetSettings().MarkArticleReadOnView && article.IsUnread() {
+				<input type="hidden" name="view" value={ models.ViewAll }/>
 				<div
 					hx-post={ "/mark/article/" + article.GetID() + "/read" }
 					hx-target={ "#mark_" + article.GetID() }
-					hx-include="[name='csrf_token']"
+					hx-include="[name='csrf_token'],[name='view']"
 					hx-vals={ models.GenerateHXVals(map[string]string{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
 					hx-swap="innerHTML"
 					hx-trigger="intersect once,load delay:10s"
@@ -333,20 +333,20 @@ templ ArticleContent(article *models.Article) {
 }
 
 // UpdateViewArticleMark updates the mark action when viewing an article.
-templ UpdateViewArticleMark(article *models.Article) {
+templ UpdateViewArticleMark(id string, isUnread bool) {
 	{{ var markURL string }}
-	if article.IsUnread() {
-		{{ markURL = "/mark/article/" + article.GetID() + "/read" }}
+	if isUnread {
+		{{ markURL = "/mark/article/" + id + "/read" }}
 	} else {
-		{{ markURL = "/mark/article/" + article.GetID() + "/unread" }}
+		{{ markURL = "/mark/article/" + id + "/unread" }}
 	}
 	@NewLink(
 		WithHXMethod(http.MethodPost, markURL),
-		WithHXTarget("#mark_"+article.GetID()),
+		WithHXTarget("#mark_"+id),
 		WithHXInclude("[name='csrf_token']"),
 		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 	) {
-		switch article.IsUnread() {
+		switch isUnread {
 			case true:
 				@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 				Mark Read
