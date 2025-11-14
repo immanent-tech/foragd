@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/a-h/templ"
@@ -246,8 +247,18 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
 		}
-		// Update the favorite button.
-		renderPartial(templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), false)).ServeHTTP(res, req)
+		// Update the display as appropriate.
+		currentURL, found := htmx.GetCurrentURL(req)
+		if found && strings.Contains(currentURL, "/favorites") {
+			// On the favorites page, remove the subscription card when removing it as a favorite.
+			slog.Info("yes")
+			res.Header().Add(htmx.HeaderReswap, "delete transition:true")
+			res.Header().Set(htmx.HeaderRetarget, "#"+id)
+			res.WriteHeader(http.StatusOK)
+		} else {
+			// Update the favorite button.
+			renderPartial(templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), false)).ServeHTTP(res, req)
+		}
 		return nil
 	})).ServeHTTP
 }
