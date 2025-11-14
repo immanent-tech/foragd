@@ -82,6 +82,41 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// RemoveSubscription handles removing (unsubscribing) from a subscription.
+func RemoveSubscription(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		request := &models.RemoveSubscriptionRequest{
+			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
+			Nickname:       req.FormValue("nickname"),
+		}
+		err := request.Valid()
+		if err != nil {
+			res.Header().Add(htmx.HeaderReswap, "none")
+			renderPartial(templates.ServerErrorNotification(
+				models.NewErrorMessage("Server could not complete request", "This might be temporary, please try again."),
+			)).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+		}
+		switch req.FormValue("confirmed") {
+		case "false":
+			renderPartial(templates.RemoveSubscriptionModal(request)).ServeHTTP(res, req)
+		case "true":
+			err = models.RemoveSubscriptions(req.Context(), api, request.SubscriptionID)
+			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
+				renderPartial(
+					templates.ServerErrorNotification(
+						models.NewErrorMessage("Unable to unsubscribe to "+request.Nickname, "This might be a temporary error, please try again.")),
+				).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("remove subscription: %w", err), http.StatusInternalServerError)
+			}
+			// Show success notification.
+			renderPartial(templates.Notification(models.NewSuccessMessage("Unsubscribed from "+request.Nickname, ""), 5*time.Second)).ServeHTTP(res, req)
+		}
+		return nil
+	})).ServeHTTP
+}
+
 // EditSubscription handles presenting the user with a form for editing a subscription.
 func (a *API) EditSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {

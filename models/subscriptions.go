@@ -575,6 +575,15 @@ func (r *MarkSubscriptionRequest) Valid() error {
 	return nil
 }
 
+// Valid checks that the RemoveSubscriptionRequest contains valid data.
+func (r *RemoveSubscriptionRequest) Valid() error {
+	err := validation.Validate.Struct(r)
+	if err != nil {
+		return fmt.Errorf("remove subscription request is invalid: %w", err)
+	}
+	return nil
+}
+
 // AddSubscriptionResult represents the result of creating a new subscription.
 type AddSubscriptionResult struct {
 	Subscription *FeedSubscription

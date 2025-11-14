@@ -1125,6 +1125,21 @@ components:
           $ref: '#/components/schemas/Mark'
         view:
           $ref: '#/components/schemas/View'
+    RemoveSubscriptionRequest:
+      description: >
+        contains the parameters for removing a subscription.
+      type: object
+      required:
+        - subscription_id
+        - nickname
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        nickname:
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: nickname
+            validate: required
     MarkArticleRequest:
       description: >
         contains the parameters for marking an article.

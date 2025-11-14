@@ -235,10 +235,10 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		// r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/share", handlers.ShareObject(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Get("/remove/{object}/{id}", handlers.ConfirmRemoveObject(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/remove/{object}/{id}", handlers.RemoveObject(handler.Elastic))
 		// Subscription specific.
 		r.With(middlewares.RequireHTMX).Post("/mark/subscription/{subscription_id}/{mark}", handlers.MarkSubscription(handler.Elastic))
+		r.With(middlewares.RequireHTMX).Post("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
+		r.With(middlewares.RequireHTMX).Delete("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
 		r.Route("/edit/subscription/{id}", func(r chi.Router) {
 			r.Get("/", handler.EditSubscription())
 			r.With(middlewares.RequireHTMX).Post("/", handlers.SaveSubscription(handler.Elastic))

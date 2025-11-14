@@ -668,6 +668,14 @@ type ObjectType string
 // Pagination contains data for paginating through results.
 type Pagination = string
 
+// RemoveSubscriptionRequest contains the parameters for removing a subscription.
+type RemoveSubscriptionRequest struct {
+	Nickname string `form:"nickname" json:"nickname" validate:"required"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
 // SearchRequest represents a search request by the user.
 type SearchRequest struct {
 	// Authors a list of search terms for authors.
