@@ -13,6 +13,7 @@ const (
 	csrfTokenCtxKey     contextKey = "csrfToken"
 	pathCtxKey          contextKey = "req_path"
 	searchRequestCtxKey contextKey = "search_request"
+	subscriptionsCtxKey contextKey = "subscriptions"
 )
 
 type contextKey string
@@ -87,4 +88,20 @@ func SearchRequestFromCtx(ctx context.Context) *SearchRequest {
 		return NewSearchRequest()
 	}
 	return &request
+}
+
+// SubscriptionsToCtx stores the slice of Subscriptions in the context. Useful for pre-fetching/generating subscriptions
+// for later usage.
+func SubscriptionsToCtx(ctx context.Context, subscriptions Subscriptions) context.Context {
+	return context.WithValue(ctx, subscriptionsCtxKey, subscriptions)
+}
+
+// SubscriptionsFromCtx retrieves the slice of Subscriptions from the context. If no Subscriptions slice is in the
+// context, it returns an empty slice.
+func SubscriptionsFromCtx(ctx context.Context) Subscriptions {
+	subscriptions, found := ctx.Value(subscriptionsCtxKey).(Subscriptions)
+	if !found {
+		return make(Subscriptions, 0)
+	}
+	return subscriptions
 }

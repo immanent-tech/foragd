@@ -254,14 +254,14 @@ templ ResultsList(articles models.Articles, pagination models.Pagination) {
 templ SearchFilters(attributes templ.Attributes) {
 	{{ request := models.SearchRequestFromCtx(ctx) }}
 	// Search form.
-	<div id="search-filters" class="mx-auto max-w-3xl mt-4 p-4 overflow-y-auto" { attributes... }>
+	<div id="search-filters" class="mx-auto max-w-3xl mt-4 p-4" { attributes... }>
 		<form
+			id="search-results"
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
 			hx-include="[name='csrf_token']"
 			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
-			_="on htmx:afterRequest(successful) if successful add .hidden to #search-filters-dialog"
 		>
 			<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
 				// Full text search filter.
@@ -310,43 +310,39 @@ templ SearchFilters(attributes templ.Attributes) {
 						/>
 					</div>
 				</div>
-				// {{ user, _ := models.UserFromCtx(ctx) }}
-				// if user != nil {
-				// 	// Include subscriptions filter.
-				// 	<div class="sm:col-span-full">
-				// 		<label for="subscriptions-filter-select" class="block text-sm/6 font-medium">In subscriptions</label>
-				// 		<div class="mt-2">
-				// 			<select
-				// 				id="subscriptions-filter-select"
-				// 				hx-post="/search/filter/subscription"
-				// 				hx-target="next #subscription-filters"
-				// 				hx-vals='{"inputName": "subscriptions"}'
-				// 				hx-swap="beforeend"
-				// 				hx-push-url="false"
-				// 				name="subscription-filter-select"
-				// 				class="select select-sm w-full bg-base-300"
-				// 				_="on htmx:afterRequest halt"
-				// 			>
-				// 				<option disabled selected>Choose...</option>
-				// 				for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
-				// 					<option value={ s.GetID() + "|" + s.GetTitle() }>{ s.GetTitle() }</option>
-				// 				}
-				// 			</select>
-				// 			<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
-				// 				<div class="mt-2 sm:mt-0">
-				// 					<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
-				// 						for id := range slices.Values(request.Subscriptions) {
-				// 							{{ subscription := user.GetFeedSubscriptions().GetByID(id) }}
-				// 							if subscription != nil {
-				// 								@SubscriptionFilter(id, subscription.GetTitle(), "subscriptions")
-				// 							}
-				// 						}
-				// 					</div>
-				// 				</div>
-				// 			</div>
-				// 		</div>
-				// 	</div>
-				// }
+				// Subscriptions filter.
+				<div class="sm:col-span-full">
+					<label class="block text-sm/6 font-medium">In subscriptions</label>
+					<div class="mt-2">
+						<label class="input input-sm bg-base-content/10 w-full">
+							@tabler.Search(i.Props{Class: "size-5"})
+							<input
+								id="subscriptions-filter-select"
+								name="subscription-text"
+								placeholder="Search subscriptions..."
+								autocomplete="off"
+								hx-post="/search/subscription/suggestions"
+								hx-trigger="input changed delay:500ms,consume"
+								hx-target="#subscription-filter-options"
+								hx-params="subscription-text,csrf_token"
+								hx-include="[name='csrf_token']"
+								hx-push-url="false"
+							/>
+						</label>
+						<div
+							class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+							id="subscription-filter-options"
+						></div>
+						<div
+							id="subscription-filters"
+							class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+						>
+							for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
+								@AddSearchSubscriptionFilter(subscription.GetID(), subscription.GetTitle())
+							}
+						</div>
+					</div>
+				</div>
 				// View filter.
 				<div class="sm:col-span-2">
 					<fieldset>
@@ -463,68 +459,67 @@ templ SearchFilters(attributes templ.Attributes) {
 					</select>
 				</div>
 			</div>
-			{ children... }
-		</form>
-	</div>
-	// Help dialog.
-	<div class="absolute right-2 top-2">
-		@HelpPopover("filter-operators-help", "bottom end") {
-			<div tabindex="0" class="card-body card-sm bg-base-300">
-				<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-				<ul class="gap-y-2">
-					<li>+ signifies AND operation (i.e., food AND beverages)</li>
-					<li>| signifies OR operation (i.e., food OR beverages)</li>
-					<li>- negates a the word (i.e., NOT alcoholic)</li>
-					<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
-					<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
-				</ul>
+			<div class="mt-6 flex items-center justify-end gap-x-6">
+				<button
+					type="button"
+					class="btn btn-sm btn-seconday btn-soft"
+					_="on click add .hidden to #search-filters-dialog"
+				>Cancel</button>
+				<button
+					type="submit"
+					class="btn btn-sm btn-primary btn-soft"
+					_="on click add .hidden to #search-filters-dialog"
+				>Search</button>
 			</div>
-		}
+		</form>
+		// Help dialog.
+		<div class="absolute right-2 top-2">
+			@HelpPopover("filter-operators-help", "bottom end") {
+				<div tabindex="0" class="text-xs/tight sm:text-sm/tight rounded-box p-4 shadow-sm border border-base-content/15 bg-base-300">
+					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+					<ul class="gap-y-2">
+						<li>+ signifies AND operation (i.e., food AND beverages)</li>
+						<li>| signifies OR operation (i.e., food OR beverages)</li>
+						<li>- negates a the word (i.e., NOT alcoholic)</li>
+						<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
+						<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
+					</ul>
+				</div>
+			}
+		</div>
 	</div>
-	// <button type="button" command="show-modal" commandfor="search-filters-help" class="btn btn-sm btn-ghost btn-square absolute right-2 top-2">
-	// 	<span class="sr-only">Search filters help</span>
-	// 	<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-info">
-	// 		<path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"></path>
-	// 	</svg>
-	// </button>
-	// <el-dialog>
-	// 	<dialog id="search-filters-help" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
-	// 		<el-dialog-backdrop class="fixed inset-0 bg-base-100/80 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
-	// 		<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
-	// 			<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-sm sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
-	// 				<div>
-	// 					<div class="mt-3 sm:mt-5">
-	// 						<h3 id="dialog-title" class="text-base font-semibold">Search Help</h3>
-	// 						<div class="mt-2 text-sm space-y-2">
-	// 							<p>By default words are matched with OR (i.e., cats OR dogs). The following operators can be used for more refined searches:</p>
-	// 							<ul class="gap-y-2">
-	// 								<li>+ signifies AND operation (i.e., food AND beverages)</li>
-	// 								<li>| signifies OR operation (i.e., food OR beverages)</li>
-	// 								<li>- negates a the word (i.e., NOT alcoholic)</li>
-	// 								<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
-	// 								<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
-	// 							</ul>
-	// 						</div>
-	// 					</div>
-	// 				</div>
-	// 				<div class="mt-5 sm:mt-6 text-center">
-	// 					<button type="button" command="close" commandfor="search-filters-help" class="btn btn-wide btn-outline">Close</button>
-	// 				</div>
-	// 			</el-dialog-panel>
-	// 		</div>
-	// 	</dialog>
-	// </el-dialog>
 }
 
-templ SubscriptionFilter(id, name, inputName string) {
-	<span id={ id } class="m-1 inline-flex items-center rounded-full border border-base-content/90 bg-base-300 py-1.5 pr-2 pl-3 text-sm font-medium text-base-content">
-		<span>{ name }</span>
-		<input type="hidden" name={ inputName } value={ id }/>
-		<button type="button" _={ "on click remove #" + id } class="ml-1 inline-flex size-4 shrink-0 rounded-full p-1">
-			<span class="sr-only">Remove filter for { name }</span>
-			@tabler.X(i.Props{Class: "size-2"})
-		</button>
-	</span>
+templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
+	for subscription := range slices.Values(subscriptions) {
+		@NewButton(
+			WithHXMethod(http.MethodPost, "/search/subscription"),
+			WithHXTarget("next #subscription-filters"),
+			WithHXSwap("beforeend"),
+			WithHXVals(map[string]string{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}),
+			WithHXInclude("[name='csrf_token']"),
+			WithHXParams("subscription_id,subscription_name,csrf_token"),
+			WithoutHXPushURL(),
+			WithClasses("btn-sm"),
+			WithCustomAttribute("_", "on htmx:afterRequest(successful) remove me"),
+			// then set the previous #subscriptions-filter-select value to ''
+		) {
+			{ subscription.GetTitle() }
+			@tabler.Plus(i.Props{Class: "size-5"})
+		}
+	}
+}
+
+templ AddSearchSubscriptionFilter(id, name string) {
+	@NewButton(
+		WithCustomAttribute("type", "button"),
+		WithCustomAttribute("_", "on click remove me then halt"),
+		WithClasses("btn-sm"),
+	) {
+		<input type="hidden" name="subscriptions" value={ id }/>
+		{ name }
+		@tabler.X(i.Props{Class: "size-5"})
+	}
 }
 
 // GlobalSearch renders a command palette element for powering global search within the app.
@@ -533,7 +528,7 @@ templ GlobalSearch() {
 		<label for="global-search" class="w-full sm:max-w-3xl input input-accent text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10">
 			@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-accent"})
 			<form
-				hx-trigger="input changed from:#global-search delay:100ms"
+				hx-trigger="input changed delay:100ms"
 				hx-post="/search/suggestions"
 				hx-target="#global-search-suggestions"
 				hx-include="[name='csrf_token'],#search-filters"
@@ -560,21 +555,16 @@ templ GlobalSearch() {
 		// _="on keydown[key is 'Escape'] add @hidden end on click from elsewhere add .hidden end"
 		<el-command-list
 			id="global-search-suggestions"
-			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
+			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl h-1/2 sm:h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
 			_="on keydown[key is 'Escape'] add .hidden"
 		></el-command-list>
 		<div
 			id="search-filters-dialog"
-			class="hidden absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl h-auto lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2 outline-1 -outline-offset-1 outline-base-content/10"
+			class="hidden absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl lg:max-h-160 scroll-py-2 overflow-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2 outline-1 -outline-offset-1 outline-base-content/10"
 			_="on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end"
 		>
 			// or focusout from body
-			@SearchFilters(nil) {
-				<div class="mt-6 flex items-center justify-end gap-x-6">
-					<button type="button" class="btn btn-sm btn-seconday btn-soft" _="on click add .hidden to #search-filters">Cancel</button>
-					<button type="submit" class="btn btn-sm btn-primary btn-soft">Search</button>
-				</div>
-			}
+			@SearchFilters(nil)
 		</div>
 	</el-command-palette>
 }

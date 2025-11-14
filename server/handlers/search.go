@@ -75,6 +75,20 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		}
 		// Embed the request in the context.
 		ctx := models.SearchRequestToCtx(req.Context(), *request)
+		// If the search request has subscription filters, get subscription details.
+		if len(request.Subscriptions) > 0 {
+			subscriptions, err := models.GetSubscriptions(req.Context(), api, request.Subscriptions...)
+			if err != nil {
+				msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("unable to retrieve subscriptions: %w", err),
+					http.StatusInternalServerError,
+				)
+			}
+			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
+		}
+
 		// Find subscriptions and articles that match search request.
 		var articles models.Articles
 		var template templ.Component
@@ -141,14 +155,33 @@ func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 // AddSubscriptionFilter handles adding a subscription as a search filter.
 func AddSubscriptionFilter() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		data := req.FormValue("subscription-filter-select")
-		inputName := req.FormValue("inputName")
-		if data == "" || inputName == "" {
-			res.WriteHeader(http.StatusNoContent)
+		id := req.FormValue("subscription_id")
+		name := req.FormValue("subscription_name")
+		if id == "" || name == "" {
+			res.WriteHeader(http.StatusUnprocessableEntity)
 			return nil
 		}
-		values := strings.Split(data, "|")
-		renderPartial(templates.SubscriptionFilter(values[0], values[1], inputName)).ServeHTTP(res, req)
+		renderPartial(templates.AddSearchSubscriptionFilter(id, name)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
+}
+
+func GetSubscriptionFilterSuggestions(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		text := req.FormValue("subscription-text")
+		if text == "" {
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		subscriptions, err := models.GetSubscriptionSuggestions(req.Context(), api, text)
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if errors.Is(err, models.ErrNotFound) {
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		renderPartial(templates.SearchSubscriptionFilterSuggestions(subscriptions)).ServeHTTP(res, req)
+	}).ServeHTTP
 }

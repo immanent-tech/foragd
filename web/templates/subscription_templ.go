@@ -2183,13 +2183,13 @@ func manageSearchSubscription(request *models.SearchSubscriptionRequest, action 
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 138, "<div tabindex=\"0\" class=\"card-body card-sm bg-base-300\"><p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p><ul class=\"gap-y-2\"><li>+ signifies AND operation (i.e., food AND beverages)</li><li>| signifies OR operation (i.e., food OR beverages)</li><li>- negates a the word (i.e., NOT alcoholic)</li><li>\"\" represents an exact phrase match (i.e., \"rum-based drinks\")</li><li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li></ul></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 138, "<div tabindex=\"0\" class=\"text-xs/tight sm:text-sm/tight rounded-box p-4 shadow-sm border border-base-content/15 bg-base-300\"><p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p><ul class=\"gap-y-2\"><li>+ signifies AND operation (i.e., food AND beverages)</li><li>| signifies OR operation (i.e., food OR beverages)</li><li>- negates a the word (i.e., NOT alcoholic)</li><li>\"\" represents an exact phrase match (i.e., \"rum-based drinks\")</li><li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li></ul></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = HelpPopover("filter-operators-help", "bottom end").Render(templ.WithChildren(ctx, templ_7745c5c3_Var92), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = HelpPopover("search-subscription-filter-operators-help", "bottom end").Render(templ.WithChildren(ctx, templ_7745c5c3_Var92), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2299,89 +2299,107 @@ func manageSearchSubscription(request *models.SearchSubscriptionRequest, action 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "\" class=\"input input-primary bg-base-content/10 w-full\"></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Published Within</h2></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full\"><select id=\"published_within\" name=\"search.published_within\" class=\"select select-primary my-2 bg-base-300\"><option value=\"last_hour\">Last hour</option> <option value=\"last_half_day\">Last 12 hours</option> <option value=\"last_day\">Last day</option> <option value=\"last_week\" selected>Last week</option> <option value=\"last_month\">Last month</option></select></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Sort By</h2></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full\"><select id=\"sort\" name=\"search.sort\" class=\"select select-primary my-2 bg-base-300\"><option value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "\" class=\"input input-primary bg-base-content/10 w-full\"></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">In Subscriptions</h2></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full mt-2\"><label class=\"input input-primary bg-base-content/10 w-full\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tabler.Search(i.Props{Class: "size-5"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 150, "<input id=\"subscriptions-filter-select\" name=\"subscription-text\" placeholder=\"Search subscriptions...\" autocomplete=\"off\" hx-post=\"/search/subscription/suggestions\" hx-trigger=\"input changed delay:500ms,consume\" hx-target=\"next #subscription-filter-options\" hx-params=\"subscription-text,csrf_token\" hx-include=\"[name='csrf_token']\" hx-push-url=\"false\"></label><div class=\"flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8\" id=\"subscription-filter-options\"></div><div id=\"subscription-filters\" class=\"flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
+				templ_7745c5c3_Err = AddSearchSubscriptionFilter(subscription.GetID(), subscription.GetTitle()).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 151, "</div></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Published Within</h2></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full\"><select id=\"published_within\" name=\"search.published_within\" class=\"select select-primary my-2 bg-base-300\"><option value=\"last_hour\">Last hour</option> <option value=\"last_half_day\">Last 12 hours</option> <option value=\"last_day\">Last day</option> <option value=\"last_week\" selected>Last week</option> <option value=\"last_month\">Last month</option></select></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Sort By</h2></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full\"><select id=\"sort\" name=\"search.sort\" class=\"select select-primary my-2 bg-base-300\"><option value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var100 string
 			templ_7745c5c3_Var100, templ_7745c5c3_Err = templ.JoinStringErrs(string(models.SortMostRelevant))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 880, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 881, Col: 48}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var100))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 150, "\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, "\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if request.Search.Sort == models.SortMostRelevant {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 151, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 152, ">Most Relevant</option> <option value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, ">Most Relevant</option> <option value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var101 string
 			templ_7745c5c3_Var101, templ_7745c5c3_Err = templ.JoinStringErrs(string(models.SortNewestFirst))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 888, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 889, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var101))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 153, "\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 155, "\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if request.Search.Sort == models.SortNewestFirst {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 154, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 155, ">Newest First</option> <option value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, ">Newest First</option> <option value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var102 string
 			templ_7745c5c3_Var102, templ_7745c5c3_Err = templ.JoinStringErrs(string(models.SortOldestFirst))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 894, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 895, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var102))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 156, "\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, "\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if request.Search.Sort == models.SortOldestFirst {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 157, " selected")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, " selected")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, ">Oldest First</option></select></div></div></div></form><div class=\"border-b border-base-content/60\"><h3 class=\"text-base font-semibold\">Subscription Info</h3></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Nickname</h2></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full mt-2\"><input id=\"text\" type=\"text\" required name=\"customisation.nickname\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 160, ">Oldest First</option></select></div></div></div></form><div class=\"border-b border-base-content/60\"><h3 class=\"text-base font-semibold\">Subscription Info</h3></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Nickname</h2></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full mt-2\"><input id=\"text\" type=\"text\" required name=\"customisation.nickname\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var103 string
 			templ_7745c5c3_Var103, templ_7745c5c3_Err = templ.JoinStringErrs(request.Customisation.Nickname)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 920, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 921, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var103))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 159, "\" placeholder=\"My Search Subscription\" class=\"input input-primary bg-base-content/10 w-full\" form=\"manage-search-subscription\"></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 161, "\" placeholder=\"My Search Subscription\" class=\"input input-primary bg-base-content/10 w-full\" form=\"manage-search-subscription\"></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2390,22 +2408,22 @@ func manageSearchSubscription(request *models.SearchSubscriptionRequest, action 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 160, "<div class=\"flex flex-1 items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><button type=\"button\" onclick=\"history.back()\" class=\"btn btn-secondary btn-soft\">Back</button> <button type=\"submit\" form=\"manage-search-subscription\" class=\"btn btn-primary btn-soft\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 162, "<div class=\"flex flex-1 items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><button type=\"button\" onclick=\"history.back()\" class=\"btn btn-secondary btn-soft\">Back</button> <button type=\"submit\" form=\"manage-search-subscription\" class=\"btn btn-primary btn-soft\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if action == "add" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 161, "Add")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 163, "Add")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 162, "Save")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 164, "Save")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 163, "</button></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "</button></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2453,7 +2471,7 @@ func ImportSubscriptions() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 164, "<div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2 class=\"text-2xl/7 font-bold sm:text-3xl sm:tracking-tight\">Import Subscriptions</h2></div><p class=\"mt-2 max-w-4xl text-sm sm:truncate text-base-content/80\">You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.</p></div><div class=\"border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0\"><form id=\"import\" hx-encoding=\"multipart/form-data\" hx-post=\"/user/import\" hx-target=\"#import-results\" hx-include=\"[name='csrf_token']\" hx-indicator=\"#processing\"><div class=\"sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6\"><label for=\"source\" class=\"block text-sm/6 font-medium\">OPML file</label><div class=\"mt-2 sm:col-span-2 sm:mt-0\"><input id=\"source\" type=\"file\" required name=\"source\" class=\"file-input file-input-primary bg-base-content/10\"></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><button type=\"button\" onclick=\"history.back()\" class=\"btn btn-secondary btn-soft\">Back</button> <button type=\"submit\" class=\"btn btn-primary btn-soft\">Import</button></div></form></div><div id=\"import-results\" class=\"space-y-4\"></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "<div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2 class=\"text-2xl/7 font-bold sm:text-3xl sm:tracking-tight\">Import Subscriptions</h2></div><p class=\"mt-2 max-w-4xl text-sm sm:truncate text-base-content/80\">You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.</p></div><div class=\"border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0\"><form id=\"import\" hx-encoding=\"multipart/form-data\" hx-post=\"/user/import\" hx-target=\"#import-results\" hx-include=\"[name='csrf_token']\" hx-indicator=\"#processing\"><div class=\"sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6\"><label for=\"source\" class=\"block text-sm/6 font-medium\">OPML file</label><div class=\"mt-2 sm:col-span-2 sm:mt-0\"><input id=\"source\" type=\"file\" required name=\"source\" class=\"file-input file-input-primary bg-base-content/10\"></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><button type=\"button\" onclick=\"history.back()\" class=\"btn btn-secondary btn-soft\">Back</button> <button type=\"submit\" class=\"btn btn-primary btn-soft\">Import</button></div></form></div><div id=\"import-results\" class=\"space-y-4\"></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2491,20 +2509,20 @@ func ImportResults(results []*models.AddFeedSubscriptionResult) templ.Component 
 		ctx = templ.ClearChildren(ctx)
 		successfulResults := filterSuccessfulResults(results)
 		failedResults := filterUnsuccessfulResults(results)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "<div class=\"min-w-0 flex-1 pb-8\"><h2 class=\"text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize\">Import Results</h2></div><p class=\"mt-2 max-w-4xl text-sm sm:truncate text-base-content/80\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "<div class=\"min-w-0 flex-1 pb-8\"><h2 class=\"text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize\">Import Results</h2></div><p class=\"mt-2 max-w-4xl text-sm sm:truncate text-base-content/80\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var107 string
 		templ_7745c5c3_Var107, templ_7745c5c3_Err = templ.JoinStringErrs("Imported: " + strconv.Itoa(len(successfulResults)) + " Failed: " + strconv.Itoa(len(failedResults)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1009, Col: 104}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1010, Col: 104}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var107))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 168, "</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2520,7 +2538,7 @@ func ImportResults(results []*models.AddFeedSubscriptionResult) templ.Component 
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 167, "Go to your subscriptions")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 169, "Go to your subscriptions")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2535,12 +2553,12 @@ func ImportResults(results []*models.AddFeedSubscriptionResult) templ.Component 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 168, "<div class=\"mt-10 space-y-8 border-t border-neutral\"><ul class=\"list\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 170, "<div class=\"mt-10 space-y-8 border-t border-neutral\"><ul class=\"list\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for response := range slices.Values(slices.Concat(successfulResults, failedResults)) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 169, "<li class=\"list-row items-center\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 171, "<li class=\"list-row items-center\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2550,20 +2568,20 @@ func ImportResults(results []*models.AddFeedSubscriptionResult) templ.Component 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 170, " <div><div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, " <div><div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var109 string
 				templ_7745c5c3_Var109, templ_7745c5c3_Err = templ.JoinStringErrs(response.Message.Summary)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1027, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1028, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var109))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 171, "</div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "</div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2572,43 +2590,43 @@ func ImportResults(results []*models.AddFeedSubscriptionResult) templ.Component 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, " <div><div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, " <div><div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var110 string
 				templ_7745c5c3_Var110, templ_7745c5c3_Err = templ.JoinStringErrs(response.Message.Summary)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1032, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1033, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var110))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if response.Message.HasDetails() {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, "<p class=\"list-col-wrap text-xs\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "<p class=\"list-col-wrap text-xs\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var111 string
 					templ_7745c5c3_Var111, templ_7745c5c3_Err = templ.JoinStringErrs(response.Message.Details)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1035, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1036, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var111))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, "</p>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 177, "</p>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 178, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2617,66 +2635,66 @@ func ImportResults(results []*models.AddFeedSubscriptionResult) templ.Component 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 177, " <div><div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 179, " <div><div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var112 string
 				templ_7745c5c3_Var112, templ_7745c5c3_Err = templ.JoinStringErrs(response.Message.Summary)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1042, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1043, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var112))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 178, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 180, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if response.Message.HasDetails() {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 179, "<p class=\"list-col-wrap text-xs\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 181, "<p class=\"list-col-wrap text-xs\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var113 string
 					templ_7745c5c3_Var113, templ_7745c5c3_Err = templ.JoinStringErrs(response.Message.Details)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1045, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1046, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var113))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 180, "</p>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "</p>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 181, "</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "</li>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "</li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "</ul></div><button class=\"btn btn-neutral fixed right-0 bottom-0 m-4\" href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 185, "</ul></div><button class=\"btn btn-neutral fixed right-0 bottom-0 m-4\" href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var114 string
 		templ_7745c5c3_Var114, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1054, Col: 85}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1055, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var114))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "\">Back to top</button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "\">Back to top</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -2730,7 +2748,7 @@ func ExportSubscriptions() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 185, "<div class=\"md:flex md:items-center md:justify-between mt-8\"><div class=\"min-w-0 flex-1\"><h2 class=\"text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight\">Export Subscriptions</h2></div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">You can export your current subscription to an OPML file, which all good feed readers can import.</p><div class=\"mt-10 space-y-8\"><div class=\"mt-6 flex items-center justify-end gap-x-6\"><button type=\"button\" onclick=\"history.back()\" class=\"btn btn-secondary btn-soft\">Back</button> <a role=\"button\" class=\"btn btn-primary btn-soft\" href=\"/user/export/opml\" download>Export</a></div></div><center id=\"processing\" class=\"htmx-indicator\">Processing, this could take a few minutes... <span class=\"loading loading-spinner loading-md\"></span></center>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, "<div class=\"md:flex md:items-center md:justify-between mt-8\"><div class=\"min-w-0 flex-1\"><h2 class=\"text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight\">Export Subscriptions</h2></div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">You can export your current subscription to an OPML file, which all good feed readers can import.</p><div class=\"mt-10 space-y-8\"><div class=\"mt-6 flex items-center justify-end gap-x-6\"><button type=\"button\" onclick=\"history.back()\" class=\"btn btn-secondary btn-soft\">Back</button> <a role=\"button\" class=\"btn btn-primary btn-soft\" href=\"/user/export/opml\" download>Export</a></div></div><center id=\"processing\" class=\"htmx-indicator\">Processing, this could take a few minutes... <span class=\"loading loading-spinner loading-md\"></span></center>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2779,7 +2797,7 @@ func RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) templ.Co
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "<div class=\"sm:flex sm:items-start\"><div class=\"mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 188, "<div class=\"sm:flex sm:items-start\"><div class=\"mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2787,85 +2805,85 @@ func RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) templ.Co
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, "</div><div class=\"mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left\"><h3 id=\"dialog-title\" class=\"text-base font-semibold\">Unsubscribe confirmation</h3><div class=\"mt-2\"><p class=\"text-sm\">Are you sure you want to unsubscribe from ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 189, "</div><div class=\"mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left\"><h3 id=\"dialog-title\" class=\"text-base font-semibold\">Unsubscribe confirmation</h3><div class=\"mt-2\"><p class=\"text-sm\">Are you sure you want to unsubscribe from ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var119 string
 			templ_7745c5c3_Var119, templ_7745c5c3_Err = templ.JoinStringErrs(request.Nickname)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1113, Col: 84}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1114, Col: 84}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var119))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 188, "?</p></div></div></div><div class=\"mt-5 sm:mt-4 sm:flex sm:flex-row-reverse\"><form hx-post=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 190, "?</p></div></div></div><div class=\"mt-5 sm:mt-4 sm:flex sm:flex-row-reverse\"><form hx-post=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var120 string
 			templ_7745c5c3_Var120, templ_7745c5c3_Err = templ.JoinStringErrs("/remove/subscription/" + string(request.SubscriptionID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1119, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1120, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var120))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 189, "\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var121 string
 			templ_7745c5c3_Var121, templ_7745c5c3_Err = templ.JoinStringErrs("#" + request.SubscriptionID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1120, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1121, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var121))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 190, "\" hx-include=\"[name='csrf_token']\" hx-swap=\"delete transition:true\" _=\"on htmx:afterRequest(successful) if successful remove #unsubscribe-modal\"><input type=\"hidden\" name=\"nickname\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, "\" hx-include=\"[name='csrf_token']\" hx-swap=\"delete transition:true\" _=\"on htmx:afterRequest(successful) if successful remove #unsubscribe-modal\"><input type=\"hidden\" name=\"nickname\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var122 string
 			templ_7745c5c3_Var122, templ_7745c5c3_Err = templ.JoinStringErrs(request.Nickname)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1125, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1126, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var122))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "\"> <input type=\"hidden\" name=\"confirmed\" value=\"true\"> <button type=\"submit\" class=\"inline-flex w-full justify-center rounded-md bg-error/80 px-3 py-2 text-sm font-semibold text-error-content shadow-xs hover:bg-error sm:ml-3 sm:w-auto\">Unsubscribe</button></form><button type=\"button\" command=\"close\" commandfor=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 193, "\"> <input type=\"hidden\" name=\"confirmed\" value=\"true\"> <button type=\"submit\" class=\"inline-flex w-full justify-center rounded-md bg-error/80 px-3 py-2 text-sm font-semibold text-error-content shadow-xs hover:bg-error sm:ml-3 sm:w-auto\">Unsubscribe</button></form><button type=\"button\" command=\"close\" commandfor=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var123 string
 			templ_7745c5c3_Var123, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1135, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1136, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var123))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, "\" _=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 194, "\" _=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var124 string
 			templ_7745c5c3_Var124, templ_7745c5c3_Err = templ.JoinStringErrs("on click remove #" + id + "-modal")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1136, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/subscription.templ`, Line: 1137, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var124))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 193, "\" class=\"mt-3 inline-flex w-full justify-center rounded-md bg-primary/80 px-3 py-2 text-sm font-semibold text-primary-content shadow-xs ring-1 ring-base-content/10 ring-inset hover:bg-primary sm:mt-0 sm:w-auto\">Cancel</button></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, "\" class=\"mt-3 inline-flex w-full justify-center rounded-md bg-primary/80 px-3 py-2 text-sm font-semibold text-primary-content shadow-xs ring-1 ring-base-content/10 ring-inset hover:bg-primary sm:mt-0 sm:w-auto\">Cancel</button></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

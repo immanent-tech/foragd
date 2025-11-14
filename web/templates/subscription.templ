@@ -722,8 +722,8 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 			<h3 class="text-base font-semibold">Search Filters</h3>
 			// Help dialog.
 			<div class="ml-4">
-				@HelpPopover("filter-operators-help", "bottom end") {
-					<div tabindex="0" class="card-body card-sm bg-base-300">
+				@HelpPopover("search-subscription-filter-operators-help", "bottom end") {
+					<div tabindex="0" class="text-xs/tight sm:text-sm/tight rounded-box p-4 shadow-sm border border-base-content/15 bg-base-300">
 						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 						<ul class="gap-y-2">
 							<li>+ signifies AND operation (i.e., food AND beverages)</li>
@@ -805,41 +805,42 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 						</div>
 					</div>
 				</div>
-				// <div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-				// 	<div>
-				// 		<h2 class="text-base/7 font-semibold">In Subscriptions</h2>
-				// 		// <p class="mt-1 text-sm/6 text-base-content/60"></p>
-				// 	</div>
-				// 	<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-				// 		<select
-				// 			id="subscriptions-filter-select"
-				// 			hx-post="/search/filter/subscription"
-				// 			hx-target="next #subscription-filters"
-				// 			hx-vals='{"inputName": "search.subscriptions"}'
-				// 			hx-swap="beforeend"
-				// 			hx-push-url="false"
-				// 			name="subscription-filter-select"
-				// 			class="select select-primary bg-base-300 col-span-full"
-				// 			_="on htmx:afterRequest halt"
-				// 		>
-				// 			{{ user, _ := models.UserFromCtx(ctx) }}
-				// 			<option disabled selected>Choose...</option>
-				// 			for s := range slices.Values(user.GetSubscriptions(models.SortByTitle())) {
-				// 				<option value={ s.GetID() + "|" + s.GetTitle() }>{ s.GetTitle() }</option>
-				// 			}
-				// 		</select>
-				// 		<div class="mt-4 col-span-full">
-				// 			<div id="subscription-filters" class="-m-1 flex flex-wrap items-center">
-				// 				for id := range slices.Values(request.Search.Subscriptions) {
-				// 					{{ subscription := user.GetFeedSubscriptions().GetByID(id) }}
-				// 					if subscription != nil {
-				// 						@SubscriptionFilter(id, subscription.GetTitle(), "search.subscriptions")
-				// 					}
-				// 				}
-				// 			</div>
-				// 		</div>
-				// 	</div>
-				// </div>
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">In Subscriptions</h2>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2">
+							<label class="input input-primary bg-base-content/10 w-full">
+								@tabler.Search(i.Props{Class: "size-5"})
+								<input
+									id="subscriptions-filter-select"
+									name="subscription-text"
+									placeholder="Search subscriptions..."
+									autocomplete="off"
+									hx-post="/search/subscription/suggestions"
+									hx-trigger="input changed delay:500ms,consume"
+									hx-target="next #subscription-filter-options"
+									hx-params="subscription-text,csrf_token"
+									hx-include="[name='csrf_token']"
+									hx-push-url="false"
+								/>
+							</label>
+							<div
+								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+								id="subscription-filter-options"
+							></div>
+							<div
+								id="subscription-filters"
+								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+							>
+								for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
+									@AddSearchSubscriptionFilter(subscription.GetID(), subscription.GetTitle())
+								}
+							</div>
+						</div>
+					</div>
+				</div>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Published Within</h2>

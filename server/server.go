@@ -218,9 +218,10 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.GetSearchSuggestions(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/search", handlers.GetSearchResults(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/search/paginate", handlers.GetSearchResults(handler.Elastic))
+		r.With(middlewares.RequireHTMX).Post("/search/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions(handler.Elastic))
+		r.With(middlewares.RequireHTMX).Post("/search/subscription", handlers.AddSubscriptionFilter())
 		r.Get("/search", handlers.GetSearchResults(handler.Elastic))
 		r.Get("/search/updates", handlers.WatchSearchResults(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/search/filter/subscription", handlers.AddSubscriptionFilter())
 
 		// Lists.
 		r.Route("/list/{list}", func(r chi.Router) {

@@ -303,8 +303,21 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 				)).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 			}
+			// If the search request has subscription filters, get subscription details.
+			ctx := req.Context()
+			if len(request.Subscriptions) > 0 {
+				subscriptions, err := models.GetSubscriptions(req.Context(), api, request.Subscriptions...)
+				if err != nil {
+					res.Header().Add(htmx.HeaderReswap, "none")
+					renderPartial(templates.ServerErrorNotification(
+						models.NewErrorMessage("Unable to add subscription", "Data is invalid. Please check your inputs and try again."),
+					)).ServeHTTP(res, req)
+					return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+				}
+				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
+			}
 			template := templates.AddSearchSubscription(&models.SearchSubscriptionRequest{Search: *request})
-			renderPage(template, templates.GeneratePageTitle("Add A Search Subscription")).ServeHTTP(res, req)
+			renderPage(template, templates.GeneratePageTitle("Add A Search Subscription")).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {

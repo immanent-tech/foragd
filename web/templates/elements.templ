@@ -127,6 +127,14 @@ func WithHXValsJS(val string) Option[element] {
 	}
 }
 
+func WithHXParams(params string) Option[element] {
+	return func(e element) {
+		if params != "" {
+			e.SetAttribute("hx-params", params)
+		}
+	}
+}
+
 func WithHXTrigger(trigger string) Option[element] {
 	return func(e element) {
 		e.SetAttribute("hx-trigger", trigger)
@@ -136,6 +144,12 @@ func WithHXTrigger(trigger string) Option[element] {
 func WithHXPushURL() Option[element] {
 	return func(e element) {
 		e.SetAttribute("hx-push-url", "true")
+	}
+}
+
+func WithoutHXPushURL() Option[element] {
+	return func(e element) {
+		e.SetAttribute("hx-push-url", "false")
 	}
 }
 

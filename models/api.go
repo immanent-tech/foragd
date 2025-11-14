@@ -264,6 +264,31 @@ func GetSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID) (*
 	return subscriptions[0], nil
 }
 
+func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (Subscriptions, error) {
+	// Get subscriptions by ID.
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get subscription suggestions: get user data: %w", err)
+	}
+
+	// Suggestions query will match in title/description/categories across all feed subscriptions.
+	subscriptionQuery := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Terms("subscription_id", ids...),
+		),
+	)
+
+	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
+	if err != nil {
+		return nil, fmt.Errorf("get subscription suggestions: api request failed: %w", err)
+	}
+	if len(subscriptions) == 0 {
+		return nil, ErrNotFound
+	}
+	return subscriptions, nil
+}
+
 // FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
 func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Subscriptions, Pagination, error) {
 	// Get subscriptions by ID.
@@ -299,6 +324,37 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 		Sort(filters.Sort).
 		Paginate(pagination, filters.GetCount())
 	return subscriptions, pagination, nil
+}
+
+func GetSubscriptionSuggestions(ctx context.Context, dataAPI DataAPI, text string) (Subscriptions, error) {
+	// Get subscriptions by ID.
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get subscription suggestions: get user data: %w", err)
+	}
+
+	// Suggestions query will match in title/description/categories across all feed subscriptions.
+	subscriptionQuery := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+		),
+		query.Must(
+			query.Bool(
+				query.Should(
+					query.SearchAsYouType(text, "customisation.nickname"),
+				),
+			),
+		),
+	)
+
+	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
+	if err != nil {
+		return nil, fmt.Errorf("get subscription suggestions: api request failed: %w", err)
+	}
+	if len(subscriptions) == 0 {
+		return nil, ErrNotFound
+	}
+	return subscriptions, nil
 }
 
 // IsUserSubscribedToFeed will return a boolean indicating if the user has a subscription to the feed with the given ID.
