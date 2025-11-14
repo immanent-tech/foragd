@@ -94,7 +94,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 
 	data.SubscriptionsCount = len(subscriptions)
 	// Query definition for fetching unread items for all subscriptions.
-	query := query.Bool(
+	articlesQuery := query.Bool(
 		query.BoolQueryName("item_filters"),
 		query.Filter(
 			// Must match any of the given feed IDs.
@@ -107,7 +107,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 
 	// Fetch latest articles.
 	sort := models.SortNewestFirst
-	latestItems, _, err := a.DataAPI().SearchItems(ctx, query, 10, &sort, nil)
+	latestItems, _, err := a.DataAPI().SearchItems(ctx, articlesQuery, 10, &sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
 	}
@@ -143,8 +143,17 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 					Aggregations: map[string]types.Aggregations{
 						// top_articles: the top scoring article for each top category.
 						"top_articles": {
-							TopHits: &types.TopHitsAggregation{
-								Size: &TopHitsCount,
+							Filter: query.Build(query.Bool(
+								query.MustNot(
+									query.Terms("feed_id", data.LatestArticles.GetFeedIDs()...),
+								),
+							)),
+							Aggregations: map[string]types.Aggregations{
+								"top_article_hits": {
+									TopHits: &types.TopHitsAggregation{
+										Size: &TopHitsCount,
+									},
+								},
 							},
 						},
 					},
@@ -162,7 +171,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	}
 
 	// Perform the request.
-	queryResult, err := a.DataAPI().ItemsAggregation(ctx, query, 0, aggs)
+	queryResult, err := a.DataAPI().ItemsAggregation(ctx, articlesQuery, 0, aggs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to calculate aggregations: %w", err)
 	}
@@ -184,7 +193,11 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 					}
 					data.TopCategories = append(data.TopCategories, models.CategoryCount{Category: value, Count: int(category.DocCount)})
 					// Get top article.
-					topHitsAgg, ok := category.Aggregations["top_articles"].(*types.TopHitsAggregate)
+					topArticlesAgg, ok := category.Aggregations["top_articles"].(*types.FilterAggregate)
+					if !ok {
+						continue
+					}
+					topHitsAgg, ok := topArticlesAgg.Aggregations["top_article_hits"].(*types.TopHitsAggregate)
 					if !ok {
 						continue
 					}

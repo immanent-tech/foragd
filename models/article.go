@@ -27,7 +27,16 @@ type Articles []*Article
 func (a Articles) GetSubscriptionIDs() []SubscriptionID {
 	ids := make([]SubscriptionID, 0, len(a))
 	for article := range slices.Values(a) {
-		ids = append(ids, article.SubscriptionID)
+		ids = append(ids, article.GetSubscriptionID())
+	}
+	return slices.Compact(ids)
+}
+
+// GetFeedIDs retrieves the feed ids for all articles in the slice.
+func (a Articles) GetFeedIDs() []FeedID {
+	ids := make([]FeedID, 0, len(a))
+	for article := range slices.Values(a) {
+		ids = append(ids, article.GetFeedID())
 	}
 	return slices.Compact(ids)
 }

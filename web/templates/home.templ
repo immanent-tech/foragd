@@ -29,51 +29,51 @@ templ (page *Home) Template() {
 			// Left column.
 			<div class="xl:flex xl:flex-col xl:w-1/2">
 				// Stats.
-				<div class="border-b border-base-content/80 pb-5">
-					<h3 class="text-base font-semibold">Stats</h3>
-				</div>
-				<dl class="mt-5 flex gap-2 sm:gap-4 justify-center">
-					// Subscriptions count.
-					<div class="px-2 py-4 sm:px-6 sm:py-8">
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/list/subscriptions"),
-							WithHXTarget(ContentID.Target()),
-							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
-							WithHXPushURL(),
-							WithClasses("font-medium", "hover:text-accent"),
-						) {
-							<dt>
-								<div class="absolute rounded-md bg-accent p-3">
-									@tabler.Rss(i.Props{Class: "size-6 text-accent-content"})
-								</div>
-								<p class="ml-16 text-sm font-medium ">Subscriptions</p>
-							</dt>
-							<dd class="ml-16 flex items-baseline">
-								<p class="text-2xl font-semibold">{ strconv.Itoa(page.SubscriptionsCount) }</p>
-							</dd>
-						}
-					</div>
-					// Articles count.
-					<div class="px-2 py-4 sm:px-6 sm:py-8">
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/list/articles"),
-							WithHXTarget(ContentID.Target()),
-							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
-							WithHXPushURL(),
-							WithClasses("font-medium", "hover:text-accent"),
-						) {
-							<dt>
-								<div class="absolute rounded-md bg-accent p-3">
-									@tabler.FileRss(i.Props{Class: "size-6 text-accent-content"})
-								</div>
-								<p class="ml-16 text-sm font-medium ">Unread Articles</p>
-							</dt>
-							// <dd class="ml-16 flex items-baseline">
-							// 	<p class="text-2xl font-semibold">{ strconv.Itoa(models.GetTotalUnreadCount(page.Subscriptions...)) }</p>
-							// </dd>
-						}
-					</div>
-				</dl>
+				// <div class="border-b border-base-content/80 pb-5">
+				// 	<h3 class="text-base font-semibold">Stats</h3>
+				// </div>
+				// <dl class="mt-5 flex gap-2 sm:gap-4 justify-center">
+				// 	// Subscriptions count.
+				// 	<div class="px-2 py-4 sm:px-6 sm:py-8">
+				// 		@NewLink(
+				// 			WithHXMethod(http.MethodGet, "/list/subscriptions"),
+				// 			WithHXTarget(ContentID.Target()),
+				// 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
+				// 			WithHXPushURL(),
+				// 			WithClasses("font-medium", "hover:text-accent"),
+				// 		) {
+				// 			<dt>
+				// 				<div class="absolute rounded-md bg-accent p-3">
+				// 					@tabler.Rss(i.Props{Class: "size-6 text-accent-content"})
+				// 				</div>
+				// 				<p class="ml-16 text-sm font-medium ">Subscriptions</p>
+				// 			</dt>
+				// 			<dd class="ml-16 flex items-baseline">
+				// 				<p class="text-2xl font-semibold">{ strconv.Itoa(page.SubscriptionsCount) }</p>
+				// 			</dd>
+				// 		}
+				// 	</div>
+				// 	// Articles count.
+				// 	<div class="px-2 py-4 sm:px-6 sm:py-8">
+				// 		@NewLink(
+				// 			WithHXMethod(http.MethodGet, "/list/articles"),
+				// 			WithHXTarget(ContentID.Target()),
+				// 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
+				// 			WithHXPushURL(),
+				// 			WithClasses("font-medium", "hover:text-accent"),
+				// 		) {
+				// 			<dt>
+				// 				<div class="absolute rounded-md bg-accent p-3">
+				// 					@tabler.FileRss(i.Props{Class: "size-6 text-accent-content"})
+				// 				</div>
+				// 				<p class="ml-16 text-sm font-medium ">Unread Articles</p>
+				// 			</dt>
+				// 			// <dd class="ml-16 flex items-baseline">
+				// 			// 	<p class="text-2xl font-semibold">{ strconv.Itoa(models.GetTotalUnreadCount(page.Subscriptions...)) }</p>
+				// 			// </dd>
+				// 		}
+				// 	</div>
+				// </dl>
 				// Latest articles.
 				<div class="border-b border-base-content/80 pb-5">
 					<h3 class="text-base font-semibold">Latest Articles</h3>
@@ -98,7 +98,7 @@ templ (page *Home) Template() {
 				// Show top categories (if found).
 				if len(page.TopCategories) > 0 {
 					<div class="border-b border-base-content/80 pb-5">
-						<h3 class="text-base font-semibold">Top Article Categories</h3>
+						<h3 class="text-base font-semibold">Most Common Categories</h3>
 					</div>
 					<div class="flex justify-center gap-2 p-2 m-2">
 						<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
@@ -125,7 +125,7 @@ templ (page *Home) Template() {
 				// Show top articles (if found).
 				if len(page.TopArticles) > 0 {
 					<div class="border-b border-base-content/80 pb-5">
-						<h3 class="text-base font-semibold">Top Article Categories Picks</h3>
+						<h3 class="text-base font-semibold">Article Picks</h3>
 					</div>
 					<ul role="list" class="divide-y divide-base-content/15">
 						for article := range slices.Values(page.TopArticles) {
