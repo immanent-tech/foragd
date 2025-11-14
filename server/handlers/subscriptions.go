@@ -19,6 +19,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -153,6 +154,7 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 			}
 			subscription.Customisation.Nickname = request.GetNickname()
+			godump.Dump(request.GetCategories())
 			subscription.Customisation.Categories = request.GetCategories()
 			subscription.Settings.ShowFullArticleContent = request.ShowFullArticleContent
 			subscription.FeedData.ArticleFilters.Text = request.ArticleFilters.Text
