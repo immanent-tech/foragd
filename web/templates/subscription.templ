@@ -321,7 +321,19 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 							WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
 						) {
 							@tabler.Plus(i.Props{Class: "size-4"})
-							Add Subscription
+							Add Feed Subscription
+						}
+					</div>
+					<div class="py-1">
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/user/subscription/add/search"),
+							WithHXTarget(ContentID.Target()),
+							WithHXInclude("#search-filters"),
+							WithHXPushURL(),
+							WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
+						) {
+							@tabler.Plus(i.Props{Class: "size-4"})
+							Add Search Subscription
 						}
 					</div>
 				</el-menu>
