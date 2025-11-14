@@ -275,7 +275,7 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 		query.Filter(
 			query.Term("user_id", user.GetID()),
 			query.Terms("subscription_id", filters.Subscriptions...),
-			query.Term("favorite", filters.OnlyFavorites),
+			// query.Term("favorite", filters.OnlyFavorites),
 			query.Terms("categories", filters.GetCategories()...),
 		),
 	)
@@ -293,7 +293,11 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 		return nil, "", fmt.Errorf("filter subscriptions: could not add dynamic info: %w", err)
 	}
 	// Sort and paginate.
-	subscriptions, pagination = subscriptions.FilterByView(filters.GetView()).Sort(filters.Sort).Paginate(pagination, filters.GetCount())
+	subscriptions, pagination = subscriptions.
+		FilterByView(filters.GetView()).
+		FilterByFavorites(filters.OnlyFavorites).
+		Sort(filters.Sort).
+		Paginate(pagination, filters.GetCount())
 	return subscriptions, pagination, nil
 }
 
