@@ -524,55 +524,6 @@ templ AddSearchSubscriptionFilter(id, name string) {
 	}
 }
 
-// GlobalSearch renders a command palette element for powering global search within the app.
-templ GlobalSearch() {
-	<el-command-palette class="grid w-full sm:max-w-3xl">
-		<label for="global-search" class="w-full sm:max-w-3xl input input-accent text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10">
-			@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-accent"})
-			<form
-				hx-trigger="input changed delay:100ms"
-				hx-post="/search/suggestions"
-				hx-target="#global-search-suggestions"
-				hx-include="[name='csrf_token'],#search-filters"
-				hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
-				class="flex-1"
-			>
-				<input
-					id="global-search"
-					type="search"
-					name="text"
-					hx-push-url="false"
-					placeholder="Search..."
-					_="on customCtrlK from body me.focus()"
-				/>
-			</form>
-			// Filters button.
-			<button
-				type="button"
-				command="show-modal"
-				commandfor="search-filters-dialog"
-			>
-				// _="on click toggle .hidden on #search-filters-dialog then toggle .disabled on #global-search then halt bubbling"
-				@tabler.Filter(i.Props{Class: "flex-none text-accent"})
-			</button>
-		</label>
-		// _="on keydown[key is 'Escape'] add @hidden end on click from elsewhere add .hidden end"
-		<el-command-list
-			id="global-search-suggestions"
-			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-svh sm:h-fit scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
-			_="on keydown[key is 'Escape'] add .hidden"
-		></el-command-list>
-	</el-command-palette>
-	// <div
-	// 	id="search-filters-dialog"
-	// 	class="hidden isolate absolute left-0 sm:fixed sm:left-auto top-16 mt-2 sm:mx-0 w-full sm:max-w-3xl h-svh sm:h-fit overflow-y-auto rounded-box shadow-sm bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/15"
-	// 	_="on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end"
-	// >
-	// 	// or focusout from body
-	// 	@SearchFilters(nil)
-	// </div>
-}
-
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
 	@Main() {

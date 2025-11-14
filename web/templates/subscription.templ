@@ -821,6 +821,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 									hx-post="/search/subscription/suggestions"
 									hx-trigger="input changed delay:500ms,consume"
 									hx-target="#subscription-filter-subscriptions-options"
+									hx-swap="innerHTML"
 									hx-params="subscription-text,csrf_token"
 									hx-include="[name='csrf_token']"
 									hx-push-url="false"

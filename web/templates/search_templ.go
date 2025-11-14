@@ -910,8 +910,8 @@ func AddSearchSubscriptionFilter(id, name string) templ.Component {
 	})
 }
 
-// GlobalSearch renders a command palette element for powering global search within the app.
-func GlobalSearch() templ.Component {
+// SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
+func SimilarArticles(articles models.Articles) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -932,53 +932,7 @@ func GlobalSearch() templ.Component {
 			templ_7745c5c3_Var33 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<el-command-palette class=\"grid w-full sm:max-w-3xl\"><label for=\"global-search\" class=\"w-full sm:max-w-3xl input input-accent text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Search(i.Props{Class: "pointer-events-none flex-none text-accent"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<form hx-trigger=\"input changed delay:100ms\" hx-post=\"/search/suggestions\" hx-target=\"#global-search-suggestions\" hx-include=\"[name='csrf_token'],#search-filters\" hx-vals=\"js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}\" class=\"flex-1\"><input id=\"global-search\" type=\"search\" name=\"text\" hx-push-url=\"false\" placeholder=\"Search...\" _=\"on customCtrlK from body me.focus()\"></form><button type=\"button\" command=\"show-modal\" commandfor=\"search-filters-dialog\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Filter(i.Props{Class: "flex-none text-accent"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "</button></label><el-command-list id=\"global-search-suggestions\" class=\"absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-svh sm:h-fit scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10\" _=\"on keydown[key is 'Escape'] add .hidden\"></el-command-list></el-command-palette>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-// SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
-func SimilarArticles(articles models.Articles) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var34 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var34 == nil {
-			templ_7745c5c3_Var34 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var35 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var34 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -990,11 +944,11 @@ func SimilarArticles(articles models.Articles) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Var36 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_Var35 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 				if !templ_7745c5c3_IsBuffer {
@@ -1014,13 +968,13 @@ func SimilarArticles(articles models.Articles) templ.Component {
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = Grid().Render(templ.WithChildren(ctx, templ_7745c5c3_Var36), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = Grid().Render(templ.WithChildren(ctx, templ_7745c5c3_Var35), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Main().Render(templ.WithChildren(ctx, templ_7745c5c3_Var35), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Main().Render(templ.WithChildren(ctx, templ_7745c5c3_Var34), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1045,12 +999,12 @@ func NoSearchResults() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var37 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var37 == nil {
-			templ_7745c5c3_Var37 = templ.NopComponent
+		templ_7745c5c3_Var36 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var36 == nil {
+			templ_7745c5c3_Var36 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, "<div class=\"text-center\"><h1 class=\"mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-4xl\">Nothing found 😕</h1><p class=\"mt-6 text-lg font-medium text-pretty text-base-content sm:text-xl/8\">Looks like there are no matches for that search.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a role=\"button\" onclick=\"history.back()\" class=\"btn btn-secondary btn-soft\">Back</a> <a href=\"/home\" role=\"button\" class=\"btn btn-primary btn-soft\">Home</a></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<div class=\"text-center\"><h1 class=\"mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-4xl\">Nothing found 😕</h1><p class=\"mt-6 text-lg font-medium text-pretty text-base-content sm:text-xl/8\">Looks like there are no matches for that search.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a role=\"button\" onclick=\"history.back()\" class=\"btn btn-secondary btn-soft\">Back</a> <a href=\"/home\" role=\"button\" class=\"btn btn-primary btn-soft\">Home</a></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
