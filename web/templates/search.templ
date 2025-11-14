@@ -556,13 +556,13 @@ templ GlobalSearch() {
 		// _="on keydown[key is 'Escape'] add @hidden end on click from elsewhere add .hidden end"
 		<el-command-list
 			id="global-search-suggestions"
-			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl h-1/2 sm:h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
+			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-svh sm:h-fit scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
 			_="on keydown[key is 'Escape'] add .hidden"
 		></el-command-list>
 	</el-command-palette>
 	<div
 		id="search-filters-dialog"
-		class="hidden isolate absolute left-0 sm:fixed sm:left-auto top-16 mt-2 sm:mx-0 w-full sm:max-w-3xl h-svh sm:h-160 overflow-y-scroll rounded-box shadow-sm bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/15"
+		class="hidden isolate absolute left-0 sm:fixed sm:left-auto top-16 mt-2 sm:mx-0 w-full sm:max-w-3xl h-svh sm:h-fit overflow-y-auto rounded-box shadow-sm bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/15"
 		_="on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end"
 	>
 		// or focusout from body
