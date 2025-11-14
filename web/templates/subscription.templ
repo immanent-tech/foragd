@@ -722,7 +722,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 			<h3 class="text-base font-semibold">Search Filters</h3>
 			// Help dialog.
 			<div class="ml-4">
-				@HelpPopover("search-subscription-filter-operators-help", "bottom end") {
+				@HelpPopover("subscription-filter-operators-help", "bottom end") {
 					<div tabindex="0" class="text-xs/tight sm:text-sm/tight rounded-box p-4 shadow-sm border border-base-content/15 bg-base-300">
 						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 						<ul class="gap-y-2">
@@ -759,7 +759,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
 							<input
-								id="text"
+								id="subscription-filter-text"
 								type="text"
 								name="search.text"
 								value={ request.Search.Text }
@@ -777,7 +777,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
 							<input
-								id="text"
+								id="subscription-filter-categories"
 								type="text"
 								name="search.categories"
 								value={ request.Search.Categories }
@@ -795,7 +795,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
 							<input
-								id="text"
+								id="subscription-filter-authors"
 								type="text"
 								name="search.authors"
 								value={ request.Search.Authors }
@@ -814,13 +814,13 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 							<label class="input input-primary bg-base-content/10 w-full">
 								@tabler.Search(i.Props{Class: "size-5"})
 								<input
-									id="subscriptions-filter-select"
+									id="subscription-filter-subscriptions-search"
 									name="subscription-text"
 									placeholder="Search subscriptions..."
 									autocomplete="off"
 									hx-post="/search/subscription/suggestions"
 									hx-trigger="input changed delay:500ms,consume"
-									hx-target="next #subscription-filter-options"
+									hx-target="#subscription-filter-subscriptions-options"
 									hx-params="subscription-text,csrf_token"
 									hx-include="[name='csrf_token']"
 									hx-push-url="false"
@@ -828,10 +828,12 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 							</label>
 							<div
 								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-								id="subscription-filter-options"
+								id="subscription-filter-subscriptions-options"
+								hx-target="#subscription-filter-subscriptions"
+								_="on htmx:afterRequest set #subscription-filter-subscriptions-search.value to ''"
 							></div>
 							<div
-								id="subscription-filters"
+								id="subscription-filter-subscriptions"
 								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 							>
 								for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
@@ -848,7 +850,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full">
-							<select id="published_within" name="search.published_within" class="select select-primary my-2 bg-base-300">
+							<select id="subscription-filter-published-within" name="search.published_within" class="select select-primary my-2 bg-base-300">
 								<option
 									value="last_hour"
 								>Last hour</option>
@@ -876,7 +878,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full">
-							<select id="sort" name="search.sort" class="select select-primary my-2 bg-base-300">
+							<select id="subscription-filter-sort" name="search.sort" class="select select-primary my-2 bg-base-300">
 								<option
 									value={ string(models.SortMostRelevant) }
 									if request.Search.Sort == models.SortMostRelevant {
@@ -914,7 +916,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 					<div class="col-span-full mt-2">
 						<input
-							id="text"
+							id="subscription-nickname"
 							type="text"
 							required
 							name="customisation.nickname"

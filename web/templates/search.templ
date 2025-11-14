@@ -269,7 +269,7 @@ templ SearchFilters(attributes templ.Attributes) {
 					<label for="text" class="block text-sm/6 font-medium">Includes the words</label>
 					<div class="mt-2">
 						<input
-							id="text"
+							id="search-text"
 							type="text"
 							name="text"
 							if request.Text != "" {
@@ -285,7 +285,7 @@ templ SearchFilters(attributes templ.Attributes) {
 					<label form="categories" class="block text-sm/6 font-medium">Categories</label>
 					<div class="mt-2">
 						<input
-							id="categories"
+							id="search-categories"
 							type="text"
 							name="categories"
 							if request.Categories != "" {
@@ -300,7 +300,7 @@ templ SearchFilters(attributes templ.Attributes) {
 					<label for="authors" class="block text-sm/6 font-medium">Authors</label>
 					<div class="mt-2">
 						<input
-							id="authors"
+							id="search-authors"
 							type="text"
 							name="authors"
 							if request.Authors != "" {
@@ -317,13 +317,13 @@ templ SearchFilters(attributes templ.Attributes) {
 						<label class="input input-sm bg-base-content/10 w-full">
 							@tabler.Search(i.Props{Class: "size-5"})
 							<input
-								id="subscriptions-filter-select"
+								id="search-subscriptions-suggest"
 								name="subscription-text"
 								placeholder="Search subscriptions..."
 								autocomplete="off"
 								hx-post="/search/subscription/suggestions"
 								hx-trigger="input changed delay:500ms,consume"
-								hx-target="#subscription-filter-options"
+								hx-target="#search-subscriptions-options"
 								hx-params="subscription-text,csrf_token"
 								hx-include="[name='csrf_token']"
 								hx-push-url="false"
@@ -331,10 +331,12 @@ templ SearchFilters(attributes templ.Attributes) {
 						</label>
 						<div
 							class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-							id="subscription-filter-options"
+							id="search-subscriptions-options"
+							hx-target="#search-subscriptions"
+							_="on htmx:afterRequest set #search-subscriptions-suggest.value to ''"
 						></div>
 						<div
-							id="subscription-filters"
+							id="search-subscriptions"
 							class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 						>
 							for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
@@ -350,7 +352,7 @@ templ SearchFilters(attributes templ.Attributes) {
 						<div>
 							<div class="flex items-center gap-x-3">
 								<input
-									id="view_unread"
+									id="search-view-unread"
 									type="radio"
 									name="view"
 									value="unread"
@@ -363,7 +365,7 @@ templ SearchFilters(attributes templ.Attributes) {
 							</div>
 							<div class="flex items-center gap-x-3">
 								<input
-									id="view_read"
+									id="search-view-read"
 									type="radio"
 									name="view"
 									value="read"
@@ -376,7 +378,7 @@ templ SearchFilters(attributes templ.Attributes) {
 							</div>
 							<div class="flex items-center gap-x-3">
 								<input
-									id="view_all"
+									id="search-view-all"
 									type="radio"
 									name="view"
 									value="all"
@@ -393,7 +395,7 @@ templ SearchFilters(attributes templ.Attributes) {
 				// Date range filter.
 				<div class="sm:col-span-2">
 					<label for="published_within" class="block text-sm/6 font-medium">Published Within</label>
-					<select id="published_within" name="published_within" class="select select-sm my-2 bg-base-300">
+					<select id="search-published-within" name="published_within" class="select select-sm my-2 bg-base-300">
 						<option
 							value="last_hour"
 							if request.PublishedWithin == models.SearchRequestPublishedWithinLastHour {
@@ -435,7 +437,7 @@ templ SearchFilters(attributes templ.Attributes) {
 				// Sort option.
 				<div class="sm:col-span-2">
 					<label for="sort" class="block text-sm/6 font-medium">Sort By</label>
-					<select id="sort" name="sort" class="select select-sm my-2 bg-base-300">
+					<select id="search-sort" name="sort" class="select select-sm my-2 bg-base-300">
 						<option
 							value={ string(models.SortMostRelevant) }
 							if request.Sort == models.SortMostRelevant {
@@ -494,7 +496,6 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 	for subscription := range slices.Values(subscriptions) {
 		@NewButton(
 			WithHXMethod(http.MethodPost, "/search/subscription"),
-			WithHXTarget("next #subscription-filters"),
 			WithHXSwap("beforeend"),
 			WithHXVals(map[string]string{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}),
 			WithHXInclude("[name='csrf_token']"),
