@@ -559,123 +559,16 @@ templ GlobalSearch() {
 			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl h-1/2 sm:h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
 			_="on keydown[key is 'Escape'] add .hidden"
 		></el-command-list>
-		<div
-			id="search-filters-dialog"
-			class="hidden absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl lg:max-h-160 scroll-py-2 overflow-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 p-2 outline-1 -outline-offset-1 outline-base-content/10"
-			_="on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end"
-		>
-			// or focusout from body
-			@SearchFilters(nil)
-		</div>
 	</el-command-palette>
+	<div
+		id="search-filters-dialog"
+		class="hidden isolate absolute left-0 sm:fixed sm:left-auto top-16 mt-2 sm:mx-0 w-full sm:max-w-3xl h-svh sm:h-160 overflow-y-scroll rounded-box shadow-sm bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/15"
+		_="on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end"
+	>
+		// or focusout from body
+		@SearchFilters(nil)
+	</div>
 }
-
-// // AddFavoriteSearchButton renders a button that the user can action to favorite the search. It presents a modal to name
-// // the search (name is required) before saving.
-// templ AddFavoriteSearchButton() {
-// 	<div id="favorite-button" class="fixed bottom-20 sm:bottom-4 right-4">
-// 		<button type="button" command="show-modal" commandfor="add-favorite-search" class="btn btn-primary btn-square">
-// 			<span class="sr-only">Add favorite search</span>
-// 			@tabler.Heart(i.Props{Class: "size-4"})
-// 		</button>
-// 		<el-dialog>
-// 			<dialog id="add-favorite-search" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
-// 				<el-dialog-backdrop class="fixed inset-0 bg-base-100/80 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
-// 				<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
-// 					<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-sm sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
-// 						<form
-// 							hx-post="/user/favorite/add/search"
-// 							hx-target="#favorite-button"
-// 							hx-include="#current-search-filters,[name='csrf_token']"
-// 							hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
-// 						>
-// 							<div>
-// 								<div class="mt-3 sm:mt-5">
-// 									<fieldset class="fieldset">
-// 										<legend class="fieldset-legend">Name this search</legend>
-// 										<input type="text" class="input" name="search_name" required placeholder="Type here"/>
-// 									</fieldset>
-// 								</div>
-// 							</div>
-// 							<div class="mt-5 sm:mt-6 text-center">
-// 								<button type="button" command="close" commandfor="add-favorite-search" class="btn btn-secondary">Close</button>
-// 								<button type="submit" class="btn btn-primary">Save</button>
-// 							</div>
-// 						</form>
-// 					</el-dialog-panel>
-// 				</div>
-// 			</dialog>
-// 		</el-dialog>
-// 	</div>
-// }
-
-// templ RemoveFavoriteSearchButton(id models.FavoriteID) {
-// 	<div id="favorite-button" class="fixed bottom-20 sm:bottom-4 right-4">
-// 		<button
-// 			class="btn btn-primary btn-square"
-// 			hx-post="/user/favorite/remove/search"
-// 			hx-target="#favorite-button"
-// 			hx-include="#current-search-filters,[name='csrf_token']"
-// 			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
-// 		>
-// 			@tabler.HeartFilled(i.Props{Class: "size-4"})
-// 		</button>
-// 	</div>
-// }
-
-// templ showSearchResult(result object) {
-// 	<li>
-// 		<div class="flex gap-x-4 py-5">
-// 			// Show article image or placeholder thumbnail.
-// 			if img := result.GetImage(); img != nil {
-// 				<div class="avatar">
-// 					<div class="rounded-box size-12">
-// 						<img
-// 							src={ img.GetURL() }
-// 							if img.GetTitle() != "" {
-// 								alt={ img.GetTitle() }
-// 							}
-// 						/>
-// 					</div>
-// 				</div>
-// 			} else {
-// 				<div class="avatar avatar-placeholder">
-// 					<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
-// 						<span class="text-3xl capitalize">{ result.GetTitle()[0:1] }</span>
-// 					</div>
-// 				</div>
-// 			}
-// 			<div class="flex-auto">
-// 				// Show article title.
-// 				<div class="flex items-baseline justify-between gap-x-4">
-// 					{{ var viewURL string }}
-// 					switch result.GetObjectType() {
-// 						case models.ObjectTypeSubscription:
-// 							{{ viewURL = "/list/articles" }}
-// 						case models.ObjectTypeArticle:
-// 							{{ viewURL = "/view/article/" + result.GetID() }}
-// 					}
-// 					@NewLink(
-// 						WithHXMethod(http.MethodGet, viewURL),
-// 					) {
-// 						<p class="text-sm/6 font-semibold text-pretty line-clamp-2">{ result.GetTitle() }</p>
-// 					}
-// 					<p class="flex-none text-xs text-base-content/80">
-// 						@ShowTimestamp(result.GetUpdatedDate())
-// 					</p>
-// 				</div>
-// 			</div>
-// 		</div>
-// 		// Show article description (if exists).
-// 		if result.GetDescription() != "" {
-// 			<div class="flex">
-// 				<article class="mt-1 prose prose-sm prose-img:hidden prose-figure:hidden dark:prose-invert line-clamp-2">
-// 					@templ.Raw(result.GetDescription())
-// 				</article>
-// 			</div>
-// 		}
-// 	</li>
-// }
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
