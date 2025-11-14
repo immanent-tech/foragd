@@ -254,7 +254,7 @@ templ ResultsList(articles models.Articles, pagination models.Pagination) {
 templ SearchFilters(attributes templ.Attributes) {
 	{{ request := models.SearchRequestFromCtx(ctx) }}
 	// Search form.
-	<div id="search-filters" class="mx-auto max-w-3xl mt-4 p-4" { attributes... }>
+	<div id="search-filters" { attributes... }>
 		<form
 			id="search-results"
 			hx-post="/search"
@@ -465,7 +465,8 @@ templ SearchFilters(attributes templ.Attributes) {
 				<button
 					type="button"
 					class="btn btn-sm btn-seconday btn-soft"
-					_="on click add .hidden to #search-filters-dialog"
+					command="close"
+					commandfor="search-filters-dialog"
 				>Cancel</button>
 				<button
 					type="submit"
@@ -475,20 +476,20 @@ templ SearchFilters(attributes templ.Attributes) {
 			</div>
 		</form>
 		// Help dialog.
-		<div class="absolute right-2 top-2">
-			@HelpPopover("filter-operators-help", "bottom end") {
-				<div tabindex="0" class="text-xs/tight sm:text-sm/tight rounded-box p-4 shadow-sm border border-base-content/15 bg-base-300">
-					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-					<ul class="gap-y-2">
-						<li>+ signifies AND operation (i.e., food AND beverages)</li>
-						<li>| signifies OR operation (i.e., food OR beverages)</li>
-						<li>- negates a the word (i.e., NOT alcoholic)</li>
-						<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
-						<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
-					</ul>
-				</div>
-			}
-		</div>
+		// <div class="absolute right-2 top-2">
+		// 	@HelpPopover("filter-operators-help", "bottom end") {
+		// 		<div tabindex="0" class="text-xs/tight sm:text-sm/tight rounded-box p-4 shadow-sm border border-base-content/15 bg-base-300">
+		// 			<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+		// 			<ul class="gap-y-2">
+		// 				<li>+ signifies AND operation (i.e., food AND beverages)</li>
+		// 				<li>| signifies OR operation (i.e., food OR beverages)</li>
+		// 				<li>- negates a the word (i.e., NOT alcoholic)</li>
+		// 				<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
+		// 				<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
+		// 			</ul>
+		// 		</div>
+		// 	}
+		// </div>
 	</div>
 }
 
@@ -548,8 +549,10 @@ templ GlobalSearch() {
 			// Filters button.
 			<button
 				type="button"
-				_="on click toggle .hidden on #search-filters-dialog then toggle .disabled on #global-search then halt bubbling"
+				command="show-modal"
+				commandfor="search-filters-dialog"
 			>
+				// _="on click toggle .hidden on #search-filters-dialog then toggle .disabled on #global-search then halt bubbling"
 				@tabler.Filter(i.Props{Class: "flex-none text-accent"})
 			</button>
 		</label>
@@ -560,14 +563,14 @@ templ GlobalSearch() {
 			_="on keydown[key is 'Escape'] add .hidden"
 		></el-command-list>
 	</el-command-palette>
-	<div
-		id="search-filters-dialog"
-		class="hidden isolate absolute left-0 sm:fixed sm:left-auto top-16 mt-2 sm:mx-0 w-full sm:max-w-3xl h-svh sm:h-fit overflow-y-auto rounded-box shadow-sm bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/15"
-		_="on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end"
-	>
-		// or focusout from body
-		@SearchFilters(nil)
-	</div>
+	// <div
+	// 	id="search-filters-dialog"
+	// 	class="hidden isolate absolute left-0 sm:fixed sm:left-auto top-16 mt-2 sm:mx-0 w-full sm:max-w-3xl h-svh sm:h-fit overflow-y-auto rounded-box shadow-sm bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/15"
+	// 	_="on keydown[key is 'Escape'] from body add .hidden end on click from elsewhere add .hidden end"
+	// >
+	// 	// or focusout from body
+	// 	@SearchFilters(nil)
+	// </div>
 }
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.

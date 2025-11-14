@@ -82,21 +82,15 @@ templ EmptyContent() {
 }
 
 templ Content(content templ.Component) {
-	<header class="fixed w-full top-0 z-50 flex h-16 items-center gap-x-4 bg-base-200 border-b border-base-content/30 px-4 sm:gap-x-6 sm:px-6 lg:px-8">
-		<div class="flex flex-1 mx-auto lg:pl-36 items-center gap-x-4 lg:gap-x-6">
-			<div class="flex flex-col lg:hidden h-16 shrink-0 gap-4 mt-8 items-center text-accent">
+	<header class="sticky w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30 lg:pl-36">
+		<div class="flex flex-1 mx-auto items-center">
+			<div class="flex flex-col lg:hidden h-16 shrink-0 mt-8 items-center text-accent mx-2">
 				@LogoSmall("size-8")
 			</div>
 			<div class="flex flex-1 justify-center">
 				@GlobalSearch()
 			</div>
-			<div class="flex items-center justify-end">
-				// <button type="button" class="-m-2.5 p-2.5 btn btn-ghost btn-square hover:text-primary">
-				// 	<span class="sr-only">View notifications</span>
-				// 	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
-				// 		<path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
-				// 	</svg>
-				// </button>
+			<div class="flex items-center justify-end mx-2 sm:mr-4">
 				<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10"></div>
 				{{ user, _ := models.UserFromCtx(ctx) }}
 				if user != nil {
@@ -142,7 +136,18 @@ templ Content(content templ.Component) {
 				}
 			</div>
 		</div>
+		<el-dialog>
+			<dialog id="search-filters-dialog" class="mt-16 mb-auto mx-auto p-4 sm:p-6 w-full sm:max-w-3xl sm:h-fit overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+				<el-dialog-panel>
+					// or focusout from body
+					@SearchFilters(nil)
+				</el-dialog-panel>
+			</dialog>
+		</el-dialog>
 	</header>
+	// <el-popover id="search-filters-dialog" popover class="top-16 mt-2 sm:mx-0 w-svh sm:max-w-3xl h-svh sm:h-fit overflow-y-auto rounded-box shadow-sm bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/15">
+	// 	@SearchFilters(nil)
+	// </el-popover>
 	@ContentSideBar(nil)
 	<div class="lg:pl-36 pt-16">
 		<div id={ ContentID.String() } hx-indicator="#content-loading">
