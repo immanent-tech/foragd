@@ -66,7 +66,7 @@ templ header() {
 							<span class="sr-only">Open settings menu</span>
 							<img src={ "/img-proxy/32x32/" + user.GetAvatar() } alt={ "Avatar for user " + user.GetNickname() } width="32" height="32" class="size-8 rounded-full outline -outline-offset-1 outline-base-content/10"/>
 						</button>
-						<el-menu id="header-menu" anchor="bottom end" popover class="context-menu-base">
+						<el-menu id="header-menu" anchor="bottom end" popover>
 							// Open settings menu.
 							<a
 								hx-get="/user/settings"

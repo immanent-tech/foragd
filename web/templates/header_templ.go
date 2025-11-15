@@ -95,7 +95,7 @@ func header() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" width=\"32\" height=\"32\" class=\"size-8 rounded-full outline -outline-offset-1 outline-base-content/10\"></button> <el-menu id=\"header-menu\" anchor=\"bottom end\" popover class=\"context-menu-base\"><a hx-get=\"/user/settings\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" width=\"32\" height=\"32\" class=\"size-8 rounded-full outline -outline-offset-1 outline-base-content/10\"></button> <el-menu id=\"header-menu\" anchor=\"bottom end\" popover><a hx-get=\"/user/settings\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

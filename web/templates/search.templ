@@ -174,7 +174,7 @@ templ SearchResults(request *models.SearchRequest, articles models.Articles, pag
 					<span class="sr-only">Articles Actions</span>
 					@tabler.DotsVertical(i.Props{Class: "size-6"})
 				</button>
-				<el-menu anchor="bottom end" popover class="context-menu-base">
+				<el-menu anchor="bottom end" popover>
 					if request.ID != "" {
 						<div class="py-1">
 							// Edit action.

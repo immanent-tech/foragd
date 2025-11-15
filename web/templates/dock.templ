@@ -1,0 +1,65 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+	"strings"
+)
+
+templ Dock(attributes templ.Attributes) {
+	<div id="page-dock" class="dock bg-base-200 border-t border-base-content/10 lg:hidden" { attributes... }>
+		<button
+			hx-get="/home"
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/home" {
+				class="dock-active"
+			}
+		>
+			@tabler.HomeFilled(i.Props{Class: "size-6"})
+			<span class="dock-label">Home</span>
+		</button>
+		<button
+			hx-get="/list/subscriptions"
+			hx-target={ ContentID.Target() }
+			hx-vals={ models.GenerateHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
+			hx-params={ "not " + models.ParamSubscriptions }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/list/subscriptions" {
+				class="dock-active"
+			}
+		>
+			@tabler.Rss(i.Props{Class: "size-6"})
+			<span class="dock-label">Subscriptions</span>
+		</button>
+		<button
+			hx-get="/list/articles"
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/list/articles" {
+				class="dock-active"
+			}
+			if strings.HasPrefix(models.PathFromCtx(ctx), "/view/article") {
+				hx-include="[name='subscriptions']"
+			}
+		>
+			@tabler.FileRssFilled(i.Props{Class: "size-6"})
+			<span class="dock-label">Articles</span>
+		</button>
+		<button
+			hx-get="/list/favorites"
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			if models.PathFromCtx(ctx) == "/list/favorites" {
+				class="dock-active"
+			}
+		>
+			@tabler.HeartFilled(i.Props{Class: "size-6"})
+			<span class="dock-label">Favorites</span>
+		</button>
+	</div>
+}

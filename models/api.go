@@ -17,7 +17,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -286,11 +285,6 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 	err = AddSubscriptionDynamicInfo(ctx, dataAPI, subscriptions)
 	if err != nil {
 		return nil, "", fmt.Errorf("filter subscriptions: could not add dynamic info: %w", err)
-	}
-	for s := range slices.Values(subscriptions) {
-		if s.GetTitle() == "Trump News" {
-			godump.Dump(s)
-		}
 	}
 	// Sort and paginate.
 	subscriptions, pagination = subscriptions.

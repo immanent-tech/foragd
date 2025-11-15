@@ -1,0 +1,74 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+	"net/http"
+)
+
+templ SideBar(attributes templ.Attributes) {
+	<div id="page-sidebar" class="hidden bg-base-200 border-r border-base-content/30 lg:pt-16 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col" { attributes... }>
+		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4">
+			<nav aria-label="Sidebar" class="flex flex-1 flex-col items-center">
+				<div class="flex flex-col shrink-0 h-16 p-2 items-center text-accent">
+					@LogoSmall("size-8")
+					Foragd
+				</div>
+				<ul role="list" class="flex flex-1 flex-col gap-y-7">
+					<li>
+						<a
+							href="/home"
+							class="group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
+						>
+							<span class="sr-only">Go to home page</span>
+							@tabler.Home(i.Props{Class: "size-6 shrink-0 text-current"})
+							Home
+						</a>
+					</li>
+					<li>
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/list/subscriptions"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
+							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+						) {
+							<span class="sr-only">Show all unread subscriptions</span>
+							@tabler.Rss(i.Props{Class: "size-6 shrink-0 text-current"})
+							Subscriptions
+						}
+					</li>
+					<li>
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/list/articles"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
+							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+						) {
+							<span class="sr-only">Show all unread articles</span>
+							@tabler.FileRss(i.Props{Class: "size-6 shrink-0 text-current"})
+							Articles
+						}
+					</li>
+					<li>
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/list/favorites"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+						) {
+							<span class="sr-only">Show favorites</span>
+							@tabler.HeartFilled(i.Props{Class: "size-6 shrink-0 text-current"})
+							Favorites
+						}
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+}

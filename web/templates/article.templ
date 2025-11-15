@@ -135,63 +135,72 @@ templ ArticleCard(article *models.Article) {
 					</p>
 				</div>
 				<div class="flex flex-none">
-					@ContextMenu(article.GetTitle() + " Actions") {
-						// Find similar action.
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
-						) {
-							@tabler.FileSearch(i.Props{Class: "size-4"})
-							Find similar...
-						}
-						// Mark action.
-						<form id={ "mark-" + article.GetID() }>
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-							{{ var markURL string }}
-							if article.IsUnread() {
-								{{ markURL = "/mark/article/" + article.GetID() + "/read" }}
-							} else {
-								{{ markURL = "/mark/article/" + article.GetID() + "/unread" }}
-							}
+					<el-dropdown class="relative ml-auto">
+						<button class="btn btn-sm btn-ghost btn-square">
+							<span class="sr-only">article.GetTitle() + " Actions"</span>
+							@tabler.DotsVertical(i.Props{Class: "size-5"})
+						</button>
+						<el-menu
+							anchor="bottom end"
+							popover
+						>
+							// Find similar action.
 							@NewLink(
-								WithHXMethod(http.MethodPost, markURL),
-								WithHXTarget("#"+article.GetID()),
-								WithHXInclude("[name='csrf_token'],#content-filters"),
+								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
+								WithHXTarget(ContentID.Target()),
+								WithHXPushURL(),
 							) {
-								switch article.IsUnread() {
-									case true:
-										@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-										Mark Read
-									case false:
-										@tabler.MailFilled(i.Props{Class: "size-4"})
-										Mark Unread
-								}
+								@tabler.FileSearch(i.Props{Class: "size-4"})
+								Find similar...
 							}
-						</form>
-						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-						<form>
-							<input type="hidden" name="display" value="card"/>
-							<div id={ "favorite_" + article.GetID() }>
-								@ToggleFavorite(article.GetID(), string(article.GetObjectType()), article.IsFavorite())
-							</div>
-						</form>
-						// Share action.
-						@NewLink(
-							WithCustomAttribute("_", "on click if navigator.share then "+shareAPIDialog(article.GetTitle(), article.GetLink())+" else call document.getElementById('share-"+article.GetID()+"').show() "),
-						) {
-							@tabler.Share(i.Props{Class: "size-4"})
-							Share
-						}
-						// Report issue action.
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
-							WithHXTarget(ContentID.Target()),
-						) {
-							@tabler.FlagFilled(i.Props{Class: "size-4"})
-							Report an issue
-						}
-					}
+							// Mark action.
+							<form id={ "mark-" + article.GetID() }>
+								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+								{{ var markURL string }}
+								if article.IsUnread() {
+									{{ markURL = "/mark/article/" + article.GetID() + "/read" }}
+								} else {
+									{{ markURL = "/mark/article/" + article.GetID() + "/unread" }}
+								}
+								@NewLink(
+									WithHXMethod(http.MethodPost, markURL),
+									WithHXTarget("#"+article.GetID()),
+									WithHXInclude("[name='csrf_token'],#content-filters"),
+								) {
+									switch article.IsUnread() {
+										case true:
+											@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+											Mark Read
+										case false:
+											@tabler.MailFilled(i.Props{Class: "size-4"})
+											Mark Unread
+									}
+								}
+							</form>
+							// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+							<form>
+								<input type="hidden" name="display" value="card"/>
+								<div id={ "favorite_" + article.GetID() }>
+									@ToggleFavorite(article.GetID(), string(article.GetObjectType()), article.IsFavorite())
+								</div>
+							</form>
+							// Share action.
+							@NewLink(
+								WithCustomAttribute("_", "on click if navigator.share then "+shareAPIDialog(article.GetTitle(), article.GetLink())+" else call document.getElementById('share-"+article.GetID()+"').show() "),
+							) {
+								@tabler.Share(i.Props{Class: "size-4"})
+								Share
+							}
+							// Report issue action.
+							@NewLink(
+								WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
+								WithHXTarget(ContentID.Target()),
+							) {
+								@tabler.FlagFilled(i.Props{Class: "size-4"})
+								Report an issue
+							}
+						</el-menu>
+					</el-dropdown>
 				</div>
 			</div>
 		</div>
@@ -222,7 +231,7 @@ templ ArticleContent(article *models.Article) {
 							<span class="sr-only">Article Actions</span>
 							@tabler.DotsVertical(i.Props{Class: "size-6"})
 						</button>
-						<el-menu id="article-content-menu" anchor="bottom end" popover class="context-menu-base py-2">
+						<el-menu id="article-content-menu" anchor="bottom end" popover>
 							// Toggle view full content action.
 							@NewLink(
 								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
@@ -385,7 +394,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 					<span class="sr-only">Articles Actions</span>
 					@tabler.DotsVertical(i.Props{Class: "size-6"})
 				</button>
-				<el-menu anchor="bottom end" popover class="context-menu-base">
+				<el-menu anchor="bottom end" popover>
 					<div class="py-1">
 						// Mark all subscriptions action.
 						@NewLink(

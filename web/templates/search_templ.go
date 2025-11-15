@@ -278,7 +278,7 @@ func SearchResults(request *models.SearchRequest, articles models.Articles, pagi
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</button> <el-menu anchor=\"bottom end\" popover class=\"context-menu-base\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</button> <el-menu anchor=\"bottom end\" popover>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

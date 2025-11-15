@@ -222,8 +222,8 @@ func renderPage(template templ.Component, title string) http.Handler {
 		} else { // HTMX request renders partial content.
 			// Add OOB swaps depending on path.
 			template = templ.Join(template,
-				templates.ContentSideBar(templ.Attributes{"hx-swap-oob": "true"}),
-				templates.ContentDock(templ.Attributes{"hx-swap-oob": "true"}),
+				templates.SideBar(templ.Attributes{"hx-swap-oob": "true"}),
+				templates.Dock(templ.Attributes{"hx-swap-oob": "true"}),
 			)
 			// Update page title if set.
 			if title != "" {

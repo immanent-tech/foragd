@@ -99,79 +99,88 @@ templ SubscriptionCard(s *models.Subscription) {
 }
 
 templ subscriptionContextMenu(s *models.Subscription) {
-	@ContextMenu(s.GetTitle() + " Actions") {
-		// View action.
-		if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-			@NewLink(
-				WithCustomAttribute("href", s.GetLink()),
-				WithCustomAttribute("rel", "noopener"),
-				WithCustomAttribute("target", "_blank"),
-			) {
-				@tabler.ExternalLink(i.Props{Class: "size-4"})
-				Feed Website
-			}
-			// Mark action.
-			<form id={ "mark-" + s.GetID() }>
-				// MarkURL returns the app URL for marking the subscription.
-				{{ var markURL string }}
-				if s.GetStats().IsUnread() {
-					{{ markURL = "/mark/subscription/" + s.GetID() + "/read" }}
-				} else {
-					{{ markURL = "/mark/subscription/" + s.GetID() + "/unread" }}
-				}
+	<el-dropdown class="relative ml-auto">
+		<button class="btn btn-sm btn-ghost btn-square">
+			<span class="sr-only">s.GetTitle() + " Actions"</span>
+			@tabler.DotsVertical(i.Props{Class: "size-5"})
+		</button>
+		<el-menu
+			anchor="bottom end"
+			popover
+		>
+			// View action.
+			if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
 				@NewLink(
-					WithHXMethod(http.MethodPost, markURL),
-					WithHXInclude("[name='csrf_token'],#content-filters"),
-					WithHXTarget("#"+s.GetID()),
+					WithCustomAttribute("href", s.GetLink()),
+					WithCustomAttribute("rel", "noopener"),
+					WithCustomAttribute("target", "_blank"),
 				) {
-					switch s.GetStats().IsUnread() {
-						case true:
-							@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-							Mark Read
-						case false:
-							@tabler.MailFilled(i.Props{Class: "size-4"})
-							Mark Unread
+					@tabler.ExternalLink(i.Props{Class: "size-4"})
+					Feed Website
+				}
+				// Mark action.
+				<form id={ "mark-" + s.GetID() }>
+					// MarkURL returns the app URL for marking the subscription.
+					{{ var markURL string }}
+					if s.GetStats().IsUnread() {
+						{{ markURL = "/mark/subscription/" + s.GetID() + "/read" }}
+					} else {
+						{{ markURL = "/mark/subscription/" + s.GetID() + "/unread" }}
 					}
+					@NewLink(
+						WithHXMethod(http.MethodPost, markURL),
+						WithHXInclude("[name='csrf_token'],#content-filters"),
+						WithHXTarget("#"+s.GetID()),
+					) {
+						switch s.GetStats().IsUnread() {
+							case true:
+								@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+								Mark Read
+							case false:
+								@tabler.MailFilled(i.Props{Class: "size-4"})
+								Mark Unread
+						}
+					}
+				</form>
+				// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+				<div id={ "favorite_" + s.GetID() }>
+					@ToggleFavorite(s.GetID(), string(models.ObjectTypeSubscription), s.IsFavorite())
+				</div>
+			}
+			// Edit action.
+			@NewLink(
+				WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
+				WithHXTarget(ContentID.Target()),
+				WithHXSwap("innerHTML show:top transition:true"),
+				WithHXPushURL(),
+			) {
+				@tabler.Edit(i.Props{Class: "size-4"})
+				Edit Subscription
+			}
+			// Unsubscribe action.
+			<form>
+				<input type="hidden" name="nickname" value={ s.GetTitle() }/>
+				<input type="hidden" name="confirmed" value="false"/>
+				@NewLink(
+					WithHXMethod(http.MethodPost, "/remove/subscription/"+s.GetID()),
+					WithHXTarget(ModalContainerID.Target()),
+					WithHXInclude("[name='csrf_token']"),
+					WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"),
+				) {
+					@tabler.TrashFilled(i.Props{Class: "size-4"})
+					Remove Subscription
 				}
 			</form>
-			// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-			<div id={ "favorite_" + s.GetID() }>
-				@ToggleFavorite(s.GetID(), string(models.ObjectTypeSubscription), s.IsFavorite())
-			</div>
-		}
-		// Edit action.
-		@NewLink(
-			WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
-			WithHXTarget(ContentID.Target()),
-			WithHXSwap("innerHTML show:top transition:true"),
-			WithHXPushURL(),
-		) {
-			@tabler.Edit(i.Props{Class: "size-4"})
-			Edit Subscription
-		}
-		// Unsubscribe action.
-		<form>
-			<input type="hidden" name="nickname" value={ s.GetTitle() }/>
-			<input type="hidden" name="confirmed" value="false"/>
+			// Report issue action.
 			@NewLink(
-				WithHXMethod(http.MethodPost, "/remove/subscription/"+s.GetID()),
-				WithHXTarget(ModalContainerID.Target()),
-				WithHXInclude("[name='csrf_token']"),
-				WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"),
+				WithHXMethod(http.MethodGet, "/issue/subscription/"+s.GetID()),
+				WithHXTarget(ContentID.Target()),
 			) {
-				@tabler.TrashFilled(i.Props{Class: "size-4"})
-				Remove Subscription
+				@tabler.FlagFilled(i.Props{Class: "size-4"})
+				Report an issue
 			}
-		</form>
-		// Report issue action.
-		@NewLink(
-			WithHXMethod(http.MethodGet, "/issue/subscription/"+s.GetID()),
-			WithHXTarget(ContentID.Target()),
-		) {
-			@tabler.FlagFilled(i.Props{Class: "size-4"})
-			Report an issue
-		}
-	}
+		</el-menu>
+	</el-dropdown>
 }
 
 templ subscriptionHeading(s *models.Subscription) {
@@ -294,7 +303,7 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 					<span class="sr-only">Subscriptions Actions</span>
 					@tabler.DotsVertical(i.Props{Class: "size-6"})
 				</button>
-				<el-menu anchor="bottom end" popover class="context-menu-base">
+				<el-menu anchor="bottom end" popover>
 					<div class="py-1">
 						// Mark all subscriptions action.
 						@NewLink(
@@ -386,7 +395,7 @@ templ SubscriptionsDockActions() {
 				@tabler.Menu(i.Props{Class: "size-6"})
 				<span class="dock-label">Actions</span>
 			</button>
-			<el-menu anchor="bottom end" popover class="context-menu-base">
+			<el-menu anchor="bottom end" popover>
 				<div class="py-1">
 					// Mark all subscriptions action.
 					@NewLink(
