@@ -19,7 +19,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -66,6 +65,15 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusOK)
 		case models.ViewAll:
 			subscription, err := models.GetSubscription(req.Context(), api, request.SubscriptionID)
+			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
+				renderPartial(
+					templates.ServerErrorNotification(
+						models.NewErrorMessage("Unable to mark subscription", "This might be a temporary error, please try again.")),
+				).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
+			}
+			err = models.AddSubscriptionDynamicInfo(req.Context(), api, models.Subscriptions{subscription})
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				renderPartial(
@@ -132,6 +140,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		}
 		var template templ.Component
 		var pageTitle string
+		ctx := req.Context()
 		switch subscription.GetSubscriptionType() {
 		case models.SubscriptionTypeFeed:
 			// Convert metadata into edit request data.
@@ -144,7 +153,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			}
 			// Get top categories across items in subscription feed and add as suggested categories for the
 			// subscription.
-			categories, resp := models.GetArticleTopCategories(req.Context(), a.Elastic, subscription.FeedData.GetFeedID())
+			categories, resp := models.GetArticleTopCategories(ctx, a.Elastic, subscription.FeedData.GetFeedID())
 			if resp == nil {
 				request.SuggestedCategories = categories
 			}
@@ -159,11 +168,23 @@ func (a *API) EditSubscription() http.HandlerFunc {
 				Search:        subscription.SearchData.Search,
 			}
 			request.Search.ID = subscription.GetID()
+			// Get any extra subscription info for subscription filters.
+			if len(request.Search.Subscriptions) > 0 {
+				subscriptions, err := models.GetSubscriptions(ctx, a.Elastic, request.Search.Subscriptions...)
+				if err != nil {
+					res.Header().Add(htmx.HeaderReswap, "none")
+					renderPartial(templates.ServerErrorNotification(
+						models.NewErrorMessage("Unable to add subscription", "Data is invalid. Please check your inputs and try again."),
+					)).ServeHTTP(res, req.WithContext(ctx))
+					return models.NewAPIError(fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+				}
+				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
+			}
 			// Generate page template.
 			template = templates.EditSearchSubscription(request)
 			pageTitle = templates.GeneratePageTitle("Editing " + request.Customisation.Nickname)
 		}
-		renderPage(template, pageTitle).ServeHTTP(res, req)
+		renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -189,7 +210,6 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 			}
 			subscription.Customisation.Nickname = request.GetNickname()
-			godump.Dump(request.GetCategories())
 			subscription.Customisation.Categories = request.GetCategories()
 			subscription.Settings.ShowFullArticleContent = request.ShowFullArticleContent
 			subscription.FeedData.ArticleFilters.Text = request.ArticleFilters.Text

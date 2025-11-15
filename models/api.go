@@ -212,7 +212,7 @@ func GetUserFavoriteSubscriptions(ctx context.Context, dataAPI DataAPI) (Subscri
 		return nil, ErrNotFound
 	}
 
-	err = addSubscriptionDynamicInfo(ctx, dataAPI, subscriptions)
+	err = AddSubscriptionDynamicInfo(ctx, dataAPI, subscriptions)
 	if err != nil {
 		return nil, fmt.Errorf("get favorite subscriptions: add dynamic info: %w", err)
 	}
@@ -256,10 +256,6 @@ func GetSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID) (*
 		return nil, ErrNotFound
 	case len(subscriptions) != 1:
 		return nil, fmt.Errorf("get subscription: %w: too many subscriptions", ErrInvalidAPIResult)
-	}
-	err = addSubscriptionDynamicInfo(ctx, dataAPI, subscriptions)
-	if err != nil {
-		return nil, fmt.Errorf("get subscription: add dynamic info: %w", err)
 	}
 
 	return subscriptions[0], nil
@@ -314,7 +310,7 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 		return nil, "", ErrNotFound
 	}
 	// Add dynamic info.
-	err = addSubscriptionDynamicInfo(ctx, dataAPI, subscriptions)
+	err = AddSubscriptionDynamicInfo(ctx, dataAPI, subscriptions)
 	if err != nil {
 		return nil, "", fmt.Errorf("filter subscriptions: could not add dynamic info: %w", err)
 	}
@@ -523,7 +519,7 @@ func CreateSearchSubscriptions(ctx context.Context, dataAPI DataAPI, requests ..
 }
 
 //nolint:gocognit
-func addSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscriptions Subscriptions) error {
+func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscriptions Subscriptions) error {
 	fetchJobs, ctx := errgroup.WithContext(ctx)
 
 	// Get average daily updates per feed

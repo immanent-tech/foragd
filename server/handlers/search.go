@@ -86,6 +86,15 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 					http.StatusInternalServerError,
 				)
 			}
+			err = models.AddSubscriptionDynamicInfo(req.Context(), api, subscriptions)
+			if err != nil {
+				msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("unable to retrieve subscriptions: %w", err),
+					http.StatusInternalServerError,
+				)
+			}
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 		}
 
