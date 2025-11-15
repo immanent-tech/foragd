@@ -205,7 +205,8 @@ func GetUserFavoriteArticles(ctx context.Context, dataAPI DataAPI) (Articles, er
 	return articles, nil
 }
 
-// GetSubscription returns the subscription that matches the given ID.
+// GetSubscription returns the subscription that matches the given ID. Note: no dynamic info is generated for the
+// subscription (use AddSubscriptionDynamicInfo after calling this method if needed).
 func GetSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID) (*Subscription, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
@@ -230,6 +231,8 @@ func GetSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID) (*
 	return subscriptions[0], nil
 }
 
+// GetSubscriptions returns the subscriptions that match the given IDs. Note: no dynamic info is generated for the
+// subscriptions (use AddSubscriptionDynamicInfo after calling this method if needed).
 func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (Subscriptions, error) {
 	// Get subscriptions by ID.
 	user, err := UserFromCtx(ctx)
@@ -256,6 +259,7 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 }
 
 // FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
+// Dynamic information for subscriptions will also be added.
 func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Subscriptions, Pagination, error) {
 	// Get subscriptions by ID.
 	user, err := UserFromCtx(ctx)
@@ -283,6 +287,11 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 	if err != nil {
 		return nil, "", fmt.Errorf("filter subscriptions: could not add dynamic info: %w", err)
 	}
+	for s := range slices.Values(subscriptions) {
+		if s.GetTitle() == "Trump News" {
+			godump.Dump(s)
+		}
+	}
 	// Sort and paginate.
 	subscriptions, pagination = subscriptions.
 		FilterByView(filters.GetView()).
@@ -292,6 +301,8 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 	return subscriptions, pagination, nil
 }
 
+// GetSubscriptionSuggestions returns subscriptions that match the given text. Note: no dynamic info is generated for the
+// subscriptions (use AddSubscriptionDynamicInfo after calling this method if needed).
 func GetSubscriptionSuggestions(ctx context.Context, dataAPI DataAPI, text string) (Subscriptions, error) {
 	// Get subscriptions by ID.
 	user, err := UserFromCtx(ctx)
@@ -487,20 +498,18 @@ func CreateSearchSubscriptions(ctx context.Context, dataAPI DataAPI, requests ..
 	return nil
 }
 
-//nolint:gocognit
+// AddSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
+// At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
+// generated if the user has set the display option ShowSubscriptionStats in their account settings.
+//
+//nolint:gocognit,funlen
 func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscriptions Subscriptions) error {
-	fetchJobs, ctx := errgroup.WithContext(ctx)
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("add subscription dynamic info: get user data: %w", err)
+	}
 
-	// Get average daily updates per feed
-	var avgDailyUpdates map[FeedID]float64
-	fetchJobs.Go(func() error {
-		var err error
-		avgDailyUpdates, err = getFeedAverageDailyUpdates(ctx, dataAPI, subscriptions.GetFeedIDs()...)
-		if err != nil {
-			return fmt.Errorf("get average daily updates: %w", err)
-		}
-		return nil
-	})
+	fetchJobs, ctx := errgroup.WithContext(ctx)
 
 	// Get unread count per feed.
 	var unreadCounts map[FeedID]int64
@@ -509,6 +518,52 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 		unreadCounts, err = getFeedUnreadCounts(ctx, dataAPI, subscriptions)
 		if err != nil {
 			return fmt.Errorf("get unread counts: %w", err)
+		}
+		return nil
+	})
+
+	// For search subscriptions, run queries directly to add unread count and last update.
+	fetchJobs.Go(func() error {
+		user, err := UserFromCtx(ctx)
+		if err != nil {
+			return fmt.Errorf("add subscription dynamic info: get search subscription info: get user data: %w", err)
+		}
+		for subscription := range slices.Values(subscriptions) {
+			if subscription.GetSubscriptionType() != SubscriptionTypeSearch {
+				continue
+			}
+			// Build query to get unread count.
+			query, err := BuildSearchResultsQuery(ctx, dataAPI, user, &subscription.SearchData.Search)
+			if err != nil {
+				return fmt.Errorf("add subscription dynamic info: build search subscription %s query: %w", subscription.GetID(), err)
+			}
+			count, err := dataAPI.CountItems(ctx, query)
+			if err == nil {
+				subscription.Stats.UnreadCount = int(count)
+			} else {
+				slogctx.FromCtx(ctx).Warn("Add subscription dynamic info, could not get unread count for search subscription.",
+					slog.String("subscription_id", subscription.GetID()),
+					slog.Any("error", err),
+				)
+			}
+			// Update query for getting last updated item (view: all, sort: newest first).
+			subscription.SearchData.Search.View = ViewAll
+			sort := SortNewestFirst
+			query, err = BuildSearchResultsQuery(ctx, dataAPI, user, &subscription.SearchData.Search)
+			if err != nil {
+				return fmt.Errorf("add subscription dynamic info: build search subscription %s query: %w", subscription.GetID(), err)
+			}
+			items, _, err := dataAPI.SearchItems(ctx, query, 1, &sort, nil)
+			if err == nil {
+				if len(items) > 0 {
+					subscription.Stats.LastUpdate = items[0].GetTimestamp()
+				}
+			} else {
+				slogctx.FromCtx(ctx).Warn("Add subscription dynamic info, could not get last update for search subscription.",
+					slog.String("subscription_id", subscription.GetID()),
+					slog.Any("error", err),
+				)
+			}
 		}
 		return nil
 	})
@@ -524,37 +579,20 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 		return nil
 	})
 
-	// For search subscriptions, run queries directly to add unread count and last update.
-	fetchJobs.Go(func() error {
-		user, err := UserFromCtx(ctx)
-		if err != nil {
-			return fmt.Errorf("get user data: %w", err)
-		}
-		for subscription := range slices.Values(subscriptions) {
-			if subscription.GetSubscriptionType() != SubscriptionTypeSearch {
-				continue
-			}
-			query, err := BuildSearchResultsQuery(ctx, dataAPI, user, &subscription.SearchData.Search)
+	var avgDailyUpdates map[FeedID]float64
+	if user.GetSettings().ShowSubscriptionStats {
+		// Get average daily updates per feed
+		fetchJobs.Go(func() error {
+			var err error
+			avgDailyUpdates, err = getFeedAverageDailyUpdates(ctx, dataAPI, subscriptions.GetFeedIDs()...)
 			if err != nil {
-				return fmt.Errorf("get search subscription stats: %w", err)
+				return fmt.Errorf("get average daily updates: %w", err)
 			}
-			godump.Dump(query)
-			count, err := dataAPI.CountItems(ctx, query)
-			if err == nil {
-				subscription.Stats.UnreadCount = int(count)
-			}
-			sort := SortNewestFirst
-			items, _, err := dataAPI.SearchItems(ctx, query, 1, &sort, nil)
-			if err == nil {
-				if len(items) > 0 {
-					subscription.Stats.LastUpdate = items[0].GetTimestamp()
-				}
-			}
-		}
-		return nil
-	})
+			return nil
+		})
+	}
 
-	err := fetchJobs.Wait()
+	err = fetchJobs.Wait()
 	if err != nil {
 		return fmt.Errorf("add subscription dynamic info: run jobs: %w", err)
 	}
@@ -563,9 +601,11 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 	for subscription := range slices.Values(subscriptions) {
 		if subscription.GetSubscriptionType() == SubscriptionTypeFeed {
 			// Add stats for feed subscriptions.
-			subscription.Stats.AvgDailyUpdates = avgDailyUpdates[subscription.FeedData.FeedID]
 			subscription.Stats.UnreadCount = int(unreadCounts[subscription.FeedData.FeedID])
 			subscription.Stats.LastUpdate = lastUpdate[subscription.FeedData.FeedID]
+			if user.GetSettings().ShowSubscriptionStats {
+				subscription.Stats.AvgDailyUpdates = avgDailyUpdates[subscription.FeedData.FeedID]
+			}
 		}
 	}
 
@@ -575,16 +615,20 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 			var avgDailyUpdates []float64
 			var unreadCount int
 			var lastUpdates []time.Time
-			for s := range slices.Values(subscriptions) {
-				if slices.Contains(subscription.GroupData.Subscriptions, s.GetID()) {
-					avgDailyUpdates = append(avgDailyUpdates, s.Stats.AvgDailyUpdates)
-					unreadCount += s.Stats.UnreadCount
-					lastUpdates = append(lastUpdates, s.Stats.LastUpdate)
+			for groupSubscription := range slices.Values(subscriptions) {
+				if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
+					if user.GetSettings().ShowSubscriptionStats {
+						avgDailyUpdates = append(avgDailyUpdates, groupSubscription.Stats.AvgDailyUpdates)
+					}
+					unreadCount += groupSubscription.Stats.UnreadCount
+					lastUpdates = append(lastUpdates, groupSubscription.Stats.LastUpdate)
 				}
 			}
-			slices.Sort(avgDailyUpdates)
-			slices.Reverse(avgDailyUpdates)
-			subscription.Stats.AvgDailyUpdates = avgDailyUpdates[0]
+			if user.GetSettings().ShowSubscriptionStats {
+				slices.Sort(avgDailyUpdates)
+				slices.Reverse(avgDailyUpdates)
+				subscription.Stats.AvgDailyUpdates = avgDailyUpdates[0]
+			}
 			subscription.Stats.UnreadCount = unreadCount
 			// Sort by date ascending, with favorites before non-favorites.
 			slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {

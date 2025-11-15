@@ -128,7 +128,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 		var templ_7745c5c3_Var5 = []any{"card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
 			templ.KV("row-span-2", len(s.GetCategories(0)) == 0),
 			templ.KV("row-span-3", len(s.GetCategories(0)) > 0),
-			templ.KV("opacity-50", s.GetSubscriptionType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread())}
+			templ.KV("opacity-50", !s.GetStats().IsUnread())}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

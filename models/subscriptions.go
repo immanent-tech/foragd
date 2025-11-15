@@ -330,16 +330,10 @@ func (s Subscriptions) FilterByView(view View) Subscriptions {
 	switch view {
 	case ViewRead:
 		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
-			if subscription.GetSubscriptionType() == SubscriptionTypeSearch {
-				return true
-			}
 			return !subscription.GetStats().IsUnread()
 		}))
 	case ViewUnread:
 		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
-			if subscription.GetSubscriptionType() == SubscriptionTypeSearch {
-				return true
-			}
 			return subscription.GetStats().IsUnread()
 		}))
 	default:

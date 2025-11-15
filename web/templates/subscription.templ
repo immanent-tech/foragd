@@ -38,7 +38,7 @@ templ SubscriptionCard(s *models.Subscription) {
 		class={ "card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
 			templ.KV("row-span-2",len(s.GetCategories(0))== 0),
 			templ.KV("row-span-3",len(s.GetCategories(0)) >0),
-			templ.KV("opacity-50",s.GetSubscriptionType() == models.SubscriptionTypeFeed && !s.GetStats().IsUnread()) }
+			templ.KV("opacity-50",!s.GetStats().IsUnread()) }
 	>
 		<div class="card-body">
 			<div class="flex items-center card-section">
