@@ -19,6 +19,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -126,15 +127,15 @@ func RemoveSubscription(api *elastic.API) http.HandlerFunc {
 }
 
 // EditSubscription handles presenting the user with a form for editing a subscription.
-func (a *API) EditSubscription() http.HandlerFunc {
+func EditSubscription(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve the subscription ID from the URL parameter.
-		id := chi.URLParam(req, models.ParamObjectID)
+		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Get the subscription.
-		subscription, err := models.GetSubscription(req.Context(), a.DataAPI(), id)
+		subscription, err := models.GetSubscription(req.Context(), api, id)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to save subscription", "Data in invalid."),
+				models.NewErrorMessage("Unable to edit subscription", "Data in invalid."),
 			)).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
@@ -153,7 +154,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			}
 			// Get top categories across items in subscription feed and add as suggested categories for the
 			// subscription.
-			categories, resp := models.GetArticleTopCategories(ctx, a.Elastic, subscription.FeedData.GetFeedID())
+			categories, resp := models.GetArticleTopCategories(ctx, api, subscription.FeedData.GetFeedID())
 			if resp == nil {
 				request.SuggestedCategories = categories
 			}
@@ -170,7 +171,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			request.Search.ID = subscription.GetID()
 			// Get any extra subscription info for subscription filters.
 			if len(request.Search.Subscriptions) > 0 {
-				subscriptions, err := models.GetSubscriptions(ctx, a.Elastic, request.Search.Subscriptions...)
+				subscriptions, err := models.GetSubscriptions(ctx, api, request.Search.Subscriptions...)
 				if err != nil {
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(templates.ServerErrorNotification(
@@ -192,8 +193,9 @@ func (a *API) EditSubscription() http.HandlerFunc {
 // SaveSubscription handles saving the edits made by a user to a subscription.
 func SaveSubscription(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Get the subscription.
-		subscription, err := models.GetSubscription(req.Context(), api, req.FormValue(models.ParamSubscriptionID))
+		subscription, err := models.GetSubscription(req.Context(), api, id)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to save subscription", "Data in invalid."),
@@ -223,6 +225,7 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 				)).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 			}
+			godump.Dump(request)
 			subscription.Customisation = request.Customisation
 			subscription.Settings = request.Settings
 			subscription.SearchData.Search = request.Search

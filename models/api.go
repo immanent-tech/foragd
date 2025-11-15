@@ -526,8 +526,9 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 			if subscription.GetSubscriptionType() != SubscriptionTypeSearch {
 				continue
 			}
+			search := subscription.SearchData.Search
 			// Build query to get unread count.
-			query, err := BuildSearchResultsQuery(ctx, dataAPI, user, &subscription.SearchData.Search)
+			query, err := BuildSearchResultsQuery(ctx, dataAPI, user, &search)
 			if err != nil {
 				return fmt.Errorf("add subscription dynamic info: build search subscription %s query: %w", subscription.GetID(), err)
 			}
@@ -541,9 +542,9 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 				)
 			}
 			// Update query for getting last updated item (view: all, sort: newest first).
-			subscription.SearchData.Search.View = ViewAll
+			search.View = ViewAll
 			sort := SortNewestFirst
-			query, err = BuildSearchResultsQuery(ctx, dataAPI, user, &subscription.SearchData.Search)
+			query, err = BuildSearchResultsQuery(ctx, dataAPI, user, &search)
 			if err != nil {
 				return fmt.Errorf("add subscription dynamic info: build search subscription %s query: %w", subscription.GetID(), err)
 			}

@@ -748,7 +748,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				if action == "add" {
 					hx-post="/user/subscription/add/search"
 				} else {
-					hx-post={ "/user/subscription/edit/" + request.Search.ID }
+					hx-post={ "/edit/subscription/" + request.Search.ID }
 				}
 				hx-swap="none"
 				hx-include="[name='customisation.user_categories'],[name='csrf_token']"
@@ -874,6 +874,38 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 								<option
 									value="last_month"
 								>Last month</option>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">View</h2>
+						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full">
+							<select id="subscription-filter-view" name="search.view" class="select select-primary my-2 bg-base-300">
+								<option
+									value={ string(models.ViewUnread) }
+									if request.Search.View == models.ViewUnread {
+										selected
+									}
+								>
+									Unread
+								</option>
+								<option
+									value={ string(models.ViewRead) }
+									if request.Search.View == models.ViewRead {
+										selected
+									}
+								>Read</option>
+								<option
+									value={ string(models.ViewAll) }
+									if request.Search.View == models.ViewAll {
+										selected
+									}
+								>All</option>
 							</select>
 						</div>
 					</div>

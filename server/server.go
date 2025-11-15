@@ -240,8 +240,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/mark/subscription/{subscription_id}/{mark}", handlers.MarkSubscription(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Delete("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
-		r.Route("/edit/subscription/{id}", func(r chi.Router) {
-			r.Get("/", handler.EditSubscription())
+		r.Route("/edit/subscription/{subscription_id}", func(r chi.Router) {
+			r.Get("/", handlers.EditSubscription(handler.Elastic))
 			r.With(middlewares.RequireHTMX).Post("/", handlers.SaveSubscription(handler.Elastic))
 			r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
 			r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
@@ -262,9 +262,6 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 				// Add search subscription.
 				r.Get("/add/search", handlers.AddSearchSubscription(handler.Elastic))
 				r.With(middlewares.RequireHTMX).Post("/add/search", handlers.AddSearchSubscription(handler.Elastic))
-				// Edit subscription.
-				r.Get("/edit/{subscription_id}", handler.EditSubscription())
-				r.With(middlewares.RequireHTMX).Post("/edit/{subscription_id}", handlers.SaveSubscription(handler.Elastic))
 				// Category management for add/edit subscription.
 				r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
 				r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
