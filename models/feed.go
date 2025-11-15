@@ -43,57 +43,57 @@ func (f Feeds) FindByID(id FeedID) *Feed {
 	return f[idx]
 }
 
-// FindByID will return the feed with the given URL.
-func (f Feeds) FindByURL(url string) *Feed {
-	idx := slices.IndexFunc(f, func(v *Feed) bool {
-		return slices.Contains(v.SourceURLs, url)
-	})
-	if idx == -1 {
-		return nil
-	}
-	return f[idx]
-}
-
+// GetID returns the ID of the Feed.
 func (f *Feed) GetID() FeedID {
 	return f.FeedID
 }
 
+// GetSourceURLs returns all discovered source URLs of the feed (i.e., URLs that point to the feed itself).
 func (f *Feed) GetSourceURLs() []URL {
 	return f.SourceURLs
 }
 
+// GetLink returns the URL of the website that publishes and/or is the owner the feed.
 func (f *Feed) GetLink() URL {
 	return f.URL
 }
 
+// GetTitle returns the feed title.
 func (f *Feed) GetTitle() string {
 	return f.Title
 }
 
+// GetDescription returns the feed description, if any.
 func (f *Feed) GetDescription() string {
 	return f.Description
 }
 
+// GetAuthors returns the feed authors, if any.
 func (f *Feed) GetAuthors() []string {
 	return f.Authors
 }
 
+// GetContributors returns the feed contributors, if any.
 func (f *Feed) GetContributors() []string {
 	return f.Contributors
 }
 
+// GetCategories returns the slice of categories assigned to the feed, if any.
 func (f *Feed) GetCategories() []string {
 	return f.Categories
 }
 
+// GetImage returns an image object that can visually represent the feed.
 func (f *Feed) GetImage() *types.ImageInfo {
 	return &f.Image
 }
 
+// GetItems returns a slice of the currently published items in the feed.
 func (f *Feed) GetItems() []types.ItemSource {
 	return nil
 }
 
+// GetLanguage returns the language tag of the feed, if any.
 func (f *Feed) GetLanguage() string {
 	return f.Language
 }
@@ -111,6 +111,7 @@ func (f *Feed) GetTimestamp() time.Time {
 	return f.LastFetched
 }
 
+// GetRights returns the rights or copyright of the feed content, if any.
 func (f *Feed) GetRights() string {
 	return f.Copyright
 }

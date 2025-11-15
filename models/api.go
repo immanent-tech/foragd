@@ -273,7 +273,6 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 			query.Terms("categories", filters.GetCategories()...),
 		),
 	)
-	slogctx.FromCtx(ctx).Debug("Getting filtered subscriptions")
 	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
 	if err != nil {
 		return nil, "", fmt.Errorf("filter subscriptions: api request failed: %w", err)
