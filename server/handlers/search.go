@@ -157,11 +157,12 @@ func AddSubscriptionFilter() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := req.FormValue("subscription_id")
 		name := req.FormValue("subscription_name")
-		if id == "" || name == "" {
+		input := req.FormValue("subscriptions-input-name")
+		if id == "" || name == "" || input == "" {
 			res.WriteHeader(http.StatusUnprocessableEntity)
 			return nil
 		}
-		renderPartial(templates.AddSearchSubscriptionFilter(id, name)).ServeHTTP(res, req)
+		renderPartial(templates.AddSearchSubscriptionFilter(id, name, input)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

@@ -333,6 +333,7 @@ templ SearchFilters(attributes templ.Attributes) {
 							class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 							id="search-subscriptions-options"
 							hx-target="#search-subscriptions"
+							hx-vals={ models.GenerateHXVals(map[string]string{"subscriptions-input-name": "subscriptions"}) }
 							_="on htmx:afterRequest set #search-subscriptions-suggest.value to ''"
 						></div>
 						<div
@@ -340,7 +341,7 @@ templ SearchFilters(attributes templ.Attributes) {
 							class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 						>
 							for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
-								@AddSearchSubscriptionFilter(subscription.GetID(), subscription.GetTitle())
+								@AddSearchSubscriptionFilter(subscription.GetID(), subscription.GetTitle(), "subscriptions")
 							}
 						</div>
 					</div>
@@ -500,7 +501,7 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 			WithHXSwap("beforeend"),
 			WithHXVals(map[string]string{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXParams("subscription_id,subscription_name,csrf_token"),
+			WithHXParams("subscription_id,subscription_name,csrf_token,subscriptions-input-name"),
 			WithoutHXPushURL(),
 			WithClasses("btn-sm"),
 			WithCustomAttribute("_", "on htmx:afterRequest(successful) remove me"),
@@ -512,13 +513,13 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 	}
 }
 
-templ AddSearchSubscriptionFilter(id, name string) {
+templ AddSearchSubscriptionFilter(id, name, input string) {
 	@NewButton(
 		WithCustomAttribute("type", "button"),
 		WithCustomAttribute("_", "on click remove me then halt"),
 		WithClasses("btn-sm"),
 	) {
-		<input type="hidden" name="subscriptions" value={ id }/>
+		<input type="hidden" name={ input } value={ id }/>
 		{ name }
 		@tabler.X(i.Props{Class: "size-5"})
 	}

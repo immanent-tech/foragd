@@ -17,6 +17,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -572,6 +573,7 @@ func addSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 			if err != nil {
 				return fmt.Errorf("get search subscription stats: %w", err)
 			}
+			godump.Dump(query)
 			count, err := dataAPI.CountItems(ctx, query)
 			if err == nil {
 				subscription.Stats.UnreadCount = int(count)
@@ -1183,11 +1185,15 @@ func BuildSearchResultsQuery(ctx context.Context, dataAPI DataAPI, user *User, r
 	case SearchRequestPublishedWithinLastMonth:
 		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
 		pivot = "14d"
+	default: // default to one week.
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
+		pivot = "3d"
 	}
 
 	subscriptionsQuery := query.Bool(
 		query.Filter(
 			query.Term("user_id", user.GetID()),
+			query.Terms("subscription_id", request.Subscriptions...),
 		),
 	)
 	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionsQuery)

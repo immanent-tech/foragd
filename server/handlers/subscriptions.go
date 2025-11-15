@@ -301,7 +301,7 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to add subscription", "Data is invalid. Please check your inputs and try again."),
 				)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+				return models.NewAPIError(fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 			}
 			// If the search request has subscription filters, get subscription details.
 			ctx := req.Context()
@@ -312,7 +312,7 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 					renderPartial(templates.ServerErrorNotification(
 						models.NewErrorMessage("Unable to add subscription", "Data is invalid. Please check your inputs and try again."),
 					)).ServeHTTP(res, req)
-					return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+					return models.NewAPIError(fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 				}
 				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
@@ -325,14 +325,14 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to add subscription", "Data is invalid. Please check your inputs and try again."),
 				)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+				return models.NewAPIError(fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 			}
 			err = models.CreateSearchSubscriptions(req.Context(), api, request)
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
 				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable process import request: %w", err), http.StatusInternalServerError)
+				return models.NewAPIError(fmt.Errorf("add search subscription: %w", err), http.StatusInternalServerError)
 			}
 			renderPartial(templates.Notification(models.NewSuccessMessage("Search Subscription Created!", ""), 0)).ServeHTTP(res, req)
 		}

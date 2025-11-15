@@ -109,7 +109,7 @@ func (s *FeedSubscription) SetItemState(itemID ItemID, state *ArticleState) {
 // NewSearchSubscription creates a new SearchSubscription. A SearchSubscription collates articles that match a search
 // into a single custom subscription.
 func NewSearchSubscription(ctx context.Context, request *SearchSubscriptionRequest) (*Subscription, error) {
-	searchSubscription := SearchSubscription{
+	searchSubscription := &SearchSubscription{
 		Search: request.Search,
 	}
 	subscription, err := newSubscription(ctx, request.Customisation, request.Settings, searchSubscription)
@@ -133,7 +133,7 @@ func (s *SearchSubscription) Valid() error {
 // NewGroupSubscription creates a GroupSubscription. A GroupSubscription is a kind of meta-subscription that aggregates
 // all articles from multiple individual subscriptions into a single custom subscription.
 func NewGroupSubscription(ctx context.Context, request *GroupSubscriptionRequest) (*Subscription, error) {
-	groupSubscription := GroupSubscription{
+	groupSubscription := &GroupSubscription{
 		Subscriptions: request.Subscriptions,
 	}
 	subscription, err := newSubscription(ctx, request.Customisation, request.Settings, groupSubscription)
@@ -630,6 +630,7 @@ func newSubscription(ctx context.Context, customisation SubscriptionCustomisatio
 		Settings:       settings,
 		Favorite:       false,
 	}
+
 	switch typeData := data.(type) {
 	case *FeedSubscription:
 		subscription.Type = SubscriptionTypeFeed
