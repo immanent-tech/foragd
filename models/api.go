@@ -1127,20 +1127,19 @@ func BuildSubscriptionQueries(user *User, view View, subscriptions Subscriptions
 	if len(subscriptions) == 0 {
 		return nil
 	}
-	switch view {
-	case ViewRead:
-		for s := range slices.Values(subscriptions) {
-			queries = append(queries, queryReadItems(user, s))
+	for subscription := range slices.Values(subscriptions) {
+		if subscription.GetSubscriptionType() != SubscriptionTypeFeed {
+			continue
 		}
-	case ViewAll:
-		for s := range slices.Values(subscriptions) {
-			queries = append(queries, queryAllItems(user, s))
-		}
-	case ViewUnread:
-		fallthrough
-	default:
-		for s := range slices.Values(subscriptions) {
-			queries = append(queries, queryUnreadItems(user, s))
+		switch view {
+		case ViewRead:
+			queries = append(queries, queryReadItems(user, subscription))
+		case ViewAll:
+			queries = append(queries, queryAllItems(user, subscription))
+		case ViewUnread:
+			fallthrough
+		default:
+			queries = append(queries, queryUnreadItems(user, subscription))
 		}
 	}
 	return queries
