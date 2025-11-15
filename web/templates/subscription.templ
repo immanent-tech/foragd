@@ -293,7 +293,7 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 		<div class="flex items-center justify-between mt-4">
 			// Page heading.
 			<div class="min-w-0 flex-1">
-				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">
+				<h2 class="page-title">
 					Subscriptions
 				</h2>
 			</div>
@@ -469,7 +469,7 @@ templ SubscriptionsSidebarActions() {
 templ EditSubscription(request *models.EditSubscriptionRequest) {
 	@Main() {
 		<div class="min-w-0 flex-1 pb-8">
-			<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">Editing { request.Nickname }</h2>
+			<h2 class="page-title sm:truncate">Editing { request.Nickname }</h2>
 		</div>
 		if request.HasError() {
 			<div role="alert" class="alert alert-error alert-outline mt-12">
@@ -610,7 +610,7 @@ templ EditSubscriptionSuccessNotification(subscription *models.Subscription) {
 templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 	@Main() {
 		<div class="min-w-0 flex-1 pb-8">
-			<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">Add A Subscription</h2>
+			<h2 class="page-title">Add A Subscription</h2>
 		</div>
 		if request.HasError() {
 			<div role="alert" class="alert alert-error alert-outline mt-12">
@@ -708,9 +708,9 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 		<div class="min-w-0 flex-1 pb-8">
 			switch action {
 				case "add":
-					<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">Add A Search Subscription</h2>
+					<h2 class="page-title">Add A Search Subscription</h2>
 				case "edit":
-					<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">{ "Editing "+request.Customisation.Nickname }</h2>
+					<h2 class="page-title">{ "Editing "+request.Customisation.Nickname }</h2>
 			}
 		</div>
 		// if request.HasError() {
@@ -962,7 +962,7 @@ templ ImportSubscriptions() {
 	@Main() {
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
-				<h2 class="text-2xl/7 font-bold sm:text-3xl sm:tracking-tight">Import Subscriptions</h2>
+				<h2 class="page-title">Import Subscriptions</h2>
 			</div>
 			<p class="mt-2 max-w-4xl text-sm sm:truncate text-base-content/80">
 				You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.
@@ -1013,7 +1013,7 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 	{{ successfulResults := filterSuccessfulResults(results) }}
 	{{ failedResults := filterUnsuccessfulResults(results) }}
 	<div class="min-w-0 flex-1 pb-8">
-		<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">Import Results</h2>
+		<h2 class="page-title">Import Results</h2>
 	</div>
 	<p class="mt-2 max-w-4xl text-sm sm:truncate text-base-content/80">
 		{ "Imported: " + strconv.Itoa(len(successfulResults)) + " Failed: " + strconv.Itoa(len(failedResults)) }
@@ -1081,7 +1081,7 @@ templ ExportSubscriptions() {
 	@Main() {
 		<div class="md:flex md:items-center md:justify-between mt-8">
 			<div class="min-w-0 flex-1">
-				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Export Subscriptions</h2>
+				<h2 class="page-title">Export Subscriptions</h2>
 			</div>
 		</div>
 		<p class="mt-2 max-w-4xl text-sm text-base-content/80">

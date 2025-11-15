@@ -222,7 +222,7 @@ templ ArticleContent(article *models.Article) {
 						WithCustomAttribute("rel", "noopener"),
 						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-accent", "focus:outline-hidden"),
 					) {
-						<h2 class="text-2xl/7 sm:text-3xl font-bold tracking-tight">{ article.GetTitle() }</h2>
+						<h2 class="page-title">{ article.GetTitle() }</h2>
 					}
 				</div>
 				<div class="flex items-center">
@@ -380,7 +380,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 		// Dynamic title with view and sort state.
 		<div class="flex items-center justify-between mt-4">
 			<div class="min-w-0 flex-1">
-				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight capitalize">
+				<h2 class="page-title sm:truncate">
 					if len(articles.GetSubscriptionIDs()) == 1 {
 						{ articles[0].GetFeedTitle() }
 					} else {

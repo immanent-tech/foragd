@@ -70,6 +70,10 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
+  .page-title {
+    @apply text-2xl/7 font-bold tracking-tight sm:text-3xl;
+  }
+
   .card.htmx-swapping {
     opacity: 0;
     transition: opacity 1s ease-out;
