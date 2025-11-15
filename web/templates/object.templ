@@ -23,7 +23,6 @@ templ ToggleFavorite(id string, objectType string, isFavorite bool) {
 		WithHXMethod(http.MethodPost, favoriteURL),
 		WithHXTarget("#favorite_"+id),
 		WithHXInclude("[name='csrf_token']"),
-		WithClasses("context-menu-item-base"),
 	) {
 		switch isFavorite {
 			case true:

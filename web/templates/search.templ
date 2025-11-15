@@ -183,7 +183,6 @@ templ SearchResults(request *models.SearchRequest, articles models.Articles, pag
 								WithHXTarget(ContentID.Target()),
 								WithHXSwap("innerHTML show:top transition:true"),
 								WithHXPushURL(),
-								WithClasses("context-menu-item-base"),
 							) {
 								@tabler.Edit(i.Props{Class: "size-4"})
 								Edit Subscription

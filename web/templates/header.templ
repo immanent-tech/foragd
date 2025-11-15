@@ -69,7 +69,6 @@ templ header() {
 						<el-menu id="header-menu" anchor="bottom end" popover class="context-menu-base">
 							// Open settings menu.
 							<a
-								class="context-menu-item-base"
 								hx-get="/user/settings"
 								hx-target={ ContentID.Target() }
 								hx-push-url="true"
@@ -84,7 +83,7 @@ templ header() {
 							<a
 								hx-get={ "/issue" }
 								hx-target={ ContentID.Target() }
-								class="link link-hover context-menu-item-base"
+								class="link link-hover"
 							>
 								<div class="flex flex-1 items-center gap-x-2">
 									@tabler.FlagFilled(i.Props{Class: "size-4"})
@@ -92,7 +91,7 @@ templ header() {
 								</div>
 							</a>
 							// Logout
-							<a href="/logout" class="context-menu-item-base">
+							<a href="/logout">
 								<div class="flex flex-1 items-center gap-x-2">
 									@tabler.Logout(i.Props{Class: "size-4"})
 									Log out
