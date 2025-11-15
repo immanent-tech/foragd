@@ -128,12 +128,14 @@ templ ArticleCard(article *models.Article) {
 				</p>
 			</div>
 			<div class="card-actions mt-auto justify-between items-center">
+				// Timestamp.
 				<div class="flex flex-1 gap-x-2">
 					<p class="text-xs/4 text-base-content/80 capitalize">
 						Updated&nbsp;
 						@ShowTimestamp(article.GetUpdatedDate())
 					</p>
 				</div>
+				// Actions menu.
 				<div class="flex flex-none">
 					<el-dropdown class="relative ml-auto">
 						<button class="btn btn-sm btn-ghost btn-square">
@@ -144,6 +146,16 @@ templ ArticleCard(article *models.Article) {
 							anchor="bottom end"
 							popover
 						>
+							// View original article action.
+							@NewLink(
+								WithCustomAttribute("href", article.GetLink()),
+								WithCustomAttribute("target", "_blank"),
+								WithCustomAttribute("rel", "noopener"),
+								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
+							) {
+								@tabler.ExternalLink(i.Props{Class: "size-4"})
+								Go To Article
+							}
 							// Find similar action.
 							@NewLink(
 								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
@@ -244,7 +256,7 @@ templ ArticleContent(article *models.Article) {
 								if article.IsRemoteContent() {
 									Show Feed Content
 								} else {
-									Show Remote Article
+									Show Remote Content
 								}
 							}
 							// View original article action.
@@ -255,7 +267,7 @@ templ ArticleContent(article *models.Article) {
 								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 							) {
 								@tabler.ExternalLink(i.Props{Class: "size-4"})
-								View Original Article
+								Go To Article
 							}
 							<form>
 								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
