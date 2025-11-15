@@ -14,7 +14,7 @@ import (
 
 const (
 	// DefaultUserTheme is the default theme for the app.
-	DefaultUserTheme = "silk"
+	DefaultUserTheme = "garden"
 
 	BasicAccountMaxHistory          = 7 * 24 * time.Hour // One week.
 	BasicAccountUpdatesFrequency    = time.Hour
@@ -39,8 +39,13 @@ func NewUser(externalID, email, provider string, level UserLevel) *User {
 		Email:          email,
 		Provider:       provider,
 		UserID:         NewID(UserPFX),
-		Settings:       *NewUserSettings(),
-		Level:          level,
+		Settings: UserSettings{
+			Theme:                 DefaultUserTheme,
+			ShowOnboarding:        true,
+			ShowSubscriptionStats: false,
+			MarkArticleReadOnView: true,
+		},
+		Level: level,
 	}
 	// Set account level based user settings.
 	switch user.Level {
@@ -99,25 +104,14 @@ func (u *User) GetSettings() *UserSettings {
 	return &u.Settings
 }
 
-// NewUserSettings returns a new instance of the default user settings.
-func NewUserSettings() *UserSettings {
-	return &UserSettings{
-		Theme:                 DefaultUserTheme,
-		ShowOnboarding:        true,
-		ShowUnreadCounts:      true,
-		MarkArticleReadOnView: true,
-		MaxHistory:            BasicAccountMaxHistory.String(),
-	}
-}
-
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *UserSettings) Valid() (bool, error) {
+func (s *UserSettings) Valid() error {
 	err := validation.Validate.Struct(s)
 	if err != nil {
-		return false, fmt.Errorf("invalid user settings: %w", err)
+		return fmt.Errorf("invalid user settings: %w", err)
 	}
-	return true, nil
+	return nil
 }
 
 // Sanitise will sanitise UserSettings values.

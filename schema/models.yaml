@@ -311,13 +311,12 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: '-'
-        show_unread_counts:
+        show_subscription_stats:
           description: >
-            indicates whether unread counts should be shown when viewing subscriptions.
+            indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
           type: boolean
-          default: true
           x-oapi-codegen-extra-tags:
-            form: 'show_unread_counts'
+            form: 'show_subscription_stats'
           x-omitzero: false
           x-omitempty: false
         mark_article_read_on_view:

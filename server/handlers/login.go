@@ -170,17 +170,28 @@ func syncLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProf
 	}
 	ctx = models.UserToCtx(ctx, user)
 	ctx = elastic.SetupIndexAliases(ctx)
-	// Create an edit user request from the data.
-	request := &models.EditUserRequest{
-		Nickname:  profile.Nickname,
-		AvatarURL: profile.Picture,
-		Email:     profile.Name,
+	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
+	updates := make(map[string]any)
+	// Overwrite local avatar with remote avatar if different
+	if user.AvatarURL != profile.Picture {
+		updates["avatar_url"] = profile.Picture
 	}
-	err = models.UpdateUser(ctx, api, request)
-	if err != nil {
-		slogctx.FromCtx(ctx).Error("Could not sync user data.",
-			slog.Any("error", err))
-		return
+	// Overwrite local nickname with remote nickname if different
+	if user.Nickname != profile.Nickname {
+		updates["nickname"] = profile.Nickname
+	}
+	// Overwrite local email with remote email if different
+	if user.Email != profile.Email {
+		updates["email"] = profile.Email
+	}
+	// If no updates are necessary, bail early.
+	if len(updates) > 0 {
+		err = api.UpdateUser(ctx, user.GetID(), updates)
+		if err != nil {
+			slogctx.FromCtx(ctx).Error("Could not sync user data.",
+				slog.Any("error", err))
+			return
+		}
 	}
 }
 

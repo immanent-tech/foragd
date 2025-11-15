@@ -957,8 +957,8 @@ type UserSettings struct {
 	// ShowOnboarding indicates whether to show onboarding information (i.e., for a new user).
 	ShowOnboarding bool `form:"-" json:"show_onboarding"`
 
-	// ShowUnreadCounts indicates whether unread counts should be shown when viewing subscriptions.
-	ShowUnreadCounts bool `form:"show_unread_counts" json:"show_unread_counts"`
+	// ShowSubscriptionStats indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
+	ShowSubscriptionStats bool `form:"show_subscription_stats" json:"show_subscription_stats"`
 
 	// Theme the user interface theme chosen by the user.
 	Theme string `form:"-" json:"theme,omitempty,omitzero"`

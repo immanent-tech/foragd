@@ -88,37 +88,6 @@ func CreateUser(ctx context.Context, dataAPI DataAPI, externalID, email string) 
 	return nil
 }
 
-// UpdateUser updates the local user object from the given request details.
-func UpdateUser(ctx context.Context, dataAPI DataAPI, request *EditUserRequest) error {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("could not retrieve current user: %w", err)
-	}
-	// For the following fields, assume that if the backend value is different from the local value, it was updated on
-	// the backend. In such cases, replace the local value.
-	updates := make(map[string]any)
-	// Overwrite local avatar with remote avatar if different
-	if user.AvatarURL != request.AvatarURL {
-		updates["avatar_url"] = request.AvatarURL
-	}
-	// Overwrite local nickname with remote nickname if different
-	if user.Nickname != request.Nickname {
-		updates["nickname"] = request.Nickname
-	}
-	// Overwrite local email with remote email if different
-	if user.Email != request.Email {
-		updates["email"] = request.Email
-	}
-	if len(updates) > 0 {
-		// Update the user object.
-		err := dataAPI.UpdateUser(ctx, user.GetID(), updates)
-		if err != nil {
-			return fmt.Errorf("could not update user object: %w", err)
-		}
-	}
-	return nil
-}
-
 // UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
 // subscription as appropriate.
 func UpdateFavoriteSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID, favorite bool) error {

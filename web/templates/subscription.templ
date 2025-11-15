@@ -72,10 +72,12 @@ templ SubscriptionCard(s *models.Subscription) {
 			}
 			// Show stats and info as appropriate.
 			<div class="card-actions mt-auto grid grid-cols-3 px-4 sm:px-6">
-				if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-					<p class="grid justify-end col-span-3 text-xs/4 text-base-content/80">
-						{ s.GetStats().UpdateFrequency() }
-					</p>
+				if user.GetSettings().ShowSubscriptionStats {
+					if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
+						<p class="grid justify-end col-span-3 text-xs/4 text-base-content/80">
+							{ s.GetStats().UpdateFrequency() }
+						</p>
+					}
 				}
 				<p class="col-span-2 text-xs/4 text-base-content/80">
 					Last update
@@ -85,7 +87,7 @@ templ SubscriptionCard(s *models.Subscription) {
 						unknown
 					}
 				</p>
-				if user.GetSettings().ShowUnreadCounts {
+				if user.GetSettings().ShowSubscriptionStats {
 					<p class="grid justify-end text-xs/4 text-base-content/80">
 						{ s.GetStats().UnreadTotal() }
 						Unread

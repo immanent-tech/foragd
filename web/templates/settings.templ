@@ -183,34 +183,34 @@ templ DisplaySettings(user *models.User) {
 			>
 				<div class="flex items-center gap-x-4">
 					<input
-						id="show-unread-counts"
+						id="setting-show-subscription-stats"
 						type="checkbox"
-						name="show_unread_counts"
-						if user.GetSettings().ShowUnreadCounts {
+						name="show_subscription_stats"
+						if user.GetSettings().ShowSubscriptionStats {
 							checked
 						}
-						aria-describedby="show-unread-counts-description"
+						aria-describedby="setting-show-subscription-stats-description"
 						class="col-start-1 row-start-1 toggle toggle-sm toggle-primary"
 					/>
 					<div class="flex-1 text-sm/6">
-						<label for="show-unread-counts" class="font-medium">Show Unread Counts on Subscriptions</label>
-						<p id="show-unread-counts-description" class="text-base-content/80">Show the number of unread articles on each subscription.</p>
+						<label for="setting-show-subscription-stats" class="font-medium">Show Subscription Stats</label>
+						<p id="setting-show-subscription-stats-description" class="text-base-content/80">Controls whether to show various stats (e.g., unread counts, articles per day) on subscriptions.</p>
 					</div>
 				</div>
 				<div class="flex items-center gap-x-4">
 					<input
-						id="mark-article-read-on-view"
+						id="setting-mark-article-read-on-view"
 						type="checkbox"
 						name="mark_article_read_on_view"
 						if user.GetSettings().MarkArticleReadOnView {
 							checked
 						}
-						aria-describedby="mark-article-read-on-view-description"
+						aria-describedby="setting-mark-article-read-on-view-description"
 						class="col-start-1 row-start-1 toggle toggle-sm toggle-primary"
 					/>
 					<div class="flex-1 text-sm/6">
-						<label for="mark-article-read-on-view" class="font-medium">Mark Article Read on View</label>
-						<p id="mark-article-read-on-view-description" class="text-base-content/80">When viewing an article, mark it as read automatically when viewed.</p>
+						<label for="setting-mark-article-read-on-view" class="font-medium">Mark Article Read on View</label>
+						<p id="setting-mark-article-read-on-view-description" class="text-base-content/80">When viewing an article, mark it as read automatically when viewed.</p>
 					</div>
 				</div>
 				<div class="col-span-full place-self-end">

@@ -72,42 +72,35 @@ func ShowAccountSettings() http.HandlerFunc {
 // SaveDisplaySettings handles saving user settings after user submitted changes.
 func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Decode request.
+		request, valid, err := forms.DecodeForm[*models.UserSettings](req)
+		if err != nil || !valid {
+			renderPartial(templates.ServerErrorNotification(
+				models.NewErrorMessage("Unable to save account settings", "Data is invalid."),
+			)).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("save display settings: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+		}
+		// Get user object
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save display settings", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("save display settings: get user data: %w", err), http.StatusInternalServerError)
 		}
-		settings := user.GetSettings()
-		// Parse show_unread_counts setting.
-		switch req.FormValue("show_unread_counts") {
-		case "on":
-			settings.ShowUnreadCounts = true
-		case "":
-			settings.ShowUnreadCounts = false
-		}
-		// Parse mark_article_read_on_view setting.
-		switch req.FormValue("mark_article_read_on_view") {
-		case "on":
-			settings.MarkArticleReadOnView = true
-		case "":
-			settings.MarkArticleReadOnView = false
-		}
-		// Update user object with new settings.
-		err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": settings})
+		// Update local user object.
+		err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": request})
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save display settings", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("save account settings: update elastic: %w", err), http.StatusInternalServerError)
 		}
-		// Show success notification.
-		template := templates.Notification(
-			models.NewSuccessMessage("Settings saved", ""), 0,
-		)
+		// Report success.
+		msg := models.NewSuccessMessage("Account edits saved!", "")
+		template := templates.Notification(msg, 0)
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
@@ -116,12 +109,41 @@ func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
 // SaveAccountSettings handles processing and saving new account settings.
 func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Decode request.
 		request, valid, err := forms.DecodeForm[*models.EditUserRequest](req)
 		if err != nil || !valid {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to save account settings", "Data is invalid."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(fmt.Errorf("save account settings: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+		}
+		// Get user object
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			renderPartial(
+				templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("save account settings: get user data: %w", err), http.StatusInternalServerError)
+		}
+		// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
+		updates := make(map[string]any)
+		// Overwrite local avatar with remote avatar if different
+		if user.AvatarURL != request.AvatarURL {
+			updates["avatar_url"] = request.AvatarURL
+		}
+		// Overwrite local nickname with remote nickname if different
+		if user.Nickname != request.Nickname {
+			updates["nickname"] = request.Nickname
+		}
+		// Overwrite local email with remote email if different
+		if user.Email != request.Email {
+			updates["email"] = request.Email
+		}
+		// If no updates are necessary, bail early.
+		if len(updates) == 0 {
+			res.WriteHeader(http.StatusNoContent)
+			return nil
 		}
 		// Update on backend.
 		err = auth0.UpdateUser(req.Context(), request)
@@ -130,16 +152,16 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 				templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user on backend: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("save account settings: update auth0: %w", err), http.StatusInternalServerError)
 		}
-		// Update local copy.
-		err = models.UpdateUser(req.Context(), api, request)
-		if err != nil || !valid {
+		// Update local user object.
+		err = api.UpdateUser(req.Context(), user.GetID(), updates)
+		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("save account settings: update elastic: %w", err), http.StatusInternalServerError)
 		}
 		// Report success.
 		msg := models.NewSuccessMessage("Account edits saved!", "")
