@@ -18,6 +18,10 @@ templ FavoritesLayout(subscriptions models.Subscriptions, articles models.Articl
 				</h2>
 			</div>
 		</div>
+		// Hidden content filters.
+		<div id="content-filters" class="hidden">
+			<input type="hidden" name={ models.ParamView } value={ models.ViewAll }/>
+		</div>
 		// Jump to links for quick access.
 		<section>
 			<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8 text-sm">
