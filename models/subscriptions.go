@@ -92,10 +92,18 @@ func (s *FeedSubscription) GetReadItems() []ItemID {
 // subscription. By default it will return unread unless the user has explicitly
 // marked or saved the item.
 func (s *FeedSubscription) GetItemState(itemID ItemID) *ArticleState {
+	// If the subscription has no article states, return unread state.
+	if s.ArticleStates == nil {
+		return &ArticleState{
+			Read: false,
+		}
+	}
+	// If a state is found return that.
 	state, found := s.ArticleStates[itemID]
 	if found {
 		return &state
 	}
+	// Return unread state if no state found.
 	return &ArticleState{
 		Read: false,
 	}
@@ -103,6 +111,10 @@ func (s *FeedSubscription) GetItemState(itemID ItemID) *ArticleState {
 
 // SetItemState will set the state of the item to the given state.
 func (s *FeedSubscription) SetItemState(itemID ItemID, state *ArticleState) {
+	// Create a new article state map if none exists.
+	if s.ArticleStates == nil {
+		s.ArticleStates = make(map[ItemID]ArticleState)
+	}
 	s.ArticleStates[itemID] = *state
 }
 
