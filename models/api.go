@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -23,6 +22,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 var (
@@ -327,33 +327,6 @@ func GetSubscriptionSuggestions(ctx context.Context, dataAPI DataAPI, text strin
 	return subscriptions, nil
 }
 
-// IsUserSubscribedToFeed will return a boolean indicating if the user has a subscription to the feed with the given ID.
-// If an error occurs, a non-nil error will also be returned.
-func IsUserSubscribedToFeed(ctx context.Context, dataAPI DataAPI, id FeedID) (bool, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return false, fmt.Errorf("is user subscribed to feed: get user data: %w", err)
-	}
-	subscriptionQuery := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Term("type", SubscriptionTypeFeed),
-			query.Term("feed_data.feed_id", id),
-		),
-	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
-	switch {
-	case err != nil:
-		return false, fmt.Errorf("is user subscribed to feed: %w", err)
-	case len(subscriptions) == 0:
-		return false, nil
-	case len(subscriptions) != 1:
-		return false, fmt.Errorf("is user subscribed to feed: %w: too many subscriptions", ErrInvalidAPIResult)
-	}
-
-	return true, nil
-}
-
 // AddSubscriptions adds the given subscriptions to a user.
 func AddSubscriptions(ctx context.Context, dataAPI DataAPI, subscriptions ...*Subscription) error {
 	user, err := UserFromCtx(ctx)
@@ -432,6 +405,9 @@ func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscrip
 
 // CreateFeedSubscriptions will create new FeedSubscriptions for the user from the given requests.
 func CreateFeedSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*AddFeedSubscriptionResult) error {
+	if len(results) == 0 {
+		return nil
+	}
 	subscriptions := make(Subscriptions, 0, len(results))
 	for result := range slices.Values(results) {
 		slogctx.FromCtx(ctx).Debug("Creating new subscription.",
@@ -786,23 +762,86 @@ func getFeedLastUpdates(ctx context.Context, dataAPI DataAPI, ids ...FeedID) (ma
 	return updates, nil
 }
 
-// MatchRequestToFeed matches a FeedSubscriptionRequest to an existing Feed (if one exists), by the URL.
-func MatchRequestToFeed(ctx context.Context, dataAPI DataAPI, req *AddFeedSubscriptionRequest) (*Feed, error) {
-	// Find matches.
-	feeds, _, err := dataAPI.SearchFeeds(ctx, query.Term("source_urls", req.GetURL()), 1, nil, nil)
+func ProcessSubscriptionRequest(ctx context.Context, dataAPI DataAPI, request *AddFeedSubscriptionRequest, resultsCh chan AddFeedSubscriptionResult) {
+	result := AddFeedSubscriptionResult{
+		Request: *request,
+	}
+	// Try to match request URL to an existing feed
+	var feed *Feed
+	feeds, _, err := dataAPI.SearchFeeds(ctx, query.Term("source_urls", request.GetURL()), 1, nil, nil)
 	if err != nil {
-		return nil, fmt.Errorf("unable to match request to feed: %w", err)
+		result.Error = err
+		result.Message = *NewErrorMessage("Unable to determine existing subscription status", "The backend produced an error. This might be temporary, please try again.")
+		resultsCh <- result
+		return
 	}
-	if len(feeds) == 0 {
-		return nil, NewAPIError(ErrNotFound, http.StatusNotFound)
+	if len(feeds) == 1 {
+		feed = feeds[0]
 	}
-	if len(feeds) != 1 {
-		slogctx.FromCtx(ctx).Warn("More than one matching feed for request. Using first match.",
-			slog.String("url", req.GetURL()),
-			slog.String("matches", strings.Join(feeds.GetIDs(), ",")),
+
+	// If no existing feed, create a new one.
+	if feed == nil {
+		slogctx.FromCtx(ctx).Debug("Parsing url", slog.String("url", request.GetURL()))
+		newFeed, err := NewFeedFromURL(ctx, request.GetURL())
+		if err != nil {
+			result.Error = err
+			result.Message = *NewErrorMessage("Unable to create subscription", fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL()))
+			resultsCh <- result
+			return
+		}
+		err = validation.Validate.Struct(newFeed)
+		if err != nil {
+			result.Error = err
+			result.Message = *NewErrorMessage("Unable to create subscription", fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL()))
+			resultsCh <- result
+			return
+		}
+		err = CreateFeed(ctx, dataAPI, newFeed)
+		if err != nil {
+			result.Error = err
+			result.Message = *NewErrorMessage("Unable to create new feed for subscription", "The backend produced an error. This might be temporary, please try again.")
+			resultsCh <- result
+			return
+		}
+		slogctx.FromCtx(ctx).Debug("Created new feed for request.",
+			slog.String("name", newFeed.GetTitle()),
+			slog.String("urls", strings.Join(newFeed.GetSourceURLs(), ",")),
 		)
+		feed = newFeed
 	}
-	return feeds[0], nil
+
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		result.Error = err
+		result.Message = *NewErrorMessage("Unable to check for existing subscription", "The backend produced an error. This might be temporary, please try again.")
+		resultsCh <- result
+		return
+	}
+	subscriptionQuery := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Term("type", SubscriptionTypeFeed),
+			query.Term("feed_data.feed_id", feed.GetID()),
+		),
+	)
+	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
+	if err != nil {
+		result.Error = err
+		result.Message = *NewErrorMessage("Unable to check for existing subscription", "The backend produced an error. This might be temporary, please try again.")
+		resultsCh <- result
+		return
+	}
+	if len(subscriptions) > 0 {
+		result.Error = fmt.Errorf("already subscribed")
+		result.Message = *NewWarningMessage("Already subscribed to feed", feed.GetTitle()+" ("+request.URL+")")
+		resultsCh <- result
+		return
+	}
+
+	// Add the feed details to the result.
+	result.Feed = *feed
+	// Send the result back through the channel.
+	resultsCh <- result
 }
 
 // CreateFeed stores a new Feed.

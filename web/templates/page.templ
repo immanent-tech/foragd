@@ -97,3 +97,9 @@ templ Page(title string, body templ.Component) {
 		</body>
 	</html>
 }
+
+templ pageTitle(title string) {
+	<div class="min-w-0 flex-1 pb-8">
+		<h2 class="text-2xl/7 font-bold tracking-tight sm:text-3xl">{ title }</h2>
+	</div>
+}

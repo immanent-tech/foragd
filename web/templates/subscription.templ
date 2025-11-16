@@ -992,51 +992,55 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 // ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
 templ ImportSubscriptions() {
 	@Main() {
-		<div class="md:flex md:items-center md:justify-between">
-			<div class="min-w-0 flex-1">
-				<h2 class="page-title">Import Subscriptions</h2>
+		<div class="mx-auto max-w-3xl">
+			@pageTitle("Import Subscriptions")
+			<div class="md:flex md:items-center md:justify-between">
+				<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+					You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.
+				</p>
 			</div>
-			<p class="mt-2 max-w-4xl text-sm sm:truncate text-base-content/80">
-				You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.
-			</p>
-		</div>
-		<div class="border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0">
 			<form
-				id="import"
+				id="import-subscriptions-form"
 				hx-encoding="multipart/form-data"
 				hx-post="/user/import"
 				hx-target="#import-results"
 				hx-include="[name='csrf_token']"
 				hx-indicator="#processing"
 			>
-				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-					<label for="source" class="block text-sm/6 font-medium">OPML file</label>
-					<div class="mt-2 sm:col-span-2 sm:mt-0">
-						<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10"/>
+				<div class="grid max-w-7xl grid-cols-1 items-center gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+					<div>
+						<h3 class="text-base/7 font-semibold">OPML File</h3>
 					</div>
-				</div>
-				<div class="mt-6 flex items-center justify-end gap-x-6">
-					<div id="processing" class="htmx-indicator">
-						Processing...
-						<span class="loading loading-spinner loading-md"></span>
+					<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:place-items-center sm:grid-cols-6 md:col-span-2">
+						<div class="sm:col-span-full w-full">
+							<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10 w-full"/>
+						</div>
 					</div>
-					<button
-						type="button"
-						onclick="history.back()"
-						class="btn btn-secondary btn-soft"
-					>
-						Back
-					</button>
-					<button
-						type="submit"
-						class="btn btn-primary btn-soft"
-					>
-						Import
-					</button>
+					<div class="grid col-span-full justify-end">
+						<div class="flex gap-x-2 items-center">
+							<div id="processing" class="htmx-indicator">
+								Processing...
+								<span class="loading loading-spinner loading-md"></span>
+							</div>
+							<button
+								type="button"
+								onclick="history.back()"
+								class="btn btn-secondary btn-soft"
+							>
+								Back
+							</button>
+							<button
+								type="submit"
+								class="btn btn-primary btn-soft"
+							>
+								Import
+							</button>
+						</div>
+					</div>
 				</div>
 			</form>
+			<div id="import-results" class="space-y-4"></div>
 		</div>
-		<div id="import-results" class="space-y-4"></div>
 	}
 }
 
@@ -1044,23 +1048,45 @@ templ ImportSubscriptions() {
 templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 	{{ successfulResults := filterSuccessfulResults(results) }}
 	{{ failedResults := filterUnsuccessfulResults(results) }}
-	<div class="min-w-0 flex-1 pb-8">
-		<h2 class="page-title">Import Results</h2>
+	{{ warningResults := filterWarningResults(results) }}
+	@pageTitle("Import Results")
+	// Import results summary.
+	<div class="stats shadow">
+		<div class="stat">
+			<div class="stat-figure text-success">
+				@tabler.CircleCheck(i.Props{Class: "size-10 text-success"})
+			</div>
+			<div class="stat-title">Created</div>
+			<div class="stat-value text-primary">{ strconv.Itoa(len(successfulResults)) }</div>
+		</div>
+		<div class="stat">
+			<div class="stat-figure text-error">
+				@tabler.ExclamationCircle(i.Props{Class: "size-10 text-error"})
+			</div>
+			<div class="stat-title">Failed</div>
+			<div class="stat-value text-error">{ strconv.Itoa(len(failedResults)) }</div>
+		</div>
+		<div class="stat">
+			<div class="stat-figure text-warning">
+				@tabler.AlertTriangle(i.Props{Class: "size-10 text-warning"})
+			</div>
+			<div class="stat-title">Warnings</div>
+			<div class="stat-value text-warning">{ strconv.Itoa(len(warningResults)) }</div>
+		</div>
 	</div>
-	<p class="mt-2 max-w-4xl text-sm sm:truncate text-base-content/80">
-		{ "Imported: " + strconv.Itoa(len(successfulResults)) + " Failed: " + strconv.Itoa(len(failedResults)) }
-	</p>
-	@NewButton(
-		WithHXMethod(http.MethodGet, "/list/subscriptions"),
-		WithHXTarget(ContentID.Target()),
-		WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
-		WithClasses("btn-primary"),
-	) {
-		Go to your subscriptions
-	}
-	<div class="mt-10 space-y-8 border-t border-neutral">
+	<div>
+		@NewButton(
+			WithHXMethod(http.MethodGet, "/list/subscriptions"),
+			WithHXTarget(ContentID.Target()),
+			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
+			WithClasses("btn-primary"),
+		) {
+			Go to your subscriptions
+		}
+	</div>
+	<div class="mt-10 space-y-8">
 		<ul class="list">
-			for response := range slices.Values(slices.Concat(successfulResults,failedResults)) {
+			for response := range slices.Values(slices.Concat(successfulResults,failedResults,warningResults)) {
 				<li class="list-row items-center">
 					switch response.Message.Status {
 						case models.UserMessageStatusSuccess:
@@ -1093,7 +1119,7 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 			}
 		</ul>
 	</div>
-	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" href={ ContentID.Target() }>Back to top</button>
+	<a class="btn btn-neutral fixed right-0 bottom-0 m-4" href="#import-results">Back to top</a>
 }
 
 func filterSuccessfulResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
@@ -1102,9 +1128,15 @@ func filterSuccessfulResults(results []*models.AddFeedSubscriptionResult) []*mod
 	}))
 }
 
+func filterWarningResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result *models.AddFeedSubscriptionResult) bool {
+		return result.Message.Status == models.UserMessageStatusWarning
+	}))
+}
+
 func filterUnsuccessfulResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
 	return slices.Collect(models.FilterSlice(results, func(result *models.AddFeedSubscriptionResult) bool {
-		return result.Message.Status != models.UserMessageStatusSuccess
+		return result.Message.Status == models.UserMessageStatusError
 	}))
 }
 

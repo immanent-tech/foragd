@@ -511,13 +511,6 @@ func (a *API) DeleteUser() http.HandlerFunc {
 //nolint:gocognit
 func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Retrieve user object.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			msg := models.NewErrorMessage("Unable to edit subscription", "This might be a temporary problem, please try again.")
-			renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle("Error")).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
-		}
 		// Ignore submission without any feedset selected.
 		if req.FormValue("feedset") == "" {
 			res.WriteHeader(http.StatusNoContent)
@@ -572,7 +565,7 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 		var wg sync.WaitGroup
 		for request := range slices.Values(subscriptionRequests) {
 			wg.Go(func() {
-				processSubscriptionRequest(req.Context(), api, user, request, resultsCh)
+				models.ProcessSubscriptionRequest(req.Context(), api, request, resultsCh)
 			})
 		}
 		// Wait for all request processing to complete.
