@@ -471,25 +471,25 @@ templ SearchFilters(attributes templ.Attributes) {
 				<button
 					type="submit"
 					class="btn btn-sm btn-primary btn-soft"
-					_="on click add .hidden to #search-filters-dialog"
+					_="on click call #search-filters-dialog.close()"
 				>Search</button>
 			</div>
 		</form>
 		// Help dialog.
-		// <div class="absolute right-2 top-2">
-		// 	@HelpPopover("filter-operators-help", "bottom end") {
-		// 		<div tabindex="0" class="text-xs/tight sm:text-sm/tight rounded-box p-4 shadow-sm border border-base-content/15 bg-base-300">
-		// 			<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-		// 			<ul class="gap-y-2">
-		// 				<li>+ signifies AND operation (i.e., food AND beverages)</li>
-		// 				<li>| signifies OR operation (i.e., food OR beverages)</li>
-		// 				<li>- negates a the word (i.e., NOT alcoholic)</li>
-		// 				<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
-		// 				<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
-		// 			</ul>
-		// 		</div>
-		// 	}
-		// </div>
+		<div class="absolute right-2 top-2">
+			@HelpPopover("filter-operators-help", "bottom end") {
+				<div tabindex="0" class="text-xs/tight sm:text-sm/tight rounded-box p-4 shadow-sm border border-base-content/15 bg-base-300 sm:max-w-2xl">
+					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+					<ul class="gap-y-2">
+						<li>+ signifies AND operation (i.e., food AND beverages)</li>
+						<li>| signifies OR operation (i.e., food OR beverages)</li>
+						<li>- negates a the word (i.e., NOT alcoholic)</li>
+						<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
+						<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
+					</ul>
+				</div>
+			}
+		</div>
 	</div>
 }
 
