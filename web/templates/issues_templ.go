@@ -48,14 +48,14 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2 class=\"page-title\">Report An Issue</h2></div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.</p><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">If you need to attach a screenshot, or cannot use this form, you can <a class=\"link\" href=\"mailto:feedback@immanent.tech&subject=Foragd Feedback\">email us</a> instead.</p><form id=\"report-app-issue\" hx-post=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-3xl\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2 class=\"page-title\">Report An Issue</h2></div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.</p><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">If you need to attach a screenshot, or cannot use this form, you can <a class=\"link\" href=\"mailto:feedback@immanent.tech&subject=Foragd Feedback\">email us</a> instead.</p><form id=\"report-app-issue\" hx-post=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("/issue")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 24, Col: 21}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 25, Col: 22}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -68,7 +68,7 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 25, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 26, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -81,7 +81,7 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 26, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 27, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -94,7 +94,7 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(details.PageUrl)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 30, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 31, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -112,7 +112,7 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(details.Details)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 41, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 42, Col: 32}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -130,7 +130,7 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(details.PageUrl)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 54, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 55, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -143,13 +143,13 @@ func ReportPageIssue(details *models.IssueRequest) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 55, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 56, Col: 36}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" class=\"btn btn-secondary\">Back</button> <button type=\"submit\" class=\"btn btn-primary\">Submit</button></div></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" class=\"btn btn-secondary\">Back</button> <button type=\"submit\" class=\"btn btn-primary\">Submit</button></div></form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -203,7 +203,7 @@ func ReportObjectIssues(objectType, id string, details *models.ObjectIssueReques
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("/issue/" + objectType + "/" + id)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 83, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 85, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -216,7 +216,7 @@ func ReportObjectIssues(objectType, id string, details *models.ObjectIssueReques
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 85, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 87, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -229,7 +229,7 @@ func ReportObjectIssues(objectType, id string, details *models.ObjectIssueReques
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 86, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 88, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -242,7 +242,7 @@ func ReportObjectIssues(objectType, id string, details *models.ObjectIssueReques
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(details.ObjectID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 90, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 92, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -255,7 +255,7 @@ func ReportObjectIssues(objectType, id string, details *models.ObjectIssueReques
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(details.Object)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 91, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 93, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -268,7 +268,7 @@ func ReportObjectIssues(objectType, id string, details *models.ObjectIssueReques
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(details.PageUrl)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 92, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 94, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -316,7 +316,7 @@ func ReportObjectIssues(objectType, id string, details *models.ObjectIssueReques
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(details.Details)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 165, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 167, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {

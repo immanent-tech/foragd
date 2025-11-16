@@ -8,59 +8,61 @@ import "github.com/immanent-tech/foragd/models"
 // ReportPageIssue renders a form for reporting issues with the app.
 templ ReportPageIssue(details *models.IssueRequest) {
 	@Main() {
-		<div class="md:flex md:items-center md:justify-between">
-			<div class="min-w-0 flex-1">
-				<h2 class="page-title">Report An Issue</h2>
+		<div class="mx-auto max-w-3xl">
+			<div class="md:flex md:items-center md:justify-between">
+				<div class="min-w-0 flex-1">
+					<h2 class="page-title">Report An Issue</h2>
+				</div>
 			</div>
-		</div>
-		<p class="mt-2 max-w-4xl text-sm text-base-content/80">
-			Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.
-		</p>
-		<p class="mt-2 max-w-4xl text-sm text-base-content/80">
-			If you need to attach a screenshot, or cannot use this form, you can <a class="link" href="mailto:feedback@immanent.tech&subject=Foragd Feedback">email us</a> instead.
-		</p>
-		<form
-			id="report-app-issue"
-			hx-post={ "/issue" }
-			hx-target={ ContentID.Target() }
-			hx-target-error={ ContentID.Target() }
-			hx-indicator="#processing"
-			hx-include="[name='csrf_token']"
-		>
-			<input type="hidden" name="page_url" value={ details.PageUrl }/>
-			<fieldset class="fieldset p-4">
-				<p class="mt-1 text-sm/6 text-base-content/80">What is the problem or issue?</p>
-				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
-					<div class="flex items-center col-span-full">
-						<textarea
-							id="details"
-							name="details"
-							class="textarea w-full"
-							placeholder="What was expected, what is missing, etc."
-							if details.Details != "" {
-								value={ details.Details }
-							}
-						></textarea>
+			<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+				Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.
+			</p>
+			<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+				If you need to attach a screenshot, or cannot use this form, you can <a class="link" href="mailto:feedback@immanent.tech&subject=Foragd Feedback">email us</a> instead.
+			</p>
+			<form
+				id="report-app-issue"
+				hx-post={ "/issue" }
+				hx-target={ ContentID.Target() }
+				hx-target-error={ ContentID.Target() }
+				hx-indicator="#processing"
+				hx-include="[name='csrf_token']"
+			>
+				<input type="hidden" name="page_url" value={ details.PageUrl }/>
+				<fieldset class="fieldset p-4">
+					<p class="mt-1 text-sm/6 text-base-content/80">What is the problem or issue?</p>
+					<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
+						<div class="flex items-center col-span-full">
+							<textarea
+								id="details"
+								name="details"
+								class="textarea w-full"
+								placeholder="What was expected, what is missing, etc."
+								if details.Details != "" {
+									value={ details.Details }
+								}
+							></textarea>
+						</div>
 					</div>
+				</fieldset>
+				<div class="mt-6 flex items-center justify-end gap-x-6">
+					<div id="processing" class="htmx-indicator">
+						Processing...
+						<span class="loading loading-spinner loading-md"></span>
+					</div>
+					<button
+						type="button"
+						hx-get={ details.PageUrl }
+						hx-target={ ContentID.Target() }
+						class="btn btn-secondary"
+					>Back</button>
+					<button
+						type="submit"
+						class="btn btn-primary"
+					>Submit</button>
 				</div>
-			</fieldset>
-			<div class="mt-6 flex items-center justify-end gap-x-6">
-				<div id="processing" class="htmx-indicator">
-					Processing...
-					<span class="loading loading-spinner loading-md"></span>
-				</div>
-				<button
-					type="button"
-					hx-get={ details.PageUrl }
-					hx-target={ ContentID.Target() }
-					class="btn btn-secondary"
-				>Back</button>
-				<button
-					type="submit"
-					class="btn btn-primary"
-				>Submit</button>
-			</div>
-		</form>
+			</form>
+		</div>
 	}
 }
 
