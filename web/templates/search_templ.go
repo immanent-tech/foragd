@@ -90,7 +90,7 @@ func SearchSuggestions(request *models.SearchRequest, articles models.Articles) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Search...</span></a></form></el-command-group><el-command-group hidden class=\"block p-2 text-sm text-base-content\" aria-labelledby=\"pages-group-label\"><div id=\"pages-group-label\" class=\"text-base-content/80 px-3 py-2\">Pages</div><a href=\"/home\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Search...</span></a></form></el-command-group><el-command-group hidden class=\"block p-2 text-sm text-base-content\" aria-labelledby=\"pages-group-label\"><div id=\"pages-group-label\" class=\"text-base-content/80 px-3 py-2\">Actions</div><a href=\"/home\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -98,7 +98,7 @@ func SearchSuggestions(request *models.SearchRequest, articles models.Articles) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span class=\"ml-3 flex-auto truncate\">Home</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Jump to...</span></a> <a href=\"/subscriptions\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<span class=\"ml-3 flex-auto truncate\">Go to Home</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Jump to...</span></a> <a href=\"/list/subscriptions\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -106,7 +106,7 @@ func SearchSuggestions(request *models.SearchRequest, articles models.Articles) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<span class=\"ml-3 flex-auto truncate\">All subscriptions</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Jump to...</span></a> <a href=\"/articles\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<span class=\"ml-3 flex-auto truncate\">Go to Subscriptions</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Jump to...</span></a> <a href=\"/list/articles\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -114,7 +114,7 @@ func SearchSuggestions(request *models.SearchRequest, articles models.Articles) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<span class=\"ml-3 flex-auto truncate\">All articles</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Jump to...</span></a> <a href=\"/favorites\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<span class=\"ml-3 flex-auto truncate\">Go to Articles</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Jump to...</span></a> <a href=\"/list/favorites\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -122,7 +122,7 @@ func SearchSuggestions(request *models.SearchRequest, articles models.Articles) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<span class=\"ml-3 flex-auto truncate\">Favorites</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Jump to...</span></a> <a href=\"/user/settings\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<span class=\"ml-3 flex-auto truncate\">Go to Favorites</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Jump to...</span></a> <a href=\"/user/settings\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -130,7 +130,7 @@ func SearchSuggestions(request *models.SearchRequest, articles models.Articles) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span class=\"ml-3 flex-auto truncate\">Settings</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Jump to...</span></a> <a href=\"#\" hx-get=\"/user/subscription/add/feed\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span class=\"ml-3 flex-auto truncate\">Go to Settings</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Jump to...</span></a> <a href=\"#\" hx-get=\"/user/subscription/add/feed\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
