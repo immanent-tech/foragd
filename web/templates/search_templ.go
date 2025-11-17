@@ -757,9 +757,9 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var29 string
-		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(models.GenerateHXVals(map[string]string{"subscriptions-input-name": "subscriptions"}))
+		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(models.GenerateHXVals(map[string]any{"subscriptions-input-name": "subscriptions"}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 368, Col: 102}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 368, Col: 99}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {
@@ -1020,7 +1020,7 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 			templ_7745c5c3_Err = NewButton(
 				WithHXMethod(http.MethodPost, "/search/subscription"),
 				WithHXSwap("beforeend"),
-				WithHXVals(map[string]string{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}),
+				WithHXVals(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}),
 				WithHXInclude("[name='csrf_token']"),
 				WithHXParams("subscription_id,subscription_name,csrf_token,subscriptions-input-name"),
 				WithoutHXPushURL(),

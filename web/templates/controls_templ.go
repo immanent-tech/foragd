@@ -158,7 +158,7 @@ func FilterControls(categories models.CategoryCounts, filters *models.ListDispla
 		}
 		if chi.RouteContext(ctx).URLParam(models.ParamListType) == "subscriptions" {
 			var onlyFavoritesActiveClass string
-			overrides := make(map[string]string)
+			overrides := make(map[string]any)
 			if filters.OnlyFavorites {
 				onlyFavoritesActiveClass = "text-accent font-semibold"
 				overrides[models.ParamOnlyFavorites] = "false"
@@ -191,7 +191,7 @@ func FilterControls(categories models.CategoryCounts, filters *models.ListDispla
 				WithHXTarget(ContentID.Target()),
 				WithHXVals(overrides),
 				WithHXPushURL(),
-				WithHXVals(map[string]string{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
+				WithHXVals(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
 				WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -377,7 +377,7 @@ func FilterControls(categories models.CategoryCounts, filters *models.ListDispla
 				WithHXInclude("#content-filters"),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
-				WithHXVals(map[string]string{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
+				WithHXVals(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
 				WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var9), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -541,7 +541,7 @@ func viewFilter(path, id string, view models.View, current models.View) templ.Co
 			WithHXInclude("#content-filters"),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
-			WithHXVals(map[string]string{models.ParamView: string(view)}),
+			WithHXVals(map[string]any{models.ParamView: string(view)}),
 			WithID(id),
 			WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", class),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
@@ -575,7 +575,7 @@ func categoryFilter(path, id string, category models.CategoryCount, current mode
 		}
 		ctx = templ.ClearChildren(ctx)
 		var class string
-		overrides := make(map[string]string)
+		overrides := make(map[string]any)
 		if current.HasCategory(category.Category) {
 			class = "text-accent font-semibold"
 		} else {
@@ -775,7 +775,7 @@ func sortOption(path string, sort models.Sort, current models.Sort) templ.Compon
 			WithHXInclude("#content-filters"),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
-			WithHXVals(map[string]string{models.ParamSort: string(sort)}),
+			WithHXVals(map[string]any{models.ParamSort: string(sort)}),
 			WithID(string(sort)),
 			WithClasses("flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", class),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var26), templ_7745c5c3_Buffer)

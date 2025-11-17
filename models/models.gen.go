@@ -437,7 +437,7 @@ type FileUpload struct {
 // GroupSubscription represents a subscription that combines other subscriptions.
 type GroupSubscription struct {
 	// Subscriptions is the list of subscription IDs belonging to the group.
-	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,unique,startswith=sub_"`
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
 }
 
 // GroupSubscriptionRequest represents a request to create a group subscription.
@@ -445,8 +445,11 @@ type GroupSubscriptionRequest struct {
 	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`
 	Settings      SubscriptionSettings      `form:"settings" json:"settings,omitempty,omitzero"`
 
+	// SubscriptionID will be a subscription ID if the user is editing an existing group subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"-" validate:"omitempty,startswith=sub_"`
+
 	// Subscriptions is the list of subscription IDs belonging to the group.
-	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,unique,startswith=sub_"`
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
 }
 
 // IssueRequest contains details about an issue with the service.

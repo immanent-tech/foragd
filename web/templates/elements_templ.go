@@ -122,7 +122,7 @@ func WithHXInclude(value string) Option[element] {
 	}
 }
 
-func WithHXVals(vals map[string]string) Option[element] {
+func WithHXVals(vals map[string]any) Option[element] {
 	return func(e element) {
 		if len(vals) > 0 {
 			e.SetAttribute("hx-vals", generateHXVals(vals))
@@ -394,7 +394,7 @@ func NewDiv(options ...Option[element]) templ.Component {
 	})
 }
 
-func generateHXVals(values map[string]string) string {
+func generateHXVals(values map[string]any) string {
 	data, err := json.Marshal(values)
 	if err != nil {
 		return ""

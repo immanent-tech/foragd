@@ -16,6 +16,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -587,7 +588,9 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 			var avgDailyUpdates []float64
 			var unreadCount int
 			var lastUpdates []time.Time
+			godump.Dump(subscription.GroupData.Subscriptions)
 			for groupSubscription := range slices.Values(subscriptions) {
+				godump.Dump(groupSubscription.GetID())
 				if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
 					if user.GetSettings().ShowSubscriptionStats {
 						avgDailyUpdates = append(avgDailyUpdates, groupSubscription.Stats.AvgDailyUpdates)

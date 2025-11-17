@@ -654,7 +654,7 @@ components:
             $ref: '#/components/schemas/SubscriptionID'
           x-oapi-codegen-extra-tags:
             form: 'subscriptions'
-            validate: 'required,dive,unique,startswith=sub_'
+            validate: 'required,dive,startswith=sub_'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
     SearchSubscription:
@@ -779,6 +779,16 @@ components:
       required:
         - subscriptions
       properties:
+        subscription_id:
+          description: >
+            will be a subscription ID if the user is editing an existing group subscription.
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionID'
+          x-go-name: SubscriptionID
+          x-oapi-codegen-extra-tags:
+            json: '-'
+            form: 'subscription_id'
+            validate: 'omitempty,startswith=sub_'
         subscriptions:
           description: >
             is the list of subscription IDs belonging to the group.
@@ -787,7 +797,7 @@ components:
             $ref: '#/components/schemas/SubscriptionID'
           x-oapi-codegen-extra-tags:
             form: 'subscriptions'
-            validate: 'required,dive,unique,startswith=sub_'
+            validate: 'required,dive,startswith=sub_'
         customisation:
           allOf:
             - $ref: '#/components/schemas/SubscriptionCustomisation'

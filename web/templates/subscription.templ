@@ -251,11 +251,58 @@ templ subscriptionHeading(s *models.Subscription) {
 					</div>
 				</div>
 			}
+		case models.SubscriptionTypeGroup:
+			{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": s.GroupData.Subscriptions} }}
+			if s.GetStats().IsUnread() {
+				{{ overrides[models.ParamView] = string(models.ViewUnread) }}
+			} else {
+				{{ overrides[models.ParamView] = string(models.ViewRead) }}
+			}
+			@NewLink(
+				WithHXMethod(http.MethodGet, "/list/articles"),
+				WithHXInclude("#content-filters"),
+				WithHXVals(overrides),
+				WithHXTarget(ContentID.Target()),
+				WithHXPushURL(),
+				WithHXSwap("innerHTML show:top transition:true"),
+				WithClasses("flex", "items-center", "gap-x-4", "hover:text-accent"),
+			) {
+				<div class="flex items-center">
+					<div class="mr-4 shrink-0 self-center">
+						// Generate a thumbnail to display next to the title.
+						if img := s.GetImage(); img != "" {
+							// If the source has an image, use that as the avatar.
+							<div class="avatar">
+								<div class="rounded-box size-12">
+									<img
+										src={ "/img-proxy/48x48/" + img }
+										width="48"
+										height="48"
+									/>
+									// if img.GetTitle() != "" {
+									// 	alt={ img.GetTitle() }
+									// }
+								</div>
+							</div>
+						} else {
+							// Otherwise, take the first letter of the title and create a placeholder avatar.
+							<div class="avatar avatar-placeholder">
+								<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
+									<span class="text-3xl capitalize">{ s.GetTitle()[0:1] }</span>
+								</div>
+							</div>
+						}
+					</div>
+					<div>
+						<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
+					</div>
+				</div>
+			}
 	}
 }
 
 templ viewFeedSubscriptionLink(s *models.Subscription) {
-	{{ overrides := map[string]string{models.ParamSort: string(models.SortNewestFirst), "subscriptions": s.GetID()} }}
+	{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": s.GetID()} }}
 	if s.GetStats().IsUnread() {
 		{{ overrides[models.ParamView] = string(models.ViewUnread) }}
 	} else {
@@ -348,6 +395,17 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 						) {
 							@tabler.Plus(i.Props{Class: "size-4"})
 							Add Search Subscription
+						}
+					</div>
+					<div class="py-1">
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/user/subscription/add/group"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
+						) {
+							@tabler.Plus(i.Props{Class: "size-4"})
+							Add Group Subscription
 						}
 					</div>
 				</el-menu>
@@ -755,7 +813,8 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					hx-post={ "/edit/subscription/" + request.Search.ID }
 				}
 				hx-swap="none"
-				hx-include="[name='customisation.user_categories'],[name='csrf_token']"
+				hx-include="[name='customisation.categories'],[name='csrf_token']"
+				hx-params="not subscription-text"
 				hx-vals="js:{'search.timezone': Intl.DateTimeFormat().resolvedOptions().timeZone}"
 				hx-indicator="#processing"
 			>
@@ -840,7 +899,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 								id="subscription-filter-subscriptions-options"
 								hx-target="#subscription-filter-subscriptions"
-								hx-vals={ models.GenerateHXVals(map[string]string{"subscriptions-input-name": "search.subscriptions"}) }
+								hx-vals={ models.GenerateHXVals(map[string]any{"subscriptions-input-name": "search.subscriptions"}) }
 								_="on htmx:afterRequest set #subscription-filter-subscriptions-search.value to ''"
 							></div>
 							<div
@@ -967,6 +1026,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 							placeholder="My Search Subscription"
 							class="input input-primary bg-base-content/10 w-full"
 							form="manage-search-subscription"
+							autocomplete="off"
 						/>
 					</div>
 				</div>
@@ -982,6 +1042,126 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				</div>
 				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
 				<button type="submit" form="manage-search-subscription" class="btn btn-primary btn-soft">
+					if action == "add" {
+						Add
+					} else {
+						Save
+					}
+				</button>
+			</div>
+		</div>
+	}
+}
+
+// AddGroupSubscription is a page for adding a new group subscription.
+templ AddGroupSubscription(request *models.GroupSubscriptionRequest) {
+	@manageGroupSubscription(request, "add")
+}
+
+// EditGroupSubscription is a page for editing a group subscription.
+templ EditGroupSubscription(request *models.GroupSubscriptionRequest) {
+	@manageGroupSubscription(request, "edit")
+}
+
+templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action string) {
+	@Main() {
+		<div class="min-w-0 flex-1 pb-8">
+			switch action {
+				case "add":
+					<h2 class="page-title">Add A Group Subscription</h2>
+				case "edit":
+					<h2 class="page-title">{ "Editing "+request.Customisation.Nickname }</h2>
+			}
+		</div>
+		<div class="space-y-8">
+			// hx-on::after-request="if(event.detail.successful) this.reset()"
+			<form
+				id="manage-group-subscription"
+				if action == "add" {
+					hx-post="/user/subscription/add/group"
+				} else {
+					hx-post={ "/edit/subscription/" + request.SubscriptionID }
+				}
+				hx-swap="none"
+				hx-include="[name='customisation.categories'],[name='csrf_token']"
+				hx-params="not subscription-text"
+				hx-indicator="#processing"
+			>
+				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
+				// Subscriptions.
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">In Subscriptions</h2>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2">
+							<label class="input input-primary bg-base-content/10 w-full">
+								@tabler.Search(i.Props{Class: "size-5"})
+								<input
+									id="subscription-filter-subscriptions-search"
+									name="subscription-text"
+									placeholder="Search subscriptions..."
+									autocomplete="off"
+									hx-post="/search/subscription/suggestions"
+									hx-trigger="input changed delay:500ms,consume"
+									hx-target="#subscription-filter-subscriptions-options"
+									hx-swap="innerHTML"
+									hx-params="subscription-text,csrf_token"
+									hx-include="[name='csrf_token']"
+									hx-push-url="false"
+								/>
+							</label>
+							<div
+								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+								id="subscription-filter-subscriptions-options"
+								hx-target="#subscription-filter-subscriptions"
+								hx-vals={ models.GenerateHXVals(map[string]any{"subscriptions-input-name": "subscriptions"}) }
+								_="on htmx:afterRequest set #subscription-filter-subscriptions-search.value to ''"
+							></div>
+							<div
+								id="subscription-filter-subscriptions"
+								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+							>
+								for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
+									@AddSearchSubscriptionFilter(subscription.GetID(), subscription.GetTitle(), "subscriptions")
+								}
+							</div>
+						</div>
+					</div>
+				</div>
+				// Nickname.
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<h2 class="text-base/7 font-semibold">Nickname</h2>
+						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2">
+							<input
+								id="subscription-nickname"
+								type="text"
+								required
+								name="customisation.nickname"
+								value={ request.Customisation.Nickname }
+								placeholder="My Search Subscription"
+								class="input input-primary bg-base-content/10 w-full"
+								autocomplete="off"
+							/>
+						</div>
+					</div>
+				</div>
+			</form>
+			// Categories
+			{{ categoryMgmtPath := "/user/subscription/category" }}
+			@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
+			// Action buttons.
+			<div class="flex flex-1 items-center justify-end gap-x-6">
+				<div id="processing" class="htmx-indicator">
+					Processing...
+					<span class="loading loading-spinner loading-md"></span>
+				</div>
+				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
+				<button type="submit" form="manage-group-subscription" class="btn btn-primary btn-soft">
 					if action == "add" {
 						Add
 					} else {

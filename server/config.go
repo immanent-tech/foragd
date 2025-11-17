@@ -4,10 +4,6 @@
 package server
 
 import (
-	"crypto/rand"
-	"encoding/hex"
-	"fmt"
-	"math"
 	"time"
 
 	"github.com/immanent-tech/foragd/config"
@@ -53,14 +49,4 @@ type Config struct {
 	IdleTimeout  time.Duration `toml:"idle_timeout"`
 	ImgproxyURL  string        `toml:"imgproxy_url"`
 	ImgproxyKey  string        `toml:"imgproxy_key"`
-}
-
-func randomBase16String(length int) (string, error) {
-	buf := make([]byte, int(math.Ceil(float64(length)/2)))
-	_, err := rand.Read(buf)
-	if err != nil {
-		return "", fmt.Errorf("unable to read from random source: %w", err)
-	}
-	str := hex.EncodeToString(buf)
-	return str[:length], nil // strip 1 extra character we get from odd length results
 }

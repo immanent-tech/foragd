@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/goforj/godump"
+
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -515,6 +517,31 @@ func (r *SearchSubscriptionRequest) Sanitise() error {
 	if err != nil {
 		return err
 	}
+	if r.Customisation.Nickname != "" {
+		r.Customisation.Nickname = validation.SanitizeString(r.Customisation.Nickname)
+	}
+	categories := make([]Category, 0, len(r.Customisation.Categories))
+	for category := range slices.Values(r.Customisation.Categories) {
+		category = validation.SanitizeString(category)
+		categories = append(categories, category)
+	}
+	r.Customisation.Categories = categories
+	return nil
+}
+
+// Valid returns a boolean indicating whether the GroupSubscriptionRequest is valid,
+// and any validation errors if applicable.
+func (r *GroupSubscriptionRequest) Valid() error {
+	godump.Dump(r)
+	err := validation.Validate.Struct(r)
+	if err != nil {
+		return fmt.Errorf("group subscription error: %w", err)
+	}
+	return nil
+}
+
+// Sanitise will sanitise the input values of the GroupSubscriptionRequest.
+func (r *GroupSubscriptionRequest) Sanitise() error {
 	if r.Customisation.Nickname != "" {
 		r.Customisation.Nickname = validation.SanitizeString(r.Customisation.Nickname)
 	}

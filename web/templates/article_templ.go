@@ -207,7 +207,7 @@ func articleSummary(article *models.Article) templ.Component {
 			WithHXMethod(http.MethodGet, "/list/articles"),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
-			WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+			WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
 			WithClasses("truncate"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -481,7 +481,7 @@ func ArticleCard(article *models.Article) templ.Component {
 			WithHXMethod(http.MethodGet, "/list/articles"),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
-			WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+			WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
 			WithClasses("truncate"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var24), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -919,7 +919,7 @@ func ArticleContent(article *models.Article) templ.Component {
 				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 				WithHXTarget(ContentID.Target()),
 				WithHXInclude("#content-filters,[name='csrf_token']"),
-				WithHXVals(map[string]string{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
+				WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
 				WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var42), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -1161,9 +1161,9 @@ func ArticleContent(article *models.Article) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var53 string
-				templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(models.GenerateHXVals(map[string]string{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}))
+				templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(models.GenerateHXVals(map[string]any{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 327, Col: 155}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 327, Col: 152}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 				if templ_7745c5c3_Err != nil {
@@ -1329,7 +1329,7 @@ func UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) templ.Componen
 			WithHXMethod(http.MethodPost, favoriteURL),
 			WithHXTarget("#favorite_"+id),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXVals(map[string]string{"display": "content"}),
+			WithHXVals(map[string]any{"display": "content"}),
 			WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var57), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

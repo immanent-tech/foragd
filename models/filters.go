@@ -62,7 +62,7 @@ type Filters interface {
 	GetCount() int
 	GetView() View
 	GetCategories() []Category
-	Values() map[string]string
+	Values() map[string]any
 	QueryString() string
 }
 
@@ -153,10 +153,10 @@ func (f *ListDisplayFilters) QueryString() string {
 
 // Values converts the filters into a map[string]string object, that can be further manipulated before being (most
 // likely) used as the value of hx-vals in a HTMX request.
-func (f *ListDisplayFilters) Values() map[string]string {
-	params := make(map[string]string)
+func (f *ListDisplayFilters) Values() map[string]any {
+	params := make(map[string]any)
 	if len(f.Subscriptions) > 0 {
-		params[ParamSubscriptions] = strings.Join(f.Subscriptions, ",")
+		params[ParamSubscriptions] = f.Subscriptions
 	}
 	if len(f.Categories) > 0 {
 		params[ParamCategories] = strings.Join(f.Categories, ",")

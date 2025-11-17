@@ -179,6 +179,26 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 			// Generate page template.
 			template = templates.EditSearchSubscription(request)
 			pageTitle = templates.GeneratePageTitle("Editing " + request.Customisation.Nickname)
+		case models.SubscriptionTypeGroup:
+			// Editing SearchSubscription.
+			request := &models.GroupSubscriptionRequest{
+				Customisation:  subscription.Customisation,
+				Settings:       subscription.Settings,
+				Subscriptions:  subscription.GroupData.Subscriptions,
+				SubscriptionID: subscription.GetID(),
+			}
+			subscriptions, err := models.GetSubscriptions(ctx, api, request.Subscriptions...)
+			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
+				renderPartial(templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to add subscription", "Data is invalid. Please check your inputs and try again."),
+				)).ServeHTTP(res, req.WithContext(ctx))
+				return models.NewAPIError(fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			}
+			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
+			// Generate page template.
+			template = templates.EditGroupSubscription(request)
+			pageTitle = templates.GeneratePageTitle("Editing " + request.Customisation.Nickname)
 		}
 		renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
 		return nil
@@ -343,6 +363,54 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("add search subscription: %w", err), http.StatusInternalServerError)
 			}
+			renderPartial(templates.Notification(models.NewSuccessMessage("Search Subscription Created!", ""), 0)).ServeHTTP(res, req)
+		}
+		return nil
+	})).ServeHTTP
+}
+
+// AddGroupSubscription handles adding a new group subscription.
+func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		switch req.Method {
+		case http.MethodGet:
+			template := templates.AddGroupSubscription(&models.GroupSubscriptionRequest{})
+			renderPage(template, templates.GeneratePageTitle("Add A Group Subscription")).ServeHTTP(res, req)
+		case http.MethodPost:
+			// Decode request.
+			request, valid, err := forms.DecodeForm[*models.GroupSubscriptionRequest](req)
+			if err != nil || !valid {
+				res.Header().Add(htmx.HeaderReswap, "none")
+				renderPartial(templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to add subscription", "Data is invalid. Please check your inputs and try again."),
+				)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("add group subscription: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			}
+			// Generate subscription metadata from request.
+			subscription, err := models.NewGroupSubscription(req.Context(), request)
+			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
+				msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("add group subscription: %w", err), http.StatusInternalServerError)
+			}
+			// Validate subscription.
+			err = subscription.Valid()
+			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
+				msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("add group subscription: %w", err), http.StatusInternalServerError)
+			}
+			// Add subscriptions
+			err = models.AddSubscriptions(req.Context(), api, subscription)
+			if err != nil {
+				res.Header().Add(htmx.HeaderReswap, "none")
+				msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(fmt.Errorf("add group subscription: %w", err), http.StatusInternalServerError)
+			}
+			// Render notification.
 			renderPartial(templates.Notification(models.NewSuccessMessage("Search Subscription Created!", ""), 0)).ServeHTTP(res, req)
 		}
 		return nil

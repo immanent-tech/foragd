@@ -323,7 +323,7 @@ func (page *Home) Template() templ.Component {
 						WithHXTarget(ContentID.Target()),
 						WithHXSwap("innerHTML show:top transition:true"),
 						WithHXPushURL(),
-						WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+						WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
 					).Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err

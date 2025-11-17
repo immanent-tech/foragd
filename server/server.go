@@ -37,6 +37,7 @@ import (
 // for static content.
 type Server struct {
 	*http.Server
+
 	client *resty.Client
 }
 
@@ -262,6 +263,9 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 				// Add search subscription.
 				r.Get("/add/search", handlers.AddSearchSubscription(handler.Elastic))
 				r.With(middlewares.RequireHTMX).Post("/add/search", handlers.AddSearchSubscription(handler.Elastic))
+				// Add group subscription.
+				r.Get("/add/group", handlers.AddGroupSubscription(handler.Elastic))
+				r.With(middlewares.RequireHTMX).Post("/add/group", handlers.AddGroupSubscription(handler.Elastic))
 				// Category management for add/edit subscription.
 				r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
 				r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())

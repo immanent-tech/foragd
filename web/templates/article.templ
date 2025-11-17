@@ -49,7 +49,7 @@ templ articleSummary(article *models.Article) {
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
-						WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+						WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
 						WithClasses("truncate"),
 					) {
 						{ article.GetFeedTitle() }
@@ -120,7 +120,7 @@ templ ArticleCard(article *models.Article) {
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
-						WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+						WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
 						WithClasses("truncate"),
 					) {
 						{ article.GetFeedTitle() }
@@ -249,7 +249,7 @@ templ ArticleContent(article *models.Article) {
 								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 								WithHXTarget(ContentID.Target()),
 								WithHXInclude("#content-filters,[name='csrf_token']"),
-								WithHXVals(map[string]string{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
+								WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
 								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 							) {
 								@tabler.FileDownloadFilled(i.Props{Class: "size-4"})
@@ -324,7 +324,7 @@ templ ArticleContent(article *models.Article) {
 					hx-post={ "/mark/article/" + article.GetID() + "/read" }
 					hx-target={ "#mark_" + article.GetID() }
 					hx-include="[name='csrf_token'],[name='view']"
-					hx-vals={ models.GenerateHXVals(map[string]string{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
+					hx-vals={ models.GenerateHXVals(map[string]any{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
 					hx-swap="innerHTML"
 					hx-trigger="intersect once,load delay:10s"
 					hx-push-url="false"
@@ -372,7 +372,7 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 		WithHXMethod(http.MethodPost, favoriteURL),
 		WithHXTarget("#favorite_"+id),
 		WithHXInclude("[name='csrf_token']"),
-		WithHXVals(map[string]string{"display": "content"}),
+		WithHXVals(map[string]any{"display": "content"}),
 		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
 	) {
 		switch isFavorite {

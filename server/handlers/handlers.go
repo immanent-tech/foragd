@@ -190,10 +190,10 @@ func SetRedirect(ctx context.Context, path string, filters models.Filters, res h
 		Target: templates.ContentID.Target(),
 	}
 	if filters != nil {
-		locCtx.Values = filters.Values()
+		// locCtx.Values = filters.Values()
 		pushURLPath = path + "?" + filters.QueryString()
 	}
-	htmxResp := htmx.NewResponse().LocationWithContext(path, locCtx).PushURL(pushURLPath)
+	htmxResp := htmx.NewResponse().LocationWithContext(path+"?"+filters.QueryString(), locCtx).PushURL(pushURLPath)
 	slogctx.FromCtx(ctx).Debug("Redirecting.",
 		slog.String("path", pushURLPath),
 	)

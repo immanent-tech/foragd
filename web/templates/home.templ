@@ -165,7 +165,7 @@ templ (page *Home) Template() {
 													WithHXTarget(ContentID.Target()),
 													WithHXSwap("innerHTML show:top transition:true"),
 													WithHXPushURL(),
-													WithHXVals(map[string]string{models.ParamSubscriptions: article.GetSubscriptionID()}),
+													WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
 												) {
 													{ article.GetFeedTitle() }
 												}

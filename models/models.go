@@ -94,7 +94,7 @@ func ValidateDatetime(dt time.Time) (bool, error) {
 
 // GenerateHXVals generates a JSON-formatted object containing the given key-value pairs suitable for use as a hx-vals attribute.
 // See also: https://htmx.org/attributes/hx-vals/
-func GenerateHXVals(values map[string]string) string {
+func GenerateHXVals(values map[string]any) string {
 	data, err := json.Marshal(values)
 	if err != nil {
 		return ""

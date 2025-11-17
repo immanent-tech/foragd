@@ -365,7 +365,7 @@ templ SearchFilters(attributes templ.Attributes) {
 							class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 							id="search-subscriptions-options"
 							hx-target="#search-subscriptions"
-							hx-vals={ models.GenerateHXVals(map[string]string{"subscriptions-input-name": "subscriptions"}) }
+							hx-vals={ models.GenerateHXVals(map[string]any{"subscriptions-input-name": "subscriptions"}) }
 							_="on htmx:afterRequest set #search-subscriptions-suggest.value to ''"
 						></div>
 						<div
@@ -531,7 +531,7 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 		@NewButton(
 			WithHXMethod(http.MethodPost, "/search/subscription"),
 			WithHXSwap("beforeend"),
-			WithHXVals(map[string]string{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}),
+			WithHXVals(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}),
 			WithHXInclude("[name='csrf_token']"),
 			WithHXParams("subscription_id,subscription_name,csrf_token,subscriptions-input-name"),
 			WithoutHXPushURL(),
