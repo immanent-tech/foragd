@@ -340,8 +340,10 @@ templ UpdateViewArticleMark(id string, isUnread bool) {
 	{{ var markURL string }}
 	if isUnread {
 		{{ markURL = "/mark/article/" + id + "/read" }}
+		<input type="hidden" name={ models.ParamView } value={ models.ViewUnread }/>
 	} else {
 		{{ markURL = "/mark/article/" + id + "/unread" }}
+		<input type="hidden" name={ models.ParamView } value={ models.ViewRead }/>
 	}
 	@NewLink(
 		WithHXMethod(http.MethodPost, markURL),
