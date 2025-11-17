@@ -38,9 +38,11 @@ templ Dock(attributes templ.Attributes) {
 			<span class="sr-only">Go to Subscriptions</span>
 			<span class="dock-label">Subscriptions</span>
 		</button>
+		{{ filters := models.NewListDisplayFilters() }}
 		<button
 			hx-get="/list/articles"
 			hx-target={ ContentID.Target() }
+			hx-vals={ models.GenerateHXVals(filters.Values()) }
 			hx-push-url="true"
 			if models.PathFromCtx(ctx) == "/list/articles" {
 				class="dock-active"

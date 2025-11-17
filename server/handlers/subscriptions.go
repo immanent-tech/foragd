@@ -86,6 +86,46 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// MarkSubscriptions handles marking a list of subscriptions.
+func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Decode request parameters.
+		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
+		if err != nil {
+			renderPartial(templates.ServerErrorNotification(models.NewErrorMessage("Unable to mark subscriptions.", "This might be a temporary error, please try again."))).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("mark subscriptions: %w", err), http.StatusInternalServerError)
+		}
+		if !valid {
+			renderPartial(templates.ServerErrorNotification(models.NewErrorMessage("Unable to mark subscriptions.", "This might be a temporary error, please try again."))).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("mark subscriptions: %w", err), http.StatusUnprocessableEntity)
+		}
+		// Determine what mark to apply from view and where to redirect.
+		var mark models.Mark
+		switch request.View {
+		case models.ViewUnread:
+			mark = models.MarkRead
+			SetRedirect(req.Context(), "/home", nil, res)
+		case models.ViewRead:
+			mark = models.MarkUnread
+			SetRedirect(req.Context(), "/home", nil, res)
+		default:
+			mark = models.MarkUnread
+			SetRedirect(req.Context(), "/list/subscriptions", models.PageFiltersFromCtx(req.Context(), req.URL.Path), res)
+		}
+		// Mark subscriptions.
+		err = models.MarkSubscriptions(req.Context(), api, mark, request.Subscriptions...)
+		if err != nil {
+			renderPartial(
+				templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to mark objects!", "")),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("mark subscriptions failed: %w", err), http.StatusInternalServerError)
+		}
+		res.WriteHeader(http.StatusOK)
+		return nil
+	})).ServeHTTP
+}
+
 // RemoveSubscription handles removing (unsubscribing) from a subscription.
 func RemoveSubscription(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {

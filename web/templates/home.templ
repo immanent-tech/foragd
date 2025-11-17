@@ -25,199 +25,201 @@ type Home struct {
 // content renders the home page content.
 templ (page *Home) Template() {
 	@Main() {
-		<div class="w-full grow lg:flex space-x-4">
-			// Left column.
-			<div class="xl:flex xl:flex-col xl:w-1/2">
-				// Stats.
-				// <div class="border-b border-base-content/80 pb-5">
-				// 	<h3 class="text-base font-semibold">Stats</h3>
-				// </div>
-				// <dl class="mt-5 flex gap-2 sm:gap-4 justify-center">
-				// 	// Subscriptions count.
-				// 	<div class="px-2 py-4 sm:px-6 sm:py-8">
-				// 		@NewLink(
-				// 			WithHXMethod(http.MethodGet, "/list/subscriptions"),
-				// 			WithHXTarget(ContentID.Target()),
-				// 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
-				// 			WithHXPushURL(),
-				// 			WithClasses("font-medium", "hover:text-accent"),
-				// 		) {
-				// 			<dt>
-				// 				<div class="absolute rounded-md bg-accent p-3">
-				// 					@tabler.Rss(i.Props{Class: "size-6 text-accent-content"})
-				// 				</div>
-				// 				<p class="ml-16 text-sm font-medium ">Subscriptions</p>
-				// 			</dt>
-				// 			<dd class="ml-16 flex items-baseline">
-				// 				<p class="text-2xl font-semibold">{ strconv.Itoa(page.SubscriptionsCount) }</p>
-				// 			</dd>
-				// 		}
-				// 	</div>
-				// 	// Articles count.
-				// 	<div class="px-2 py-4 sm:px-6 sm:py-8">
-				// 		@NewLink(
-				// 			WithHXMethod(http.MethodGet, "/list/articles"),
-				// 			WithHXTarget(ContentID.Target()),
-				// 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
-				// 			WithHXPushURL(),
-				// 			WithClasses("font-medium", "hover:text-accent"),
-				// 		) {
-				// 			<dt>
-				// 				<div class="absolute rounded-md bg-accent p-3">
-				// 					@tabler.FileRss(i.Props{Class: "size-6 text-accent-content"})
-				// 				</div>
-				// 				<p class="ml-16 text-sm font-medium ">Unread Articles</p>
-				// 			</dt>
-				// 			// <dd class="ml-16 flex items-baseline">
-				// 			// 	<p class="text-2xl font-semibold">{ strconv.Itoa(models.GetTotalUnreadCount(page.Subscriptions...)) }</p>
-				// 			// </dd>
-				// 		}
-				// 	</div>
-				// </dl>
-				// Latest articles.
-				<div class="border-b border-base-content/80 pb-5">
-					<h3 class="text-base font-semibold">Latest Articles</h3>
-				</div>
-				if len(page.LatestArticles) > 0 {
-					<ul role="list" class="grid grid-cols-1 justify-center">
-						for article := range slices.Values(page.LatestArticles) {
-							<li class="py-4 sm:px-4 space-y-2">
-								@articleSummary(article)
-							</li>
-						}
-					</ul>
-				} else {
-					<div class="text-center">
-						@tabler.CircleCheckFilled(i.Props{Class: "mx-auto size-12"})
-						<h3 class="mt-2 text-sm font-semibold">All caught up!</h3>
-					</div>
-				}
+		if len(page.LatestArticles) == 0 {
+			<div class="text-center">
+				@tabler.CircleCheckFilled(i.Props{Class: "mx-auto size-12"})
+				<h3 class="mt-2 text-sm font-semibold">All caught up!</h3>
 			</div>
-			// Right column.
-			<div class="xl:flex xl:flex-col xl:w-1/2">
-				// Show top categories (if found).
-				if len(page.TopCategories) > 0 {
+		} else {
+			<div class="w-full grow lg:flex space-x-4">
+				// Left column.
+				<div class="xl:flex xl:flex-col xl:w-1/2">
+					// Stats.
+					// <div class="border-b border-base-content/80 pb-5">
+					// 	<h3 class="text-base font-semibold">Stats</h3>
+					// </div>
+					// <dl class="mt-5 flex gap-2 sm:gap-4 justify-center">
+					// 	// Subscriptions count.
+					// 	<div class="px-2 py-4 sm:px-6 sm:py-8">
+					// 		@NewLink(
+					// 			WithHXMethod(http.MethodGet, "/list/subscriptions"),
+					// 			WithHXTarget(ContentID.Target()),
+					// 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
+					// 			WithHXPushURL(),
+					// 			WithClasses("font-medium", "hover:text-accent"),
+					// 		) {
+					// 			<dt>
+					// 				<div class="absolute rounded-md bg-accent p-3">
+					// 					@tabler.Rss(i.Props{Class: "size-6 text-accent-content"})
+					// 				</div>
+					// 				<p class="ml-16 text-sm font-medium ">Subscriptions</p>
+					// 			</dt>
+					// 			<dd class="ml-16 flex items-baseline">
+					// 				<p class="text-2xl font-semibold">{ strconv.Itoa(page.SubscriptionsCount) }</p>
+					// 			</dd>
+					// 		}
+					// 	</div>
+					// 	// Articles count.
+					// 	<div class="px-2 py-4 sm:px-6 sm:py-8">
+					// 		@NewLink(
+					// 			WithHXMethod(http.MethodGet, "/list/articles"),
+					// 			WithHXTarget(ContentID.Target()),
+					// 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
+					// 			WithHXPushURL(),
+					// 			WithClasses("font-medium", "hover:text-accent"),
+					// 		) {
+					// 			<dt>
+					// 				<div class="absolute rounded-md bg-accent p-3">
+					// 					@tabler.FileRss(i.Props{Class: "size-6 text-accent-content"})
+					// 				</div>
+					// 				<p class="ml-16 text-sm font-medium ">Unread Articles</p>
+					// 			</dt>
+					// 			// <dd class="ml-16 flex items-baseline">
+					// 			// 	<p class="text-2xl font-semibold">{ strconv.Itoa(models.GetTotalUnreadCount(page.Subscriptions...)) }</p>
+					// 			// </dd>
+					// 		}
+					// 	</div>
+					// </dl>
+					// Latest articles.
 					<div class="border-b border-base-content/80 pb-5">
-						<h3 class="text-base font-semibold">Most Common Categories</h3>
+						<h3 class="text-base font-semibold">Latest Articles</h3>
 					</div>
-					<div class="flex justify-center gap-2 p-2 m-2">
-						<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-							for category := range slices.Values(page.TopCategories) {
-								{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
-								{{ params[models.ParamCategories] = category.Category }}
-								@NewLink(
-									WithHXMethod(http.MethodGet, "/list/articles"),
-									WithHXTarget(ContentID.Target()),
-									WithHXSwap("innerHTML show:top transition:true"),
-									WithHXVals(params),
-									WithHXPushURL(),
-								) {
-									<div class="flex gap-2 text-sm capitalize">
-										<div class="badge badge-soft badge-accent">
-											{ category.Category+ " "+ strconv.Itoa(category.Count) }
-										</div>
-									</div>
-								}
+					if len(page.LatestArticles) > 0 {
+						<ul role="list" class="grid grid-cols-1 justify-center">
+							for article := range slices.Values(page.LatestArticles) {
+								<li class="py-4 sm:px-4 space-y-2">
+									@articleSummary(article)
+								</li>
 							}
-						</div>
-					</div>
-				}
-				// Show top articles (if found).
-				if len(page.TopArticles) > 0 {
-					<div class="border-b border-base-content/80 pb-5">
-						<h3 class="text-base font-semibold">Article Picks</h3>
-					</div>
-					<ul role="list" class="divide-y divide-base-content/15">
-						for article := range slices.Values(page.TopArticles) {
-							<li class="py-4 sm:px-4 space-y-2">
-								<div class={ "sm:flex items-center", templ.KV("opacity-50",!article.IsUnread()) }>
-									// Article image.
-									if img := article.GetImage(); img != nil {
-										<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
-											<img
-												src={ "/img-proxy/300x200/" + img.GetURL() }
-												if img.GetTitle() != "" {
-													alt={ article.GetImage().GetTitle() }
-												}
-												class="h-32 sm:w-32 w-full object-cover rounded-box border border-base-content"
-											/>
-										</div>
-									}
-									<div class="gap-y-2">
-										// Article title.
-										@NewLink(
-											WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-											WithHXTarget(ContentID.Target()),
-											WithHXPushURL(),
-											WithHXSwap("innerHTML show:top transition:true"),
-										) {
-											<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
-										}
-										// Timestamp, Subscription.
-										<div class="grid grid-flow-row justify-between">
-											<p class="flex text-xs text-base-content/80">
-												Updated&nbsp;
-												@ShowTimestamp(article.GetUpdatedDate())
-											</p>
-											<p class="flex text-xs text-base-content/80">
-												@NewLink(
-													WithHXMethod(http.MethodGet, "/list/articles"),
-													WithHXTarget(ContentID.Target()),
-													WithHXSwap("innerHTML show:top transition:true"),
-													WithHXPushURL(),
-													WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
-												) {
-													{ article.GetFeedTitle() }
-												}
-											</p>
-										</div>
-										// Article content summary.
-										{{ text, err := models.ExtractText(article.GetContent()) }}
-										if err == nil {
-											<article class="mt-4 prose prose-sm line-clamp-3">
-												{ text }
-											</article>
-										}
-									</div>
-								</div>
-							</li>
-						}
-					</ul>
-				}
-				// Interesting Picks section: rare/semantic categories and articles.
-				if len(page.RareCategories) > 0 {
-					if page.RareCategories != nil {
+						</ul>
+					}
+				</div>
+				// Right column.
+				<div class="xl:flex xl:flex-col xl:w-1/2">
+					// Show top categories (if found).
+					if len(page.TopCategories) > 0 {
 						<div class="border-b border-base-content/80 pb-5">
-							<h3 class="text-base font-semibold">Interesting Categories</h3>
+							<h3 class="text-base font-semibold">Most Common Categories</h3>
 						</div>
-						<div class="mt-8">
-							<div class="flex justify-center gap-2 p-4 m-4">
-								<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-									for category := range slices.Values(page.RareCategories) {
-										{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
-										{{ params[models.ParamCategories] = category.Category }}
-										@NewLink(
-											WithHXMethod(http.MethodGet, "/list/articles"),
-											WithHXTarget(ContentID.Target()),
-											WithHXSwap("innerHTML show:top transition:true"),
-											WithHXVals(params),
-											WithHXPushURL(),
-										) {
-											<div class="flex gap-2 text-sm capitalize">
-												<div class="badge badge-soft badge-accent">
-													{ category.Category+ " "+ strconv.Itoa(category.Count) }
-												</div>
+						<div class="flex justify-center gap-2 p-2 m-2">
+							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+								for category := range slices.Values(page.TopCategories) {
+									{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
+									{{ params[models.ParamCategories] = category.Category }}
+									@NewLink(
+										WithHXMethod(http.MethodGet, "/list/articles"),
+										WithHXTarget(ContentID.Target()),
+										WithHXSwap("innerHTML show:top transition:true"),
+										WithHXVals(params),
+										WithHXPushURL(),
+									) {
+										<div class="flex gap-2 text-sm capitalize">
+											<div class="badge badge-soft badge-accent">
+												{ category.Category+ " "+ strconv.Itoa(category.Count) }
 											</div>
-										}
+										</div>
 									}
-								</div>
+								}
 							</div>
 						</div>
 					}
-				}
+					// Show top articles (if found).
+					if len(page.TopArticles) > 0 {
+						<div class="border-b border-base-content/80 pb-5">
+							<h3 class="text-base font-semibold">Article Picks</h3>
+						</div>
+						<ul role="list" class="divide-y divide-base-content/15">
+							for article := range slices.Values(page.TopArticles) {
+								<li class="py-4 sm:px-4 space-y-2">
+									<div class={ "sm:flex items-center", templ.KV("opacity-50",!article.IsUnread()) }>
+										// Article image.
+										if img := article.GetImage(); img != nil {
+											<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
+												<img
+													src={ "/img-proxy/300x200/" + img.GetURL() }
+													if img.GetTitle() != "" {
+														alt={ article.GetImage().GetTitle() }
+													}
+													class="h-32 sm:w-32 w-full object-cover rounded-box border border-base-content"
+												/>
+											</div>
+										}
+										<div class="gap-y-2">
+											// Article title.
+											@NewLink(
+												WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+												WithHXTarget(ContentID.Target()),
+												WithHXPushURL(),
+												WithHXSwap("innerHTML show:top transition:true"),
+											) {
+												<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
+											}
+											// Timestamp, Subscription.
+											<div class="grid grid-flow-row justify-between">
+												<p class="flex text-xs text-base-content/80">
+													Updated&nbsp;
+													@ShowTimestamp(article.GetUpdatedDate())
+												</p>
+												<p class="flex text-xs text-base-content/80">
+													@NewLink(
+														WithHXMethod(http.MethodGet, "/list/articles"),
+														WithHXTarget(ContentID.Target()),
+														WithHXSwap("innerHTML show:top transition:true"),
+														WithHXPushURL(),
+														WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
+													) {
+														{ article.GetFeedTitle() }
+													}
+												</p>
+											</div>
+											// Article content summary.
+											{{ text, err := models.ExtractText(article.GetContent()) }}
+											if err == nil {
+												<article class="mt-4 prose prose-sm line-clamp-3">
+													{ text }
+												</article>
+											}
+										</div>
+									</div>
+								</li>
+							}
+						</ul>
+					}
+					// Interesting Picks section: rare/semantic categories and articles.
+					if len(page.RareCategories) > 0 {
+						if page.RareCategories != nil {
+							<div class="border-b border-base-content/80 pb-5">
+								<h3 class="text-base font-semibold">Interesting Categories</h3>
+							</div>
+							<div class="mt-8">
+								<div class="flex justify-center gap-2 p-4 m-4">
+									<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+										for category := range slices.Values(page.RareCategories) {
+											{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
+											{{ params[models.ParamCategories] = category.Category }}
+											@NewLink(
+												WithHXMethod(http.MethodGet, "/list/articles"),
+												WithHXTarget(ContentID.Target()),
+												WithHXSwap("innerHTML show:top transition:true"),
+												WithHXVals(params),
+												WithHXPushURL(),
+											) {
+												<div class="flex gap-2 text-sm capitalize">
+													<div class="badge badge-soft badge-accent">
+														{ category.Category+ " "+ strconv.Itoa(category.Count) }
+													</div>
+												</div>
+											}
+										}
+									</div>
+								</div>
+							</div>
+						}
+					}
+				</div>
 			</div>
-		</div>
-		<div id="update-notifications" sse-connect="/home/updates" sse-swap="message" class="toast toast-center z-50"></div>
+			<div id="update-notifications" sse-connect="/home/updates" sse-swap="message" class="toast toast-center z-50"></div>
+		}
 	}
 }
 

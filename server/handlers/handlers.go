@@ -186,14 +186,16 @@ func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.Han
 // SetRedirect sets headers for performing a HTMX redirect to the given path.
 func SetRedirect(ctx context.Context, path string, filters models.Filters, res http.ResponseWriter) {
 	pushURLPath := path
+	location := path
 	locCtx := htmx.LocationContext{
 		Target: templates.ContentID.Target(),
 	}
 	if filters != nil {
 		// locCtx.Values = filters.Values()
 		pushURLPath = path + "?" + filters.QueryString()
+		location = path + "?" + filters.QueryString()
 	}
-	htmxResp := htmx.NewResponse().LocationWithContext(path+"?"+filters.QueryString(), locCtx).PushURL(pushURLPath)
+	htmxResp := htmx.NewResponse().LocationWithContext(location, locCtx).PushURL(pushURLPath)
 	slogctx.FromCtx(ctx).Debug("Redirecting.",
 		slog.String("path", pushURLPath),
 	)

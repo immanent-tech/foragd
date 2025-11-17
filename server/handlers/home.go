@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -112,8 +113,12 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
 	}
 	data.LatestArticles, err = models.GenerateArticles(ctx, a.DataAPI(), latestItems)
-	if err != nil {
+	if err != nil && !errors.Is(err, models.ErrNotFound) {
 		return nil, fmt.Errorf("unable to generate articles: %w", err)
+	}
+
+	if errors.Is(err, models.ErrNotFound) {
+		return data, nil
 	}
 
 	// Fetch aggregation data.

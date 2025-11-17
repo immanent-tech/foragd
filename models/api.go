@@ -584,13 +584,13 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 
 	// For group subscriptions, calculate stats from other subscriptions.
 	for subscription := range slices.Values(subscriptions) {
+		godump.Dump(subscription.GetTitle(), subscription.GetStats().LastUpdate)
 		if subscription.GetSubscriptionType() == SubscriptionTypeGroup {
+			godump.Dump(subscription.GroupData.Subscriptions)
 			var avgDailyUpdates []float64
 			var unreadCount int
 			var lastUpdates []time.Time
-			godump.Dump(subscription.GroupData.Subscriptions)
 			for groupSubscription := range slices.Values(subscriptions) {
-				godump.Dump(groupSubscription.GetID())
 				if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
 					if user.GetSettings().ShowSubscriptionStats {
 						avgDailyUpdates = append(avgDailyUpdates, groupSubscription.Stats.AvgDailyUpdates)

@@ -605,6 +605,24 @@ func (r *MarkSubscriptionRequest) Valid() error {
 	return nil
 }
 
+// Valid checks that the MarkSubscriptionsRequest contains valid data.
+func (r *MarkSubscriptionsRequest) Valid() error {
+	err := validation.Validate.Struct(r)
+	if err != nil {
+		return fmt.Errorf("mark subscriptions request is invalid: %w", err)
+	}
+	return nil
+}
+
+// Sanitise will sanitise the MarkSubscriptionsRequest, ensuring it contains valid field values.
+func (r *MarkSubscriptionsRequest) Sanitise() error {
+	for idx, id := range r.Subscriptions {
+		r.Subscriptions[idx] = validation.SanitizeString(id)
+	}
+	r.View = setValidView(r.View)
+	return nil
+}
+
 // Valid checks that the RemoveSubscriptionRequest contains valid data.
 func (r *RemoveSubscriptionRequest) Valid() error {
 	err := validation.Validate.Struct(r)

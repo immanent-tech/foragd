@@ -357,22 +357,28 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 				<el-menu anchor="bottom end" popover>
 					<div class="py-1">
 						// Mark all subscriptions action.
-						@NewLink(
-							WithHXMethod(http.MethodPost, "/list/subscriptions/mark"),
-							WithHXTarget(ContentID.Target()),
-							WithHXInclude("#content-filters,[name='csrf_token']"),
-							WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
-						) {
-							if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewUnread {
-								@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-								<span class="sr-only">Mark All Read</span>
-								Mark all Read
-							} else {
-								@tabler.MailFilled(i.Props{Class: "size-4"})
-								<span class="sr-only">Mark All Unread</span>
-								Mark all Unread
+						<form>
+							for subscription := range slices.Values(filters.GetSubscriptions()) {
+								<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 							}
-						}
+							<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+							<a
+								hx-post="/list/subscriptions/mark"
+								hx-target={ ContentID.Target() }
+								hx-include="[name='csrf_token']"
+								class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-accent focus:outline-hidden"
+							>
+								if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewUnread {
+									@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+									<span class="sr-only">Mark All Read</span>
+									Mark all Read
+								} else {
+									@tabler.MailFilled(i.Props{Class: "size-4"})
+									<span class="sr-only">Mark All Unread</span>
+									Mark all Unread
+								}
+							</a>
+						</form>
 					</div>
 					<div class="py-1">
 						@NewLink(

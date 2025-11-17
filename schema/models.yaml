@@ -1119,6 +1119,25 @@ components:
           properties:
             mark:
               $ref: '#/components/schemas/Mark'
+    MarkSubscriptionsRequest:
+      description: >
+        contains the parameters for marking a list of subscriptions.
+      type: object
+      required:
+        - subscriptions
+        - view
+      properties:
+        subscriptions:
+          description: >
+            is a list of subscription IDs.
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionID'
+          x-oapi-codegen-extra-tags:
+            form: 'subscriptions'
+            validate: 'omitempty,dive,startswith=sub_'
+        view:
+          $ref: '#/components/schemas/View'
     MarkSubscriptionRequest:
       description: >
         contains the parameters for marking a subscription.

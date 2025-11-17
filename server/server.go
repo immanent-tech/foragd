@@ -228,7 +228,6 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.Route("/list/{list}", func(r chi.Router) {
 			r.Get("/", handlers.ShowList(handler.Elastic))
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.ShowList(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/mark", handlers.MarkList(handler.Elastic))
 			r.Get("/updates", handlers.WatchList(handler.Elastic))
 		})
 		// Objects.
@@ -238,6 +237,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues(handler.Elastic))
 		// Subscription specific.
+		r.With(middlewares.RequireHTMX).Post("/list/subscriptions/mark", handlers.MarkSubscriptions(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/mark/subscription/{subscription_id}/{mark}", handlers.MarkSubscription(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Delete("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))

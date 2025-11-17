@@ -588,6 +588,15 @@ type MarkSubscriptionRequest struct {
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
+// MarkSubscriptionsRequest contains the parameters for marking a list of subscriptions.
+type MarkSubscriptionsRequest struct {
+	// Subscriptions is a list of subscription IDs.
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
+
+	// View The state of objects to view.
+	View View `form:"view" json:"view" validate:"oneof=read unread all"`
+}
+
 // Nickname is an optional friendly name.
 type Nickname = string
 

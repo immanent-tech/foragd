@@ -401,30 +401,37 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 				</h2>
 			</div>
 			// Actions menu.
-			<el-dropdown class="inline-block flex-none">
-				<button class="inline-flex flex-col items-center">
-					<span class="sr-only">Articles Actions</span>
-					@tabler.DotsVertical(i.Props{Class: "size-6"})
-				</button>
-				<el-menu anchor="bottom end" popover>
-					<div class="py-1">
-						// Mark all subscriptions action.
-						@NewLink(
-							WithHXMethod(http.MethodPost, "/list/articles/mark"),
-							WithHXTarget(ContentID.Target()),
-							WithHXInclude("#content-filters,[name='csrf_token']"),
-						) {
-							if models.PageFiltersFromCtx(ctx,"/list/articles").GetView() == models.ViewUnread {
-								@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-								<span class="sr-only">Mark All Read</span>
-								Mark all Read
-							} else {
-								@tabler.MailFilled(i.Props{Class: "size-4"})
-								<span class="sr-only">Mark All Unread</span>
-								Mark all Unread
-							}
-						}
-						if len(articles.GetSubscriptionIDs()) == 1 {
+			if len(articles.GetSubscriptionIDs()) == 1 {
+				<el-dropdown class="inline-block flex-none">
+					<button class="inline-flex flex-col items-center">
+						<span class="sr-only">Articles Actions</span>
+						@tabler.DotsVertical(i.Props{Class: "size-6"})
+					</button>
+					<el-menu anchor="bottom end" popover>
+						<div class="py-1">
+							// Mark all articles action.
+							<form>
+								for subscription := range slices.Values(filters.GetSubscriptions()) {
+									<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+								}
+								<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+								<a
+									hx-post="/list/subscriptions/mark"
+									hx-target={ ContentID.Target() }
+									hx-include="[name='items'],[name='csrf_token']"
+									class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-accent focus:outline-hidden"
+								>
+									if models.PageFiltersFromCtx(ctx,"/list/articles").GetView() == models.ViewUnread {
+										@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+										<span class="sr-only">Mark All Read</span>
+										Mark all Read
+									} else {
+										@tabler.MailFilled(i.Props{Class: "size-4"})
+										<span class="sr-only">Mark All Unread</span>
+										Mark all Unread
+									}
+								</a>
+							</form>
 							@NewLink(
 								WithHXMethod(http.MethodGet, "/edit/subscription/"+articles.GetSubscriptionIDs()[0]),
 								WithHXTarget(ContentID.Target()),
@@ -433,10 +440,10 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 								@tabler.Edit(i.Props{Class: "size-4"})
 								Edit Subscription
 							}
-						}
-					</div>
-				</el-menu>
-			</el-dropdown>
+						</div>
+					</el-menu>
+				</el-dropdown>
+			}
 		</div>
 		@generateFilters(filters)
 		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
@@ -457,6 +464,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 templ ArticlesList(articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	for article := range slices.Values(articles) {
+		<input type="hidden" name="items" value={ article.GetID() }/>
 		@ArticleCard(article)
 	}
 	// Add pagination element if pagination is required.
