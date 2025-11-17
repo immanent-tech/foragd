@@ -16,7 +16,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -481,6 +480,25 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 		return fmt.Errorf("add subscription dynamic info: get user data: %w", err)
 	}
 
+	// Get any additional subscription info for subscriptions in group subscriptions that we didn't already fetch.
+	var extraIDs []SubscriptionID
+	for subscription := range slices.Values(subscriptions) {
+		if subscription.GetSubscriptionType() == SubscriptionTypeGroup {
+			for id := range slices.Values(subscription.GroupData.Subscriptions) {
+				if !slices.ContainsFunc(subscriptions, func(e *Subscription) bool {
+					return e.GetID() == id
+				}) {
+					extraIDs = append(extraIDs, id)
+				}
+			}
+		}
+	}
+	extraSubscriptions, err := dataAPI.GetAllSubscriptions(ctx, query.Terms("subscription_id", extraIDs...))
+	if err != nil {
+		return fmt.Errorf("add subscription dynamic info: get additional subscriptions: %w", err)
+	}
+	subscriptions = append(subscriptions, extraSubscriptions...)
+
 	fetchJobs, ctx := errgroup.WithContext(ctx)
 
 	// Get unread count per feed.
@@ -584,9 +602,7 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 
 	// For group subscriptions, calculate stats from other subscriptions.
 	for subscription := range slices.Values(subscriptions) {
-		godump.Dump(subscription.GetTitle(), subscription.GetStats().LastUpdate)
 		if subscription.GetSubscriptionType() == SubscriptionTypeGroup {
-			godump.Dump(subscription.GroupData.Subscriptions)
 			var avgDailyUpdates []float64
 			var unreadCount int
 			var lastUpdates []time.Time
