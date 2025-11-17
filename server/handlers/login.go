@@ -129,7 +129,19 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 			// If a local user is not found, create one.
 			if errors.As(err, &apiError) {
 				if apiError.StatusCode == http.StatusNotFound {
-					err = models.CreateUser(req.Context(), storeAPI, profile.GetID(), profile.GetEmail())
+					user := models.NewUser(profile.GetID(), profile.GetEmail(), "auth0", models.UserLevelStandard)
+					valid, err := user.Valid(req.Context())
+					if err != nil || !valid {
+						template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())))
+						err := template.Render(req.Context(), res)
+						if err != nil {
+							slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+							http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+							return
+						}
+						return
+					}
+					err = storeAPI.CreateUser(req.Context(), user)
 					if err != nil {
 						template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())))
 						err := template.Render(req.Context(), res)
@@ -140,7 +152,7 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 						}
 						return
 					}
-					slogctx.FromCtx(req.Context()).Debug("Create new local user.")
+					slogctx.FromCtx(req.Context()).Debug("Created new local user.")
 				}
 			} else {
 				template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())))

@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -16,12 +17,11 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // ShowList handles displaying or paginating a list of objects (subscriptions/articles) as cards in a grid layout.
-//
-//nolint:gocognit,gocyclo,funlen
 func ShowList(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters, setCacheControl).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
@@ -98,9 +98,9 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				}
 			}
 		case "favorites":
-			// Get favorite articles.
-			articles, err := models.GetUserFavoriteArticles(req.Context(), api)
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
+			var err error
+			template, err = listFavorites(req.Context(), api)
+			if err != nil {
 				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
 				switch req.Method {
 				case http.MethodGet:
@@ -110,24 +110,6 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 					renderPartial(template).ServeHTTP(res, req)
 				}
 				return models.NewAPIError(fmt.Errorf("could not fetch user info from context: %w", err), http.StatusInternalServerError)
-			}
-			// Get favorite feed and search subscriptions
-			subscriptions, err := models.GetUserFavoriteSubscriptions(req.Context(), api)
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
-				switch req.Method {
-				case http.MethodGet:
-					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
-				case http.MethodPost:
-					template := templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req)
-				}
-				return models.NewAPIError(fmt.Errorf("could not fetch user info from context: %w", err), http.StatusInternalServerError)
-			}
-			if len(subscriptions) > 0 || len(articles) > 0 {
-				template = templates.FavoritesLayout(subscriptions, articles)
-			} else {
-				template = templates.EmptyContent()
 			}
 		default:
 			slogctx.FromCtx(req.Context()).Error("Unsupported list type requested.",
@@ -144,6 +126,47 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 		}
 		return nil
 	})).ServeHTTP
+}
+
+func listFavorites(ctx context.Context, api *elastic.API) (templ.Component, error) {
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list favorites: get user data: %w", err)
+	}
+
+	var (
+		articles      models.Articles
+		subscriptions models.Subscriptions
+	)
+
+	// Get favorite articles.
+	if len(user.ItemFavorites) > 0 {
+		articles, err = models.GetArticles(ctx, api, user.ItemFavorites...)
+		if err != nil {
+			return nil, fmt.Errorf("list favorites: get favorite articles: %w", err)
+		}
+	}
+
+	// Get favorite subscriptions.
+	subscriptions, err = api.GetAllSubscriptions(ctx, query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Term("favorite", true),
+		),
+	))
+	if err != nil {
+		return nil, fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
+	}
+	err = models.AddSubscriptionDynamicInfo(ctx, api, subscriptions)
+	if err != nil {
+		return nil, fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
+	}
+
+	if len(subscriptions) > 0 || len(articles) > 0 {
+		return templates.FavoritesLayout(subscriptions, articles), nil
+	} else {
+		return templates.EmptyContent(), nil
+	}
 }
 
 // WatchList handles watching a list of object for any updates and rendering a notification to the user to refresh the page.

@@ -75,20 +75,6 @@ type DataAPI interface {
 	GetAPI() *elasticsearch.TypedClient
 }
 
-// CreateUser creates a new local user object.
-func CreateUser(ctx context.Context, dataAPI DataAPI, externalID, email string) error {
-	user := NewUser(externalID, email, "auth0", UserLevelStandard)
-	valid, err := user.Valid(ctx)
-	if err != nil || !valid {
-		return fmt.Errorf("cannot create local user: %w", err)
-	}
-	err = dataAPI.CreateUser(ctx, user)
-	if err != nil {
-		return fmt.Errorf("unable to create user: %w", err)
-	}
-	return nil
-}
-
 // UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
 // subscription as appropriate.
 func UpdateFavoriteSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID, favorite bool) error {
@@ -159,51 +145,6 @@ func UpdateFavoriteArticle(ctx context.Context, dataAPI DataAPI, user *User, id 
 		}
 	}
 	return nil
-}
-
-// GetUserFavoriteSubscriptions retrieves the favorite subscriptions of a user.
-func GetUserFavoriteSubscriptions(ctx context.Context, dataAPI DataAPI) (Subscriptions, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get favorite subscriptions: get user data: %w", err)
-	}
-	query := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Term("favorite", true),
-		),
-	)
-
-	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, query)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("get favorite subscriptions: get subscription: %w", err)
-	case len(subscriptions) == 0:
-		return nil, ErrNotFound
-	}
-
-	err = AddSubscriptionDynamicInfo(ctx, dataAPI, subscriptions)
-	if err != nil {
-		return nil, fmt.Errorf("get favorite subscriptions: add dynamic info: %w", err)
-	}
-
-	return subscriptions, nil
-}
-
-// GetUserFavoriteArticles retrieves the favorite articles of a user.
-func GetUserFavoriteArticles(ctx context.Context, dataAPI DataAPI) (Articles, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user favorite articles: get user failed: %w", err)
-	}
-	articles, err := GetArticles(ctx, dataAPI, user.ItemFavorites...)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("get favorite articles: get articles: %w", err)
-	case len(articles) == 0:
-		return nil, ErrNotFound
-	}
-	return articles, nil
 }
 
 // GetSubscription returns the subscription that matches the given ID. Note: no dynamic info is generated for the
