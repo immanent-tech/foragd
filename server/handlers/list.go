@@ -163,7 +163,7 @@ func listFavorites(ctx context.Context, api *elastic.API) (templ.Component, erro
 	}
 
 	if len(subscriptions) > 0 || len(articles) > 0 {
-		return templates.FavoritesLayout(subscriptions, articles), nil
+		return templates.FavoritesGrid(subscriptions, articles), nil
 	} else {
 		return templates.EmptyContent(), nil
 	}
