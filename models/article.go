@@ -103,7 +103,7 @@ func GenerateArticles(ctx context.Context, dataAPI DataAPI, items Items) (Articl
 			query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
 		),
 	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, query)
+	subscriptions, _, err := dataAPI.SearchSubscriptions(ctx, query, len(items.GetFeedIDs()), nil, nil)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("generate articles: get subscriptions: %w", err)

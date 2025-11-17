@@ -18,6 +18,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -25,6 +26,7 @@ import (
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Decode request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			slogctx.FromCtx(req.Context()).Debug("Get search suggestions failed.",
@@ -32,24 +34,103 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
+		// Ignore empty text string.
 		if request.Text == "" {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		// Get results.
-		articles, err := models.GetSearchSuggestions(req.Context(), api, request.Text)
-		switch {
-		case err != nil && !errors.Is(err, models.ErrNotFound):
+		// Get user object.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			slogctx.FromCtx(req.Context()).Debug("Get search suggestions failed.",
 				slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
+			res.WriteHeader(http.StatusForbidden)
 			return
-		case errors.Is(err, models.ErrNotFound):
-			fallthrough
-		case len(articles) == 0:
-			res.WriteHeader(http.StatusNoContent)
 		}
-		renderPartial(templates.SearchSuggestions(request, articles)).ServeHTTP(res, req)
+
+		// fetchJobs, jobCtx := errgroup.WithContext(req.Context())
+
+		var subscriptions models.Subscriptions
+		var articles models.Articles
+		sort := models.SortMostRelevant
+		jobCtx := req.Context()
+
+		// fetchJobs.Go(func() error {
+		// Generate subscription suggestions.
+		subscriptionsQuery := query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+			),
+			query.Must(
+				query.SimpleQueryString(request.Text, "", "customisation.nickname"),
+			),
+		)
+		subscriptions, _, err = api.SearchSubscriptions(jobCtx, subscriptionsQuery, 3, &sort, nil)
+		if err != nil {
+			slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription suggestions.",
+				slog.Any("error", err))
+		}
+		if len(subscriptions) > 0 {
+			err := models.AddSubscriptionDynamicInfo(jobCtx, api, subscriptions)
+			if err != nil {
+				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription dynamic data.",
+					slog.Any("error", err))
+				subscriptions = nil
+			}
+		}
+		// slog.Info("subscriptions done")
+		// return nil
+		// })
+
+		// fetchJobs.Go(func() error {
+		allSubscriptions, err := api.GetAllSubscriptions(jobCtx, query.MatchAll())
+		if err != nil {
+			slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get all subscriptions.",
+				slog.Any("error", err))
+		}
+		// Generate article suggestions.
+		itemsQuery := query.Bool(
+			query.Filter(
+				query.Terms("feed_id", allSubscriptions.GetFeedIDs()...),
+			),
+			// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
+			// search suggestion).
+			query.Must(
+				// Search across title, description and content fields, with preference for match in that order (via field
+				// boosting).
+				query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
+				// Search in categories.
+				query.SimpleQueryString(request.Categories, "", "categories"),
+				// Search in authors, contributors.
+				query.SimpleQueryString(request.Authors, "", "authors", "contributors"),
+			),
+		)
+		itemResults, _, err := api.SearchItems(jobCtx, itemsQuery, 10, &sort, nil)
+		if err != nil {
+			slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get article suggestions.",
+				slog.Any("error", err))
+		}
+		articles, err = models.GenerateArticles(jobCtx, api, itemResults)
+		if err != nil {
+			slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get article suggestions.",
+				slog.Any("error", err))
+		}
+		// 	return nil
+		// })
+
+		// err = fetchJobs.Wait()
+		// if err != nil {
+		// 	slogctx.FromCtx(req.Context()).Warn("Get search suggestions: run background jobs failed.",
+		// 		slog.Any("error", err),
+		// 	)
+		// 	res.WriteHeader(http.StatusInternalServerError)
+		// }
+
+		if len(subscriptions) == 0 && len(articles) == 0 {
+			res.WriteHeader(http.StatusNoContent)
+		} else {
+			renderPartial(templates.SearchSuggestions(request, subscriptions, articles)).ServeHTTP(res, req)
+		}
 	}).ServeHTTP
 }
 

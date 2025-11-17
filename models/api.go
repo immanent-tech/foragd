@@ -33,6 +33,7 @@ var (
 // FeedsAPI contains API methods for Feeds.
 type FeedsAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
+
 	SearchFeeds(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Feeds, Pagination, error)
 	// MultiSearchFeeds(ctx context.Context, queries ...*MultiSearchQuery) (results.MSearchResults, error)
 	CreateFeed(ctx context.Context, feed *Feed) error
@@ -40,7 +41,8 @@ type FeedsAPI interface {
 
 // SubscriptionsAPI contains API methods for Subscriptions.
 type SubscriptionsAPI interface {
-	SearchSubscriptions(ctx context.Context, query query.Option) (Subscriptions, error)
+	GetAllSubscriptions(ctx context.Context, query query.Option) (Subscriptions, error)
+	SearchSubscriptions(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Subscriptions, Pagination, error)
 	// GetSubscriptions(ctx context.Context, ids ...SubscriptionID) (Subscriptions, error)
 	// GetSubscription(ctx context.Context, id SubscriptionID) (*Subscription, error)
 	UpdateSubscriptions(ctx context.Context, subscriptions ...*Subscription) (map[SubscriptionID]*bulk.OperationResponse, error)
@@ -172,7 +174,7 @@ func GetUserFavoriteSubscriptions(ctx context.Context, dataAPI DataAPI) (Subscri
 		),
 	)
 
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, query)
+	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, query)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("get favorite subscriptions: get subscription: %w", err)
@@ -217,7 +219,7 @@ func GetSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID) (*
 			query.Term("subscription_id", id),
 		),
 	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
+	subscriptions, _, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery, 1, nil, nil)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("get subscription: %w", err)
@@ -247,7 +249,7 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 		),
 	)
 
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
+	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, subscriptionQuery)
 	if err != nil {
 		return nil, fmt.Errorf("get subscription suggestions: api request failed: %w", err)
 	}
@@ -273,7 +275,7 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 			query.Terms("categories", filters.GetCategories()...),
 		),
 	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
+	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, subscriptionQuery)
 	if err != nil {
 		return nil, "", fmt.Errorf("filter subscriptions: api request failed: %w", err)
 	}
@@ -317,7 +319,7 @@ func GetSubscriptionSuggestions(ctx context.Context, dataAPI DataAPI, text strin
 		),
 	)
 
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
+	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, subscriptionQuery)
 	if err != nil {
 		return nil, fmt.Errorf("get subscription suggestions: api request failed: %w", err)
 	}
@@ -386,7 +388,7 @@ func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscrip
 		),
 	)
 
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, query)
+	subscriptions, _, err := dataAPI.SearchSubscriptions(ctx, query, 1, nil, nil)
 	if err != nil {
 		return fmt.Errorf("mark subscriptions: api request failed: %w", err)
 	}
@@ -824,7 +826,7 @@ func ProcessSubscriptionRequest(ctx context.Context, dataAPI DataAPI, request *A
 			query.Term("feed_data.feed_id", feed.GetID()),
 		),
 	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
+	subscriptions, _, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery, 1, nil, nil)
 	if err != nil {
 		result.Error = err
 		result.Message = *NewErrorMessage("Unable to check for existing subscription", "The backend produced an error. This might be temporary, please try again.")
@@ -865,7 +867,7 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 			query.Terms("subscription_id", filters.GetSubscriptions()...),
 		),
 	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery)
+	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, subscriptionQuery)
 	if err != nil {
 		return nil, "", fmt.Errorf("filter articles: get subscriptions: %w", err)
 	}
@@ -914,7 +916,7 @@ func MarkArticles(ctx context.Context, dataAPI DataAPI, mark Mark, subscriptionI
 			query.Terms("subscription_id", subscriptionID),
 		),
 	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, query)
+	subscriptions, _, err := dataAPI.SearchSubscriptions(ctx, query, 1, nil, nil)
 	switch {
 	case err != nil:
 		return fmt.Errorf("mark articles: get subscriptions: %w", err)
@@ -1014,7 +1016,7 @@ func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID
 			query.Term("user_id", user.GetID()),
 		),
 	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionsQuery)
+	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, subscriptionsQuery)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("find similar articles: get subscriptions: %w", err)
@@ -1057,54 +1059,6 @@ func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID
 	return articles, nil
 }
 
-// GetSearchSuggestions will perform a "search-as-you-type" query to present articles that match what the user is
-// typing.
-func GetSearchSuggestions(ctx context.Context, dataAPI DataAPI, searchTerms string) (Articles, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get suggestions: get user data: %w", err)
-	}
-	subscriptionsQuery := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-		),
-	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionsQuery)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("get suggestions: get subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("get suggestions: get subscriptions: %w", ErrNotFound)
-	}
-
-	// Suggestions query will match in title/description/categories across all feed subscriptions.
-	itemsQuery := query.Bool(
-		query.Filter(
-			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
-		),
-		query.Must(
-			query.Bool(
-				query.Should(
-					query.SearchAsYouType(searchTerms, "title"),
-					query.SearchAsYouType(searchTerms, "description"),
-					query.SearchAsYouType(searchTerms, "categories"),
-				),
-			),
-		),
-	)
-	sort := SortMostRelevant
-	itemResults, _, err := dataAPI.SearchItems(ctx, itemsQuery, 10, &sort, nil)
-	if err != nil {
-		return nil, fmt.Errorf("get search suggestions: search items failed: %w", err)
-	}
-	articles, err := GenerateArticles(ctx, dataAPI, itemResults)
-	if err != nil {
-		return nil, fmt.Errorf("get search suggestion: generate articles failed: %w", err)
-	}
-
-	return articles, nil
-}
-
 // GetSearchResults will return articles matching the search query.
 func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchRequest, pagination Pagination) (Articles, Pagination, error) {
 	user, err := UserFromCtx(ctx)
@@ -1141,7 +1095,7 @@ func BuildItemsQuery(ctx context.Context, dataAPI DataAPI, filters Filters, subs
 			query.Terms("subscription_id", subscriptionIDs...),
 		),
 	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionsQuery)
+	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, subscriptionsQuery)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("get suggestions: get subscriptions: %w", err)
@@ -1237,7 +1191,7 @@ func BuildSearchResultsQuery(ctx context.Context, dataAPI DataAPI, user *User, r
 			query.Terms("subscription_id", request.Subscriptions...),
 		),
 	)
-	subscriptions, err := dataAPI.SearchSubscriptions(ctx, subscriptionsQuery)
+	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, subscriptionsQuery)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("build search query: get subscriptions: %w", err)

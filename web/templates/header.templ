@@ -22,7 +22,7 @@ templ header() {
 					<label for="global-search" class="w-full sm:max-w-3xl input input-accent text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10">
 						@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-accent"})
 						<form
-							hx-trigger="input changed delay:100ms"
+							hx-trigger="input changed delay:300ms"
 							hx-post="/search/suggestions"
 							hx-target="#global-search-suggestions"
 							hx-include="[name='csrf_token'],#search-filters"

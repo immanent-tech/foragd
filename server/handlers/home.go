@@ -83,7 +83,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 			query.Term("user_id", user.GetID()),
 		),
 	)
-	subscriptions, err := a.DataAPI().SearchSubscriptions(ctx, subscriptionQuery)
+	subscriptions, err := a.DataAPI().GetAllSubscriptions(ctx, subscriptionQuery)
 	if err != nil {
 		return nil, fmt.Errorf("filter articles: get subscriptions: %w", err)
 	}

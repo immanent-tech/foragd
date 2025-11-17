@@ -201,8 +201,8 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 	return users[0], nil
 }
 
-// SearchSubscriptions returns the subscriptions that match the given query.
-func (e *API) SearchSubscriptions(ctx context.Context, query query.Option) (models.Subscriptions, error) {
+// GetAllSubscriptions returns all subscriptions that match the given query. Using a match all query will retrieve all subscriptions.
+func (e *API) GetAllSubscriptions(ctx context.Context, query query.Option) (models.Subscriptions, error) {
 	index, err := SubscriptionsReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, ErrNoIndexInCtx //nolint:wrapcheck
@@ -214,6 +214,37 @@ func (e *API) SearchSubscriptions(ctx context.Context, query query.Option) (mode
 		return nil, toAPIError(err)
 	}
 	return subscriptions, nil
+}
+
+func (e *API) SearchSubscriptions(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Subscriptions, models.Pagination, error) {
+	index, err := SubscriptionsReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, "", ErrNoIndexInCtx //nolint:wrapcheck
+	}
+
+	searchAfter, err := decodePagination(pagination)
+	if err != nil {
+		return nil, "", models.NewAPIError(fmt.Errorf("search subscriptions: decode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
+	}
+
+	// Perform search.
+	subscriptions, newSearchAfter, err := Search[*models.Subscription](ctx, e.GetAPI(), index, query, count,
+		WithSortOptions[*search.Search, SearchRequest](newSubscriptionSortOptions(sort)...),
+		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
+	)
+	if err != nil {
+		return nil, "", toAPIError(err)
+	}
+	// Parse search after into pagination.
+	if pagination != nil {
+		*pagination, err = encodePagination(newSearchAfter)
+		if err != nil {
+			return nil, "", models.NewAPIError(fmt.Errorf("search subscriptions: encode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
+		}
+		return subscriptions, *pagination, nil
+	}
+
+	return subscriptions, "", nil
 }
 
 // // GetSubscription retrieves the subscription with the given ID.
@@ -1127,6 +1158,54 @@ func newFeedSortCombinations(sort *models.Sort) []types.SortCombinations {
 				Updated:   "asc",
 				Published: "asc",
 				FeedID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &types.SortOptions{
+			Doc_: types.NewScoreSort(),
+		})
+	}
+	return opts
+}
+
+// SubscriptionSorting contains the sort options for sorting subscription results.
+type SubscriptionSorting struct {
+	MarkedReadAt   string `json:"marked_read_at"`
+	SubscriptionID string `json:"subscription_id"`
+}
+
+// SortCombinationsCaster is required to allow FeedSorting to be used as Elasticsearch sort values.
+func (s *SubscriptionSorting) SortCombinationsCaster() *types.SortCombinations {
+	c := types.SortCombinations(s)
+	return &c
+}
+
+func newSubscriptionSortOptions(sort *models.Sort) []types.SortCombinationsVariant {
+	if sort == nil {
+		return []types.SortCombinationsVariant{&types.SortOptions{Doc_: types.NewScoreSort()}}
+	}
+	var opts []types.SortCombinationsVariant
+	switch *sort {
+	case models.SortNewestFirst:
+		opts = append(opts, &SubscriptionSorting{
+			MarkedReadAt:   "asc",
+			SubscriptionID: "desc",
+		})
+	case models.SortOldestFirst:
+		opts = append(opts, &SubscriptionSorting{
+			MarkedReadAt:   "desc",
+			SubscriptionID: "asc",
+		})
+	case models.SortMostRelevant:
+		opts = append(opts, &types.SortOptions{
+			Score_: &types.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&SubscriptionSorting{
+				MarkedReadAt:   "asc",
+				SubscriptionID: "asc",
 			},
 		)
 	default:
