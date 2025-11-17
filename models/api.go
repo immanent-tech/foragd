@@ -389,7 +389,7 @@ func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscrip
 		),
 	)
 
-	subscriptions, _, err := dataAPI.SearchSubscriptions(ctx, query, 1, nil, nil)
+	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, query)
 	if err != nil {
 		return fmt.Errorf("mark subscriptions: api request failed: %w", err)
 	}

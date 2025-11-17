@@ -14,8 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goforj/godump"
-
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -532,7 +530,6 @@ func (r *SearchSubscriptionRequest) Sanitise() error {
 // Valid returns a boolean indicating whether the GroupSubscriptionRequest is valid,
 // and any validation errors if applicable.
 func (r *GroupSubscriptionRequest) Valid() error {
-	godump.Dump(r)
 	err := validation.Validate.Struct(r)
 	if err != nil {
 		return fmt.Errorf("group subscription error: %w", err)

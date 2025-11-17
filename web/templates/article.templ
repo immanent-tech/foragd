@@ -438,17 +438,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 				</el-menu>
 			</el-dropdown>
 		</div>
-		<div id="content-filters" class="hidden">
-			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-			<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-			if len(filters.GetCategories()) > 0 {
-				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>
-			}
-			if len(filters.GetSubscriptions()) > 0 {
-				<input type="hidden" name={ models.ParamSubscriptions } value={ strings.Join(filters.GetSubscriptions(), ",") }/>
-			}
-		</div>
+		@generateFilters(filters)
 		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
 		@FilterControls(articles.GetCategoryCounts(), filters)
 		<section class="mt-4">

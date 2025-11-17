@@ -288,3 +288,17 @@ templ DeleteAccountModal() {
 		</div>
 	}
 }
+
+templ generateFilters(filters *models.ListDisplayFilters) {
+	<div id="content-filters" class="hidden">
+		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+		for category := range slices.Values(filters.GetCategories()) {
+			<input type="hidden" name={ models.ParamCategories } value={ category }/>
+		}
+		for subscription := range slices.Values(filters.GetSubscriptions()) {
+			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+		}
+	</div>
+}
