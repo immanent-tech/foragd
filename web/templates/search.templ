@@ -3,7 +3,6 @@
 package templates
 
 import (
-	"fmt"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -192,7 +191,8 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 	}
 }
 
-templ SearchResults(request *models.SearchRequest, articles models.Articles, pagination models.Pagination) {
+// SearchResultsGrid renders the given articles returned from the given search in a grid layout with an actions menu.
+templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles, pagination models.Pagination) {
 	@Main() {
 		<div class="flex items-center justify-between mt-4">
 			// Page title.
@@ -273,32 +273,20 @@ templ SearchResults(request *models.SearchRequest, articles models.Articles, pag
 		// Articles grid.
 		<section class="mt-4">
 			@Grid() {
-				@ResultsList(articles, pagination)
+				@SearchResults(articles, pagination)
 			}
 		</section>
 	}
 }
 
-templ ResultsList(articles models.Articles, pagination models.Pagination) {
+// SearchResults renders the list of articles as cards with an optional element to trigger pagination for loading more.
+templ SearchResults(articles models.Articles, pagination models.Pagination) {
 	for article := range slices.Values(articles) {
 		<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
 		@ArticleCard(article)
 	}
-	// Add pagination element if pagination is required.
 	if pagination != "" && len(articles) == 15 {
-		<div
-			class="invisible"
-			hx-post="/search/paginate"
-			hx-include="#search-filters,[name='csrf_token']"
-			hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
-			hx-trigger="intersect once"
-			hx-target="#grid-objects"
-			hx-swap="beforeend"
-			hx-indicator="#content-loading"
-			preload
-			preload-images="true"
-			_="on htmx:afterRequest remove me"
-		></div>
+		@PaginationControl(ctx, "/search/paginate", "#search-filters,[name='csrf_token']", pagination)
 	}
 }
 

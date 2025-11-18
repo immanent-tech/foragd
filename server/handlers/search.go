@@ -195,7 +195,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			// Pagination request, just display next set of results.
 			switch {
 			case len(articles) > 0:
-				renderPartial(templates.ResultsList(articles, pagination)).ServeHTTP(res, req.WithContext(ctx))
+				renderPartial(templates.SearchResults(articles, pagination)).ServeHTTP(res, req.WithContext(ctx))
 			default:
 				res.WriteHeader(http.StatusNoContent)
 				return nil
@@ -204,7 +204,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			// Generate appropriate template.
 			switch {
 			case len(articles) > 0:
-				template = templates.SearchResults(request, articles, pagination)
+				template = templates.SearchResultsGrid(request, articles, pagination)
 			default:
 				template = templates.NoSearchResults()
 			}
@@ -257,6 +257,7 @@ func AddSubscriptionFilter() http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// GetSubscriptionFilterSuggestions handles showing a list of subscriptions as suggestions when building a search query.
 func GetSubscriptionFilterSuggestions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		text := req.FormValue("subscription-text")

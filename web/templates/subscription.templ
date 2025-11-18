@@ -338,6 +338,7 @@ templ viewSearchSubscriptionLink(s *models.Subscription) {
 	</form>
 }
 
+// SubscriptionsGrid renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.Subscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	@Main() {
@@ -424,7 +425,7 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 		<section class="mt-4">
 			if len(subscriptions) > 0 {
 				@Grid() {
-					@SubscriptionsList(pagination, subscriptions...)
+					@Subscriptions(pagination, subscriptions...)
 				}
 			} else {
 				@EmptyContent()
@@ -433,14 +434,15 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 	}
 }
 
-templ SubscriptionsList(pagination models.Pagination, subscriptions ...*models.Subscription) {
+// Subscriptions renders the given list of subscriptions as cards with an optional element to trigger pagination to load more.
+templ Subscriptions(pagination models.Pagination, subscriptions ...*models.Subscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	for subscription := range slices.Values(subscriptions) {
 		@SubscriptionCard(subscription)
 	}
 	if pagination != "" && len(subscriptions) == filters.GetCount() {
 		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/list/subscriptions/paginate", pagination)
+		@PaginationControl(ctx, "/list/subscriptions/paginate", "#content-filters,[name='csrf_token']", pagination)
 	}
 }
 

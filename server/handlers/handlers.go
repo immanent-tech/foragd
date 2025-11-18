@@ -269,7 +269,7 @@ func renderPartial(template templ.Component) http.Handler {
 
 // IsHTMX returns a boolean indicating whether the request is a HTMX request.
 func IsHTMX(req *http.Request) bool {
-	return req.Header.Get("HX-Request") == "true"
+	return req.Header.Get("HX-Request") == "true" //nolint:goconst
 }
 
 // IsHistoryRestoreRequest returns a boolean indicating whether the request is a HTMX history restore request.

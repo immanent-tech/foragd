@@ -4,8 +4,6 @@
 package templates
 
 import (
-	"context"
-	"fmt"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -96,23 +94,6 @@ templ Content(content templ.Component) {
 		</div>
 	</div>
 	@Dock(nil)
-}
-
-// PaginationControl generates an element that will cause a pagination request when scrolled into view.
-templ PaginationControl(ctx context.Context, route string, pagination models.Pagination) {
-	<div
-		class="invisible"
-		hx-post={ route }
-		hx-include="#content-filters,[name='csrf_token']"
-		hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
-		hx-trigger="intersect once"
-		hx-target="#grid-objects"
-		hx-swap="beforeend"
-		hx-indicator="#content-loading"
-		preload
-		preload-images="true"
-		_="on htmx:afterRequest remove me"
-	></div>
 }
 
 // ShowTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time

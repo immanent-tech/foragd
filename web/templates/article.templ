@@ -388,6 +388,7 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 	}
 }
 
+// ArticlesGrid renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	@Main() {
@@ -453,7 +454,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 		<section class="mt-4">
 			if len(articles) > 0 {
 				@Grid() {
-					@ArticlesList(articles, pagination)
+					@Articles(articles, pagination)
 				}
 			} else {
 				{{ filters.Subscriptions = nil }}
@@ -463,7 +464,8 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 	}
 }
 
-templ ArticlesList(articles models.Articles, pagination models.Pagination) {
+// Articles renders the given list of articles as cards with an optional element to trigger pagination to load more.
+templ Articles(articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	for article := range slices.Values(articles) {
 		<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
@@ -472,6 +474,6 @@ templ ArticlesList(articles models.Articles, pagination models.Pagination) {
 	// Add pagination element if pagination is required.
 	if pagination != "" && len(articles) == filters.GetCount() {
 		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/list/articles/paginate", pagination)
+		@PaginationControl(ctx, "/list/articles/paginate", "#content-filters,[name='csrf_token']", pagination)
 	}
 }

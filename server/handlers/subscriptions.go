@@ -129,7 +129,6 @@ func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
 					models.NewErrorMessage("Unable to mark objects!", "")),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("mark subscriptions failed: %w", err), http.StatusInternalServerError)
-
 		}
 
 		// Mark subscriptions.

@@ -22,6 +22,8 @@ import (
 )
 
 // ShowList handles displaying or paginating a list of objects (subscriptions/articles) as cards in a grid layout.
+//
+//nolint:gocognit
 func ShowList(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters, setCacheControl).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
@@ -65,7 +67,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				template = templates.SubscriptionsGrid(pagination, subscriptions...)
 			case http.MethodPost:
 				if len(subscriptions) > 0 {
-					template = templates.SubscriptionsList(pagination, subscriptions...)
+					template = templates.Subscriptions(pagination, subscriptions...)
 				} else {
 					res.WriteHeader(http.StatusNoContent)
 					return nil
@@ -91,7 +93,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				template = templates.ArticlesGrid(articles, pagination)
 			case http.MethodPost:
 				if len(articles) > 0 {
-					template = templates.ArticlesList(articles, pagination)
+					template = templates.Articles(articles, pagination)
 				} else {
 					res.WriteHeader(http.StatusNoContent)
 					return nil
