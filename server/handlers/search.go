@@ -55,8 +55,8 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 		var articles models.Articles
 		sort := models.SortMostRelevant
 
+		// Generate subscription suggestions.
 		fetchJobs.Go(func() error {
-			// Generate subscription suggestions.
 			subscriptionsQuery := query.Bool(
 				query.Filter(
 					query.Term("user_id", user.GetID()),
@@ -78,17 +78,16 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 					subscriptions = nil
 				}
 			}
-			// slog.Info("subscriptions done")
 			return nil
 		})
 
+		// Generate article suggestions.
 		fetchJobs.Go(func() error {
 			allSubscriptions, err := api.GetAllSubscriptions(jobCtx, query.MatchAll())
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get all subscriptions.",
 					slog.Any("error", err))
 			}
-			// Generate article suggestions.
 			itemsQuery := query.Bool(
 				query.Filter(
 					query.Terms("feed_id", allSubscriptions.GetFeedIDs()...),
@@ -99,9 +98,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 							query.SearchAsYouType(request.Text, "title"),
 							query.SearchAsYouType(request.Text, "description"),
 							query.SearchAsYouType(request.Text, "content"),
-							// Search in categories.
 							query.Term(request.Text, "categories"),
-							// Search in authors, contributors.
 							query.Term(request.Text, "authors"),
 							query.Term(request.Text, "contributors"),
 						),
