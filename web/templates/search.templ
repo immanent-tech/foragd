@@ -208,6 +208,36 @@ templ SearchResults(request *models.SearchRequest, articles models.Articles, pag
 					@tabler.DotsVertical(i.Props{Class: "size-6"})
 				</button>
 				<el-menu anchor="bottom end" popover>
+					// Mark all read action.
+					<form>
+						<input type="hidden" name={ models.ParamView } value={ models.ViewUnread }/>
+						<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+						<a
+							hx-post="/list/articles/mark"
+							hx-target={ ContentID.Target() }
+							hx-include="#grid-objects,[name='csrf_token']"
+							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-accent focus:outline-hidden"
+						>
+							@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+							<span class="sr-only">Mark All Read</span>
+							Mark all Read
+						</a>
+					</form>
+					// Mark all unread action.
+					<form>
+						<input type="hidden" name={ models.ParamView } value={ models.ViewRead }/>
+						<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+						<a
+							hx-post="/list/articles/mark"
+							hx-target={ ContentID.Target() }
+							hx-include="#grid-objects,[name='csrf_token']"
+							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-accent focus:outline-hidden"
+						>
+							@tabler.MailFilled(i.Props{Class: "size-4"})
+							<span class="sr-only">Mark All Unread</span>
+							Mark all Unread
+						</a>
+					</form>
 					if request.ID != "" {
 						<div class="py-1">
 							// Edit action.
@@ -251,22 +281,11 @@ templ SearchResults(request *models.SearchRequest, articles models.Articles, pag
 
 templ ResultsList(articles models.Articles, pagination models.Pagination) {
 	for article := range slices.Values(articles) {
+		<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
 		@ArticleCard(article)
 	}
 	// Add pagination element if pagination is required.
 	if pagination != "" && len(articles) == 15 {
-		// Add pagination htmx props to last article.
-		// @NewDiv(
-		// 	WithClasses("invisible"),
-		// 	WithHXMethod(http.MethodPost, "/search"),
-		// 	WithHXTarget("#grid-objects"),
-		// 	WithHXPushURL(),
-		// 	WithHXInclude("[name='csrf_token']"),
-		// 	WithHXValsJS("js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"),
-		// 	WithHXTrigger("intersect once"),
-		// 	WithHXSwap("beforeend"),
-		// 	WithCustomAttribute("preload")
-		// )
 		<div
 			class="invisible"
 			hx-post="/search/paginate"

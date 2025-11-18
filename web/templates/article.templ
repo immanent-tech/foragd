@@ -419,18 +419,21 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 								hx-include="#grid-objects,[name='csrf_token']"
 								class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-accent focus:outline-hidden"
 							>
-								if models.PageFiltersFromCtx(ctx,"/list/articles").GetView() == models.ViewUnread {
+								if filters.GetView() == models.ViewUnread {
 									@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 									<span class="sr-only">Mark All Read</span>
 									Mark all Read
+									<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 								} else {
 									@tabler.MailFilled(i.Props{Class: "size-4"})
 									<span class="sr-only">Mark All Unread</span>
 									Mark all Unread
+									<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 								}
 							</a>
 						</form>
 						if len(articles.GetSubscriptionIDs()) == 1 {
+							// Edit subscription action.
 							@NewLink(
 								WithHXMethod(http.MethodGet, "/edit/subscription/"+articles.GetSubscriptionIDs()[0]),
 								WithHXTarget(ContentID.Target()),

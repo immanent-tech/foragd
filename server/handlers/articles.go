@@ -121,8 +121,27 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 			}
 		}
 
-		// Refresh page.
-		SetRedirect(req.Context(), "/list/articles", models.PageFiltersFromCtx(req.Context(), req.URL.Path), res)
+		currentURL, found := htmx.GetCurrentURL(req)
+		if !found {
+			err = SetRedirect(req.Context(), res, HXLocationRequest{
+				Path:   "/home",
+				Target: templates.ContentID.Target(),
+				Swap:   "innerHTML transition:true",
+			})
+		} else {
+			err = SetRedirect(req.Context(), res, HXLocationRequest{
+				Path:   currentURL,
+				Target: templates.ContentID.Target(),
+				Swap:   "innerHTML transition:true",
+			})
+		}
+		if err != nil {
+			renderPartial(
+				templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to mark articles", "This might be a temporary problem, please try again")),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("mark articles: %w", err), http.StatusInternalServerError)
+		}
 
 		res.WriteHeader(http.StatusOK)
 		return nil
