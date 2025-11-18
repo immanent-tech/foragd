@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -31,10 +32,11 @@ import (
 func MarkSubscription(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request values.
-		request := &models.MarkSubscriptionRequest{
-			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
-			Mark:           models.Mark(chi.URLParam(req, models.ParamMark)),
-			View:           models.View(req.FormValue(models.ParamView)),
+		subscriptionID := chi.URLParam(req, models.ParamSubscriptionID)
+		request := &models.MarkSubscriptionsRequest{
+			Subscriptions: []models.SubscriptionID{subscriptionID},
+			Mark:          models.Mark(chi.URLParam(req, models.ParamMark)),
+			View:          models.View(req.FormValue(models.ParamView)),
 		}
 		err := request.Valid()
 		if err != nil {
@@ -44,8 +46,9 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 			)).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
+
 		// Mark subscription.
-		err = models.MarkSubscriptions(req.Context(), api, request.Mark, request.SubscriptionID)
+		err = models.MarkSubscriptions(req.Context(), api, request.Mark, request.Subscriptions...)
 		if err != nil {
 			res.Header().Add(htmx.HeaderReswap, "none")
 			renderPartial(
@@ -55,12 +58,13 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
 		}
 
-		switch request.View {
-		case models.ViewRead, models.ViewUnread:
-			res.Header().Set(htmx.HeaderReswap, "delete transition:true")
-			res.WriteHeader(http.StatusOK)
-		case models.ViewAll:
-			subscription, err := models.GetSubscription(req.Context(), api, request.SubscriptionID)
+		// Determine the URL the request came from.
+		currentURL, found := htmx.GetCurrentURL(req)
+		if !found {
+			err = SetRedirect(req.Context(), res, HXLocationRequest{
+				Path:   "/home",
+				Target: templates.ContentID.Target(),
+			})
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				renderPartial(
@@ -69,7 +73,14 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 				).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
 			}
-			err = models.AddSubscriptionDynamicInfo(req.Context(), api, models.Subscriptions{subscription})
+		}
+		if strings.Contains(currentURL, "/list/articles") {
+			// If the current URL is /list/articles, return to /list/subscriptions.
+			err = SetRedirect(req.Context(), res, HXLocationRequest{
+				Path:   "/list/subscriptions",
+				Target: templates.ContentID.Target(),
+				Values: models.PageFiltersFromCtx(req.Context(), "/list/subscriptions").Values(),
+			})
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				renderPartial(
@@ -78,8 +89,35 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 				).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
 			}
-			res.Header().Set(htmx.HeaderReswap, "outerHTML transition:true")
-			renderPartial(templates.SubscriptionCard(subscription)).ServeHTTP(res, req)
+
+		} else {
+			// Else swap content apprpriately.
+			switch request.View {
+			case models.ViewRead, models.ViewUnread:
+				res.Header().Set(htmx.HeaderReswap, "delete transition:true")
+				res.WriteHeader(http.StatusOK)
+			case models.ViewAll:
+				subscription, err := models.GetSubscription(req.Context(), api, request.Subscriptions[0])
+				if err != nil {
+					res.Header().Add(htmx.HeaderReswap, "none")
+					renderPartial(
+						templates.ServerErrorNotification(
+							models.NewErrorMessage("Unable to mark subscription", "This might be a temporary error, please try again.")),
+					).ServeHTTP(res, req)
+					return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
+				}
+				err = models.AddSubscriptionDynamicInfo(req.Context(), api, models.Subscriptions{subscription})
+				if err != nil {
+					res.Header().Add(htmx.HeaderReswap, "none")
+					renderPartial(
+						templates.ServerErrorNotification(
+							models.NewErrorMessage("Unable to mark subscription", "This might be a temporary error, please try again.")),
+					).ServeHTTP(res, req)
+					return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
+				}
+				res.Header().Set(htmx.HeaderReswap, "outerHTML transition:true")
+				renderPartial(templates.SubscriptionCard(subscription)).ServeHTTP(res, req)
+			}
 		}
 
 		return nil
@@ -101,22 +139,18 @@ func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
 		}
 
 		// Determine what mark to apply from view and where to redirect.
-		var mark models.Mark
 		switch request.View {
 		case models.ViewUnread:
-			mark = models.MarkRead
 			err = SetRedirect(req.Context(), res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			})
 		case models.ViewRead:
-			mark = models.MarkUnread
 			err = SetRedirect(req.Context(), res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			})
 		default:
-			mark = models.MarkUnread
 			err = SetRedirect(req.Context(), res, HXLocationRequest{
 				Path:   "/list/subscriptions",
 				Target: templates.ContentID.Target(),
@@ -132,7 +166,7 @@ func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
 		}
 
 		// Mark subscriptions.
-		err = models.MarkSubscriptions(req.Context(), api, mark, request.Subscriptions...)
+		err = models.MarkSubscriptions(req.Context(), api, request.Mark, request.Subscriptions...)
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(

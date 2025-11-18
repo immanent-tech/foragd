@@ -418,17 +418,16 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 								hx-post="/list/articles/mark"
 								hx-target={ ContentID.Target() }
 								hx-include="#grid-objects,[name='csrf_token']"
-								class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-accent focus:outline-hidden"
 							>
 								if filters.GetView() == models.ViewUnread {
 									@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 									<span class="sr-only">Mark All Read</span>
-									Mark all Read
+									Mark Articles Read
 									<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 								} else {
 									@tabler.MailFilled(i.Props{Class: "size-4"})
 									<span class="sr-only">Mark All Unread</span>
-									Mark all Unread
+									Mark Articles Unread
 									<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 								}
 							</a>
@@ -443,6 +442,28 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 								@tabler.Edit(i.Props{Class: "size-4"})
 								Edit Subscription
 							}
+							// Mark subscription action.
+							<form id={ "mark-" + articles.GetSubscriptionIDs()[0] }>
+								// MarkURL returns the app URL for marking the subscription.
+								{{ var markURL string }}
+								if filters.GetView() == models.ViewUnread {
+									{{ markURL = "/mark/subscription/" + articles.GetSubscriptionIDs()[0] + "/read" }}
+								} else {
+									{{ markURL = "/mark/subscription/" + articles.GetSubscriptionIDs()[0] + "/unread" }}
+								}
+								@NewLink(
+									WithHXMethod(http.MethodPost, markURL),
+									WithHXInclude("[name='csrf_token'],#content-filters"),
+								) {
+									if filters.GetView() == models.ViewUnread {
+										@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+										Mark Subscription Read
+									} else {
+										@tabler.MailFilled(i.Props{Class: "size-4"})
+										Mark Subscription Unread
+									}
+								}
+							</form>
 						}
 					</div>
 				</el-menu>

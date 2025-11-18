@@ -367,16 +367,17 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 								hx-post="/list/subscriptions/mark"
 								hx-target={ ContentID.Target() }
 								hx-include="[name='csrf_token']"
-								class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-accent focus:outline-hidden"
 							>
 								if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewUnread {
 									@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 									<span class="sr-only">Mark All Read</span>
 									Mark all Read
+									<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 								} else {
 									@tabler.MailFilled(i.Props{Class: "size-4"})
 									<span class="sr-only">Mark All Unread</span>
 									Mark all Unread
+									<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
 								}
 							</a>
 						</form>
@@ -386,7 +387,6 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 							WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
-							WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
 						) {
 							@tabler.Plus(i.Props{Class: "size-4"})
 							Add Feed Subscription
@@ -398,7 +398,6 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 							WithHXTarget(ContentID.Target()),
 							WithHXInclude("#search-filters"),
 							WithHXPushURL(),
-							WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
 						) {
 							@tabler.Plus(i.Props{Class: "size-4"})
 							Add Search Subscription
@@ -409,7 +408,6 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 							WithHXMethod(http.MethodGet, "/user/subscription/add/group"),
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
-							WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
 						) {
 							@tabler.Plus(i.Props{Class: "size-4"})
 							Add Group Subscription
