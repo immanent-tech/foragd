@@ -68,11 +68,26 @@ templ ErrorPage(msg *models.UserMessage) {
 // EmptyContent renders a layout appropriate for use when there is nothing to show.
 templ EmptyContent() {
 	@Main() {
-		<div class="text-center mt-8">
+		<div class="text-center">
 			@tabler.FileUnknown(i.Props{Class: "mx-auto size-16 text-base-content"})
-			<h3 class="mt-2 text-base font-semibold">Nothing to show</h3>
-			<p class="mt-1 text-sm text-base-content">Try adjusting your filters/search, or maybe you are all caught up?</p>
-			<btn class="btn btn-primary btn-soft mt-1" hx-get="/home" hx-target={ ContentID.Target() } hx-push-url="true">Home</btn>
+			<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance">Nothing to show</h1>
+			<h2 class="mt-4 text-2xl font-semibold tracking-tight text-balance">Try adjusting your filters, or maybe you are all caught up?</h2>
+			<div class="mt-10 flex items-center justify-center gap-x-6">
+				@NewLink(
+					WithCustomAttribute("role", "button"),
+					WithCustomAttribute("href", "/home"),
+					WithClasses("btn", "btn-primary", "btn-soft"),
+				) {
+					Go Back Home
+				}
+				@NewLink(
+					WithCustomAttribute("role", "button"),
+					WithCustomAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
+					WithClasses("btn", "btn-ghost"),
+				) {
+					Email Support <span aria-hidden="true">&rarr;</span>
+				}
+			</div>
 		</div>
 	}
 }
