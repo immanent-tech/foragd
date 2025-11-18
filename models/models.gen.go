@@ -549,16 +549,13 @@ type ListDisplayFilters struct {
 // Mark applies the given mark action to objects.
 type Mark string
 
-// MarkArticleRequest contains the parameters for marking an article.
-type MarkArticleRequest struct {
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
-
+// MarkArticlesRequest contains the parameters for marking articles.
+type MarkArticlesRequest struct {
 	// Mark applies the given mark action to objects.
 	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+	// Metadata contains the item IDs per subscription to mark.
+	Metadata map[SubscriptionID][]ItemID `form:"metadata" json:"metadata"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`

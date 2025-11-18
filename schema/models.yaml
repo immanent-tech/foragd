@@ -1153,6 +1153,25 @@ components:
           $ref: '#/components/schemas/Mark'
         view:
           $ref: '#/components/schemas/View'
+    MarkArticlesRequest:
+      description: >
+        contains the parameters for marking articles.
+      type: object
+      required:
+        - metadata
+        - mark
+        - view
+      properties:
+        metadata:
+          description: >
+            contains the item IDs per subscription to mark.
+          x-go-type: 'map[SubscriptionID][]ItemID'
+          x-oapi-codegen-extra-tags:
+            form: 'metadata'
+        mark:
+          $ref: '#/components/schemas/Mark'
+        view:
+          $ref: '#/components/schemas/View'
     RemoveSubscriptionRequest:
       description: >
         contains the parameters for removing a subscription.
@@ -1168,24 +1187,6 @@ components:
           x-oapi-codegen-extra-tags:
             form: nickname
             validate: required
-    MarkArticleRequest:
-      description: >
-        contains the parameters for marking an article.
-      type: object
-      required:
-        - subscription_id
-        - item_id
-        - mark
-        - view
-      properties:
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
-        item_id:
-          $ref: '#/components/schemas/ItemID'
-        mark:
-          $ref: '#/components/schemas/Mark'
-        view:
-          $ref: '#/components/schemas/View'
     ObjectIssueRequest:
       description: >
         contains details about issues with an object.

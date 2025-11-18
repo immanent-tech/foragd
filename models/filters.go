@@ -208,3 +208,16 @@ func setValidView(value View) View {
 		return DefaultView
 	}
 }
+
+// setValidMark takes a string representing a Mark and returns a valid Mark it
+// represents. If the value is not a valid Mark, it returns MarkRead.
+func setValidMark(value Mark) Mark {
+	switch value {
+	case MarkRead:
+		return MarkRead
+	case MarkUnread:
+		return MarkUnread
+	default:
+		return MarkRead
+	}
+}

@@ -863,38 +863,6 @@ func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFi
 	return articles, pagination, nil
 }
 
-// MarkArticles will mark Articles for a Subscription as appropriate. Marking Articles involves updating the User object
-// with an ItemState that tracks the mark status for the underlying Item an Article represents.
-func MarkArticles(ctx context.Context, dataAPI DataAPI, mark Mark, subscriptionID SubscriptionID, itemIDs ...ItemID) error {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("mark articles: get user data: %w", err)
-	}
-	query := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Terms("subscription_id", subscriptionID),
-		),
-	)
-	subscriptions, _, err := dataAPI.SearchSubscriptions(ctx, query, 1, nil, nil)
-	switch {
-	case err != nil:
-		return fmt.Errorf("mark articles: get subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return fmt.Errorf("mark articles: get subscriptions: %w", ErrNotFound)
-	case len(subscriptions) != 1:
-		return fmt.Errorf("mark articles: get subscriptions: %w", ErrInvalidAPIResult)
-	}
-	subscriptions[0].MarkItems(mark, itemIDs...)
-
-	_, err = dataAPI.UpdateSubscriptions(ctx, subscriptions[0])
-	if err != nil {
-		return fmt.Errorf("mark articles: update subscription data: %w", err)
-	}
-
-	return nil
-}
-
 // GetArticles generates Article objects from the Items with the given IDs.
 func GetArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Articles, error) {
 	// Search through items matching any given feeds filters, excluding any read

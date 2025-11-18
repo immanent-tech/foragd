@@ -248,6 +248,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
 		})
 		// Article specific.
+		r.With(middlewares.RequireHTMX).Post("/list/articles/mark", handlers.MarkArticles(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}/{mark}", handlers.MarkArticle(handler.Elastic))
 		// General.
 		r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues(handler))

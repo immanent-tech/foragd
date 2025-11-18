@@ -238,8 +238,25 @@ func (a *Article) GetObjectType() ObjectType {
 	return ObjectTypeArticle
 }
 
-// Sanitise will sanitise the input values.
-func (r *MarkArticleRequest) Sanitise() error {
+// Valid ensures that the MarkArticlesRequest contains valid data.
+func (r *MarkArticlesRequest) Valid() error {
+	for key, value := range r.Metadata {
+		err := validation.Validate.Var(key, "startswith=sub_")
+		if err != nil {
+			return fmt.Errorf("mark articles request: invalid subscription ID: %w", err)
+		}
+		err = validation.Validate.Var(value, "dive,startswith=item_")
+		if err != nil {
+			return fmt.Errorf("mark articles request: invalid item IDs: %w", err)
+		}
+	}
+	return nil
+}
+
+// Sanitise will alter MarkArticlesRequest data to ensure safety, where needed.
+func (r *MarkArticlesRequest) Sanitise() error {
+	r.Mark = setValidMark(r.Mark)
+	r.View = setValidView(r.View)
 	return nil
 }
 
@@ -253,18 +270,6 @@ func (s *ArticleState) MarkRead(markedAt time.Time) {
 func (s *ArticleState) MarkUnread(markedAt time.Time) {
 	s.Read = false
 	s.UpdatedAt = markedAt
-}
-
-// Valid returns a boolean indicating whether the object is valid.
-func (r *MarkArticleRequest) Valid() error {
-	if r == nil {
-		return fmt.Errorf("request is invalid: %w", validation.ErrNilObject)
-	}
-	err := validation.Validate.Struct(r)
-	if err != nil {
-		return fmt.Errorf("mark article request: %w", err)
-	}
-	return nil
 }
 
 // NewArchivedArticle creates a new archived article for long-term storage.
