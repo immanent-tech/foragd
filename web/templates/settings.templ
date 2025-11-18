@@ -259,23 +259,26 @@ templ DisplaySettings(user *models.User) {
 				<h2 class="text-base/7 font-semibold">Theme</h2>
 				<p class="mt-1 text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
 			</div>
+			// * Changing themes here also requires updating the list in styles.css.
 			<div class="grid max-w-7xl col-span-full grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8">
 				{{ currentTheme := user.GetSettings().Theme }}
 				@themePreview("light", currentTheme)
 				@themePreview("dark", currentTheme)
+				@themePreview("emerald", currentTheme)
 				@themePreview("forest", currentTheme)
 				@themePreview("garden", currentTheme)
-				@themePreview("synthwave", currentTheme)
 				@themePreview("lofi", currentTheme)
 				@themePreview("black", currentTheme)
 				@themePreview("dracula", currentTheme)
-				@themePreview("business", currentTheme)
+				@themePreview("fantasy", currentTheme)
 				@themePreview("night", currentTheme)
 				@themePreview("dim", currentTheme)
 				@themePreview("nord", currentTheme)
-				@themePreview("silk", currentTheme)
+				@themePreview("sunset", currentTheme)
 				@themePreview("winter", currentTheme)
-				@themePreview("pastel", currentTheme)
+				@themePreview("abyss", currentTheme)
+				@themePreview("latte", currentTheme)
+				@themePreview("mocha", currentTheme)
 			</div>
 		</div>
 	</div>

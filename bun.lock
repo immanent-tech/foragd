@@ -17,6 +17,7 @@
         "tailwindcss": "^4.1.16",
       },
       "devDependencies": {
+        "@catppuccin/daisyui": "^2.1.1",
         "@eslint/js": "^9.39.1",
         "@prettier/plugin-xml": "^3.4.2",
         "@tailwindcss/cli": "^4.1.16",
@@ -39,6 +40,10 @@
     "@babel/code-frame": ["@babel/code-frame@7.27.1", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.27.1", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg=="],
 
     "@babel/helper-validator-identifier": ["@babel/helper-validator-identifier@7.27.1", "", {}, "sha512-D2hP9eA+Sqx1kBZgzxZh0y1trbuU+JoDkiEwqhQ36nodYqJwyEIhPSdMNd7lOm/4io72luTPWH20Yda0xOuUow=="],
+
+    "@catppuccin/daisyui": ["@catppuccin/daisyui@2.1.1", "", { "dependencies": { "@catppuccin/palette": "^1.7.1" }, "peerDependencies": { "tailwindcss": "^4.0.17" } }, "sha512-PrZttjj8kwfDBJ34sR+DN25Xtjvxx4T5p8uu/iiGYZR8UOsNwzMlO/alYDBwwTOLzP1NKLNRax09kCT39+QM+A=="],
+
+    "@catppuccin/palette": ["@catppuccin/palette@1.7.1", "", {}, "sha512-aRc1tbzrevOTV7nFTT9SRdF26w/MIwT4Jwt4fDMc9itRZUDXCuEDBLyz4TQMlqO9ZP8mf5Hu4Jr6D03NLFc6Gw=="],
 
     "@conventional-commits/parser": ["@conventional-commits/parser@0.4.1", "", { "dependencies": { "unist-util-visit": "^2.0.3", "unist-util-visit-parents": "^3.1.1" } }, "sha512-H2ZmUVt6q+KBccXfMBhbBF14NlANeqHTXL4qCL6QGbMzrc4HDXyzWuxPxPNbz71f/5UkR5DrycP5VO9u7crahg=="],
 
