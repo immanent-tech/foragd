@@ -40,11 +40,11 @@ templ articleSummary(article *models.Article) {
 			</a>
 			// Timestamp, Subscription.
 			<div class="grid grid-flow-row justify-between">
-				<p class="flex text-xs text-base-content/80">
+				<p class="flex text-xs">
 					Updated&nbsp;
 					@ShowTimestamp(article.GetUpdatedDate())
 				</p>
-				<p class="flex text-xs text-base-content/80 truncate">
+				<p class="flex text-xs truncate">
 					@NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
