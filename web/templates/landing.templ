@@ -29,7 +29,7 @@ templ Landing() {
 								<a href="#features" class="link link-hover text-sm/6 font-semibold text-base-content/80">Features <span aria-hidden="true">→</span></a>
 							</div>
 							<div class="text-sm/6 font-semibold text-base-content/80 mt-5">
-								Already have an account?<a href="/login" class="link ">&nbsp;Log in</a>
+								Already have an account?<a href="/login" class="link">&nbsp;Log in</a>
 							</div>
 						</div>
 					</div>
@@ -41,7 +41,7 @@ templ Landing() {
 			<div id="features" class="mt-32 sm:mt-56">
 				<div class="mx-auto max-w-7xl px-6 lg:px-8">
 					<div class="mx-auto max-w-4xl sm:text-center">
-						<h2 class="text-base/7 font-semibold text-primary">Collect, collate and consume.</h2>
+						<h2 id="features" class="text-base/7 font-semibold text-primary">Collect, collate and consume.</h2>
 						<p class="mt-2 text-4xl font-semibold tracking-tight text-pretty sm:text-5xl sm:text-balance">A beautiful, cloud-based feed reader.</p>
 						<p class="mt-6 text-lg/8 text-base-content/80">Keep your content subscriptions in one place. Stay up to date with new and old content, across all your devices.</p>
 					</div>
@@ -54,147 +54,155 @@ templ Landing() {
 						</div>
 					</div>
 				</div>
-				<div class="mx-auto mt-16 max-w-7xl px-6 sm:mt-20 md:mt-24 lg:px-8 text-pretty">
-					<dl class="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 text-base-content/80 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
-						<div class="relative pl-9 space-x-2">
-							<dt class="inline font-semibold text-base-content">
-								@tabler.HeartFilled(i.Props{Class: "absolute top-1 left-1 size-5 fill-primary"})
-								Favourite anything
-							</dt>
-							<dd class="inline">Mark a subscription, an article or a search as a favorite. Organise without cumbersome folders and exploding tags.</dd>
-						</div>
-						<div class="relative pl-9 space-x-2">
-							<dt class="inline font-semibold text-base-content">
-								@tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Powerful search.
-							</dt>
-							<dd class="inline">Search your subscriptions with advanced filtering. Favorite it. Boom. Now you have a custom subscription for that content.</dd>
-						</div>
-						<div class="relative pl-9 space-x-2">
-							<dt class="inline font-semibold text-base-content">
-								@tabler.FilterFilled(i.Props{Class: "absolute top-1 left-1 size-5 fill-primary"})
-								Per subscription filtering.
-							</dt>
-							<dd class="inline">Filter a subscription by author, category etc. to hide posts you don't want to see.</dd>
-						</div>
-						<div class="relative pl-9 space-x-2">
-							<dt class="inline font-semibold text-base-content">
-								@tabler.WorldDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Retrieve full article content.
-							</dt>
-							<dd class="inline">Retrieve the full article content where possible if only a summary is shown. Avoid tab-switching.</dd>
-						</div>
-						<div class="relative pl-9 space-x-2">
-							<dt class="inline font-semibold text-base-content">
-								@tabler.ColorSwatch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Theme support.
-							</dt>
-							<dd class="inline">Dark mode, light mode. You choose. Or pick one of many other themes available out-of-the-box.</dd>
-						</div>
-						<div class="relative pl-9 space-x-2">
-							<dt class="inline font-semibold text-base-content">
-								@tabler.CloudCheck(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Keep your history in sync.
-							</dt>
-							<dd class="inline">Let Foragd handle keeping your read history, favorites and subscriptions. You focus on gathering the information you need.</dd>
-						</div>
-					</dl>
-				</div>
+				<p class="mx-auto max-w-2xl mt-8 text-center text-lg/8 text-pretty text-bold">Explore Features <span aria-hidden="true">→</span></p>
 			</div>
 			// Pricing
 			<div class="py-24 sm:pt-48">
 				<div class="mx-auto max-w-7xl px-6 lg:px-8">
 					<div class="mx-auto max-w-4xl text-center">
-						<h2 class="text-base/7 font-semibold">Pricing</h2>
+						<h2 id="pricing" class="text-base/7 font-semibold text-primary">Subscriptions and Pricing.</h2>
 						<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">Keep up to date without breaking the bank</p>
 					</div>
 					<p class="mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">Choose an affordable plan with the features you need.</p>
-					<div class="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-						<div class="-mr-px flex flex-col justify-between items-center rounded-3xl bg-base-200 p-8 inset-ring inset-ring-accent lg:mt-8 lg:rounded-r-none xl:p-10">
-							<div>
-								<div class="flex items-center justify-between gap-x-4">
-									<h3 id="tier-gatherer" class="text-lg/8 font-semibold">Gatherer</h3>
+					<div class="join w-full justify-center items-center">
+						<div class="card w-96 bg-base-100 shadow-sm join-item">
+							<div class="card-body">
+								<div class="flex justify-between">
+									<h2 class="text-3xl font-bold">Gatherer</h2>
+									<span class="text-xl">USD $TBD/mo</span>
 								</div>
 								<p class="mt-4 text-sm/6">Perfect for keeping up with the latest news feeds.</p>
-								<p class="mt-6 flex items-baseline gap-x-1">
-									<span class="text-4xl font-semibold tracking-tight">TBD</span>
-									<span class="text-sm/6 font-semibold">/month</span>
-								</p>
-								<ul role="list" class="mt-8 space-y-3 text-sm/6">
-									<li class="flex gap-x-3">
-										@tabler.Check(i.Props{Class: "h-6 w-5 flex-none"})
-										Last 7 Days Article History
+								<ul class="mt-6 flex flex-col gap-2 text-xs">
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>Last week article history</span>
 									</li>
-									<li class="flex gap-x-3">
-										@tabler.Check(i.Props{Class: "h-6 w-5 flex-none"})
-										Up to 15 Subscriptions
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>15 subscriptions</span>
 									</li>
 								</ul>
+								<div class="mt-6">
+									<button class="btn btn-accent btn-block">Subscribe</button>
+								</div>
 							</div>
-							<a href="#" aria-describedby="tier-gatherer" class="mt-4 btn btn-wide">Buy plan</a>
 						</div>
-						<div class="flex flex-col justify-between items-center rounded-3xl bg-base-300 p-8 inset-ring inset-ring-accent lg:z-10 lg:rounded-b-none xl:p-10">
-							<div>
-								<div class="flex items-center justify-between gap-x-4">
-									<h3 id="tier-collector" class="text-lg/8 font-semibold">Collector</h3>
-									<p class="rounded-full bg-accent px-2.5 py-1 text-xs/5 font-semibold text-accent-content">Recommended</p>
+						<div class="card w-96 bg-base-100 shadow-sm join-item">
+							<div class="card-body">
+								<span class="badge badge-xs badge-primary">Recommended</span>
+								<div class="flex justify-between">
+									<h2 class="text-3xl font-bold">Collector</h2>
+									<span class="text-xl">USD $TBD/mo</span>
 								</div>
 								<p class="mt-4 text-sm/6">Great for following the news and your favorite blogs/content sites.</p>
-								<p class="mt-6 flex items-baseline gap-x-1">
-									<span class="text-4xl font-semibold tracking-tight">TBD</span>
-									<span class="text-sm/6 font-semibold">/month</span>
-								</p>
-								<ul role="list" class="mt-8 space-y-3 text-sm/6">
-									<li class="flex gap-x-3">
-										@tabler.Check(i.Props{Class: "h-6 w-5 flex-none"})
-										Last 2 Months Article History
+								<ul class="mt-6 flex flex-col gap-2 text-xs">
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>Last six months article history</span>
 									</li>
-									<li class="flex gap-x-3">
-										@tabler.Check(i.Props{Class: "h-6 w-5 flex-none"})
-										Up to 150 Subscriptions
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>150 subscriptions</span>
 									</li>
-									<li class="flex gap-x-3">
-										@tabler.Check(i.Props{Class: "h-6 w-5 flex-none"})
-										Selected New Features
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>Subscription/Article favorites</span>
+									</li>
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-warning"})
+										<span>Selected new features as they are released</span>
 									</li>
 								</ul>
+								<div class="mt-6">
+									<button class="btn btn-accent btn-block">Subscribe</button>
+								</div>
 							</div>
-							<a href="#" aria-describedby="tier-collector" class="mt-4 btn btn-accent btn-wide">Buy plan</a>
 						</div>
-						<div class="-ml-px flex flex-col justify-between items-center rounded-3xl bg-base-200 p-8 inset-ring inset-ring-accent lg:mt-8 lg:rounded-l-none xl:p-10">
-							<div>
-								<div class="flex items-center justify-between gap-x-4">
-									<h3 id="tier-curator" class="text-lg/8 font-semibold">Curator</h3>
+						<div class="card w-96 bg-base-100 shadow-sm join-item">
+							<div class="card-body">
+								<div class="flex justify-between">
+									<h2 class="text-3xl font-bold">Curator</h2>
+									<span class="text-xl">USD $TBD/mo</span>
 								</div>
 								<p class="mt-4 text-sm/6">Extensive article history and all current and new features.</p>
-								<p class="mt-6 flex items-baseline gap-x-1">
-									<span class="text-4xl font-semibold tracking-tight">TBD</span>
-									<span class="text-sm/6 font-semibold">/month</span>
-								</p>
-								<ul role="list" class="mt-8 space-y-3 text-sm/6">
-									<li class="flex gap-x-3">
-										@tabler.Check(i.Props{Class: "h-6 w-5 flex-none"})
-										Last 2 Years Article History
+								<ul class="mt-6 flex flex-col gap-2 text-xs">
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>Last two years article history</span>
 									</li>
-									<li class="flex gap-x-3">
-										@tabler.Check(i.Props{Class: "h-6 w-5 flex-none"})
-										Unlimited Subscriptions
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>Unlimited subscriptions</span>
 									</li>
-									<li class="flex gap-x-3">
-										@tabler.Check(i.Props{Class: "h-6 w-5 flex-none"})
-										All New Features
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>Group subscriptions</span>
+									</li>
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>Search subscriptions</span>
+									</li>
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>Subscription/Article favorites</span>
+									</li>
+									<li>
+										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
+										<span>All new features as they are released</span>
 									</li>
 								</ul>
+								<div class="mt-6">
+									<button class="btn btn-accent btn-block">Subscribe</button>
+								</div>
 							</div>
-							<a href="#" aria-describedby="tier-curator" class="mt-4 btn btn-wide">Buy plan</a>
 						</div>
+					</div>
+					<div class="mx-auto mt-16 max-w-7xl px-6 sm:mt-20 md:mt-24 lg:px-8 text-pretty">
+						<p class="mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">All subscriptions also have the following features:</p>
+						<dl class="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 text-base-content/80 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
+							<div class="relative pl-9 space-x-2">
+								<dt class="inline font-semibold text-base-content">
+									@tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Powerful search.
+								</dt>
+								<dd class="inline">Search across articles and subscriptions with advanced filtering.</dd>
+							</div>
+							<div class="relative pl-9 space-x-2">
+								<dt class="inline font-semibold text-base-content">
+									@tabler.FilterFilled(i.Props{Class: "absolute top-1 left-1 size-5 fill-primary"})
+									Per subscription filtering.
+								</dt>
+								<dd class="inline">Filter a subscription by keywords, author, category etc. to show or hide articles.</dd>
+							</div>
+							<div class="relative pl-9 space-x-2">
+								<dt class="inline font-semibold text-base-content">
+									@tabler.WorldDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Retrieve full article content.
+								</dt>
+								<dd class="inline">Retrieve the full article content where possible if only a summary is shown. Avoid tab-switching.</dd>
+							</div>
+							<div class="relative pl-9 space-x-2">
+								<dt class="inline font-semibold text-base-content">
+									@tabler.ColorSwatch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Theme support.
+								</dt>
+								<dd class="inline">Dark mode, light mode. You choose. Or pick one of many other themes available out-of-the-box.</dd>
+							</div>
+							<div class="relative pl-9 space-x-2">
+								<dt class="inline font-semibold text-base-content">
+									@tabler.CloudCheck(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Keep your history in sync.
+								</dt>
+								<dd class="inline">Let Foragd handle keeping your read history, favorites and subscriptions. You focus on gathering the information you need.</dd>
+							</div>
+						</dl>
 					</div>
 				</div>
 			</div>
 			// FAQ
 			<div class="mx-auto mt-32 max-w-7xl px-6 sm:mt-56 lg:px-8">
 				<div class="mx-auto max-w-4xl">
-					<h2 class="text-4xl font-semibold tracking-tight sm:text-5xl">Frequently asked questions</h2>
+					<h2 id="faq" class="text-4xl font-semibold tracking-tight sm:text-5xl">Frequently asked questions</h2>
 					<dl class="mt-16 divide-y divide-base-content/10">
 						@landingFAQEntry("faq-support", "Is support available?") {
 							Yes! At the moment, we offer support <a class="link" href="mailto:support@immanent.tech&subject=Foragd Support">via email.</a>
