@@ -12,6 +12,7 @@ import (
 	"crypto/sha256"
 	"embed"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -183,29 +184,45 @@ func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.Han
 	}
 }
 
-// SetRedirect sets headers for performing a HTMX redirect to the given path.
-func SetRedirect(ctx context.Context, path string, filters models.Filters, res http.ResponseWriter) {
-	pushURLPath := path
-	location := path
-	locCtx := htmx.LocationContext{
-		Target: templates.ContentID.Target(),
-	}
-	if filters != nil {
-		// locCtx.Values = filters.Values()
-		pushURLPath = path + "?" + filters.QueryString()
-		location = path + "?" + filters.QueryString()
-	}
-	htmxResp := htmx.NewResponse().LocationWithContext(location, locCtx).PushURL(pushURLPath)
-	slogctx.FromCtx(ctx).Debug("Redirecting.",
-		slog.String("path", pushURLPath),
-	)
-	err := htmxResp.Write(res)
+// HXLocationRequest defines the value of the HX-Location header.
+//
+// https://htmx.org/headers/hx-location/
+type HXLocationRequest struct {
+	// The URL path.
+	Path string `json:"path"`
+	//  The source element of the request.
+	Source string `json:"source,omitzero"`
+	// An event that “triggered” the request.
+	Event string `json:"event,omitzero"`
+	// A JS callback that will handle the response HTML.
+	Handler string `json:"handler,omitzero"`
+	// The target to swap the response into.
+	Target string `json:"target,omitzero"`
+	// How the response will be swapped in relative to the target.
+	Swap string `json:"swap,omitzero"`
+	// Values to submit with the request.
+	Values map[string]any `json:"values,omitzero"`
+	// Headers to submit with the request.
+	Headers map[string]string `json:"headers,omitzero"`
+	// Allows you to select the content you want swapped from a response.
+	Select string `json:"select,omitzero"`
+	// Set to 'false' or a path string to prevent or override the URL pushed to browser location history
+	Push string `json:"push,omitzero"`
+	// A path string to replace the URL in the browser location history
+	Replace string `json:"replace,omitzero"`
+}
+
+// SetRedirect adds the HX-Location header with the given values to the response, which triggers a client side
+// redirection without reloading the whole page.
+//
+// https://htmx.org/headers/hx-location/
+func SetRedirect(ctx context.Context, res http.ResponseWriter, request HXLocationRequest) error {
+	requestJSON, err := json.Marshal(request)
 	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to set redirect.",
-			slog.String("path", path),
-			slog.Any("error", err),
-		)
+		return fmt.Errorf("set redirect: marshal request: %w", err)
 	}
+	res.Header().Set(htmx.HeaderLocation, string(requestJSON))
+	return nil
 }
 
 // renderPage will render the given template as a full page. It handles htmx and non-htmx requests, rendering the
