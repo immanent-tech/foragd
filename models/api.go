@@ -987,29 +987,6 @@ func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID
 	return articles, nil
 }
 
-// GetSearchResults will return articles matching the search query.
-func GetSearchResults(ctx context.Context, dataAPI DataAPI, request *SearchRequest, pagination Pagination) (Articles, Pagination, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, "", fmt.Errorf("get search results: get user failed: %w", err)
-	}
-
-	query, err := BuildSearchResultsQuery(ctx, dataAPI, user, request)
-	if err != nil {
-		return nil, "", fmt.Errorf("get search results: build query: %w", err)
-	}
-
-	itemResults, pagination, err := dataAPI.SearchItems(ctx, query, 15, &request.Sort, &pagination)
-	if err != nil {
-		return nil, "", fmt.Errorf("get search resuls: search items failed: %w", err)
-	}
-	articles, err := GenerateArticles(ctx, dataAPI, itemResults)
-	if err != nil {
-		return nil, "", fmt.Errorf("get search results: generate articles failed: %w", err)
-	}
-	return articles, pagination, nil
-}
-
 // BuildItemsQuery generates a query to fetch the Items that match the given Filters from the given Subscriptions.
 func BuildItemsQuery(ctx context.Context, dataAPI DataAPI, filters Filters, subscriptionIDs ...SubscriptionID) (query.Option, error) {
 	user, err := UserFromCtx(ctx)

@@ -138,6 +138,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 func GetSearchResults(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		pageTitle := templates.GeneratePageTitle("Search Results")
+
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -154,6 +155,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		if subscriptionID != "" {
 			request.ID = subscriptionID
 		}
+
 		// Embed the request in the context.
 		ctx := models.SearchRequestToCtx(req.Context(), *request)
 		// If the search request has subscription filters, get subscription details.
@@ -179,10 +181,8 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 		}
 
-		// Find subscriptions and articles that match search request.
-		var articles models.Articles
-		var template templ.Component
-		articles, pagination, err = models.GetSearchResults(ctx, api, request, pagination)
+		// Retrieve the user object.
+		user, err := models.UserFromCtx(ctx)
 		if err != nil {
 			msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
 			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
@@ -191,21 +191,51 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 				http.StatusInternalServerError,
 			)
 		}
-		if strings.HasSuffix(chi.RouteContext(ctx).RoutePattern(), "/paginate") {
-			// Pagination request, just display next set of results.
-			switch {
-			case len(articles) > 0:
+
+		// Find articles that match search request.
+		var articles models.Articles
+		query, err := models.BuildSearchResultsQuery(ctx, api, user, request)
+		if err != nil {
+			msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve subscriptions: %w", err),
+				http.StatusInternalServerError,
+			)
+		}
+		itemResults, pagination, err := api.SearchItems(ctx, query, 15, &request.Sort, &pagination)
+		if err != nil {
+			msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve subscriptions: %w", err),
+				http.StatusInternalServerError,
+			)
+		}
+		if len(itemResults) > 0 {
+			articles, err = models.GenerateArticles(ctx, api, itemResults)
+			if err != nil {
+				msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("unable to retrieve subscriptions: %w", err),
+					http.StatusInternalServerError,
+				)
+			}
+		}
+
+		if strings.HasSuffix(chi.RouteContext(ctx).RoutePattern(), "/paginate") { //nolint:nestif
+			if len(articles) > 0 {
 				renderPartial(templates.SearchResults(articles, pagination)).ServeHTTP(res, req.WithContext(ctx))
-			default:
+			} else {
 				res.WriteHeader(http.StatusNoContent)
-				return nil
 			}
 		} else {
-			// Generate appropriate template.
-			switch {
-			case len(articles) > 0:
+			var template templ.Component
+			if len(articles) > 0 {
+				// Pagination request, just display next set of results.
 				template = templates.SearchResultsGrid(request, articles, pagination)
-			default:
+			} else {
 				template = templates.NoSearchResults()
 			}
 			if IsHTMX(req) {
@@ -214,6 +244,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			res.Header().Add(htmx.HeaderPushURL, "/search?"+request.Query())
 			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 		}
+
 		return nil
 	})).ServeHTTP
 }

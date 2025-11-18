@@ -579,19 +579,23 @@ templ SimilarArticles(articles models.Articles) {
 // NoSearchResults renders an informational message for when no search results were returned.
 templ NoSearchResults() {
 	<div class="text-center">
-		<h1 class="mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-4xl">Nothing found 😕</h1>
-		<p class="mt-6 text-lg font-medium text-pretty text-base-content sm:text-xl/8">Looks like there are no matches for that search.</p>
+		<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance">Nothing found 😕</h1>
+		<h2 class="mt-4 text-2xl font-semibold tracking-tight text-balance">Looks like there are no matches for that search.</h2>
 		<div class="mt-10 flex items-center justify-center gap-x-6">
-			<a
-				role="button"
-				onclick="history.back()"
-				class="btn btn-secondary btn-soft"
-			>Back</a>
-			<a
-				href="/home"
-				role="button"
-				class="btn btn-primary btn-soft"
-			>Home</a>
+			@NewLink(
+				WithCustomAttribute("role", "button"),
+				WithCustomAttribute("href", "/home"),
+				WithClasses("btn", "btn-primary", "btn-soft"),
+			) {
+				Go Back Home
+			}
+			@NewLink(
+				WithCustomAttribute("role", "button"),
+				WithCustomAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
+				WithClasses("btn", "btn-ghost"),
+			) {
+				Email Support <span aria-hidden="true">&rarr;</span>
+			}
 		</div>
 	</div>
 }
