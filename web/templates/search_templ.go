@@ -883,7 +883,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, " class=\"input input-sm w-full bg-base-content/10\" _=\"on change from #global-search set my value to #global-search.value\"></div></div><div class=\"sm:col-span-3\"><label form=\"categories\" class=\"block text-sm/6 font-medium\">Categories</label><div class=\"mt-2\"><input id=\"search-categories\" type=\"text\" name=\"categories\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, " placeholder=\"e.g. cat dog -mouse\" class=\"input input-sm input-primary w-full bg-base-content/10\" _=\"on change from #global-search set my value to #global-search.value\"></div></div><div class=\"sm:col-span-3\"><label form=\"categories\" class=\"block text-sm/6 font-medium\">Categories</label><div class=\"mt-2\"><input id=\"search-categories\" type=\"text\" name=\"categories\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -895,7 +895,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 			var templ_7745c5c3_Var39 string
 			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(request.Categories)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 344, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 345, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
@@ -906,7 +906,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, " class=\"input input-sm bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label for=\"authors\" class=\"block text-sm/6 font-medium\">Authors</label><div class=\"mt-2\"><input id=\"search-authors\" type=\"text\" name=\"authors\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, " class=\"input input-sm input-primary bg-base-content/10\"></div></div><div class=\"sm:col-span-3\"><label for=\"authors\" class=\"block text-sm/6 font-medium\">Authors</label><div class=\"mt-2\"><input id=\"search-authors\" type=\"text\" name=\"authors\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -918,7 +918,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 			var templ_7745c5c3_Var40 string
 			templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(request.Authors)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 359, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 360, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 			if templ_7745c5c3_Err != nil {
@@ -929,7 +929,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, " class=\"input input-sm bg-base-content/10\"></div></div><div class=\"sm:col-span-full\"><label class=\"block text-sm/6 font-medium\">In subscriptions</label><div class=\"mt-2\"><label class=\"input input-sm bg-base-content/10 w-full\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 72, " class=\"input input-sm input-primary bg-base-content/10\"></div></div><div class=\"sm:col-span-full\"><label class=\"block text-sm/6 font-medium\">In subscriptions</label><div class=\"mt-2\"><label class=\"input input-sm input-primary bg-base-content/10 w-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -944,7 +944,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var41 string
 		templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(models.GenerateHXVals(map[string]any{"subscriptions-input-name": "subscriptions"}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 388, Col: 99}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 389, Col: 99}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 		if templ_7745c5c3_Err != nil {
@@ -970,7 +970,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, " class=\"radio radio-sm\"> <label for=\"view_unread\" class=\"block text-sm/6 font-medium\">Unread</label></div><div class=\"flex items-center gap-x-3\"><input id=\"search-view-read\" type=\"radio\" name=\"view\" value=\"read\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, " class=\"radio radio-sm radio-primary\"> <label for=\"view_unread\" class=\"block text-sm/6 font-medium\">Unread</label></div><div class=\"flex items-center gap-x-3\"><input id=\"search-view-read\" type=\"radio\" name=\"view\" value=\"read\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -980,7 +980,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, " class=\"radio radio-sm\"> <label for=\"view_read\" class=\"block text-sm/6 font-medium\">Read</label></div><div class=\"flex items-center gap-x-3\"><input id=\"search-view-all\" type=\"radio\" name=\"view\" value=\"all\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, " class=\"radio radio-sm radio-primary\"> <label for=\"view_read\" class=\"block text-sm/6 font-medium\">Read</label></div><div class=\"flex items-center gap-x-3\"><input id=\"search-view-all\" type=\"radio\" name=\"view\" value=\"all\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -990,7 +990,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, " class=\"radio radio-sm\"> <label for=\"view_all\" class=\"block text-sm/6 font-medium\">All</label></div></div></fieldset></div><div class=\"sm:col-span-2\"><label for=\"published_within\" class=\"block text-sm/6 font-medium\">Published Within</label> <select id=\"search-published-within\" name=\"published_within\" class=\"select select-sm my-2 bg-base-300\"><option value=\"last_hour\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 81, " class=\"radio radio-sm radio-primary\"> <label for=\"view_all\" class=\"block text-sm/6 font-medium\">All</label></div></div></fieldset></div><div class=\"sm:col-span-2\"><label for=\"published_within\" class=\"block text-sm/6 font-medium\">Published Within</label> <select id=\"search-published-within\" name=\"published_within\" class=\"select select-sm select-primary my-2 bg-base-content/10\"><option value=\"last_hour\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1050,14 +1050,14 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, ">All time</option></select></div><div class=\"sm:col-span-2\"><label for=\"sort\" class=\"block text-sm/6 font-medium\">Sort By</label> <select id=\"search-sort\" name=\"sort\" class=\"select select-sm my-2 bg-base-300\"><option value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, ">All time</option></select></div><div class=\"sm:col-span-2\"><label for=\"sort\" class=\"block text-sm/6 font-medium\">Sort By</label> <select id=\"search-sort\" name=\"sort\" class=\"select select-sm select-primary my-2 bg-base-content/10\"><option value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var42 string
 		templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(string(models.SortMostRelevant))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 495, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 496, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 		if templ_7745c5c3_Err != nil {
@@ -1080,7 +1080,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var43 string
 		templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(string(models.SortNewestFirst))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 503, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 504, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 		if templ_7745c5c3_Err != nil {
@@ -1103,7 +1103,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var44 string
 		templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(string(models.SortOldestFirst))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 509, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 510, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 		if templ_7745c5c3_Err != nil {
@@ -1119,7 +1119,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, ">Oldest First</option></select></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6\"><button type=\"button\" class=\"btn btn-sm btn-seconday btn-soft\" command=\"close\" commandfor=\"search-filters-dialog\">Cancel</button> <button type=\"submit\" class=\"btn btn-sm btn-primary btn-soft\" _=\"on click call #search-filters-dialog.close()\">Search</button></div></form><div class=\"absolute right-2 top-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 102, ">Oldest First</option></select></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6\"><button type=\"button\" class=\"btn btn-sm btn-seconday btn-soft hover:btn-error\" command=\"close\" commandfor=\"search-filters-dialog\">Cancel</button> <button type=\"submit\" class=\"btn btn-sm btn-primary btn-soft\" _=\"on click call #search-filters-dialog.close()\">Search</button></div></form><div class=\"absolute right-2 top-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1190,7 +1190,7 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 				var templ_7745c5c3_Var48 string
 				templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 562, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 563, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 				if templ_7745c5c3_Err != nil {
@@ -1209,7 +1209,7 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 				WithHXInclude("[name='csrf_token']"),
 				WithHXParams("subscription_id,subscription_name,csrf_token,subscriptions-input-name"),
 				WithoutHXPushURL(),
-				WithClasses("btn-sm"),
+				WithClasses("btn-sm hover:btn-success"),
 				WithCustomAttribute("_", "on htmx:afterRequest(successful) remove me"),
 				// then set the previous #subscriptions-filter-select value to ''
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var47), templ_7745c5c3_Buffer)
@@ -1261,7 +1261,7 @@ func AddSearchSubscriptionFilter(id, name, input string) templ.Component {
 			var templ_7745c5c3_Var51 string
 			templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(input)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 574, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 575, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 			if templ_7745c5c3_Err != nil {
@@ -1274,7 +1274,7 @@ func AddSearchSubscriptionFilter(id, name, input string) templ.Component {
 			var templ_7745c5c3_Var52 string
 			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 574, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 575, Col: 48}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 			if templ_7745c5c3_Err != nil {
@@ -1287,7 +1287,7 @@ func AddSearchSubscriptionFilter(id, name, input string) templ.Component {
 			var templ_7745c5c3_Var53 string
 			templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 575, Col: 8}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 576, Col: 8}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 			if templ_7745c5c3_Err != nil {
@@ -1302,7 +1302,7 @@ func AddSearchSubscriptionFilter(id, name, input string) templ.Component {
 		templ_7745c5c3_Err = NewButton(
 			WithCustomAttribute("type", "button"),
 			WithCustomAttribute("_", "on click remove me then halt"),
-			WithClasses("btn-sm"),
+			WithClasses("btn-sm hover:btn-error"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var50), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

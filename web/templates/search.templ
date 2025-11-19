@@ -327,7 +327,8 @@ templ SearchFilters(attributes templ.Attributes) {
 							if request.Text != "" {
 								value={ request.Text }
 							}
-							class="input input-sm w-full bg-base-content/10"
+							placeholder="e.g. cat dog -mouse"
+							class="input input-sm input-primary w-full bg-base-content/10"
 							_="on change from #global-search set my value to #global-search.value"
 						/>
 					</div>
@@ -343,7 +344,7 @@ templ SearchFilters(attributes templ.Attributes) {
 							if request.Categories != "" {
 								value={ request.Categories }
 							}
-							class="input input-sm bg-base-content/10"
+							class="input input-sm input-primary bg-base-content/10"
 						/>
 					</div>
 				</div>
@@ -358,7 +359,7 @@ templ SearchFilters(attributes templ.Attributes) {
 							if request.Authors != "" {
 								value={ request.Authors }
 							}
-							class="input input-sm bg-base-content/10"
+							class="input input-sm input-primary bg-base-content/10"
 						/>
 					</div>
 				</div>
@@ -366,7 +367,7 @@ templ SearchFilters(attributes templ.Attributes) {
 				<div class="sm:col-span-full">
 					<label class="block text-sm/6 font-medium">In subscriptions</label>
 					<div class="mt-2">
-						<label class="input input-sm bg-base-content/10 w-full">
+						<label class="input input-sm input-primary bg-base-content/10 w-full">
 							@tabler.Search(i.Props{Class: "size-5"})
 							<input
 								id="search-subscriptions-suggest"
@@ -412,7 +413,7 @@ templ SearchFilters(attributes templ.Attributes) {
 									if request.View == models.ViewUnread {
 										checked
 									}
-									class="radio radio-sm"
+									class="radio radio-sm radio-primary"
 								/>
 								<label for="view_unread" class="block text-sm/6 font-medium">Unread</label>
 							</div>
@@ -425,7 +426,7 @@ templ SearchFilters(attributes templ.Attributes) {
 									if request.View == models.ViewRead {
 										checked
 									}
-									class="radio radio-sm"
+									class="radio radio-sm radio-primary"
 								/>
 								<label for="view_read" class="block text-sm/6 font-medium">Read</label>
 							</div>
@@ -438,7 +439,7 @@ templ SearchFilters(attributes templ.Attributes) {
 									if request.View == models.ViewAll {
 										checked
 									}
-									class="radio radio-sm"
+									class="radio radio-sm radio-primary"
 								/>
 								<label for="view_all" class="block text-sm/6 font-medium">All</label>
 							</div>
@@ -448,7 +449,7 @@ templ SearchFilters(attributes templ.Attributes) {
 				// Date range filter.
 				<div class="sm:col-span-2">
 					<label for="published_within" class="block text-sm/6 font-medium">Published Within</label>
-					<select id="search-published-within" name="published_within" class="select select-sm my-2 bg-base-300">
+					<select id="search-published-within" name="published_within" class="select select-sm select-primary my-2 bg-base-content/10">
 						<option
 							value="last_hour"
 							if request.PublishedWithin == models.SearchRequestPublishedWithinLastHour {
@@ -490,7 +491,7 @@ templ SearchFilters(attributes templ.Attributes) {
 				// Sort option.
 				<div class="sm:col-span-2">
 					<label for="sort" class="block text-sm/6 font-medium">Sort By</label>
-					<select id="search-sort" name="sort" class="select select-sm my-2 bg-base-300">
+					<select id="search-sort" name="sort" class="select select-sm select-primary my-2 bg-base-content/10">
 						<option
 							value={ string(models.SortMostRelevant) }
 							if request.Sort == models.SortMostRelevant {
@@ -517,7 +518,7 @@ templ SearchFilters(attributes templ.Attributes) {
 			<div class="mt-6 flex items-center justify-end gap-x-6">
 				<button
 					type="button"
-					class="btn btn-sm btn-seconday btn-soft"
+					class="btn btn-sm btn-seconday btn-soft hover:btn-error"
 					command="close"
 					commandfor="search-filters-dialog"
 				>Cancel</button>
@@ -555,7 +556,7 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 			WithHXInclude("[name='csrf_token']"),
 			WithHXParams("subscription_id,subscription_name,csrf_token,subscriptions-input-name"),
 			WithoutHXPushURL(),
-			WithClasses("btn-sm"),
+			WithClasses("btn-sm hover:btn-success"),
 			WithCustomAttribute("_", "on htmx:afterRequest(successful) remove me"),
 			// then set the previous #subscriptions-filter-select value to ''
 		) {
@@ -569,7 +570,7 @@ templ AddSearchSubscriptionFilter(id, name, input string) {
 	@NewButton(
 		WithCustomAttribute("type", "button"),
 		WithCustomAttribute("_", "on click remove me then halt"),
-		WithClasses("btn-sm"),
+		WithClasses("btn-sm hover:btn-error"),
 	) {
 		<input type="hidden" name={ input } value={ id }/>
 		{ name }
