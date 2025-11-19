@@ -23,8 +23,9 @@ templ SideBar(attributes templ.Attributes) {
 						<a
 							href="/home"
 							tabindex="0"
-							class={ "group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center", templ.KV("border-b-4",models.PathFromCtx(ctx)=="/home") }
+							class={ "group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center" }
 						>
+							// templ.KV("border-b-4",models.PathFromCtx(ctx)=="/home")
 							<span class="sr-only">Go to Home Page</span>
 							@tabler.Home(i.Props{Class: "size-6 shrink-0 text-current"})
 							Home

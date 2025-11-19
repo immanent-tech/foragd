@@ -60,7 +60,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 = []any{"group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center", templ.KV("border-b-4", models.PathFromCtx(ctx) == "/home")}
+		var templ_7745c5c3_Var2 = []any{"group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
