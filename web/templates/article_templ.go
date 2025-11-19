@@ -1437,7 +1437,7 @@ func UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) templ.Componen
 }
 
 // ArticlesGrid renders the list of articles in a grid layout with filtering controls and an actions menu.
-func ArticlesGrid(articles models.Articles, pagination models.Pagination) templ.Component {
+func ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Articles, pagination models.Pagination) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1617,7 +1617,7 @@ func ArticlesGrid(articles models.Articles, pagination models.Pagination) templ.
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if len(articles.GetSubscriptionIDs()) == 1 {
+			if subscriptionID != "" {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 116, " ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -1645,7 +1645,7 @@ func ArticlesGrid(articles models.Articles, pagination models.Pagination) templ.
 					return nil
 				})
 				templ_7745c5c3_Err = NewLink(
-					WithHXMethod(http.MethodGet, "/edit/subscription/"+articles.GetSubscriptionIDs()[0]),
+					WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
 					WithHXTarget(ContentID.Target()),
 					WithHXPushURL(),
 				).Render(templ.WithChildren(ctx, templ_7745c5c3_Var74), templ_7745c5c3_Buffer)
@@ -1657,9 +1657,9 @@ func ArticlesGrid(articles models.Articles, pagination models.Pagination) templ.
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var75 string
-				templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs("mark-" + articles.GetSubscriptionIDs()[0])
+				templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs("mark-" + subscriptionID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 451, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 451, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var75))
 				if templ_7745c5c3_Err != nil {
@@ -1671,9 +1671,9 @@ func ArticlesGrid(articles models.Articles, pagination models.Pagination) templ.
 				}
 				var markURL string
 				if filters.GetView() == models.ViewUnread {
-					markURL = "/mark/subscription/" + articles.GetSubscriptionIDs()[0] + "/read"
+					markURL = "/mark/subscription/" + subscriptionID + "/read"
 				} else {
-					markURL = "/mark/subscription/" + articles.GetSubscriptionIDs()[0] + "/unread"
+					markURL = "/mark/subscription/" + subscriptionID + "/unread"
 				}
 				templ_7745c5c3_Var76 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

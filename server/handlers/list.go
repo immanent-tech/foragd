@@ -90,7 +90,9 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			// Render appropriate content.
 			switch req.Method {
 			case http.MethodGet:
-				template = templates.ArticlesGrid(articles, pagination)
+				// Get any subscriptionID parameter indicating the request is for a single subscription.
+				subscriptionID := req.FormValue(models.ParamSubscriptionID)
+				template = templates.ArticlesGrid(subscriptionID, articles, pagination)
 			case http.MethodPost:
 				if len(articles) > 0 {
 					template = templates.Articles(articles, pagination)

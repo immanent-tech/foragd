@@ -394,7 +394,7 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 }
 
 // ArticlesGrid renders the list of articles in a grid layout with filtering controls and an actions menu.
-templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
+templ ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	@Main() {
 		// Dynamic title with view and sort state.
@@ -437,10 +437,10 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 								}
 							</a>
 						</form>
-						if len(articles.GetSubscriptionIDs()) == 1 {
+						if subscriptionID != "" {
 							// Edit subscription action.
 							@NewLink(
-								WithHXMethod(http.MethodGet, "/edit/subscription/"+articles.GetSubscriptionIDs()[0]),
+								WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
 								WithHXTarget(ContentID.Target()),
 								WithHXPushURL(),
 							) {
@@ -448,13 +448,13 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 								Edit Subscription
 							}
 							// Mark subscription action.
-							<form id={ "mark-" + articles.GetSubscriptionIDs()[0] }>
+							<form id={ "mark-" + subscriptionID }>
 								// MarkURL returns the app URL for marking the subscription.
 								{{ var markURL string }}
 								if filters.GetView() == models.ViewUnread {
-									{{ markURL = "/mark/subscription/" + articles.GetSubscriptionIDs()[0] + "/read" }}
+									{{ markURL = "/mark/subscription/" + subscriptionID + "/read" }}
 								} else {
-									{{ markURL = "/mark/subscription/" + articles.GetSubscriptionIDs()[0] + "/unread" }}
+									{{ markURL = "/mark/subscription/" + subscriptionID + "/unread" }}
 								}
 								@NewLink(
 									WithHXMethod(http.MethodPost, markURL),

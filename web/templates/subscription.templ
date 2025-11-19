@@ -260,6 +260,7 @@ templ subscriptionHeading(s *models.Subscription) {
 			} else {
 				{{ overrides[models.ParamView] = string(models.ViewRead) }}
 			}
+			{{ overrides[models.ParamSubscriptionID] = s.GetID() }}
 			@NewLink(
 				WithHXMethod(http.MethodGet, "/list/articles"),
 				WithHXInclude("#content-filters"),
@@ -311,6 +312,7 @@ templ viewFeedSubscriptionLink(s *models.Subscription) {
 	} else {
 		{{ overrides[models.ParamView] = string(models.ViewRead) }}
 	}
+	{{ overrides[models.ParamSubscriptionID] = s.GetID() }}
 	@NewLink(
 		WithHXMethod(http.MethodGet, "/list/articles"),
 		WithHXInclude("#content-filters"),
