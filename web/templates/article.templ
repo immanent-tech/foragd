@@ -22,6 +22,8 @@ templ articleSummary(article *models.Article) {
 					src={ "/img-proxy/300x200/" + img.GetURL() }
 					if img.GetTitle() != "" {
 						alt={ article.GetImage().GetTitle() }
+					} else {
+						alt={ article.GetTitle() }
 					}
 					class="h-32 sm:w-32 w-full object-cover rounded-box border border-base-content"
 				/>
@@ -51,6 +53,7 @@ templ articleSummary(article *models.Article) {
 						WithHXPushURL(),
 						WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
 						WithClasses("truncate"),
+						WithCustomAttribute("tabindex", "0"),
 					) {
 						{ article.GetFeedTitle() }
 					}
@@ -90,6 +93,8 @@ templ ArticleCard(article *models.Article) {
 					width="200"
 					if img.GetTitle() != "" {
 						alt={ img.GetTitle() }
+					} else {
+						alt={ article.GetTitle() }
 					}
 				/>
 			}

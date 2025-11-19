@@ -66,6 +66,7 @@ templ (page *Home) Template() {
 										WithHXSwap("innerHTML show:top transition:true"),
 										WithHXVals(params),
 										WithHXPushURL(),
+										WithCustomAttribute("tabindex", "0"),
 									) {
 										<div class="flex gap-2 text-sm capitalize">
 											<div class="badge badge-accent">
@@ -157,6 +158,7 @@ templ (page *Home) Template() {
 												WithHXSwap("innerHTML show:top transition:true"),
 												WithHXVals(params),
 												WithHXPushURL(),
+												WithCustomAttribute("tabindex", "0"),
 											) {
 												<div class="flex gap-2 text-sm capitalize">
 													<div class="badge badge-accent">

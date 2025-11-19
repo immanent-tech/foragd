@@ -138,7 +138,7 @@ func (page *Home) Template() templ.Component {
 							var templ_7745c5c3_Var4 string
 							templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(category.Category + " " + strconv.Itoa(category.Count))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 72, Col: 66}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 73, Col: 66}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 							if templ_7745c5c3_Err != nil {
@@ -156,6 +156,7 @@ func (page *Home) Template() templ.Component {
 							WithHXSwap("innerHTML show:top transition:true"),
 							WithHXVals(params),
 							WithHXPushURL(),
+							WithCustomAttribute("tabindex", "0"),
 						).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
@@ -206,7 +207,7 @@ func (page *Home) Template() templ.Component {
 							var templ_7745c5c3_Var7 string
 							templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs("/img-proxy/300x200/" + img.GetURL())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 93, Col: 55}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 94, Col: 55}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 							if templ_7745c5c3_Err != nil {
@@ -224,7 +225,7 @@ func (page *Home) Template() templ.Component {
 								var templ_7745c5c3_Var8 string
 								templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetImage().GetTitle())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 95, Col: 49}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 96, Col: 49}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 								if templ_7745c5c3_Err != nil {
@@ -263,7 +264,7 @@ func (page *Home) Template() templ.Component {
 							var templ_7745c5c3_Var10 string
 							templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetTitle())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 109, Col: 75}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 110, Col: 75}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 							if templ_7745c5c3_Err != nil {
@@ -311,7 +312,7 @@ func (page *Home) Template() templ.Component {
 							var templ_7745c5c3_Var12 string
 							templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetFeedTitle())
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 125, Col: 38}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 126, Col: 38}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 							if templ_7745c5c3_Err != nil {
@@ -342,7 +343,7 @@ func (page *Home) Template() templ.Component {
 							var templ_7745c5c3_Var13 string
 							templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 133, Col: 19}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 134, Col: 19}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 							if templ_7745c5c3_Err != nil {
@@ -391,7 +392,7 @@ func (page *Home) Template() templ.Component {
 								var templ_7745c5c3_Var15 string
 								templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(category.Category + " " + strconv.Itoa(category.Count))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 163, Col: 68}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 165, Col: 68}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 								if templ_7745c5c3_Err != nil {
@@ -409,6 +410,7 @@ func (page *Home) Template() templ.Component {
 								WithHXSwap("innerHTML show:top transition:true"),
 								WithHXVals(params),
 								WithHXPushURL(),
+								WithCustomAttribute("tabindex", "0"),
 							).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
@@ -475,7 +477,7 @@ func NewUserHome() templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(config.AppName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 182, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 184, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
