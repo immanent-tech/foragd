@@ -335,7 +335,7 @@ func (page *Home) Template() templ.Component {
 						}
 						text, err := models.ExtractText(article.GetContent())
 						if err == nil {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<article class=\"mt-4 prose prose-sm line-clamp-3\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<article class=\"mt-4 prose prose-sm line-clamp-3 prose-custom\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}

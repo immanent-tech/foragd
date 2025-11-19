@@ -59,7 +59,7 @@ templ articleSummary(article *models.Article) {
 			// Article content summary.
 			{{ text, err := models.ExtractText(article.GetContent()) }}
 			if err == nil {
-				<article class="mt-4 prose prose-sm line-clamp-3">
+				<article class="mt-4 prose prose-sm line-clamp-3 prose-custom">
 					{ text }
 				</article>
 			}
@@ -111,11 +111,11 @@ templ ArticleCard(article *models.Article) {
 			}
 			<div class="grid grid-cols-1 grid-flow-row mb-4">
 				if len(article.GetAuthors()) > 0 {
-					<p class="inline-block text-xs/4 text-base-content/80 italic truncate">
+					<p class="inline-block text-xs/4 italic truncate">
 						{ strings.Join(article.GetAuthors(),",") }
 					</p>
 				}
-				<p class="inline-block text-xs/4 text-base-content/80 truncate">
+				<p class="inline-block text-xs/4 truncate">
 					@NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
@@ -130,7 +130,7 @@ templ ArticleCard(article *models.Article) {
 			<div class="card-actions mt-auto justify-between items-center">
 				// Timestamp.
 				<div class="flex flex-1 gap-x-2">
-					<p class="text-xs/4 text-base-content/80 capitalize">
+					<p class="text-xs/4 capitalize">
 						Updated&nbsp;
 						@ShowTimestamp(article.GetUpdatedDate())
 					</p>
@@ -296,17 +296,17 @@ templ ArticleContent(article *models.Article) {
 			</div>
 			// Author(s) and Published Time.
 			if len(article.GetAuthors()) > 0 {
-				<p class="flex flex-1 text-sm/6 text-base-content/80 italic truncate">
+				<p class="flex flex-1 text-sm/6 italic truncate">
 					{ strings.Join(article.GetAuthors(),",") }
 				</p>
 			}
-			<p class="flex flex-1 text-sm/6 text-base-content/80 capitalize">
+			<p class="flex flex-1 text-sm/6 capitalize">
 				Updated&nbsp;
 				@ShowTimestamp(article.GetUpdatedDate())
 			</p>
 			// Content.
 			if article.GetContent() != "" || article.GetDescription() != "" {
-				<article class="mt-8 prose prose-sm sm:prose-lg dark:prose-invert prose-video:responsive-video">
+				<article class="mt-8 prose prose-sm sm:prose-lg dark:prose-invert prose-video:responsive-video prose-custom">
 					switch  {
 						case article.GetContent() != "":
 							@templ.Raw(article.GetContent())

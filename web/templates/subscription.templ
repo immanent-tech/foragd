@@ -74,12 +74,12 @@ templ SubscriptionCard(s *models.Subscription) {
 			<div class="card-actions mt-auto grid grid-cols-3 px-4 sm:px-6">
 				if user.GetSettings().ShowSubscriptionStats {
 					if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-						<p class="grid justify-end col-span-3 text-xs/4 text-base-content/80">
+						<p class="grid justify-end col-span-3 text-xs/4">
 							{ s.GetStats().UpdateFrequency() }
 						</p>
 					}
 				}
-				<p class="col-span-2 text-xs/4 text-base-content/80">
+				<p class="col-span-2 text-xs/4">
 					Last update
 					if !s.GetUpdatedDate().IsZero() {
 						{ humanize.Time(s.GetUpdatedDate()) }
@@ -88,7 +88,7 @@ templ SubscriptionCard(s *models.Subscription) {
 					}
 				</p>
 				if user.GetSettings().ShowSubscriptionStats {
-					<p class="grid justify-end text-xs/4 text-base-content/80">
+					<p class="grid justify-end text-xs/4">
 						{ s.GetStats().UnreadTotal() }
 						Unread
 					</p>
@@ -552,7 +552,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Nickname</h2>
-						<p class="mt-1 text-sm/6 text-base-content/60">A friendly name for this subscription.</p>
+						<p class="mt-1 text-sm/6 ">A friendly name for this subscription.</p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
@@ -565,7 +565,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					<div>
 						<h2 class="text-base/7 font-semibold">Filtering</h2>
 						<div class="flex items-center">
-							<p class="mt-1 text-sm/6 text-base-content/60">Filter articles by keywords/text in fields.</p>
+							<p class="mt-1 text-sm/6 ">Filter articles by keywords/text in fields.</p>
 							@HelpPopover("subscription-filters-help", "top end") {
 								<div class="card-body">
 									<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
@@ -604,7 +604,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					<div>
 						<h2 class="text-base/7 font-semibold">Always Show Full Article Content</h2>
 						<div class="flex items-center">
-							<p class="mt-1 text-sm/6 text-base-content/60">
+							<p class="mt-1 text-sm/6 ">
 								Always fetch and show article content from original site.
 							</p>
 							@HelpPopover("show-full-article-help", "top end") {
@@ -692,7 +692,7 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Feed Website or URL</h2>
-						<p class="mt-1 text-sm/6 text-base-content/60">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p>
+						<p class="mt-1 text-sm/6 ">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
@@ -715,7 +715,7 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Feed Nickname</h2>
-						<p class="mt-1 text-sm/6 text-base-content/60">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
+						<p class="mt-1 text-sm/6 ">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="sm:col-span-4 mt-2">
@@ -817,7 +817,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Includes the words</h2>
-						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
@@ -835,7 +835,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Article Category Filters</h2>
-						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
@@ -853,7 +853,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Article Author Filters</h2>
-						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
@@ -911,7 +911,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Published Within</h2>
-						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full">
@@ -939,7 +939,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">View</h2>
-						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full">
@@ -971,7 +971,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Sort By</h2>
-						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full">
@@ -1008,7 +1008,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 			<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 				<div>
 					<h2 class="text-base/7 font-semibold">Nickname</h2>
-					// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+					// <p class="mt-1 text-sm/6 "></p>
 				</div>
 				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 					<div class="col-span-full mt-2">
@@ -1128,7 +1128,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
 						<h2 class="text-base/7 font-semibold">Nickname</h2>
-						// <p class="mt-1 text-sm/6 text-base-content/60"></p>
+						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">

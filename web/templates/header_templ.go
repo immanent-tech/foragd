@@ -47,7 +47,7 @@ func header() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"flex flex-1 justify-center\"><el-command-palette class=\"grid w-full sm:max-w-3xl\"><label for=\"global-search\" class=\"w-full sm:max-w-3xl input input-accent text-base sm:text-sm/6 placeholder:text-base-content/50 bg-base-content/10\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"flex flex-1 justify-center\"><el-command-palette class=\"grid w-full sm:max-w-3xl\"><label for=\"global-search\" class=\"w-full sm:max-w-3xl input input-accent text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

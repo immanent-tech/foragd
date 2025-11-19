@@ -239,7 +239,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 		}
 		if user.GetSettings().ShowSubscriptionStats {
 			if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<p class=\"grid justify-end col-span-3 text-xs/4 text-base-content/80\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<p class=\"grid justify-end col-span-3 text-xs/4\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -258,7 +258,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				}
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<p class=\"col-span-2 text-xs/4 text-base-content/80\">Last update ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<p class=\"col-span-2 text-xs/4\">Last update ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -283,7 +283,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if user.GetSettings().ShowSubscriptionStats {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<p class=\"grid justify-end text-xs/4 text-base-content/80\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<p class=\"grid justify-end text-xs/4\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1763,7 +1763,7 @@ func EditSubscription(request *models.EditSubscriptionRequest) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "\"><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Nickname</h2><p class=\"mt-1 text-sm/6 text-base-content/60\">A friendly name for this subscription.</p></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full mt-2\"><input id=\"nickname\" required type=\"text\" name=\"nickname\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 112, "\"><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Nickname</h2><p class=\"mt-1 text-sm/6 \">A friendly name for this subscription.</p></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full mt-2\"><input id=\"nickname\" required type=\"text\" name=\"nickname\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1776,7 +1776,7 @@ func EditSubscription(request *models.EditSubscriptionRequest) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "\" placeholder=\"My Subscription\" class=\"input input-primary bg-base-content/10\"></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Filtering</h2><div class=\"flex items-center\"><p class=\"mt-1 text-sm/6 text-base-content/60\">Filter articles by keywords/text in fields.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 113, "\" placeholder=\"My Subscription\" class=\"input input-primary bg-base-content/10\"></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Filtering</h2><div class=\"flex items-center\"><p class=\"mt-1 text-sm/6 \">Filter articles by keywords/text in fields.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1841,7 +1841,7 @@ func EditSubscription(request *models.EditSubscriptionRequest) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "\" placeholder=\"Authors...\" class=\"block w-full\"></div></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Always Show Full Article Content</h2><div class=\"flex items-center\"><p class=\"mt-1 text-sm/6 text-base-content/60\">Always fetch and show article content from original site.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 118, "\" placeholder=\"Authors...\" class=\"block w-full\"></div></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Always Show Full Article Content</h2><div class=\"flex items-center\"><p class=\"mt-1 text-sm/6 \">Always fetch and show article content from original site.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2020,7 +2020,7 @@ func AddFeedSubscription(request *models.AddFeedSubscriptionRequest) templ.Compo
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, " <div class=\"space-y-8\"><form id=\"add-subscription\" hx-post=\"/user/subscription/add/feed\" hx-swap=\"none\" hx-include=\"[name='user_categories'],[name='csrf_token']\" hx-indicator=\"#processing\" hx-on::after-request=\"if(event.detail.successful) this.reset()\"><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Feed Website or URL</h2><p class=\"mt-1 text-sm/6 text-base-content/60\">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full mt-2\"><input id=\"url\" required type=\"url\" name=\"url\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 129, " <div class=\"space-y-8\"><form id=\"add-subscription\" hx-post=\"/user/subscription/add/feed\" hx-swap=\"none\" hx-include=\"[name='user_categories'],[name='csrf_token']\" hx-indicator=\"#processing\" hx-on::after-request=\"if(event.detail.successful) this.reset()\"><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Feed Website or URL</h2><p class=\"mt-1 text-sm/6 \">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full mt-2\"><input id=\"url\" required type=\"url\" name=\"url\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2056,7 +2056,7 @@ func AddFeedSubscription(request *models.AddFeedSubscriptionRequest) templ.Compo
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "</div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Feed Nickname</h2><p class=\"mt-1 text-sm/6 text-base-content/60\">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-4 mt-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 133, "</div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Feed Nickname</h2><p class=\"mt-1 text-sm/6 \">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-4 mt-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

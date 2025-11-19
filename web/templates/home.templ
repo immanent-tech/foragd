@@ -175,7 +175,7 @@ templ (page *Home) Template() {
 											// Article content summary.
 											{{ text, err := models.ExtractText(article.GetContent()) }}
 											if err == nil {
-												<article class="mt-4 prose prose-sm line-clamp-3">
+												<article class="mt-4 prose prose-sm line-clamp-3 prose-custom">
 													{ text }
 												</article>
 											}

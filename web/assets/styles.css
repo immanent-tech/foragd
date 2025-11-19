@@ -137,6 +137,10 @@
   }
 }
 
+@utility prose-custom {
+  @apply text-base-content;
+}
+
 @utility responsive-img {
   width: 100%;
   height: auto;

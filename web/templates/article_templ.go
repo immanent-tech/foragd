@@ -219,7 +219,7 @@ func articleSummary(article *models.Article) templ.Component {
 		}
 		text, err := models.ExtractText(article.GetContent())
 		if err == nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<article class=\"mt-4 prose prose-sm line-clamp-3\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<article class=\"mt-4 prose prose-sm line-clamp-3 prose-custom\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -432,7 +432,7 @@ func ArticleCard(article *models.Article) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(article.GetAuthors()) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<p class=\"inline-block text-xs/4 text-base-content/80 italic truncate\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<p class=\"inline-block text-xs/4 italic truncate\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -450,7 +450,7 @@ func ArticleCard(article *models.Article) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<p class=\"inline-block text-xs/4 text-base-content/80 truncate\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<p class=\"inline-block text-xs/4 truncate\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -487,7 +487,7 @@ func ArticleCard(article *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</p></div><div class=\"card-actions mt-auto justify-between items-center\"><div class=\"flex flex-1 gap-x-2\"><p class=\"text-xs/4 text-base-content/80 capitalize\">Updated&nbsp;")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</p></div><div class=\"card-actions mt-auto justify-between items-center\"><div class=\"flex flex-1 gap-x-2\"><p class=\"text-xs/4 capitalize\">Updated&nbsp;")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1063,7 +1063,7 @@ func ArticleContent(article *models.Article) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if len(article.GetAuthors()) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<p class=\"flex flex-1 text-sm/6 text-base-content/80 italic truncate\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<p class=\"flex flex-1 text-sm/6 italic truncate\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1081,7 +1081,7 @@ func ArticleContent(article *models.Article) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<p class=\"flex flex-1 text-sm/6 text-base-content/80 capitalize\">Updated&nbsp;")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 78, "<p class=\"flex flex-1 text-sm/6 capitalize\">Updated&nbsp;")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1094,7 +1094,7 @@ func ArticleContent(article *models.Article) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if article.GetContent() != "" || article.GetDescription() != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "<article class=\"mt-8 prose prose-sm sm:prose-lg dark:prose-invert prose-video:responsive-video\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 80, "<article class=\"mt-8 prose prose-sm sm:prose-lg dark:prose-invert prose-video:responsive-video prose-custom\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

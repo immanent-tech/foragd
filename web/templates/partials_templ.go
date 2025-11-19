@@ -54,7 +54,7 @@ func NotFound() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"text-center\"><h1 class=\"mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl\">Page not found</h1><p class=\"mt-6 text-lg font-medium text-pretty text-base-content sm:text-xl/8\">Sorry, we couldn't find the page you're looking for.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"text-center\"><h1 class=\"mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl\">Page not found</h1><p class=\"mt-6 text-lg font-medium text-pretty sm:text-xl/8\">Sorry, we couldn't find the page you're looking for.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -175,14 +175,14 @@ func ErrorPage(msg *models.UserMessage) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if msg.HasDetails() {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<p class=\"mt-6 text-lg font-medium text-pretty text-base-content sm:text-xl/8\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<p class=\"mt-6 text-lg font-medium text-pretty sm:text-xl/8\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Details)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials.templ`, Line: 46, Col: 96}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials.templ`, Line: 46, Col: 78}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -301,7 +301,7 @@ func EmptyContent() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = tabler.FileUnknown(i.Props{Class: "mx-auto size-16 text-base-content"}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = tabler.FileUnknown(i.Props{Class: "mx-auto size-16"}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -614,7 +614,7 @@ func CategoryManagement(path, inputName string, suggested []models.Category, exi
 			templ_7745c5c3_Var25 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Add Categories</h2><p class=\"mt-1 text-sm/6 text-base-content/60\">Optional. Add additional categories to the subscription.</p></div><div class=\"grid sm:max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Add Categories</h2><p class=\"mt-1 text-sm/6\">Optional. Add additional categories to the subscription.</p></div><div class=\"grid sm:max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -707,7 +707,7 @@ func CategoryManagement(path, inputName string, suggested []models.Category, exi
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</button></div></form></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Manage Existing Categories</h2><p class=\"mt-1 text-sm/6 text-base-content/60\">Existing categories. Click the X to remove them from the subscription.</p></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-4\"><div class=\"flex gap-2 p-2 m-2\"><div id=\"current-categories\" class=\"flex flex-row flex-wrap p-2 gap-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</button></div></form></div></div></div><div class=\"grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center\"><div><h2 class=\"text-base/7 font-semibold\">Manage Existing Categories</h2><p class=\"mt-1 text-sm/6\">Existing categories. Click the X to remove them from the subscription.</p></div><div class=\"grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-4\"><div class=\"flex gap-2 p-2 m-2\"><div id=\"current-categories\" class=\"flex flex-row flex-wrap p-2 gap-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -900,7 +900,7 @@ func Modal(id string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "\" class=\"rounded-md text-base-content hover:text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-hidden\"><span class=\"sr-only\">Close</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "\" class=\"rounded-md hover:text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-hidden\"><span class=\"sr-only\">Close</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
