@@ -38,7 +38,6 @@ templ SideBar(attributes templ.Attributes) {
 							WithHXPushURL(),
 							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
 							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithCustomAttribute("tabindex", 0),
 						) {
 							<span class="sr-only">Go to Subscriptions</span>
 							@tabler.Rss(i.Props{Class: "size-6 shrink-0 text-current"})
@@ -52,7 +51,6 @@ templ SideBar(attributes templ.Attributes) {
 							WithHXPushURL(),
 							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
 							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithCustomAttribute("tabindex", 0),
 						) {
 							<span class="sr-only">Go to Articles</span>
 							@tabler.FileRss(i.Props{Class: "size-6 shrink-0 text-current"})
@@ -65,7 +63,6 @@ templ SideBar(attributes templ.Attributes) {
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
 							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithCustomAttribute("tabindex", 0),
 						) {
 							<span class="sr-only">Go to Favorites</span>
 							@tabler.HeartFilled(i.Props{Class: "size-6 shrink-0 text-current"})

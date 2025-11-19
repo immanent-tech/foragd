@@ -183,6 +183,7 @@ templ NewLink(options ...Option[element]) {
 		if link.GetID() != "" {
 			id={ link.GetID() }
 		}
+		tabindex="0"
 		{ link.attributes... }
 	>
 		{ children... }
@@ -204,6 +205,7 @@ templ NewButton(options ...Option[element]) {
 		if btn.GetID() != "" {
 			id={ btn.GetID() }
 		}
+		tabindex="0"
 		{ btn.attributes... }
 	>
 		{ children... }

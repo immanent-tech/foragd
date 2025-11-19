@@ -63,7 +63,7 @@ templ SubscriptionCard(s *models.Subscription) {
 								WithHXVals(filters),
 							) {
 								<div class="flex gap-2 capitalize">
-									<div class="badge badge-accent badge-soft badge-sm">{ category }</div>
+									<div class="badge badge-accent badge-sm">{ category }</div>
 								</div>
 							}
 						}
@@ -556,7 +556,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				// Nickname.
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Nickname</h2>
+						<label for="nickname" class="text-base/7 font-semibold">Nickname</label>
 						<p class="mt-1 text-sm/6 ">A friendly name for this subscription.</p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -586,19 +586,19 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="sm:col-span-full mt-2">
 							<div class="input input-primary bg-base-content/10">
-								<label for="name" class="block text-xs font-medium">Text:</label>
+								<label for="article_text_filters" class="block text-xs font-medium">Text:</label>
 								<input id="article_text_filters" type="text" name="article_filters.text" value={ request.ArticleFilters.Text } placeholder="Text..." class="block w-full"/>
 							</div>
 						</div>
 						<div class="sm:col-span-full mt-2">
 							<div class="input input-primary bg-base-content/10">
-								<label for="name" class="block text-xs font-medium">Categories:</label>
+								<label for="article_category_filters" class="block text-xs font-medium">Categories:</label>
 								<input id="article_category_filters" type="text" name="article_filters.categories" value={ request.ArticleFilters.Categories } placeholder="Categories..." class="block w-full"/>
 							</div>
 						</div>
 						<div class="sm:col-span-full mt-2">
 							<div class="input input-primary bg-base-content/10">
-								<label for="name" class="block text-xs font-medium">Authors:</label>
+								<label for="article_author_filters" class="block text-xs font-medium">Authors:</label>
 								<input id="article_author_filters" type="text" name="article_filters.authors" value={ request.ArticleFilters.Authors } placeholder="Authors..." class="block w-full"/>
 							</div>
 						</div>
@@ -607,7 +607,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				// Full article content toggle.
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Always Show Full Article Content</h2>
+						<label for="show-full-article-content" class="text-base/7 font-semibold">Always Show Full Article Content</label>
 						<div class="flex items-center">
 							<p class="mt-1 text-sm/6 ">
 								Always fetch and show article content from original site.
@@ -623,6 +623,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
 							<input
+								id="show-full-article-content"
 								type="checkbox"
 								if request.ShowFullArticleContent {
 									checked="checked"
@@ -643,8 +644,8 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					Processing...
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
-				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft hover:btn-error">Back</button>
-				<button type="submit" form="edit-subscription" class="btn btn-primary btn-soft">Save</button>
+				<button type="button" onclick="history.back()" class="btn btn-secondary hover:btn-error">Back</button>
+				<button type="submit" form="edit-subscription" class="btn btn-primary">Save</button>
 			</div>
 		</div>
 	}
@@ -821,7 +822,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeSearch) }/>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Includes the words</h2>
+						<label for="subscription-filter-text" class="text-base/7 font-semibold">Includes the words</label>
 						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -839,7 +840,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				</div>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Article Category Filters</h2>
+						<label for="subscription-filter-categories" class="text-base/7 font-semibold">Article Category Filters</label>
 						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -857,7 +858,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				</div>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Article Author Filters</h2>
+						<label for="subscription-filter-authors" class="text-base/7 font-semibold">Article Author Filters</label>
 						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -875,7 +876,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				</div>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">In Subscriptions</h2>
+						<label for="subscription-filter-subscriptions-search" class="text-base/7 font-semibold">In Subscriptions</label>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
@@ -915,7 +916,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				</div>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Published Within</h2>
+						<label for="subscription-filter-published-within" class="text-base/7 font-semibold">Published Within</label>
 						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -943,7 +944,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				</div>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">View</h2>
+						<label for="subscription-filter-view" class="text-base/7 font-semibold">View</label>
 						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -975,7 +976,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				</div>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Sort By</h2>
+						<label for="subscription-filter-sort" class="text-base/7 font-semibold">Sort By</label>
 						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -1012,7 +1013,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 			// Nickname.
 			<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 				<div>
-					<h2 class="text-base/7 font-semibold">Nickname</h2>
+					<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
 					// <p class="mt-1 text-sm/6 "></p>
 				</div>
 				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -1040,8 +1041,8 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					Processing...
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
-				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft hover:btn-error">Back</button>
-				<button type="submit" form="manage-search-subscription" class="btn btn-primary btn-soft">
+				<button type="button" onclick="history.back()" class="btn btn-secondary hover:btn-error">Back</button>
+				<button type="submit" form="manage-search-subscription" class="btn btn-primary">
 					if action == "add" {
 						Add
 					} else {
@@ -1091,7 +1092,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 				// Subscriptions.
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">In Subscriptions</h2>
+						<label for="subscriptions-filter-subscriptions-search" class="text-base/7 font-semibold">In Subscriptions</label>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
@@ -1132,7 +1133,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 				// Nickname.
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Nickname</h2>
+						<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
 						// <p class="mt-1 text-sm/6 "></p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -1160,8 +1161,8 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 					Processing...
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
-				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft hover:btn-error">Back</button>
-				<button type="submit" form="manage-group-subscription" class="btn btn-primary btn-soft">
+				<button type="button" onclick="history.back()" class="btn btn-secondary hover:btn-error">Back</button>
+				<button type="submit" form="manage-group-subscription" class="btn btn-primary">
 					if action == "add" {
 						Add
 					} else {

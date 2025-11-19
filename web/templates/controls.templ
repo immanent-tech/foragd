@@ -233,11 +233,11 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 				<div class="mt-2 sm:mt-0 sm:ml-4">
 					<div class="-m-1 flex flex-wrap items-center">
 						// Show view filter badge indicator.
-						<div class="badge badge-accent badge-soft m-1 capitalize">
+						<div class="badge badge-accent m-1 capitalize">
 							{ filters.GetView() }
 						</div>
 						// Show sort filter badge indicator.
-						<div class="badge badge-accent badge-soft m-1 capitalize">
+						<div class="badge badge-accent m-1 capitalize">
 							{ filters.GetSort().String() }
 						</div>
 						// Add favorites filter badge if listing subscriptions and favorites filter is active.

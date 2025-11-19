@@ -1,0 +1,7 @@
+@plugin 'daisyui/theme' {
+  name: 'latte';
+  default: true;
+  --color-primary: #4a65fc;
+  --color-accent: #c64e33;
+  --color-neutral: #70748a;
+}

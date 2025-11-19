@@ -1,26 +1,13 @@
 @import 'tailwindcss' source('../templates/**/*.{html,templ}');
 @plugin '@tailwindcss/typography';
 @plugin 'daisyui' {
-  themes:
-    light,
-    dark,
-    forest --prefersdark,
-    garden --default,
-    emerald,
-    lofi,
-    black,
-    dracula,
-    fantasy,
-    night,
-    dim,
-    nord,
-    sunset,
-    winter,
-    abyss;
+  themes: light, dark, dracula, nord, abyss;
 }
 
 @plugin './catppuccinTheme.latte.ts';
 @plugin './catppuccinTheme.mocha.ts';
+
+@import './daisyui.css';
 
 /* Inter font styling */
 /* https://tailwindcss.com/plus/ui-blocks/documentation#add-the-inter-font-family */
