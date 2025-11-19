@@ -48,15 +48,15 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "><div class=\"flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4\"><div class=\"flex flex-col shrink-0 h-16 p-2 items-center text-accent my-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "><div class=\"flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4\"><div class=\"flex flex-row shrink-0 p-2 items-center text-accent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = LogoSmall("size-8").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LogoSmall("flex size-16").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "Foragd</div><nav aria-label=\"Sidebar\" class=\"flex flex-1 flex-col place-items-center\"><ul role=\"list\" class=\"flex flex-1 flex-col my-48 justify-between\"><li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"font-bold\">Foragd</p></div><nav aria-label=\"Sidebar\" class=\"flex flex-1 flex-col place-items-center\"><ul role=\"list\" class=\"flex flex-1 flex-col my-64 justify-between\"><li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
