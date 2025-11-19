@@ -638,7 +638,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					Processing...
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
-				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
+				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft hover:btn-error">Back</button>
 				<button type="submit" form="edit-subscription" class="btn btn-primary btn-soft">Save</button>
 			</div>
 		</div>
@@ -743,7 +743,7 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 					Processing...
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
-				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
+				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft hover:btn-error">Back</button>
 				<button type="submit" form="add-subscription" class="btn btn-primary btn-soft">Add</button>
 			</div>
 		</div>
@@ -1035,7 +1035,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					Processing...
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
-				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
+				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft hover:btn-error">Back</button>
 				<button type="submit" form="manage-search-subscription" class="btn btn-primary btn-soft">
 					if action == "add" {
 						Add
@@ -1155,7 +1155,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 					Processing...
 					<span class="loading loading-spinner loading-md"></span>
 				</div>
-				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">Back</button>
+				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft hover:btn-error">Back</button>
 				<button type="submit" form="manage-group-subscription" class="btn btn-primary btn-soft">
 					if action == "add" {
 						Add
@@ -1204,7 +1204,7 @@ templ ImportSubscriptions() {
 							<button
 								type="button"
 								onclick="history.back()"
-								class="btn btn-secondary btn-soft"
+								class="btn btn-secondary btn-soft hover:btn-error"
 							>
 								Back
 							</button>
@@ -1332,7 +1332,7 @@ templ ExportSubscriptions() {
 		</p>
 		<div class="mt-10 space-y-8">
 			<div class="mt-6 flex items-center justify-end gap-x-6">
-				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft">
+				<button type="button" onclick="history.back()" class="btn btn-secondary btn-soft hover:btn-error">
 					Back
 				</button>
 				<a
