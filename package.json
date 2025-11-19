@@ -11,7 +11,7 @@
   "dependencies": {
     "@geenat/surreal": "^1.3.4-d",
     "@oddbird/css-anchor-positioning": "^0.7.0",
-    "daisyui": "^5.4.2",
+    "daisyui": "^5.5.5",
     "date-fns": "^4.1.0",
     "htmx-ext-preload": "^2.1.2",
     "htmx-ext-response-targets": "^2.0.4",
@@ -19,17 +19,17 @@
     "htmx.org": "^2.0.8",
     "hyperscript.org": "^0.9.14",
     "idiomorph": "^0.7.4",
-    "tailwindcss": "^4.1.16"
+    "tailwindcss": "^4.1.17"
   },
   "devDependencies": {
     "@catppuccin/daisyui": "^2.1.1",
     "@eslint/js": "^9.39.1",
     "@prettier/plugin-xml": "^3.4.2",
-    "@tailwindcss/cli": "^4.1.16",
+    "@tailwindcss/cli": "^4.1.17",
     "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
     "@tailwindcss/typography": "^0.5.19",
     "esbuild": "^0.27.0",
-    "eslint": "^9.39.0",
+    "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
     "htmx-ext-debug": "^2.0.2",
