@@ -108,7 +108,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 
 	// Fetch latest articles.
 	sort := models.SortNewestFirst
-	latestItems, _, err := a.DataAPI().SearchItems(ctx, articlesQuery, 10, &sort, nil)
+	latestItems, _, err := a.DataAPI().SearchItems(ctx, articlesQuery, 12, &sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
 	}
