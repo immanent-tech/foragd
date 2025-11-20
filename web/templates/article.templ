@@ -449,22 +449,23 @@ templ ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Article
 							<form id={ "mark-" + subscriptionID }>
 								// MarkURL returns the app URL for marking the subscription.
 								{{ var markURL string }}
+								{{ var markText string }}
+								{{ var markIcon templ.Component }}
 								if filters.GetView() == models.ViewUnread {
 									{{ markURL = "/mark/subscription/" + subscriptionID + "/read" }}
+									{{ markText = "Mark Subscription Read" }}
+									{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
 								} else {
 									{{ markURL = "/mark/subscription/" + subscriptionID + "/unread" }}
+									{{ markText = "Mark Subscription Unread" }}
+									{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
 								}
 								@NewLink(
 									WithHXMethod(http.MethodPost, markURL),
-									WithHXInclude("[name='csrf_token'],#content-filters"),
+									WithHXInclude("[name='csrf_token'],[name='view']"),
 								) {
-									if filters.GetView() == models.ViewUnread {
-										@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-										Mark Subscription Read
-									} else {
-										@tabler.MailFilled(i.Props{Class: "size-4"})
-										Mark Subscription Unread
-									}
+									@markIcon
+									{ markText }
 								}
 							</form>
 						}

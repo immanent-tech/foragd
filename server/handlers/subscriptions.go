@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"fmt"
 	"log/slog"
@@ -24,6 +25,7 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -48,7 +50,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 		}
 
 		// Mark subscription.
-		err = models.MarkSubscriptions(req.Context(), api, request.Mark, request.Subscriptions...)
+		err = markSubscriptions(req.Context(), api, request.Mark, request.Subscriptions...)
 		if err != nil {
 			res.Header().Add(htmx.HeaderReswap, "none")
 			renderPartial(
@@ -89,7 +91,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 				).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
 			}
-
+			res.WriteHeader(http.StatusOK)
 		} else {
 			// Else swap content apprpriately.
 			switch request.View {
@@ -119,7 +121,6 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 				renderPartial(templates.SubscriptionCard(subscription)).ServeHTTP(res, req)
 			}
 		}
-
 		return nil
 	})).ServeHTTP
 }
@@ -166,7 +167,7 @@ func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
 		}
 
 		// Mark subscriptions.
-		err = models.MarkSubscriptions(req.Context(), api, request.Mark, request.Subscriptions...)
+		err = markSubscriptions(req.Context(), api, request.Mark, request.Subscriptions...)
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
@@ -681,4 +682,42 @@ func AdjustSubscriptionCategories() http.HandlerFunc {
 		}
 		return nil
 	})).ServeHTTP
+}
+
+// markSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
+// subscription data in the user object and clearing any individual item states for a subscription.
+func markSubscriptions(ctx context.Context, api *elastic.API, mark models.Mark, subscriptionIDs ...models.SubscriptionID) error {
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("mark subscriptions: get user data: %w", err)
+	}
+
+	query := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Terms("subscription_id", subscriptionIDs...),
+		),
+	)
+
+	subscriptions, err := api.GetAllSubscriptions(ctx, query)
+	if err != nil {
+		return fmt.Errorf("mark subscriptions: api request failed: %w", err)
+	}
+
+	for subscription := range slices.Values(subscriptions) {
+		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
+			err := markSubscriptions(ctx, api, mark, subscription.GroupData.Subscriptions...)
+			if err != nil {
+				return fmt.Errorf("mark subscriptions: mark group subscription: %w", err)
+			}
+		} else {
+			subscription.Mark(user, mark)
+			_, err = api.UpdateSubscriptions(ctx, subscriptions...)
+			if err != nil {
+				return fmt.Errorf("mark subscriptions: update subscription data: %w", err)
+			}
+		}
+	}
+
+	return nil
 }

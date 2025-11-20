@@ -368,23 +368,27 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 								<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 							}
 							<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-							<a
-								hx-post="/list/subscriptions/mark"
-								hx-target={ ContentID.Target() }
-								hx-include="[name='csrf_token']"
-							>
-								if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewUnread {
-									@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-									<span class="sr-only">Mark All Read</span>
-									Mark all Read
-									<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-								} else {
-									@tabler.MailFilled(i.Props{Class: "size-4"})
-									<span class="sr-only">Mark All Unread</span>
-									Mark all Unread
-									<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
-								}
-							</a>
+							{{ var markText string }}
+							{{ var markURL string }}
+							{{ var markIcon templ.Component }}
+							if filters.GetView() == models.ViewUnread {
+								{{ markText = "Mark All Read" }}
+								{{ markURL = "/list/subscriptions/mark/" + string(models.MarkRead) }}
+								{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
+							} else {
+								{{ markText = "Mark All Unread" }}
+								{{ markURL = "/list/subscriptions/mark/" + string(models.MarkUnread) }}
+								{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
+							}
+							@NewLink(
+								WithHXMethod(http.MethodPost, markURL),
+								WithHXTarget(ContentID.Target()),
+								WithHXInclude("[name='csrf_token']"),
+							) {
+								@markIcon
+								<span class="sr-only">{ markText }</span>
+								{ markText }
+							}
 						</form>
 					</div>
 					<div class="py-1">
@@ -447,85 +451,6 @@ templ Subscriptions(pagination models.Pagination, subscriptions ...*models.Subsc
 		// Add pagination htmx props to last article.
 		@PaginationControl(ctx, "/list/subscriptions/paginate", "#content-filters,[name='csrf_token']", pagination)
 	}
-}
-
-// SubscriptionsDockActions renders additional actions in the sidebar for acting on a list of subscriptions.
-templ SubscriptionsDockActions() {
-	<div class="items-center">
-		<el-dropdown class="inline-block">
-			<button class="inline-flex flex-col items-center">
-				@tabler.Menu(i.Props{Class: "size-6"})
-				<span class="dock-label">Actions</span>
-			</button>
-			<el-menu anchor="bottom end" popover>
-				<div class="py-1">
-					// Mark all subscriptions action.
-					@NewLink(
-						WithHXMethod(http.MethodPost, "/list/subscriptions/mark"),
-						WithHXTarget(ContentID.Target()),
-						WithHXInclude("#content-filters,[name='csrf_token']"),
-						WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
-					) {
-						if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewUnread {
-							@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-							<span class="sr-only">Mark All Read</span>
-							Mark all Read
-						} else {
-							@tabler.MailFilled(i.Props{Class: "size-4"})
-							<span class="sr-only">Mark All Unread</span>
-							Mark all Unread
-						}
-					}
-				</div>
-				<div class="py-1">
-					@NewLink(
-						WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
-						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
-						WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
-					) {
-						@tabler.Plus(i.Props{Class: "size-4"})
-						Add Subscription
-					}
-				</div>
-			</el-menu>
-		</el-dropdown>
-	</div>
-}
-
-// SubscriptionsSidebarActions renders additional actions in the sidebar for acting on a list of subscriptions.
-templ SubscriptionsSidebarActions() {
-	// Mark all subscriptions action.
-	<li>
-		@NewLink(
-			WithHXMethod(http.MethodPost, "/list/subscriptions/mark"),
-			WithHXTarget(ContentID.Target()),
-			WithHXInclude("#content-filters,[name='csrf_token']"),
-			WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-		) {
-			if models.PageFiltersFromCtx(ctx,"/list/subscriptions").GetView() == models.ViewUnread {
-				@tabler.MailOpenedFilled(i.Props{Class: "size-6 shrink-0 text-current"})
-				<span class="sr-only">Mark All Read</span>
-				Mark all Read
-			} else {
-				@tabler.MailFilled(i.Props{Class: "size-6 shrink-0 text-current"})
-				<span class="sr-only">Mark All Unread</span>
-				Mark all Unread
-			}
-		}
-	</li>
-	// Add new subscription action.
-	<li>
-		@NewLink(
-			WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
-			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(),
-			WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-		) {
-			@tabler.Plus(i.Props{Class: "size-6 shrink-0 text-current	"})
-			Add Subscription
-		}
-	</li>
 }
 
 templ EditSubscription(request *models.EditSubscriptionRequest) {

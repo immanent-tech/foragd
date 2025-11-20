@@ -314,38 +314,6 @@ func RemoveSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...Subscripti
 	return nil
 }
 
-// MarkSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
-// subscription data in the user object and clearing any individual item states for a subscription.
-func MarkSubscriptions(ctx context.Context, dataAPI DataAPI, mark Mark, subscriptionIDs ...SubscriptionID) error {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("mark subscriptions: get user data: %w", err)
-	}
-
-	query := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Terms("subscription_id", subscriptionIDs...),
-		),
-	)
-
-	subscriptions, err := dataAPI.GetAllSubscriptions(ctx, query)
-	if err != nil {
-		return fmt.Errorf("mark subscriptions: api request failed: %w", err)
-	}
-
-	for subscription := range slices.Values(subscriptions) {
-		subscription.Mark(user, mark)
-	}
-
-	_, err = dataAPI.UpdateSubscriptions(ctx, subscriptions...)
-	if err != nil {
-		return fmt.Errorf("mark subscriptions: update subscription data: %w", err)
-	}
-
-	return nil
-}
-
 // CreateFeedSubscriptions will create new FeedSubscriptions for the user from the given requests.
 func CreateFeedSubscriptions(ctx context.Context, dataAPI DataAPI, results ...*AddFeedSubscriptionResult) error {
 	if len(results) == 0 {
