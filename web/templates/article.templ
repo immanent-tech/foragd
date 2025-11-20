@@ -46,13 +46,7 @@ templ articleSummary(article *models.Article) {
 					@ShowTimestamp(article.GetUpdatedDate())
 				</p>
 				<p class="flex text-xs truncate">
-					@NewLink(
-						WithHXMethod(http.MethodGet, "/list/articles"),
-						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
-						WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
-						WithClasses("truncate"),
-					) {
+					@viewFeedSubscriptionLink(article.GetSubscriptionID(), models.ViewUnread, "truncate") {
 						{ article.GetFeedTitle() }
 					}
 				</p>
