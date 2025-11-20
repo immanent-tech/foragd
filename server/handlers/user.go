@@ -40,13 +40,13 @@ func (a *API) ShowSettings() http.HandlerFunc {
 // ShowDisplaySettings handles showing the settings related to the application display.
 func ShowDisplaySettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to show display settings", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
 		}
 		renderPartial(templates.DisplaySettings(user)).ServeHTTP(res, req)
 		return nil
@@ -56,13 +56,13 @@ func ShowDisplaySettings() http.HandlerFunc {
 // ShowAccountSettings handles showing the settings related to user accounts.
 func ShowAccountSettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to show account settings", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
 		}
 		renderPartial(templates.AccountSettings(user)).ServeHTTP(res, req)
 		return nil
@@ -81,13 +81,13 @@ func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("save display settings: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
 		// Get user object
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("save display settings: get user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("save display settings: get user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
 		}
 		// Update local user object.
 		err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": request})
@@ -118,13 +118,13 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("save account settings: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
 		// Get user object
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("save account settings: get user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("save account settings: get user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
 		}
 		// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
 		updates := make(map[string]any)
@@ -202,16 +202,16 @@ func ChangePassword(api *elastic.API) http.HandlerFunc {
 func (a *API) SetTheme() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		theme := chi.URLParam(req, "theme")
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to set theme", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
-		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
+		err := a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"settings": settings,
 		})
 		if err != nil {
@@ -296,12 +296,12 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			)).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite article", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
 		}
 		err = models.UpdateFavoriteArticle(req.Context(), a.Elastic, user, id, true)
 		if err != nil {
@@ -336,12 +336,12 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			)).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		}
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite article", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
 		}
 		err = models.UpdateFavoriteArticle(req.Context(), a.Elastic, user, id, false)
 		if err != nil {
@@ -366,100 +366,6 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// // AddFavoriteSearch handles adding a new favorite search for a user.
-// func (a *API) AddFavoriteSearch() http.HandlerFunc {
-// 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-// 		// Retrieve the search details.
-// 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
-// 		if err != nil || !valid {
-// 			renderPartial(templates.ServerErrorNotification(
-// 				models.NewErrorMessage("Unable to add favorite search", "Data is invalid."),
-// 			)).ServeHTTP(res, req)
-// 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
-// 		}
-// 		name := req.FormValue("search_name")
-// 		// Add the favorite.
-// 		user, err := models.UserFromCtx(req.Context())
-// 		if err != nil {
-// 			renderPartial(templates.ServerErrorNotification(
-// 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
-// 			).ServeHTTP(res, req)
-// 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
-// 		}
-// 		err = user.AddFavoriteSearch(name, request)
-// 		if err != nil {
-// 			renderPartial(templates.ServerErrorNotification(
-// 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
-// 			).ServeHTTP(res, req)
-// 			return models.NewAPIError(fmt.Errorf("unable to add favorite search to user: %w", err), http.StatusInternalServerError)
-// 		}
-// 		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-// 			"favorites": user.Favorites,
-// 		})
-// 		if err != nil {
-// 			renderPartial(templates.ServerErrorNotification(
-// 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
-// 			).ServeHTTP(res, req)
-// 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
-// 		}
-// 		// Update the favorite button.
-// 		id, err := request.ID()
-// 		if err != nil {
-// 			renderPartial(templates.ServerErrorNotification(
-// 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
-// 			).ServeHTTP(res, req)
-// 			return models.NewAPIError(err, http.StatusInternalServerError)
-// 		}
-// 		fav := user.GetAllFavorites().Get(id)
-// 		// Update the favorite button and list of favorites.
-// 		renderPartial(templates.RemoveFavoriteSearchButton(fav.GetID())).ServeHTTP(res, req)
-// 		return nil
-// 	})).ServeHTTP
-// }
-
-// // RemoveFavoriteSearch handles removing a favorite article for a user.
-// func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
-// 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-// 		// Retrieve the search details.
-// 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
-// 		if err != nil || !valid {
-// 			renderPartial(templates.ServerErrorNotification(
-// 				models.NewErrorMessage("Unable to remove favorite search", "Data is invalid."),
-// 			)).ServeHTTP(res, req)
-// 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
-// 		}
-// 		user, err := models.UserFromCtx(req.Context())
-// 		if err != nil {
-// 			renderPartial(templates.ServerErrorNotification(
-// 				models.NewErrorMessage("Unable to remove favorite search", "This might be a temporary error, please try again.")),
-// 			).ServeHTTP(res, req)
-// 			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
-// 		}
-// 		// Derive the favorite id.
-// 		id, err := request.ID()
-// 		if err != nil {
-// 			renderPartial(templates.ServerErrorNotification(
-// 				models.NewErrorMessage("Unable to add favorite search", "This might be a temporary error, please try again.")),
-// 			).ServeHTTP(res, req)
-// 			return models.NewAPIError(err, http.StatusInternalServerError)
-// 		}
-// 		// Remove the favorite.
-// 		user.RemoveFavorite(id)
-// 		err = a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
-// 			"favorites": user.Favorites,
-// 		})
-// 		if err != nil {
-// 			renderPartial(templates.ServerErrorNotification(
-// 				models.NewErrorMessage("Unable to remove favorite search", "This might be a temporary error, please try again.")),
-// 			).ServeHTTP(res, req)
-// 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
-// 		}
-// 		// Update the favorite button and list of favorites.
-// 		renderPartial(templates.AddFavoriteSearchButton()).ServeHTTP(res, req)
-// 		return nil
-// 	})).ServeHTTP
-// }
-
 // DeleteUser handles removing a user account from the local and backend databases. Once the account is removed, any
 // active session is destroyed and the browser is redirected back to the landing page.
 func (a *API) DeleteUser() http.HandlerFunc {
@@ -469,15 +375,15 @@ func (a *API) DeleteUser() http.HandlerFunc {
 			renderPartial(templates.DeleteAccountModal()).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get user account details.
-			user, err := models.UserFromCtx(req.Context())
-			if err != nil {
+			user := models.UserFromCtx(req.Context())
+			if user == nil {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to delete account", "This might be a temporary error, please try again.")),
 				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+				return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
 			}
 			// Delete account on the backend.
-			err = auth0.DeleteUser(req.Context(), user)
+			err := auth0.DeleteUser(req.Context(), user)
 			if err != nil {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to delete account", "This might be a temporary error, please try again.")),

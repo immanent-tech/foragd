@@ -77,9 +77,9 @@ func GenerateArticle(user *User, item *Item, subscription *Subscription) (*Artic
 		article.State.MarkRead(subscription.MarkedReadAt)
 	}
 	// Toggle showing remote article content.
-	if subscription.Settings.ShowFullArticleContent {
-		article.ShowFullContent = true
-	}
+	article.ShowFullContent = subscription.Settings.ShowFullArticleContent
+	// Toggle marking read on view.
+	article.MarkArticleReadOnView = user.GetSettings().MarkArticleReadOnView
 	// Validate the article.
 	err := article.Valid()
 	if err != nil {
@@ -92,9 +92,9 @@ func GenerateArticle(user *User, item *Item, subscription *Subscription) (*Artic
 // GenerateArticles takes a slice of items and creates articles from them, grabbing the necessary data from the user
 // object.
 func GenerateArticles(ctx context.Context, dataAPI DataAPI, items Items) (Articles, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("generate articles: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("generate articles: get user data: %w", ErrNoUserCtx)
 	}
 	query := query.Bool(
 		query.Filter(

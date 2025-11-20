@@ -92,8 +92,8 @@ templ EmptyContent() {
 	}
 }
 
-templ Content(content templ.Component) {
-	@header()
+templ Content(user *models.User, content templ.Component) {
+	@header(user)
 	@SideBar(nil)
 	<div class="lg:pl-36">
 		<div id={ ContentID.String() } hx-indicator="#content-loading">

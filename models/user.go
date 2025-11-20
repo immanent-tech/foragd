@@ -121,8 +121,8 @@ func (s *UserSettings) Sanitise() error {
 
 // GetUserTheme returns the current user's theme or the default theme if no user theme is set.
 func GetUserTheme(ctx context.Context) string {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
+	user := UserFromCtx(ctx)
+	if user == nil {
 		return DefaultUserTheme
 	}
 	if theme := user.GetSettings().Theme; theme != "" {

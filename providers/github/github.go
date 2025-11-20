@@ -117,9 +117,9 @@ func CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) 
 
 // CreateIssue creates a new issue in Github about problems with the app reported by a user.
 func CreateIssue(ctx context.Context, details *models.IssueRequest) error {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to create app issue: %w", err)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("unable to create app issue: %w", models.ErrNoUserCtx)
 	}
 	title := "App Issue reported by " + user.GetNickname()
 	labels := []string{"subscription"}

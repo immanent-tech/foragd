@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-templ header() {
+templ header(user *models.User) {
 	<header class="sticky w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30 lg:pl-36">
 		<div class="flex flex-1 mx-auto items-center">
 			// Show small logo on mobile.
@@ -61,57 +61,54 @@ templ header() {
 			// User settings menu.
 			<div class="flex items-center justify-end mx-2 sm:mr-4">
 				<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10"></div>
-				{{ user, _ := models.UserFromCtx(ctx) }}
-				if user != nil {
-					<el-dropdown id="header-user-menu" class="relative">
-						@NewButton(
-							WithID("header-menu-button"),
-							WithClasses("btn-ghost btn-square"),
+				<el-dropdown id="header-user-menu" class="relative">
+					@NewButton(
+						WithID("header-menu-button"),
+						WithClasses("btn-ghost btn-square"),
+					) {
+						<span class="sr-only">Open settings menu</span>
+						<img
+							src={ "/img-proxy/32x32/" + user.GetAvatar() }
+							alt={ "Avatar for user " + user.GetNickname() }
+							width="32"
+							height="32"
+							class="size-8 rounded-full outline -outline-offset-1 outline-base-content/10"
+						/>
+					}
+					<el-menu id="header-menu" anchor="bottom end" popover>
+						// Open settings menu.
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/user/settings"),
+							WithHXTarget(ContentID.Target()),
+							WithHXPushURL(),
+							WithCustomAttribute("_", "on click remove @open from #header-menu"),
 						) {
-							<span class="sr-only">Open settings menu</span>
-							<img
-								src={ "/img-proxy/32x32/" + user.GetAvatar() }
-								alt={ "Avatar for user " + user.GetNickname() }
-								width="32"
-								height="32"
-								class="size-8 rounded-full outline -outline-offset-1 outline-base-content/10"
-							/>
+							<div class="flex flex-1 items-center gap-x-2">
+								@tabler.SettingsFilled(i.Props{Class: "size-4"})
+								Settings
+							</div>
 						}
-						<el-menu id="header-menu" anchor="bottom end" popover>
-							// Open settings menu.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/user/settings"),
-								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(),
-								WithCustomAttribute("_", "on click remove @open from #header-menu"),
-							) {
-								<div class="flex flex-1 items-center gap-x-2">
-									@tabler.SettingsFilled(i.Props{Class: "size-4"})
-									Settings
-								</div>
-							}
-							// Report issue.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/issue"),
-								WithHXTarget(ContentID.Target()),
-							) {
-								<div class="flex flex-1 items-center gap-x-2">
-									@tabler.FlagFilled(i.Props{Class: "size-4"})
-									Report an issue
-								</div>
-							}
-							// Logout
-							@NewLink(
-								WithCustomAttribute("href", "/logout"),
-							) {
-								<div class="flex flex-1 items-center gap-x-2">
-									@tabler.Logout(i.Props{Class: "size-4"})
-									Log out
-								</div>
-							}
-						</el-menu>
-					</el-dropdown>
-				}
+						// Report issue.
+						@NewLink(
+							WithHXMethod(http.MethodGet, "/issue"),
+							WithHXTarget(ContentID.Target()),
+						) {
+							<div class="flex flex-1 items-center gap-x-2">
+								@tabler.FlagFilled(i.Props{Class: "size-4"})
+								Report an issue
+							</div>
+						}
+						// Logout
+						@NewLink(
+							WithCustomAttribute("href", "/logout"),
+						) {
+							<div class="flex flex-1 items-center gap-x-2">
+								@tabler.Logout(i.Props{Class: "size-4"})
+								Log out
+							</div>
+						}
+					</el-menu>
+				</el-dropdown>
 			</div>
 		</div>
 		// Advanced search dialog.

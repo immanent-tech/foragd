@@ -320,8 +320,7 @@ templ ArticleContent(article *models.Article) {
 			}
 			// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 			// read and mark it so (when the user has set this option).
-			{{ user, _ := models.UserFromCtx(ctx) }}
-			if user.GetSettings().MarkArticleReadOnView && article.IsUnread() {
+			if article.IsUnread() && article.MarkArticleReadOnView {
 				<input type="hidden" name="view" value={ models.ViewAll }/>
 				<div
 					hx-post={ "/mark/article/" + article.GetID() + "/read" }

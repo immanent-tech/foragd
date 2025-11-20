@@ -32,7 +32,6 @@ templ AddFeedsetsSuccessNotification(feedsets []string) {
 
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
 templ SubscriptionCard(s *models.Subscription) {
-	{{ user, _ := models.UserFromCtx(ctx) }}
 	<div
 		id={ s.GetID() }
 		class={ "card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
@@ -72,7 +71,7 @@ templ SubscriptionCard(s *models.Subscription) {
 			}
 			// Show stats and info as appropriate.
 			<div class="card-actions mt-auto grid grid-cols-3 px-4 sm:px-6">
-				if user.GetSettings().ShowSubscriptionStats {
+				if s.Settings.ShowSubscriptionStats {
 					if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
 						<p class="grid justify-end col-span-3 text-xs/4">
 							{ s.GetStats().UpdateFrequency() }
@@ -87,7 +86,7 @@ templ SubscriptionCard(s *models.Subscription) {
 						unknown
 					}
 				</p>
-				if user.GetSettings().ShowSubscriptionStats {
+				if s.Settings.ShowSubscriptionStats {
 					<p class="grid justify-end text-xs/4">
 						{ s.GetStats().UnreadTotal() }
 						Unread

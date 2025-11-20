@@ -133,14 +133,15 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 }
 
 func listFavorites(ctx context.Context, api *elastic.API) (templ.Component, error) {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("list favorites: get user data: %w", err)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("list favorites: get user data: %w", models.ErrNoUserCtx)
 	}
 
 	var (
 		articles      models.Articles
 		subscriptions models.Subscriptions
+		err           error
 	)
 
 	// Get favorite articles.

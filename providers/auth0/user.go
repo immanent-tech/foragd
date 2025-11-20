@@ -111,9 +111,9 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 	if err != nil {
 		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
 	}
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("could not retrieve current user from context: %w", err)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("could not retrieve current user from context: %w", models.ErrNoUserCtx)
 	}
 	// If the user changed their email, end a new verification email.
 	var verifyEmail bool
@@ -135,14 +135,15 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 	return nil
 }
 
+// ChangeUserPassword will perform a password change on behalf of a user.
 func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error {
 	api, err := NewManagementAPI()
 	if err != nil {
 		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
 	}
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("could not retrieve current user from context: %w", err)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("could not retrieve current user from context: %w", models.ErrNoUserCtx)
 	}
 	// Create update object.
 	updates := &management.User{

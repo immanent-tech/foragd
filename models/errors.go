@@ -8,12 +8,8 @@ import (
 	"net/http"
 )
 
-var (
-	// ErrNoUserCtx indicates the user object was not found in the context.
-	ErrNoUserCtx = errors.New("no valid user in context")
-	// ErrInvalidMimeType indicates that the mime type is not valid.
-	ErrInvalidMimeType = errors.New("invalid mime type")
-)
+// ErrInvalidMimeType indicates that the mime type is not valid.
+var ErrInvalidMimeType = errors.New("invalid mime type")
 
 var ErrUserNotFound = NewAPIError(
 	errors.New("no valid user found"), //nolint:err113

@@ -654,8 +654,8 @@ func (s *SubscriptionStats) IsUnread() bool {
 }
 
 func newSubscription(ctx context.Context, customisation SubscriptionCustomisation, settings SubscriptionSettings, data any) (*Subscription, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
+	user := UserFromCtx(ctx)
+	if user == nil {
 		return nil, fmt.Errorf("new subscription: %w", ErrNoUserCtx)
 	}
 	ts := time.Now().UTC()

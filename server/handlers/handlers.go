@@ -235,7 +235,14 @@ func renderPage(template templ.Component, title string) http.Handler {
 			return
 		}
 		if !IsHTMX(req) || IsHistoryRestoreRequest(req) { // Non-HTMX or HistoryRestoreRequests render a full-page.
-			template = templates.Content(template)
+			user := models.UserFromCtx(req.Context())
+			if user == nil {
+				templ.Handler(templates.Page(title, templates.ErrorPage(
+					models.NewErrorMessage("Invalid request", "This might be a temporary error, please try again."),
+				))).ServeHTTP(res, req)
+				return
+			}
+			template = templates.Content(user, template)
 			templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
 			return
 		} else { // HTMX request renders partial content.
@@ -348,8 +355,8 @@ func setCacheControl(next http.Handler) http.Handler {
 //nolint:gocognit
 func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			res.WriteHeader(http.StatusNoContent)
 			slogctx.FromCtx(req.Context()).Error("Unable to watch for updates.",
 				slog.Any("error", models.ErrNoUserCtx),

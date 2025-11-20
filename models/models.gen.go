@@ -179,8 +179,11 @@ type Article struct {
 	// Item represents an individual item (e.g., an individual feed item).
 	Item Item `json:"item"`
 
+	// MarkArticleReadOnView indicates whether to automatically mark an article as read when viewed.
+	MarkArticleReadOnView bool `json:"mark_article_read_on_view"`
+
 	// ShowFullContent indicates whether the full article content should be fetched and displayed instead of any content from the feed item itself.
-	ShowFullContent bool `json:"show_full_content,omitempty,omitzero"`
+	ShowFullContent bool `json:"show_full_content"`
 
 	// State tracks the state of an article.
 	State ArticleState `json:"state"`
@@ -259,8 +262,11 @@ type ArticleMetadata struct {
 
 // ArticleSettings contains settings related to the display of the article.
 type ArticleSettings struct {
+	// MarkArticleReadOnView indicates whether to automatically mark an article as read when viewed.
+	MarkArticleReadOnView bool `json:"mark_article_read_on_view"`
+
 	// ShowFullContent indicates whether the full article content should be fetched and displayed instead of any content from the feed item itself.
-	ShowFullContent bool `json:"show_full_content,omitempty,omitzero"`
+	ShowFullContent bool `json:"show_full_content"`
 }
 
 // ArticleState tracks the state of an article.
@@ -340,6 +346,9 @@ type EditSubscriptionRequest struct {
 
 	// ShowFullArticleContent toggles whether articles in the subscription should be always displayed with remote content.
 	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content,omitempty,omitzero"`
+
+	// ShowSubscriptionStats indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
+	ShowSubscriptionStats bool `form:"-" json:"-"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -842,6 +851,9 @@ type SubscriptionMetadataType string
 type SubscriptionSettings struct {
 	// ShowFullArticleContent toggles whether articles in the subscription should be always displayed with remote content.
 	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content,omitempty,omitzero"`
+
+	// ShowSubscriptionStats indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
+	ShowSubscriptionStats bool `form:"-" json:"-"`
 }
 
 // SubscriptionStats contains stats about a subscription.

@@ -593,12 +593,12 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 func (a *API) ExportSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			msg := models.NewErrorMessage("Unable to load export form", "This might be a temporary problem, please try again.")
 			template := templ.Join(templates.ExportSubscriptions(), templates.ServerErrorNotification(msg))
 			renderPage(template, templates.GeneratePageTitle("Export Subscriptions")).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
 		}
 		switch {
 		// GET: show import modal.
@@ -687,9 +687,9 @@ func AdjustSubscriptionCategories() http.HandlerFunc {
 // markSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
 // subscription data in the user object and clearing any individual item states for a subscription.
 func markSubscriptions(ctx context.Context, api *elastic.API, mark models.Mark, subscriptionIDs ...models.SubscriptionID) error {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("mark subscriptions: get user data: %w", err)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("mark subscriptions: get user data: %w", models.ErrNoUserCtx)
 	}
 
 	query := query.Bool(

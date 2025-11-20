@@ -540,6 +540,15 @@ components:
           type: boolean
           x-oapi-codegen-extra-tags:
             form: "show_full_article_content"
+        show_subscription_stats:
+          description: >
+            indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: '-'
+            form: '-'
+          x-omitzero: false
+          x-omitempty: false
     SubscriptionStats:
       description: >
         contains stats about a subscription.
@@ -876,6 +885,14 @@ components:
             indicates whether the full article content should be fetched and displayed instead of any content from the
             feed item itself.
           type: boolean
+          x-omitzero: false
+          x-omitempty: false
+        mark_article_read_on_view:
+          description: >
+            indicates whether to automatically mark an article as read when viewed.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
     ArticleState:
       description: >
         tracks the state of an article.

@@ -151,9 +151,9 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 // markArticles will mark Articles for a Subscription as appropriate. Marking Articles involves updating the User object
 // with an ItemState that tracks the mark status for the underlying Item an Article represents.
 func markArticles(ctx context.Context, api *elastic.API, mark models.Mark, subscriptionID models.SubscriptionID, itemIDs ...models.ItemID) error {
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("mark articles: get user data: %w", err)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("mark articles: get user data: %w", models.ErrNoUserCtx)
 	}
 	query := query.Bool(
 		query.Filter(

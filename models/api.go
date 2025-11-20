@@ -26,7 +26,11 @@ import (
 )
 
 var (
-	ErrNotFound         = errors.New("not found")
+	// ErrNoUserCtx indicates the user object was not found in the context.
+	ErrNoUserCtx = errors.New("no valid user in context")
+	// ErrNotFound indicates no data was found
+	ErrNotFound = errors.New("not found")
+	// ErrInvalidAPIResult indicates that the backend API returned unexpected, invalid or an otherwise incorrect response.
 	ErrInvalidAPIResult = errors.New("invalid backend API result")
 )
 
@@ -150,9 +154,9 @@ func UpdateFavoriteArticle(ctx context.Context, dataAPI DataAPI, user *User, id 
 // GetSubscription returns the subscription that matches the given ID. Note: no dynamic info is generated for the
 // subscription (use AddSubscriptionDynamicInfo after calling this method if needed).
 func GetSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID) (*Subscription, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get subscription: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get subscription: get user data: %w", ErrNoUserCtx)
 	}
 	subscriptionQuery := query.Bool(
 		query.Filter(
@@ -177,9 +181,9 @@ func GetSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID) (*
 // subscriptions (use AddSubscriptionDynamicInfo after calling this method if needed).
 func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) (Subscriptions, error) {
 	// Get subscriptions by ID.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get subscription suggestions: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get subscription suggestions: get user data: %w", ErrNoUserCtx)
 	}
 
 	// Suggestions query will match in title/description/categories across all feed subscriptions.
@@ -204,9 +208,9 @@ func GetSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionI
 // Dynamic information for subscriptions will also be added.
 func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Subscriptions, Pagination, error) {
 	// Get subscriptions by ID.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, "", fmt.Errorf("filter subscriptions: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, "", fmt.Errorf("filter subscriptions: get user data: %w", ErrNoUserCtx)
 	}
 	subscriptionQuery := query.Bool(
 		query.Filter(
@@ -241,9 +245,9 @@ func FilterSubscriptions(ctx context.Context, dataAPI DataAPI, filters *ListDisp
 // subscriptions (use AddSubscriptionDynamicInfo after calling this method if needed).
 func GetSubscriptionSuggestions(ctx context.Context, dataAPI DataAPI, text string) (Subscriptions, error) {
 	// Get subscriptions by ID.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get subscription suggestions: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get subscription suggestions: get user data: %w", ErrUserNotFound)
 	}
 
 	// Suggestions query will match in title/description/categories across all feed subscriptions.
@@ -272,11 +276,11 @@ func GetSubscriptionSuggestions(ctx context.Context, dataAPI DataAPI, text strin
 
 // AddSubscriptions adds the given subscriptions to a user.
 func AddSubscriptions(ctx context.Context, dataAPI DataAPI, subscriptions ...*Subscription) error {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("add subscriptions: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("add subscriptions: get user data: %w", ErrNoUserCtx)
 	}
-	_, err = dataAPI.UpdateSubscriptions(ctx, subscriptions...)
+	_, err := dataAPI.UpdateSubscriptions(ctx, subscriptions...)
 	if err != nil {
 		return fmt.Errorf("add subscriptions: %w", err)
 	}
@@ -297,9 +301,9 @@ func AddSubscriptions(ctx context.Context, dataAPI DataAPI, subscriptions ...*Su
 
 // RemoveSubscriptions removes subscriptions with the given ID from a user.
 func RemoveSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...SubscriptionID) error {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("remove subscriptions: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("remove subscriptions: get user data: %w", ErrNoUserCtx)
 	}
 	query := query.Bool(
 		query.Filter(
@@ -307,7 +311,7 @@ func RemoveSubscriptions(ctx context.Context, dataAPI DataAPI, ids ...Subscripti
 			query.Terms("subscription_id", ids...),
 		),
 	)
-	err = dataAPI.RemoveSubscriptions(ctx, query)
+	err := dataAPI.RemoveSubscriptions(ctx, query)
 	if err != nil {
 		return fmt.Errorf("remove subscriptions: %w", err)
 	}
@@ -384,14 +388,14 @@ func CreateSearchSubscriptions(ctx context.Context, dataAPI DataAPI, requests ..
 //
 //nolint:gocognit,funlen
 func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscriptions Subscriptions) error {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("add subscription dynamic info: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("add subscription dynamic info: get user data: %w", ErrNoUserCtx)
 	}
 
-	// Get any additional subscription info for subscriptions in group subscriptions that we didn't already fetch.
 	var extraIDs []SubscriptionID
 	for subscription := range slices.Values(subscriptions) {
+		// Get any additional subscription info for subscriptions in group subscriptions that we didn't already fetch.
 		if subscription.GetSubscriptionType() == SubscriptionTypeGroup {
 			for id := range slices.Values(subscription.GroupData.Subscriptions) {
 				if !slices.ContainsFunc(subscriptions, func(e *Subscription) bool {
@@ -401,6 +405,8 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 				}
 			}
 		}
+		// Add the show stats setting from the user settings.
+		subscription.Settings.ShowSubscriptionStats = user.GetSettings().ShowSubscriptionStats
 	}
 	extraSubscriptions, err := dataAPI.GetAllSubscriptions(ctx, query.Terms("subscription_id", extraIDs...))
 	if err != nil {
@@ -423,9 +429,9 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 
 	// For search subscriptions, run queries directly to add unread count and last update.
 	fetchJobs.Go(func() error {
-		user, err := UserFromCtx(ctx)
-		if err != nil {
-			return fmt.Errorf("add subscription dynamic info: get search subscription info: get user data: %w", err)
+		user := UserFromCtx(ctx)
+		if user == nil {
+			return fmt.Errorf("add subscription dynamic info: get search subscription info: get user data: %w", ErrNoUserCtx)
 		}
 		for subscription := range slices.Values(subscriptions) {
 			if subscription.GetSubscriptionType() != SubscriptionTypeSearch {
@@ -618,9 +624,9 @@ func getFeedAverageDailyUpdates(ctx context.Context, dataAPI DataAPI, ids ...Fee
 
 func getFeedUnreadCounts(ctx context.Context, dataAPI DataAPI, subscriptions Subscriptions) (map[FeedID]int64, error) {
 	// Retrieve user object.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("unable to get subscription unread counts: %w", ErrNoUserCtx)
 	}
 	// Generate unread count query.
 	subscriptionQueries := make([]query.Option, 0, len(subscriptions))
@@ -740,9 +746,9 @@ func ProcessSubscriptionRequest(ctx context.Context, dataAPI DataAPI, request *A
 		feed = newFeed
 	}
 
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		result.Error = err
+	user := UserFromCtx(ctx)
+	if user == nil {
+		result.Error = ErrNoUserCtx
 		result.Message = *NewErrorMessage("Unable to check for existing subscription", "The backend produced an error. This might be temporary, please try again.")
 		resultsCh <- result
 		return
@@ -785,9 +791,9 @@ func CreateFeed(ctx context.Context, dataAPI DataAPI, feed *Feed) error {
 
 // FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.
 func FilterArticles(ctx context.Context, dataAPI DataAPI, filters *ListDisplayFilters, pagination Pagination) (Articles, Pagination, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, "", fmt.Errorf("filter articles: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, "", fmt.Errorf("filter articles: get user data: %w", ErrNoUserCtx)
 	}
 	subscriptionQuery := query.Bool(
 		query.Filter(
@@ -903,9 +909,9 @@ func GetArticleTopCategories(ctx context.Context, dataAPI DataAPI, feeds ...Feed
 // FindSimilarArticles performs a "more like this" search to find other Articles that are similar to the Items with the
 // given IDs.
 func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Articles, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("find similar articles: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("find similar articles: get user data: %w", ErrNoUserCtx)
 	}
 	subscriptionsQuery := query.Bool(
 		query.Filter(
@@ -957,9 +963,9 @@ func FindSimilarArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID
 
 // BuildItemsQuery generates a query to fetch the Items that match the given Filters from the given Subscriptions.
 func BuildItemsQuery(ctx context.Context, dataAPI DataAPI, filters Filters, subscriptionIDs ...SubscriptionID) (query.Option, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build items query: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("unable to build items query: %w", ErrNoUserCtx)
 	}
 
 	subscriptionsQuery := query.Bool(
