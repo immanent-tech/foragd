@@ -623,7 +623,7 @@ func subscriptionHeading(s *models.Subscription) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if img := s.GetImage(); img != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, " <div class=\"avatar\"><div class=\"rounded-box size-12\"><img src=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, " <div class=\"avatar\"><div class=\"rounded-box size-12 border border-base-content\"><img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

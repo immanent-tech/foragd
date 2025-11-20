@@ -192,7 +192,7 @@ templ subscriptionHeading(s *models.Subscription) {
 						if img := s.GetImage(); img != "" {
 							// If the source has an image, use that as the avatar.
 							<div class="avatar">
-								<div class="rounded-box size-12">
+								<div class="rounded-box size-12 border border-base-content">
 									<img
 										src={ "/img-proxy/48x48/" + img }
 										width="48"

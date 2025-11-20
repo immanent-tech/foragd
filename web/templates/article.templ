@@ -25,7 +25,7 @@ templ articleSummary(article *models.Article) {
 					} else {
 						alt={ article.GetTitle() }
 					}
-					class="h-48 sm:w-48 w-full object-cover rounded-box border border-base-content"
+					class="rounded-box responsive-img h-48 sm:w-48 w-full border border-base-content"
 				/>
 			</div>
 		}
@@ -85,7 +85,7 @@ templ ArticleCard(article *models.Article) {
 				WithHXPushURL(),
 			) {
 				<img
-					class="rounded-box responsive-img"
+					class="rounded-box responsive-img border border-base-content"
 					src={ "/img-proxy/400x300/" + img.GetURL() }
 					height="400"
 					width="300"

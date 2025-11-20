@@ -235,7 +235,7 @@ func (page *Home) Template() templ.Component {
 									return templ_7745c5c3_Err
 								}
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " class=\"h-48 sm:w-48 w-full object-cover rounded-box border border-base-content\"></div>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " class=\"rounded-box responsive-img h-48 sm:w-48 w-full border border-base-content\"></div>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
