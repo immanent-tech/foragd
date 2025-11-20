@@ -467,8 +467,6 @@ func AddSubscriptionDynamicInfo(ctx context.Context, dataAPI DataAPI, subscripti
 			if subscription.GetSubscriptionType() != SubscriptionTypeSearch {
 				continue
 			}
-			// slog.Info("here")
-			// godump.Dump(subscription)
 			search := subscription.SearchData.Search
 			// Build query to get unread count.
 			query, err := BuildSearchResultsQuery(ctx, dataAPI, user, &search)

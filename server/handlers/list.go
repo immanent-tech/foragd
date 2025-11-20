@@ -25,111 +25,131 @@ import (
 //
 //nolint:gocognit
 func ShowList(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters, setCacheControl).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
-		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		pagination := req.FormValue(models.ParamPagination)
-		// Redirect to include query parameters in address bar.
-		if req.Method == http.MethodGet && len(req.URL.Query()) == 0 && listType != "favorites" {
-			if IsHTMX(req) {
-				res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
-			} else {
-				http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
+	return defaultHandlerChain.Append(parseFilters, setCacheControl).
+		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+			listType := chi.RouteContext(req.Context()).URLParam(models.ParamListType)
+			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+			pagination := req.FormValue(models.ParamPagination)
+			// Redirect to include query parameters in address bar.
+			if req.Method == http.MethodGet && len(req.URL.Query()) == 0 && listType != "favorites" {
+				if IsHTMX(req) {
+					res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
+				} else {
+					http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
+				}
 			}
-		}
-		var (
-			template  templ.Component
-			pageTitle string
-		)
-		// Render list based on type.
-		switch listType {
-		case "subscriptions":
-			// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
-			if htmx.IsHistoryRestoreRequest(req) {
-				filters.Subscriptions = nil
-			}
-			// Get subscriptions matching filters.
-			subscriptions, pagination, err := models.FilterSubscriptions(req.Context(), api, filters, pagination)
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
+			var (
+				template  templ.Component
+				pageTitle string
+			)
+			// Render list based on type.
+			switch listType {
+			case "subscriptions":
+				// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
+				if htmx.IsHistoryRestoreRequest(req) {
+					filters.Subscriptions = nil
+				}
+				// Get subscriptions matching filters.
+				subscriptions, pagination, err := models.FilterSubscriptions(req.Context(), api, filters, pagination)
+				if err != nil && !errors.Is(err, models.ErrNotFound) {
+					msg := models.NewErrorMessage(
+						"Server could not complete request!",
+						"This might be temporary, please try again.",
+					)
+					switch req.Method {
+					case http.MethodGet:
+						renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+					case http.MethodPost:
+						template := templates.ServerErrorNotification(msg)
+						renderPartial(template).ServeHTTP(res, req)
+					}
+					return models.NewAPIError(
+						fmt.Errorf("unable to list subscriptions: %w", err),
+						http.StatusInternalServerError,
+					)
+				}
+				// Render appropriate content.
 				switch req.Method {
 				case http.MethodGet:
-					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+					template = templates.SubscriptionsGrid(pagination, subscriptions...)
 				case http.MethodPost:
-					template := templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req)
+					if len(subscriptions) > 0 {
+						template = templates.Subscriptions(pagination, subscriptions...)
+					} else {
+						res.WriteHeader(http.StatusNoContent)
+						return nil
+					}
 				}
-				return models.NewAPIError(fmt.Errorf("unable to list subscriptions: %w", err), http.StatusInternalServerError)
+			case "articles":
+				// Get articles matching filters.
+				articles, pagination, err := models.FilterArticles(req.Context(), api, filters, pagination)
+				if err != nil && !errors.Is(err, models.ErrNotFound) {
+					msg := models.NewErrorMessage(
+						"Server could not complete request!",
+						"This might be temporary, please try again.",
+					)
+					switch req.Method {
+					case http.MethodGet:
+						renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+					case http.MethodPost:
+						template := templates.ServerErrorNotification(msg)
+						renderPartial(template).ServeHTTP(res, req)
+					}
+					return models.NewAPIError(
+						fmt.Errorf("unable to list articles: %w", err),
+						http.StatusInternalServerError,
+					)
+				}
+				// Render appropriate content.
+				switch req.Method {
+				case http.MethodGet:
+					// Get any subscriptionID parameter indicating the request is for a single subscription.
+					subscriptionID := req.FormValue(models.ParamSubscriptionID)
+					template = templates.ArticlesGrid(subscriptionID, articles, pagination)
+				case http.MethodPost:
+					if len(articles) > 0 {
+						template = templates.Articles(articles, pagination)
+					} else {
+						res.WriteHeader(http.StatusNoContent)
+						return nil
+					}
+				}
+			case "favorites":
+				var err error
+				template, err = listFavorites(req.Context(), api)
+				if err != nil {
+					msg := models.NewErrorMessage(
+						"Server could not complete request!",
+						"This might be temporary, please try again.",
+					)
+					switch req.Method {
+					case http.MethodGet:
+						renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+					case http.MethodPost:
+						template := templates.ServerErrorNotification(msg)
+						renderPartial(template).ServeHTTP(res, req)
+					}
+					return models.NewAPIError(
+						fmt.Errorf("could not fetch user info from context: %w", err),
+						http.StatusInternalServerError,
+					)
+				}
+			default:
+				slogctx.FromCtx(req.Context()).Error("Unsupported list type requested.",
+					slog.String("type", listType))
+				res.WriteHeader(http.StatusNotFound)
+				return nil
 			}
-			// Render appropriate content.
+			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {
 			case http.MethodGet:
-				template = templates.SubscriptionsGrid(pagination, subscriptions...)
+				renderPage(template, templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
 			case http.MethodPost:
-				if len(subscriptions) > 0 {
-					template = templates.Subscriptions(pagination, subscriptions...)
-				} else {
-					res.WriteHeader(http.StatusNoContent)
-					return nil
-				}
+				renderPartial(template).ServeHTTP(res, req)
 			}
-		case "articles":
-			// Get articles matching filters.
-			articles, pagination, err := models.FilterArticles(req.Context(), api, filters, pagination)
-			if err != nil && !errors.Is(err, models.ErrNotFound) {
-				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
-				switch req.Method {
-				case http.MethodGet:
-					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
-				case http.MethodPost:
-					template := templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req)
-				}
-				return models.NewAPIError(fmt.Errorf("unable to list articles: %w", err), http.StatusInternalServerError)
-			}
-			// Render appropriate content.
-			switch req.Method {
-			case http.MethodGet:
-				// Get any subscriptionID parameter indicating the request is for a single subscription.
-				subscriptionID := req.FormValue(models.ParamSubscriptionID)
-				template = templates.ArticlesGrid(subscriptionID, articles, pagination)
-			case http.MethodPost:
-				if len(articles) > 0 {
-					template = templates.Articles(articles, pagination)
-				} else {
-					res.WriteHeader(http.StatusNoContent)
-					return nil
-				}
-			}
-		case "favorites":
-			var err error
-			template, err = listFavorites(req.Context(), api)
-			if err != nil {
-				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
-				switch req.Method {
-				case http.MethodGet:
-					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
-				case http.MethodPost:
-					template := templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req)
-				}
-				return models.NewAPIError(fmt.Errorf("could not fetch user info from context: %w", err), http.StatusInternalServerError)
-			}
-		default:
-			slogctx.FromCtx(req.Context()).Error("Unsupported list type requested.",
-				slog.String("type", listType))
-			res.WriteHeader(http.StatusNotFound)
 			return nil
-		}
-		// Choose rendering method based on method (get = page, post = partial).
-		switch req.Method {
-		case http.MethodGet:
-			renderPage(template, templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
-		case http.MethodPost:
-			renderPartial(template).ServeHTTP(res, req)
-		}
-		return nil
-	})).ServeHTTP
+		})).
+		ServeHTTP
 }
 
 func listFavorites(ctx context.Context, api *elastic.API) (templ.Component, error) {
