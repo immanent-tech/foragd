@@ -398,7 +398,7 @@ templ ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Article
 		<div class="flex items-center justify-between mt-4">
 			<div class="min-w-0 flex-1">
 				<h2 class="page-title sm:truncate">
-					if len(articles.GetSubscriptionIDs()) == 1 {
+					if subscriptionID != "" {
 						{ articles[0].GetFeedTitle() }
 					} else {
 						Articles
@@ -413,28 +413,29 @@ templ ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Article
 				</button>
 				<el-menu anchor="bottom end" popover>
 					<div class="py-1">
-						// Mark all articles action.
-						<form>
-							<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-							<a
-								hx-post="/list/articles/mark"
-								hx-target={ ContentID.Target() }
-								hx-include="#grid-objects,[name='csrf_token']"
-							>
-								if filters.GetView() == models.ViewUnread {
-									@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-									<span class="sr-only">Mark All Read</span>
-									Mark Articles Read
-									<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-								} else {
-									@tabler.MailFilled(i.Props{Class: "size-4"})
-									<span class="sr-only">Mark All Unread</span>
-									Mark Articles Unread
-									<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-								}
-							</a>
-						</form>
-						if subscriptionID != "" {
+						if subscriptionID == "" {
+							// Mark all articles action.
+							<form>
+								<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+								<a
+									hx-post="/list/articles/mark"
+									hx-target={ ContentID.Target() }
+									hx-include="#grid-objects,[name='csrf_token']"
+								>
+									if filters.GetView() == models.ViewUnread {
+										@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+										<span class="sr-only">Mark All Read</span>
+										Mark Articles Read
+										<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+									} else {
+										@tabler.MailFilled(i.Props{Class: "size-4"})
+										<span class="sr-only">Mark All Unread</span>
+										Mark Articles Unread
+										<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+									}
+								</a>
+							</form>
+						} else {
 							// Edit subscription action.
 							@NewLink(
 								WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
