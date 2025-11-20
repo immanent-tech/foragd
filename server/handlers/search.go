@@ -24,6 +24,12 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+const (
+	defaultSubscriptionSuggestionsCount = 3
+	defaultArticleSuggestionsCount      = 10
+	defaultArticleResultsCount          = 15
+)
+
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -65,13 +71,19 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 					query.SearchAsYouType(request.Text, "customisation.nickname"),
 				),
 			)
-			subscriptions, _, err = api.SearchSubscriptions(jobCtx, subscriptionsQuery, 3, &sort, nil)
+			subscriptions, _, err = api.SearchSubscriptions(
+				jobCtx,
+				subscriptionsQuery,
+				defaultSubscriptionSuggestionsCount,
+				&sort,
+				nil,
+			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription suggestions.",
 					slog.Any("error", err))
 			}
 			if len(subscriptions) > 0 {
-				err := models.AddSubscriptionDynamicInfo(jobCtx, api, subscriptions)
+				err = models.AddSubscriptionDynamicInfo(jobCtx, api, subscriptions)
 				if err != nil {
 					slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription dynamic data.",
 						slog.Any("error", err))
@@ -83,7 +95,13 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 
 		// Generate article suggestions.
 		fetchJobs.Go(func() error {
-			allSubscriptions, err := api.GetAllSubscriptions(jobCtx, query.MatchAll())
+			var allSubscriptions models.Subscriptions
+			subscriptionQuery := query.Bool(
+				query.Filter(
+					query.Term("user_id", user.GetID()),
+				),
+			)
+			allSubscriptions, err = api.GetAllSubscriptions(jobCtx, subscriptionQuery)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get all subscriptions.",
 					slog.Any("error", err))
@@ -105,7 +123,8 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 					),
 				),
 			)
-			itemResults, _, err := api.SearchItems(jobCtx, itemsQuery, 10, &sort, nil)
+			var itemResults models.Items
+			itemResults, _, err = api.SearchItems(jobCtx, itemsQuery, defaultArticleSuggestionsCount, &sort, nil)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get article suggestions.",
 					slog.Any("error", err))
@@ -162,9 +181,13 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		ctx := models.SearchRequestToCtx(req.Context(), *request)
 		// If the search request has subscription filters, get subscription details.
 		if len(request.Subscriptions) > 0 {
-			subscriptions, err := models.GetSubscriptions(req.Context(), api, request.Subscriptions...)
+			var subscriptions models.Subscriptions
+			subscriptions, err = models.GetSubscriptions(req.Context(), api, request.Subscriptions...)
 			if err != nil {
-				msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+				msg := models.NewErrorMessage(
+					"Unable to process request",
+					"This might be a temporary issue, please try again.",
+				)
 				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
 				return models.NewAPIError(
 					fmt.Errorf("unable to retrieve subscriptions: %w", err),
@@ -173,7 +196,10 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			}
 			err = models.AddSubscriptionDynamicInfo(req.Context(), api, subscriptions)
 			if err != nil {
-				msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+				msg := models.NewErrorMessage(
+					"Unable to process request",
+					"This might be a temporary issue, please try again.",
+				)
 				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
 				return models.NewAPIError(
 					fmt.Errorf("unable to retrieve subscriptions: %w", err),
@@ -186,7 +212,10 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		// Retrieve the user object.
 		user := models.UserFromCtx(ctx)
 		if user == nil {
-			msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+			msg := models.NewErrorMessage(
+				"Unable to process request",
+				"This might be a temporary issue, please try again.",
+			)
 			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve subscriptions: %w", models.ErrNoUserCtx),
@@ -198,16 +227,28 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		var articles models.Articles
 		query, err := models.BuildSearchResultsQuery(ctx, api, user, request)
 		if err != nil {
-			msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+			msg := models.NewErrorMessage(
+				"Unable to process request",
+				"This might be a temporary issue, please try again.",
+			)
 			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve subscriptions: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
-		itemResults, pagination, err := api.SearchItems(ctx, query, 15, &request.Sort, &pagination)
+		itemResults, pagination, err := api.SearchItems(
+			ctx,
+			query,
+			defaultArticleResultsCount,
+			&request.Sort,
+			&pagination,
+		)
 		if err != nil {
-			msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+			msg := models.NewErrorMessage(
+				"Unable to process request",
+				"This might be a temporary issue, please try again.",
+			)
 			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve subscriptions: %w", err),
@@ -217,7 +258,10 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		if len(itemResults) > 0 {
 			articles, err = models.GenerateArticles(ctx, api, itemResults)
 			if err != nil {
-				msg := models.NewErrorMessage("Unable to process request", "This might be a temporary issue, please try again.")
+				msg := models.NewErrorMessage(
+					"Unable to process request",
+					"This might be a temporary issue, please try again.",
+				)
 				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
 				return models.NewAPIError(
 					fmt.Errorf("unable to retrieve subscriptions: %w", err),
@@ -226,26 +270,26 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			}
 		}
 
-		if strings.HasSuffix(chi.RouteContext(ctx).RoutePattern(), "/paginate") { //nolint:nestif
+		if strings.HasSuffix(chi.RouteContext(ctx).RoutePattern(), "/paginate") {
 			if len(articles) > 0 {
 				renderPartial(templates.SearchResults(articles, pagination)).ServeHTTP(res, req.WithContext(ctx))
 			} else {
 				res.WriteHeader(http.StatusNoContent)
 			}
-		} else {
-			var template templ.Component
-			if len(articles) > 0 {
-				// Pagination request, just display next set of results.
-				template = templates.SearchResultsGrid(request, articles, pagination)
-			} else {
-				template = templates.NoSearchResults()
-			}
-			if IsHTMX(req) {
-				template = templ.Join(template, templates.SearchFilters(templ.Attributes{"hx-swap-oob": "true"}))
-			}
-			res.Header().Add(htmx.HeaderPushURL, "/search?"+request.Query())
-			renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
+			return nil
 		}
+		var template templ.Component
+		if len(articles) > 0 {
+			// Pagination request, just display next set of results.
+			template = templates.SearchResultsGrid(request, articles, pagination)
+		} else {
+			template = templates.NoSearchResults()
+		}
+		if IsHTMX(req) {
+			template = templ.Join(template, templates.SearchFilters(templ.Attributes{"hx-swap-oob": "true"}))
+		}
+		res.Header().Add(htmx.HeaderPushURL, "/search?"+request.Query())
+		renderPage(template, templates.GeneratePageTitle("Search Results")).ServeHTTP(res, req.WithContext(ctx))
 
 		return nil
 	})).ServeHTTP

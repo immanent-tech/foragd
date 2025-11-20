@@ -44,9 +44,16 @@ func ShowDisplaySettings() http.HandlerFunc {
 		if user == nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to show display settings", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to show display settings",
+						"This might be a temporary error, please try again.",
+					),
+				),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				http.StatusInternalServerError,
+			)
 		}
 		renderPartial(templates.DisplaySettings(user)).ServeHTTP(res, req)
 		return nil
@@ -60,9 +67,16 @@ func ShowAccountSettings() http.HandlerFunc {
 		if user == nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to show account settings", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to show account settings",
+						"This might be a temporary error, please try again.",
+					),
+				),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				http.StatusInternalServerError,
+			)
 		}
 		renderPartial(templates.AccountSettings(user)).ServeHTTP(res, req)
 		return nil
@@ -78,25 +92,42 @@ func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to save account settings", "Data is invalid."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("save display settings: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("save display settings: %w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to save account settings",
+						"This might be a temporary error, please try again.",
+					),
+				),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("save display settings: get user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("save display settings: get user data: %w", models.ErrNoUserCtx),
+				http.StatusInternalServerError,
+			)
 		}
 		// Update local user object.
 		err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": request})
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to save account settings",
+						"This might be a temporary error, please try again.",
+					),
+				),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("save account settings: update elastic: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("save account settings: update elastic: %w", err),
+				http.StatusInternalServerError,
+			)
 		}
 		// Report success.
 		msg := models.NewSuccessMessage("Account edits saved!", "")
@@ -115,16 +146,26 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to save account settings", "Data is invalid."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("save account settings: %w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("save account settings: %w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to save account settings",
+						"This might be a temporary error, please try again.",
+					),
+				),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("save account settings: get user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("save account settings: get user data: %w", models.ErrNoUserCtx),
+				http.StatusInternalServerError,
+			)
 		}
 		// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
 		updates := make(map[string]any)
@@ -150,18 +191,32 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 		if err != nil || !valid {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to save account settings",
+						"This might be a temporary error, please try again.",
+					),
+				),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("save account settings: update auth0: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("save account settings: update auth0: %w", err),
+				http.StatusInternalServerError,
+			)
 		}
 		// Update local user object.
 		err = api.UpdateUser(req.Context(), user.GetID(), updates)
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save account settings", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to save account settings",
+						"This might be a temporary error, please try again.",
+					),
+				),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("save account settings: update elastic: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("save account settings: update elastic: %w", err),
+				http.StatusInternalServerError,
+			)
 		}
 		// Report success.
 		msg := models.NewSuccessMessage("Account edits saved!", "")
@@ -179,14 +234,21 @@ func ChangePassword(api *elastic.API) http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to change password", "Data is invalid."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		// Update on backend.
 		err = auth0.ChangeUserPassword(req.Context(), request)
 		if err != nil || !valid {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to change password", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to change password",
+						"This might be a temporary error, please try again.",
+					),
+				),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
 		}
@@ -207,7 +269,10 @@ func (a *API) SetTheme() http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to set theme", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				http.StatusInternalServerError,
+			)
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
@@ -217,7 +282,11 @@ func (a *API) SetTheme() http.HandlerFunc {
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to set theme", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to set theme",
+						"This might be a temporary error, please try again.",
+					),
+				),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
 		}
@@ -235,15 +304,25 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite subscription", "Data is invalid."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		// Get the subscription state.
 		err = models.UpdateFavoriteSubscription(req.Context(), a.Elastic, id, true)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite subscription", "This might be a temporary error, please try again.")),
+				models.NewErrorMessage(
+					"Unable to add favorite subscription",
+					"This might be a temporary error, please try again.",
+				),
+			),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user object: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("unable to update user object: %w", err),
+				http.StatusInternalServerError,
+			)
 		}
 		// Update the display.
 		renderPartial(templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), true)).ServeHTTP(res, req)
@@ -260,12 +339,19 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite subscription", "Data is invalid."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		err = models.UpdateFavoriteSubscription(req.Context(), a.Elastic, id, false)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite subscription", "This might be a temporary error, please try again.")),
+				models.NewErrorMessage(
+					"Unable to remove favorite subscription",
+					"This might be a temporary error, please try again.",
+				),
+			),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
 		}
@@ -294,19 +380,33 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite article", "Data is invalid."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite article", "This might be a temporary error, please try again.")),
+				models.NewErrorMessage(
+					"Unable to add favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				http.StatusInternalServerError,
+			)
 		}
 		err = models.UpdateFavoriteArticle(req.Context(), a.Elastic, user, id, true)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to add favorite article", "This might be a temporary error, please try again.")),
+				models.NewErrorMessage(
+					"Unable to add favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to archive article: %w", err), http.StatusInternalServerError)
 		}
@@ -334,19 +434,33 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite article", "Data is invalid."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite article", "This might be a temporary error, please try again.")),
+				models.NewErrorMessage(
+					"Unable to remove favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				http.StatusInternalServerError,
+			)
 		}
 		err = models.UpdateFavoriteArticle(req.Context(), a.Elastic, user, id, false)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to remove favorite article", "This might be a temporary error, please try again.")),
+				models.NewErrorMessage(
+					"Unable to remove favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("unable to archive article: %w", err), http.StatusInternalServerError)
 		}
@@ -378,23 +492,41 @@ func (a *API) DeleteUser() http.HandlerFunc {
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
 				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to delete account", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to delete account",
+						"This might be a temporary error, please try again.",
+					),
+				),
 				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
+				return models.NewAPIError(
+					fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+					http.StatusInternalServerError,
+				)
 			}
 			// Delete account on the backend.
 			err := auth0.DeleteUser(req.Context(), user)
 			if err != nil {
 				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to delete account", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to delete account",
+						"This might be a temporary error, please try again.",
+					),
+				),
 				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to delete account in auth backend: %w", err), http.StatusInternalServerError)
+				return models.NewAPIError(
+					fmt.Errorf("unable to delete account in auth backend: %w", err),
+					http.StatusInternalServerError,
+				)
 			}
 			// Delete account locally.
 			err = a.DataAPI().DeleteUser(req.Context(), user.GetID())
 			if err != nil {
 				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to delete account", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to delete account",
+						"This might be a temporary error, please try again.",
+					),
+				),
 				).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable to delete user: %w", err), http.StatusInternalServerError)
 			}
@@ -402,9 +534,16 @@ func (a *API) DeleteUser() http.HandlerFunc {
 			err = session.Manager.Destroy(req.Context())
 			if err != nil {
 				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to delete account", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to delete account",
+						"This might be a temporary error, please try again.",
+					),
+				),
 				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to delete user sessions: %w", err), http.StatusInternalServerError)
+				return models.NewAPIError(
+					fmt.Errorf("unable to delete user sessions: %w", err),
+					http.StatusInternalServerError,
+				)
 			}
 			res.Header().Add(htmx.HeaderRedirect, "/")
 		}
@@ -428,15 +567,15 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add feedset", "Data is invalid."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		// Process requested feedsets and generate subscription requests.
 		var subscriptionRequests []*models.AddFeedSubscriptionRequest
 		for set := range slices.Values(request.Feedset) {
-			var (
-				data []byte
-				err  error
-			)
+			var data []byte
 			switch set {
 			case "enlightened":
 				data, err = static.ReadFile("content/opml/enlightened.opml")
@@ -452,19 +591,33 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to add feedset", "This might be a temporary issue, please try again."),
+					models.NewErrorMessage(
+						"Unable to add feedset",
+						"This might be a temporary issue, please try again.",
+					),
 				)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to read feedset file: %w", err), http.StatusInternalServerError)
+				return models.NewAPIError(
+					fmt.Errorf("unable to read feedset file: %w", err),
+					http.StatusInternalServerError,
+				)
 			}
 			opmlImport, err := opml.NewOPMLFromBytes(data)
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to add feedset", "This might be a temporary issue, please try again."),
+					models.NewErrorMessage(
+						"Unable to add feedset",
+						"This might be a temporary issue, please try again.",
+					),
 				)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("to generate OPML import: %w", err), http.StatusInternalServerError)
+				return models.NewAPIError(
+					fmt.Errorf("to generate OPML import: %w", err),
+					http.StatusInternalServerError,
+				)
 			}
-			subscriptionRequests = append(subscriptionRequests, models.GenerateRequestsFromOutlines(opmlImport.Body...)...)
+			subscriptionRequests = append(
+				subscriptionRequests,
+				models.GenerateRequestsFromOutlines(opmlImport.Body...)...)
 		}
 		// Process requests.
 		resultsCh := make(chan models.AddFeedSubscriptionResult)
@@ -534,7 +687,10 @@ func SubmitPageIssues(esapi *API) http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		// Create the issue in Github.
 		err = github.Connect()
@@ -543,7 +699,10 @@ func SubmitPageIssues(esapi *API) http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to connect to github: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("unable to connect to github: %w", err),
+				http.StatusInternalServerError,
+			)
 		}
 		err = github.CreateIssue(req.Context(), request)
 		if err != nil {
@@ -551,14 +710,20 @@ func SubmitPageIssues(esapi *API) http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		// Force refresh of page.
 		msg := models.NewErrorMessage(
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
-		renderPage(templates.IssueReportedConfirmation(msg), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+		renderPage(
+			templates.IssueReportedConfirmation(msg),
+			templates.GeneratePageTitle("Report subscription issue"),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
