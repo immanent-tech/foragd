@@ -14,14 +14,14 @@ templ header(user *models.User) {
 	<header class="sticky w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30 lg:pl-36">
 		<div class="flex flex-1 mx-auto items-center">
 			// Show small logo on mobile.
-			<div class="flex flex-col lg:hidden h-16 shrink-0 mt-8 items-center text-accent mx-2">
+			<div class="flex flex-col lg:hidden h-16 shrink-0 mt-8 items-center text-primary mx-2">
 				@LogoSmall("size-8")
 			</div>
 			// Global search bar.
 			<div class="flex flex-1 justify-center">
 				<el-command-palette class="grid w-full sm:max-w-3xl">
-					<label for="global-search" class="w-full sm:max-w-3xl input input-accent text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10">
-						@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-accent"})
+					<label for="global-search" class="w-full sm:max-w-3xl input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10">
+						@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
 						<form
 							hx-trigger="input changed delay:300ms"
 							hx-post="/search/suggestions"
@@ -47,7 +47,7 @@ templ header(user *models.User) {
 							commandfor="search-filters-dialog"
 							tabindex="0"
 						>
-							@tabler.Filter(i.Props{Class: "flex-none text-accent"})
+							@tabler.Filter(i.Props{Class: "flex-none text-primary"})
 						</button>
 					</label>
 					// _="on keydown[key is 'Escape'] add @hidden end on click from elsewhere add .hidden end"

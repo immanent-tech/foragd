@@ -148,7 +148,7 @@ templ ArticleCard(article *models.Article) {
 								WithCustomAttribute("href", article.GetLink()),
 								WithCustomAttribute("target", "_blank"),
 								WithCustomAttribute("rel", "noopener"),
-								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
+								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
 							) {
 								@tabler.ExternalLink(i.Props{Class: "size-4"})
 								Go To Article
@@ -229,7 +229,7 @@ templ ArticleContent(article *models.Article) {
 						WithCustomAttribute("href", article.GetLink()),
 						WithCustomAttribute("target", "_blank"),
 						WithCustomAttribute("rel", "noopener"),
-						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-accent", "focus:outline-hidden"),
+						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 					) {
 						<h2 class="page-title">{ article.GetTitle() }</h2>
 					}
@@ -247,7 +247,7 @@ templ ArticleContent(article *models.Article) {
 								WithHXTarget(ContentID.Target()),
 								WithHXInclude("#content-filters,[name='csrf_token']"),
 								WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
-								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
+								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
 							) {
 								@tabler.FileDownloadFilled(i.Props{Class: "size-4"})
 								if article.IsRemoteContent() {
@@ -261,7 +261,7 @@ templ ArticleContent(article *models.Article) {
 								WithCustomAttribute("href", article.GetLink()),
 								WithCustomAttribute("target", "_blank"),
 								WithCustomAttribute("rel", "noopener"),
-								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
+								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
 							) {
 								@tabler.ExternalLink(i.Props{Class: "size-4"})
 								Go To Article
@@ -282,7 +282,7 @@ templ ArticleContent(article *models.Article) {
 							@NewLink(
 								WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
 								WithHXTarget(ContentID.Target()),
-								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
+								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
 							) {
 								@tabler.FlagFilled(i.Props{Class: "size-4"})
 								Report An Issue
@@ -345,7 +345,7 @@ templ UpdateViewArticleMark(id string, isUnread bool) {
 		WithHXMethod(http.MethodPost, markURL),
 		WithHXTarget("#mark_"+id),
 		WithHXInclude("[name='csrf_token']"),
-		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
+		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
 	) {
 		switch isUnread {
 			case true:
@@ -371,7 +371,7 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 		WithHXTarget("#favorite_"+id),
 		WithHXInclude("[name='csrf_token']"),
 		WithHXVals(map[string]any{"display": "content"}),
-		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-accent", "focus:outline-hidden"),
+		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
 	) {
 		switch isFavorite {
 			case true:

@@ -68,7 +68,7 @@ templ (page *Home) Template() {
 										WithHXPushURL(),
 									) {
 										<div class="flex gap-2 text-sm capitalize">
-											<div class="badge badge-accent">
+											<div class="badge badge-secondary">
 												{ category.Category+ " "+ strconv.Itoa(category.Count) }
 											</div>
 										</div>
@@ -111,7 +111,7 @@ templ (page *Home) Template() {
 												WithCustomAttribute("tabindex", "0"),
 											) {
 												<div class="flex gap-2 text-sm capitalize">
-													<div class="badge badge-accent">
+													<div class="badge badge-secondary">
 														{ category.Category+ " "+ strconv.Itoa(category.Count) }
 													</div>
 												</div>

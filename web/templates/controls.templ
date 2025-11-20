@@ -30,7 +30,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 				<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl">
 					<div class="flex items-center justify-between px-4">
 						<h2 class="text-lg font-medium">Filters</h2>
-						<button type="button" command="close" commandfor="mobile-filters-menu" class="relative -mr-2 flex size-10 items-center justify-center rounded-md  p-2 hover:bg-accent/50 focus:ring-2 focus:ring-accent focus:outline-hidden">
+						<button type="button" command="close" commandfor="mobile-filters-menu" class="relative -mr-2 flex size-10 items-center justify-center rounded-md  p-2">
 							<span class="absolute -inset-0.5"></span>
 							<span class="sr-only">Close menu</span>
 							@tabler.X(i.Props{Class: "size-6"})
@@ -91,7 +91,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 									{{ var onlyFavoritesActiveClass string }}
 									{{ overrides := make(map[string]any) }}
 									if filters.OnlyFavorites {
-										{{ onlyFavoritesActiveClass = "text-accent font-semibold" }}
+										{{ onlyFavoritesActiveClass = "text-primary font-semibold" }}
 										{{ overrides[models.ParamOnlyFavorites] = "false" }}
 									}
 									@NewLink(
@@ -101,7 +101,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 										WithHXVals(overrides),
 										WithHXPushURL(),
 										WithHXVals(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
-										WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
+										WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
 									) {
 										Only Favorites
 									}
@@ -163,7 +163,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 												hx-trigger="click"
 												hx-vals={ models.GenerateHXVals(filters.Values()) }
 												hx-params="not categories"
-												class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-accent focus:outline-hidden capitalize"
+												class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize"
 											>
 												@tabler.X(i.Props{Class: "size-4"})
 												Clear
@@ -189,7 +189,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 									<div class="py-1">
 										{{ var onlyFavoritesActiveClass string }}
 										if filters.OnlyFavorites {
-											{{ onlyFavoritesActiveClass = "text-accent font-semibold" }}
+											{{ onlyFavoritesActiveClass = "text-primary font-semibold" }}
 										}
 										@NewLink(
 											WithHXMethod(http.MethodGet, path),
@@ -197,7 +197,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 											WithHXTarget(ContentID.Target()),
 											WithHXPushURL(),
 											WithHXVals(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
-											WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
+											WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
 										) {
 											Only Favorites
 										}
@@ -205,20 +205,6 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 								}
 							</el-menu>
 						</el-dropdown>
-						// // View filter.
-						// @filtersButton("desktop-filters-menu-view") {
-						// 	<span class="sr-only">View Filters</span>
-						// 	View
-						// 	@tabler.ChevronDown(i.Props{Class: "-mr-1 ml-1 size-5 shrink-0"})
-						// }
-						// @filtersMenu("desktop-filters-menu-view", "bottom end") {
-						// 	<fieldset>
-						// 		<div class="space-y-4">
-						// 		</div>
-						// 	</fieldset>
-						// }
-						// </div>
-						// </el-popover-group>
 					</div>
 				</div>
 			</div>
@@ -233,16 +219,16 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 				<div class="mt-2 sm:mt-0 sm:ml-4">
 					<div class="-m-1 flex flex-wrap items-center">
 						// Show view filter badge indicator.
-						<div class="badge badge-accent m-1 capitalize">
+						<div class="badge badge-secondary m-1 capitalize">
 							{ filters.GetView() }
 						</div>
 						// Show sort filter badge indicator.
-						<div class="badge badge-accent m-1 capitalize">
+						<div class="badge badge-secondary m-1 capitalize">
 							{ filters.GetSort().String() }
 						</div>
 						// Add favorites filter badge if listing subscriptions and favorites filter is active.
 						if chi.RouteContext(ctx).URLParam(models.ParamListType) == "subscriptions" && filters.OnlyFavorites {
-							<div class="badge badge-accent badge-soft m-1">
+							<div class="badge badge-secondary badge-soft m-1">
 								Favorites
 								<button
 									hx-get={ models.PathFromCtx(ctx) }
@@ -264,16 +250,6 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 					</div>
 				</div>
 			</div>
-			// 	<input
-			// 		type="text"
-			// 		placeholder="Search Quotes..."
-			// 		_="on keyup
-			//  if the event's key is 'Escape'
-			//    set my value to ''
-			//    trigger keyup
-			//  else
-			//   show <li/> in #grid-objects when the textContent of its id contains my value"
-			// 	/>
 		</div>
 	</section>
 }
@@ -282,7 +258,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 templ viewFilter(path, id string, view models.View, current models.View) {
 	{{ var class string }}
 	if view == current {
-		{{ class = "text-accent font-semibold" }}
+		{{ class = "text-primary font-semibold" }}
 	}
 	@NewLink(
 		WithHXMethod(http.MethodGet, path),
@@ -291,7 +267,7 @@ templ viewFilter(path, id string, view models.View, current models.View) {
 		WithHXPushURL(),
 		WithHXVals(map[string]any{models.ParamView: string(view)}),
 		WithID(id),
-		WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", class),
+		WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
 	) {
 		{ string(view) }
 	}
@@ -302,7 +278,7 @@ templ categoryFilter(path, id string, category models.CategoryCount, current mod
 	{{ var class string }}
 	{{ overrides := make(map[string]any) }}
 	if current.HasCategory(category.Category) {
-		{{ class = "text-accent font-semibold" }}
+		{{ class = "text-primary font-semibold" }}
 	} else {
 		{{ overrides[models.ParamCategories] = category.Category }}
 	}
@@ -313,14 +289,14 @@ templ categoryFilter(path, id string, category models.CategoryCount, current mod
 		WithHXPushURL(),
 		WithHXVals(overrides),
 		WithID(id),
-		WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", class),
+		WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
 	) {
 		{ string(category.Category) }
 	}
 }
 
 templ activeCategoryFilterBadge(category models.Category) {
-	<div class="badge badge-accent badge-soft m-1">
+	<div class="badge badge-secondary m-1">
 		{ category }
 		<button
 			hx-get={ models.PathFromCtx(ctx) }
@@ -332,21 +308,12 @@ templ activeCategoryFilterBadge(category models.Category) {
 			@tabler.X(i.Props{Class: "size-4"})
 		</button>
 	</div>
-	// <span class="m-1 inline-flex items-center rounded-full border border-gray-200 bg-white py-1.5 pr-2 pl-3 text-sm font-medium text-gray-900">
-	// 	<span>Objects</span>
-	// 	<button type="button" class="ml-1 inline-flex size-4 shrink-0 rounded-full p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-500">
-	// 		<span class="sr-only">Remove filter for Objects</span>
-	// 		<svg viewBox="0 0 8 8" fill="none" stroke="currentColor" class="size-2">
-	// 			<path d="M1 1l6 6m0-6L1 7" stroke-width="1.5" stroke-linecap="round"></path>
-	// 		</svg>
-	// 	</button>
-	// </span>
 }
 
 templ sortOption(path string, sort models.Sort, current models.Sort) {
 	{{ var class string }}
 	if current == sort {
-		{{ class = "text-accent font-semibold" }}
+		{{ class = "text-primary font-semibold" }}
 	}
 	@NewLink(
 		WithHXMethod(http.MethodGet, path),
@@ -355,7 +322,7 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 		WithHXPushURL(),
 		WithHXVals(map[string]any{models.ParamSort: string(sort)}),
 		WithID(string(sort)),
-		WithClasses("flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-accent", "focus:outline-hidden", "capitalize", class),
+		WithClasses("flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
 	) {
 		switch sort {
 			case models.SortNewestFirst:

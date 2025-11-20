@@ -229,7 +229,7 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 							hx-post="/list/articles/mark"
 							hx-target={ ContentID.Target() }
 							hx-include="#grid-objects,[name='csrf_token']"
-							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-accent focus:outline-hidden"
+							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
 						>
 							@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 							<span class="sr-only">Mark All Read</span>
@@ -244,7 +244,7 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 							hx-post="/list/articles/mark"
 							hx-target={ ContentID.Target() }
 							hx-include="#grid-objects,[name='csrf_token']"
-							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-accent focus:outline-hidden"
+							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
 						>
 							@tabler.MailFilled(i.Props{Class: "size-4"})
 							<span class="sr-only">Mark All Unread</span>
@@ -271,7 +271,7 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 								WithHXTarget(ContentID.Target()),
 								WithHXInclude("#search-filters"),
 								WithHXPushURL(),
-								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-accent", "focus:outline-hidden"),
+								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-primary", "focus:outline-hidden"),
 							) {
 								@tabler.Plus(i.Props{Class: "size-4"})
 								Add Subscription
@@ -518,13 +518,13 @@ templ SearchFilters(attributes templ.Attributes) {
 			<div class="mt-6 flex items-center justify-end gap-x-6">
 				<button
 					type="button"
-					class="btn btn-sm btn-seconday btn-soft hover:btn-error"
+					class="btn btn-sm btn-seconday hover:btn-error"
 					command="close"
 					commandfor="search-filters-dialog"
 				>Cancel</button>
 				<button
 					type="submit"
-					class="btn btn-sm btn-primary btn-soft"
+					class="btn btn-sm btn-primary"
 					_="on click call #search-filters-dialog.close()"
 				>Search</button>
 			</div>

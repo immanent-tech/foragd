@@ -48,7 +48,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "><div class=\"flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4\"><div class=\"flex flex-row shrink-0 p-2 items-center text-accent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "><div class=\"flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4\"><div class=\"flex flex-row shrink-0 p-2 items-center text-primary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -60,7 +60,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 = []any{"group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"}
+		var templ_7745c5c3_Var2 = []any{"group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -121,7 +121,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
-			WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+			WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -161,7 +161,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
-			WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+			WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -200,7 +200,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 			WithHXMethod(http.MethodGet, "/list/favorites"),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
-			WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+			WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

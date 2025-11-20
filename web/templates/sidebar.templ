@@ -13,7 +13,7 @@ import (
 templ SideBar(attributes templ.Attributes) {
 	<div id="page-sidebar" class="hidden bg-base-200 border-r border-base-content/30 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col" { attributes... }>
 		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4">
-			<div class="flex flex-row shrink-0 p-2 items-center text-accent">
+			<div class="flex flex-row shrink-0 p-2 items-center text-primary">
 				@LogoSmall("flex size-16")
 				<p class="font-bold">Foragd</p>
 			</div>
@@ -23,7 +23,7 @@ templ SideBar(attributes templ.Attributes) {
 						<a
 							href="/home"
 							tabindex="0"
-							class={ "group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center" }
+							class={ "group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center" }
 						>
 							// templ.KV("border-b-4",models.PathFromCtx(ctx)=="/home")
 							<span class="sr-only">Go to Home Page</span>
@@ -37,7 +37,7 @@ templ SideBar(attributes templ.Attributes) {
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
 							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
-							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+							WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 						) {
 							<span class="sr-only">Go to Subscriptions</span>
 							@tabler.Rss(i.Props{Class: "size-6 shrink-0 text-current"})
@@ -50,7 +50,7 @@ templ SideBar(attributes templ.Attributes) {
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
 							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
-							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+							WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 						) {
 							<span class="sr-only">Go to Articles</span>
 							@tabler.FileRss(i.Props{Class: "size-6 shrink-0 text-current"})
@@ -62,7 +62,7 @@ templ SideBar(attributes templ.Attributes) {
 							WithHXMethod(http.MethodGet, "/list/favorites"),
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
-							WithClasses("group link link-hover hover:text-accent flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
+							WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 						) {
 							<span class="sr-only">Go to Favorites</span>
 							@tabler.HeartFilled(i.Props{Class: "size-6 shrink-0 text-current"})

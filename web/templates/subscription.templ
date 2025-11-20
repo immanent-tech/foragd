@@ -62,7 +62,7 @@ templ SubscriptionCard(s *models.Subscription) {
 								WithHXVals(filters),
 							) {
 								<div class="flex gap-2 capitalize">
-									<div class="badge badge-accent badge-sm">{ category }</div>
+									<div class="badge badge-secondary badge-sm">{ category }</div>
 								</div>
 							}
 						}
@@ -191,7 +191,7 @@ templ subscriptionHeading(s *models.Subscription) {
 			} else {
 				{{ view = models.ViewRead }}
 			}
-			@viewFeedSubscriptionLink(s.GetID(), view, "flex", "items-center", "gap-x-4", "hover:text-accent") {
+			@viewFeedSubscriptionLink(s.GetID(), view, "flex", "items-center", "gap-x-4") {
 				<div class="flex items-center">
 					<div class="mr-4 shrink-0 self-center">
 						// Generate a thumbnail to display next to the title.
