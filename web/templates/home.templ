@@ -90,11 +90,11 @@ templ (page *Home) Template() {
 										if img := article.GetImage(); img != nil {
 											<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
 												<img
-													src={ "/img-proxy/300x200/" + img.GetURL() }
+													src={ "/img-proxy/400x300/" + img.GetURL() }
 													if img.GetTitle() != "" {
 														alt={ article.GetImage().GetTitle() }
 													}
-													class="h-32 sm:w-32 w-full object-cover rounded-box border border-base-content"
+													class="h-48 sm:w-48 w-full object-cover rounded-box border border-base-content"
 												/>
 											</div>
 										}
