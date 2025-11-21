@@ -50,7 +50,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				}
 				// Get subscriptions matching filters.
 				subscriptions, pagination, err := api.FilterSubscriptions(req.Context(), filters, pagination)
-				if err != nil && !errors.Is(err, models.ErrNotFound) {
+				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 					msg := models.NewErrorMessage(
 						"Server could not complete request!",
 						"This might be temporary, please try again.",
@@ -82,7 +82,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 			case "articles":
 				// Get articles matching filters.
 				articles, pagination, err := api.FilterArticles(req.Context(), filters, pagination)
-				if err != nil && !errors.Is(err, models.ErrNotFound) {
+				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 					msg := models.NewErrorMessage(
 						"Server could not complete request!",
 						"This might be temporary, please try again.",
@@ -165,14 +165,17 @@ func listFavorites(ctx context.Context, api *elastic.API) (templ.Component, erro
 
 	// Get favorite articles.
 	if len(user.ItemFavorites) > 0 {
-		articles, err = models.GetArticles(ctx, api, user.ItemFavorites...)
+		articles, err = api.GetArticles(ctx, user.ItemFavorites...)
 		if err != nil {
 			return nil, fmt.Errorf("list favorites: get favorite articles: %w", err)
 		}
 	}
 
 	// Get favorite subscriptions.
-	subscriptions, err = api.GetFavoriteSubscriptions(ctx)
+	subscriptions, err = api.GetSubscriptions(ctx,
+		elastic.FilterSubscriptionsByFavorite(true),
+		elastic.AddSubscriptionDynamicInfo(true),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
 	}

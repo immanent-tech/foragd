@@ -93,13 +93,13 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	}
 	data.User = user
 
-	subscriptions, err := a.Elastic.GetAllSubscriptions(ctx)
+	subscriptions, err := a.Elastic.GetSubscriptions(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("filter articles: get subscriptions: %w", err)
 	}
 	// Return early if there the user has no subscriptions (i.e., new user).
 	if len(subscriptions) == 0 {
-		return nil, models.ErrNotFound
+		return nil, elastic.ErrNotFound
 	}
 
 	data.SubscriptionsCount = len(subscriptions)
@@ -122,12 +122,12 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
 	}
-	data.LatestArticles, err = models.GenerateArticles(ctx, a.DataAPI(), latestItems)
-	if err != nil && !errors.Is(err, models.ErrNotFound) {
+	data.LatestArticles, err = a.Elastic.GenerateArticles(ctx, latestItems)
+	if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 		return nil, fmt.Errorf("unable to generate articles: %w", err)
 	}
 
-	if errors.Is(err, models.ErrNotFound) {
+	if errors.Is(err, elastic.ErrNotFound) {
 		return data, nil
 	}
 
@@ -223,7 +223,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 						continue
 					}
 					var articles models.Articles
-					if articles, err = models.GenerateArticles(ctx, a.DataAPI(), items); err != nil {
+					if articles, err = a.Elastic.GenerateArticles(ctx, items); err != nil {
 						continue
 					}
 					data.TopArticles = append(data.TopArticles, articles...)

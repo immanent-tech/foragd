@@ -39,7 +39,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 		}
 		switch params.Object {
 		case models.ObjectTypeArticle:
-			articles, err := models.GetArticles(req.Context(), api, params.ObjectID)
+			articles, err := api.GetArticles(req.Context(), params.ObjectID)
 			if err != nil {
 				msg := models.NewErrorMessage(
 					"Server could not complete request!",

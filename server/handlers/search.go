@@ -96,7 +96,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 		// Generate article suggestions.
 		fetchJobs.Go(func() error {
 			var allSubscriptions models.Subscriptions
-			allSubscriptions, err = api.GetAllSubscriptions(jobCtx)
+			allSubscriptions, err = api.GetSubscriptions(jobCtx)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get all subscriptions.",
 					slog.Any("error", err))
@@ -125,7 +125,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 					slog.Any("error", err))
 			}
 			if len(itemResults) > 0 {
-				articles, err = models.GenerateArticles(jobCtx, api, itemResults)
+				articles, err = api.GenerateArticles(jobCtx, itemResults)
 				if err != nil {
 					slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get article suggestions.",
 						slog.Any("error", err))
@@ -177,19 +177,10 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		// If the search request has subscription filters, get subscription details.
 		if len(request.Subscriptions) > 0 {
 			var subscriptions models.Subscriptions
-			subscriptions, err = api.GetSubscriptionsByIDs(req.Context(), request.Subscriptions...)
-			if err != nil {
-				msg := models.NewErrorMessage(
-					"Unable to process request",
-					"This might be a temporary issue, please try again.",
-				)
-				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to retrieve subscriptions: %w", err),
-					http.StatusInternalServerError,
-				)
-			}
-			err = api.AddSubscriptionDynamicInfo(req.Context(), subscriptions)
+			subscriptions, err = api.GetSubscriptions(req.Context(),
+				elastic.FilterSubscriptionsByIDs(request.Subscriptions...),
+				elastic.AddSubscriptionDynamicInfo(true),
+			)
 			if err != nil {
 				msg := models.NewErrorMessage(
 					"Unable to process request",
@@ -251,7 +242,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			)
 		}
 		if len(itemResults) > 0 {
-			articles, err = models.GenerateArticles(ctx, api, itemResults)
+			articles, err = api.GenerateArticles(ctx, itemResults)
 			if err != nil {
 				msg := models.NewErrorMessage(
 					"Unable to process request",
@@ -338,11 +329,11 @@ func GetSubscriptionFilterSuggestions(api *elastic.API) http.HandlerFunc {
 			return
 		}
 		subscriptions, err := api.GetSubscriptionSuggestions(req.Context(), text)
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
+		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if errors.Is(err, models.ErrNotFound) {
+		if errors.Is(err, elastic.ErrNotFound) {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}

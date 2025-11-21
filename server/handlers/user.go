@@ -310,7 +310,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			)
 		}
 		// Get the subscription state.
-		err = models.UpdateFavoriteSubscription(req.Context(), a.Elastic, id, true)
+		err = a.Elastic.UpdateFavoriteSubscription(req.Context(), id, true)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
@@ -344,7 +344,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
-		err = models.UpdateFavoriteSubscription(req.Context(), a.Elastic, id, false)
+		err = a.Elastic.UpdateFavoriteSubscription(req.Context(), id, false)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
@@ -399,7 +399,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 				http.StatusInternalServerError,
 			)
 		}
-		err = models.UpdateFavoriteArticle(req.Context(), a.Elastic, user, id, true)
+		err = a.Elastic.UpdateFavoriteArticle(req.Context(), user, id, true)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
@@ -453,7 +453,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 				http.StatusInternalServerError,
 			)
 		}
-		err = models.UpdateFavoriteArticle(req.Context(), a.Elastic, user, id, false)
+		err = a.Elastic.UpdateFavoriteArticle(req.Context(), user, id, false)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(

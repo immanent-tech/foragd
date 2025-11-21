@@ -47,7 +47,10 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to mark article", "This might be a temporary issue, please try again."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 
 		// Mark articles.
@@ -57,7 +60,11 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				renderPartial(
 					templates.ServerErrorNotification(
-						models.NewErrorMessage("Unable to mark objects", "This might be a temporary error, please try again.")),
+						models.NewErrorMessage(
+							"Unable to mark objects",
+							"This might be a temporary error, please try again.",
+						),
+					),
 				).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
 			}
@@ -72,7 +79,7 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 			} else {
 				res.Header().Add(htmx.HeaderReswap, "outerHTML transition:true")
 				// Get updated article.
-				articles, err := models.GetArticles(req.Context(), api, itemID)
+				articles, err := api.GetArticles(req.Context(), itemID)
 				if err != nil || len(articles) == 0 || len(articles) > 1 {
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(
@@ -101,11 +108,25 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 		// Decode request parameters.
 		request, valid, err := forms.DecodeForm[*models.MarkArticlesRequest](req)
 		if err != nil {
-			renderPartial(templates.ServerErrorNotification(models.NewErrorMessage("Unable to mark articles.", "This might be a temporary error, please try again."))).ServeHTTP(res, req)
+			renderPartial(
+				templates.ServerErrorNotification(
+					models.NewErrorMessage(
+						"Unable to mark articles.",
+						"This might be a temporary error, please try again.",
+					),
+				),
+			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("mark subscriptions: %w", err), http.StatusInternalServerError)
 		}
 		if !valid {
-			renderPartial(templates.ServerErrorNotification(models.NewErrorMessage("Unable to mark articles.", "This might be a temporary error, please try again."))).ServeHTTP(res, req)
+			renderPartial(
+				templates.ServerErrorNotification(
+					models.NewErrorMessage(
+						"Unable to mark articles.",
+						"This might be a temporary error, please try again.",
+					),
+				),
+			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("mark subscriptions: %w", err), http.StatusUnprocessableEntity)
 		}
 
@@ -115,7 +136,11 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 			if err != nil {
 				renderPartial(
 					templates.ServerErrorNotification(
-						models.NewErrorMessage("Unable to mark articles", "This might be a temporary problem, please try again")),
+						models.NewErrorMessage(
+							"Unable to mark articles",
+							"This might be a temporary problem, please try again",
+						),
+					),
 				).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("mark articles: %w", err), http.StatusInternalServerError)
 			}
@@ -138,7 +163,11 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to mark articles", "This might be a temporary problem, please try again")),
+					models.NewErrorMessage(
+						"Unable to mark articles",
+						"This might be a temporary problem, please try again",
+					),
+				),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(fmt.Errorf("mark articles: %w", err), http.StatusInternalServerError)
 		}
@@ -150,7 +179,13 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 
 // markArticles will mark Articles for a Subscription as appropriate. Marking Articles involves updating the User object
 // with an ItemState that tracks the mark status for the underlying Item an Article represents.
-func markArticles(ctx context.Context, api *elastic.API, mark models.Mark, subscriptionID models.SubscriptionID, itemIDs ...models.ItemID) error {
+func markArticles(
+	ctx context.Context,
+	api *elastic.API,
+	mark models.Mark,
+	subscriptionID models.SubscriptionID,
+	itemIDs ...models.ItemID,
+) error {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("mark articles: get user data: %w", models.ErrNoUserCtx)
@@ -166,7 +201,7 @@ func markArticles(ctx context.Context, api *elastic.API, mark models.Mark, subsc
 	case err != nil:
 		return fmt.Errorf("mark articles: get subscriptions: %w", err)
 	case len(subscriptions) == 0:
-		return fmt.Errorf("mark articles: get subscriptions: %w", models.ErrNotFound)
+		return fmt.Errorf("mark articles: get subscriptions: %w", elastic.ErrNotFound)
 	case len(subscriptions) != 1:
 		return fmt.Errorf("mark articles: get subscriptions: %w", models.ErrInvalidAPIResult)
 	}

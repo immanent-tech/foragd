@@ -212,86 +212,131 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 	return users[0], nil
 }
 
-// GetSubscriptionsByIDs returns the subscriptions that match the given IDs. Note: no dynamic info is generated for the
-// subscriptions (use AddSubscriptionDynamicInfo after calling this method if needed).
-func (e *API) GetSubscriptionsByIDs(
-	ctx context.Context,
-	ids ...models.SubscriptionID,
-) (models.Subscriptions, error) {
-	// Get subscriptions by ID.
+// GetSubscription returns the subscription that matches the given ID. Note: no dynamic info is generated for the
+// subscription (use AddSubscriptionDynamicInfo after calling this method if needed).
+func (e *API) GetSubscription(ctx context.Context, id models.SubscriptionID) (*models.Subscription, error) {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
-		return nil, fmt.Errorf("get subscriptions by ids: get user data: %w", models.ErrNoUserCtx)
+		return nil, fmt.Errorf("get subscription: get user data: %w", models.ErrNoUserCtx)
 	}
-
-	// Suggestions query will match in title/description/categories across all feed subscriptions.
 	subscriptionQuery := query.Bool(
 		query.Filter(
 			query.Term("user_id", user.GetID()),
-			query.Terms("subscription_id", ids...),
+			query.Term("subscription_id", id),
 		),
 	)
+	subscriptions, _, err := e.SearchSubscriptions(ctx, subscriptionQuery, 1, nil, nil)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("get subscription: %w", err)
+	case len(subscriptions) == 0:
+		return nil, ErrNotFound
+	case len(subscriptions) != 1:
+		return nil, fmt.Errorf("get subscription: %w: too many subscriptions", models.ErrInvalidAPIResult)
+	}
 
-	subscriptions, err := e.getAllSubscriptionsByQuery(ctx, subscriptionQuery)
-	if err != nil {
-		return nil, fmt.Errorf("get subscriptions by ids: api request failed: %w", err)
-	}
-	if len(subscriptions) == 0 {
-		return nil, models.ErrNotFound
-	}
-	return subscriptions, nil
+	return subscriptions[0], nil
 }
 
-// GetSubscriptionsByIDs returns the subscriptions that match the given IDs. Note: no dynamic info is generated for the
-// subscriptions (use AddSubscriptionDynamicInfo after calling this method if needed).
-func (e *API) GetAllSubscriptions(
-	ctx context.Context,
-) (models.Subscriptions, error) {
-	// Get subscriptions by ID.
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get all subscriptions: get user data: %w", models.ErrNoUserCtx)
-	}
-
-	// Suggestions query will match in title/description/categories across all feed subscriptions.
-	subscriptionQuery := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-		),
-	)
-
-	subscriptions, err := e.getAllSubscriptionsByQuery(ctx, subscriptionQuery)
+// UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
+// subscription as appropriate.
+func (e *API) UpdateFavoriteSubscription(ctx context.Context, id models.SubscriptionID, favorite bool) error {
+	subscription, err := e.GetSubscription(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("get all subscriptions: api request failed: %w", err)
+		return fmt.Errorf("update favorite subscription: get subscription: %w", err)
 	}
-	if len(subscriptions) == 0 {
-		return nil, models.ErrNotFound
+
+	subscription.Favorite = favorite
+
+	_, err = e.UpdateSubscriptions(ctx, subscription)
+	if err != nil {
+		return fmt.Errorf("update favorite subscription: update subscription: %w", err)
 	}
-	return subscriptions, nil
+
+	return nil
 }
 
-// GetFavoriteSubscriptions returns the favorite subscriptions of the user.
-func (e *API) GetFavoriteSubscriptions(
+type subscriptionRequest struct {
+	filterFavorites  bool
+	filterIDs        []models.SubscriptionID
+	filterCategories []models.Category
+	addDynamicInfo   bool
+}
+
+type SubscriptionRequestOption func(*subscriptionRequest)
+
+func FilterSubscriptionsByFavorite(value bool) SubscriptionRequestOption {
+	return func(sr *subscriptionRequest) {
+		sr.filterFavorites = value
+	}
+}
+
+func FilterSubscriptionsByIDs(ids ...models.SubscriptionID) SubscriptionRequestOption {
+	return func(sr *subscriptionRequest) {
+		sr.filterIDs = ids
+	}
+}
+
+func FilterSubscriptionsByCategories(categories ...models.Category) SubscriptionRequestOption {
+	return func(sr *subscriptionRequest) {
+		sr.filterCategories = categories
+	}
+}
+
+func AddSubscriptionDynamicInfo(value bool) SubscriptionRequestOption {
+	return func(sr *subscriptionRequest) {
+		sr.addDynamicInfo = value
+	}
+}
+
+func (e *API) GetSubscriptions(
 	ctx context.Context,
+	options ...SubscriptionRequestOption,
 ) (models.Subscriptions, error) {
+	req := &subscriptionRequest{}
+	for option := range slices.Values(options) {
+		option(req)
+	}
+
+	// Get user data.
 	user := models.UserFromCtx(ctx)
 	if user == nil {
-		return nil, fmt.Errorf("get favorite subscriptions: get user data: %w", models.ErrNoUserCtx)
+		return nil, fmt.Errorf("get subscriptions request: get user data: %w", models.ErrNoUserCtx)
 	}
-	// Get favorite subscriptions.
-	subscriptions, err := e.getAllSubscriptionsByQuery(ctx, query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Term("favorite", true),
-		),
-	))
+
+	// Build query optional parts.
+	queries := []query.Option{query.Term("user_id", user.GetID())}
+	if req.filterFavorites {
+		queries = append(queries, query.Term("favorite", true))
+	}
+	if len(req.filterIDs) > 0 {
+		queries = append(queries, query.Terms("subscription_id", req.filterIDs...))
+	}
+	if len(req.filterCategories) > 0 {
+		queries = append(queries, query.Terms("subscription_id", req.filterCategories...))
+	}
+
+	// Construct query.
+	subscriptions, err := e.getAllSubscriptionsByQuery(ctx,
+		query.Bool(
+			query.Filter(
+				queries...,
+			),
+		))
 	if err != nil {
-		return nil, fmt.Errorf("get favorite subscriptions: %w", err)
+		return nil, fmt.Errorf("get subscriptions request: api request failed: %w", err)
 	}
-	err = e.AddSubscriptionDynamicInfo(ctx, subscriptions)
-	if err != nil {
-		return nil, fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
+	if len(subscriptions) == 0 {
+		return nil, ErrNotFound
 	}
+
+	if req.addDynamicInfo {
+		err := e.AddSubscriptionDynamicInfo(ctx, subscriptions)
+		if err != nil {
+			return nil, fmt.Errorf("get subscriptions request: %w", err)
+		}
+	}
+
 	return subscriptions, nil
 }
 
@@ -396,7 +441,9 @@ func (e *API) AddSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 		subscription.Settings.ShowSubscriptionStats = user.GetSettings().ShowSubscriptionStats
 	}
 	if len(extraIDs) > 0 {
-		extraSubscriptions, err := e.GetSubscriptionsByIDs(ctx, extraIDs...)
+		extraSubscriptions, err := e.GetSubscriptions(ctx,
+			FilterSubscriptionsByIDs(extraIDs...),
+		)
 		if err != nil {
 			return fmt.Errorf("add subscription dynamic info: get additional subscriptions: %w", err)
 		}
@@ -713,7 +760,9 @@ func (e *API) MarkSubscriptions(
 		return fmt.Errorf("mark subscriptions: get user data: %w", models.ErrNoUserCtx)
 	}
 
-	subscriptions, err := e.GetSubscriptionsByIDs(ctx, subscriptionIDs...)
+	subscriptions, err := e.GetSubscriptions(ctx,
+		FilterSubscriptionsByIDs(subscriptionIDs...),
+	)
 	if err != nil {
 		return fmt.Errorf("mark subscriptions: %w", err)
 	}
@@ -963,6 +1012,28 @@ func queryAllItems(user *models.User, subscription *models.Subscription) query.O
 	)
 }
 
+// GetArticles generates Article objects from the Items with the given IDs.
+func (e *API) GetArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	query := query.Bool(
+		query.Filter(
+			// Must match any of the given item IDs,
+			query.Terms("item_id", itemIDs...),
+		),
+	)
+	items, _, err := e.SearchItems(ctx, query, len(itemIDs), nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("get articles failed: %w", err)
+	}
+	articles, err := e.GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, fmt.Errorf("get articles failed: %w", err)
+	}
+
+	return articles, nil
+}
+
 // FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.
 func (e *API) FilterArticles(
 	ctx context.Context,
@@ -974,7 +1045,9 @@ func (e *API) FilterArticles(
 		return nil, "", fmt.Errorf("filter articles: get user data: %w", models.ErrNoUserCtx)
 	}
 
-	subscriptions, err := e.GetSubscriptionsByIDs(ctx, filters.GetSubscriptions()...)
+	subscriptions, err := e.GetSubscriptions(ctx,
+		FilterSubscriptionsByIDs(filters.GetSubscriptions()...),
+	)
 	if err != nil {
 		return nil, "", fmt.Errorf("filter articles: get subscriptions: %w", err)
 	}
@@ -1002,7 +1075,7 @@ func (e *API) FilterArticles(
 		return nil, "", fmt.Errorf("could not retrieve filtered items: %w", err)
 	}
 	// Generate articles.
-	articles, err := models.GenerateArticles(ctx, e, items)
+	articles, err := e.GenerateArticles(ctx, items)
 	if err != nil {
 		return nil, "", fmt.Errorf("could not generate articles from items: %w", err)
 	}
@@ -1017,7 +1090,7 @@ func (e *API) FindSimilarArticles(ctx context.Context, itemIDs ...models.ItemID)
 	if user == nil {
 		return nil, fmt.Errorf("find similar articles: get user data: %w", models.ErrNoUserCtx)
 	}
-	subscriptions, err := e.GetAllSubscriptions(ctx)
+	subscriptions, err := e.GetSubscriptions(ctx)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("find similar articles: get subscriptions: %w", err)
@@ -1053,11 +1126,102 @@ func (e *API) FindSimilarArticles(ctx context.Context, itemIDs ...models.ItemID)
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}
 	// Generate article data.
-	articles, err := models.GenerateArticles(ctx, e, items)
+	articles, err := e.GenerateArticles(ctx, items)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}
 	return articles, nil
+}
+
+// GenerateArticles takes a slice of items and creates articles from them, grabbing the necessary data from the user
+// object.
+func (e *API) GenerateArticles(ctx context.Context, items models.Items) (models.Articles, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("generate articles: get user data: %w", models.ErrNoUserCtx)
+	}
+	query := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Terms("type", models.SubscriptionTypeFeed),
+			query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
+		),
+	)
+	subscriptions, _, err := e.SearchSubscriptions(ctx, query, len(items.GetFeedIDs()), nil, nil)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("generate articles: get subscriptions: %w", err)
+	case len(subscriptions) == 0:
+		return nil, fmt.Errorf("generate articles: get subscriptions: %w", ErrNotFound)
+	}
+	// Create articles from the items.
+	articles := make(models.Articles, 0, len(items))
+	for item := range slices.Values(items) {
+		article, err := models.GenerateArticle(user, item, subscriptions.GetByFeedID(item.GetFeedID()))
+		if err != nil {
+			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not generate article from data.",
+				slog.Any("error", err),
+				slog.String("item_id", item.GetID()),
+			)
+			continue
+		}
+		articles = append(articles, article)
+	}
+	return articles, nil
+}
+
+// UpdateFavoriteArticle changes the favorite status of an article. For adding a favorite article, the content is stored
+// in a separate and the user object is updated with a link to the content. For removing a favorite, the stored content
+// is removed and user object updated appropriately.
+func (e *API) UpdateFavoriteArticle(ctx context.Context, user *models.User, id models.ItemID, favorite bool) error {
+	switch favorite {
+	case true:
+		// Don't do anything if article is already a favorite.
+		if slices.Contains(user.ItemFavorites, id) {
+			return models.ErrUserAlreadyFavorited
+		}
+		// Get the article details.
+		articles, err := e.GetArticles(ctx, id)
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+		if len(articles) != 1 {
+			return models.ErrInvalidAPIResult
+		}
+		article := articles[0]
+		// Archive the article.
+		archive, err := models.NewArchivedArticle(user.GetID(), article.GetSubscriptionID(), &article.Item)
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+		err = e.ArchiveArticle(ctx, archive)
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+		// Update the list of favorites items in the user object
+		user.ItemFavorites = append(user.ItemFavorites, id)
+		err = e.UpdateUser(ctx, user.GetID(), map[string]any{
+			"item_favorites": user.ItemFavorites,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+	case false:
+		err := e.UnarchiveArticle(ctx, user.GetID(), id)
+		if err != nil {
+			return fmt.Errorf("unable to remove favorite article: %w", err)
+		}
+		newFavorites := slices.DeleteFunc(user.ItemFavorites, func(e models.ItemID) bool {
+			return e == id
+		})
+		err = e.UpdateUser(ctx, user.GetID(), map[string]any{
+			"item_favorites": newFavorites,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to remove favorite article: %w", err)
+		}
+	}
+	return nil
 }
 
 // BuildItemsQuery generates a query to fetch the Items that match the given Filters from the given Subscriptions.
@@ -1071,7 +1235,9 @@ func (e *API) BuildItemsQuery(
 		return nil, fmt.Errorf("unable to build items query: %w", models.ErrNoUserCtx)
 	}
 
-	subscriptions, err := e.GetSubscriptionsByIDs(ctx, subscriptionIDs...)
+	subscriptions, err := e.GetSubscriptions(ctx,
+		FilterSubscriptionsByIDs(subscriptionIDs...),
+	)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("get suggestions: get subscriptions: %w", err)
@@ -1140,7 +1306,9 @@ func (e *API) BuildSearchResultsQuery(
 		pivot = "3d"
 	}
 
-	subscriptions, err := e.GetSubscriptionsByIDs(ctx, request.Subscriptions...)
+	subscriptions, err := e.GetSubscriptions(ctx,
+		FilterSubscriptionsByIDs(request.Subscriptions...),
+	)
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("build search query: get subscriptions: %w", err)

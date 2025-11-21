@@ -4,19 +4,14 @@
 package models
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"maps"
 	"slices"
 	"time"
 
-	slogctx "github.com/veqryn/slog-context"
-
 	"github.com/immanent-tech/go-syndication/types"
 
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -96,43 +91,6 @@ func GenerateArticle(user *User, item *Item, subscription *Subscription) (*Artic
 	}
 
 	return article, nil
-}
-
-// GenerateArticles takes a slice of items and creates articles from them, grabbing the necessary data from the user
-// object.
-func GenerateArticles(ctx context.Context, dataAPI DataAPI, items Items) (Articles, error) {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("generate articles: get user data: %w", ErrNoUserCtx)
-	}
-	query := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Terms("type", SubscriptionTypeFeed),
-			query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
-		),
-	)
-	subscriptions, _, err := dataAPI.SearchSubscriptions(ctx, query, len(items.GetFeedIDs()), nil, nil)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("generate articles: get subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("generate articles: get subscriptions: %w", ErrNotFound)
-	}
-	// Create articles from the items.
-	articles := make(Articles, 0, len(items))
-	for item := range slices.Values(items) {
-		article, err := GenerateArticle(user, item, subscriptions.GetByFeedID(item.GetFeedID()))
-		if err != nil {
-			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not generate article from data.",
-				slog.Any("error", err),
-				slog.String("item_id", item.GetID()),
-			)
-			continue
-		}
-		articles = append(articles, article)
-	}
-	return articles, nil
 }
 
 // Valid returns a boolean indicating if the article contains valid data (true). If it contains invalid data

@@ -116,7 +116,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 				res.Header().Set(htmx.HeaderReswap, "delete transition:true")
 				res.WriteHeader(http.StatusOK)
 			case models.ViewAll:
-				subscription, err := models.GetSubscription(req.Context(), api, request.Subscriptions[0])
+				subscription, err := api.GetSubscription(req.Context(), request.Subscriptions[0])
 				if err != nil {
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(
@@ -268,7 +268,7 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Get the subscription.
-		subscription, err := models.GetSubscription(req.Context(), api, id)
+		subscription, err := api.GetSubscription(req.Context(), id)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to edit subscription", "Data in invalid."),
@@ -310,7 +310,9 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 			request.Search.ID = subscription.GetID()
 			// Get any extra subscription info for subscription filters.
 			if len(request.Search.Subscriptions) > 0 {
-				subscriptions, err := api.GetSubscriptionsByIDs(ctx, request.Search.Subscriptions...)
+				subscriptions, err := api.GetSubscriptions(ctx,
+					elastic.FilterSubscriptionsByIDs(request.Search.Subscriptions...),
+				)
 				if err != nil {
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(templates.ServerErrorNotification(
@@ -337,7 +339,9 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 				Subscriptions:  subscription.GroupData.Subscriptions,
 				SubscriptionID: subscription.GetID(),
 			}
-			subscriptions, err := api.GetSubscriptionsByIDs(ctx, request.Subscriptions...)
+			subscriptions, err := api.GetSubscriptions(ctx,
+				elastic.FilterSubscriptionsByIDs(request.Subscriptions...),
+			)
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				renderPartial(templates.ServerErrorNotification(
@@ -366,7 +370,7 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Get the subscription.
-		subscription, err := models.GetSubscription(req.Context(), api, id)
+		subscription, err := api.GetSubscription(req.Context(), id)
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to save subscription", "Data in invalid."),
@@ -512,8 +516,9 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 			// If the search request has subscription filters, get subscription details.
 			ctx := req.Context()
 			if len(request.Subscriptions) > 0 {
-				subscriptions, err := api.GetSubscriptionsByIDs(req.Context(), request.Subscriptions...)
-				if err != nil {
+				if subscriptions, err := api.GetSubscriptions(req.Context(),
+					elastic.FilterSubscriptionsByIDs(request.Subscriptions...),
+				); err != nil {
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(templates.ServerErrorNotification(
 						models.NewErrorMessage(
@@ -525,8 +530,9 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 						fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err),
 						http.StatusUnprocessableEntity,
 					)
+				} else {
+					ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 				}
-				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
 			template := templates.AddSearchSubscription(&models.SearchSubscriptionRequest{Search: *request})
 			renderPage(

@@ -25,8 +25,6 @@ import (
 var (
 	// ErrNoUserCtx indicates the user object was not found in the context.
 	ErrNoUserCtx = errors.New("no valid user in context")
-	// ErrNotFound indicates no data was found
-	ErrNotFound = errors.New("not found")
 	// ErrInvalidAPIResult indicates that the backend API returned unexpected, invalid or an otherwise incorrect response.
 	ErrInvalidAPIResult = errors.New("invalid backend API result")
 )
@@ -48,7 +46,6 @@ type FeedsAPI interface {
 
 // SubscriptionsAPI contains API methods for Subscriptions.
 type SubscriptionsAPI interface {
-	GetSubscriptionsByIDs(ctx context.Context, ids ...SubscriptionID) (Subscriptions, error)
 	SearchSubscriptions(
 		ctx context.Context,
 		query query.Option,
@@ -100,104 +97,6 @@ type DataAPI interface {
 	UserAPI
 	SubscriptionsAPI
 	GetAPI() *elasticsearch.TypedClient
-}
-
-// UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
-// subscription as appropriate.
-func UpdateFavoriteSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID, favorite bool) error {
-	subscription, err := GetSubscription(ctx, dataAPI, id)
-	if err != nil {
-		return fmt.Errorf("update favorite subscription: get subscription: %w", err)
-	}
-
-	subscription.Favorite = favorite
-
-	_, err = dataAPI.UpdateSubscriptions(ctx, subscription)
-	if err != nil {
-		return fmt.Errorf("update favorite subscription: update subscription: %w", err)
-	}
-
-	return nil
-}
-
-// UpdateFavoriteArticle changes the favorite status of an article. For adding a favorite article, the content is stored
-// in a separate and the user object is updated with a link to the content. For removing a favorite, the stored content
-// is removed and user object updated appropriately.
-func UpdateFavoriteArticle(ctx context.Context, dataAPI DataAPI, user *User, id ItemID, favorite bool) error {
-	switch favorite {
-	case true:
-		// Don't do anything if article is already a favorite.
-		if slices.Contains(user.ItemFavorites, id) {
-			return ErrUserAlreadyFavorited
-		}
-		// Get the article details.
-		articles, err := GetArticles(ctx, dataAPI, id)
-		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
-		}
-		if len(articles) != 1 {
-			return ErrInvalidAPIResult
-		}
-		article := articles[0]
-		// Archive the article.
-		archive, err := NewArchivedArticle(user.GetID(), article.GetSubscriptionID(), &article.Item)
-		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
-		}
-		err = dataAPI.ArchiveArticle(ctx, archive)
-		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
-		}
-		// Update the list of favorites items in the user object
-		user.ItemFavorites = append(user.ItemFavorites, id)
-		err = dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
-			"item_favorites": user.ItemFavorites,
-		})
-		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
-		}
-	case false:
-		err := dataAPI.UnarchiveArticle(ctx, user.GetID(), id)
-		if err != nil {
-			return fmt.Errorf("unable to remove favorite article: %w", err)
-		}
-		newFavorites := slices.DeleteFunc(user.ItemFavorites, func(e ItemID) bool {
-			return e == id
-		})
-		err = dataAPI.UpdateUser(ctx, user.GetID(), map[string]any{
-			"item_favorites": newFavorites,
-		})
-		if err != nil {
-			return fmt.Errorf("unable to remove favorite article: %w", err)
-		}
-	}
-	return nil
-}
-
-// GetSubscription returns the subscription that matches the given ID. Note: no dynamic info is generated for the
-// subscription (use AddSubscriptionDynamicInfo after calling this method if needed).
-func GetSubscription(ctx context.Context, dataAPI DataAPI, id SubscriptionID) (*Subscription, error) {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get subscription: get user data: %w", ErrNoUserCtx)
-	}
-	subscriptionQuery := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Term("subscription_id", id),
-		),
-	)
-	subscriptions, _, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery, 1, nil, nil)
-	switch {
-	case err != nil:
-		return nil, fmt.Errorf("get subscription: %w", err)
-	case len(subscriptions) == 0:
-		return nil, ErrNotFound
-	case len(subscriptions) != 1:
-		return nil, fmt.Errorf("get subscription: %w: too many subscriptions", ErrInvalidAPIResult)
-	}
-
-	return subscriptions[0], nil
 }
 
 // AddSubscriptions adds the given subscriptions to a user.
@@ -402,28 +301,6 @@ func CreateFeed(ctx context.Context, dataAPI DataAPI, feed *Feed) error {
 		return fmt.Errorf("unable to create feed: %w", err)
 	}
 	return nil
-}
-
-// GetArticles generates Article objects from the Items with the given IDs.
-func GetArticles(ctx context.Context, dataAPI DataAPI, itemIDs ...ItemID) (Articles, error) {
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	query := query.Bool(
-		query.Filter(
-			// Must match any of the given item IDs,
-			query.Terms("item_id", itemIDs...),
-		),
-	)
-	items, _, err := dataAPI.SearchItems(ctx, query, len(itemIDs), nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("get articles failed: %w", err)
-	}
-	articles, err := GenerateArticles(ctx, dataAPI, items)
-	if err != nil {
-		return nil, fmt.Errorf("get articles failed: %w", err)
-	}
-
-	return articles, nil
 }
 
 // GetArticleTopCategories performs an aggregation to return the top Item categories across the given Feeds.
