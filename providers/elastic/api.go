@@ -21,11 +21,13 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
 	feeds "github.com/immanent-tech/go-syndication"
 	slogctx "github.com/veqryn/slog-context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/logging"
 	"github.com/immanent-tech/foragd/models"
@@ -40,8 +42,11 @@ import (
 var (
 	errNotFound     = errors.New("not found")
 	ErrNotFound     = models.NewAPIError(errNotFound, http.StatusNotFound)
-	ErrNoIndexInCtx = models.NewAPIError(fmt.Errorf("get index from context: %w", errNotFound), http.StatusInternalServerError)
-	errParseFailed  = errors.New("parsing value failed")
+	ErrNoIndexInCtx = models.NewAPIError(
+		fmt.Errorf("get index from context: %w", errNotFound),
+		http.StatusInternalServerError,
+	)
+	errParseFailed = errors.New("parsing value failed")
 )
 
 var (
@@ -100,7 +105,13 @@ func (a *API) UpdateSession(ctx context.Context, token string, data map[string]a
 // FindAllSessions returns all active (non-expired) sessions.
 func (a *API) FindAllSessions(ctx context.Context) ([]models.UserSession, error) {
 	index := schema.SessionsSchemaPrefix + schema.IndexReadSuffix
-	sessions, err := SearchAll[models.UserSession](ctx, a.GetAPI(), index, query.Since("expiry", time.Now().UTC()), 1000)
+	sessions, err := SearchAll[models.UserSession](
+		ctx,
+		a.GetAPI(),
+		index,
+		query.Since("expiry", time.Now().UTC()),
+		1000,
+	)
 	if err != nil {
 		return nil, toAPIError(err)
 	}
@@ -201,8 +212,530 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 	return users[0], nil
 }
 
-// GetAllSubscriptions returns all subscriptions that match the given query. Using a match all query will retrieve all subscriptions.
-func (e *API) GetAllSubscriptions(ctx context.Context, query query.Option) (models.Subscriptions, error) {
+// GetSubscriptionsByIDs returns the subscriptions that match the given IDs. Note: no dynamic info is generated for the
+// subscriptions (use AddSubscriptionDynamicInfo after calling this method if needed).
+func (e *API) GetSubscriptionsByIDs(
+	ctx context.Context,
+	ids ...models.SubscriptionID,
+) (models.Subscriptions, error) {
+	// Get subscriptions by ID.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get subscriptions by ids: get user data: %w", models.ErrNoUserCtx)
+	}
+
+	// Suggestions query will match in title/description/categories across all feed subscriptions.
+	subscriptionQuery := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Terms("subscription_id", ids...),
+		),
+	)
+
+	subscriptions, err := e.getAllSubscriptionsByQuery(ctx, subscriptionQuery)
+	if err != nil {
+		return nil, fmt.Errorf("get subscriptions by ids: api request failed: %w", err)
+	}
+	if len(subscriptions) == 0 {
+		return nil, models.ErrNotFound
+	}
+	return subscriptions, nil
+}
+
+// GetSubscriptionsByIDs returns the subscriptions that match the given IDs. Note: no dynamic info is generated for the
+// subscriptions (use AddSubscriptionDynamicInfo after calling this method if needed).
+func (e *API) GetAllSubscriptions(
+	ctx context.Context,
+) (models.Subscriptions, error) {
+	// Get subscriptions by ID.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get all subscriptions: get user data: %w", models.ErrNoUserCtx)
+	}
+
+	// Suggestions query will match in title/description/categories across all feed subscriptions.
+	subscriptionQuery := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+		),
+	)
+
+	subscriptions, err := e.getAllSubscriptionsByQuery(ctx, subscriptionQuery)
+	if err != nil {
+		return nil, fmt.Errorf("get all subscriptions: api request failed: %w", err)
+	}
+	if len(subscriptions) == 0 {
+		return nil, models.ErrNotFound
+	}
+	return subscriptions, nil
+}
+
+// GetFavoriteSubscriptions returns the favorite subscriptions of the user.
+func (e *API) GetFavoriteSubscriptions(
+	ctx context.Context,
+) (models.Subscriptions, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get favorite subscriptions: get user data: %w", models.ErrNoUserCtx)
+	}
+	// Get favorite subscriptions.
+	subscriptions, err := e.getAllSubscriptionsByQuery(ctx, query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Term("favorite", true),
+		),
+	))
+	if err != nil {
+		return nil, fmt.Errorf("get favorite subscriptions: %w", err)
+	}
+	err = e.AddSubscriptionDynamicInfo(ctx, subscriptions)
+	if err != nil {
+		return nil, fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
+	}
+	return subscriptions, nil
+}
+
+// GetSubscriptionSuggestions returns subscriptions that match the given text. Note: no dynamic info is generated for the
+// subscriptions (use AddSubscriptionDynamicInfo after calling this method if needed).
+func (e *API) GetSubscriptionSuggestions(ctx context.Context, text string) (models.Subscriptions, error) {
+	// Get subscriptions by ID.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get subscription suggestions: get user data: %w", models.ErrNoUserCtx)
+	}
+
+	// Suggestions query will match in title/description/categories across all feed subscriptions.
+	subscriptionQuery := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+		),
+		query.Must(
+			query.Bool(
+				query.Should(
+					query.SearchAsYouType(text, "customisation.nickname"),
+				),
+			),
+		),
+	)
+
+	subscriptions, err := e.getAllSubscriptionsByQuery(ctx, subscriptionQuery)
+	if err != nil {
+		return nil, fmt.Errorf("get subscription suggestions: api request failed: %w", err)
+	}
+	if len(subscriptions) == 0 {
+		return nil, ErrNotFound
+	}
+	return subscriptions, nil
+}
+
+// FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
+// Dynamic information for subscriptions will also be added.
+func (e *API) FilterSubscriptions(
+	ctx context.Context,
+	filters *models.ListDisplayFilters,
+	pagination models.Pagination,
+) (models.Subscriptions, models.Pagination, error) {
+	// Get subscriptions by ID.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, "", fmt.Errorf("filter subscriptions: get user data: %w", models.ErrNoUserCtx)
+	}
+	subscriptionQuery := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Terms("subscription_id", filters.Subscriptions...),
+			// query.Term("favorite", filters.OnlyFavorites),
+			query.Terms("categories", filters.GetCategories()...),
+		),
+	)
+	subscriptions, err := e.getAllSubscriptionsByQuery(ctx, subscriptionQuery)
+	if err != nil {
+		return nil, "", fmt.Errorf("filter subscriptions: api request failed: %w", err)
+	}
+	if len(subscriptions) == 0 {
+		return nil, "", ErrNotFound
+	}
+	// Add dynamic info.
+	err = e.AddSubscriptionDynamicInfo(ctx, subscriptions)
+	if err != nil {
+		return nil, "", fmt.Errorf("filter subscriptions: could not add dynamic info: %w", err)
+	}
+	// Sort and paginate.
+	subscriptions, pagination = subscriptions.
+		FilterByView(filters.GetView()).
+		FilterByFavorites(filters.OnlyFavorites).
+		Sort(filters.Sort).
+		Paginate(pagination, filters.GetCount())
+	return subscriptions, pagination, nil
+}
+
+// AddSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
+// At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
+// generated if the user has set the display option ShowSubscriptionStats in their account settings.
+//
+//nolint:gocognit,funlen
+func (e *API) AddSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("add subscription dynamic info: get user data: %w", models.ErrNoUserCtx)
+	}
+
+	var extraIDs []models.SubscriptionID
+	for subscription := range slices.Values(subscriptions) {
+		// Get any additional subscription info for subscriptions in group subscriptions that we didn't already fetch.
+		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
+			for id := range slices.Values(subscription.GroupData.Subscriptions) {
+				if !slices.ContainsFunc(subscriptions, func(e *models.Subscription) bool {
+					return e.GetID() == id
+				}) {
+					extraIDs = append(extraIDs, id)
+				}
+			}
+		}
+		// Add the show stats setting from the user settings.
+		subscription.Settings.ShowSubscriptionStats = user.GetSettings().ShowSubscriptionStats
+	}
+	if len(extraIDs) > 0 {
+		extraSubscriptions, err := e.GetSubscriptionsByIDs(ctx, extraIDs...)
+		if err != nil {
+			return fmt.Errorf("add subscription dynamic info: get additional subscriptions: %w", err)
+		}
+		subscriptions = append(subscriptions, extraSubscriptions...)
+	}
+
+	fetchJobs, ctx := errgroup.WithContext(ctx)
+
+	// Get unread count per feed.
+	var unreadCounts map[models.FeedID]int64
+	fetchJobs.Go(func() error {
+		var err error
+		unreadCounts, err = e.getFeedUnreadCounts(ctx, subscriptions)
+		if err != nil {
+			return fmt.Errorf("get unread counts: %w", err)
+		}
+		return nil
+	})
+
+	// For search subscriptions, run queries directly to add unread count and last update.
+	fetchJobs.Go(func() error {
+		for subscription := range slices.Values(subscriptions) {
+			if subscription.GetSubscriptionType() != models.SubscriptionTypeSearch {
+				continue
+			}
+			search := subscription.SearchData.Search
+			// Build query to get unread count.
+			query, err := e.BuildSearchResultsQuery(ctx, user, &search)
+			if err != nil {
+				return fmt.Errorf(
+					"add subscription dynamic info: build search subscription %s query: %w",
+					subscription.GetID(),
+					err,
+				)
+			}
+			count, err := e.CountItems(ctx, query)
+			if err == nil {
+				subscription.Stats.UnreadCount = int(count)
+			} else {
+				slogctx.FromCtx(ctx).Warn("Add subscription dynamic info, could not get unread count for search subscription.",
+					slog.String("subscription_id", subscription.GetID()),
+					slog.Any("error", err),
+				)
+			}
+			// Update query for getting last updated item (view: all, sort: newest first).
+			search.View = models.ViewAll
+			sort := models.SortNewestFirst
+			query, err = e.BuildSearchResultsQuery(ctx, user, &search)
+			if err != nil {
+				return fmt.Errorf(
+					"add subscription dynamic info: build search subscription %s query: %w",
+					subscription.GetID(),
+					err,
+				)
+			}
+			items, _, err := e.SearchItems(ctx, query, 1, &sort, nil)
+			if err == nil {
+				if len(items) > 0 {
+					subscription.Stats.LastUpdate = items[0].GetTimestamp()
+				}
+			} else {
+				slogctx.FromCtx(ctx).Warn("Add subscription dynamic info, could not get last update for search subscription.",
+					slog.String("subscription_id", subscription.GetID()),
+					slog.Any("error", err),
+				)
+			}
+		}
+		return nil
+	})
+
+	// Get last update (latest item timestamp) per feed.
+	var lastUpdate map[models.FeedID]time.Time
+	fetchJobs.Go(func() error {
+		var err error
+		lastUpdate, err = e.getFeedLastUpdates(ctx, subscriptions.GetFeedIDs()...)
+		if err != nil {
+			return fmt.Errorf("get last update: %w", err)
+		}
+		return nil
+	})
+
+	var avgDailyUpdates map[models.FeedID]float64
+	if user.GetSettings().ShowSubscriptionStats {
+		// Get average daily updates per feed
+		fetchJobs.Go(func() error {
+			var err error
+			avgDailyUpdates, err = e.getFeedAverageDailyUpdates(ctx, subscriptions.GetFeedIDs()...)
+			if err != nil {
+				return fmt.Errorf("get average daily updates: %w", err)
+			}
+			return nil
+		})
+	}
+
+	err := fetchJobs.Wait()
+	if err != nil {
+		return fmt.Errorf("add subscription dynamic info: run jobs: %w", err)
+	}
+
+	// For feed subscriptions, add stats.
+	for subscription := range slices.Values(subscriptions) {
+		if subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
+			// Add stats for feed subscriptions.
+			subscription.Stats.UnreadCount = int(unreadCounts[subscription.FeedData.FeedID])
+			subscription.Stats.LastUpdate = lastUpdate[subscription.FeedData.FeedID]
+			if user.GetSettings().ShowSubscriptionStats {
+				subscription.Stats.AvgDailyUpdates = avgDailyUpdates[subscription.FeedData.FeedID]
+			}
+		}
+	}
+
+	// For group subscriptions, calculate stats from other subscriptions.
+	for subscription := range slices.Values(subscriptions) {
+		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
+			var avgDailyUpdates []float64
+			var unreadCount int
+			var lastUpdates []time.Time
+			for groupSubscription := range slices.Values(subscriptions) {
+				if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
+					if user.GetSettings().ShowSubscriptionStats {
+						avgDailyUpdates = append(avgDailyUpdates, groupSubscription.Stats.AvgDailyUpdates)
+					}
+					unreadCount += groupSubscription.Stats.UnreadCount
+					lastUpdates = append(lastUpdates, groupSubscription.Stats.LastUpdate)
+				}
+			}
+			if user.GetSettings().ShowSubscriptionStats {
+				slices.Sort(avgDailyUpdates)
+				slices.Reverse(avgDailyUpdates)
+				subscription.Stats.AvgDailyUpdates = avgDailyUpdates[0]
+			}
+			subscription.Stats.UnreadCount = unreadCount
+			// Sort by date ascending, with favorites before non-favorites.
+			slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
+				return timeA.Compare(timeB)
+			})
+			slices.Reverse(lastUpdates)
+			subscription.Stats.LastUpdate = lastUpdates[0]
+		}
+	}
+
+	return nil
+}
+
+// GetFeedSubscriptionStats fetches the stats for FeedSubscriptions and returns a map of the SubscriptionID to
+// SubscriptionStats that can be used to lookup the stats pertaining to a particular subscription.
+func (e *API) getFeedAverageDailyUpdates(ctx context.Context, ids ...models.FeedID) (map[models.FeedID]float64, error) {
+	// Build query.
+	query := query.Bool(
+		query.BoolQueryName("feed_stats_query"),
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", ids...),
+			// Must be published within last month.
+			query.Since("@timestamp", time.Now().UTC().Add(-24*30*time.Hour)),
+		),
+	)
+	// Build aggregations.
+	termsField := "feed_id"
+	termsCount := len(ids)
+	dateHistoField := "@timestamp"
+	dateFormat := "yyyy-MM-dd"
+	aggs := aggregations.Aggs{
+		"feed": types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+			Aggregations: map[string]types.Aggregations{
+				"updates_per_day": {
+					DateHistogram: &types.DateHistogramAggregation{
+						Field:            &dateHistoField,
+						CalendarInterval: &calendarinterval.Day,
+						Format:           &dateFormat,
+					},
+				},
+				"avg_daily_updates": {
+					AvgBucket: &types.AverageBucketAggregation{
+						BucketsPath: "updates_per_day._count",
+					},
+				},
+			},
+		},
+	}
+
+	results, err := e.ItemsAggregation(ctx, query, len(ids), aggs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", models.ErrInvalidAPIResult)
+	}
+	feedStats, ok := results.Aggregations["feed"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", models.ErrInvalidAPIResult)
+	}
+	feedStatsBuckets, ok := feedStats.Buckets.([]types.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf("unable to get feed stats: Feed aggregation invalid: %w", models.ErrInvalidAPIResult)
+	}
+
+	stats := make(map[models.FeedID]float64)
+
+	for feed := range slices.Values(feedStatsBuckets) {
+		feedID, ok := feed.Key.(string)
+		if !ok {
+			slogctx.FromCtx(ctx).Debug("Unable to extract feed ID for aggregation", slog.Any("feed_id", feed.Key))
+			continue
+		}
+		updatesResult, ok := feed.Aggregations["avg_daily_updates"].(*types.SimpleValueAggregate)
+		if !ok {
+			slogctx.FromCtx(ctx).
+				Debug("Unable to extract avg_daily_updates agg for subscription", slog.String("feed_id", feedID))
+			continue
+		}
+
+		stats[feedID] = float64(*updatesResult.Value)
+	}
+
+	return stats, nil
+}
+
+func (e *API) getFeedUnreadCounts(
+	ctx context.Context,
+	subscriptions models.Subscriptions,
+) (map[models.FeedID]int64, error) {
+	// Retrieve user object.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("unable to get subscription unread counts: %w", models.ErrNoUserCtx)
+	}
+	// Generate unread count query.
+	subscriptionQueries := make([]query.Option, 0, len(subscriptions))
+	for subscription := range slices.Values(subscriptions) {
+		if subscription.GetSubscriptionType() != models.SubscriptionTypeFeed {
+			continue
+		}
+		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, subscription))
+	}
+	// Build query.
+	query := query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(subscriptionQueries...),
+			),
+		),
+	)
+	// Build aggregations.
+	termsField := "feed_id"
+	termsCount := len(subscriptions)
+	aggs := aggregations.Aggs{
+		"UnreadCounts": types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+		},
+	}
+	// Perform aggregation.
+	results, err := e.ItemsAggregation(ctx, query, 0, aggs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
+	}
+
+	unreadCounts, ok := results.Aggregations["UnreadCounts"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf(
+			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
+			models.ErrInvalidAPIResult,
+		)
+	}
+	unreadCountsBuckets, ok := unreadCounts.Buckets.([]types.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf(
+			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
+			models.ErrInvalidAPIResult,
+		)
+	}
+
+	stats := make(map[models.SubscriptionID]int64)
+
+	for feed := range slices.Values(unreadCountsBuckets) {
+		feedID, ok := feed.Key.(string)
+		if !ok {
+			slogctx.FromCtx(ctx).Debug("Unable to extract feed ID for aggregation", slog.Any("feed_id", feed.Key))
+			continue
+		}
+		stats[feedID] = feed.DocCount
+	}
+	return stats, nil
+}
+
+func (e *API) getFeedLastUpdates(ctx context.Context, ids ...models.FeedID) (map[models.FeedID]time.Time, error) {
+	items, err := e.GetLastUpdatedItems(ctx, ids...)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get feed last updates: %w", err)
+	}
+
+	updates := make(map[models.FeedID]time.Time)
+
+	for item := range slices.Values(items) {
+		updates[item.GetFeedID()] = item.GetTimestamp()
+	}
+
+	return updates, nil
+}
+
+// MarkSubscriptions will mark as appropriate all the given subscriptions. Marking a subscription includes updating the
+// subscription data in the user object and clearing any individual item states for a subscription.
+func (e *API) MarkSubscriptions(
+	ctx context.Context,
+	mark models.Mark,
+	subscriptionIDs ...models.SubscriptionID,
+) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("mark subscriptions: get user data: %w", models.ErrNoUserCtx)
+	}
+
+	subscriptions, err := e.GetSubscriptionsByIDs(ctx, subscriptionIDs...)
+	if err != nil {
+		return fmt.Errorf("mark subscriptions: %w", err)
+	}
+
+	for subscription := range slices.Values(subscriptions) {
+		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
+			if err = e.MarkSubscriptions(ctx, mark, subscription.GroupData.Subscriptions...); err != nil {
+				return fmt.Errorf("mark subscriptions: mark group subscription: %w", err)
+			}
+		} else {
+			subscription.Mark(user, mark)
+			if _, err = e.UpdateSubscriptions(ctx, subscriptions...); err != nil {
+				return fmt.Errorf("mark subscriptions: update subscription data: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// getAllSubscriptionsByQuery returns all subscriptions that match the given query.
+func (e *API) getAllSubscriptionsByQuery(ctx context.Context, query query.Option) (models.Subscriptions, error) {
 	index, err := SubscriptionsReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, ErrNoIndexInCtx //nolint:wrapcheck
@@ -216,7 +749,13 @@ func (e *API) GetAllSubscriptions(ctx context.Context, query query.Option) (mode
 	return subscriptions, nil
 }
 
-func (e *API) SearchSubscriptions(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Subscriptions, models.Pagination, error) {
+func (e *API) SearchSubscriptions(
+	ctx context.Context,
+	query query.Option,
+	count int,
+	sort *models.Sort,
+	pagination *models.Pagination,
+) (models.Subscriptions, models.Pagination, error) {
 	index, err := SubscriptionsReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, "", ErrNoIndexInCtx //nolint:wrapcheck
@@ -224,7 +763,10 @@ func (e *API) SearchSubscriptions(ctx context.Context, query query.Option, count
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
-		return nil, "", models.NewAPIError(fmt.Errorf("search subscriptions: decode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
+		return nil, "", models.NewAPIError(
+			fmt.Errorf("search subscriptions: decode pagination failed: %w", err),
+			http.StatusInternalServerError,
+		) //nolint:wrapcheck
 	}
 
 	// Perform search.
@@ -239,7 +781,10 @@ func (e *API) SearchSubscriptions(ctx context.Context, query query.Option, count
 	if pagination != nil {
 		*pagination, err = encodePagination(newSearchAfter)
 		if err != nil {
-			return nil, "", models.NewAPIError(fmt.Errorf("search subscriptions: encode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
+			return nil, "", models.NewAPIError(
+				fmt.Errorf("search subscriptions: encode pagination failed: %w", err),
+				http.StatusInternalServerError,
+			) //nolint:wrapcheck
 		}
 		return subscriptions, *pagination, nil
 	}
@@ -274,7 +819,10 @@ func (e *API) SearchSubscriptions(ctx context.Context, query query.Option, count
 // }
 
 // UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
-func (e *API) UpdateSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
+func (e *API) UpdateSubscriptions(
+	ctx context.Context,
+	subscriptions ...*models.Subscription,
+) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
 	index, err := SubscriptionsWriteIndexFromCtx(ctx)
 	if err != nil {
 		return nil, ErrNoIndexInCtx //nolint:wrapcheck
@@ -293,6 +841,344 @@ func (e *API) RemoveSubscriptions(ctx context.Context, query query.Option) error
 		return toAPIError(err)
 	}
 	return nil
+}
+
+// BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
+func (e *API) BuildSubscriptionQueries(
+	user *models.User,
+	view models.View,
+	subscriptions models.Subscriptions,
+) []query.Option {
+	queries := make([]query.Option, 0, len(subscriptions))
+	// Work out what query to use based on the state filter.
+	if len(subscriptions) == 0 {
+		return nil
+	}
+	for subscription := range slices.Values(subscriptions) {
+		if subscription.GetSubscriptionType() != models.SubscriptionTypeFeed {
+			continue
+		}
+		switch view {
+		case models.ViewRead:
+			queries = append(queries, queryReadItems(user, subscription))
+		case models.ViewAll:
+			queries = append(queries, queryAllItems(user, subscription))
+		case models.ViewUnread:
+			fallthrough
+		default:
+			queries = append(queries, queryUnreadItems(user, subscription))
+		}
+	}
+	return queries
+}
+
+// queryReadItems generates a query for finding read items for the given subscription.
+func queryReadItems(user *models.User, subscription *models.Subscription) query.Option {
+	if subscription.GetSubscriptionType() != models.SubscriptionTypeFeed {
+		return nil
+	}
+	return query.Bool(
+		query.BoolQueryName(subscription.FeedData.FeedID+"_read_items"),
+		query.Filter(
+			// Must match this feed.
+			query.Term("feed_id", subscription.FeedData.FeedID),
+			// And should be between the user max history and last read time.
+			query.Bool(
+				query.Should(
+					query.Between("published", user.GetMaxHistory(), subscription.MarkedReadAt),
+					query.Between("updated", user.GetMaxHistory(), subscription.MarkedReadAt),
+					query.Terms("item_id", subscription.FeedData.GetReadItems()...),
+				),
+				// Must not match any unread items for the feed
+				query.MustNot(
+					query.Terms("item_id", subscription.FeedData.GetUnreadItems()...),
+				),
+			),
+		),
+		// User-specified field-level filtering.
+		query.Must(
+			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Text, "", "title", "description", "content"),
+			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Categories, "", "categories"),
+		),
+	)
+}
+
+// QueryUnreadItems generates a query for finding unread items for the given subscription.
+func queryUnreadItems(user *models.User, subscription *models.Subscription) query.Option {
+	if subscription.GetSubscriptionType() != models.SubscriptionTypeFeed {
+		return nil
+	}
+	return query.Bool(
+		query.BoolQueryName(subscription.FeedData.GetFeedID()+"_unread_items"),
+		query.Filter(
+			// Must match this feed.
+			query.Term("feed_id", subscription.FeedData.GetFeedID()),
+			query.Bool(
+				query.Should(
+					query.Since("published", subscription.MarkedReadAt),
+					query.Since("updated", subscription.MarkedReadAt),
+					query.Terms("item_id", subscription.FeedData.GetUnreadItems()...),
+				),
+				// Must not match any read items for the feed
+				query.MustNot(
+					query.Terms("item_id", subscription.FeedData.GetReadItems()...),
+				),
+			),
+		),
+		// User-specified field-level filtering.
+		query.Must(
+			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Text, "", "title", "description", "content"),
+			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Categories, "", "categories"),
+		),
+	)
+}
+
+// subscriptionQueryReadItems generates a query for finding all items for the given subscription.
+func queryAllItems(user *models.User, subscription *models.Subscription) query.Option {
+	if subscription.GetSubscriptionType() != models.SubscriptionTypeFeed {
+		return nil
+	}
+	maxHistory := user.GetMaxHistory()
+	return query.Bool(
+		query.BoolQueryName(subscription.FeedData.GetFeedID()+"_all_items"),
+		query.Filter(
+			// Must match this feed.
+			query.Term("feed_id", subscription.FeedData.GetFeedID()),
+			// And be published/updated since the user max history.
+			query.Bool(
+				query.Should(
+					query.Since("published", maxHistory),
+					query.Since("updated", maxHistory),
+				),
+			),
+		),
+		// User-specified field-level filtering.
+		query.Must(
+			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Text, "", "title", "description", "content"),
+			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Categories, "", "categories"),
+		),
+	)
+}
+
+// FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.
+func (e *API) FilterArticles(
+	ctx context.Context,
+	filters *models.ListDisplayFilters,
+	pagination models.Pagination,
+) (models.Articles, models.Pagination, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, "", fmt.Errorf("filter articles: get user data: %w", models.ErrNoUserCtx)
+	}
+
+	subscriptions, err := e.GetSubscriptionsByIDs(ctx, filters.GetSubscriptions()...)
+	if err != nil {
+		return nil, "", fmt.Errorf("filter articles: get subscriptions: %w", err)
+	}
+	// Return early if there the user has no subscriptions (i.e., new user).
+	if len(subscriptions) == 0 {
+		return nil, "", ErrNotFound
+	}
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	articleQuery := query.Bool(
+		query.Filter(
+			// Must match any of the given categories.
+			query.Terms("categories.raw", filters.GetCategories()...),
+			query.Bool(
+				query.Should(e.BuildSubscriptionQueries(user, filters.GetView(), subscriptions)...),
+			),
+		),
+	)
+
+	sort := filters.GetSort()
+
+	// Find items matching filters.
+	items, pagination, err := e.SearchItems(ctx, articleQuery, filters.GetCount(), &sort, &pagination)
+	if err != nil {
+		return nil, "", fmt.Errorf("could not retrieve filtered items: %w", err)
+	}
+	// Generate articles.
+	articles, err := models.GenerateArticles(ctx, e, items)
+	if err != nil {
+		return nil, "", fmt.Errorf("could not generate articles from items: %w", err)
+	}
+
+	return articles, pagination, nil
+}
+
+// FindSimilarArticles performs a "more like this" search to find other Articles that are similar to the Items with the
+// given IDs.
+func (e *API) FindSimilarArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("find similar articles: get user data: %w", models.ErrNoUserCtx)
+	}
+	subscriptions, err := e.GetAllSubscriptions(ctx)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("find similar articles: get subscriptions: %w", err)
+	case len(subscriptions) == 0:
+		return nil, fmt.Errorf("find similar articles: get subscriptions: %w", ErrNotFound)
+	}
+	// Build the More Like This query.
+	// TODO: tweak values and fields for optimum results matching...
+	var (
+		minTermFreq   = 1
+		maxQueryTerms = 12
+	)
+	mlt := query.NewMoreLikeThisQuery("similar_articles")
+	mlt.LikeDocs(itemIDs...)
+	mlt.Fields = []string{"title", "categories.raw", "author"}
+	mlt.MinTermFreq = &minTermFreq
+	mlt.MaxQueryTerms = &maxQueryTerms
+	// Build query
+	similarQuery := query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(e.BuildSubscriptionQueries(user, models.ViewUnread, subscriptions)...),
+			),
+		),
+		query.Must(
+			mlt.ToQueryOption(),
+		),
+	)
+	// Query for similar articles.
+	sort := models.SortMostRelevant
+	items, _, err := e.SearchItems(ctx, similarQuery, 15, &sort, nil)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find similar articles: %w", err)
+	}
+	// Generate article data.
+	articles, err := models.GenerateArticles(ctx, e, items)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find similar articles: %w", err)
+	}
+	return articles, nil
+}
+
+// BuildItemsQuery generates a query to fetch the Items that match the given Filters from the given Subscriptions.
+func (e *API) BuildItemsQuery(
+	ctx context.Context,
+	filters models.Filters,
+	subscriptionIDs ...models.SubscriptionID,
+) (query.Option, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("unable to build items query: %w", models.ErrNoUserCtx)
+	}
+
+	subscriptions, err := e.GetSubscriptionsByIDs(ctx, subscriptionIDs...)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("get suggestions: get subscriptions: %w", err)
+	case len(subscriptions) == 0:
+		return nil, fmt.Errorf("get suggestions: get subscriptions: %w", ErrNotFound)
+	}
+
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	return query.Bool(
+		query.BoolQueryName("get_items"),
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+			// Must match any of the given categories.
+			query.Terms("categories.raw", filters.GetCategories()...),
+			// And should match one feed clause.
+			query.Bool(
+				query.Should(e.BuildSubscriptionQueries(user, filters.GetView(), subscriptions)...),
+			),
+		),
+	), nil
+}
+
+// BuildSearchResultsQuery generates a query that can be used to fetch appropriate results for a given SearchRequest
+// criteria.
+func (e *API) BuildSearchResultsQuery(
+	ctx context.Context,
+	user *models.User,
+	request *models.SearchRequest,
+) (query.Option, error) {
+	// var err error
+	var loc *time.Location
+	var err error
+	if request.Timezone != "" {
+		loc, err = time.LoadLocation(request.Timezone)
+		if err != nil {
+			return nil, fmt.Errorf("build search query: load timezone: %w", err)
+		}
+	} else {
+		loc, err = time.LoadLocation("UTC")
+		if err != nil {
+			return nil, fmt.Errorf("build search query: load timezone: %w", err)
+		}
+	}
+	var since time.Time
+	var pivot string
+	switch request.PublishedWithin {
+	case models.SearchRequestPublishedWithinLastHour:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-time.Hour).Format(time.Layout), loc)
+		pivot = "30m"
+	case models.SearchRequestPublishedWithinLast12hours:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-12*time.Hour).Format(time.Layout), loc)
+		pivot = "6h"
+	case models.SearchRequestPublishedWithinLastDay:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-24*time.Hour).Format(time.Layout), loc)
+		pivot = "12h"
+	case models.SearchRequestPublishedWithinLastWeek:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
+		pivot = "3d"
+	case models.SearchRequestPublishedWithinLastMonth:
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-30*24*time.Hour).Format(time.Layout), loc)
+		pivot = "14d"
+	default: // default to one week.
+		since, _ = time.ParseInLocation(time.Layout, time.Now().Add(-7*24*time.Hour).Format(time.Layout), loc)
+		pivot = "3d"
+	}
+
+	subscriptions, err := e.GetSubscriptionsByIDs(ctx, request.Subscriptions...)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("build search query: get subscriptions: %w", err)
+	case len(subscriptions) == 0:
+		return nil, fmt.Errorf("build search query: get subscriptions: %w", ErrNotFound)
+	}
+
+	return query.Bool(
+		query.Filter(
+			// Must be in the given user subscriptions.
+			query.Bool(
+				query.Should(e.BuildSubscriptionQueries(user, request.View, subscriptions)...),
+			),
+			// Must be published/updated since the given time.
+			query.Bool(
+				query.Should(
+					query.Since("published", since),
+					query.Since("updated", since),
+				),
+			),
+		),
+		// Boost documents closer to the current time.
+		query.Should(
+			query.Distance("published", pivot, "now"),
+			query.Distance("updated", pivot, "now"),
+		),
+		// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
+		// search suggestion).
+		query.Must(
+			// Search across title, description and content fields, with preference for match in that order (via field
+			// boosting).
+			query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
+			// Search in categories.
+			query.SimpleQueryString(request.Categories, "", "categories"),
+			// Search in authors, contributors.
+			query.SimpleQueryString(request.Authors, "", "authors", "contributors"),
+		),
+	), nil
 }
 
 // GetFeed retrieves a single feed with the given ID.
@@ -351,7 +1237,13 @@ func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds,
 
 // SearchFeeds will search the feeds index for feed matching the given query. Count, sort and pagination values are
 // optional.
-func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error) {
+func (e *API) SearchFeeds(
+	ctx context.Context,
+	query query.Option,
+	count int,
+	sort *models.Sort,
+	pagination *models.Pagination,
+) (models.Feeds, models.Pagination, error) {
 	index, err := FeedsReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, "", ErrNoIndexInCtx //nolint:wrapcheck
@@ -359,7 +1251,10 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
-		return nil, "", models.NewAPIError(fmt.Errorf("search feeds: decode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
+		return nil, "", models.NewAPIError(
+			fmt.Errorf("search feeds: decode pagination failed: %w", err),
+			http.StatusInternalServerError,
+		) //nolint:wrapcheck
 	}
 
 	// Perform search.
@@ -374,7 +1269,10 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 	if pagination != nil {
 		*pagination, err = encodePagination(newSearchAfter)
 		if err != nil {
-			return nil, "", models.NewAPIError(fmt.Errorf("search feeds: encode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
+			return nil, "", models.NewAPIError(
+				fmt.Errorf("search feeds: encode pagination failed: %w", err),
+				http.StatusInternalServerError,
+			) //nolint:wrapcheck
 		}
 		return feeds, *pagination, nil
 	}
@@ -423,7 +1321,13 @@ func (e *API) UpdateFeed(ctx context.Context, id models.FeedID, updated *feeds.F
 
 // SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
 // optional.
-func (e *API) SearchItems(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Items, models.Pagination, error) {
+func (e *API) SearchItems(
+	ctx context.Context,
+	query query.Option,
+	count int,
+	sort *models.Sort,
+	pagination *models.Pagination,
+) (models.Items, models.Pagination, error) {
 	index, err := ItemsReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, "", ErrNoIndexInCtx //nolint:wrapcheck
@@ -431,7 +1335,10 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
-		return nil, "", models.NewAPIError(fmt.Errorf("search items: decode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
+		return nil, "", models.NewAPIError(
+			fmt.Errorf("search items: decode pagination failed: %w", err),
+			http.StatusInternalServerError,
+		) //nolint:wrapcheck
 	}
 	// Perform search.
 	items, newSearchAfter, err := Search[*models.Item](ctx, e.GetAPI(), index, query, count,
@@ -444,7 +1351,10 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 	// Parse last search after value into pagination.
 	newPagination, err := encodePagination(newSearchAfter)
 	if err != nil {
-		return nil, "", models.NewAPIError(fmt.Errorf("search items: encode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
+		return nil, "", models.NewAPIError(
+			fmt.Errorf("search items: encode pagination failed: %w", err),
+			http.StatusInternalServerError,
+		) //nolint:wrapcheck
 	}
 	return items, newPagination, nil
 }
@@ -455,7 +1365,14 @@ func (e *API) GetLastUpdatedItems(ctx context.Context, feedIDs ...models.FeedID)
 		return nil, ErrNoIndexInCtx //nolint:wrapcheck
 	}
 
-	items, _, err := Search[*models.Item](ctx, e.GetAPI(), index, query.Terms("feed_id", feedIDs...), len(feedIDs), WithCollapseField("feed_id"))
+	items, _, err := Search[*models.Item](
+		ctx,
+		e.GetAPI(),
+		index,
+		query.Terms("feed_id", feedIDs...),
+		len(feedIDs),
+		WithCollapseField("feed_id"),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get feed last updates: %w", err)
 	}
@@ -465,7 +1382,12 @@ func (e *API) GetLastUpdatedItems(ctx context.Context, feedIDs ...models.FeedID)
 
 // ItemsAggregation performs an aggregation-only (i.e., search request with no hits returned) using the given query as
 // the set of documents and performing the given aggregations across the documents.
-func (e *API) ItemsAggregation(ctx context.Context, query query.Option, size int, aggregations aggregations.Aggs) (*search.Response, error) {
+func (e *API) ItemsAggregation(
+	ctx context.Context,
+	query query.Option,
+	size int,
+	aggregations aggregations.Aggs,
+) (*search.Response, error) {
 	index, err := ItemsReadIndexFromCtx(ctx)
 	if err != nil {
 		return nil, toAPIError(err)
@@ -590,7 +1512,12 @@ func (e *API) CountJobs(ctx context.Context) (int64, error) {
 
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
-func BulkAdd[T ~string, O Object[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {
+func BulkAdd[T ~string, O Object[T]](
+	ctx context.Context,
+	api *API,
+	index string,
+	objects ...O,
+) (map[T]*bulk.OperationResponse, error) {
 	bulkOps, respCh := bulk.NewRequest(ctx, api)
 
 	go func() {
@@ -628,7 +1555,12 @@ func BulkAdd[T ~string, O Object[T]](ctx context.Context, api *API, index string
 
 // BulkUpdate will update documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
-func BulkUpdate[T ~string, O Object[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {
+func BulkUpdate[T ~string, O Object[T]](
+	ctx context.Context,
+	api *API,
+	index string,
+	objects ...O,
+) (map[T]*bulk.OperationResponse, error) {
 	bulkOps, respCh := bulk.NewRequest(ctx, api)
 
 	go func() {
@@ -693,7 +1625,12 @@ func Count(ctx context.Context, api *elasticsearch.TypedClient, index string, qu
 
 // GetDocs performs an `_mget` request to fetch the documents from the given index with the given ids. A non-nil error
 // is returned on a failure.
-func GetDocs[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClient, index string, ids ...T) ([]O, error) {
+func GetDocs[T ~string, O any](
+	ctx context.Context,
+	api *elasticsearch.TypedClient,
+	index string,
+	ids ...T,
+) ([]O, error) {
 	docIDs := make([]string, 0, len(ids))
 	for id := range slices.Values(ids) {
 		docIDs = append(docIDs, string(id))
@@ -754,7 +1691,14 @@ func CreateDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedCl
 
 // UpdateDoc performs a partial doc update on the document with the given id in the given index. A non-nil error is
 // returned on a failure.
-func UpdateDoc[T ~string](ctx context.Context, api *elasticsearch.TypedClient, index string, id T, updates map[string]any, options ...Option[UpdateDocRequest]) error {
+func UpdateDoc[T ~string](
+	ctx context.Context,
+	api *elasticsearch.TypedClient,
+	index string,
+	id T,
+	updates map[string]any,
+	options ...Option[UpdateDocRequest],
+) error {
 	resp, err := NewUpdateDocRequest(api, index, string(id), updates, options...).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("update doc: update doc request failed: %w", err)
@@ -789,8 +1733,12 @@ func DeleteDoc[T ~string](ctx context.Context, api *elasticsearch.TypedClient, i
 
 // DeleteDocs performs a delete by query request on the given index to delete documents matching the given queries.
 func DeleteDocs(ctx context.Context, api *elasticsearch.TypedClient, index string, queries ...query.Option) error {
-	resp, err := NewDeleteByQueryRequest(api, index,
-		WithRequestID[*deletebyquery.DeleteByQuery, RequestCommon[*deletebyquery.DeleteByQuery]](middleware.GetReqID(ctx)),
+	resp, err := NewDeleteByQueryRequest(
+		api,
+		index,
+		WithRequestID[*deletebyquery.DeleteByQuery, RequestCommon[*deletebyquery.DeleteByQuery]](
+			middleware.GetReqID(ctx),
+		),
 		WithQueryOptions[*deletebyquery.DeleteByQuery, RequestWithQuery[*deletebyquery.DeleteByQuery]](queries...),
 	).Do(ctx)
 	if err != nil {
@@ -805,7 +1753,14 @@ func DeleteDocs(ctx context.Context, api *elasticsearch.TypedClient, index strin
 }
 
 // Search performs a _search request to find documents matching the given query.
-func Search[O any](ctx context.Context, api *elasticsearch.TypedClient, index string, query query.Option, count int, options ...Option[SearchRequest]) ([]O, []types.FieldValue, error) {
+func Search[O any](
+	ctx context.Context,
+	api *elasticsearch.TypedClient,
+	index string,
+	query query.Option,
+	count int,
+	options ...Option[SearchRequest],
+) ([]O, []types.FieldValue, error) {
 	defaultOptions := []Option[SearchRequest]{
 		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
 		WithIndex[*search.Search, SearchRequest](index),
@@ -833,7 +1788,14 @@ func Search[O any](ctx context.Context, api *elasticsearch.TypedClient, index st
 
 // SearchAll performs a paginated search request to retrieve *all* documents matching the given query. Unlike Search, it
 // does not stop when the request hits count is reached.
-func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index string, query query.Option, paginationSize int, options ...Option[SearchRequest]) ([]O, error) {
+func SearchAll[O any](
+	ctx context.Context,
+	api *elasticsearch.TypedClient,
+	index string,
+	query query.Option,
+	paginationSize int,
+	options ...Option[SearchRequest],
+) ([]O, error) {
 	if paginationSize == 0 {
 		paginationSize = 1000
 	}
@@ -853,11 +1815,17 @@ func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index
 		}
 		pagination, err := encodePagination(nextSearchAfter)
 		if err != nil {
-			return nil, models.NewAPIError(fmt.Errorf("search all: encode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
+			return nil, models.NewAPIError(
+				fmt.Errorf("search all: encode pagination failed: %w", err),
+				http.StatusInternalServerError,
+			) //nolint:wrapcheck
 		}
 		searchAfter, err = decodePagination(&pagination)
 		if err != nil {
-			return nil, models.NewAPIError(fmt.Errorf("search all: decode pagination failed: %w", err), http.StatusInternalServerError) //nolint:wrapcheck
+			return nil, models.NewAPIError(
+				fmt.Errorf("search all: decode pagination failed: %w", err),
+				http.StatusInternalServerError,
+			) //nolint:wrapcheck
 		}
 
 		allResults = append(allResults, resultsPage...)

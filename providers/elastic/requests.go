@@ -233,7 +233,12 @@ type UpdateDocRequest interface {
 }
 
 // NewUpdateDocRequest creates a new doc update request with the given options.
-func NewUpdateDocRequest(api *elasticsearch.TypedClient, index, id string, doc any, options ...Option[UpdateDocRequest]) *update.Update {
+func NewUpdateDocRequest(
+	api *elasticsearch.TypedClient,
+	index, id string,
+	doc any,
+	options ...Option[UpdateDocRequest],
+) *update.Update {
 	req := api.Update(index, id).Doc(doc)
 
 	for _, option := range options {

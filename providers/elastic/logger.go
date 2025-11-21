@@ -22,10 +22,10 @@ import (
 )
 
 var (
-	// LogRequestBodyMaxSize is the maximum size of the request body to write to the log.
-	LogRequestBodyMaxSize = 256 * 1024
-	// LogResponseBodyMaxSize is the maximum size of the response body to write to the log.
-	LogResponseBodyMaxSize = 256 * 1024
+	// logRequestBodyMaxSize is the maximum size of the request body to write to the log.
+	logRequestBodyMaxSize = 256 * 1024
+	// logResponseBodyMaxSize is the maximum size of the response body to write to the log.
+	logResponseBodyMaxSize = 256 * 1024
 )
 
 // Logger is a custom elastictransport.Logger.
@@ -36,7 +36,13 @@ type Logger struct {
 
 // LogRoundTrip should not modify the request or response, except for consuming and closing the body.
 // Implementations have to check for nil values in request and response.
-func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, start time.Time, dur time.Duration) error {
+func (l *Logger) LogRoundTrip(
+	req *http.Request,
+	res *http.Response,
+	err error,
+	_ time.Time,
+	dur time.Duration,
+) error {
 	// Extract some important values from the request and response.
 	status := res.StatusCode
 	path := req.URL.Path
@@ -53,7 +59,7 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		l.EnableRequestBody = true
 		l.EnableResponseBody = true
 	default:
-		level = slog.LevelInfo
+		level = logging.LevelTrace
 	}
 	// Set base/common attributes.
 	baseAttributes := []slog.Attr{}
@@ -80,7 +86,8 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
 		)
 	}
-	if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil && req.Body != http.NoBody {
+	if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil &&
+		req.Body != http.NoBody {
 		var buf bytes.Buffer
 		if req.GetBody != nil {
 			b, _ := req.GetBody()
@@ -123,7 +130,8 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		baseAttributes...,
 	)
 	// Write a log message.
-	slogctx.FromCtx(req.Context()).LogAttrs(req.Context(), level, strconv.Itoa(status)+": "+http.StatusText(status), attributes...)
+	slogctx.FromCtx(req.Context()).
+		LogAttrs(req.Context(), level, strconv.Itoa(status)+": "+http.StatusText(status), attributes...)
 	return err
 }
 

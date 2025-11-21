@@ -83,7 +83,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 					slog.Any("error", err))
 			}
 			if len(subscriptions) > 0 {
-				err = models.AddSubscriptionDynamicInfo(jobCtx, api, subscriptions)
+				err = api.AddSubscriptionDynamicInfo(jobCtx, subscriptions)
 				if err != nil {
 					slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription dynamic data.",
 						slog.Any("error", err))
@@ -96,12 +96,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 		// Generate article suggestions.
 		fetchJobs.Go(func() error {
 			var allSubscriptions models.Subscriptions
-			subscriptionQuery := query.Bool(
-				query.Filter(
-					query.Term("user_id", user.GetID()),
-				),
-			)
-			allSubscriptions, err = api.GetAllSubscriptions(jobCtx, subscriptionQuery)
+			allSubscriptions, err = api.GetAllSubscriptions(jobCtx)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get all subscriptions.",
 					slog.Any("error", err))
@@ -182,7 +177,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		// If the search request has subscription filters, get subscription details.
 		if len(request.Subscriptions) > 0 {
 			var subscriptions models.Subscriptions
-			subscriptions, err = models.GetSubscriptions(req.Context(), api, request.Subscriptions...)
+			subscriptions, err = api.GetSubscriptionsByIDs(req.Context(), request.Subscriptions...)
 			if err != nil {
 				msg := models.NewErrorMessage(
 					"Unable to process request",
@@ -194,7 +189,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 					http.StatusInternalServerError,
 				)
 			}
-			err = models.AddSubscriptionDynamicInfo(req.Context(), api, subscriptions)
+			err = api.AddSubscriptionDynamicInfo(req.Context(), subscriptions)
 			if err != nil {
 				msg := models.NewErrorMessage(
 					"Unable to process request",
@@ -225,7 +220,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 
 		// Find articles that match search request.
 		var articles models.Articles
-		query, err := models.BuildSearchResultsQuery(ctx, api, user, request)
+		query, err := api.BuildSearchResultsQuery(ctx, user, request)
 		if err != nil {
 			msg := models.NewErrorMessage(
 				"Unable to process request",
@@ -309,7 +304,7 @@ func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 			return fmt.Errorf("unable to get search request updates: %w", err)
 		}
 		// Build query.
-		query, err := models.BuildSearchResultsQuery(req.Context(), api, user, request)
+		query, err := api.BuildSearchResultsQuery(req.Context(), user, request)
 		if err != nil {
 			return fmt.Errorf("unable to get search request updates: %w", err)
 		}
@@ -342,7 +337,7 @@ func GetSubscriptionFilterSuggestions(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		subscriptions, err := models.GetSubscriptionSuggestions(req.Context(), api, text)
+		subscriptions, err := api.GetSubscriptionSuggestions(req.Context(), text)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			res.WriteHeader(http.StatusInternalServerError)
 			return

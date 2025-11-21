@@ -1,7 +1,6 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//nolint:goconst
 package elastic
 
 import (
@@ -40,13 +39,13 @@ type ConfigDevelopment struct {
 	CAFile   string   `toml:"ca_file"`
 	Username string   `toml:"username" validate:"required"`
 	Password string   `toml:"password" validate:"required"`
-	URLs     []string `toml:"urls" validate:"required"`
+	URLs     []string `toml:"urls"     validate:"required"`
 }
 
 // ConfigProduction are the config options for a production environment.
 type ConfigProduction struct {
 	CloudID string `toml:"cloud_id" validate:"required"`
-	APIKey  string `toml:"api_key" validate:"required"`
+	APIKey  string `toml:"api_key"  validate:"required"`
 }
 
 // loadConfigOnce loads the elasticsearch configuration and ensures this is done

@@ -1,7 +1,6 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//nolint:wrapcheck
 package elastic
 
 import (
@@ -40,7 +39,11 @@ func SetupIndexAliases(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, feedsReadIndexCtxKey, schema.FeedsSchemaPrefix+schema.IndexReadSuffix)
 	ctx = context.WithValue(ctx, feedsWriteIndexCtxKey, schema.FeedsSchemaPrefix+schema.IndexWriteSuffix)
 	ctx = context.WithValue(ctx, subscriptionsReadIndexCtxKey, schema.SubscriptionsSchemaPrefix+schema.IndexReadSuffix)
-	ctx = context.WithValue(ctx, subscriptionsWriteIndexCtxKey, schema.SubscriptionsSchemaPrefix+schema.IndexWriteSuffix)
+	ctx = context.WithValue(
+		ctx,
+		subscriptionsWriteIndexCtxKey,
+		schema.SubscriptionsSchemaPrefix+schema.IndexWriteSuffix,
+	)
 	ctx = context.WithValue(ctx, itemsArchiveReadIndexCtxKey, schema.FavoriteItemsSchemaPrefix+schema.IndexReadSuffix)
 	ctx = context.WithValue(ctx, itemsArchiveWriteIndexCtxKey, schema.FavoriteItemsSchemaPrefix+schema.IndexWriteSuffix)
 	ctx = context.WithValue(ctx, schedulerReadIndexCtxKey, schema.SchedulerSchemaPrefix+schema.IndexReadSuffix)
@@ -71,7 +74,10 @@ func SubscriptionsReadIndexFromCtx(ctx context.Context) (string, error) {
 	if value, ok := ctx.Value(subscriptionsReadIndexCtxKey).(string); ok {
 		return value, nil
 	}
-	return "", models.NewAPIError(fmt.Errorf("%w: subscriptions read index name not found", ErrFetchCtx), http.StatusNotFound)
+	return "", models.NewAPIError(
+		fmt.Errorf("%w: subscriptions read index name not found", ErrFetchCtx),
+		http.StatusNotFound,
+	)
 }
 
 // SubscriptionsWriteIndexFromCtx retrieves the index alias for write operations against the feeds index.
@@ -79,7 +85,10 @@ func SubscriptionsWriteIndexFromCtx(ctx context.Context) (string, error) {
 	if value, ok := ctx.Value(subscriptionsWriteIndexCtxKey).(string); ok {
 		return value, nil
 	}
-	return "", models.NewAPIError(fmt.Errorf("%w: subscriptions write index name not found", ErrFetchCtx), http.StatusNotFound)
+	return "", models.NewAPIError(
+		fmt.Errorf("%w: subscriptions write index name not found", ErrFetchCtx),
+		http.StatusNotFound,
+	)
 }
 
 // FeedsReadIndexFromCtx retrieves the index alias for read operations against the feeds index.
@@ -103,7 +112,10 @@ func FavoriteItemsReadIndexFromCtx(ctx context.Context) (string, error) {
 	if value, ok := ctx.Value(itemsArchiveReadIndexCtxKey).(string); ok {
 		return value, nil
 	}
-	return "", models.NewAPIError(fmt.Errorf("%w: items archive read index name not found", ErrFetchCtx), http.StatusNotFound)
+	return "", models.NewAPIError(
+		fmt.Errorf("%w: items archive read index name not found", ErrFetchCtx),
+		http.StatusNotFound,
+	)
 }
 
 // FavoriteItemsWriteIndexFromCtx retrieves the index alias for write operations against the articles archive index.
@@ -111,7 +123,10 @@ func FavoriteItemsWriteIndexFromCtx(ctx context.Context) (string, error) {
 	if value, ok := ctx.Value(itemsArchiveWriteIndexCtxKey).(string); ok {
 		return value, nil
 	}
-	return "", models.NewAPIError(fmt.Errorf("%w: items archive write index name not found", ErrFetchCtx), http.StatusNotFound)
+	return "", models.NewAPIError(
+		fmt.Errorf("%w: items archive write index name not found", ErrFetchCtx),
+		http.StatusNotFound,
+	)
 }
 
 // SchedulerReadIndexFromCtx retrieves the index alias for read operations against the scheduler jobs index.

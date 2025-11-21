@@ -25,37 +25,51 @@ import (
 
 // Home handles displaying the user's home page.
 func (a *API) Home() http.HandlerFunc {
-	return defaultHandlerChain.Append(setCacheControl).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		pageTitle := templates.GeneratePageTitle("Home")
-		ctx := req.Context()
-		user := models.UserFromCtx(ctx)
-		if user == nil {
-			msg := models.NewErrorMessage("Unable to complete request!", "This might be temporary, please try again.")
-			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx), http.StatusInternalServerError)
-		}
-		if user.GetSettings().ShowOnboarding {
-			template := templates.NewUserHome()
+	return defaultHandlerChain.Append(setCacheControl).
+		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+			pageTitle := templates.GeneratePageTitle("Home")
+			ctx := req.Context()
+			user := models.UserFromCtx(ctx)
+			if user == nil {
+				msg := models.NewErrorMessage(
+					"Unable to complete request!",
+					"This might be temporary, please try again.",
+				)
+				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+					http.StatusInternalServerError,
+				)
+			}
+			if user.GetSettings().ShowOnboarding {
+				template := templates.NewUserHome()
+				renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
+				return nil
+			}
+			data, err := a.getHomePageData(ctx)
+			if err != nil {
+				msg := models.NewErrorMessage(
+					"Unable to complete request!",
+					"This might be temporary, please try again.",
+				)
+				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("unable to retrieve home page data: %w", err),
+					http.StatusInternalServerError,
+				)
+			}
+			template := data.Template()
 			renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
 			return nil
-		}
-		data, err := a.getHomePageData(ctx)
-		if err != nil {
-			msg := models.NewErrorMessage("Unable to complete request!", "This might be temporary, please try again.")
-			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to retrieve home page data: %w", err), http.StatusInternalServerError)
-		}
-		template := data.Template()
-		renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
-		return nil
-	})).ServeHTTP
+		})).
+		ServeHTTP
 }
 
 // WatchHome handles watching the home page content (namely, latest articles) for updates.
 func WatchHome(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		query, err := models.BuildItemsQuery(req.Context(), api, filters)
+		query, err := api.BuildItemsQuery(req.Context(), filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
 				slog.Any("error", err))
@@ -79,12 +93,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	}
 	data.User = user
 
-	subscriptionQuery := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-		),
-	)
-	subscriptions, err := a.DataAPI().GetAllSubscriptions(ctx, subscriptionQuery)
+	subscriptions, err := a.Elastic.GetAllSubscriptions(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("filter articles: get subscriptions: %w", err)
 	}
@@ -101,14 +110,15 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
 			query.Bool(
-				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, subscriptions)...),
+				query.Should(a.Elastic.BuildSubscriptionQueries(user, models.ViewUnread, subscriptions)...),
 			),
 		),
 	)
 
 	// Fetch latest articles.
 	sort := models.SortNewestFirst
-	latestItems, _, err := a.DataAPI().SearchItems(ctx, articlesQuery, 12, &sort, nil)
+	maxLatestItemsCount := 12
+	latestItems, _, err := a.DataAPI().SearchItems(ctx, articlesQuery, maxLatestItemsCount, &sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
 	}
@@ -122,27 +132,27 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	}
 
 	// Fetch aggregation data.
-	TermsField := "categories.raw"
+	termsField := "categories.raw"
 	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
-	SampleField := "feed_id"
-	DefaultMaxDocsPerValue := 10
-	ShardSize := 1000
-	TopHitsCount := 1
-	MaxDocCount := int64(5)
+	sampleField := "feed_id"
+	defaultMaxDocsPerValue := 8
+	shardSize := 1000
+	topHitsCount := 1
+	maxDocCount := int64(5)
 	aggs := aggregations.Aggs{
 		// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
 		// source.
 		"top_categories_sample": types.Aggregations{
 			DiversifiedSampler: &types.DiversifiedSamplerAggregation{
-				Field:           &SampleField,
-				MaxDocsPerValue: &DefaultMaxDocsPerValue,
-				ShardSize:       &ShardSize,
+				Field:           &sampleField,
+				MaxDocsPerValue: &defaultMaxDocsPerValue,
+				ShardSize:       &shardSize,
 			},
 			Aggregations: map[string]types.Aggregations{
 				// top_categories: the top categories across all subscriptions.
 				"top_categories": {
 					Terms: &types.TermsAggregation{
-						Field:   &TermsField,
+						Field:   &termsField,
 						Exclude: models.CommonCategoryFilters,
 					},
 					Aggregations: map[string]types.Aggregations{
@@ -150,13 +160,13 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 						"top_articles": {
 							Filter: query.Build(query.Bool(
 								query.MustNot(
-									query.Terms("feed_id", data.LatestArticles.GetFeedIDs()...),
+									query.Terms("item_id", data.LatestArticles.GetIDs()...),
 								),
 							)),
 							Aggregations: map[string]types.Aggregations{
 								"top_article_hits": {
 									TopHits: &types.TopHitsAggregation{
-										Size: &TopHitsCount,
+										Size: &topHitsCount,
 									},
 								},
 							},
@@ -168,8 +178,8 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 		// Aggregation definition for fetching the rare item categories across all subscriptions.
 		"rare_categories": types.Aggregations{
 			RareTerms: &types.RareTermsAggregation{
-				Field:       &TermsField,
-				MaxDocCount: &MaxDocCount,
+				Field:       &termsField,
+				MaxDocCount: &maxDocCount,
 				Exclude:     models.CommonCategoryFilters,
 			},
 		},
@@ -182,36 +192,38 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	}
 
 	// Get the top categories.
-	topCategoriesSamplerAgg, ok := queryResult.Aggregations["top_categories_sample"].(*types.SamplerAggregate)
-	if ok {
-		topCategoriesAgg, ok := topCategoriesSamplerAgg.Aggregations["top_categories"].(*types.StringTermsAggregate)
-		if ok {
-			categoryBuckets, ok := topCategoriesAgg.Buckets.([]types.StringTermsBucket)
-			if ok {
+	if topCategoriesSamplerAgg, ok := queryResult.Aggregations["top_categories_sample"].(*types.SamplerAggregate); ok {
+		var topCategoriesAgg *types.StringTermsAggregate
+		if topCategoriesAgg, ok = topCategoriesSamplerAgg.Aggregations["top_categories"].(*types.StringTermsAggregate); ok {
+			var categoryBuckets []types.StringTermsBucket
+			if categoryBuckets, ok = topCategoriesAgg.Buckets.([]types.StringTermsBucket); ok {
 				// Generate categories from aggregation.
 				data.TopCategories = make(models.CategoryCounts, 0)
 				data.TopArticles = make(models.Articles, 0)
 				for category := range slices.Values(categoryBuckets) {
-					value, ok := category.Key.(string)
-					if !ok {
+					var value string
+					if value, ok = category.Key.(string); !ok {
 						continue
 					}
-					data.TopCategories = append(data.TopCategories, models.CategoryCount{Category: value, Count: int(category.DocCount)})
+					data.TopCategories = append(
+						data.TopCategories,
+						models.CategoryCount{Category: value, Count: int(category.DocCount)},
+					)
 					// Get top article.
-					topArticlesAgg, ok := category.Aggregations["top_articles"].(*types.FilterAggregate)
-					if !ok {
+					var topArticlesAgg *types.FilterAggregate
+					if topArticlesAgg, ok = category.Aggregations["top_articles"].(*types.FilterAggregate); !ok {
 						continue
 					}
-					topHitsAgg, ok := topArticlesAgg.Aggregations["top_article_hits"].(*types.TopHitsAggregate)
-					if !ok {
+					var topHitsAgg *types.TopHitsAggregate
+					if topHitsAgg, ok = topArticlesAgg.Aggregations["top_article_hits"].(*types.TopHitsAggregate); !ok {
 						continue
 					}
-					items, _, err := results.ExtractSourceFromHits[*models.Item](topHitsAgg.Hits.Hits)
-					if err != nil {
+					var items models.Items
+					if items, _, err = results.ExtractSourceFromHits[*models.Item](topHitsAgg.Hits.Hits); err != nil {
 						continue
 					}
-					articles, err := models.GenerateArticles(ctx, a.DataAPI(), items)
-					if err != nil {
+					var articles models.Articles
+					if articles, err = models.GenerateArticles(ctx, a.DataAPI(), items); err != nil {
 						continue
 					}
 					data.TopArticles = append(data.TopArticles, articles...)
@@ -229,18 +241,21 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 		}
 	}
 	// Get the rare categories.
-	rareCategoriesAgg, ok := queryResult.Aggregations["rare_categories"].(*types.StringRareTermsAggregate)
-	if ok {
+	maxRareCategoriesCount := 10
+	if rareCategoriesAgg, ok := queryResult.Aggregations["rare_categories"].(*types.StringRareTermsAggregate); ok {
 		// Generate category counts from buckets.
-		rareCategoryBuckets, ok := rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket)
-		if ok {
+		var rareCategoryBuckets []types.StringRareTermsBucket
+		if rareCategoryBuckets, ok = rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket); ok {
 			data.RareCategories = make(models.CategoryCounts, 0)
 			for category := range slices.Values(rareCategoryBuckets) {
-				data.RareCategories = append(data.RareCategories, models.CategoryCount{Category: category.Key, Count: int(category.DocCount)})
+				data.RareCategories = append(
+					data.RareCategories,
+					models.CategoryCount{Category: category.Key, Count: int(category.DocCount)},
+				)
 			}
 			data.RareCategories.Sort()
-			if len(data.RareCategories) > 10 {
-				data.RareCategories = data.RareCategories[:10]
+			if len(data.RareCategories) > maxRareCategoriesCount {
+				data.RareCategories = data.RareCategories[:maxRareCategoriesCount]
 			}
 		}
 	}

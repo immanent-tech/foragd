@@ -41,9 +41,15 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 		case models.ObjectTypeArticle:
 			articles, err := models.GetArticles(req.Context(), api, params.ObjectID)
 			if err != nil {
-				msg := models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again.")
+				msg := models.NewErrorMessage(
+					"Server could not complete request!",
+					"This might be temporary, please try again.",
+				)
 				renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle("View Article")).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to fetch article content: %w", err), http.StatusInternalServerError)
+				return models.NewAPIError(
+					fmt.Errorf("unable to fetch article content: %w", err),
+					http.StatusInternalServerError,
+				)
 			}
 			article := articles[0]
 			pageTitle := templates.GeneratePageTitle(article.GetTitle())
@@ -100,18 +106,27 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 		err := params.Valid()
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again."),
+				models.NewErrorMessage(
+					"Server could not complete request!",
+					"This might be temporary, please try again.",
+				),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		switch params.Object {
 		case models.ObjectTypeArticle:
-			articles, err := models.FindSimilarArticles(req.Context(), api, params.ObjectID)
+			articles, err := api.FindSimilarArticles(req.Context(), params.ObjectID)
 			if err != nil {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to find similar articles", ""),
 				)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("find similar articles request failed: %w", err), http.StatusUnprocessableEntity)
+				return models.NewAPIError(
+					fmt.Errorf("find similar articles request failed: %w", err),
+					http.StatusUnprocessableEntity,
+				)
 			}
 			// Show results.
 			var template templ.Component
@@ -170,15 +185,25 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 		err := params.Valid()
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Server could not complete request", "This might be temporary, please try again."),
+				models.NewErrorMessage(
+					"Server could not complete request",
+					"This might be temporary, please try again.",
+				),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
 			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
 		}
-		template := templates.ReportObjectIssues(string(params.Object), params.ObjectID, models.NewObjectIssue(params, currentURL))
+		template := templates.ReportObjectIssues(
+			string(params.Object),
+			params.ObjectID,
+			models.NewObjectIssue(params, currentURL),
+		)
 		renderPage(template, templates.GeneratePageTitle("Report an issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
@@ -191,9 +216,15 @@ func SubmitObjectIssues(esapi *elastic.API) http.HandlerFunc {
 		request, valid, err := forms.DecodeForm[*models.ObjectIssueRequest](req)
 		if err != nil || !valid {
 			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Server could not complete request", "This might be temporary, please try again."),
+				models.NewErrorMessage(
+					"Server could not complete request",
+					"This might be temporary, please try again.",
+				),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
+			return models.NewAPIError(
+				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				http.StatusUnprocessableEntity,
+			)
 		}
 		// // Extract any attached screenshot.
 		// screenshot, err := forms.DecodeMultipartFile2(req, "screenshot")
@@ -217,23 +248,36 @@ func SubmitObjectIssues(esapi *elastic.API) http.HandlerFunc {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
 			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to connect to github: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("unable to connect to github: %w", err),
+				http.StatusInternalServerError,
+			)
 		}
 		// Create the issue in Github.
 		err = github.CreateObjectIssue(req.Context(), request)
 		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to submit issue", "This might be a temporary error, please try again.")),
+					models.NewErrorMessage(
+						"Unable to submit issue",
+						"This might be a temporary error, please try again.",
+					),
+				),
 			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to create issue in github: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("unable to create issue in github: %w", err),
+				http.StatusInternalServerError,
+			)
 		}
 		// Force refresh of page.
 		msg := models.NewInfoMessage(
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
-		renderPage(templates.IssueReportedConfirmation(msg), templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+		renderPage(
+			templates.IssueReportedConfirmation(msg),
+			templates.GeneratePageTitle("Report subscription issue"),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

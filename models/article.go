@@ -41,6 +41,15 @@ func (a Articles) GetFeedIDs() []FeedID {
 	return slices.Compact(ids)
 }
 
+// GetIDs retrieves the item ids for all articles in the slice.
+func (a Articles) GetIDs() []ItemID {
+	ids := make([]ItemID, 0, len(a))
+	for article := range slices.Values(a) {
+		ids = append(ids, article.GetID())
+	}
+	return ids
+}
+
 // GetCategoryCounts returns a count of the occurrence of a Category across all
 // the Articles in the slice.
 func (a Articles) GetCategoryCounts() CategoryCounts {

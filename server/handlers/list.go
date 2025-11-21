@@ -17,7 +17,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -50,7 +49,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 					filters.Subscriptions = nil
 				}
 				// Get subscriptions matching filters.
-				subscriptions, pagination, err := models.FilterSubscriptions(req.Context(), api, filters, pagination)
+				subscriptions, pagination, err := api.FilterSubscriptions(req.Context(), filters, pagination)
 				if err != nil && !errors.Is(err, models.ErrNotFound) {
 					msg := models.NewErrorMessage(
 						"Server could not complete request!",
@@ -82,7 +81,7 @@ func ShowList(api *elastic.API) http.HandlerFunc {
 				}
 			case "articles":
 				// Get articles matching filters.
-				articles, pagination, err := models.FilterArticles(req.Context(), api, filters, pagination)
+				articles, pagination, err := api.FilterArticles(req.Context(), filters, pagination)
 				if err != nil && !errors.Is(err, models.ErrNotFound) {
 					msg := models.NewErrorMessage(
 						"Server could not complete request!",
@@ -173,20 +172,12 @@ func listFavorites(ctx context.Context, api *elastic.API) (templ.Component, erro
 	}
 
 	// Get favorite subscriptions.
-	subscriptions, err = api.GetAllSubscriptions(ctx, query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Term("favorite", true),
-		),
-	))
-	if err != nil {
-		return nil, fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
-	}
-	err = models.AddSubscriptionDynamicInfo(ctx, api, subscriptions)
+	subscriptions, err = api.GetFavoriteSubscriptions(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
 	}
 
+	// Render appropriate content.
 	if len(subscriptions) > 0 || len(articles) > 0 {
 		return templates.FavoritesGrid(subscriptions, articles), nil
 	} else {
@@ -198,7 +189,7 @@ func listFavorites(ctx context.Context, api *elastic.API) (templ.Component, erro
 func WatchList(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		query, err := models.BuildItemsQuery(req.Context(), api, filters)
+		query, err := api.BuildItemsQuery(req.Context(), filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
 				slog.Any("error", err))
