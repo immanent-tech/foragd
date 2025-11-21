@@ -376,10 +376,12 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 								{{ markText = "Mark All Read" }}
 								{{ markURL = "/list/subscriptions/mark/" + string(models.MarkRead) }}
 								{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
+								<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 							} else {
 								{{ markText = "Mark All Unread" }}
 								{{ markURL = "/list/subscriptions/mark/" + string(models.MarkUnread) }}
 								{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
+								<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
 							}
 							@NewLink(
 								WithHXMethod(http.MethodPost, markURL),
