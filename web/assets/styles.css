@@ -1,7 +1,12 @@
 @import 'tailwindcss' source('../templates/**/*.{html,templ}');
 @plugin '@tailwindcss/typography';
 @plugin 'daisyui' {
-  themes: light, dark, dracula, nord, abyss;
+  themes:
+    light --default,
+    dark --prefersdark,
+    dracula,
+    nord,
+    abyss;
 }
 
 @plugin './catppuccinTheme.latte.ts';

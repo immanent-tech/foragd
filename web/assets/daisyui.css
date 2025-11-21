@@ -5,3 +5,9 @@
   --color-accent: #c64e33;
   --color-neutral: #70748a;
 }
+
+@plugin 'daisyui/theme' {
+  name: 'light';
+  default: true;
+  --color-secondary: #d82b87;
+}

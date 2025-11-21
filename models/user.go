@@ -14,7 +14,7 @@ import (
 
 const (
 	// DefaultUserTheme is the default theme for the app.
-	DefaultUserTheme = "latte"
+	DefaultUserTheme = "light"
 
 	BasicAccountMaxHistory          = 7 * 24 * time.Hour // One week.
 	BasicAccountUpdatesFrequency    = time.Hour
