@@ -22,20 +22,20 @@ import (
 // MigrationOptions contains the options for performing schema migrations.
 type MigrationOptions struct {
 	Indices   []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
-	NoReindex bool     `help:"Do not perform reindex from existing index."`
+	NoReindex bool     `                                                                                             help:"Do not perform reindex from existing index."`
 }
 
 // PerformMigrations performs all requested schema migrations.
 //
-//nolint:funlen,maintidx
+//nolint:gocognit,funlen,maintidx // will not reduce size
 func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts *MigrationOptions) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
-		opts.Indices = []string{"users", "feeds", "items", "favorites", "scheduler", "sessions"}
+		opts.Indices = []string{"users", "feeds", "items", "favorites", "scheduler", "sessions", "subscriptions"}
 	}
 
 	// Migrate Feed/Items common mappings component template.
-	err := migrateIndexTemplates(ctx, api,
+	if err := migrateIndexTemplates(ctx, api,
 		withComponentTemplatesMigration(
 			NewComponentTemplate(
 				"feed_items_common",
@@ -110,8 +110,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 				WithComponentTemplateMetadata(defaultMetadata),
 			),
 		),
-	)
-	if err != nil {
+	); err != nil {
 		return fmt.Errorf("could not migrate feed/items common mappings component template: %w", err)
 	}
 
@@ -125,7 +124,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 			// indexName := ItemsSchemaPrefix + "-" + config.Version + "-" + time.Now().Format("20060102")
 			writeAlias := ItemsSchemaPrefix + IndexWriteSuffix
 			// readAlias := ItemsSchemaPrefix + IndexReadSuffix
-			err := migrateIndexTemplates(ctx, api,
+			if err := migrateIndexTemplates(ctx, api,
 				// Items specific mappings component template.
 				withComponentTemplatesMigration(
 					NewComponentTemplate(
@@ -192,8 +191,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 						),
 					),
 				),
-			)
-			if err != nil {
+			); err != nil {
 				return fmt.Errorf("could not migrate items: %w", err)
 			}
 			// err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, withNoReindex(opts.NoReindex))
@@ -207,7 +205,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 			// indexName := FavoriteItemsSchemaPrefix + "-" + config.Version
 			// writeAlias := FavoriteItemsSchemaPrefix + IndexWriteSuffix
 			// readAlias := FavoriteItemsSchemaPrefix + IndexReadSuffix
-			err := migrateIndexTemplates(ctx, api,
+			if err := migrateIndexTemplates(ctx, api,
 				// Feeds specific mappings component template.
 				withComponentTemplatesMigration(
 					NewComponentTemplate(
@@ -247,8 +245,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 						WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
-			)
-			if err != nil {
+			); err != nil {
 				return fmt.Errorf("could not migrate favorite items: %w", err)
 			}
 			// err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, withNoReindex(opts.NoReindex))
@@ -262,7 +259,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 			// indexName := FeedsSchemaPrefix + "-" + config.Version
 			// writeAlias := FeedsSchemaPrefix + IndexWriteSuffix
 			// readAlias := FeedsSchemaPrefix + IndexReadSuffix
-			err := migrateIndexTemplates(ctx, api,
+			if err := migrateIndexTemplates(ctx, api,
 				// Feeds specific mappings component template.
 				withComponentTemplatesMigration(
 					NewComponentTemplate(
@@ -300,8 +297,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 						WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
-			)
-			if err != nil {
+			); err != nil {
 				return fmt.Errorf("could not migrate feeds: %w", err)
 			}
 			// err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, withNoReindex(opts.NoReindex))
@@ -315,7 +311,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 			// indexName := UsersSchemaPrefix + "-" + config.Version
 			// writeAlias := UsersSchemaPrefix + IndexWriteSuffix
 			// readAlias := UsersSchemaPrefix + IndexReadSuffix
-			err := migrateIndexTemplates(ctx, api,
+			if err := migrateIndexTemplates(ctx, api,
 				// User specific mappings component template.
 				withComponentTemplatesMigration(
 					NewComponentTemplate(
@@ -364,8 +360,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 						WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
-			)
-			if err != nil {
+			); err != nil {
 				return fmt.Errorf("could not migrate users: %w", err)
 			}
 			// err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, withNoReindex(opts.NoReindex))
@@ -379,7 +374,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 			// indexName := UsersSchemaPrefix + "-" + config.Version
 			// writeAlias := UsersSchemaPrefix + IndexWriteSuffix
 			// readAlias := UsersSchemaPrefix + IndexReadSuffix
-			err := migrateIndexTemplates(ctx, api,
+			if err := migrateIndexTemplates(ctx, api,
 				// User specific mappings component template.
 				withComponentTemplatesMigration(
 					NewComponentTemplate(
@@ -453,8 +448,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 						WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
-			)
-			if err != nil {
+			); err != nil {
 				return fmt.Errorf("could not migrate users: %w", err)
 			}
 			// err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, withNoReindex(opts.NoReindex))
@@ -468,7 +462,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 			// indexName := SchedulerSchemaPrefix + "-" + config.Version
 			// writeAlias := SchedulerSchemaPrefix + IndexWriteSuffix
 			// readAlias := SchedulerSchemaPrefix + IndexReadSuffix
-			err := migrateIndexTemplates(ctx, api,
+			if err := migrateIndexTemplates(ctx, api,
 				// User specific mappings component template.
 				withComponentTemplatesMigration(
 					NewComponentTemplate(
@@ -498,8 +492,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 						WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
-			)
-			if err != nil {
+			); err != nil {
 				return fmt.Errorf("could not migrate users: %w", err)
 			}
 			// err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, withNoReindex(opts.NoReindex))
@@ -515,7 +508,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 			// indexName := SessionsSchemaPrefix + "-" + config.Version
 			// writeAlias := SessionsSchemaPrefix + IndexWriteSuffix
 			// readAlias := SessionsSchemaPrefix + IndexReadSuffix
-			err := migrateIndexTemplates(ctx, api,
+			if err := migrateIndexTemplates(ctx, api,
 				// Sessions specific mappings component template.
 				withComponentTemplatesMigration(
 					NewComponentTemplate(
@@ -557,8 +550,7 @@ func PerformMigrations(ctx context.Context, api *elasticsearch.TypedClient, opts
 				// 		),
 				// 	),
 				// ),
-			)
-			if err != nil {
+			); err != nil {
 				return fmt.Errorf("could not migrate sessions: %w", err)
 			}
 			// err = migrateIndexData(ctx, api, indexName, writeAlias, readAlias, withNoReindex(opts.NoReindex))
@@ -598,7 +590,11 @@ func withILMPolicyMigration(policy *ILMPolicy) templateMigrationOption {
 }
 
 // https://www.elastic.co/docs/manage-data/data-store/templates
-func migrateIndexTemplates(ctx context.Context, api *elasticsearch.TypedClient, options ...templateMigrationOption) error {
+func migrateIndexTemplates(
+	ctx context.Context,
+	api *elasticsearch.TypedClient,
+	options ...templateMigrationOption,
+) error {
 	migration := &templatesMigration{}
 	// Process migration options.
 	for option := range slices.Values(options) {
@@ -648,7 +644,12 @@ func withNoReindex(noReindex bool) indexMigrationOption {
 	}
 }
 
-func migrateIndexData(ctx context.Context, api *elasticsearch.TypedClient, index, writeAlias, readAlias string, options ...indexMigrationOption) error {
+func migrateIndexData(
+	ctx context.Context,
+	api *elasticsearch.TypedClient,
+	index, writeAlias, readAlias string,
+	options ...indexMigrationOption,
+) error {
 	migration := &indexMigration{}
 	// Process migration options.
 	for option := range slices.Values(options) {
@@ -680,7 +681,9 @@ func migrateIndexData(ctx context.Context, api *elasticsearch.TypedClient, index
 		return fmt.Errorf("could not determine %s index state: %w", readAlias, err)
 	}
 	if found && !migration.noReindex {
-		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index)).WaitForCompletion(true).Do(ctx)
+		reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index)).
+			WaitForCompletion(true).
+			Do(ctx)
 		switch {
 		case err != nil:
 			if getStatusCode(err) >= 500 {
