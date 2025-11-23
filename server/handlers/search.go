@@ -63,20 +63,10 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 
 		// Generate subscription suggestions.
 		fetchJobs.Go(func() error {
-			subscriptionsQuery := query.Bool(
-				query.Filter(
-					query.Term("user_id", user.GetID()),
-				),
-				query.Must(
-					query.SearchAsYouType(request.Text, "customisation.nickname"),
-				),
-			)
-			subscriptions, _, err = api.SearchSubscriptions(
+			subscriptions, err = api.GetSubscriptionSuggestions(
 				jobCtx,
-				subscriptionsQuery,
+				request.Text,
 				defaultSubscriptionSuggestionsCount,
-				&sort,
-				nil,
 			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription suggestions.",
@@ -178,8 +168,8 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		if len(request.Subscriptions) > 0 {
 			var subscriptions models.Subscriptions
 			subscriptions, err = api.GetSubscriptions(req.Context(),
-				elastic.FilterSubscriptionsByIDs(request.Subscriptions...),
-				elastic.AddSubscriptionDynamicInfo(true),
+				elastic.GetSubscriptionsByIDs(request.Subscriptions...),
+				elastic.GetSubscriptionDynamicInfo(true),
 			)
 			if err != nil {
 				msg := models.NewErrorMessage(
@@ -328,7 +318,7 @@ func GetSubscriptionFilterSuggestions(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		subscriptions, err := api.GetSubscriptionSuggestions(req.Context(), text)
+		subscriptions, err := api.GetSubscriptionSuggestions(req.Context(), text, 10)
 		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 			res.WriteHeader(http.StatusInternalServerError)
 			return

@@ -311,7 +311,7 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 			// Get any extra subscription info for subscription filters.
 			if len(request.Search.Subscriptions) > 0 {
 				subscriptions, err := api.GetSubscriptions(ctx,
-					elastic.FilterSubscriptionsByIDs(request.Search.Subscriptions...),
+					elastic.GetSubscriptionsByIDs(request.Search.Subscriptions...),
 				)
 				if err != nil {
 					res.Header().Add(htmx.HeaderReswap, "none")
@@ -340,7 +340,7 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 				SubscriptionID: subscription.GetID(),
 			}
 			subscriptions, err := api.GetSubscriptions(ctx,
-				elastic.FilterSubscriptionsByIDs(request.Subscriptions...),
+				elastic.GetSubscriptionsByIDs(request.Subscriptions...),
 			)
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
@@ -517,7 +517,7 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 			ctx := req.Context()
 			if len(request.Subscriptions) > 0 {
 				if subscriptions, err := api.GetSubscriptions(req.Context(),
-					elastic.FilterSubscriptionsByIDs(request.Subscriptions...),
+					elastic.GetSubscriptionsByIDs(request.Subscriptions...),
 				); err != nil {
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(templates.ServerErrorNotification(

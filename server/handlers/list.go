@@ -173,10 +173,10 @@ func listFavorites(ctx context.Context, api *elastic.API) (templ.Component, erro
 
 	// Get favorite subscriptions.
 	subscriptions, err = api.GetSubscriptions(ctx,
-		elastic.FilterSubscriptionsByFavorite(true),
-		elastic.AddSubscriptionDynamicInfo(true),
+		elastic.GetSubscriptionsByFavorite(true),
+		elastic.GetSubscriptionDynamicInfo(true),
 	)
-	if err != nil {
+	if err != nil && models.HTTPStatus(err) != http.StatusNotFound {
 		return nil, fmt.Errorf("list favorites: get favorite subscriptions: %w", err)
 	}
 

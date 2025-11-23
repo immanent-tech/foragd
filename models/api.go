@@ -46,15 +46,7 @@ type FeedsAPI interface {
 
 // SubscriptionsAPI contains API methods for Subscriptions.
 type SubscriptionsAPI interface {
-	SearchSubscriptions(
-		ctx context.Context,
-		query query.Option,
-		count int,
-		sort *Sort,
-		pagination *Pagination,
-	) (Subscriptions, Pagination, error)
-	// GetSubscriptions(ctx context.Context, ids ...SubscriptionID) (Subscriptions, error)
-	// GetSubscription(ctx context.Context, id SubscriptionID) (*Subscription, error)
+	GetSubscriptionByFeedID(ctx context.Context, id FeedID) (*Subscription, error)
 	UpdateSubscriptions(
 		ctx context.Context,
 		subscriptions ...*Subscription,
@@ -267,21 +259,14 @@ func ProcessSubscriptionRequest(
 		resultsCh <- result
 		return
 	}
-	subscriptionQuery := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Term("type", SubscriptionTypeFeed),
-			query.Term("feed_data.feed_id", feed.GetID()),
-		),
-	)
-	subscriptions, _, err := dataAPI.SearchSubscriptions(ctx, subscriptionQuery, 1, nil, nil)
+	subscription, err := dataAPI.GetSubscriptionByFeedID(ctx, feed.GetID())
 	if err != nil {
 		result.Error = err
 		result.Message = *NewErrorMessage("Unable to check for existing subscription", "The backend produced an error. This might be temporary, please try again.")
 		resultsCh <- result
 		return
 	}
-	if len(subscriptions) > 0 {
+	if subscription != nil {
 		result.Error = fmt.Errorf("already subscribed")
 		result.Message = *NewWarningMessage("Already subscribed to feed", feed.GetTitle()+" ("+request.URL+")")
 		resultsCh <- result

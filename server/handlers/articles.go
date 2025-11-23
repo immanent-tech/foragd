@@ -15,7 +15,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -190,24 +189,13 @@ func markArticles(
 	if user == nil {
 		return fmt.Errorf("mark articles: get user data: %w", models.ErrNoUserCtx)
 	}
-	query := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Terms("subscription_id", subscriptionID),
-		),
-	)
-	subscriptions, _, err := api.SearchSubscriptions(ctx, query, 1, nil, nil)
-	switch {
-	case err != nil:
+	subscription, err := api.GetSubscription(ctx, subscriptionID)
+	if err != nil {
 		return fmt.Errorf("mark articles: get subscriptions: %w", err)
-	case len(subscriptions) == 0:
-		return fmt.Errorf("mark articles: get subscriptions: %w", elastic.ErrNotFound)
-	case len(subscriptions) != 1:
-		return fmt.Errorf("mark articles: get subscriptions: %w", models.ErrInvalidAPIResult)
 	}
-	subscriptions[0].MarkItems(mark, itemIDs...)
+	subscription.MarkItems(mark, itemIDs...)
 
-	_, err = api.UpdateSubscriptions(ctx, subscriptions[0])
+	_, err = api.UpdateSubscriptions(ctx, subscription)
 	if err != nil {
 		return fmt.Errorf("mark articles: update subscription data: %w", err)
 	}
