@@ -40,10 +40,21 @@ templ SettingsPage() {
 
 templ AccountSettings(user *models.User) {
 	<div id="account-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-		@formSection(
-			"Import/Export",
-			"Import or Export your subscriptions.",
-		) {
+		<div>
+			<h3 class="text-base/7 font-semibold">Subscription Level</h3>
+		</div>
+		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
+			<div class="sm:col-span-full">
+				<p class="font-semibold capitalize">
+					{ user.GetSubscriptionLevel() }
+				</p>
+			</div>
+		</div>
+		<div>
+			<h3 class="text-base/7 font-semibold">Import/Export</h3>
+			<p class="mt-1 text-sm/6">Import or Export your subscriptions.</p>
+		</div>
+		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
 			<div class="sm:col-span-full">
 				<button
 					type="button"
@@ -60,7 +71,7 @@ templ AccountSettings(user *models.User) {
 					hx-push-url="true"
 				>Export</button>
 			</div>
-		}
+		</div>
 		if !strings.HasPrefix(user.ExternalUserId,"auth0|") {
 			<div class="col-span-full">
 				<h2 class="form-section-title">Edit Account</h2>
@@ -70,116 +81,82 @@ templ AccountSettings(user *models.User) {
 			</div>
 		} else {
 			// Account customisation.
-			@formSection(
-				"Edit Account",
-				"Use an email address that can receive messages.",
-			) {
-				<form
-					hx-post="/user/settings/account"
-					hx-swap="none"
-					hx-include="[name='csrf_token']"
-				>
-					<div class="sm:col-span-full">
-						<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
-						<div class="mt-2">
-							<input id="nickname" type="text" class="input input-primary validator invalid:input-error bg-base-content/10" placeholder="Nickname" name="nickname" required value={ user.GetNickname() }/>
-							<p class="validator-hint">Nickname is required</p>
-						</div>
+			<div>
+				<h3 class="text-base/7 font-semibold">Edit Account</h3>
+				<p class="mt-1 text-sm/6">Use an email address that can receive messages.</p>
+			</div>
+			<form
+				hx-post="/user/settings/account"
+				hx-swap="none"
+				hx-include="[name='csrf_token']"
+				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2"
+			>
+				<div class="sm:col-span-full">
+					<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
+					<div class="mt-2">
+						<input id="nickname" type="text" class="input input-primary validator invalid:input-error bg-base-content/10" placeholder="Nickname" name="nickname" required value={ user.GetNickname() }/>
+						<p class="validator-hint">Nickname is required</p>
 					</div>
-					<div class="sm:col-span-full">
-						<label for="nickname" class="block text-sm/6 font-medium">Email</label>
-						<div class="mt-2">
-							<input id="nickname" type="email" class="input input-primary invalid:input-error validator bg-base-content/10" placeholder="Email" name="email" required value={ user.GetEmail() }/>
-							<p class="validator-hint">Must be a valid email address</p>
-						</div>
+				</div>
+				<div class="sm:col-span-full">
+					<label for="nickname" class="block text-sm/6 font-medium">Email</label>
+					<div class="mt-2">
+						<input id="nickname" type="email" class="input input-primary invalid:input-error validator bg-base-content/10" placeholder="Email" name="email" required value={ user.GetEmail() }/>
+						<p class="validator-hint">Must be a valid email address</p>
 					</div>
-					<input type="hidden" name="avatar_url" value={ user.GetAvatar() }/>
-					<div class="col-span-full place-self-end">
-						<div id="processing" class="htmx-indicator">
-							Processing...
-							<span class="loading loading-spinner loading-md"></span>
-						</div>
-						<div class="mt-2 flex items-center justify-end gap-x-6">
-							<button type="submit" class="btn btn-primary btn-soft">Save</button>
-						</div>
+				</div>
+				<input type="hidden" name="avatar_url" value={ user.GetAvatar() }/>
+				<div class="col-span-full place-self-end">
+					<div id="processing" class="htmx-indicator">
+						Processing...
+						<span class="loading loading-spinner loading-md"></span>
 					</div>
-				</form>
-			}
-			// <div>
-			// 	<h2 class="form-section-title"></h2>
-			// 	<p class="form-section-description"></p>
-			// </div>
-			// <form
-			// 	hx-post="/user/settings/account"
-			// 	hx-swap="none"
-			// 	hx-include="[name='csrf_token']"
-			// 	class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2"
-			// >
-			// 	<div class="sm:col-span-full">
-			// 		<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
-			// 		<div class="mt-2">
-			// 			<input id="nickname" type="text" class="input input-primary validator invalid:input-error bg-base-content/10" placeholder="Nickname" name="nickname" required value={ user.GetNickname() }/>
-			// 			<p class="validator-hint">Nickname is required</p>
-			// 		</div>
-			// 	</div>
-			// 	<div class="sm:col-span-full">
-			// 		<label for="nickname" class="block text-sm/6 font-medium">Email</label>
-			// 		<div class="mt-2">
-			// 			<input id="nickname" type="email" class="input input-primary invalid:input-error validator bg-base-content/10" placeholder="Email" name="email" required value={ user.GetEmail() }/>
-			// 			<p class="validator-hint">Must be a valid email address</p>
-			// 		</div>
-			// 	</div>
-			// 	<input type="hidden" name="avatar_url" value={ user.GetAvatar() }/>
-			// 	<div class="col-span-full place-self-end">
-			// 		<div id="processing" class="htmx-indicator">
-			// 			Processing...
-			// 			<span class="loading loading-spinner loading-md"></span>
-			// 		</div>
-			// 		<div class="mt-2 flex items-center justify-end gap-x-6">
-			// 			<button type="submit" class="btn btn-primary btn-soft">Save</button>
-			// 		</div>
-			// 	</div>
-			// </form>
+					<div class="mt-2 flex items-center justify-end gap-x-6">
+						<button type="submit" class="btn btn-primary">Save</button>
+					</div>
+				</div>
+			</form>
 			// Change password.
-			@formSection(
-				"Change Password",
-				"Update your password associated with your account.",
-			) {
-				<form
-					hx-post="/user/settings/password"
-					hx-swap="none"
-					hx-include="[name='csrf_token']"
-					_="on htmx:afterOnLoad wait 10ms then call document.getElementById('delete-account').show()"
-				>
-					<div class="sm:col-span-full">
-						<label for="new-password" class="block text-sm/6 font-medium">New Password</label>
-						<div class="mt-2">
-							<input id="nickname" type="password" class="input input-primary w-full bg-base-content/10" name="new_password" required/>
-						</div>
+			<div>
+				<h3 class="text-base/7 font-semibold">Change Password</h3>
+				<p class="mt-1 text-sm/6">Update your password associated with your account.</p>
+			</div>
+			<form
+				hx-post="/user/settings/password"
+				hx-swap="none"
+				hx-include="[name='csrf_token']"
+				_="on htmx:afterOnLoad wait 10ms then call document.getElementById('delete-account').show()"
+				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2"
+			>
+				<div class="sm:col-span-full">
+					<label for="new-password" class="block text-sm/6 font-medium">New Password</label>
+					<div class="mt-2">
+						<input id="nickname" type="password" class="input input-primary bg-base-content/10" name="new_password" required/>
 					</div>
-					<div class="sm:col-span-full">
-						<label for="nickname" class="block text-sm/6 font-medium">Confirm New Password</label>
-						<div class="mt-2">
-							<input id="nickname" type="password" class="input input-primary w-full bg-base-content/10" name="confirm_new_password" required/>
-						</div>
+				</div>
+				<div class="sm:col-span-full">
+					<label for="nickname" class="block text-sm/6 font-medium">Confirm New Password</label>
+					<div class="mt-2">
+						<input id="nickname" type="password" class="input input-primary bg-base-content/10" name="confirm_new_password" required/>
 					</div>
-					<div class="col-span-full place-self-end">
-						<div id="processing" class="htmx-indicator">
-							Processing...
-							<span class="loading loading-spinner loading-md"></span>
-						</div>
-						<div class="mt-2 flex items-center justify-end gap-x-6">
-							<button type="submit" class="btn btn-primary btn-soft">Change Password</button>
-						</div>
+				</div>
+				<div class="col-span-full place-self-end">
+					<div id="processing" class="htmx-indicator">
+						Processing...
+						<span class="loading loading-spinner loading-md"></span>
 					</div>
-				</form>
-			}
+					<div class="mt-2 flex items-center justify-end gap-x-6">
+						<button type="submit" class="btn btn-primary">Change Password</button>
+					</div>
+				</div>
+			</form>
 		}
 		// Delete account.
-		@formSection(
-			"Delete Account",
-			"No longer want to use our service? You can delete your account here. This action is not reversible. All information related to this account will be deleted permanently and you will be redirected back to the landing page.",
-		) {
+		<div>
+			<h3 class="text-base/7 font-semibold">Delete Account</h3>
+			<p class="mt-1 text-sm/6">No longer want to use our service? You can delete your account here. This action is not reversible. All information related to this account will be deleted permanently and you will be redirected back to the landing page.</p>
+		</div>
+		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
 			<div class="sm:col-span-full">
 				<form
 					hx-get="/user/delete"
@@ -192,7 +169,7 @@ templ AccountSettings(user *models.User) {
 					</button>
 				</form>
 			</div>
-		}
+		</div>
 	</div>
 }
 
@@ -248,7 +225,7 @@ templ DisplaySettings(user *models.User) {
 						<span class="loading loading-spinner loading-md"></span>
 					</div>
 					<div class="mt-2 flex items-center justify-end gap-x-6">
-						<button type="submit" class="btn btn-primary btn-soft">Save</button>
+						<button type="submit" class="btn btn-primary">Save</button>
 					</div>
 				</div>
 			</form>

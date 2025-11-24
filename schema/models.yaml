@@ -228,14 +228,20 @@ components:
               type: string
               x-oapi-codegen-extra-tags:
                 validate: 'required'
-            level:
+            subscription_level:
               description: >
                 is the subscription level that the account is paying for.
               type: string
-              enum: ['basic','standard','premium','custom']
+              enum: ['gatherer','collector','curator']
               default: basic
               x-oapi-codegen-extra-tags:
                 validate: 'required,oneof=basic standard premium custom'
+            is_trial:
+              description: >
+                indicates whether the user is on a trial.
+              type: boolean
+              x-omitempty: false
+              x-omitzero: false
             settings:
               $ref: '#/components/schemas/UserSettings'
             item_favorites:

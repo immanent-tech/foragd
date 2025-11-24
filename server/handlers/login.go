@@ -76,7 +76,10 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 
 		state := req.FormValue("state")
 		if state != session.Manager.GetString(req.Context(), "state") {
-			template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")))
+			template := templates.Page(
+				"Foragd",
+				templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")),
+			)
 			err := template.Render(req.Context(), res)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -90,7 +93,15 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 		code := req.FormValue("code")
 		token, err := auth0.AuthClient.Exchange(req.Context(), code)
 		if err != nil {
-			template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "Failed to exchange an authorization code for a token.")))
+			template := templates.Page(
+				"Foragd",
+				templates.ErrorPage(
+					models.NewErrorMessage(
+						"Unable to log in.",
+						"Failed to exchange an authorization code for a token.",
+					),
+				),
+			)
 			err := template.Render(req.Context(), res)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -110,7 +121,10 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 		var profile auth0.UserProfile
 		err = idToken.Claims(&profile)
 		if err != nil {
-			template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())))
+			template := templates.Page(
+				"Foragd",
+				templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
+			)
 			err := template.Render(req.Context(), res)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -129,13 +143,22 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 			// If a local user is not found, create one.
 			if errors.As(err, &apiError) {
 				if apiError.StatusCode == http.StatusNotFound {
-					user := models.NewUser(profile.GetID(), profile.GetEmail(), "auth0", models.UserLevelStandard)
+					user := models.NewUser(
+						profile.GetID(),
+						profile.GetEmail(),
+						"auth0",
+						models.UserSubscriptionLevelGatherer,
+					)
 					valid, err := user.Valid(req.Context())
 					if err != nil || !valid {
-						template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())))
+						template := templates.Page(
+							"Foragd",
+							templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
+						)
 						err := template.Render(req.Context(), res)
 						if err != nil {
-							slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+							slogctx.FromCtx(req.Context()).
+								Error("Failed to render page template.", slog.Any("error", err))
 							http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
 							return
 						}
@@ -143,10 +166,14 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 					}
 					err = storeAPI.CreateUser(req.Context(), user)
 					if err != nil {
-						template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())))
+						template := templates.Page(
+							"Foragd",
+							templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
+						)
 						err := template.Render(req.Context(), res)
 						if err != nil {
-							slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+							slogctx.FromCtx(req.Context()).
+								Error("Failed to render page template.", slog.Any("error", err))
 							http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
 							return
 						}

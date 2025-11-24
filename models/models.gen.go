@@ -93,12 +93,11 @@ const (
 	SubscriptionMetadataTypeSearch SubscriptionMetadataType = "search"
 )
 
-// Defines values for UserLevel.
+// Defines values for UserSubscriptionLevel.
 const (
-	UserLevelBasic    UserLevel = "basic"
-	UserLevelCustom   UserLevel = "custom"
-	UserLevelPremium  UserLevel = "premium"
-	UserLevelStandard UserLevel = "standard"
+	UserSubscriptionLevelCollector UserSubscriptionLevel = "collector"
+	UserSubscriptionLevelCurator   UserSubscriptionLevel = "curator"
+	UserSubscriptionLevelGatherer  UserSubscriptionLevel = "gatherer"
 )
 
 // Defines values for UserMessageStatus.
@@ -891,11 +890,11 @@ type User struct {
 	// ExternalUserId is the ID of the user on the external backend that was used to create the account.
 	ExternalUserId string `json:"external_user_id" validate:"required"`
 
+	// IsTrial indicates whether the user is on a trial.
+	IsTrial bool `json:"is_trial"`
+
 	// ItemFavorites is the IDs of items (articles) the user has favorited.
 	ItemFavorites []ItemID `json:"item_favorites,omitempty,omitzero" validate:"omitempty,dive,startswith=item_"`
-
-	// Level is the subscription level that the account is paying for.
-	Level UserLevel `json:"level,omitempty,omitzero" validate:"required,oneof=basic standard premium custom"`
 
 	// Nickname is a nickname for the user.
 	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero"`
@@ -906,6 +905,9 @@ type User struct {
 	// Settings contains user-specific settings for the application.
 	Settings UserSettings `json:"settings,omitempty,omitzero"`
 
+	// SubscriptionLevel is the subscription level that the account is paying for.
+	SubscriptionLevel UserSubscriptionLevel `json:"subscription_level,omitempty,omitzero" validate:"required,oneof=basic standard premium custom"`
+
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
@@ -913,8 +915,8 @@ type User struct {
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
 }
 
-// UserLevel is the subscription level that the account is paying for.
-type UserLevel string
+// UserSubscriptionLevel is the subscription level that the account is paying for.
+type UserSubscriptionLevel string
 
 // UserCustomisation contains account fields that a user can customize.
 type UserCustomisation struct {

@@ -30,7 +30,7 @@ var (
 )
 
 // NewUser creates a new user from the external provider details.
-func NewUser(externalID, email, provider string, level UserLevel) *User {
+func NewUser(externalID, email, provider string, level UserSubscriptionLevel) *User {
 	ts := time.Now().UTC()
 	user := &User{
 		CreatedAt:      ts,
@@ -45,17 +45,17 @@ func NewUser(externalID, email, provider string, level UserLevel) *User {
 			ShowSubscriptionStats: false,
 			MarkArticleReadOnView: true,
 		},
-		Level: level,
+		SubscriptionLevel: level,
 	}
 	// Set account level based user settings.
-	switch user.Level {
-	case UserLevelBasic:
+	switch user.SubscriptionLevel {
+	case UserSubscriptionLevelGatherer:
 		user.Settings.MaxHistory = BasicAccountMaxHistory.String()
 		user.Settings.UpdatesFrequency = BasicAccountUpdatesFrequency.String()
-	case UserLevelStandard:
+	case UserSubscriptionLevelCollector:
 		user.Settings.MaxHistory = StandardAccountMaxHistory.String()
 		user.Settings.UpdatesFrequency = StandardAccountUpdatesFrequency.String()
-	case UserLevelCustom, UserLevelPremium:
+	case UserSubscriptionLevelCurator:
 		user.Settings.MaxHistory = PremiumAccountMaxHistory.String()
 		user.Settings.UpdatesFrequency = PremiumAccountUpdatesFrequency.String()
 	}
@@ -102,6 +102,15 @@ func (u *User) GetMaxHistory() time.Time {
 // returned.
 func (u *User) GetSettings() *UserSettings {
 	return &u.Settings
+}
+
+// GetSubscriptionLevel returns the subscription level the user has paid for. If this is missing, it defaults to the
+// lowest level (gatherer) subscription.
+func (u *User) GetSubscriptionLevel() string {
+	if u.SubscriptionLevel != "" {
+		return string(u.SubscriptionLevel)
+	}
+	return string(UserSubscriptionLevelGatherer)
 }
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
