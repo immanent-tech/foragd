@@ -14,7 +14,6 @@ output-options:
   prefer-skip-optional-pointer: true
   prefer-skip-optional-pointer-with-omitzero: true
 compatibility:
-  allow-unexported-struct-field-names: true
   always-prefix-enum-values: true
 import-mapping:
   ../pkg/go-syndication/schema/types.yaml: github.com/immanent-tech/go-syndication/types

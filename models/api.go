@@ -8,12 +8,16 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
+	feeds "github.com/immanent-tech/go-syndication"
+
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
+	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
@@ -27,6 +31,9 @@ var (
 // FeedsAPI contains API methods for Feeds.
 type FeedsAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
+	GetNewFeedsSince(ctx context.Context, since time.Time) (Feeds, error)
+	GetFeed(ctx context.Context, id FeedID) (*Feed, error)
+	UpdateFeed(ctx context.Context, id FeedID, updated *feeds.Feed) error
 
 	SearchFeeds(
 		ctx context.Context,
@@ -48,6 +55,7 @@ type ItemsAPI interface {
 		sort *Sort,
 		pagination *Pagination,
 	) (Items, Pagination, error)
+	AddItems(ctx context.Context, items ...*Item) (map[ItemID]*bulk.OperationResponse, error)
 	CountItems(ctx context.Context, query query.Option) (int64, error)
 	GetLastUpdatedItems(ctx context.Context, feedIDs ...FeedID) (Items, error)
 	ItemsAggregation(

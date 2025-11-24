@@ -18,9 +18,9 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/scheduler/queue"
 )
 
 const (
@@ -29,36 +29,33 @@ const (
 
 var ErrScheduler = errors.New("scheduler encountered an error")
 
-// Manager contains data for managing a scheduler instance.
-type Manager struct {
-	id        string
-	db        *elastic.API
-	queue     quartz.JobQueue
-	scheduler quartz.Scheduler
+// manager contains data for managing a scheduler instance.
+type manager struct {
+	quartz.Scheduler
+
+	id    string
+	api   *elastic.API
+	queue quartz.JobQueue
 }
 
-var manager *Manager
+var Manager *manager
 
 // Run starts the scheduler manager.
 func Run(ctx context.Context) error {
-	// Load the config.
-	err := config.Load(configPrefix, configEnvPrefix, cfg)
-	if err != nil {
-		return fmt.Errorf("unable to load config: %w", err)
-	}
-
-	esClient, err := elastic.Connect(ctx)
+	// Connect to elastic and setup context.
+	elasticAPI, err := elastic.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
-
 	ctx = elastic.SetupIndexAliases(ctx)
 
-	jobQueue, err := NewJobQueue(ctx, esClient)
+	// Create distributed queue instance.
+	jobQueue, err := queue.NewJobQueue(ctx, elasticAPI)
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
 
+	// Create scheduler instance.
 	// logger := &logger{Logger: slogctx.FromCtx(ctx)}
 	scheduler, err := quartz.NewStdScheduler(
 		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
@@ -68,26 +65,30 @@ func Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
-
-	manager = &Manager{
+	Manager = &manager{
+		Scheduler: scheduler,
 		id:        models.NewID(models.SchedulerPFX),
-		db:        esClient,
+		api:       elasticAPI,
 		queue:     jobQueue,
-		scheduler: scheduler,
 	}
 
+	// Embed scheduler and data api in context.
+	ctx = models.SchedulerAPIToCtx(ctx, Manager)
+	ctx = models.DataAPIToCtx(ctx, elasticAPI)
+
 	// Setup get new feeds job.
-	job, err := NewGetNewFeedsJob()
+	job, err := models.NewGetNewFeedsJob()
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
-	_, err = manager.scheduler.GetScheduledJob(job.JobDetail().JobKey())
+	_, err = Manager.GetScheduledJob(job.JobDetail().JobKey())
 	if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
-		err = manager.scheduler.ScheduleJob(job.JobDetail(), job.Trigger())
+		err = Manager.ScheduleJob(job.JobDetail(), job.Trigger())
 		if err != nil {
 			return fmt.Errorf("failed to start scheduler: %w", err)
 		}
 	}
+
 	// Check for new feeds on startup.
 	err = job.JobDetail().Job().Execute(ctx)
 	if err != nil {
@@ -122,5 +123,23 @@ func Run(ctx context.Context) error {
 	<-ctx.Done()
 	scheduler.Stop()
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler stopped.")
+	return nil
+}
+
+// GetJobState returns the job state of the job with the given id.
+func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
+	state, err := m.api.GetJobState(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("scheduler: get job state: %w", err)
+	}
+	return state, nil
+}
+
+// UpdateJobState will update the job state for the job with the given id.
+func (m *manager) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
+	err := m.api.UpdateJobState(ctx, id, updates)
+	if err != nil {
+		return fmt.Errorf("scheduled: update job state: %w", err)
+	}
 	return nil
 }

@@ -27,6 +27,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
 	feeds "github.com/immanent-tech/go-syndication"
+	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -2021,18 +2022,136 @@ func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]
 	return nil
 }
 
+// ScheduleJob pushes a scheduler job into the queue.
+func (a *API) ScheduleJob(ctx context.Context, id string, job quartz.ScheduledJob, data *models.ScheduledJob) error {
+	index, err := SchedulerWriteIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("schedule job: %w", ErrNoIndexInCtx)
+	}
+
+	err = UpdateDoc(ctx, a.GetAPI(), index, id, map[string]any{
+		"job_next_run":     data.JobNextRun,
+		"job_data":         data.JobData,
+		"job_trigger_type": data.JobTriggerType,
+		"job_trigger":      data.JobTrigger,
+		"job_type":         data.JobType,
+		"updated_at":       time.Now().UTC(),
+	},
+		UpdateDocAsUpsert(),
+		WithRefresh("true"),
+	)
+	if err != nil {
+		return fmt.Errorf("schedule job: %w", err)
+	}
+
+	return nil
+}
+
+// GetNextScheduledJob runs a query to find the next job to be run.
+func (a *API) GetNextScheduledJob(ctx context.Context) (*models.ScheduledJob, error) {
+	index, err := SchedulerReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get next scheduled job: %w", ErrNoIndexInCtx)
+	}
+	jobs, _, err := Search[*models.ScheduledJob](
+		ctx,
+		a.GetAPI(),
+		index,
+		query.Exists("job_type"),
+		1,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get next scheduled job: %w", err)
+	}
+	if len(jobs) == 0 {
+		return nil, fmt.Errorf("get next scheduled job: %w", ErrNotFound)
+	}
+	return jobs[0], nil
+}
+
+// GetScheduledJob will return the details of the job with the given id, if it exists.
+func (a *API) GetScheduledJob(ctx context.Context, id string) (*models.ScheduledJob, error) {
+	index, err := SchedulerReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get scheduled job: %w", ErrNoIndexInCtx)
+	}
+
+	job, err := GetDoc[string, *models.ScheduledJob](ctx, a.GetAPI(), index, id)
+	if err != nil {
+		return nil, fmt.Errorf("get scheduled job: %w", ErrNoIndexInCtx)
+	}
+
+	return job, nil
+}
+
+// GetAllScheduledJobs returns a slice of all scheduled jobs, if any.
+func (a *API) GetAllScheduledJobs(ctx context.Context) ([]models.ScheduledJob, error) {
+	index, err := SchedulerReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get scheduled job: %w", ErrNoIndexInCtx)
+	}
+
+	jobs, err := SearchAll[models.ScheduledJob](
+		ctx,
+		a.GetAPI(),
+		index,
+		query.Exists("job_type"),
+		defaultPaginationSize,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("get scheduled job: %w", ErrNoIndexInCtx)
+	}
+	if len(jobs) == 0 {
+		return nil, fmt.Errorf("get scheduled job: %w", ErrNotFound)
+	}
+
+	return jobs, nil
+}
+
 // CountJobs returns a count of the scheduler jobs in the jobs index.
 func (a *API) CountJobs(ctx context.Context) (int64, error) {
 	index, err := SchedulerReadIndexFromCtx(ctx)
 	if err != nil {
-		return 0, ErrNoIndexInCtx //nolint:wrapcheck
+		return 0, fmt.Errorf("count jobs: %w", ErrNoIndexInCtx)
 	}
+
 	count, err := Count(ctx, a.GetAPI(), index, query.Exists("job_type"))
 	if err != nil {
 		return 0, fmt.Errorf("count jobs: %w", err)
 	}
 
 	return count, nil
+}
+
+// RemoveAllJobs removes all scheduled jobs.
+func (a *API) RemoveAllJobs(ctx context.Context) error {
+	index, err := SchedulerWriteIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("remove all jobs: %w", ErrNoIndexInCtx)
+	}
+
+	err = DeleteDocs(ctx, a.GetAPI(), index, query.Exists("job_type"))
+	if err != nil {
+		return fmt.Errorf("remove all jobs: %w", err)
+	}
+
+	return nil
+}
+
+// RemoveJob removes a scheduled job with the given id.
+func (a *API) RemoveJob(ctx context.Context, id string) error {
+	index, err := SchedulerWriteIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("remove job: %w", ErrNoIndexInCtx)
+	}
+
+	err = DeleteDoc(ctx, a.GetAPI(), index, id)
+	if err != nil {
+		return fmt.Errorf("remove job: %w", err)
+	}
+
+	return nil
 }
 
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
