@@ -51,14 +51,17 @@ func (l *Logger) LogRoundTrip(
 	var level slog.Level
 	switch {
 	case status >= http.StatusInternalServerError:
+		// All 5XX responses are ERROR level.
 		level = slog.LevelError
 		l.EnableRequestBody = true
 		l.EnableResponseBody = true
-	case status >= http.StatusBadRequest && status < http.StatusInternalServerError:
+	case status >= http.StatusBadRequest && status < http.StatusInternalServerError && status != http.StatusNotFound:
+		// All 4XX responsese excluding 404 are WARN level.
 		level = slog.LevelWarn
 		l.EnableRequestBody = true
 		l.EnableResponseBody = true
 	default:
+		// Default TRACE level.
 		level = logging.LevelTrace
 	}
 	// Set base/common attributes.
