@@ -27,7 +27,7 @@ templ SideBar(attributes templ.Attributes) {
 						>
 							// templ.KV("border-b-4",models.PathFromCtx(ctx)=="/home")
 							<span class="sr-only">Go to Home Page</span>
-							@tabler.Home(i.Props{Class: "size-6 shrink-0 text-current"})
+							@tabler.Home(i.Props{Class: "size-10 shrink-0 text-current"})
 							Home
 						</a>
 					</li>
@@ -40,7 +40,7 @@ templ SideBar(attributes templ.Attributes) {
 							WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 						) {
 							<span class="sr-only">Go to Subscriptions</span>
-							@tabler.Rss(i.Props{Class: "size-6 shrink-0 text-current"})
+							@tabler.Rss(i.Props{Class: "size-10 shrink-0 text-current"})
 							Subscriptions
 						}
 					</li>
@@ -53,7 +53,7 @@ templ SideBar(attributes templ.Attributes) {
 							WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 						) {
 							<span class="sr-only">Go to Articles</span>
-							@tabler.FileRss(i.Props{Class: "size-6 shrink-0 text-current"})
+							@tabler.FileRss(i.Props{Class: "size-10 shrink-0 text-current"})
 							Articles
 						}
 					</li>
@@ -65,7 +65,7 @@ templ SideBar(attributes templ.Attributes) {
 							WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 						) {
 							<span class="sr-only">Go to Favorites</span>
-							@tabler.HeartFilled(i.Props{Class: "size-6 shrink-0 text-current"})
+							@tabler.HeartFilled(i.Props{Class: "size-10 shrink-0 text-current"})
 							Favorites
 						}
 					</li>
