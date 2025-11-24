@@ -206,9 +206,8 @@ func (s *Subscription) GetCategories(maxCount int) Categories {
 		if maxCount != 0 {
 			if len(all) > maxCount {
 				return all[:maxCount]
-			} else {
-				return all
 			}
+			return all
 		}
 	}
 	return all
@@ -365,6 +364,8 @@ func (s Subscriptions) FilterByFavorites(value bool) Subscriptions {
 
 // Sort will sort the slice of subscriptions by the given sort option. Favorite subscriptions are always sorted before
 // other subscriptions, and the sort option is used as a tiebreaker.
+//
+//nolint:gocognit
 func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	sort = setValidSort(sort)
 	switch sort {
@@ -445,15 +446,6 @@ func GetCategoryCounts(subscriptions ...*Subscription) CategoryCounts {
 
 	return counts
 }
-
-// // GetTotalUnreadCount calculates the total unread articles across all subscriptions in the slice.
-// func GetTotalUnreadCount(subscriptions ...AnySubscription) int {
-// 	var unread int
-// 	for subscription := range slices.Values(subscriptions) {
-// 		unread += subscription.GetStats().UnreadTotal()
-// 	}
-// 	return unread
-// }
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
@@ -592,13 +584,13 @@ func (s *EditSubscriptionRequest) Sanitise() error {
 }
 
 // HasError wil return true if the subscription request has errors associated with any of its fields.
-func (r *EditSubscriptionRequest) HasError() bool {
-	return r.NicknameErr != nil || r.CategoriesErr != nil || r.ImageErr != nil
+func (s *EditSubscriptionRequest) HasError() bool {
+	return s.NicknameErr != nil || s.CategoriesErr != nil || s.ImageErr != nil
 }
 
 // Valid checks that the MarkSubscriptionsRequest contains valid data.
-func (r *MarkSubscriptionsRequest) Valid() error {
-	err := validation.Validate.Struct(r)
+func (s *MarkSubscriptionsRequest) Valid() error {
+	err := validation.Validate.Struct(s)
 	if err != nil {
 		return fmt.Errorf("mark subscriptions request is invalid: %w", err)
 	}
@@ -606,11 +598,11 @@ func (r *MarkSubscriptionsRequest) Valid() error {
 }
 
 // Sanitise will sanitise the MarkSubscriptionsRequest, ensuring it contains valid field values.
-func (r *MarkSubscriptionsRequest) Sanitise() error {
-	for idx, id := range r.Subscriptions {
-		r.Subscriptions[idx] = validation.SanitizeString(id)
+func (s *MarkSubscriptionsRequest) Sanitise() error {
+	for idx, id := range s.Subscriptions {
+		s.Subscriptions[idx] = validation.SanitizeString(id)
 	}
-	r.View = setValidView(r.View)
+	s.View = setValidView(s.View)
 	return nil
 }
 
@@ -653,7 +645,12 @@ func (s *SubscriptionStats) IsUnread() bool {
 	return s.UnreadCount > 0
 }
 
-func newSubscription(ctx context.Context, customisation SubscriptionCustomisation, settings SubscriptionSettings, data any) (*Subscription, error) {
+func newSubscription(
+	ctx context.Context,
+	customisation SubscriptionCustomisation,
+	settings SubscriptionSettings,
+	data any,
+) (*Subscription, error) {
 	user := UserFromCtx(ctx)
 	if user == nil {
 		return nil, fmt.Errorf("new subscription: %w", ErrNoUserCtx)

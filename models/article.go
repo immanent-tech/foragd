@@ -178,9 +178,8 @@ func (a *Article) GetCategories(num int) Categories {
 	if num != 0 {
 		if len(categories) > num {
 			return categories[:num]
-		} else {
-			return categories
 		}
+		return categories
 	}
 	return categories
 }
@@ -196,8 +195,8 @@ func (a *Article) IsUnread() bool {
 }
 
 // IsFavorite returns a boolean indicating whether the article has been favorited.
-func (s *Article) IsFavorite() bool {
-	return s.Favorite
+func (a *Article) IsFavorite() bool {
+	return a.Favorite
 }
 
 // GetObjectType returns the type of the object, in this case, "article".

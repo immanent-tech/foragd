@@ -14,7 +14,16 @@ import (
 // Regular expressions are supported. See:
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/regexp-syntax
-var CommonCategoryFilters = []string{"Post", "Posts", "News", "Article", "Articles", "Links", "Uncategorized", "Featured"}
+var CommonCategoryFilters = []string{
+	"Post",
+	"Posts",
+	"News",
+	"Article",
+	"Articles",
+	"Links",
+	"Uncategorized",
+	"Featured",
+}
 
 // Categories is a slice of categories.
 type Categories []Category

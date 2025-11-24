@@ -5,9 +5,7 @@ package models
 
 import (
 	"encoding/gob"
-	"errors"
 	"fmt"
-	"math"
 	"net/url"
 	"strconv"
 	"strings"
@@ -20,23 +18,20 @@ func init() {
 	gob.Register(ListDisplayFilters{})
 }
 
-var ErrParseFilters = errors.New("error parsing filters")
-
 const (
-	// MaxUserCount is the maximum number of results a user can retrieve at a single time.
-	MaxUserCount = 20
-	// MinUserCount is the mininum number of results a user can retrieve at a single time.
-	MinUserCount = 1
-	// DefaultCount is to show 10 objects.
-	DefaultCount = "10"
-	// DefaultView is to show unread objects.
-	DefaultView = ViewUnread
-	// DefaultSince is maximum duration (approx 290 years).
-	DefaultSince = math.MaxInt64
+	// maxUserCount is the maximum number of results a user can retrieve at a single time.
+	maxUserCount = 20
+	// minUserCount is the mininum number of results a user can retrieve at a single time.
+	minUserCount = 1
+	// defaultCount is to show 10 objects.
+	defaultCount    = "10"
+	defaultCountInt = 10
+	// defaultView is to show unread objects.
+	defaultView = ViewUnread
 )
 
-// DefaultSort is newest first.
-var DefaultSort = SortNewestFirst
+// defaultSort is newest first.
+var defaultSort = SortNewestFirst
 
 func (s Sort) String() string {
 	switch s {
@@ -70,8 +65,8 @@ type Filters interface {
 func NewListDisplayFilters() ListDisplayFilters {
 	return ListDisplayFilters{
 		Sort:  SortNewestFirst,
-		Count: DefaultCount,
-		View:  DefaultView,
+		Count: defaultCount,
+		View:  defaultView,
 	}
 }
 
@@ -82,11 +77,6 @@ func (f *ListDisplayFilters) GetSubscriptions() []SubscriptionID {
 
 // Sanitise performs sanitisation of the filter values to ensure correctness.
 func (f *ListDisplayFilters) Sanitise() error {
-	if f == nil {
-		newFilters := NewListDisplayFilters()
-		f = &newFilters
-		return nil
-	}
 	// Set required filters to valid values as necessary.
 	f.Sort = setValidSort(f.Sort)
 	f.Count = setValidCount(f.Count)
@@ -116,7 +106,7 @@ func (f *ListDisplayFilters) GetSort() Sort {
 func (f *ListDisplayFilters) GetCount() int {
 	value, err := strconv.Atoi(f.Count)
 	if err != nil {
-		return 10
+		return defaultCountInt
 	}
 	return value
 }
@@ -175,7 +165,7 @@ func setValidSort(value Sort) Sort {
 	case SortLeastUnread, SortMostUnread, SortNewestFirst, SortOldestFirst, SortMostRelevant:
 		return value
 	default:
-		return DefaultSort
+		return defaultSort
 	}
 }
 
@@ -185,10 +175,10 @@ func setValidSort(value Sort) Sort {
 func setValidCount(value Count) Count {
 	numeric, err := strconv.Atoi(value)
 	if err != nil {
-		return DefaultCount
+		return defaultCount
 	}
-	if numeric < MinUserCount || numeric > MaxUserCount {
-		return DefaultCount
+	if numeric < minUserCount || numeric > maxUserCount {
+		return defaultCount
 	}
 	return value
 }
@@ -205,7 +195,7 @@ func setValidView(value View) View {
 	case ViewUnread:
 		return ViewUnread
 	default:
-		return DefaultView
+		return defaultView
 	}
 }
 

@@ -12,7 +12,7 @@ import (
 var ErrInvalidMimeType = errors.New("invalid mime type")
 
 var ErrUserNotFound = NewAPIError(
-	errors.New("no valid user found"), //nolint:err113
+	errors.New("no valid user found"), //nolint:err113 // this is wrapped.
 	http.StatusForbidden,
 )
 

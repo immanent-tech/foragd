@@ -95,7 +95,16 @@ func (u *User) GetEmail() string {
 // GetMaxHistory returns a timestamp in the past from which the user can view
 // items.
 func (u *User) GetMaxHistory() time.Time {
-	return parseMaxHistory(u.GetSettings().MaxHistory)
+	if u.GetSettings().MaxHistory == "" {
+		return time.Now().Add(-BasicAccountMaxHistory)
+	}
+
+	dur, err := time.ParseDuration(u.GetSettings().MaxHistory)
+	if err != nil {
+		return time.Now().Add(-BasicAccountMaxHistory)
+	}
+
+	return time.Now().Add(-dur)
 }
 
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be

@@ -4,6 +4,7 @@
 package models
 
 import (
+	"log/slog"
 	"maps"
 	"slices"
 	"strconv"
@@ -20,8 +21,15 @@ type Items []*Item
 
 // FilterSince filters items to ones which are newer than the given timestamp.
 func (i Items) FilterSince(since time.Time) Items {
-	return slices.Collect(FilterSlice(i, func(v *Item) bool {
-		return v.IsNewer(since)
+	return slices.Collect(FilterSlice(i, func(item *Item) bool {
+		if item.IsNewer(since) {
+			slog.Debug("New item",
+				slog.String("feed_id", item.GetFeedID()),
+				slog.String("feed", item.FeedTitle),
+				slog.String("item_id", item.GetID()),
+			)
+		}
+		return item.IsNewer(since)
 	}))
 }
 
@@ -131,9 +139,9 @@ func (i *Item) GetContent() string {
 // timestamp, or, the published timestamp, or the indexing timestamp, whichever is found and
 // is a valid value, in that order.
 func (i *Item) GetTimestamp() time.Time {
-	if valid, _ := ValidateDatetime(i.Updated); valid {
+	if valid, _ := validateDatetime(i.Updated); valid {
 		return i.Updated
-	} else if valid, _ = ValidateDatetime(i.Published); valid {
+	} else if valid, _ = validateDatetime(i.Published); valid {
 		return i.Published
 	}
 	return i.Timestamp
@@ -181,7 +189,7 @@ func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 	}
 
 	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.
-	if valid, _ := ValidateDatetime(item.Published); !valid {
+	if valid, _ := validateDatetime(item.Published); !valid {
 		item.Published = feed.GetTimestamp()
 	}
 

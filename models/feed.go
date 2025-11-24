@@ -16,9 +16,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 )
 
-// _ types.ObjectCommon = (*Feed)(nil)
-// var _ feeds.Feed = (*Feed)(nil)
-
 // ErrNewFeed is returned when there was a problem creating a new Feed.
 var ErrNewFeed = errors.New("could not create new feed")
 
@@ -121,7 +118,7 @@ func (f *Feed) GetRights() string {
 func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 	var feed *Feed
 
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, feeds.DefaultRequestTimeout)
 	defer cancel()
 
 	results := feeds.NewFeedsFromURLs(ctx, url)
