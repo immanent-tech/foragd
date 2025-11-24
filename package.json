@@ -9,8 +9,6 @@
     "build:css": "bunx tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
   },
   "dependencies": {
-    "@geenat/surreal": "^1.3.4-d",
-    "@oddbird/css-anchor-positioning": "^0.7.0",
     "daisyui": "^5.5.5",
     "date-fns": "^4.1.0",
     "htmx-ext-preload": "^2.1.2",
@@ -32,7 +30,6 @@
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
-    "htmx-ext-debug": "^2.0.2",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.1",
