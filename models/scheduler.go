@@ -174,6 +174,9 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 		return fmt.Errorf("%w: execute update feed job: no api in context", ErrExecuteJobFailed)
 	}
 
+	// Add feed id as slog attribute for log tracking.
+	ctx = slogctx.With(ctx, "feed_id", job.FeedID)
+
 	jobCtx, cancel := context.WithTimeout(ctx, defaultJobTimeout)
 	defer cancel()
 
@@ -244,6 +247,8 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 }
 
 // Execute is called by the scheduler when the job is scheduled to run.
+//
+//nolint:gocognit,funlen
 func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 	schedulerAPI := SchedulerAPIFromCtx(ctx)
 	if schedulerAPI == nil {
@@ -398,7 +403,7 @@ func parseTrigger(trigger quartz.Trigger) any {
 	triggerOpts := strings.Split(desc, quartz.Sep)
 	switch {
 	case strings.HasPrefix(desc, pollTriggerID):
-		if len(triggerOpts) != 3 {
+		if len(triggerOpts) != 3 { //nolint:mnd // this is a very specific check.
 			return NewPollTrigger(defaultPollInterval, defaultPollJitter)
 		}
 		return NewPollTrigger(triggerOpts[1], triggerOpts[2])
