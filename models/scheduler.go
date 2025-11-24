@@ -190,14 +190,15 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
-	slogctx.FromCtx(ctx).Debug("Checking for new items.",
-		slog.String("feed", details.GetTitle()),
-		slog.Time("since", details.LastFetched),
-	)
 	items := make(Items, 0)
 	for i := range slices.Values(feed.GetItems()) {
 		items = append(items, NewItemFromSource(&i, details))
 	}
+	slogctx.FromCtx(ctx).Debug("Checking for new items.",
+		slog.String("feed", details.GetTitle()),
+		slog.Time("since", details.LastFetched),
+		slog.Int("total_items", len(items)),
+	)
 	// Add any new items since the last feed update.
 	if len(items.FilterSince(details.LastFetched)) > 0 {
 		// Add any new items.
@@ -250,6 +251,8 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 //
 //nolint:gocognit,funlen
 func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
+	jobStateID := "get_new_feeds_state"
+
 	schedulerAPI := SchedulerAPIFromCtx(ctx)
 	if schedulerAPI == nil {
 		return fmt.Errorf("%w: %s: no scheduler api in context", ErrExecuteJobFailed, job.Description())
@@ -261,7 +264,7 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 	}
 
 	state := &GetNewFeedsJobState{}
-	lastState, err := schedulerAPI.GetJobState(ctx, "get_new_feeds")
+	lastState, err := schedulerAPI.GetJobState(ctx, jobStateID)
 	if err != nil {
 		if HTTPStatus(err) != http.StatusNotFound {
 			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
@@ -283,11 +286,12 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 	if len(feeds) > 0 {
 		slogctx.FromCtx(ctx).DebugContext(ctx, "Found new feeds.",
 			slog.Int("count", len(feeds)),
+			slog.Any("feed_ids", feeds.GetIDs()),
 		)
 	}
 	// Update the checkpoint.
 	state.Checkpoint = time.Now().UTC()
-	err = schedulerAPI.UpdateJobState(ctx, "get_new_feeds_state", map[string]any{
+	err = schedulerAPI.UpdateJobState(ctx, jobStateID, map[string]any{
 		"job_data": state,
 	})
 	if err != nil {
