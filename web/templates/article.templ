@@ -430,15 +430,6 @@ templ ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Article
 								</a>
 							</form>
 						} else {
-							// Edit subscription action.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
-								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(),
-							) {
-								@tabler.Edit(i.Props{Class: "size-4"})
-								Edit Subscription
-							}
 							// Mark subscription action.
 							<form id={ "mark-" + subscriptionID }>
 								// MarkURL returns the app URL for marking the subscription.
@@ -462,6 +453,15 @@ templ ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Article
 									{ markText }
 								}
 							</form>
+							// Edit subscription action.
+							@NewLink(
+								WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
+								WithHXTarget(ContentID.Target()),
+								WithHXPushURL(),
+							) {
+								@tabler.Edit(i.Props{Class: "size-4"})
+								Edit Subscription
+							}
 						}
 					</div>
 				</el-menu>
