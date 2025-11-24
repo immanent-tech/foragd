@@ -65,6 +65,7 @@ func Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
+
 	Manager = &manager{
 		Scheduler: scheduler,
 		id:        models.NewID(models.SchedulerPFX),

@@ -35,12 +35,12 @@ var (
 )
 
 const (
-	// defaultJobTrigger is a cron schedule to run a job every 5 minutes.
-	defaultJobTrigger = "0 */5 * * * *"
-	// defaultJobTimeout is the maximum duration a job can run before timing out and being cancelled.
-	defaultJobTimeout = 60 * time.Second
-	// feedJobGroup is a scheduler group key for jobs to fetch new items for feeds.
-	feedJobGroup = "get_items"
+	defaultCronJobTrigger = "0 */5 * * * *"
+	defaultPollInterval   = time.Minute
+	defaultPollJitter     = 5 * time.Second
+	defaultJobTimeout     = 60 * time.Second
+	pollTriggerID         = "PollTrigger"
+	cronTriggerID         = "CronTrigger"
 )
 
 type SchedulerAPI interface {
@@ -79,7 +79,7 @@ func (sj *ScheduledJob) Trigger() quartz.Trigger {
 	case ScheduledJobJobTriggerTypeCron:
 		data, err := sj.JobTrigger.AsCronTrigger()
 		if err != nil {
-			trigger, _ := quartz.NewCronTrigger(defaultJobTrigger)
+			trigger, _ := quartz.NewCronTrigger(defaultCronJobTrigger)
 			return trigger
 		}
 		trigger, _ := quartz.NewCronTrigger(data.Schedule)
@@ -108,7 +108,7 @@ func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
 		JobOptions: job.JobDetail().Options(),
 	}
 	// Parse and generate trigger.
-	switch trigger := ParseTrigger(job.Trigger()).(type) {
+	switch trigger := parseTrigger(job.Trigger()).(type) {
 	case *PollTrigger:
 		err := serialized.JobTrigger.FromPollTrigger(*trigger)
 		if err != nil {
@@ -168,8 +168,6 @@ func NewUpdateFeedJob(id FeedID, urls []URL, trigger *PollTrigger) (*ScheduledJo
 }
 
 // Execute is called by the scheduler when the job is scheduled to run.
-//
-//nolint:nestif
 func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 	api := DataAPIFromCtx(ctx)
 	if api == nil {
@@ -182,48 +180,37 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 	// Retrieve the feed details.
 	details, err := api.GetFeed(jobCtx, job.FeedID)
 	if err != nil && !errors.Is(err, ErrNoJob) {
-		return fmt.Errorf("job %s failed: %w", job.Description(), err)
+		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
 	// Get new items since the last fetch.
 	feed, err := feeds.NewFeedFromURL(jobCtx, job.URLs[0])
 	if err != nil {
-		return fmt.Errorf("job %s failed: %w", job.Description(), err)
+		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
 	slogctx.FromCtx(ctx).Debug("Checking for new items.",
 		slog.String("feed", details.GetTitle()),
 		slog.Time("since", details.LastFetched),
 	)
-	items := make(Items, 0, len(feed.GetItems()))
+	items := make(Items, 0)
 	for i := range slices.Values(feed.GetItems()) {
 		items = append(items, NewItemFromSource(&i, details))
 	}
-
 	// Add any new items since the last feed update.
 	if len(items.FilterSince(details.LastFetched)) > 0 {
 		// Add any new items.
-		results, err := api.AddItems(jobCtx, items.FilterSince(details.LastFetched)...)
+		_, err = api.AddItems(jobCtx, items.FilterSince(details.LastFetched)...)
 		if err != nil {
-			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
-		} else {
-			for _, result := range results {
-				if !result.Created() {
-					slogctx.FromCtx(jobCtx).WarnContext(jobCtx, "Failing to index an item.",
-						slog.String("feed", details.GetTitle()),
-						slog.Any("error", result),
-					)
-				}
-			}
+			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}
 		// Update the feed details.
 		err = api.UpdateFeed(jobCtx, job.FeedID, nil)
 		if err != nil {
-			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
-		} else {
-			slogctx.FromCtx(ctx).Debug("Added new items.",
-				slog.String("feed", details.GetTitle()),
-				slog.Int("count", len(items.FilterSince(details.LastFetched))),
-			)
+			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}
+		slogctx.FromCtx(ctx).Debug("Added new items.",
+			slog.String("feed", details.GetTitle()),
+			slog.Int("count", len(items.FilterSince(details.LastFetched))),
+		)
 	}
 	return nil
 }
@@ -236,7 +223,7 @@ func (job *UpdateFeedJob) Description() string {
 // NewGetNewFeedsJob creates a job for checking for new feeds.
 func NewGetNewFeedsJob() (*ScheduledJob, error) {
 	jobTrigger := ScheduledJob_JobTrigger{}
-	err := jobTrigger.FromPollTrigger(*NewPollTrigger(time.Minute, 5*time.Second))
+	err := jobTrigger.FromPollTrigger(*NewPollTrigger(defaultPollInterval, defaultPollJitter))
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
 	}
@@ -260,25 +247,25 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 	schedulerAPI := SchedulerAPIFromCtx(ctx)
 	if schedulerAPI == nil {
-		return fmt.Errorf("%w: execute get new feeds job: no scheduler api in context", ErrExecuteJobFailed)
+		return fmt.Errorf("%w: %s: no scheduler api in context", ErrExecuteJobFailed, job.Description())
 	}
 
 	dataAPI := DataAPIFromCtx(ctx)
 	if dataAPI == nil {
-		return fmt.Errorf("%w: execute get new feeds job: no data api in context", ErrExecuteJobFailed)
+		return fmt.Errorf("%w: %s: no data api in context", ErrExecuteJobFailed, job.Description())
 	}
 
 	state := &GetNewFeedsJobState{}
 	lastState, err := schedulerAPI.GetJobState(ctx, "get_new_feeds")
 	if err != nil {
 		if HTTPStatus(err) != http.StatusNotFound {
-			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
+			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}
 		state.Checkpoint = time.Time{}
 	} else {
 		err = json.Unmarshal(lastState.JobData, state)
 		if err != nil {
-			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
+			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}
 	}
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Looking for new feeds.",
@@ -286,7 +273,7 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 	)
 	feeds, err := dataAPI.GetNewFeedsSince(ctx, state.Checkpoint)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
+		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
 	if len(feeds) > 0 {
 		slogctx.FromCtx(ctx).DebugContext(ctx, "Found new feeds.",
@@ -299,15 +286,12 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 		"job_data": state,
 	})
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
+		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
 
 	// Create new feed jobs where necessary.
 	for feed := range slices.Values(feeds) {
-		var (
-			job quartz.ScheduledJob
-			err error
-		)
+		var job quartz.ScheduledJob
 		job, err = NewUpdateFeedJob(
 			feed.GetID(),
 			feed.SourceURLs,
@@ -317,7 +301,6 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "Failed to schedule job for feed.",
 				slog.String("feed_id", feed.GetID()),
 				slog.Any("error", err))
-
 			continue
 		}
 		// Check for existing job and schedule new job if needed.
@@ -325,7 +308,7 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
 			err = schedulerAPI.ScheduleJob(job.JobDetail(), job.Trigger())
 			if err != nil {
-				slog.ErrorContext(ctx, "Failed to schedule new job for feed.",
+				slogctx.FromCtx(ctx).Error("Failed to schedule new job for feed.",
 					slog.Group("feed",
 						slog.String("id", feed.GetID()),
 						slog.String("title", feed.GetTitle()),
@@ -352,7 +335,7 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 			go func() {
 				err = job.JobDetail().Job().Execute(ctx)
 				if err != nil {
-					slog.ErrorContext(ctx, "Failed initial run of update feed job.",
+					slogctx.FromCtx(ctx).Error("Failed initial run of update feed job.",
 						slog.Group("feed",
 							slog.String("id", feed.GetID()),
 							slog.String("title", feed.GetTitle()),
@@ -385,13 +368,6 @@ func GenerateJobKey(jobID string) *quartz.JobKey {
 	}
 }
 
-const (
-	defaultPollInterval = time.Minute
-	defaultPollJitter   = 5 * time.Second
-	pollTriggerID       = "PollTrigger"
-	cronTriggerID       = "CronTrigger"
-)
-
 // Verify PollTrigger satisfies the Trigger interface.
 var _ quartz.Trigger = (*PollTrigger)(nil)
 
@@ -415,9 +391,9 @@ func (t *PollTrigger) Description() string {
 	return strings.Join([]string{pollTriggerID, t.Interval.String(), t.Jitter.String()}, quartz.Sep)
 }
 
-// ParseTrigger will attempt to parse the given trigger interface into its concrete trigger type. If the interface value
+// parseTrigger will attempt to parse the given trigger interface into its concrete trigger type. If the interface value
 // cannot be parsed, a default polling trigger will be returned.
-func ParseTrigger(trigger quartz.Trigger) any {
+func parseTrigger(trigger quartz.Trigger) any {
 	desc := trigger.Description()
 	triggerOpts := strings.Split(desc, quartz.Sep)
 	switch {

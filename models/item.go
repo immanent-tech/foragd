@@ -133,7 +133,7 @@ func (i *Item) GetContent() string {
 func (i *Item) GetTimestamp() time.Time {
 	if valid, _ := ValidateDatetime(i.Updated); valid {
 		return i.Updated
-	} else if valid, _ := ValidateDatetime(i.Published); valid {
+	} else if valid, _ = ValidateDatetime(i.Published); valid {
 		return i.Published
 	}
 	return i.Timestamp
@@ -150,7 +150,10 @@ func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
 	var itemID ItemID
 	if sourceID := source.GetID(); sourceID != "" {
-		itemID = strings.Join([]string{ItemPFX.String(), strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+sourceID)), 10)}, "_")
+		itemID = strings.Join(
+			[]string{ItemPFX.String(), strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+sourceID)), 10)},
+			"_",
+		)
 	} else {
 		itemID = strings.Join([]string{ItemPFX.String(), strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+source.GetLink())), 10)}, "_")
 	}
