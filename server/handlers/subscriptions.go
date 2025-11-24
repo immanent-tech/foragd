@@ -116,16 +116,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 				res.Header().Set(htmx.HeaderReswap, "delete transition:true")
 				res.WriteHeader(http.StatusOK)
 			case models.ViewAll:
-				subscription, err := api.GetSubscription(req.Context(), request.Subscriptions[0])
-				if err != nil {
-					res.Header().Add(htmx.HeaderReswap, "none")
-					renderPartial(
-						templates.ServerErrorNotification(
-							models.NewErrorMessage("Unable to mark subscription", "This might be a temporary error, please try again.")),
-					).ServeHTTP(res, req)
-					return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
-				}
-				err = api.AddSubscriptionDynamicInfo(req.Context(), models.Subscriptions{subscription})
+				subscription, err := api.GetSubscription(req.Context(), request.Subscriptions[0], elastic.GetSubscriptionsDynamicInfo(true))
 				if err != nil {
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(
@@ -237,7 +228,7 @@ func RemoveSubscription(api *elastic.API) http.HandlerFunc {
 		case "false":
 			renderPartial(templates.RemoveSubscriptionModal(request)).ServeHTTP(res, req)
 		case "true":
-			err = models.RemoveSubscriptions(req.Context(), api, request.SubscriptionID)
+			err = api.RemoveSubscriptions(req.Context(), request.SubscriptionID)
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				renderPartial(
@@ -454,7 +445,7 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 			resultsCh := make(chan models.AddFeedSubscriptionResult)
 			var wg sync.WaitGroup
 			wg.Go(func() {
-				models.ProcessSubscriptionRequest(req.Context(), api, request, resultsCh)
+				api.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
 			})
 			// Wait for all request processing to complete.
 			go func() {
@@ -479,7 +470,7 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 					)
 				}
 			} else {
-				err = models.CreateFeedSubscriptions(req.Context(), api, &result)
+				err = api.CreateFeedSubscriptions(req.Context(), &result)
 				if err != nil {
 					res.Header().Add(htmx.HeaderReswap, "none")
 					msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
@@ -554,7 +545,7 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 					http.StatusUnprocessableEntity,
 				)
 			}
-			err = models.CreateSearchSubscriptions(req.Context(), api, request)
+			err = api.CreateSearchSubscriptions(req.Context(), request)
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				msg := models.NewErrorMessage(
@@ -621,7 +612,7 @@ func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
 				return models.NewAPIError(fmt.Errorf("add group subscription: %w", err), http.StatusInternalServerError)
 			}
 			// Add subscriptions
-			err = models.AddSubscriptions(req.Context(), api, subscription)
+			err = api.AddSubscriptions(req.Context(), subscription)
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				msg := models.NewErrorMessage(
@@ -687,7 +678,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 			var wg sync.WaitGroup
 			for request := range slices.Values(requests) {
 				wg.Go(func() {
-					models.ProcessSubscriptionRequest(req.Context(), a.Elastic, request, resultsCh)
+					a.Elastic.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
 				})
 			}
 			// Wait for all request processing to complete.
@@ -701,16 +692,15 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				results = append(results, &result)
 			}
 			// Create the subscriptions for any results that don't already indicate an error.
-			err = models.CreateFeedSubscriptions(req.Context(), a.Elastic,
-				slices.Collect(models.FilterSlice(results,
-					func(r *models.AddFeedSubscriptionResult) bool {
-						if r.Message.Status != models.UserMessageStatusError &&
-							r.Message.Status != models.UserMessageStatusWarning {
-							return true
-						}
-						return false
-					},
-				))...)
+			err = a.Elastic.CreateFeedSubscriptions(req.Context(), slices.Collect(models.FilterSlice(results,
+				func(r *models.AddFeedSubscriptionResult) bool {
+					if r.Message.Status != models.UserMessageStatusError &&
+						r.Message.Status != models.UserMessageStatusWarning {
+						return true
+					}
+					return false
+				},
+			))...)
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				msg := models.NewErrorMessage(

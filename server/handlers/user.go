@@ -624,7 +624,7 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 		var wg sync.WaitGroup
 		for request := range slices.Values(subscriptionRequests) {
 			wg.Go(func() {
-				models.ProcessSubscriptionRequest(req.Context(), api, request, resultsCh)
+				api.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
 			})
 		}
 		// Wait for all request processing to complete.
@@ -650,7 +650,7 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 					)
 				}
 			} else {
-				err = models.CreateFeedSubscriptions(req.Context(), api, &result)
+				err = api.CreateFeedSubscriptions(req.Context(), &result)
 				if err != nil {
 					msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
 					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)

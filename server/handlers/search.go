@@ -67,18 +67,11 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 				jobCtx,
 				request.Text,
 				defaultSubscriptionSuggestionsCount,
+				elastic.GetSubscriptionsDynamicInfo(true),
 			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription suggestions.",
 					slog.Any("error", err))
-			}
-			if len(subscriptions) > 0 {
-				err = api.AddSubscriptionDynamicInfo(jobCtx, subscriptions)
-				if err != nil {
-					slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription dynamic data.",
-						slog.Any("error", err))
-					subscriptions = nil
-				}
 			}
 			return nil
 		})
@@ -169,7 +162,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			var subscriptions models.Subscriptions
 			subscriptions, err = api.GetSubscriptions(req.Context(),
 				elastic.GetSubscriptionsByIDs(request.Subscriptions...),
-				elastic.GetSubscriptionDynamicInfo(true),
+				elastic.GetSubscriptionsDynamicInfo(true),
 			)
 			if err != nil {
 				msg := models.NewErrorMessage(

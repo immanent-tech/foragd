@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
@@ -37,6 +38,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/providers/elastic/schema"
 	"github.com/immanent-tech/foragd/server/session/store"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 const (
@@ -220,9 +222,20 @@ func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*mod
 	return users[0], nil
 }
 
-// GetSubscription returns the subscription that matches the given ID. Note: no dynamic info is generated for the
-// subscription (use AddSubscriptionDynamicInfo after calling this method if needed).
-func (a *API) GetSubscription(ctx context.Context, id models.SubscriptionID) (*models.Subscription, error) {
+// GetSubscription returns the subscription that matches the given ID.
+//
+// Accepts the GetSubscriptionsDynamicInfo request option to generate dynamic info (i.e. stats) for the subscription.
+func (a *API) GetSubscription(
+	ctx context.Context,
+	id models.SubscriptionID,
+	options ...SubscriptionsRequestOption,
+) (*models.Subscription, error) {
+	// Parse and apply options.
+	req := &subscriptionsRequest{}
+	for option := range slices.Values(options) {
+		option(req)
+	}
+
 	// Get user data.
 	user := models.UserFromCtx(ctx)
 	if user == nil {
@@ -248,12 +261,31 @@ func (a *API) GetSubscription(ctx context.Context, id models.SubscriptionID) (*m
 		return nil, fmt.Errorf("get subscription: %w: too many subscriptions", models.ErrInvalidAPIResult)
 	}
 
+	// Add dynamic info if requested.
+	if req.addDynamicInfo {
+		err = a.addSubscriptionDynamicInfo(ctx, subscriptions)
+		if err != nil {
+			return nil, fmt.Errorf("get subscription: %w", err)
+		}
+	}
+
 	return subscriptions[0], nil
 }
 
-// GetSubscriptionByFeedID returns the subscription that matches the given feed ID. Note: no dynamic info is generated for the
-// subscription (use AddSubscriptionDynamicInfo after calling this method if needed).
-func (a *API) GetSubscriptionByFeedID(ctx context.Context, id models.FeedID) (*models.Subscription, error) {
+// GetSubscriptionByFeedID returns the subscription that matches the given feed ID.
+//
+// Accepts the GetSubscriptionsDynamicInfo request option to generate dynamic info (i.e. stats) for the subscription.
+func (a *API) GetSubscriptionByFeedID(
+	ctx context.Context,
+	id models.FeedID,
+	options ...SubscriptionsRequestOption,
+) (*models.Subscription, error) {
+	// Parse and apply options.
+	req := &subscriptionsRequest{}
+	for option := range slices.Values(options) {
+		option(req)
+	}
+
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return nil, fmt.Errorf("get subscription by feed id: get user data: %w", models.ErrNoUserCtx)
@@ -277,7 +309,137 @@ func (a *API) GetSubscriptionByFeedID(ctx context.Context, id models.FeedID) (*m
 		return nil, fmt.Errorf("get subscription by feed id: %w: too many subscriptions", models.ErrInvalidAPIResult)
 	}
 
+	// Add dynamic info if requested.
+	if req.addDynamicInfo {
+		err = a.addSubscriptionDynamicInfo(ctx, subscriptions)
+		if err != nil {
+			return nil, fmt.Errorf("get subscription by feed id: %w", err)
+		}
+	}
+
 	return subscriptions[0], nil
+}
+
+// GetSubscriptionSuggestions returns subscriptions that match the given text.
+//
+// Accepts the GetSubscriptionsDynamicInfo request option to generate dynamic info (i.e. stats) for the subscription
+// suggestions.
+func (a *API) GetSubscriptionSuggestions(
+	ctx context.Context,
+	text string,
+	count int,
+	options ...SubscriptionsRequestOption,
+) (models.Subscriptions, error) {
+	// Parse and apply options.
+	req := &subscriptionsRequest{}
+	for option := range slices.Values(options) {
+		option(req)
+	}
+
+	// Get subscriptions by ID.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get subscription suggestions: get user data: %w", models.ErrNoUserCtx)
+	}
+
+	sort := models.SortMostRelevant
+	subscriptions, _, err := a.searchSubscriptions(ctx,
+		query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+			),
+			query.Must(
+				query.Bool(
+					query.Should(
+						query.SearchAsYouType(text, "customisation.nickname"),
+					),
+				),
+			),
+		),
+		searchSubscriptionsMaxResults(count),
+		searchSubscriptionsSortResults(&sort),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get subscription suggestions: api request failed: %w", err)
+	}
+	if len(subscriptions) == 0 {
+		return nil, fmt.Errorf("get subscription suggestions: %w", ErrNotFound)
+	}
+
+	// Add dynamic info if requested.
+	if req.addDynamicInfo {
+		err = a.addSubscriptionDynamicInfo(ctx, subscriptions)
+		if err != nil {
+			return nil, fmt.Errorf("get subscription suggestions: %w", err)
+		}
+	}
+
+	return subscriptions, nil
+}
+
+// AddSubscriptions adds the given subscriptions to a user.
+func (a *API) AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("add subscriptions: get user data: %w", ErrNoUserInCtx)
+	}
+	_, err := a.UpdateSubscriptions(ctx, subscriptions...)
+	if err != nil {
+		return fmt.Errorf("add subscriptions: %w", err)
+	}
+	// Disable onboarding once a subscription has been added.
+	settings := user.GetSettings()
+	if settings.ShowOnboarding {
+		settings.ShowOnboarding = false
+		// Update the user object.
+		err = a.UpdateUser(ctx, user.GetID(), map[string]any{
+			"settings": settings,
+		})
+		if err != nil {
+			return fmt.Errorf("add subscriptions: update user: %w", err)
+		}
+	}
+	return nil
+}
+
+// RemoveSubscriptions removes subscriptions with the given ID from a user.
+func (a *API) RemoveSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("remove subscriptions: %w", ErrNoUserInCtx)
+	}
+	index, err := SubscriptionsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("remove subscriptions: %w", ErrNoIndexInCtx)
+	}
+	err = DeleteDocs(ctx, a.GetAPI(), index,
+		query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+				query.Terms("subscription_id", ids...),
+			),
+		),
+	)
+	if err != nil {
+		return fmt.Errorf("remove subscriptions: %w", err)
+	}
+	return nil
+}
+
+// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
+func (a *API) UpdateSubscriptions(
+	ctx context.Context,
+	subscriptions ...*models.Subscription,
+) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
+	index, err := SubscriptionsWriteIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("update subscriptions: %w", ErrNoIndexInCtx)
+	}
+	resp, err := BulkUpdate(ctx, a, index, subscriptions...)
+	if err != nil {
+		return nil, fmt.Errorf("update subscriptions: %w", err)
+	}
+	return resp, nil
 }
 
 // UpdateFavoriteSubscription changes the favorite status of a subscription by updating the user object to flag the
@@ -298,44 +460,122 @@ func (a *API) UpdateFavoriteSubscription(ctx context.Context, id models.Subscrip
 	return nil
 }
 
-type getSubscriptionsRequest struct {
+// CreateFeedSubscriptions will create new FeedSubscriptions for the user from the given requests.
+func (a *API) CreateFeedSubscriptions(ctx context.Context, results ...*models.AddFeedSubscriptionResult) error {
+	if len(results) == 0 {
+		return nil
+	}
+	subscriptions := make(models.Subscriptions, 0, len(results))
+	for result := range slices.Values(results) {
+		slogctx.FromCtx(ctx).Debug("Creating new subscription.",
+			slog.String("feed", result.Feed.GetTitle()),
+			slog.String("url", result.Feed.GetLink()),
+		)
+		// Generate metadata.
+		subscription, err := models.NewFeedSubscription(ctx, &result.Feed, &result.Request)
+		if err != nil {
+			slogctx.FromCtx(ctx).Error("Could not create subscription",
+				slog.Any("error", err))
+			result.Error = fmt.Errorf("unable to create subscription: invalid metadata: %w", err)
+			continue
+		}
+		err = subscription.Valid()
+		if err != nil {
+			slogctx.FromCtx(ctx).Error("Could not create subscription",
+				slog.Any("error", err))
+			result.Error = fmt.Errorf("unable to create subscription: invalid metadata: %w", err)
+			continue
+		}
+		result.Subscription = *subscription
+		subscriptions = append(subscriptions, subscription)
+		result.Message = *models.NewSuccessMessage("Subscription Created: "+result.Feed.GetTitle(), "Articles will be fetched shortly...")
+	}
+	// Add subscriptions
+	err := a.AddSubscriptions(ctx, subscriptions...)
+	if err != nil {
+		return fmt.Errorf("unable to create subscriptions: %w", err)
+	}
+	return nil
+}
+
+// CreateSearchSubscriptions will create new SearchSubscriptions for the user from the given requests.
+func (a *API) CreateSearchSubscriptions(ctx context.Context, requests ...*models.SearchSubscriptionRequest) error {
+	subscriptions := make(models.Subscriptions, 0, len(requests))
+	for request := range slices.Values(requests) {
+		slogctx.FromCtx(ctx).Debug("Creating new search subscription.",
+			slog.String("feed", request.Customisation.Nickname),
+		)
+		// Generate metadata.
+		subscription, err := models.NewSearchSubscription(ctx, request)
+		if err != nil {
+			return fmt.Errorf("create search subscription: generate subscription failed: %w", err)
+		}
+		err = subscription.Valid()
+		if err != nil {
+			return fmt.Errorf("create search subscription: invalid data: %w", err)
+		}
+		subscriptions = append(subscriptions, subscription)
+	}
+	// Add subscriptions
+	err := a.AddSubscriptions(ctx, subscriptions...)
+	if err != nil {
+		return fmt.Errorf("create search subscription: add subscriptions failed: %w", err)
+	}
+	return nil
+}
+
+type subscriptionsRequest struct {
 	filterFavorites  bool
 	filterIDs        []models.SubscriptionID
+	filterFeedIDs    []models.FeedID
 	filterCategories []models.Category
 	addDynamicInfo   bool
 }
 
-type GetSubscriptionsOption func(*getSubscriptionsRequest)
+type SubscriptionsRequestOption func(*subscriptionsRequest)
 
-func GetSubscriptionsByFavorite(value bool) GetSubscriptionsOption {
-	return func(sr *getSubscriptionsRequest) {
+// GetSubscriptionsByFavorite option adds a filter to the query to get favorite subscriptions only.
+func GetSubscriptionsByFavorite(value bool) SubscriptionsRequestOption {
+	return func(sr *subscriptionsRequest) {
 		sr.filterFavorites = value
 	}
 }
 
-func GetSubscriptionsByIDs(ids ...models.SubscriptionID) GetSubscriptionsOption {
-	return func(sr *getSubscriptionsRequest) {
+// GetSubscriptionsByIDs option adds a filter to the query to get subscriptions by their ids.
+func GetSubscriptionsByIDs(ids ...models.SubscriptionID) SubscriptionsRequestOption {
+	return func(sr *subscriptionsRequest) {
 		sr.filterIDs = ids
 	}
 }
 
-func GetSubscriptionsByCategories(categories ...models.Category) GetSubscriptionsOption {
-	return func(sr *getSubscriptionsRequest) {
+// GetSubscriptionsByFeedIDs option adds a filter to the query to get subscriptions by their feed ids.
+func GetSubscriptionsByFeedIDs(ids ...models.FeedID) SubscriptionsRequestOption {
+	return func(sr *subscriptionsRequest) {
+		sr.filterFeedIDs = ids
+	}
+}
+
+// GetSubscriptionsByCategories option adds a filter to the query to get subscriptions by category.
+func GetSubscriptionsByCategories(categories ...models.Category) SubscriptionsRequestOption {
+	return func(sr *subscriptionsRequest) {
 		sr.filterCategories = categories
 	}
 }
 
-func GetSubscriptionDynamicInfo(value bool) GetSubscriptionsOption {
-	return func(sr *getSubscriptionsRequest) {
+// GetSubscriptionsDynamicInfo option will fill in the dynamic info (i.e., stats) after fetching.
+func GetSubscriptionsDynamicInfo(value bool) SubscriptionsRequestOption {
+	return func(sr *subscriptionsRequest) {
 		sr.addDynamicInfo = value
 	}
 }
 
+// GetSubscriptions performs a search request to fetch subscriptions. Accepts all request options to filter/enrich the
+// results.
 func (a *API) GetSubscriptions(
 	ctx context.Context,
-	options ...GetSubscriptionsOption,
+	options ...SubscriptionsRequestOption,
 ) (models.Subscriptions, error) {
-	req := &getSubscriptionsRequest{}
+	req := &subscriptionsRequest{}
 	for option := range slices.Values(options) {
 		option(req)
 	}
@@ -373,12 +613,139 @@ func (a *API) GetSubscriptions(
 	}
 
 	if req.addDynamicInfo {
-		if err := a.AddSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
+		if err = a.addSubscriptionDynamicInfo(ctx, subscriptions); err != nil {
 			return nil, fmt.Errorf("get subscriptions: %w", err)
 		}
 	}
 
 	return subscriptions, nil
+}
+
+// FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
+// Dynamic information for subscriptions will also be added.
+func (a *API) FilterSubscriptions(
+	ctx context.Context,
+	filters *models.ListDisplayFilters,
+	pagination models.Pagination,
+) (models.Subscriptions, models.Pagination, error) {
+	// Get subscriptions by ID.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, "", fmt.Errorf("filter subscriptions: get user data: %w", models.ErrNoUserCtx)
+	}
+	subscriptionQuery := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Terms("subscription_id", filters.Subscriptions...),
+			// query.Term("favorite", filters.OnlyFavorites),
+			query.Terms("categories", filters.GetCategories()...),
+		),
+	)
+	subscriptions, err := a.getAllSubscriptionsByQuery(ctx, subscriptionQuery)
+	if err != nil {
+		return nil, "", fmt.Errorf("filter subscriptions: api request failed: %w", err)
+	}
+	if len(subscriptions) == 0 {
+		return nil, "", fmt.Errorf("filter subscriptions: %w", ErrNotFound)
+	}
+	// Add dynamic info.
+	err = a.addSubscriptionDynamicInfo(ctx, subscriptions)
+	if err != nil {
+		return nil, "", fmt.Errorf("filter subscriptions: could not add dynamic info: %w", err)
+	}
+	// Sort and paginate.
+	subscriptions, pagination = subscriptions.
+		FilterByView(filters.GetView()).
+		FilterByFavorites(filters.OnlyFavorites).
+		Sort(filters.Sort).
+		Paginate(pagination, filters.GetCount())
+	return subscriptions, pagination, nil
+}
+
+// ProcessSubscriptionRequest manages parsing a subscription request and turning it into a subscription that can be
+// added to a user. It handles finding a existing matching feed or creating a new one, checking the user isn't already
+// subscribed and generating an appropriate subscription object. It returns an object that includes the request and new
+// subscription data, or the request and an error if subscription data could not be generated.
+//
+//nolint:funlen
+func (a *API) ProcessSubscriptionRequest(
+	ctx context.Context,
+	request *models.AddFeedSubscriptionRequest,
+	resultsCh chan models.AddFeedSubscriptionResult,
+) {
+	result := models.AddFeedSubscriptionResult{
+		Request: *request,
+	}
+	// Try to match request URL to an existing feed
+	var feed *models.Feed
+	feeds, _, err := a.SearchFeeds(ctx, query.Term("source_urls", request.GetURL()), 1, nil, nil)
+	if err != nil {
+		result.Error = err
+		result.Message = *models.NewErrorMessage("Unable to determine existing subscription status", "The backend produced an error. This might be temporary, please try again.")
+		resultsCh <- result
+		return
+	}
+	if len(feeds) == 1 {
+		feed = feeds[0]
+	}
+
+	// If no existing feed, create a new one.
+	if feed == nil {
+		slogctx.FromCtx(ctx).Debug("Parsing url", slog.String("url", request.GetURL()))
+		var newFeed *models.Feed
+		newFeed, err = models.NewFeedFromURL(ctx, request.GetURL())
+		if err != nil {
+			result.Error = err
+			result.Message = *models.NewErrorMessage("Unable to create subscription", fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL()))
+			resultsCh <- result
+			return
+		}
+		err = validation.Validate.Struct(newFeed)
+		if err != nil {
+			result.Error = err
+			result.Message = *models.NewErrorMessage("Unable to create subscription", fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL()))
+			resultsCh <- result
+			return
+		}
+		err = models.CreateFeed(ctx, a, newFeed)
+		if err != nil {
+			result.Error = err
+			result.Message = *models.NewErrorMessage("Unable to create new feed for subscription", "The backend produced an error. This might be temporary, please try again.")
+			resultsCh <- result
+			return
+		}
+		slogctx.FromCtx(ctx).Debug("Created new feed for request.",
+			slog.String("name", newFeed.GetTitle()),
+			slog.String("urls", strings.Join(newFeed.GetSourceURLs(), ",")),
+		)
+		feed = newFeed
+	}
+
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		result.Error = ErrNoUserInCtx
+		result.Message = *models.NewErrorMessage("Unable to check for existing subscription for "+request.GetURL(), "The backend produced an error. This might be temporary, please try again.")
+		resultsCh <- result
+		return
+	}
+	subscription, err := a.GetSubscriptionByFeedID(ctx, feed.GetID())
+	if err != nil && models.HTTPStatus(err) != http.StatusNotFound {
+		result.Error = err
+		result.Message = *models.NewErrorMessage("Unable to check for existing subscription for "+request.GetURL(), "The backend produced an error. This might be temporary, please try again.")
+		resultsCh <- result
+		return
+	}
+	if subscription != nil {
+		result.Error = models.NewAPIError(errors.New("already subscribed"), http.StatusConflict)
+		result.Message = *models.NewWarningMessage("Already subscribed to feed", feed.GetTitle()+" ("+request.URL+")")
+		resultsCh <- result
+		return
+	}
+
+	// Add the feed details to the result.
+	result.Feed = *feed
+	// Send the result back through the channel.
+	resultsCh <- result
 }
 
 type searchSubscriptionsRequest struct {
@@ -460,10 +827,10 @@ func (a *API) searchSubscriptions(
 
 	searchAfter, err := decodePagination(req.pagination)
 	if err != nil {
-		return nil, "", models.NewAPIError(
+		return nil, "", models.NewAPIError( //nolint:wrapcheck
 			fmt.Errorf("search subscriptions: decode pagination failed: %w", err),
 			http.StatusInternalServerError,
-		) //nolint:wrapcheck
+		)
 	}
 
 	// Perform search.
@@ -483,10 +850,10 @@ func (a *API) searchSubscriptions(
 	if req.pagination != nil {
 		*req.pagination, err = encodePagination(newSearchAfter)
 		if err != nil {
-			return nil, "", models.NewAPIError(
+			return nil, "", models.NewAPIError( //nolint:wrapcheck
 				fmt.Errorf("search subscriptions: encode pagination failed: %w", err),
 				http.StatusInternalServerError,
-			) //nolint:wrapcheck
+			)
 		}
 		return subscriptions, *req.pagination, nil
 	}
@@ -494,88 +861,12 @@ func (a *API) searchSubscriptions(
 	return subscriptions, "", nil
 }
 
-// GetSubscriptionSuggestions returns subscriptions that match the given text. Note: no dynamic info is generated for the
-// subscriptions (use AddSubscriptionDynamicInfo after calling this method if needed).
-func (a *API) GetSubscriptionSuggestions(ctx context.Context, text string, count int) (models.Subscriptions, error) {
-	// Get subscriptions by ID.
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("get subscription suggestions: get user data: %w", models.ErrNoUserCtx)
-	}
-
-	sort := models.SortMostRelevant
-	subscriptions, _, err := a.searchSubscriptions(ctx,
-		query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-			),
-			query.Must(
-				query.Bool(
-					query.Should(
-						query.SearchAsYouType(text, "customisation.nickname"),
-					),
-				),
-			),
-		),
-		searchSubscriptionsMaxResults(count),
-		searchSubscriptionsSortResults(&sort),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("get subscription suggestions: api request failed: %w", err)
-	}
-	if len(subscriptions) == 0 {
-		return nil, fmt.Errorf("get subscription suggestions: %w", ErrNotFound)
-	}
-	return subscriptions, nil
-}
-
-// FilterSubscriptions returns subscriptions filtered by the given filters and paginated by the given pagination.
-// Dynamic information for subscriptions will also be added.
-func (a *API) FilterSubscriptions(
-	ctx context.Context,
-	filters *models.ListDisplayFilters,
-	pagination models.Pagination,
-) (models.Subscriptions, models.Pagination, error) {
-	// Get subscriptions by ID.
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return nil, "", fmt.Errorf("filter subscriptions: get user data: %w", models.ErrNoUserCtx)
-	}
-	subscriptionQuery := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-			query.Terms("subscription_id", filters.Subscriptions...),
-			// query.Term("favorite", filters.OnlyFavorites),
-			query.Terms("categories", filters.GetCategories()...),
-		),
-	)
-	subscriptions, err := a.getAllSubscriptionsByQuery(ctx, subscriptionQuery)
-	if err != nil {
-		return nil, "", fmt.Errorf("filter subscriptions: api request failed: %w", err)
-	}
-	if len(subscriptions) == 0 {
-		return nil, "", fmt.Errorf("filter subscriptions: %w", ErrNotFound)
-	}
-	// Add dynamic info.
-	err = a.AddSubscriptionDynamicInfo(ctx, subscriptions)
-	if err != nil {
-		return nil, "", fmt.Errorf("filter subscriptions: could not add dynamic info: %w", err)
-	}
-	// Sort and paginate.
-	subscriptions, pagination = subscriptions.
-		FilterByView(filters.GetView()).
-		FilterByFavorites(filters.OnlyFavorites).
-		Sort(filters.Sort).
-		Paginate(pagination, filters.GetCount())
-	return subscriptions, pagination, nil
-}
-
-// AddSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
+// addSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
 // At the least, all subscriptions will have an unread count and last updated info generated. Other stats will also be
 // generated if the user has set the display option ShowSubscriptionStats in their account settings.
 //
 //nolint:gocognit,funlen
-func (a *API) AddSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
+func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions models.Subscriptions) error {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
 		return fmt.Errorf("add subscription dynamic info: get user data: %w", models.ErrNoUserCtx)
@@ -800,19 +1091,21 @@ func (a *API) getFeedAverageDailyUpdates(ctx context.Context, ids ...models.Feed
 
 	stats := make(map[models.FeedID]float64)
 
+	// Loop through the aggregation results and extract the daily updates metric for each feed.
 	for feed := range slices.Values(feedStatsBuckets) {
-		feedID, ok := feed.Key.(string)
+		var feedID models.FeedID
+		feedID, ok = feed.Key.(string)
 		if !ok {
 			slogctx.FromCtx(ctx).Debug("Unable to extract feed ID for aggregation", slog.Any("feed_id", feed.Key))
 			continue
 		}
-		updatesResult, ok := feed.Aggregations["avg_daily_updates"].(*types.SimpleValueAggregate)
+		var updatesResult *types.SimpleValueAggregate
+		updatesResult, ok = feed.Aggregations["avg_daily_updates"].(*types.SimpleValueAggregate)
 		if !ok {
 			slogctx.FromCtx(ctx).
 				Debug("Unable to extract avg_daily_updates agg for subscription", slog.String("feed_id", feedID))
 			continue
 		}
-
 		stats[feedID] = float64(*updatesResult.Value)
 	}
 
@@ -878,8 +1171,10 @@ func (a *API) getFeedUnreadCounts(
 
 	stats := make(map[models.SubscriptionID]int64)
 
+	// Loop through the aggregation results and extract the unread count for each feed.
 	for feed := range slices.Values(unreadCountsBuckets) {
-		if feedID, ok := feed.Key.(string); ok {
+		var feedID models.FeedID
+		if feedID, ok = feed.Key.(string); ok {
 			stats[feedID] = feed.DocCount
 		}
 	}
@@ -944,36 +1239,11 @@ func (a *API) getAllSubscriptionsByQuery(ctx context.Context, query query.Option
 	}
 
 	var subscriptions models.Subscriptions
-	subscriptions, err = SearchAll[*models.Subscription](ctx, a.GetAPI(), index, query, 5000)
+	subscriptions, err = SearchAll[*models.Subscription](ctx, a.GetAPI(), index, query, defaultPaginationSize)
 	if err != nil {
 		return nil, fmt.Errorf("get all subscriptions by query: %w", err)
 	}
 	return subscriptions, nil
-}
-
-// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
-func (a *API) UpdateSubscriptions(
-	ctx context.Context,
-	subscriptions ...*models.Subscription,
-) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
-	index, err := SubscriptionsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return nil, ErrNoIndexInCtx //nolint:wrapcheck
-	}
-	return BulkUpdate(ctx, a, index, subscriptions...)
-}
-
-// UpdateSubscriptions will bulk update the given subscriptions in Elasticsearch.
-func (a *API) RemoveSubscriptions(ctx context.Context, query query.Option) error {
-	index, err := SubscriptionsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return ErrNoIndexInCtx //nolint:wrapcheck
-	}
-	err = DeleteDocs(ctx, a.GetAPI(), index, query)
-	if err != nil {
-		return fmt.Errorf("remove subscriptions: %w", err)
-	}
-	return nil
 }
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
@@ -1137,7 +1407,7 @@ func (a *API) FilterArticles(
 	}
 	// Return early if there the user has no subscriptions (i.e., new user).
 	if len(subscriptions) == 0 {
-		return nil, "", ErrNotFound
+		return nil, "", fmt.Errorf("filter articles: %w", ErrNotFound)
 	}
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
@@ -1243,7 +1513,8 @@ func (a *API) GenerateArticles(ctx context.Context, items models.Items) (models.
 	// Create articles from the items.
 	articles := make(models.Articles, 0, len(items))
 	for item := range slices.Values(items) {
-		article, err := models.GenerateArticle(user, item, subscriptions.GetByFeedID(item.GetFeedID()))
+		var article *models.Article
+		article, err = models.GenerateArticle(user, item, subscriptions.GetByFeedID(item.GetFeedID()))
 		if err != nil {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not generate article from data.",
 				slog.Any("error", err),
@@ -1505,10 +1776,10 @@ func (a *API) SearchFeeds(
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
-		return nil, "", models.NewAPIError(
+		return nil, "", models.NewAPIError( //nolint:wrapcheck
 			fmt.Errorf("search feeds: decode pagination failed: %w", err),
 			http.StatusInternalServerError,
-		) //nolint:wrapcheck
+		)
 	}
 
 	// Perform search.
@@ -1523,10 +1794,10 @@ func (a *API) SearchFeeds(
 	if pagination != nil {
 		*pagination, err = encodePagination(newSearchAfter)
 		if err != nil {
-			return nil, "", models.NewAPIError(
+			return nil, "", models.NewAPIError( //nolint:wrapcheck
 				fmt.Errorf("search feeds: encode pagination failed: %w", err),
 				http.StatusInternalServerError,
-			) //nolint:wrapcheck
+			)
 		}
 		return feeds, *pagination, nil
 	}
