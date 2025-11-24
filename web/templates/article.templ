@@ -19,7 +19,7 @@ templ articleSummary(article *models.Article) {
 		if img := article.GetImage(); img != nil {
 			<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
 				<img
-					src={ "/img-proxy/400x300/" + img.GetURL() }
+					src={ "/img-proxy/300x200/" + img.GetURL() }
 					if img.GetTitle() != "" {
 						alt={ article.GetImage().GetTitle() }
 					} else {
@@ -80,7 +80,7 @@ templ ArticleCard(article *models.Article) {
 			) {
 				<img
 					class="rounded-box responsive-img border border-base-content"
-					src={ "/img-proxy/400x300/" + img.GetURL() }
+					src={ "/img-proxy/300x200/" + img.GetURL() }
 					height="400"
 					width="300"
 					if img.GetTitle() != "" {
