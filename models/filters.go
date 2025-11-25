@@ -77,6 +77,9 @@ func (f *ListDisplayFilters) GetSubscriptions() []SubscriptionID {
 
 // Sanitise performs sanitisation of the filter values to ensure correctness.
 func (f *ListDisplayFilters) Sanitise() error {
+	if f == nil {
+		return nil
+	}
 	// Set required filters to valid values as necessary.
 	f.Sort = setValidSort(f.Sort)
 	f.Count = setValidCount(f.Count)
