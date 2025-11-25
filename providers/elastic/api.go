@@ -26,10 +26,11 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
-	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
+
+	feeds "github.com/immanent-tech/go-syndication"
 
 	"github.com/immanent-tech/foragd/logging"
 	"github.com/immanent-tech/foragd/models"
@@ -1810,41 +1811,6 @@ func (a *API) SearchFeeds(
 // 	return MultiSearch(ctx, e.GetAPI(), queries...)
 // }
 
-// GetNewFeedsSince will return a slice of all feeds that have been created since the given timestamp.
-func (a *API) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error) {
-	// Get all new feeds created since last checkpoint.
-	index, err := FeedsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get new feeds since: %w", ErrNoIndexInCtx)
-	}
-	// Generate query. We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
-	// don't have a job scheduled for updating their items.
-	query := query.Term("last_fetched", models.UnixEpoch)
-	var feeds models.Feeds
-	feeds, err = SearchAll[*models.Feed](ctx, a.GetAPI(), index, query, 1000)
-	if err != nil {
-		return nil, fmt.Errorf("get new feeds since: %w", err)
-	}
-	return feeds, nil
-}
-
-// UpdateFeed will update the feed with the given id, using the new feed information provided.
-func (a *API) UpdateFeed(ctx context.Context, id models.FeedID, updated *feeds.Feed) error {
-	// Update the feed timestamp.
-	index, err := FeedsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("update feed: %w", ErrNoIndexInCtx)
-	}
-	updates := map[string]any{
-		"last_fetched": time.Now().UTC(),
-	}
-	err = UpdateDoc(ctx, a.GetAPI(), index, id, updates)
-	if err != nil {
-		return fmt.Errorf("update feed: %w", err)
-	}
-	return nil
-}
-
 // SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
 // optional.
 func (a *API) SearchItems(
@@ -1992,12 +1958,48 @@ func (a *API) UnarchiveArticle(ctx context.Context, userID models.UserID, itemID
 	return nil
 }
 
+// GetNewFeeds will return a slice of all feeds that have been created but not fetched.
+func (a *API) GetNewFeeds(ctx context.Context) (models.Feeds, error) {
+	index := schema.FeedsIndexPrefix + schema.IndexReadSuffix
+
+	var (
+		feeds models.Feeds
+		err   error
+	)
+
+	//  We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
+	// don't have a job scheduled for updating their items.
+	feeds, err = SearchAll[*models.Feed](
+		ctx,
+		a.GetAPI(),
+		index,
+		query.Term("last_fetched", models.UnixEpoch),
+		defaultPaginationSize,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get new feeds since: %w", err)
+	}
+	return feeds, nil
+}
+
+// UpdateFeedLastFetched will update the feed with the given id, using the new feed information provided.
+func (a *API) UpdateFeedLastFetched(ctx context.Context, id models.FeedID, _ *feeds.Feed) error {
+	index := schema.FeedsIndexPrefix + schema.IndexWriteSuffix
+
+	updates := map[string]any{
+		"last_fetched": time.Now().UTC(),
+	}
+
+	if err := UpdateDoc(ctx, a.GetAPI(), index, id, updates); err != nil {
+		return fmt.Errorf("update feed: %w", err)
+	}
+	return nil
+}
+
 // GetJobState retrieves the job state doc with the given ID from Elasticsearch.
 func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
-	index, err := SchedulerReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, ErrNoIndexInCtx //nolint:wrapcheck
-	}
+	index := schema.SchedulerIndexPrefix + schema.IndexReadSuffix
+
 	state, err := GetDoc[string, *models.JobState](ctx, a.GetAPI(), index, id)
 	if err != nil {
 		return nil, fmt.Errorf("get job state: %w", err)
@@ -2007,29 +2009,23 @@ func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, err
 
 // UpdateJobState updates the job state doc with the given ID in Elasticsearch.
 func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
-	index, err := SchedulerWriteIndexFromCtx(ctx)
-	if err != nil {
-		return ErrNoIndexInCtx //nolint:wrapcheck
-	}
+	index := schema.SchedulerIndexPrefix + schema.IndexWriteSuffix
+
 	updates["updated_at"] = time.Now().UTC()
-	err = UpdateDoc(ctx, a.GetAPI(), index, id, updates,
+	if err := UpdateDoc(ctx, a.GetAPI(), index, id, updates,
 		UpdateDocAsUpsert(),
 		WithRefresh("true"),
-	)
-	if err != nil {
+	); err != nil {
 		return fmt.Errorf("update job state: %w", err)
 	}
 	return nil
 }
 
 // ScheduleJob pushes a scheduler job into the queue.
-func (a *API) ScheduleJob(ctx context.Context, id string, job quartz.ScheduledJob, data *models.ScheduledJob) error {
-	index, err := SchedulerWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("schedule job: %w", ErrNoIndexInCtx)
-	}
+func (a *API) ScheduleJob(ctx context.Context, id string, _ quartz.ScheduledJob, data *models.ScheduledJob) error {
+	index := schema.SchedulerIndexPrefix + schema.IndexWriteSuffix
 
-	err = UpdateDoc(ctx, a.GetAPI(), index, id, map[string]any{
+	if err := UpdateDoc(ctx, a.GetAPI(), index, id, map[string]any{
 		"job_next_run":     data.JobNextRun,
 		"job_data":         data.JobData,
 		"job_trigger_type": data.JobTriggerType,
@@ -2039,8 +2035,7 @@ func (a *API) ScheduleJob(ctx context.Context, id string, job quartz.ScheduledJo
 	},
 		UpdateDocAsUpsert(),
 		WithRefresh("true"),
-	)
-	if err != nil {
+	); err != nil {
 		return fmt.Errorf("schedule job: %w", err)
 	}
 
@@ -2049,10 +2044,8 @@ func (a *API) ScheduleJob(ctx context.Context, id string, job quartz.ScheduledJo
 
 // GetNextScheduledJob runs a query to find the next job to be run.
 func (a *API) GetNextScheduledJob(ctx context.Context) (*models.ScheduledJob, error) {
-	index, err := SchedulerReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get next scheduled job: %w", ErrNoIndexInCtx)
-	}
+	index := schema.SchedulerIndexPrefix + schema.IndexReadSuffix
+
 	jobs, _, err := Search[*models.ScheduledJob](
 		ctx,
 		a.GetAPI(),
@@ -2071,14 +2064,11 @@ func (a *API) GetNextScheduledJob(ctx context.Context) (*models.ScheduledJob, er
 
 // GetScheduledJob will return the details of the job with the given id, if it exists.
 func (a *API) GetScheduledJob(ctx context.Context, id string) (*models.ScheduledJob, error) {
-	index, err := SchedulerReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get scheduled job: %w", ErrNoIndexInCtx)
-	}
+	index := schema.SchedulerIndexPrefix + schema.IndexReadSuffix
 
 	job, err := GetDoc[string, *models.ScheduledJob](ctx, a.GetAPI(), index, id)
 	if err != nil {
-		return nil, fmt.Errorf("get scheduled job: %w", ErrNoIndexInCtx)
+		return nil, fmt.Errorf("get scheduled job: %w", err)
 	}
 
 	return job, nil
@@ -2086,10 +2076,7 @@ func (a *API) GetScheduledJob(ctx context.Context, id string) (*models.Scheduled
 
 // GetAllScheduledJobs returns a slice of all scheduled jobs, if any.
 func (a *API) GetAllScheduledJobs(ctx context.Context) ([]models.ScheduledJob, error) {
-	index, err := SchedulerReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get scheduled job: %w", ErrNoIndexInCtx)
-	}
+	index := schema.SchedulerIndexPrefix + schema.IndexReadSuffix
 
 	jobs, err := SearchAll[models.ScheduledJob](
 		ctx,
@@ -2100,10 +2087,10 @@ func (a *API) GetAllScheduledJobs(ctx context.Context) ([]models.ScheduledJob, e
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("get scheduled job: %w", ErrNoIndexInCtx)
+		return nil, fmt.Errorf("get all scheduled jobs: %w", err)
 	}
 	if len(jobs) == 0 {
-		return nil, fmt.Errorf("get scheduled job: %w", ErrNotFound)
+		return nil, fmt.Errorf("get all scheduled jobs: %w", ErrNotFound)
 	}
 
 	return jobs, nil
@@ -2111,10 +2098,7 @@ func (a *API) GetAllScheduledJobs(ctx context.Context) ([]models.ScheduledJob, e
 
 // CountJobs returns a count of the scheduler jobs in the jobs index.
 func (a *API) CountJobs(ctx context.Context) (int64, error) {
-	index, err := SchedulerReadIndexFromCtx(ctx)
-	if err != nil {
-		return 0, fmt.Errorf("count jobs: %w", ErrNoIndexInCtx)
-	}
+	index := schema.SchedulerIndexPrefix + schema.IndexReadSuffix
 
 	count, err := Count(ctx, a.GetAPI(), index, query.Exists("job_type"))
 	if err != nil {
@@ -2126,13 +2110,9 @@ func (a *API) CountJobs(ctx context.Context) (int64, error) {
 
 // RemoveAllJobs removes all scheduled jobs.
 func (a *API) RemoveAllJobs(ctx context.Context) error {
-	index, err := SchedulerWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("remove all jobs: %w", ErrNoIndexInCtx)
-	}
+	index := schema.SchedulerIndexPrefix + schema.IndexWriteSuffix
 
-	err = DeleteDocs(ctx, a.GetAPI(), index, query.Exists("job_type"))
-	if err != nil {
+	if err := DeleteDocs(ctx, a.GetAPI(), index, query.Exists("job_type")); err != nil {
 		return fmt.Errorf("remove all jobs: %w", err)
 	}
 
@@ -2141,13 +2121,9 @@ func (a *API) RemoveAllJobs(ctx context.Context) error {
 
 // RemoveJob removes a scheduled job with the given id.
 func (a *API) RemoveJob(ctx context.Context, id string) error {
-	index, err := SchedulerWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("remove job: %w", ErrNoIndexInCtx)
-	}
+	index := schema.SchedulerIndexPrefix + schema.IndexWriteSuffix
 
-	err = DeleteDoc(ctx, a.GetAPI(), index, id)
-	if err != nil {
+	if err := DeleteDoc(ctx, a.GetAPI(), index, id); err != nil {
 		return fmt.Errorf("remove job: %w", err)
 	}
 

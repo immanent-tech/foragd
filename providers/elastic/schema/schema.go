@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	// FeedsSchemaPrefix is a prefix used for feed related index/mapping/settings.
-	FeedsSchemaPrefix = "feeds"
+	// FeedsIndexPrefix is a prefix used for feed related index/mapping/settings.
+	FeedsIndexPrefix = "feeds"
 	// ItemsSchemaPrefix is a prefix used for item related index/mapping/settings.
 	ItemsSchemaPrefix = "items"
 	// FavoriteItemsSchemaPrefix is a prefix used for item archive related index/mapping/settings.
@@ -24,8 +24,8 @@ const (
 	UsersSchemaPrefix = "users"
 	// SubscriptionsSchemaPrefix is a prefix used for subscription related index/mapping/settings.
 	SubscriptionsSchemaPrefix = "subscriptions"
-	// SchedulerSchemaPrefix is a prefix used for scheduler related index/mapping/settings.
-	SchedulerSchemaPrefix = "scheduler"
+	// SchedulerIndexPrefix is a prefix used for scheduler related index/mapping/settings.
+	SchedulerIndexPrefix = "scheduler"
 	// SessionsSchemaPrefix is a prefix used for sessions related index/mapping/settings.
 	SessionsSchemaPrefix = "sessions"
 	// LogsSchemaPrefix is a prefix used for application logs related index/mapping/settings.

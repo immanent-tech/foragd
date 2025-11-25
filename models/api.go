@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -31,9 +30,9 @@ var (
 // FeedsAPI contains API methods for Feeds.
 type FeedsAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
-	GetNewFeedsSince(ctx context.Context, since time.Time) (Feeds, error)
+	GetNewFeeds(ctx context.Context) (Feeds, error)
 	GetFeed(ctx context.Context, id FeedID) (*Feed, error)
-	UpdateFeed(ctx context.Context, id FeedID, updated *feeds.Feed) error
+	UpdateFeedLastFetched(ctx context.Context, id FeedID, updated *feeds.Feed) error
 
 	SearchFeeds(
 		ctx context.Context,

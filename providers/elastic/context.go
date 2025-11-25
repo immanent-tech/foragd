@@ -36,8 +36,8 @@ type contextKey string
 func SetupIndexAliases(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, userReadIndexCtxKey, schema.UsersSchemaPrefix+schema.IndexReadSuffix)
 	ctx = context.WithValue(ctx, userWriteIndexCtxKey, schema.UsersSchemaPrefix+schema.IndexWriteSuffix)
-	ctx = context.WithValue(ctx, feedsReadIndexCtxKey, schema.FeedsSchemaPrefix+schema.IndexReadSuffix)
-	ctx = context.WithValue(ctx, feedsWriteIndexCtxKey, schema.FeedsSchemaPrefix+schema.IndexWriteSuffix)
+	ctx = context.WithValue(ctx, feedsReadIndexCtxKey, schema.FeedsIndexPrefix+schema.IndexReadSuffix)
+	ctx = context.WithValue(ctx, feedsWriteIndexCtxKey, schema.FeedsIndexPrefix+schema.IndexWriteSuffix)
 	ctx = context.WithValue(ctx, subscriptionsReadIndexCtxKey, schema.SubscriptionsSchemaPrefix+schema.IndexReadSuffix)
 	ctx = context.WithValue(
 		ctx,
@@ -46,8 +46,8 @@ func SetupIndexAliases(ctx context.Context) context.Context {
 	)
 	ctx = context.WithValue(ctx, itemsArchiveReadIndexCtxKey, schema.FavoriteItemsSchemaPrefix+schema.IndexReadSuffix)
 	ctx = context.WithValue(ctx, itemsArchiveWriteIndexCtxKey, schema.FavoriteItemsSchemaPrefix+schema.IndexWriteSuffix)
-	ctx = context.WithValue(ctx, schedulerReadIndexCtxKey, schema.SchedulerSchemaPrefix+schema.IndexReadSuffix)
-	ctx = context.WithValue(ctx, schedulerWriteIndexCtxKey, schema.SchedulerSchemaPrefix+schema.IndexWriteSuffix)
+	ctx = context.WithValue(ctx, schedulerReadIndexCtxKey, schema.SchedulerIndexPrefix+schema.IndexReadSuffix)
+	ctx = context.WithValue(ctx, schedulerWriteIndexCtxKey, schema.SchedulerIndexPrefix+schema.IndexWriteSuffix)
 	ctx = context.WithValue(ctx, itemsReadIndexCtxKey, schema.ItemsSchemaPrefix+schema.IndexReadSuffix)
 	ctx = context.WithValue(ctx, itemsWriteIndexCtxKey, schema.ItemsSchemaPrefix+schema.IndexWriteSuffix)
 	return ctx

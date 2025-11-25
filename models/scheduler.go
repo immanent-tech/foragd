@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	feeds "github.com/immanent-tech/go-syndication"
@@ -206,15 +207,15 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}
-		// Update the feed details.
-		err = api.UpdateFeed(jobCtx, job.FeedID, nil)
-		if err != nil {
-			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
-		}
 		slogctx.FromCtx(ctx).Debug("Added new items.",
 			slog.String("feed", details.GetTitle()),
 			slog.Int("count", len(items.FilterSince(details.LastFetched))),
 		)
+	}
+	// Update the feed details.
+	err = api.UpdateFeedLastFetched(jobCtx, job.FeedID, nil)
+	if err != nil {
+		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
 	return nil
 }
@@ -279,7 +280,7 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Looking for new feeds.",
 		slog.Time("since", state.Checkpoint),
 	)
-	feeds, err := dataAPI.GetNewFeedsSince(ctx, state.Checkpoint)
+	feeds, err := dataAPI.GetNewFeeds(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
@@ -298,67 +299,71 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
 
+	var wg sync.WaitGroup
 	// Create new feed jobs where necessary.
 	for feed := range slices.Values(feeds) {
-		var job quartz.ScheduledJob
-		job, err = NewUpdateFeedJob(
-			feed.GetID(),
-			feed.SourceURLs,
-			NewPollTrigger(defaultPollInterval, defaultPollJitter),
-		)
-		if err != nil {
-			slogctx.FromCtx(ctx).WarnContext(ctx, "Failed to schedule job for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
-			continue
-		}
-		// Check for existing job and schedule new job if needed.
-		_, err = schedulerAPI.GetScheduledJob(job.JobDetail().JobKey())
-		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
-			err = schedulerAPI.ScheduleJob(job.JobDetail(), job.Trigger())
-			if err != nil {
-				slogctx.FromCtx(ctx).Error("Failed to schedule new job for feed.",
-					slog.Group("feed",
-						slog.String("id", feed.GetID()),
-						slog.String("title", feed.GetTitle()),
-					),
-					slog.Group("job",
-						slog.String("id", job.JobDetail().JobKey().String()),
-						slog.String("schedule", job.Trigger().Description()),
-					),
+		wg.Go(func() {
+			jobKey := GenerateJobKey(feed.GetID())
+			existingJob, err := schedulerAPI.GetScheduledJob(jobKey)
+			if err != nil && HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound) {
+				// If we cannot ascertain if there is an existing scheduled job, skip this feed.
+				slogctx.FromCtx(ctx).Warn("Unable to check for existing scheduled job.",
+					slog.String("feed_id", feed.GetID()),
 					slog.Any("error", err),
 				)
-				continue
+				return
 			}
-			slogctx.FromCtx(ctx).DebugContext(ctx, "Added job for feed.",
-				slog.Group("feed",
-					slog.String("id", feed.GetID()),
-					slog.String("title", feed.GetTitle()),
-				),
-				slog.Group("job",
-					slog.String("id", job.JobDetail().JobKey().String()),
-					slog.String("schedule", job.Trigger().Description()),
-				),
-			)
-			// Do an initial run of the job.
-			go func() {
-				err = job.JobDetail().Job().Execute(ctx)
+			if existingJob == nil || !errors.Is(err, quartz.ErrJobNotFound) {
+				// If there is no existing scheduled job, create one.
+				job, err := NewUpdateFeedJob(
+					feed.GetID(),
+					feed.SourceURLs,
+					NewPollTrigger(defaultPollInterval, defaultPollJitter),
+				)
 				if err != nil {
+					slogctx.FromCtx(ctx).Warn("Unable to create new update feed job for feed.",
+						slog.String("feed_id", feed.GetID()),
+						slog.Any("error", err),
+					)
+					return
+				}
+				// Schedule the new job.
+				if err = schedulerAPI.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
+					slogctx.FromCtx(ctx).Error("Failed to schedule new job for feed.",
+						slog.String("feed_id", feed.GetID()),
+						slog.String("job_id", job.JobDetail().JobKey().String()),
+						slog.String("job_schedule", job.Trigger().Description()),
+						slog.Any("error", err),
+					)
+					return
+				}
+				slogctx.FromCtx(ctx).DebugContext(ctx, "Added job for feed.",
+					slog.String("feed_id", feed.GetID()),
+					slog.String("job_id", job.JobDetail().JobKey().String()),
+					slog.String("job_schedule", job.Trigger().Description()),
+				)
+				// Do an initial run of the job.
+				if err = job.JobDetail().Job().Execute(ctx); err != nil {
 					slogctx.FromCtx(ctx).Error("Failed initial run of update feed job.",
-						slog.Group("feed",
-							slog.String("id", feed.GetID()),
-							slog.String("title", feed.GetTitle()),
-						),
-						slog.Group("job",
-							slog.String("id", job.JobDetail().JobKey().String()),
-							slog.String("schedule", job.Trigger().Description()),
-						),
+						slog.String("feed_id", feed.GetID()),
+						slog.String("job_id", job.JobDetail().JobKey().String()),
+						slog.String("job_schedule", job.Trigger().Description()),
 						slog.Any("error", err),
 					)
 				}
-			}()
-		}
+			} else {
+				slogctx.FromCtx(ctx).Error("Existing update feed job.",
+					slog.String("feed_id", feed.GetID()),
+					slog.String("job_id", existingJob.JobDetail().JobKey().String()),
+					slog.String("job_schedule", existingJob.Trigger().Description()),
+					slog.Any("error", err),
+				)
+			}
+		})
 	}
+
+	wg.Wait()
+
 	return nil
 }
 
