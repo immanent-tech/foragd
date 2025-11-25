@@ -3,10 +3,6 @@
 
 package templates
 
-import (
-	"fmt"
-)
-
 const (
 	ImgProxyKey contextKey = "image_proxy_key"
 )
@@ -34,7 +30,7 @@ type ID string
 // Target returns the id attribute as a target (i.e., for htmx requests). This
 // is the base id string with a "#" prefix.
 func (a ID) Target() string {
-	return fmt.Sprintf("#%s", a)
+	return "#" + string(a)
 }
 
 // String returns the id attribute as a string.
