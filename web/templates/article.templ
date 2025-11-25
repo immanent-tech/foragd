@@ -20,15 +20,6 @@ templ articleSummary(article *models.Article) {
 		if img := article.GetImage(); img != nil {
 			<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
 				@articleImage(img, article.GetTitle(), "h-48", "sm:w-48")
-				// <img
-				// 	src={ "/img-proxy/300x200/" + img.GetURL() }
-				// 	if img.GetTitle() != "" {
-				// 		alt={ article.GetImage().GetTitle() }
-				// 	} else {
-				// 		alt={ article.GetTitle() }
-				// 	}
-				// 	class="rounded-box responsive-img h-48 sm:w-48 w-full border border-base-content"
-				// />
 			</div>
 		}
 		<div class="gap-y-2">
@@ -48,7 +39,18 @@ templ articleSummary(article *models.Article) {
 					@ShowTimestamp(article.GetUpdatedDate())
 				</p>
 				<p class="flex text-xs truncate">
-					@viewFeedSubscriptionLink(article.GetSubscriptionID(), models.ViewUnread, "truncate") {
+					{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": article.GetSubscriptionID()} }}
+					{{ overrides[models.ParamView] = string(models.ViewUnread) }}
+					{{ overrides[models.ParamSubscriptionID] = article.GetSubscriptionID() }}
+					@NewLink(
+						WithHXMethod(http.MethodGet, "/list/articles"),
+						WithHXInclude("#content-filters"),
+						WithHXVals(overrides),
+						WithHXTarget(ContentID.Target()),
+						WithHXPushURL(),
+						WithHXSwap("innerHTML show:top transition:true"),
+						WithClasses("truncate"),
+					) {
 						{ article.GetFeedTitle() }
 					}
 				</p>

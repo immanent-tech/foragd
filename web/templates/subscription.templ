@@ -42,8 +42,86 @@ templ SubscriptionCard(s *models.Subscription) {
 	>
 		<div class="card-body">
 			<div class="flex items-center card-section">
+				// Heading containing thumbnail, subscription title, all as a link to the subscription articles.
 				<div class="flex flex-1">
-					@subscriptionHeading(s)
+					switch s.GetSubscriptionType() {
+						case models.SubscriptionTypeFeed:
+							{{ var view models.View }}
+							if s.GetStats().IsUnread() {
+								{{ view = models.ViewUnread }}
+							} else {
+								{{ view = models.ViewRead }}
+							}
+							{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": s.GetID()} }}
+							{{ overrides[models.ParamView] = string(view) }}
+							{{ overrides[models.ParamSubscriptionID] = s.GetID() }}
+							@NewLink(
+								WithHXMethod(http.MethodGet, "/list/articles"),
+								WithHXInclude("#content-filters"),
+								WithHXVals(overrides),
+								WithHXTarget(ContentID.Target()),
+								WithHXPushURL(),
+								WithHXSwap("innerHTML show:top transition:true"),
+								WithClasses("flex", "items-center", "gap-x-4"),
+							) {
+								<div class="flex items-center">
+									<div class="mr-4 shrink-0 self-center">
+										@subscriptionThumbnail(s)
+									</div>
+									<div>
+										<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
+									</div>
+								</div>
+							}
+						case models.SubscriptionTypeSearch:
+							<form>
+								<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
+								@NewLink(
+									WithHXMethod(http.MethodPost, "/search"),
+									WithHXInclude("[name='csrf_token']"),
+									WithHXValsJS(s.SearchData.Search.HXVals()),
+									WithHXTarget(ContentID.Target()),
+									WithHXPushURL(),
+									WithHXSwap("innerHTML show:top transition:true"),
+									WithClasses("flex", "items-center", "gap-x-4", "hover:text-accent"),
+								) {
+									<div class="flex items-center">
+										<div class="mr-4 shrink-0 self-center">
+											@subscriptionThumbnail(s)
+										</div>
+										<div>
+											<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
+										</div>
+									</div>
+								}
+							</form>
+						case models.SubscriptionTypeGroup:
+							{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": s.GroupData.Subscriptions} }}
+							if s.GetStats().IsUnread() {
+								{{ overrides[models.ParamView] = string(models.ViewUnread) }}
+							} else {
+								{{ overrides[models.ParamView] = string(models.ViewRead) }}
+							}
+							{{ overrides[models.ParamSubscriptionID] = s.GetID() }}
+							@NewLink(
+								WithHXMethod(http.MethodGet, "/list/articles"),
+								WithHXInclude("#content-filters"),
+								WithHXVals(overrides),
+								WithHXTarget(ContentID.Target()),
+								WithHXPushURL(),
+								WithHXSwap("innerHTML show:top transition:true"),
+								WithClasses("flex", "items-center", "gap-x-4", "hover:text-accent"),
+							) {
+								<div class="flex items-center">
+									<div class="mr-4 shrink-0 self-center">
+										@subscriptionThumbnail(s)
+									</div>
+									<div>
+										<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
+									</div>
+								</div>
+							}
+					}
 				</div>
 				<div class="flex flex-none">
 					@subscriptionContextMenu(s)
@@ -181,99 +259,6 @@ templ subscriptionContextMenu(s *models.Subscription) {
 			}
 		</el-menu>
 	</el-dropdown>
-}
-
-templ subscriptionHeading(s *models.Subscription) {
-	switch s.GetSubscriptionType() {
-		case models.SubscriptionTypeFeed:
-			{{ var view models.View }}
-			if s.GetStats().IsUnread() {
-				{{ view = models.ViewUnread }}
-			} else {
-				{{ view = models.ViewRead }}
-			}
-			@viewFeedSubscriptionLink(s.GetID(), view, "flex", "items-center", "gap-x-4") {
-				<div class="flex items-center">
-					<div class="mr-4 shrink-0 self-center">
-						@subscriptionThumbnail(s)
-					</div>
-					<div>
-						<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
-					</div>
-				</div>
-			}
-		case models.SubscriptionTypeSearch:
-			@viewSearchSubscriptionLink(s) {
-				<div class="flex items-center">
-					<div class="mr-4 shrink-0 self-center">
-						@subscriptionThumbnail(s)
-					</div>
-					<div>
-						<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
-					</div>
-				</div>
-			}
-		case models.SubscriptionTypeGroup:
-			{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": s.GroupData.Subscriptions} }}
-			if s.GetStats().IsUnread() {
-				{{ overrides[models.ParamView] = string(models.ViewUnread) }}
-			} else {
-				{{ overrides[models.ParamView] = string(models.ViewRead) }}
-			}
-			{{ overrides[models.ParamSubscriptionID] = s.GetID() }}
-			@NewLink(
-				WithHXMethod(http.MethodGet, "/list/articles"),
-				WithHXInclude("#content-filters"),
-				WithHXVals(overrides),
-				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(),
-				WithHXSwap("innerHTML show:top transition:true"),
-				WithClasses("flex", "items-center", "gap-x-4", "hover:text-accent"),
-			) {
-				<div class="flex items-center">
-					<div class="mr-4 shrink-0 self-center">
-						@subscriptionThumbnail(s)
-					</div>
-					<div>
-						<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
-					</div>
-				</div>
-			}
-	}
-}
-
-templ viewFeedSubscriptionLink(id models.SubscriptionID, view models.View, classes ...string) {
-	{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": id} }}
-	{{ overrides[models.ParamView] = string(view) }}
-	{{ overrides[models.ParamSubscriptionID] = id }}
-	@NewLink(
-		WithHXMethod(http.MethodGet, "/list/articles"),
-		WithHXInclude("#content-filters"),
-		WithHXVals(overrides),
-		WithHXTarget(ContentID.Target()),
-		WithHXPushURL(),
-		WithHXSwap("innerHTML show:top transition:true"),
-		WithClasses(classes...),
-	) {
-		{ children... }
-	}
-}
-
-templ viewSearchSubscriptionLink(s *models.Subscription) {
-	<form>
-		<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
-		@NewLink(
-			WithHXMethod(http.MethodPost, "/search"),
-			WithHXInclude("[name='csrf_token']"),
-			WithHXValsJS(s.SearchData.Search.HXVals()),
-			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(),
-			WithHXSwap("innerHTML show:top transition:true"),
-			WithClasses("flex", "items-center", "gap-x-4", "hover:text-accent"),
-		) {
-			{ children... }
-		}
-	</form>
 }
 
 // SubscriptionsGrid renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
