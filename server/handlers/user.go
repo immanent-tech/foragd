@@ -325,7 +325,14 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			)
 		}
 		// Update the display.
-		renderPartial(templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), true)).ServeHTTP(res, req)
+		template := templ.Join(
+			templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), true),
+			templates.Notification(
+				models.NewSuccessMessage("Added Favorite", ""),
+				templates.DefaultNotificationTimeout,
+			),
+		)
+		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -359,13 +366,19 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 		currentURL, found := htmx.GetCurrentURL(req)
 		if found && strings.Contains(currentURL, "/favorites") {
 			// On the favorites page, remove the subscription card when removing it as a favorite.
-			slog.Info("yes")
 			res.Header().Add(htmx.HeaderReswap, "delete transition:true")
 			res.Header().Set(htmx.HeaderRetarget, "#"+id)
 			res.WriteHeader(http.StatusOK)
 		} else {
 			// Update the favorite button.
-			renderPartial(templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), false)).ServeHTTP(res, req)
+			template := templ.Join(
+				templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), false),
+				templates.Notification(
+					models.NewSuccessMessage("Removed Favorite", ""),
+					templates.DefaultNotificationTimeout,
+				),
+			)
+			renderPartial(template).ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP
@@ -420,6 +433,13 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 		case "content":
 			template = templates.UpdateViewArticleFavorite(id, true)
 		}
+		template = templ.Join(
+			template,
+			templates.Notification(
+				models.NewSuccessMessage("Added Favorite", ""),
+				templates.DefaultNotificationTimeout,
+			),
+		)
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
@@ -475,6 +495,13 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 		case "content":
 			template = templates.UpdateViewArticleFavorite(id, false)
 		}
+		template = templ.Join(
+			template,
+			templates.Notification(
+				models.NewSuccessMessage("Removed Favorite", ""),
+				templates.DefaultNotificationTimeout,
+			),
+		)
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP

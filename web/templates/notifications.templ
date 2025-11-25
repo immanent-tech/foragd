@@ -13,6 +13,7 @@ import (
 )
 
 const notificationIDCtxKey partialsCtxKey = "notificationID"
+const DefaultNotificationTimeout = 5 * time.Second
 
 func GetNotificationIDFromCtx(ctx context.Context) string {
 	id, _ := ctx.Value(notificationIDCtxKey).(string)
