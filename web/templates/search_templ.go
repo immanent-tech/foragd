@@ -1430,7 +1430,7 @@ func NoSearchResults() templ.Component {
 		templ_7745c5c3_Err = NewLink(
 			WithCustomAttribute("role", "button"),
 			WithCustomAttribute("href", "/home"),
-			WithClasses("btn", "btn-primary", "btn-soft"),
+			WithClasses("btn", "btn-primary"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var58), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

@@ -21,7 +21,7 @@ templ NotFound() {
 				@NewLink(
 					WithCustomAttribute("role", "button"),
 					WithCustomAttribute("href", "/home"),
-					WithClasses("btn", "btn-primary", "btn-soft"),
+					WithClasses("btn", "btn-primary"),
 				) {
 					Go Back Home
 				}
@@ -49,7 +49,7 @@ templ ErrorPage(msg *models.UserMessage) {
 				@NewLink(
 					WithCustomAttribute("role", "button"),
 					WithCustomAttribute("href", "/home"),
-					WithClasses("btn", "btn-primary", "btn-soft"),
+					WithClasses("btn", "btn-primary"),
 				) {
 					Go Back Home
 				}
@@ -76,7 +76,7 @@ templ EmptyContent() {
 				@NewLink(
 					WithCustomAttribute("role", "button"),
 					WithCustomAttribute("href", "/home"),
-					WithClasses("btn", "btn-primary", "btn-soft"),
+					WithClasses("btn", "btn-primary"),
 				) {
 					Go Back Home
 				}
@@ -174,7 +174,7 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 						<label class="input input-primary bg-base-content/10 join-item">
 							<input type="text" placeholder="Custom Category" name="category"/>
 						</label>
-						<button type="submit" class="btn btn-primary btn-soft join-item">
+						<button type="submit" class="btn btn-primary join-item">
 							@tabler.Plus()
 						</button>
 					</div>

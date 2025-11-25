@@ -122,7 +122,7 @@ func FilterControls(categories models.CategoryCounts, filters *models.ListDispla
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-params=\"not categories\" class=\"btn btn-secondary btn-soft btn-sm\">Clear</button></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-params=\"not categories\" class=\"btn btn-secondary btn-sm\">Clear</button></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

@@ -79,7 +79,7 @@ func NotFound() templ.Component {
 			templ_7745c5c3_Err = NewLink(
 				WithCustomAttribute("role", "button"),
 				WithCustomAttribute("href", "/home"),
-				WithClasses("btn", "btn-primary", "btn-soft"),
+				WithClasses("btn", "btn-primary"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -218,7 +218,7 @@ func ErrorPage(msg *models.UserMessage) templ.Component {
 			templ_7745c5c3_Err = NewLink(
 				WithCustomAttribute("role", "button"),
 				WithCustomAttribute("href", "/home"),
-				WithClasses("btn", "btn-primary", "btn-soft"),
+				WithClasses("btn", "btn-primary"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var9), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -330,7 +330,7 @@ func EmptyContent() templ.Component {
 			templ_7745c5c3_Err = NewLink(
 				WithCustomAttribute("role", "button"),
 				WithCustomAttribute("href", "/home"),
-				WithClasses("btn", "btn-primary", "btn-soft"),
+				WithClasses("btn", "btn-primary"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -699,7 +699,7 @@ func CategoryManagement(path, inputName string, suggested []models.Category, exi
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\" hx-push-url=\"false\" hx-target=\"#current-categories\" hx-swap=\"beforeend\"><div class=\"join\"><label class=\"input input-primary bg-base-content/10 join-item\"><input type=\"text\" placeholder=\"Custom Category\" name=\"category\"></label> <button type=\"submit\" class=\"btn btn-primary btn-soft join-item\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\" hx-push-url=\"false\" hx-target=\"#current-categories\" hx-swap=\"beforeend\"><div class=\"join\"><label class=\"input input-primary bg-base-content/10 join-item\"><input type=\"text\" placeholder=\"Custom Category\" name=\"category\"></label> <button type=\"submit\" class=\"btn btn-primary join-item\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

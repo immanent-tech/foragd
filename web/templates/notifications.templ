@@ -136,14 +136,14 @@ templ UpdatesToast() {
 		<span>New updates available.</span>
 		<div>
 			<button
-				class="btn btn-sm btn-square btn-soft btn-info"
+				class="btn btn-sm btn-square btn-info"
 				hx-get="#"
 				hx-target={ ContentID.Target() }
 			>
 				<span class="sr-only">Refresh</span>
 				@tabler.Refresh(i.Props{Class: "size-4 text-info"})
 			</button>
-			<button class="btn btn-sm btn-square btn-soft btn-info" _="on click remove #updates-toast">
+			<button class="btn btn-sm btn-square btn-info" _="on click remove #updates-toast">
 				<span class="sr-only">Close</span>
 				@tabler.X(i.Props{Class: "size-4 text-info"})
 			</button>
