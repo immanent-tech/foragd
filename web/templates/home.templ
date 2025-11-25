@@ -24,7 +24,7 @@ type Home struct {
 
 // content renders the home page content.
 templ (page *Home) Template() {
-	@Main() {
+	@main() {
 		if len(page.LatestArticles) == 0 {
 			<div class="text-center">
 				@tabler.CircleCheckFilled(i.Props{Class: "mx-auto size-12"})
@@ -130,7 +130,7 @@ templ (page *Home) Template() {
 }
 
 templ NewUserHome() {
-	@Main() {
+	@main() {
 		<h2 class="page-title">Welcome to { config.AppName }</h2>
 		<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
 		<div class="py-4">

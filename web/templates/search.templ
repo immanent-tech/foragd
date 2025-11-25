@@ -206,7 +206,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 
 // SearchResultsGrid renders the given articles returned from the given search in a grid layout with an actions menu.
 templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles, pagination models.Pagination) {
-	@Main() {
+	@main() {
 		<div class="flex items-center justify-between mt-4">
 			// Page title.
 			<div class="min-w-0 flex-1">
@@ -285,7 +285,7 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 		<div id="update-notifications" sse-connect={ "/search/updates?" + request.Query() } sse-swap="message" class="toast toast-center z-50"></div>
 		// Articles grid.
 		<section class="mt-4">
-			@Grid() {
+			@grid() {
 				@SearchResults(articles, pagination)
 			}
 		</section>
@@ -580,9 +580,9 @@ templ AddSearchSubscriptionFilter(id, name, input string) {
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
-	@Main() {
+	@main() {
 		// Show results.
-		@Grid() {
+		@grid() {
 			for article := range slices.Values(articles) {
 				@ArticleCard(article)
 			}

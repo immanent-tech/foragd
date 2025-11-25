@@ -12,9 +12,9 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// Main is a container for main content. Children will be constrained and padded to the center of the
-// screen.
-func Main() templ.Component {
+// main can be used as a container for the main content of the page. It restricts content to a max width and adds
+// padding.
+func main() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -51,8 +51,8 @@ func Main() templ.Component {
 	})
 }
 
-// Grid layout renders children in a responsive grid.
-func Grid() templ.Component {
+// grid can be used as a container for defining a responsive grid layout for children elements.
+func grid() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -128,39 +128,4 @@ func Document(data []byte) templ.Component {
 	})
 }
 
-// templ ObjectGrid(path string, pagination models.Pagination, objects models.Objects) {
-// 	{{ filters := models.PageFiltersFromCtx(ctx, path) }}
-// 	@Main() {
-// 		// Hidden content filters.
-// 		<div id="content-filters" class="hidden">
-// 			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-// 			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-// 			<input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
-// 			<input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
-// 			if len(filters.GetCategories()) > 0 {
-// 				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>
-// 			}
-// 			if len(filters.GetSubscriptions()) > 0 {
-// 				<input type="hidden" name={ models.ParamSubscriptions } value={ strings.Join(filters.GetSubscriptions(), ",") }/>
-// 			}
-// 		</div>
-// 		<div id="update-notifications" sse-connect={ path + "/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
-// 		@ListDisplayFilters(objects.GetCategoryCounts(), filters, true)
-// 		@Grid() {
-// 			@ObjectList(objects, pagination)
-// 		}
-// 	}
-// 	@Dock()
-// }
-
-//	templ ObjectList(objects models.Objects, pagination models.Pagination) {
-//		{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
-//		for subscription := range objects.Values() {
-//			@SubscriptionCard(subscription)
-//		}
-//		if pagination != "" && len(subscriptions) == filters.GetCount() {
-//			// Add pagination htmx props to last article.
-//			@PaginationControl(ctx, "/list/subscriptions/paginate", pagination)
-//		}
-//	}
 var _ = templruntime.GeneratedTemplate

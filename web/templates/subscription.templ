@@ -347,7 +347,7 @@ templ viewSearchSubscriptionLink(s *models.Subscription) {
 // SubscriptionsGrid renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.Subscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
-	@Main() {
+	@main() {
 		<div class="flex items-center justify-between mt-4">
 			// Page heading.
 			<div class="min-w-0 flex-1">
@@ -434,7 +434,7 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 		@FilterControls(models.GetCategoryCounts(subscriptions...), filters)
 		<section class="mt-4">
 			if len(subscriptions) > 0 {
-				@Grid() {
+				@grid() {
 					@Subscriptions(pagination, subscriptions...)
 				}
 			} else {
@@ -457,7 +457,7 @@ templ Subscriptions(pagination models.Pagination, subscriptions ...*models.Subsc
 }
 
 templ EditSubscription(request *models.EditSubscriptionRequest) {
-	@Main() {
+	@main() {
 		<div class="min-w-0 flex-1 pb-8">
 			<h2 class="page-title sm:truncate">Editing { request.Nickname }</h2>
 		</div>
@@ -599,7 +599,7 @@ templ EditSubscriptionSuccessNotification(subscription *models.Subscription) {
 
 // AddFeedSubscription is a page for adding a new subscription to a feed.
 templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
-	@Main() {
+	@main() {
 		<div class="min-w-0 flex-1 pb-8">
 			<h2 class="page-title">Add A Subscription</h2>
 		</div>
@@ -695,7 +695,7 @@ templ EditSearchSubscription(request *models.SearchSubscriptionRequest) {
 }
 
 templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action string) {
-	@Main() {
+	@main() {
 		<div class="min-w-0 flex-1 pb-8">
 			switch action {
 				case "add":
@@ -993,7 +993,7 @@ templ EditGroupSubscription(request *models.GroupSubscriptionRequest) {
 }
 
 templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action string) {
-	@Main() {
+	@main() {
 		<div class="min-w-0 flex-1 pb-8">
 			switch action {
 				case "add":
@@ -1104,7 +1104,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 
 // ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
 templ ImportSubscriptions() {
-	@Main() {
+	@main() {
 		<div class="mx-auto max-w-3xl">
 			@pageTitle("Import Subscriptions")
 			<div class="md:flex md:items-center md:justify-between">
@@ -1255,7 +1255,7 @@ func filterUnsuccessfulResults(results []*models.AddFeedSubscriptionResult) []*m
 
 // ExportSubscriptions renders a form for exporting all subscriptions as an OPML file.
 templ ExportSubscriptions() {
-	@Main() {
+	@main() {
 		<div class="md:flex md:items-center md:justify-between mt-8">
 			<div class="min-w-0 flex-1">
 				<h2 class="page-title">Export Subscriptions</h2>

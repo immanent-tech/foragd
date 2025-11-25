@@ -3,18 +3,16 @@
 
 package templates
 
-// Main is a container for main content. Children will be constrained and padded to the center of the
-// screen.
-templ Main() {
+// main can be used as a container for the main content of the page. It restricts content to a max width and adds
+// padding.
+templ main() {
 	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-24 sm:pb-8">
-		// <div class="max-w-5xl">
 		{ children... }
-		// </div>
 	</main>
 }
 
-// Grid layout renders children in a responsive grid.
-templ Grid() {
+// grid can be used as a container for defining a responsive grid layout for children elements.
+templ grid() {
 	<div
 		role="list"
 		class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4 items-center"
@@ -31,39 +29,3 @@ templ Document(data []byte) {
 		@templ.Raw(string(data))
 	</main>
 }
-
-// templ ObjectGrid(path string, pagination models.Pagination, objects models.Objects) {
-// 	{{ filters := models.PageFiltersFromCtx(ctx, path) }}
-// 	@Main() {
-// 		// Hidden content filters.
-// 		<div id="content-filters" class="hidden">
-// 			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-// 			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-// 			<input type="hidden" name={ models.ParamSortBy } value={ string(filters.GetSort().SortBy) }/>
-// 			<input type="hidden" name={ models.ParamSortOrder } value={ string(filters.GetSort().SortOrder) }/>
-// 			if len(filters.GetCategories()) > 0 {
-// 				<input type="hidden" name={ models.ParamCategories } value={ strings.Join(filters.GetCategories(), ",") }/>
-// 			}
-// 			if len(filters.GetSubscriptions()) > 0 {
-// 				<input type="hidden" name={ models.ParamSubscriptions } value={ strings.Join(filters.GetSubscriptions(), ",") }/>
-// 			}
-// 		</div>
-// 		<div id="update-notifications" sse-connect={ path + "/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
-// 		@ListDisplayFilters(objects.GetCategoryCounts(), filters, true)
-// 		@Grid() {
-// 			@ObjectList(objects, pagination)
-// 		}
-// 	}
-// 	@Dock()
-// }
-
-// templ ObjectList(objects models.Objects, pagination models.Pagination) {
-// 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
-// 	for subscription := range objects.Values() {
-// 		@SubscriptionCard(subscription)
-// 	}
-// 	if pagination != "" && len(subscriptions) == filters.GetCount() {
-// 		// Add pagination htmx props to last article.
-// 		@PaginationControl(ctx, "/list/subscriptions/paginate", pagination)
-// 	}
-// }
