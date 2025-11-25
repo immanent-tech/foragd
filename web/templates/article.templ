@@ -18,15 +18,16 @@ templ articleSummary(article *models.Article) {
 		// Article image.
 		if img := article.GetImage(); img != nil {
 			<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
-				<img
-					src={ "/img-proxy/300x200/" + img.GetURL() }
-					if img.GetTitle() != "" {
-						alt={ article.GetImage().GetTitle() }
-					} else {
-						alt={ article.GetTitle() }
-					}
-					class="rounded-box responsive-img h-48 sm:w-48 w-full border border-base-content"
-				/>
+				@largeImage(img, article.GetTitle(), "h-48", "sm:w-48")
+				// <img
+				// 	src={ "/img-proxy/300x200/" + img.GetURL() }
+				// 	if img.GetTitle() != "" {
+				// 		alt={ article.GetImage().GetTitle() }
+				// 	} else {
+				// 		alt={ article.GetTitle() }
+				// 	}
+				// 	class="rounded-box responsive-img h-48 sm:w-48 w-full border border-base-content"
+				// />
 			</div>
 		}
 		<div class="gap-y-2">
@@ -72,25 +73,13 @@ templ ArticleCard(article *models.Article) {
 		templ.KV("opacity-50",!article.IsUnread()) }
 	>
 		if img := article.GetImage(); img != nil {
-			// <figure>
 			@NewLink(
 				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
 			) {
-				<img
-					class="rounded-box responsive-img border border-base-content"
-					src={ "/img-proxy/300x200/" + img.GetURL() }
-					height="400"
-					width="300"
-					if img.GetTitle() != "" {
-						alt={ img.GetTitle() }
-					} else {
-						alt={ article.GetTitle() }
-					}
-				/>
+				@largeImage(img, article.GetTitle())
 			}
-			// </figure>
 		}
 		<div class="card-body">
 			@NewLink(

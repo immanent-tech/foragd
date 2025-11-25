@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"encoding/base64"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -68,7 +69,7 @@ templ header(user *models.User) {
 					) {
 						<span class="sr-only">Open settings menu</span>
 						<img
-							src={ "/img-proxy/32x32/" + user.GetAvatar() }
+							src={ "/img-proxy/32x32/" + base64.RawURLEncoding.EncodeToString([]byte(user.GetAvatar())) }
 							alt={ "Avatar for user " + user.GetNickname() }
 							width="32"
 							height="32"

@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"encoding/base64"
 	"github.com/dustin/go-humanize"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
@@ -194,30 +195,7 @@ templ subscriptionHeading(s *models.Subscription) {
 			@viewFeedSubscriptionLink(s.GetID(), view, "flex", "items-center", "gap-x-4") {
 				<div class="flex items-center">
 					<div class="mr-4 shrink-0 self-center">
-						// Generate a thumbnail to display next to the title.
-						if img := s.GetImage(); img != "" {
-							// If the source has an image, use that as the avatar.
-							<div class="avatar">
-								<div class="rounded-box size-12 border border-base-content">
-									<img
-										src={ "/img-proxy/48x48/" + img }
-										width="48"
-										height="48"
-										alt={ s.GetTitle() }
-									/>
-									// if img.GetTitle() != "" {
-									// 	alt={ img.GetTitle() }
-									// }
-								</div>
-							</div>
-						} else {
-							// Otherwise, take the first letter of the title and create a placeholder avatar.
-							<div class="avatar avatar-placeholder">
-								<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
-									<span class="text-3xl capitalize">{ s.GetTitle()[0:1] }</span>
-								</div>
-							</div>
-						}
+						@subscriptionThumbnail(s)
 					</div>
 					<div>
 						<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
@@ -228,30 +206,7 @@ templ subscriptionHeading(s *models.Subscription) {
 			@viewSearchSubscriptionLink(s) {
 				<div class="flex items-center">
 					<div class="mr-4 shrink-0 self-center">
-						// Generate a thumbnail to display next to the title.
-						if img := s.GetImage(); img != "" {
-							// If the source has an image, use that as the avatar.
-							<div class="avatar">
-								<div class="rounded-box size-12">
-									<img
-										src={ "/img-proxy/48x48/" + img }
-										width="48"
-										height="48"
-										alt={ s.GetTitle() }
-									/>
-									// if img.GetTitle() != "" {
-									// 	alt={ img.GetTitle() }
-									// }
-								</div>
-							</div>
-						} else {
-							// Otherwise, take the first letter of the title and create a placeholder avatar.
-							<div class="avatar avatar-placeholder">
-								<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
-									<span class="text-3xl capitalize">{ s.GetTitle()[0:1] }</span>
-								</div>
-							</div>
-						}
+						@subscriptionThumbnail(s)
 					</div>
 					<div>
 						<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
@@ -277,30 +232,7 @@ templ subscriptionHeading(s *models.Subscription) {
 			) {
 				<div class="flex items-center">
 					<div class="mr-4 shrink-0 self-center">
-						// Generate a thumbnail to display next to the title.
-						if img := s.GetImage(); img != "" {
-							// If the source has an image, use that as the avatar.
-							<div class="avatar">
-								<div class="rounded-box size-12">
-									<img
-										src={ "/img-proxy/48x48/" + img }
-										width="48"
-										height="48"
-										alt={ s.GetTitle() }
-									/>
-									// if img.GetTitle() != "" {
-									// 	alt={ img.GetTitle() }
-									// }
-								</div>
-							</div>
-						} else {
-							// Otherwise, take the first letter of the title and create a placeholder avatar.
-							<div class="avatar avatar-placeholder">
-								<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
-									<span class="text-3xl capitalize">{ s.GetTitle()[0:1] }</span>
-								</div>
-							</div>
-						}
+						@subscriptionThumbnail(s)
 					</div>
 					<div>
 						<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
@@ -1323,6 +1255,29 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 				_={ "on click remove #" + id + "-modal" }
 				class="mt-3 inline-flex w-full justify-center rounded-md bg-primary/80 px-3 py-2 text-sm font-semibold text-primary-content shadow-xs ring-1 ring-base-content/10 ring-inset hover:bg-primary sm:mt-0 sm:w-auto"
 			>Cancel</button>
+		</div>
+	}
+}
+
+templ subscriptionThumbnail(subscription *models.Subscription) {
+	if img := subscription.GetImage(); img != "" {
+		// If the source has an image, use that as the avatar.
+		<div class="avatar">
+			<div class="rounded-box size-12 border border-base-content">
+				<img
+					src={ "/img-proxy/48x48/" + base64.RawURLEncoding.EncodeToString([]byte(img)) }
+					width="48"
+					height="48"
+					alt={ subscription.GetTitle() }
+				/>
+			</div>
+		</div>
+	} else {
+		// Otherwise, take the first letter of the title and create a placeholder avatar.
+		<div class="avatar avatar-placeholder">
+			<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
+				<span class="text-3xl capitalize">{ subscription.GetTitle()[0:1] }</span>
+			</div>
 		</div>
 	}
 }

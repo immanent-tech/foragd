@@ -105,31 +105,35 @@ func StaticFileServerHandler(fs http.FileSystem) http.Handler {
 func ImageProxy(client *resty.Client, key, proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		opts := chi.URLParam(req, "image_opts")
-		url := chi.URLParam(req, "*")
-		// Include any query parameters from the original image URL in the URL passed to the proxy.
-		if len(req.URL.Query()) > 0 {
-			url = url + "?" + req.URL.Query().Encode()
-		}
-		var imageURL string
+		encodedImageURL := chi.URLParam(req, "encoded_image_url")
+
+		var proxiedURL string
 		if proxyURLBase != "" { // Generate image URL through proxy.
 			if key == "" {
+				slogctx.FromCtx(req.Context()).Error("Image proxying requires a key.")
 				res.WriteHeader(http.StatusForbidden)
 				return nil
 			}
 			// Create a signature for image signing.
 			mac := hmac.New(sha256.New, []byte(key))
-			mac.Write([]byte(url + "#" + opts))
+			mac.Write([]byte(encodedImageURL + "#" + opts))
 			result := mac.Sum(nil)
 			// Generate signed URL to pass to proxy.
-			signedURL := opts + "," + base64.URLEncoding.EncodeToString(result) + "/" + url
-			imageURL = proxyURLBase + signedURL
+			signedURL := opts + "," + base64.URLEncoding.EncodeToString(result) + "/" + encodedImageURL
+			proxiedURL = proxyURLBase + signedURL
 		} else { // No proxy supplied, use direct image URL.
-			imageURL = url
+			originalURL, err := base64.RawURLEncoding.DecodeString(encodedImageURL)
+			if err != nil {
+				res.WriteHeader(http.StatusInternalServerError)
+				return models.NewAPIError(fmt.Errorf("image proxy: decode image url: %w", err), http.StatusInternalServerError)
+			}
+			proxiedURL = string(originalURL)
 		}
+
 		// Fetch the image (either from proxy or direct).
 		resp, err := client.R().
 			SetDoNotParseResponse(true).
-			Get(imageURL)
+			Get(proxiedURL)
 		if err != nil {
 			res.WriteHeader(resp.StatusCode())
 			return models.NewAPIError(fmt.Errorf("image proxy: send image request: %w", err), resp.StatusCode())
