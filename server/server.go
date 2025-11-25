@@ -175,6 +175,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
 		middlewares.RateLimit(rateLimiter),
+		middlewares.SetupImgProxy(cfg.ImgproxyKey),
 	)
 
 	// Static content.
@@ -183,8 +184,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 	})
 
 	router.Get(
-		"/img-proxy/{image_opts}/{encoded_image_url}",
-		handlers.ImageProxy(s.client, cfg.ImgproxyKey, cfg.ImgproxyURL),
+		"/img-proxy/{proxy_props}/{encoded_image}",
+		handlers.ImageProxy(s.client, cfg.ImgproxyURL),
 	)
 
 	// Error handling.

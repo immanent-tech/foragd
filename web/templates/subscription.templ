@@ -4,9 +4,9 @@
 package templates
 
 import (
-	"encoding/base64"
 	"github.com/dustin/go-humanize"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
@@ -1264,12 +1264,10 @@ templ subscriptionThumbnail(subscription *models.Subscription) {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar">
 			<div class="rounded-box size-12 border border-base-content">
-				<img
-					src={ "/img-proxy/48x48/" + base64.RawURLEncoding.EncodeToString([]byte(img)) }
-					width="48"
-					height="48"
-					alt={ subscription.GetTitle() }
-				/>
+				@NewProxiedImage(&types.ImageInfo{Title: subscription.GetTitle(), URL: img}, "48x48",
+					WithCustomAttribute("width", "48"),
+					WithCustomAttribute("height", "48"),
+				)
 			</div>
 		</div>
 	} else {

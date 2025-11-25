@@ -7,6 +7,10 @@ import (
 	"fmt"
 )
 
+const (
+	ImgProxyKey contextKey = "image_proxy_key"
+)
+
 var (
 	// ContentID points to the element containing the main content of the page.
 	ContentID = ID("content")
@@ -19,6 +23,8 @@ var (
 	// NotificationsID points to an element that can be used for displaying notifications to the user.
 	NotificationsID = ID("notifications")
 )
+
+type contextKey string
 
 type partialsCtxKey string
 

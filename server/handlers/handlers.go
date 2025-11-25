@@ -7,8 +7,6 @@ package handlers
 import (
 	"bufio"
 	"bytes"
-	"crypto/hmac"
-	"crypto/sha256"
 	"embed"
 	"encoding/base64"
 	"encoding/json"
@@ -102,25 +100,15 @@ func StaticFileServerHandler(fs http.FileSystem) http.Handler {
 }
 
 // ImageProxy handles proxying images through the image proxy service, which can resize and cache remote images.
-func ImageProxy(client *resty.Client, key, proxyURLBase string) http.HandlerFunc {
+func ImageProxy(client *resty.Client, proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		opts := chi.URLParam(req, "image_opts")
-		encodedImageURL := chi.URLParam(req, "encoded_image_url")
+		props := chi.URLParam(req, "proxy_props")
+		encodedImageURL := chi.URLParam(req, "encoded_image")
 
 		var proxiedURL string
 		if proxyURLBase != "" { // Generate image URL through proxy.
-			if key == "" {
-				slogctx.FromCtx(req.Context()).Error("Image proxying requires a key.")
-				res.WriteHeader(http.StatusForbidden)
-				return nil
-			}
-			// Create a signature for image signing.
-			mac := hmac.New(sha256.New, []byte(key))
-			mac.Write([]byte(encodedImageURL + "#" + opts))
-			result := mac.Sum(nil)
 			// Generate signed URL to pass to proxy.
-			signedURL := opts + "," + base64.URLEncoding.EncodeToString(result) + "/" + encodedImageURL
-			proxiedURL = proxyURLBase + signedURL
+			proxiedURL = proxyURLBase + props + "/" + encodedImageURL
 		} else { // No proxy supplied, use direct image URL.
 			originalURL, err := base64.RawURLEncoding.DecodeString(encodedImageURL)
 			if err != nil {

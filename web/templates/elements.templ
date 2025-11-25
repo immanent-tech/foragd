@@ -4,7 +4,12 @@
 package templates
 
 import (
+	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
+	"github.com/immanent-tech/go-syndication/types"
 	"net/http"
 	"slices"
 	"strings"
@@ -229,6 +234,37 @@ templ NewDiv(options ...Option[element]) {
 	>
 		{ children... }
 	</div>
+}
+
+type ProxiedImage struct {
+	HTMLElement
+}
+
+templ NewProxiedImage(img *types.ImageInfo, props string, options ...Option[element]) {
+	{{ elem := &ProxiedImage{HTMLElement: NewHTMLElement()} }}
+	for option := range slices.Values(options) {
+		{{ option(elem) }}
+	}
+	{{ elem.SetAttribute("class", strings.Join(elem.GetClasses(), " ")) }}
+	<img
+		if elem.GetID() != "" {
+			id={ elem.GetID() }
+		}
+		src={ generateImageProxyURL(ctx, img.GetURL(), props) }
+		alt={ img.GetTitle() }
+		{ elem.attributes... }
+	/>
+}
+
+func generateImageProxyURL(ctx context.Context, url, props string) string {
+	key, _ := ctx.Value(ImgProxyKey).(string)
+	encodedImageURL := base64.RawURLEncoding.EncodeToString([]byte(url))
+	// Create a signature for image signing.
+	mac := hmac.New(sha256.New, []byte(key))
+	mac.Write([]byte(encodedImageURL + "#" + props))
+	result := mac.Sum(nil)
+	// Generate signed URL to pass to proxy.
+	return "/img-proxy/" + props + "," + base64.URLEncoding.EncodeToString(result) + "/" + encodedImageURL
 }
 
 func generateHXVals(values map[string]any) string {
