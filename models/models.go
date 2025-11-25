@@ -20,6 +20,9 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
+// DefaultHTTPRequestTimeout is the maximum time allowed for a background HTTP request to execute.
+var DefaultHTTPRequestTimeout = 30 * time.Second
+
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
 var UnixEpoch = time.Unix(0, 0)
 
@@ -83,6 +86,17 @@ func ExtractText(content string) (string, error) {
 		return "", fmt.Errorf("could not extract content as text: %w", err)
 	}
 	return article.TextContent, nil
+}
+
+// ExtractTextFromURL fetches the text content of the given URL and attempts to extract the main article content from
+// it.
+func ExtractTextFromURL(url string) (string, error) {
+	remote, err := readability.FromURL(url, DefaultHTTPRequestTimeout)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse content for %s, %w", url, err)
+	}
+	content := validation.SanitizeString(remote.Content)
+	return content, nil
 }
 
 func (p *ObjectParams) Valid() error {

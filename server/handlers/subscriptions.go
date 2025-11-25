@@ -72,7 +72,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 		// Determine the URL the request came from.
 		currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
-			err = SetRedirect(req.Context(), res, HXLocationRequest{
+			err = SetRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			})
@@ -91,7 +91,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 		}
 		if strings.Contains(currentURL, "/list/articles") {
 			// If the current URL is /list/articles, return to /list/subscriptions.
-			err = SetRedirect(req.Context(), res, HXLocationRequest{
+			err = SetRedirect(res, HXLocationRequest{
 				Path:   "/list/subscriptions",
 				Target: templates.ContentID.Target(),
 				Values: models.PageFiltersFromCtx(req.Context(), "/list/subscriptions").Values(),
@@ -165,17 +165,17 @@ func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
 		// Determine what mark to apply from view and where to redirect.
 		switch request.View {
 		case models.ViewUnread:
-			err = SetRedirect(req.Context(), res, HXLocationRequest{
+			err = SetRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			})
 		case models.ViewRead:
-			err = SetRedirect(req.Context(), res, HXLocationRequest{
+			err = SetRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			})
 		default:
-			err = SetRedirect(req.Context(), res, HXLocationRequest{
+			err = SetRedirect(res, HXLocationRequest{
 				Path:   "/list/subscriptions",
 				Target: templates.ContentID.Target(),
 				Values: models.PageFiltersFromCtx(req.Context(), req.URL.Path).Values(),
@@ -245,7 +245,7 @@ func RemoveSubscription(api *elastic.API) http.HandlerFunc {
 			renderPartial(
 				templates.Notification(
 					models.NewSuccessMessage("Unsubscribed from "+request.Nickname, ""),
-					5*time.Second,
+					templates.DefaultNotificationTimeout,
 				),
 			).ServeHTTP(res, req)
 		}
@@ -507,9 +507,10 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 			// If the search request has subscription filters, get subscription details.
 			ctx := req.Context()
 			if len(request.Subscriptions) > 0 {
-				if subscriptions, err := api.GetSubscriptions(req.Context(),
+				subscriptions, err := api.GetSubscriptions(req.Context(),
 					elastic.GetSubscriptionsByIDs(request.Subscriptions...),
-				); err != nil {
+				)
+				if err != nil {
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(templates.ServerErrorNotification(
 						models.NewErrorMessage(
@@ -521,9 +522,8 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 						fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err),
 						http.StatusUnprocessableEntity,
 					)
-				} else {
-					ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 				}
+				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
 			template := templates.AddSearchSubscription(&models.SearchSubscriptionRequest{Search: *request})
 			renderPage(
@@ -718,7 +718,10 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				"OPML import complete.",
 				"Please consult the results and check for any issues.",
 			)
-			template := templ.Join(templates.ImportResults(results), templates.Notification(msg, 10*time.Second))
+			template := templ.Join(
+				templates.ImportResults(results),
+				templates.Notification(msg, templates.DefaultNotificationTimeout),
+			)
 			renderPartial(template).ServeHTTP(res, req)
 		}
 		return nil

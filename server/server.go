@@ -42,7 +42,7 @@ type Server struct {
 }
 
 // NewServer sets up a new server.
-func NewServer(ctx context.Context, env string) (Server, error) {
+func NewServer(ctx context.Context) (Server, error) {
 	svr := Server{
 		client: resty.New(),
 	}
@@ -97,7 +97,7 @@ func (s *Server) Start(ctx context.Context) error {
 		err := s.Shutdown(context.Background())
 		// Can't do much here except for logging any errors
 		if err != nil {
-			slog.Error("Error occurred when trying to shut down server.",
+			slogctx.FromCtx(ctx).Error("Error occurred when trying to shut down server.",
 				slog.Any("error", err),
 			)
 		}
@@ -219,7 +219,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.GetSearchSuggestions(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/search", handlers.GetSearchResults(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/search/paginate", handlers.GetSearchResults(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/search/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions(handler.Elastic))
+		r.With(middlewares.RequireHTMX).
+			Post("/search/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/search/subscription", handlers.AddSubscriptionFilter())
 		r.Get("/search", handlers.GetSearchResults(handler.Elastic))
 		r.Get("/search/updates", handlers.WatchSearchResults(handler.Elastic))
@@ -234,13 +235,17 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.Get("/view/{object}/{id}", handlers.ViewObject(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/similar", handlers.FindSimilar(handler.Elastic))
 		// r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/share", handlers.ShareObject(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues(handler.Elastic))
+		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues())
+		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues())
 		// Subscription specific.
-		r.With(middlewares.RequireHTMX).Post("/list/subscriptions/mark/{mark}", handlers.MarkSubscriptions(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/mark/subscription/{subscription_id}/{mark}", handlers.MarkSubscription(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Delete("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
+		r.With(middlewares.RequireHTMX).
+			Post("/list/subscriptions/mark/{mark}", handlers.MarkSubscriptions(handler.Elastic))
+		r.With(middlewares.RequireHTMX).
+			Post("/mark/subscription/{subscription_id}/{mark}", handlers.MarkSubscription(handler.Elastic))
+		r.With(middlewares.RequireHTMX).
+			Post("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
+		r.With(middlewares.RequireHTMX).
+			Delete("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
 		r.Route("/edit/subscription/{subscription_id}", func(r chi.Router) {
 			r.Get("/", handlers.EditSubscription(handler.Elastic))
 			r.With(middlewares.RequireHTMX).Post("/", handlers.SaveSubscription(handler.Elastic))
@@ -251,8 +256,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/list/articles/mark", handlers.MarkArticles(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}/{mark}", handlers.MarkArticle(handler.Elastic))
 		// General.
-		r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues(handler))
-		r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues(handler))
+		r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues())
+		r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues())
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
@@ -293,7 +298,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 				r.With(middlewares.RequireHTMX).Post("/display", handlers.SaveDisplaySettings(handler.Elastic))
 				r.With(middlewares.RequireHTMX).Get("/account", handlers.ShowAccountSettings())
 				r.With(middlewares.RequireHTMX).Post("/account", handlers.SaveAccountSettings(handler.Elastic))
-				r.With(middlewares.RequireHTMX).Post("/password", handlers.ChangePassword(handler.Elastic))
+				r.With(middlewares.RequireHTMX).Post("/password", handlers.ChangePassword())
 				r.Route("/theme", func(r chi.Router) {
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())
 				})

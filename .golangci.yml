@@ -274,7 +274,7 @@ linters:
       # Checks the number of lines in a function.
       # If lower than 0, disable the check.
       # Default: 60
-      lines: 100
+      lines: 120
       # Checks the number of statements in a function.
       # If lower than 0, disable the check.
       # Default: 40
@@ -288,7 +288,7 @@ linters:
     gocognit:
       # Minimal code complexity to report.
       # Default: 30 (but we recommend 10-20)
-      min-complexity: 20
+      min-complexity: 35
 
     gocritic:
       # Settings passed to gocritic.

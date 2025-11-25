@@ -7,27 +7,15 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-shiori/go-readability"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/forms"
-	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 )
-
-func fetchArticleRemoteContent(url string) (string, error) {
-	remote, err := readability.FromURL(url, 30*time.Second)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse content for %s, %w", url, err)
-	}
-	content := validation.SanitizeString(remote.Content)
-	return content, nil
-}
 
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
 func MarkArticle(api *elastic.API) http.HandlerFunc {
@@ -147,13 +135,13 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 
 		currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
-			err = SetRedirect(req.Context(), res, HXLocationRequest{
+			err = SetRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 				Swap:   "innerHTML transition:true",
 			})
 		} else {
-			err = SetRedirect(req.Context(), res, HXLocationRequest{
+			err = SetRedirect(res, HXLocationRequest{
 				Path:   currentURL,
 				Target: templates.ContentID.Target(),
 				Swap:   "innerHTML transition:true",

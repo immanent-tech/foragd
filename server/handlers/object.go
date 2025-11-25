@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -63,7 +62,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 			var remoteContentErrMsg templ.Component
 			// Fetch and set remote content if required.
 			if article.ShowFullContent {
-				content, err := fetchArticleRemoteContent(article.GetLink())
+				content, err := models.ExtractTextFromURL(article.GetLink())
 				if err != nil {
 					// Couldn't fetch remote article content, show an error message.
 					remoteContentErrMsg = templates.Notification(
@@ -74,7 +73,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 					if content == article.Content {
 						// Remote article content is the same as feed content, show an info message.
 						remoteContentErrMsg = templates.Notification(
-							models.NewInfoMessage("No remote content available", "Page returned existing content."), 10*time.Second,
+							models.NewInfoMessage("No remote content available", "Page returned existing content."), templates.DefaultNotificationTimeout,
 						)
 					}
 					article.Content = content
@@ -175,7 +174,7 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 // }
 
 // GetObjectIssues presents a form for entering issues about a particular object (subscription/article).
-func GetObjectIssues(api *elastic.API) http.HandlerFunc {
+func GetObjectIssues() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
 		params := &models.ObjectParams{
@@ -210,7 +209,7 @@ func GetObjectIssues(api *elastic.API) http.HandlerFunc {
 }
 
 // SubmitObjectIssues handles processing the issue form and creating a github issue with the details.
-func SubmitObjectIssues(esapi *elastic.API) http.HandlerFunc {
+func SubmitObjectIssues() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract the issue request details.
 		request, valid, err := forms.DecodeForm[*models.ObjectIssueRequest](req)

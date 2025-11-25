@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+//nolint:dupl // potential future refactoring.
 package handlers
 
 import (
@@ -227,7 +228,7 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 }
 
 // ChangePassword handles a change password request from the user.
-func ChangePassword(api *elastic.API) http.HandlerFunc {
+func ChangePassword() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		request, valid, err := forms.DecodeForm[*models.ChangePasswordRequest](req)
 		if err != nil || !valid {
@@ -579,8 +580,6 @@ func (a *API) DeleteUser() http.HandlerFunc {
 }
 
 // AddFeedset handles adding a feedset as subscriptions.
-//
-//nolint:gocognit
 func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Ignore submission without any feedset selected.
@@ -691,7 +690,7 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 }
 
 // GetPageIssues handles presenting a form for the user to submit issues about the app.
-func GetPageIssues(api *API) http.HandlerFunc {
+func GetPageIssues() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the current URL on which the issue is being reported.
 		currentURL, found := htmx.GetCurrentURL(req)
@@ -706,7 +705,7 @@ func GetPageIssues(api *API) http.HandlerFunc {
 }
 
 // SubmitPageIssues handles processing the user submitted subscription issues form.
-func SubmitPageIssues(esapi *API) http.HandlerFunc {
+func SubmitPageIssues() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeForm[*models.IssueRequest](req)

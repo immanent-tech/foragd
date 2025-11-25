@@ -7,7 +7,6 @@ package handlers
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"embed"
@@ -137,12 +136,18 @@ func ImageProxy(client *resty.Client, key, proxyURLBase string) http.HandlerFunc
 		}
 		if resp.IsError() {
 			res.WriteHeader(resp.StatusCode())
-			return models.NewAPIError(fmt.Errorf("image proxy: send image request: %w: %s", ErrBackendAPIError, resp.Status()), resp.StatusCode())
+			return models.NewAPIError(
+				fmt.Errorf("image proxy: send image request: %w: %s", ErrBackendAPIError, resp.Status()),
+				resp.StatusCode(),
+			)
 		}
 		imageData, err := io.ReadAll(resp.RawBody())
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(fmt.Errorf("image proxy: read image response: %w", err), http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("image proxy: read image response: %w", err),
+				http.StatusInternalServerError,
+			)
 		}
 		// Write the image to the response.
 		_, err = res.Write(imageData)
@@ -165,9 +170,9 @@ func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.Han
 			}
 			if errors.As(err, &apiErr) {
 				switch {
-				case apiErr.HTTPStatus() < 400:
+				case apiErr.HTTPStatus() < 400: //nolint:mnd // easier to read as a number.
 					slogctx.FromCtx(req.Context()).DebugContext(req.Context(), apiErr.Error())
-				case apiErr.HTTPStatus() < 500:
+				case apiErr.HTTPStatus() < 500: //nolint:mnd // easier to read as a number.
 					slogctx.FromCtx(req.Context()).WarnContext(req.Context(), apiErr.Error())
 				default:
 					slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), apiErr.Error())
@@ -216,7 +221,7 @@ type HXLocationRequest struct {
 // redirection without reloading the whole page.
 //
 // https://htmx.org/headers/hx-location/
-func SetRedirect(ctx context.Context, res http.ResponseWriter, request HXLocationRequest) error {
+func SetRedirect(res http.ResponseWriter, request HXLocationRequest) error {
 	requestJSON, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("set redirect: marshal request: %w", err)
@@ -245,26 +250,26 @@ func renderPage(template templ.Component, title string) http.Handler {
 			template = templates.Content(user, template)
 			templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
 			return
-		} else { // HTMX request renders partial content.
-			// Add OOB swaps depending on path.
-			template = templ.Join(template,
-				templates.SideBar(templ.Attributes{"hx-swap-oob": "true"}),
-				templates.Dock(templ.Attributes{"hx-swap-oob": "true"}),
-			)
-			// Update page title if set.
-			if title != "" {
-				// Update the page title if set.
-				template = templ.Join(template, templates.SetPageTitle(title))
-			}
-			// Add OOB swap to update CSRF token.
-			template = templ.Join(template, templates.UpdateCSRFToken())
-			// Render template (or template fragment).
-			target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget))
-			if target != "" && target != templates.FragmentContent {
-				templ.Handler(template, templ.WithFragments(target)).ServeHTTP(res, req)
-			} else {
-				templ.Handler(template).ServeHTTP(res, req)
-			}
+		}
+		// HTMX request renders partial content.
+		// Add OOB swaps depending on path.
+		template = templ.Join(template,
+			templates.SideBar(templ.Attributes{"hx-swap-oob": "true"}),
+			templates.Dock(templ.Attributes{"hx-swap-oob": "true"}),
+		)
+		// Update page title if set.
+		if title != "" {
+			// Update the page title if set.
+			template = templ.Join(template, templates.SetPageTitle(title))
+		}
+		// Add OOB swap to update CSRF token.
+		template = templ.Join(template, templates.UpdateCSRFToken())
+		// Render template (or template fragment).
+		target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget))
+		if target != "" && target != templates.FragmentContent {
+			templ.Handler(template, templ.WithFragments(target)).ServeHTTP(res, req)
+		} else {
+			templ.Handler(template).ServeHTTP(res, req)
 		}
 	})
 }
@@ -276,7 +281,7 @@ func renderPartial(template templ.Component) http.Handler {
 
 // IsHTMX returns a boolean indicating whether the request is a HTMX request.
 func IsHTMX(req *http.Request) bool {
-	return req.Header.Get("HX-Request") == "true" //nolint:goconst
+	return req.Header.Get("HX-Request") == "true" //nolint:goconst // unnecessary.
 }
 
 // IsHistoryRestoreRequest returns a boolean indicating whether the request is a HTMX history restore request.
@@ -411,8 +416,8 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 				// Show updates toast if new items found.
 				if currentCount > prevCount {
 					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
-					var b bytes.Buffer //nolint:varnamelen
-					template := bufio.NewWriter(&b)
+					var respBuf bytes.Buffer
+					template := bufio.NewWriter(&respBuf)
 					err := templates.UpdatesToast().Render(req.Context(), template)
 					if err != nil {
 						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
@@ -424,7 +429,7 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 						slogctx.FromCtx(req.Context()).Error("Failed to flush SSE message buffer.",
 							slog.Any("error", err))
 					}
-					_, err = fmt.Fprintf(res, "data: %s\n\n", b.String())
+					_, err = fmt.Fprintf(res, "data: %s\n\n", respBuf.String())
 					if err != nil {
 						slogctx.FromCtx(req.Context()).Error("Failed to send update SSE message.",
 							slog.Any("error", err))
