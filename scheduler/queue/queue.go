@@ -52,11 +52,6 @@ func NewJobQueue(ctx context.Context, api *elastic.API) (*JobQueue, error) {
 	}, nil
 }
 
-func NewJobCtx() context.Context {
-	ctx := context.Background()
-	return elastic.SetupIndexAliases(ctx)
-}
-
 // Push inserts a new scheduled job to the queue.
 // This method is also used by the Scheduler to reschedule existing jobs that
 // have been dequeued for execution.
@@ -66,7 +61,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
 
-	ctx := NewJobCtx()
+	ctx := context.Background()
 
 	err = backendAPI.ScheduleJob(ctx, jobKeyToDocID(job.JobDetail().JobKey().String()), job, data)
 	if err != nil {
@@ -93,7 +88,7 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 	if err != nil {
 		return nil, errors.Join(ErrPopJobFailed, err)
 	}
-	jq.logger.Log(NewJobCtx(), logging.LevelTrace, "Popped job from queue.",
+	jq.logger.Log(context.Background(), logging.LevelTrace, "Popped job from queue.",
 		slog.Group("job",
 			slog.String("id", job.JobDetail().JobKey().String()),
 		),
@@ -103,7 +98,7 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 
 // Head returns the first scheduled job without removing it from the queue.
 func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
-	ctx := NewJobCtx()
+	ctx := context.Background()
 
 	job, err := backendAPI.GetNextScheduledJob(ctx)
 	if err != nil {
@@ -118,7 +113,7 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 // Get returns the scheduled job with the specified key without removing it
 // from the queue.
 func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
-	ctx := NewJobCtx()
+	ctx := context.Background()
 
 	job, err := backendAPI.GetScheduledJob(ctx, jobKeyToDocID(jobKey.String()))
 	if err != nil {
@@ -141,7 +136,7 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, err)
 	}
-	jq.logger.Log(NewJobCtx(), logging.LevelTrace, "Job removed.",
+	jq.logger.Log(context.Background(), logging.LevelTrace, "Job removed.",
 		slog.String("job", job.JobDetail().Job().Description()))
 
 	return job, nil
@@ -151,7 +146,7 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]) ([]quartz.ScheduledJob, error) {
 	jobs := make([]quartz.ScheduledJob, 0)
 
-	ctx := NewJobCtx()
+	ctx := context.Background()
 
 	allJobs, err := backendAPI.GetAllScheduledJobs(ctx)
 	if err != nil {
@@ -172,7 +167,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 // Size returns the size of the job queue.
 func (jq *JobQueue) Size() (int, error) {
-	ctx := NewJobCtx()
+	ctx := context.Background()
 
 	count, err := backendAPI.CountJobs(ctx)
 	if err != nil {
@@ -183,7 +178,7 @@ func (jq *JobQueue) Size() (int, error) {
 
 // Clear clears the job queue.
 func (jq *JobQueue) Clear() error {
-	ctx := NewJobCtx()
+	ctx := context.Background()
 
 	err := backendAPI.RemoveAllJobs(ctx)
 	if err != nil {
@@ -196,7 +191,7 @@ func (jq *JobQueue) Clear() error {
 
 // delete removes the job doc from Elasticsearch.
 func (jq *JobQueue) delete(id string) error {
-	ctx := NewJobCtx()
+	ctx := context.Background()
 
 	err := backendAPI.RemoveJob(ctx, id)
 	if err != nil {
