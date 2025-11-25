@@ -513,19 +513,19 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="sm:col-span-full mt-2">
-							<div class="input input-primary bg-base-content/10">
+							<div class="input input-primary bg-base-content/10 w-full">
 								<label for="article_text_filters" class="block text-xs font-medium">Text:</label>
 								<input id="article_text_filters" type="text" name="article_filters.text" value={ request.ArticleFilters.Text } placeholder="Text..." class="block w-full"/>
 							</div>
 						</div>
 						<div class="sm:col-span-full mt-2">
-							<div class="input input-primary bg-base-content/10">
+							<div class="input input-primary bg-base-content/10 w-full">
 								<label for="article_category_filters" class="block text-xs font-medium">Categories:</label>
 								<input id="article_category_filters" type="text" name="article_filters.categories" value={ request.ArticleFilters.Categories } placeholder="Categories..." class="block w-full"/>
 							</div>
 						</div>
 						<div class="sm:col-span-full mt-2">
-							<div class="input input-primary bg-base-content/10">
+							<div class="input input-primary bg-base-content/10 w-full">
 								<label for="article_author_filters" class="block text-xs font-medium">Authors:</label>
 								<input id="article_author_filters" type="text" name="article_filters.authors" value={ request.ArticleFilters.Authors } placeholder="Authors..." class="block w-full"/>
 							</div>
