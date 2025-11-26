@@ -4,8 +4,8 @@
 package templates
 
 import (
-	"encoding/base64"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
@@ -68,13 +68,11 @@ templ header(user *models.User) {
 						WithClasses("btn-ghost btn-square"),
 					) {
 						<span class="sr-only">Open settings menu</span>
-						<img
-							src={ "/img-proxy/32x32/" + base64.RawURLEncoding.EncodeToString([]byte(user.GetAvatar())) }
-							alt={ "Avatar for user " + user.GetNickname() }
-							width="32"
-							height="32"
-							class="size-8 rounded-full outline -outline-offset-1 outline-base-content/10"
-						/>
+						@NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "Avatar for user " + user.GetNickname()}, "rs:fill-down:32:32",
+							WithClasses("size-8 rounded-full outline -outline-offset-1 outline-base-content/10"),
+							WithCustomAttribute("width", "32"),
+							WithCustomAttribute("height", "32"),
+						)
 					}
 					<el-menu id="header-menu" anchor="bottom end" popover>
 						// Open settings menu.

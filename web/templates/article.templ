@@ -494,9 +494,9 @@ templ articleImage(img *types.ImageInfo, altTitle string, classes ...string) {
 		{{ img.Title = altTitle }}
 	}
 	{{ classes = append(classes, "rounded-box responsive-img border border-base-content") }}
-	@NewProxiedImage(img, "300x200",
+	@NewProxiedImage(img, "rs:auto:400:260/sh:0.5",
 		WithClasses(classes...),
-		WithCustomAttribute("width", "300"),
-		WithCustomAttribute("height", "200"),
+		WithCustomAttribute("width", "400"),
+		WithCustomAttribute("height", "260"),
 	)
 }

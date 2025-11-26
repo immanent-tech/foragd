@@ -4,7 +4,8 @@
 package templates
 
 const (
-	ImgProxyKey contextKey = "image_proxy_key"
+	ImgProxyKey  contextKey = "imgproxy_key"
+	ImgProxySalt contextKey = "imgproxy_salt"
 )
 
 var (

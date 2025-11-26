@@ -17,6 +17,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"github.com/immanent-tech/go-syndication/types"
 	"net/http"
@@ -222,7 +223,7 @@ func NewLink(options ...Option[element]) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(link.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 189, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 190, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -300,7 +301,7 @@ func NewButton(options ...Option[element]) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(btn.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 211, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 212, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -376,7 +377,7 @@ func NewDiv(options ...Option[element]) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(div.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 231, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 232, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -449,7 +450,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[eleme
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(elem.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 251, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 252, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -467,7 +468,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[eleme
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(generateImageProxyURL(ctx, img.GetURL(), props))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 253, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 254, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -480,7 +481,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[eleme
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 254, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 255, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -503,14 +504,37 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[eleme
 }
 
 func generateImageProxyURL(ctx context.Context, url, props string) string {
-	key, _ := ctx.Value(ImgProxyKey).(string)
+	var keyBin, saltBin []byte
+	var err error
+
+	// Extract the key.
+	key, ok := ctx.Value(ImgProxyKey).(string)
+	if !ok {
+		return url
+	}
+	if keyBin, err = hex.DecodeString(key); err != nil {
+		return url
+	}
+
+	// Extract the salt.
+	salt, ok := ctx.Value(ImgProxySalt).(string)
+	if !ok {
+		return url
+	}
+	if saltBin, err = hex.DecodeString(salt); err != nil {
+		return url
+	}
+
 	encodedImageURL := base64.RawURLEncoding.EncodeToString([]byte(url))
-	// Create a signature for image signing.
-	mac := hmac.New(sha256.New, []byte(key))
-	mac.Write([]byte(encodedImageURL + "#" + props))
-	result := mac.Sum(nil)
-	// Generate signed URL to pass to proxy.
-	return "/img-proxy/" + props + "," + base64.URLEncoding.EncodeToString(result) + "/" + encodedImageURL
+
+	path := "/" + props + "/" + encodedImageURL
+
+	mac := hmac.New(sha256.New, keyBin)
+	mac.Write(saltBin)
+	mac.Write([]byte(path))
+	signature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+
+	return "/img-proxy/" + signature + path
 }
 
 func generateHXVals(values map[string]any) string {

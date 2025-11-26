@@ -15,6 +15,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -99,18 +100,16 @@ func StaticFileServerHandler(fs http.FileSystem) http.Handler {
 	})
 }
 
-// ImageProxy handles proxying images through the image proxy service, which can resize and cache remote images.
 func ImageProxy(client *resty.Client, proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		props := chi.URLParam(req, "proxy_props")
-		encodedImageURL := chi.URLParam(req, "encoded_image")
-
+		paramStr := chi.URLParam(req, "*")
 		var proxiedURL string
 		if proxyURLBase != "" { // Generate image URL through proxy.
 			// Generate signed URL to pass to proxy.
-			proxiedURL = proxyURLBase + props + "/" + encodedImageURL
+			proxiedURL = proxyURLBase + "/" + paramStr
 		} else { // No proxy supplied, use direct image URL.
-			originalURL, err := base64.RawURLEncoding.DecodeString(encodedImageURL)
+			params := strings.Split(paramStr, "/")
+			originalURL, err := base64.RawURLEncoding.DecodeString(params[len(params)-1])
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
 				return models.NewAPIError(fmt.Errorf("image proxy: decode image url: %w", err), http.StatusInternalServerError)
