@@ -12,13 +12,8 @@ import _hyperscript from 'hyperscript.org/dist/_hyperscript.js'
 _hyperscript.browserInit()
 // custom element for timestamps
 import './timestamps.js'
-// tailwindplus
-// import '@tailwindplus/elements';
-// import './debug.js'
-// import './imgproxy.js'
 
 // Global shortcuts handling.
-// import '@geenat/surreal'
 import Shortcut from './Shortcut.js'
 /* Create a basic shortcut handler */
 const myShortcutHandler = new Shortcut()
