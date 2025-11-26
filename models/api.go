@@ -8,12 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-
-	feeds "github.com/immanent-tech/go-syndication"
 
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
@@ -32,7 +31,7 @@ type FeedsAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
 	GetNewFeeds(ctx context.Context) (Feeds, error)
 	GetFeed(ctx context.Context, id FeedID) (*Feed, error)
-	UpdateFeedLastFetched(ctx context.Context, id FeedID, updated *feeds.Feed) error
+	UpdateFeedLastFetched(ctx context.Context, id FeedID, timestamp time.Time) error
 
 	SearchFeeds(
 		ctx context.Context,

@@ -4,7 +4,6 @@
 package models
 
 import (
-	"log/slog"
 	"maps"
 	"slices"
 	"strconv"
@@ -22,13 +21,6 @@ type Items []*Item
 // FilterSince filters items to ones which are newer than the given timestamp.
 func (i Items) FilterSince(since time.Time) Items {
 	return slices.Collect(FilterSlice(i, func(item *Item) bool {
-		if item.IsNewer(since) {
-			slog.Debug("New item",
-				slog.String("feed_id", item.GetFeedID()),
-				slog.String("feed", item.FeedTitle),
-				slog.String("item_id", item.GetID()),
-			)
-		}
 		return item.IsNewer(since)
 	}))
 }
@@ -73,6 +65,15 @@ func (i Items) GetCategoryCounts() CategoryCounts {
 	}
 
 	return counts
+}
+
+// SortByTimestamp sorts the items by their timestamps, in descending order.
+func (i Items) SortByTimestamp() Items {
+	slices.SortFunc(i, func(itemA, itemB *Item) int {
+		return itemA.GetTimestamp().Compare(itemB.GetTimestamp())
+	})
+	slices.Reverse(i)
+	return i
 }
 
 // GetID returns the item ID.

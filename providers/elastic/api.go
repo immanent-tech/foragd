@@ -30,8 +30,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
-	feeds "github.com/immanent-tech/go-syndication"
-
 	"github.com/immanent-tech/foragd/logging"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
@@ -1983,11 +1981,11 @@ func (a *API) GetNewFeeds(ctx context.Context) (models.Feeds, error) {
 }
 
 // UpdateFeedLastFetched will update the feed with the given id, using the new feed information provided.
-func (a *API) UpdateFeedLastFetched(ctx context.Context, id models.FeedID, _ *feeds.Feed) error {
+func (a *API) UpdateFeedLastFetched(ctx context.Context, id models.FeedID, timestamp time.Time) error {
 	index := schema.FeedsIndexPrefix + schema.IndexWriteSuffix
 
 	updates := map[string]any{
-		"last_fetched": time.Now().UTC(),
+		"last_fetched": timestamp,
 	}
 
 	if err := UpdateDoc(ctx, a.GetAPI(), index, id, updates); err != nil {
