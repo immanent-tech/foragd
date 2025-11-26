@@ -9,11 +9,10 @@ package config
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"strings"
 	"sync"
 
-	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/env/v2"
 	"github.com/knadh/koanf/v2"
 )
 
@@ -58,22 +57,6 @@ var Init = sync.OnceValue(func() error {
 	if Version == "_UNKNOWN_" {
 		return fmt.Errorf("%w: version not set correctly", ErrLoadConfig)
 	}
-	// Load environment variables.
-	err := configSrc.Load(env.Provider(ConfigEnvPrefix, ".", func(s string) string {
-		return strings.Replace(strings.ToLower(strings.TrimPrefix(s, ConfigEnvPrefix)), "_", ".", 1)
-	}), nil)
-	if err != nil {
-		slog.Warn("No environment variables loaded.",
-			slog.Any("error", err),
-		)
-	}
-	// Unmarshal config, overwriting defaults.
-	err = configSrc.UnmarshalWithConf("app", appConfig, koanf.UnmarshalConf{Tag: "toml"})
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
-	}
-
-	slog.Debug("Config backend initialized.")
 
 	return nil
 })
@@ -82,22 +65,35 @@ var Init = sync.OnceValue(func() error {
 // environment prefixes, and marshaling the config into the given config object.
 // Components should take care to ensure this is called only once, where
 // required.
-func Load(configPrefix, envPrefix string, cfg any) error {
+func Load(envPrefix string, cfg any) error {
 	// Load environment variables.
-	err := configSrc.Load(env.Provider(envPrefix, ".", func(s string) string {
-		return strings.Replace(strings.ToLower(strings.TrimPrefix(s, envPrefix)), "_", ".", 1)
+
+	err := configSrc.Load(env.Provider(".", env.Opt{
+		Prefix: envPrefix,
+		TransformFunc: func(k, v string) (string, any) {
+			// Transform the key.
+			k = strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(k, ConfigEnvPrefix)), "_", ".")
+			// Transform the value into slices, if they contain spaces.
+			// Eg: MYVAR_TAGS="foo bar baz" -> tags: ["foo", "bar", "baz"]
+			// This is to demonstrate that string values can be transformed to any type
+			// where necessary.
+			if strings.Contains(v, " ") {
+				return k, strings.Split(v, " ")
+			}
+			return k, v
+		},
 	}), nil)
 	if err != nil {
 		return fmt.Errorf("unable to load config: %w", err)
 	}
 	// Unmarshal config, overwriting defaults.
-	err = configSrc.UnmarshalWithConf(configPrefix, &cfg, koanf.UnmarshalConf{Tag: "toml"})
+	err = configSrc.Unmarshal(
+		strings.ToLower(strings.TrimSuffix(strings.TrimPrefix(envPrefix, ConfigEnvPrefix), "_")),
+		&cfg,
+	)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
-
-	slog.Debug("Loading config for component.",
-		slog.String("component", configPrefix))
 
 	return nil
 }

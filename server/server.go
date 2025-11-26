@@ -25,7 +25,6 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
@@ -47,7 +46,7 @@ func NewServer(ctx context.Context) (Server, error) {
 		client: resty.New(),
 	}
 	// Load the server config.
-	err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, cfg)
+	err := LoadConfigOnce()
 	if err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
@@ -175,7 +174,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
 		middlewares.RateLimit(rateLimiter),
-		middlewares.SetupImgProxy(cfg.ImgproxyKey),
+		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
 	)
 
 	// Static content.
@@ -183,9 +182,10 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.Handle("/content/*", handlers.StaticFileServerHandler(http.FS(web.StaticContent)))
 	})
 
+	// Image proxy.
 	router.Get(
-		"/img-proxy/{proxy_props}/{encoded_image}",
-		handlers.ImageProxy(s.client, cfg.ImgproxyURL),
+		"/img-proxy/*",
+		handlers.ImageProxy(s.client, cfg.ImgProxy.BaseURL),
 	)
 
 	// Error handling.

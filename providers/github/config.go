@@ -14,25 +14,21 @@ import (
 const (
 	// ConfigEnvPrefix is the prefix applied to environment variables for configuring Auth0.
 	ConfigEnvPrefix = config.ConfigEnvPrefix + "GITHUB_"
-	// ConfigPrefix is the prefix in the configuration file under which Auth0 configuration is stored.
-	ConfigPrefix = "github"
 )
 
 var cfg = &Config{}
 
 // Config structure.
 type Config struct {
-	Key            string `toml:"private_key" validate:"required"`
-	ClientID       string `toml:"client_id" validate:"required"`
-	InstallationID int    `toml:"installation_id"`
+	Key            string `koanf:"privatekey"     validate:"required"`
+	ClientID       string `koanf:"clientid"       validate:"required"`
+	InstallationID int    `koanf:"installationid"`
 }
 
-// LoadConfigOnce loads the auth0 configuration and ensures this is only done
+// LoadConfigOnce loads the Auth0 configuration and ensures this is only done
 // one time, no matter how many times it is called.
-var LoadConfigOnce = sync.OnceValue(loadConfig)
-
-func loadConfig() error {
-	err := config.Load(ConfigPrefix, ConfigEnvPrefix, cfg)
+var LoadConfigOnce = sync.OnceValue(func() error {
+	err := config.Load(ConfigEnvPrefix, cfg)
 	if err != nil {
 		return fmt.Errorf("github: unable to load config: %w", err)
 	}
@@ -41,4 +37,4 @@ func loadConfig() error {
 		return fmt.Errorf("github: unable to validate config: %w", err)
 	}
 	return nil
-}
+})

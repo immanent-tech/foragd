@@ -17,7 +17,6 @@ import (
 
 const (
 	elasticConfigEnvPrefix = config.ConfigEnvPrefix + "ELASTIC_"
-	elasticConfigPrefix    = "elastic"
 )
 
 // Define default server configuration options.
@@ -36,16 +35,16 @@ type Config struct {
 
 // ConfigDevelopment are the config options for a development environment.
 type ConfigDevelopment struct {
-	CAFile   string   `toml:"ca_file"`
-	Username string   `toml:"username" validate:"required"`
-	Password string   `toml:"password" validate:"required"`
-	URLs     []string `toml:"urls"     validate:"required"`
+	CAFile   string   `koanf:"cafile"`
+	Username string   `koanf:"username" validate:"required"`
+	Password string   `koanf:"password" validate:"required"`
+	URLs     []string `koanf:"urls"     validate:"required"`
 }
 
 // ConfigProduction are the config options for a production environment.
 type ConfigProduction struct {
-	CloudID string `toml:"cloud_id" validate:"required"`
-	APIKey  string `toml:"api_key"  validate:"required"`
+	CloudID string `koanf:"cloudid" validate:"required"`
+	APIKey  string `koanf:"apikey"  validate:"required"`
 }
 
 // loadConfigOnce loads the elasticsearch configuration and ensures this is done
@@ -56,14 +55,14 @@ func loadConfigOnce(environment string) (*elasticsearch.Config, error) {
 		switch environment {
 		case "development":
 			c := &ConfigDevelopment{}
-			err = config.Load(elasticConfigPrefix, elasticConfigEnvPrefix, c)
+			err = config.Load(elasticConfigEnvPrefix, c)
 			if err != nil {
 				return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
 			}
 			cfg.Development = *c
 		case "production":
 			c := &ConfigProduction{}
-			err = config.Load(elasticConfigPrefix, elasticConfigEnvPrefix, c)
+			err = config.Load(elasticConfigEnvPrefix, c)
 			if err != nil {
 				return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
 			}

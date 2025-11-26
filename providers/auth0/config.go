@@ -14,18 +14,16 @@ import (
 const (
 	// ConfigEnvPrefix is the prefix applied to environment variables for configuring Auth0.
 	ConfigEnvPrefix = config.ConfigEnvPrefix + "AUTH0_"
-	// ConfigPrefix is the prefix in the configuration file under which Auth0 configuration is stored.
-	ConfigPrefix = "auth0"
 )
 
 var cfg = &Config{}
 
 // Config structure.
 type Config struct {
-	Domain       string `toml:"domain" validate:"required"`
-	ClientID     string `toml:"client_id" validate:"required"`
-	ClientSecret string `toml:"client_secret" validate:"required"`
-	CallbackURL  string `toml:"callback_url" validate:"required,url"`
+	Domain       string `koanf:"domain"       validate:"required"`
+	ClientID     string `koanf:"clientid"     validate:"required"`
+	ClientSecret string `koanf:"clientsecret" validate:"required"`
+	CallbackURL  string `koanf:"callbackurl"  validate:"required,url"`
 }
 
 // LoadConfigOnce loads the auth0 configuration and ensures this is only done
@@ -33,7 +31,7 @@ type Config struct {
 var LoadConfigOnce = sync.OnceValue(loadConfig)
 
 func loadConfig() error {
-	err := config.Load(ConfigPrefix, ConfigEnvPrefix, cfg)
+	err := config.Load(ConfigEnvPrefix, cfg)
 	if err != nil {
 		return fmt.Errorf("auth0: unable to load config: %w", err)
 	}

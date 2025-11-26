@@ -4,14 +4,17 @@
 package server
 
 import (
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 const (
-	serverConfigEnvPrefix = config.ConfigEnvPrefix
-	serverConfigPrefix    = "server"
+	serverConfigEnvPrefix   = config.ConfigEnvPrefix
+	imgProxyConfigEnvPrefix = config.ConfigEnvPrefix + "IMGPROXY_"
 )
 
 var defaultCSP = []string{
@@ -39,14 +42,40 @@ var cfg = &Config{
 
 // Config contains the server configuration options.
 type Config struct {
-	CSP          []string      `toml:"csp"`
-	Port         int           `toml:"port"`
-	Host         string        `toml:"host"`
-	CertFile     string        `toml:"crt"`
-	KeyFile      string        `toml:"key"`
-	ReadTimeout  time.Duration `toml:"read_timeout"`
-	WriteTimeout time.Duration `toml:"write_timeout"`
-	IdleTimeout  time.Duration `toml:"idle_timeout"`
-	ImgproxyURL  string        `toml:"imgproxy_url"`
-	ImgproxyKey  string        `toml:"imgproxy_key"`
+	CSP          []string
+	Port         int           `koanf:"port"`
+	Host         string        `koanf:"host"`
+	CertFile     string        `koanf:"crt"`
+	KeyFile      string        `koanf:"key"`
+	ReadTimeout  time.Duration `koanf:"read_timeout"`
+	WriteTimeout time.Duration `koanf:"write_timeout"`
+	IdleTimeout  time.Duration `koanf:"idle_timeout"`
+	ImgProxy     ImgProxyConfig
 }
+
+type ImgProxyConfig struct {
+	Key     string `koanf:"key"     validate:"required,base64rawurl"`
+	Salt    string `koanf:"salt"    validate:"required,base64rawurl"`
+	BaseURL string `koanf:"baseurl" validate:"required,url"`
+}
+
+// LoadConfigOnce loads the server configuration and ensures this is only done
+// one time, no matter how many times it is called.
+var LoadConfigOnce = sync.OnceValue(func() error {
+	// Load server config.
+	err := config.Load(serverConfigEnvPrefix, cfg)
+	if err != nil {
+		return fmt.Errorf("server: load config: %w", err)
+	}
+	// Load image proxy config into server config.
+	err = config.Load(imgProxyConfigEnvPrefix, cfg.ImgProxy)
+	if err != nil {
+		return fmt.Errorf("server: load config: %w", err)
+	}
+
+	err = validation.Validate.Struct(cfg)
+	if err != nil {
+		return fmt.Errorf("server: validate config: %w", err)
+	}
+	return nil
+})
