@@ -163,7 +163,11 @@ func FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles)
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " <button class=\"btn btn-neutral fixed right-0 bottom-4 m-4\" hidden _=\"on intersect remove @hidden from me\" href=\"#top\">Back to top</button>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = btnBackToTop().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

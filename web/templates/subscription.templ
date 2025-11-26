@@ -1149,7 +1149,7 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 			}
 		</ul>
 	</div>
-	<a class="btn btn-neutral fixed right-0 bottom-0 m-4" href="#import-results">Back to top</a>
+	@btnBackToTop()
 }
 
 func filterSuccessfulResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {

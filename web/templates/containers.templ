@@ -3,8 +3,6 @@
 
 package templates
 
-import "github.com/sebasvil20/templicons/tabler"
-
 // main can be used as a container for the main content of the page. It restricts content to a max width and adds
 // padding.
 templ main() {
@@ -23,21 +21,7 @@ templ grid() {
 	>
 		{ children... }
 	</div>
-	// Back to top button only revealed when user scrolls through results.
-	<button
-		class="btn btn-circle btn-accent opacity-0 fixed bottom-10 right-10"
-		_="
-		on scroll from window queue last
-  			if the window's pageYOffset is greater than 20
-    			transition opacity to 1
-  			otherwise
-    			transition opacity to 0
-		end
-		on click go to the top of the body smoothly
-		"
-	>
-		@tabler.ArrowUp()
-	</button>
+	@btnBackToTop()
 }
 
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
