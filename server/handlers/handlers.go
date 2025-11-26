@@ -112,7 +112,9 @@ func ImageProxy(client *resty.Client, proxyURLBase string) http.HandlerFunc {
 			originalURL, err := base64.RawURLEncoding.DecodeString(params[len(params)-1])
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
-				return models.NewAPIError(fmt.Errorf("image proxy: decode image url: %w", err), http.StatusInternalServerError)
+				return models.NewAPIError(fmt.Errorf("image proxy: decode image url: %w", err),
+					http.StatusInternalServerError,
+				)
 			}
 			proxiedURL = string(originalURL)
 		}
@@ -122,8 +124,11 @@ func ImageProxy(client *resty.Client, proxyURLBase string) http.HandlerFunc {
 			SetDoNotParseResponse(true).
 			Get(proxiedURL)
 		if err != nil {
-			res.WriteHeader(resp.StatusCode())
-			return models.NewAPIError(fmt.Errorf("image proxy: send image request: %w", err), resp.StatusCode())
+			res.WriteHeader(http.StatusInternalServerError)
+			return models.NewAPIError(
+				fmt.Errorf("image proxy: send image request: %w", err),
+				http.StatusInternalServerError,
+			)
 		}
 		if resp.IsError() {
 			res.WriteHeader(resp.StatusCode())
