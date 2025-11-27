@@ -8,11 +8,9 @@ import (
 	"bufio"
 	"bytes"
 	"embed"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -22,7 +20,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-resty/resty/v2"
 	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	"github.com/russross/blackfriday/v2"
@@ -119,62 +116,6 @@ func DocsHandler(fs embed.FS) http.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("unable to render document %s: %w", doc, err)
 		}
-		return nil
-	})).ServeHTTP
-}
-
-func ImageProxy(client *resty.Client, proxyURLBase string) http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		paramStr := chi.URLParam(req, "*")
-		var proxiedURL string
-		if proxyURLBase != "" { // Generate image URL through proxy.
-			// Generate signed URL to pass to proxy.
-			proxiedURL = proxyURLBase + "/" + paramStr
-		} else { // No proxy supplied, use direct image URL.
-			params := strings.Split(paramStr, "/")
-			originalURL, err := base64.RawURLEncoding.DecodeString(params[len(params)-1])
-			if err != nil {
-				res.WriteHeader(http.StatusInternalServerError)
-				return models.NewAPIError(fmt.Errorf("image proxy: decode image url: %w", err),
-					http.StatusInternalServerError,
-				)
-			}
-			proxiedURL = string(originalURL)
-		}
-
-		// Fetch the image (either from proxy or direct).
-		resp, err := client.R().
-			SetDoNotParseResponse(true).
-			Get(proxiedURL)
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(
-				fmt.Errorf("image proxy: send image request: %w", err),
-				http.StatusInternalServerError,
-			)
-		}
-		if resp.IsError() {
-			res.WriteHeader(resp.StatusCode())
-			return models.NewAPIError(
-				fmt.Errorf("image proxy: send image request: %w: %s", ErrBackendAPIError, resp.Status()),
-				resp.StatusCode(),
-			)
-		}
-		imageData, err := io.ReadAll(resp.RawBody())
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(
-				fmt.Errorf("image proxy: read image response: %w", err),
-				http.StatusInternalServerError,
-			)
-		}
-		// Write the image to the response.
-		_, err = res.Write(imageData)
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(fmt.Errorf("image proxy: write image: %w", err), http.StatusInternalServerError)
-		}
-		res.WriteHeader(http.StatusOK)
 		return nil
 	})).ServeHTTP
 }

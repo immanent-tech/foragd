@@ -18,7 +18,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-resty/resty/v2"
 	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/net/http2"
@@ -35,15 +34,11 @@ import (
 // for static content.
 type Server struct {
 	*http.Server
-
-	client *resty.Client
 }
 
 // NewServer sets up a new server.
 func NewServer(ctx context.Context) (Server, error) {
-	svr := Server{
-		client: resty.New(),
-	}
+	svr := Server{}
 	// Load the server config.
 	err := LoadConfigOnce()
 	if err != nil {
@@ -177,7 +172,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 	// Image proxy.
 	router.Get(
 		"/img-proxy/*",
-		handlers.ImageProxy(s.client, cfg.ImgProxy.BaseURL),
+		handlers.ImageProxy(cfg.ImgProxy.BaseURL),
 	)
 
 	// Error handling.
