@@ -9,7 +9,6 @@ full legal terms.
 
 - [Terms of Service](#terms-of-service)
   - [Summary](#summary)
-  - [The Foragd Terms of Service](#the-foragd-terms-of-service)
   - [Definitions](#definitions)
   - [Account Terms](#account-terms)
     - [1. Account Controls](#1-account-controls)
@@ -17,12 +16,6 @@ full legal terms.
     - [3. Account Requirements](#3-account-requirements)
     - [4. Account Security](#4-account-security)
   - [Acceptable Use](#acceptable-use)
-  - [User-Generated Content](#user-generated-content)
-    - [1. Responsibility for User-Generated Content](#1-responsibility-for-user-generated-content)
-    - [2. Foragd May Remove Content](#2-foragd-may-remove-content)
-    - [3. Ownership of Content, Right to Post, and License Grants](#3-ownership-of-content-right-to-post-and-license-grants)
-    - [4. License Grant to Us](#4-license-grant-to-us)
-    - [7. Moral Rights](#7-moral-rights)
   - [Copyright Infringement and DMCA Policy](#copyright-infringement-and-dmca-policy)
   - [Intellectual Property Notice](#intellectual-property-notice)
     - [1. Foragd's Rights to Content](#1-foragds-rights-to-content)
@@ -60,8 +53,6 @@ full legal terms.
     - [5. Amendments; Complete Agreement](#5-amendments-complete-agreement)
     - [6. Questions](#6-questions)
 
-## The Foragd Terms of Service
-
 Effective date: November 1st, 2025
 
 ## Definitions
@@ -95,7 +86,7 @@ what we mean when we use each of the terms. There's not going to be a test on it
 ## Account Terms
 
 **Short version:** A human must create your Account; you must be 16 or over; you must provide the information by our
-authentication backend; and you may not have more than one Accont. You alone are responsible for your Account and
+authentication backend; and you may not have more than one Account. You alone are responsible for your Account and
 anything that happens while you are signed in to or using your Account. You are responsible for keeping your Account
 secure.\_
 
@@ -105,7 +96,7 @@ secure.\_
 
 ### 2. Required Information
 
-You must provide a the information required by our backend service in order to complete the signup process. Any other
+You must provide a the information required by our backend service in order to complete the sign-up process. Any other
 information requested, such as your real name, is optional, unless you are accepting these terms on behalf of a legal
 entity (in which case we need more information about the legal entity).
 
@@ -124,7 +115,7 @@ We have a few simple rules for Accounts on Foragd's Service.
 
 ### 4. Account Security
 
-You are responsible for keeping your Account secure while you use our Service. Our backend authorisation service offers
+You are responsible for keeping your Account secure while you use our Service. Our backend authorization service offers
 tools such as two-factor authentication to help you maintain your Account's security, but the content of your Account
 and its security are up to you.
 
@@ -132,7 +123,7 @@ and its security are up to you.
   others who have Accounts under your Account).
 - You are responsible for maintaining the security of your Account and password. Foragd cannot and will not be liable
   for any loss or damage from your failure to comply with this security obligation.
-- You will promptly notify Foragd by contacting us [via email](mailto:privacy@immanent.tech) if you become aware of any
+- You will promptly notify Foragd by contacting us privacy[at]immanent[dot]tech if you become aware of any
   unauthorized use of, or access to, our Service through your Account, including any unauthorized use of your password
   or Account.
 
@@ -147,68 +138,13 @@ Service is in compliance with laws and any applicable regulations.
 
 You agree that you will not under any circumstances violate our [Acceptable Use Policies](/policies/acceptable-use).
 
-## User-Generated Content
-
-**Short version:** _You own content you create, but you allow us certain rights to it, so that we can display and share
-the content you post. You still have control over your content, and responsibility for it, and the rights you grant us
-are limited to those we need to provide the service. We have the right to remove content or close Accounts if we need
-to._
-
-### 1. Responsibility for User-Generated Content
-
-You may create or upload User-Generated Content while using the Service. You are solely responsible for the content of,
-and for any harm resulting from, any User-Generated Content that you post, upload, link to or otherwise make available
-via the Service, regardless of the form of that Content. We are not responsible for any public display or misuse of your
-User-Generated Content.
-
-### 2. Foragd May Remove Content
-
-We have the right to refuse or remove any User-Generated Content that, in our sole discretion, violates any laws or
-[Foragd terms or policies](/site-policy). User-Generated Content displayed on Foragd Mobile may be subject to mobile app
-stores' additional terms.
-
-### 3. Ownership of Content, Right to Post, and License Grants
-
-You retain ownership of and responsibility for Your Content. If you're posting anything you did not create yourself or
-do not own the rights to, you agree that you are responsible for any Content you post; that you will only submit Content
-that you have the right to post; and that you will fully comply with any third party licenses relating to Content you
-post.
-
-Because you retain ownership of and responsibility for Your Content, we need you to grant us — and other Foragd Users —
-certain legal permissions, listed in Sections D.4 — D.7. These license grants apply to Your Content. If you upload
-Content that already comes with a license granting Foragd the permissions we need to run our Service, no additional
-license is required. You understand that you will not receive any payment for any of the rights granted in Sections D.4
-— D.7. The licenses you grant to us will end when you remove Your Content from our servers, unless other Users have
-forked it.
-
-### 4. License Grant to Us
-
-We need the legal right to do things like host Your Content, publish it, and share it. You grant us and our legal
-successors the right to store, archive, parse, and display Your Content, and make incidental copies, as necessary to
-provide the Service, including improving the Service over time. This license includes the right to do things like copy
-it to our database and make backups; show it to you and other users; parse it into a search index or otherwise analyze
-it on our servers; share it with other users; and perform it, in case Your Content is something like music or video.
-
-This license does not grant Foragd the right to sell Your Content. It also does not grant Foragd the right to otherwise
-distribute or use Your Content outside of our provision of the Service.
-
-### 7. Moral Rights
-
-You retain all moral rights to Your Content that you upload, publish, or submit to any part of the Service, including
-the rights of integrity and attribution. However, you waive these rights and agree not to assert them against us, to
-enable us to reasonably exercise the rights granted in Section D.4, but not otherwise.
-
-To the extent this agreement is not enforceable by applicable law, you grant Foragd the rights we need to use Your
-Content without attribution and to make reasonable adaptations of Your Content as necessary to render the Website and
-provide the Service.
-
 ## Copyright Infringement and DMCA Policy
 
-If you believe that content on our website violates your copyright, please [email us](mailto:copyright@immanent.tech).
+If you believe that content on our website violates your copyright, please email us at copyright[at]immanent[dot]tech.
 There may be legal consequences for sending a false or frivolous takedown notice. Before sending a takedown request, you
 must consider legal uses such as fair use and licensed uses.
 
-We will terminate the Accounts of repeat infringers of this policy.
+We will terminate the Accounts of repeat infringement of this policy.
 
 ## Intellectual Property Notice
 
@@ -219,9 +155,9 @@ rights to it, but you may only use our content in the way we have allowed._
 
 Foragd and our licensors, vendors, agents, and/or our content providers retain ownership of all intellectual property
 rights of any kind related to the Website and Service. We reserve all rights that are not expressly granted to you under
-this Agreement or by law. The look and feel of the Website and Service is copyright © Foragd, Inc. All rights reserved.
+this Agreement or by law. The look and feel of the Website and Service is copyright © Immanent Tech All rights reserved.
 You may not duplicate, copy, or reuse any portion of the HTML/CSS, JavaScript, or visual design elements or concepts
-without express written permission from Foragd.
+without express written permission from Immanent Tech.
 
 ### 2. Foragd Trademarks and Logos
 
@@ -292,7 +228,7 @@ communicating those fees to you clearly and accurately, and letting you know wel
 
 ### 1. Pricing
 
-Our pricing and payment terms are available at [foragd.app/pricing](https://foragd.app/pricing). If you agree to a
+Our pricing and payment terms are available at [foragd.app/pricing](https://foragd.app). If you agree to a
 subscription price, that will remain your price for the duration of the payment term; however, prices are subject to
 change at the end of a payment term.
 
@@ -302,8 +238,8 @@ change at the end of a payment term.
 - If you change from a monthly billing plan to a yearly billing plan, Foragd will bill you for a full year at the next
   monthly billing date.
 - If you upgrade to a higher level of service, we will bill you for the upgraded plan immediately.
-- You may change your level of service at any time by [choosing a plan option](https://foragd.app/pricing) or going into
-  your [Billing settings](https://foragd.app/settings). If you choose to downgrade your Account, you may lose
+- You may change your level of service at any time by [choosing a plan option](https://foragd.app) or going into
+  your [Billing settings](https://foragd.app/user/settings). If you choose to downgrade your Account, you may lose
   access to Content, features, or capacity of your Account. Please see our section on
   [Cancellation](#cancellation-and-termination) for information on getting a copy of that Content.
 
@@ -322,9 +258,9 @@ approved methods of payment for fees that you authorize for Foragd.
 ### 5. Responsibility for Payment
 
 You are responsible for all fees, including taxes, associated with your use of the Service. By using the Service, you
-agree to pay Foragd any charge incurred in connection with your use of the Service. If you dispute the matter, [email
-us](mailto:support@immanent.tech). You are responsible for providing us with a valid means of payment for paid Accounts.
-Free Accounts are not required to provide payment information.
+agree to pay Foragd any charge incurred in connection with your use of the Service. If you dispute the matter,
+support[at]immanent[dot]tech. You are responsible for providing us with a valid means of payment for paid Accounts. Free
+Accounts are not required to provide payment information.
 
 ## Cancellation and Termination
 
@@ -486,12 +422,12 @@ provision. Our rights under this Agreement will survive any termination of this 
 ### 5. Amendments; Complete Agreement
 
 This Agreement may only be modified by a written amendment signed by an authorized representative of Foragd, or by the
-posting by Foragd of a revised version in accordance with [Section Q. Changes to These
-Terms](#changes-to-these-terms). These Terms of Service, together with the Foragd Privacy Statement, represent the
-complete and exclusive statement of the agreement between you and us. This Agreement supersedes any proposal or prior
-agreement oral or written, and any other communications between you and Foragd relating to the subject matter of these
-terms including any confidentiality or nondisclosure agreements.
+posting by Foragd of a revised version in accordance with [Changes to These Terms](#changes-to-these-terms). These Terms
+of Service, together with the Foragd Privacy Statement, represent the complete and exclusive statement of the agreement
+between you and us. This Agreement supersedes any proposal or prior agreement oral or written, and any other
+communications between you and Foragd relating to the subject matter of these terms including any confidentiality or
+nondisclosure agreements.
 
 ### 6. Questions
 
-Questions about the Terms of Service? [email us](mailto:support@immanent.tech).
+Questions about the Terms of Service? Email us at support[at]immanent[dot]tech.

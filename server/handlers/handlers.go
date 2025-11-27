@@ -23,6 +23,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-resty/resty/v2"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	"github.com/russross/blackfriday/v2"
 	slogchi "github.com/samber/slog-chi"
@@ -84,9 +85,9 @@ func CSRFError() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// StaticFileServerHandler handles serving content from the embedded filesystem containing static assets (i.e., images,
+// StaticFileHandler handles serving content from the embedded filesystem containing static assets (i.e., images,
 // etc.).
-func StaticFileServerHandler(fs http.FileSystem) http.Handler {
+func StaticFileHandler(fs http.FileSystem) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
 		_, err := fs.Open(req.URL.Path)
@@ -98,6 +99,28 @@ func StaticFileServerHandler(fs http.FileSystem) http.Handler {
 		// File is found, return to standard http.FileServer.
 		http.FileServer(fs).ServeHTTP(res, req)
 	})
+}
+
+// DocsHandler handles serving markdown documents from the docs content directory.
+func DocsHandler(fs embed.FS) http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		doc := chi.URLParam(req, "*")
+		godump.Dump(doc)
+		// Check, if the requested file is existing.
+		contents, err := fs.ReadFile("content/docs/" + doc + ".md")
+		if err != nil {
+			// If file is not found, return HTTP 404 error.
+			http.NotFound(res, req)
+			return fmt.Errorf("unable to render document %s: %w", doc, err)
+		}
+		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
+		template := templates.Page(strings.ToTitle(doc)+" - "+config.AppName, templates.Document(output))
+		err = template.Render(req.Context(), res)
+		if err != nil {
+			return fmt.Errorf("unable to render document %s: %w", doc, err)
+		}
+		return nil
+	})).ServeHTTP
 }
 
 func ImageProxy(client *resty.Client, proxyURLBase string) http.HandlerFunc {
@@ -283,27 +306,6 @@ func IsHTMX(req *http.Request) bool {
 // IsHistoryRestoreRequest returns a boolean indicating whether the request is a HTMX history restore request.
 func IsHistoryRestoreRequest(req *http.Request) bool {
 	return req.Header.Get("HX-History-Restore-Request") == "true"
-}
-
-// RenderMarkdown handles displaying a document, such as the privacy policy or terms of service..
-func RenderMarkdown(fs embed.FS, file string) http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		data, err := fs.Open(file)
-		if err != nil {
-			return fmt.Errorf("unable to open document %s: %w", file, err)
-		}
-		policy, err := io.ReadAll(data)
-		if err != nil {
-			return fmt.Errorf("unable to read document %s: %w", file, err)
-		}
-		output := blackfriday.Run(policy, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
-		template := templates.Page("Privacy Policy - "+config.AppName, templates.Document(output))
-		err = template.Render(req.Context(), res)
-		if err != nil {
-			return fmt.Errorf("unable to render document %s: %w", file, err)
-		}
-		return nil
-	})).ServeHTTP
 }
 
 func parseFilters(next http.Handler) http.Handler {

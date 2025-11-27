@@ -178,9 +178,9 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 	)
 
 	// Static content.
-	router.Group(func(r chi.Router) {
-		r.Handle("/content/*", handlers.StaticFileServerHandler(http.FS(web.StaticContent)))
-	})
+	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContent)))
+	// Docs.
+	router.Get("/docs/*", handlers.DocsHandler(web.StaticContent))
 
 	// Image proxy.
 	router.Get(
@@ -193,10 +193,6 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 
 	// Front page.
 	router.Get("/", handlers.Landing())
-	// Privacy policy.
-	router.Get("/policies/privacy", handlers.RenderMarkdown(web.StaticContent, "content/docs/privacy.md"))
-	// Terms of Service.
-	router.Get("/tos", handlers.RenderMarkdown(web.StaticContent, "content/docs/tos.md"))
 	// Access routes.
 	router.Group(func(r chi.Router) {
 		r.Use(
