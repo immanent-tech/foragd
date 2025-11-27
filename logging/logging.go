@@ -36,9 +36,8 @@ var LevelNames = map[slog.Leveler]string{
 
 // Options are options for controlling logging.
 type Options struct {
-	LogLevel  string `env:"FORAGD_LOGLEVEL" name:"log-level" enum:"info,debug,trace" default:"info" help:"Set logging level."`
-	NoLogFile bool   `env:"FORAGD_NOLOGFILE" name:"no-log-file" help:"Don't write to a log file." default:"false"`
-	Handlers  []slog.Handler
+	LogLevel  string `env:"FORAGD_LOGLEVEL"  name:"log-level"   enum:"info,debug,trace" default:"info"  help:"Set logging level."`
+	NoLogFile bool   `env:"FORAGD_NOLOGFILE" name:"no-log-file"                         default:"false" help:"Don't write to a log file."`
 }
 
 // DefaultLogFile is the default log file location.
@@ -71,8 +70,9 @@ func New(options Options) *slog.Logger {
 		logFile = DefaultLogFile
 	}
 
-	// When logging in a conainer, use json output, otherwise, use colourful output.
+	// When logging in a conainer, use json output and disable log file, otherwise, use colourful output.
 	if os.Getenv("FORAGD_CONTAINER") == "1" {
+		logFile = ""
 		handlers = append(handlers,
 			slogjson.NewHandler(os.Stderr, containerConsoleOptions(Level)),
 		)
@@ -81,21 +81,17 @@ func New(options Options) *slog.Logger {
 			tint.NewHandler(os.Stderr, consoleOptions(Level, os.Stderr.Fd())),
 		)
 	}
+
 	// Unless no log file was requested, set up file logging.
 	if logFile != "" {
 		logFH, err := openLogFile(logFile)
 		if err != nil {
-			slog.Warn("unable to open log file",
-				slog.String("file", logFile),
-				slog.Any("error", err))
+			fmt.Fprintln(os.Stderr, "unable to open log file: %w", err)
 		} else {
 			handlers = append(handlers,
 				slogjson.NewHandler(logFH, generateFileOpts(Level)),
 			)
 		}
-	}
-	if len(options.Handlers) > 0 {
-		handlers = append(handlers, options.Handlers...)
 	}
 
 	logger := slog.New(slogctx.NewHandler(slogmulti.Fanout(handlers...), nil))

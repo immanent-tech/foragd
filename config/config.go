@@ -28,13 +28,6 @@ const (
 	ConfigEnvPrefix = "FORAGD_"
 )
 
-// Config contains the global (app) configuration options.
-type Config struct {
-	Secret      string `toml:"app.secret"`
-	Environment string `toml:"app.environment"`
-	LogLevel    string `toml:"app.log_level"`
-}
-
 var (
 	ErrLoadConfig    = errors.New("error loading config")
 	ErrInvalidConfig = errors.New("invalid config")
@@ -43,12 +36,7 @@ var (
 // Version is the application/stack version.
 var Version = "_UNKNOWN_"
 
-var configSrc = koanf.New(".")
-
-var appConfig = &Config{
-	Environment: "development",
-	LogLevel:    "debug",
-}
+var configSrc *koanf.Koanf
 
 // Init initializes the config store. This will load the global (app) config
 // values and set up a config backend that other components can use via the Load
@@ -58,29 +46,27 @@ var Init = sync.OnceValue(func() error {
 		return fmt.Errorf("%w: version not set correctly", ErrLoadConfig)
 	}
 
+	configSrc = koanf.New(".")
+
 	return nil
 })
 
-// Load will load the config for a component, using the given file and
-// environment prefixes, and marshaling the config into the given config object.
-// Components should take care to ensure this is called only once, where
-// required.
+// Load will populate the given cfg object with values from environment variables that match the given prefix.
 func Load(envPrefix string, cfg any) error {
 	// Load environment variables.
-
 	err := configSrc.Load(env.Provider(".", env.Opt{
 		Prefix: envPrefix,
-		TransformFunc: func(k, v string) (string, any) {
+		TransformFunc: func(key, value string) (string, any) {
 			// Transform the key.
-			k = strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(k, ConfigEnvPrefix)), "_", ".")
+			key = strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(key, ConfigEnvPrefix)), "_", ".")
 			// Transform the value into slices, if they contain spaces.
 			// Eg: MYVAR_TAGS="foo bar baz" -> tags: ["foo", "bar", "baz"]
 			// This is to demonstrate that string values can be transformed to any type
 			// where necessary.
-			if strings.Contains(v, " ") {
-				return k, strings.Split(v, " ")
+			if strings.Contains(value, " ") {
+				return key, strings.Split(value, " ")
 			}
-			return k, v
+			return key, value
 		},
 	}), nil)
 	if err != nil {
@@ -96,9 +82,4 @@ func Load(envPrefix string, cfg any) error {
 	}
 
 	return nil
-}
-
-// LogLevel returns the app logging level.
-func LogLevel() string {
-	return appConfig.LogLevel
 }

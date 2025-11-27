@@ -67,7 +67,7 @@ func main() {
 
 	// Enable profiling if requested.
 	if CLI.ProfileFlags != nil {
-		if err := logging.StartProfiling(CLI.ProfileFlags); err != nil {
+		if err := logging.StartProfiling(logger, CLI.ProfileFlags); err != nil {
 			logger.Warn("Problem starting profiling.",
 				slog.Any("error", err))
 		}
@@ -83,7 +83,7 @@ func main() {
 	}
 	// If profiling was enabled, clean up.
 	if CLI.ProfileFlags != nil {
-		if err := logging.StopProfiling(CLI.ProfileFlags); err != nil {
+		if err := logging.StopProfiling(logger, CLI.ProfileFlags); err != nil {
 			logger.Error("Problem stopping profiling.",
 				slog.Any("error", err))
 		}
