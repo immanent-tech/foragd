@@ -435,7 +435,7 @@ func UpdatesToast() templ.Component {
 			templ_7745c5c3_Var20 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<div id=\"updates-toast\" role=\"alert\" class=\"alert alert-info alert-outline alert-soft\"><span>New updates available.</span><div><button class=\"btn btn-sm btn-square btn-info\" hx-get=\"#\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<div id=\"updates-toast\" role=\"alert\" class=\"alert alert-info alert-outline alert-soft\"><span>New updates available.</span><div><button class=\"btn btn-sm btn-square btn-info btn-soft\" hx-get=\"#\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -456,7 +456,7 @@ func UpdatesToast() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</button> <button class=\"btn btn-sm btn-square btn-info\" _=\"on click remove #updates-toast\"><span class=\"sr-only\">Close</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</button> <button class=\"btn btn-sm btn-square btn-info btn-soft\" _=\"on click remove #updates-toast\"><span class=\"sr-only\">Close</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
