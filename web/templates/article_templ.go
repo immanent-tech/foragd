@@ -1011,7 +1011,7 @@ func ArticleContent(article *models.Article) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if article.GetContent() != "" || article.GetDescription() != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<article class=\"mt-8 prose prose-sm sm:prose-lg dark:prose-invert prose-video:responsive-video prose-custom\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<article class=\"mt-8 prose prose-sm sm:prose-lg dark:prose-invert prose-image:responsive-img prose-video:responsive-video prose-custom\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

@@ -295,7 +295,7 @@ templ ArticleContent(article *models.Article) {
 			</p>
 			// Content.
 			if article.GetContent() != "" || article.GetDescription() != "" {
-				<article class="mt-8 prose prose-sm sm:prose-lg dark:prose-invert prose-video:responsive-video prose-custom">
+				<article class="mt-8 prose prose-sm sm:prose-lg dark:prose-invert prose-image:responsive-img prose-video:responsive-video prose-custom">
 					switch  {
 						case article.GetContent() != "":
 							@templ.Raw(article.GetContent())
