@@ -20,7 +20,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-resty/resty/v2"
 	"github.com/justinas/nosurf"
-	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -160,14 +159,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 	router.Use(
 		middleware.RequestID,
 		middleware.Recoverer,
-		slogchi.NewWithConfig(slog.Default(), slogchi.Config{
-			ClientErrorLevel: slog.LevelWarn,
-			ServerErrorLevel: slog.LevelError,
-			WithRequestID:    true,
-			Filters: []slogchi.Filter{
-				slogchi.IgnorePathContains("/content", "/favicon"),
-			},
-		}),
+		middlewares.Logger(),
 		middlewares.SetupCORS(),
 		middlewares.SetupCSP(),
 		middlewares.Etag,
