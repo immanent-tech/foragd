@@ -134,7 +134,7 @@ require (
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/alecthomas/kong v1.13.0
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
-	github.com/coreos/go-oidc/v3 v3.16.0
+	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/didip/tollbooth/v8 v8.0.1
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
