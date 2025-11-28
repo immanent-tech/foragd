@@ -124,7 +124,7 @@ func articleSummary(article *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"grid grid-flow-row justify-between\"><p class=\"flex text-xs\">Updated&nbsp;")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"grid grid-flow-row justify-between\"><p class=\"flex text-xs/tight\">Updated&nbsp;")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -180,7 +180,7 @@ func articleSummary(article *models.Article) templ.Component {
 		}
 		text, err := models.ExtractText(article.GetContent())
 		if err == nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<article class=\"mt-4 prose prose-sm line-clamp-3 prose-custom\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<article class=\"mt-4 prose prose-md line-clamp-3 prose-custom\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1011,7 +1011,7 @@ func ArticleContent(article *models.Article) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if article.GetContent() != "" || article.GetDescription() != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<article class=\"mt-8 prose prose-sm sm:prose-lg dark:prose-invert prose-image:responsive-img prose-video:responsive-video prose-custom\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "<article class=\"mt-8 prose prose-md sm:prose-lg dark:prose-invert prose-image:responsive-img prose-video:responsive-video prose-custom\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
