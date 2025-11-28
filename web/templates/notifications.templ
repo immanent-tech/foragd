@@ -35,10 +35,10 @@ templ Notification(msg *models.UserMessage, timeout time.Duration) {
 			}
 			class={
 				"pointer-events-auto w-full max-w-sm translate-y-0 transform rounded-lg opacity-100 shadow-lg outline-1 -outline-offset-1 transition duration-300 ease-out sm:translate-x-0 starting:translate-y-2 starting:opacity-0 starting:sm:translate-x-2 starting:sm:translate-y-0",
-				templ.KV("bg-success/80 outline-success/10 text-success-content", msg.IsSuccess()),
-				templ.KV("bg-error/80 outline-error/10 text-error-content", msg.IsError()),
-				templ.KV("bg-warning/80 outline-warning/10 text-warning-content", msg.IsWarning()),
-				templ.KV("bg-info/80 outline-info/10 text-info-content", msg.IsInfo()),
+				templ.KV("bg-success outline-success text-success-content", msg.IsSuccess()),
+				templ.KV("bg-error outline-error text-error-content", msg.IsError()),
+				templ.KV("bg-warning outline-warning text-warning-content", msg.IsWarning()),
+				templ.KV("bg-info outline-info text-info-content", msg.IsInfo()),
 			}
 		>
 			<div class="p-4">
