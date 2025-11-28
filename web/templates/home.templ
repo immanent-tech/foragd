@@ -67,7 +67,7 @@ templ (page *Home) Template() {
 										WithHXVals(params),
 										WithHXPushURL(),
 									) {
-										<div class="flex gap-2 text-sm capitalize">
+										<div class="block gap-2 text-sm capitalize line-clamp-1 truncate">
 											<div class="badge badge-secondary">
 												{ category.Category+ " "+ strconv.Itoa(category.Count) }
 											</div>
@@ -110,7 +110,7 @@ templ (page *Home) Template() {
 												WithHXPushURL(),
 												WithCustomAttribute("tabindex", "0"),
 											) {
-												<div class="flex gap-2 text-sm capitalize">
+												<div class="block gap-2 text-sm capitalize line-clamp-1 truncate">
 													<div class="badge badge-secondary">
 														{ category.Category+ " "+ strconv.Itoa(category.Count) }
 													</div>
