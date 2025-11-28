@@ -29,8 +29,8 @@
         "DavidAnson.vscode-markdownlint",
         "dnut.rewrap-revived",
         "dz4k.vscode-hyperscript-org",
-        "elijah-potter.harper",
-        "DotJoshJohnson.xml"
+        "DotJoshJohnson.xml",
+        "redhat.vscode-xml"
       ]
     }
   }
