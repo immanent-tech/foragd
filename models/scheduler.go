@@ -16,7 +16,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goforj/godump"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
@@ -212,8 +211,6 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 			slog.String("feed", details.GetTitle()),
 			slog.Int("count", len(items.FilterSince(details.LastFetched))),
 		)
-		// Update the feed details.
-		godump.Dump(items.SortByTimestamp()[0].GetTimestamp())
 		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 		// newer articles where a feed lags behind real-time.
 		err = api.UpdateFeedLastFetched(jobCtx, job.FeedID, items.SortByTimestamp()[0].GetTimestamp())
@@ -253,8 +250,6 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 }
 
 // Execute is called by the scheduler when the job is scheduled to run.
-//
-//nolint:gocognit,funlen
 func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 	jobStateID := "get_new_feeds_state"
 

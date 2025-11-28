@@ -20,7 +20,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	"github.com/russross/blackfriday/v2"
 	slogchi "github.com/samber/slog-chi"
@@ -102,7 +101,6 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 func DocsHandler(fs embed.FS) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		doc := chi.URLParam(req, "*")
-		godump.Dump(doc)
 		// Check, if the requested file is existing.
 		contents, err := fs.ReadFile("content/docs/" + doc + ".md")
 		if err != nil {
