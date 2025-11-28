@@ -233,9 +233,9 @@ components:
                 is the subscription level that the account is paying for.
               type: string
               enum: ['gatherer','collector','curator']
-              default: basic
+              default: gatherer
               x-oapi-codegen-extra-tags:
-                validate: 'required,oneof=basic standard premium custom'
+                validate: 'required,oneof=gatherer collector curator'
             is_trial:
               description: >
                 indicates whether the user is on a trial.

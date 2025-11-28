@@ -906,7 +906,7 @@ type User struct {
 	Settings UserSettings `json:"settings,omitempty,omitzero"`
 
 	// SubscriptionLevel is the subscription level that the account is paying for.
-	SubscriptionLevel UserSubscriptionLevel `json:"subscription_level,omitempty,omitzero" validate:"required,oneof=basic standard premium custom"`
+	SubscriptionLevel UserSubscriptionLevel `json:"subscription_level,omitempty,omitzero" validate:"required,oneof=gatherer collector curator"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
