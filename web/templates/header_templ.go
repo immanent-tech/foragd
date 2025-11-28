@@ -85,7 +85,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "Avatar for user " + user.GetNickname()}, "rs:fill-down:32:32",
+			templ_7745c5c3_Err = NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "Avatar for user " + user.GetNickname()}, "rs:auto:32:32/sh:0.5",
 				WithClasses("size-8 rounded-full outline -outline-offset-1 outline-base-content/10"),
 				WithCustomAttribute("width", "32"),
 				WithCustomAttribute("height", "32"),

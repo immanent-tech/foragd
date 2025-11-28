@@ -3000,7 +3000,7 @@ func subscriptionThumbnail(subscription *models.Subscription) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = NewProxiedImage(&types.ImageInfo{Title: subscription.GetTitle(), URL: img}, "rs:fill-down:48:48",
+			templ_7745c5c3_Err = NewProxiedImage(&types.ImageInfo{Title: subscription.GetTitle(), URL: img}, "rs:auto:48:48/sh:0.5",
 				WithCustomAttribute("width", "48"),
 				WithCustomAttribute("height", "48"),
 			).Render(ctx, templ_7745c5c3_Buffer)
