@@ -638,7 +638,7 @@ func (a *API) FilterSubscriptions(
 			query.Term("user_id", user.GetID()),
 			query.Terms("subscription_id", filters.Subscriptions...),
 			// query.Term("favorite", filters.OnlyFavorites),
-			query.Terms("categories", filters.GetCategories()...),
+			query.Terms("customisation.categories.raw", filters.GetCategories()...),
 		),
 	)
 	subscriptions, err := a.getAllSubscriptionsByQuery(ctx, subscriptionQuery)
