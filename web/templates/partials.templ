@@ -69,17 +69,8 @@ templ ErrorPage(msg *models.UserMessage) {
 templ EmptyContent() {
 	@main() {
 		<div class="text-center">
-			@tabler.FileUnknown(i.Props{Class: "mx-auto size-12"})
-			<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">All caught up! 😺</h2>
-			<div class="mt-10 flex items-center justify-center gap-x-6">
-				@NewLink(
-					WithCustomAttribute("role", "button"),
-					WithCustomAttribute("href", "/home"),
-					WithClasses("btn", "btn-primary"),
-				) {
-					Go Back Home
-				}
-			</div>
+			@tabler.RosetteDiscountCheckFilled(i.Props{Class: "mx-auto text-success size-12"})
+			<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">All caught up!</h2>
 		</div>
 	}
 }
