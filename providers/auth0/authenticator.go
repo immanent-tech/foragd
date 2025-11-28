@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"sync"
 
 	"golang.org/x/oauth2"
@@ -89,7 +90,7 @@ func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 		return nil, fmt.Errorf("unable to generate logout url: %w", err)
 	}
 	scheme := "http"
-	if req.TLS != nil {
+	if os.Getenv("FORAGD_ENVIRONMENT") == "production" {
 		scheme = "https"
 	}
 
