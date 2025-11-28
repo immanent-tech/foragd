@@ -206,7 +206,7 @@ func header(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</el-menu></el-dropdown></div></div><el-dialog><dialog id=\"search-filters-dialog\" class=\"mt-16 mb-auto mx-auto p-4 sm:p-6 w-full sm:max-w-3xl sm:h-fit overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15\"><el-dialog-panel>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</el-menu></el-dropdown></div></div><el-dialog><dialog id=\"search-filters-dialog\" class=\"mt-16 mb-auto mx-auto p-4 sm:p-6 w-full sm:max-w-3xl max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15\"><el-dialog-panel>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
