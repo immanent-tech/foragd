@@ -419,7 +419,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 						<div class="flex items-center">
 							<p class="mt-1 text-sm/6 ">Filter articles by keywords/text in fields.</p>
 							@HelpPopover("subscription-filters-help", "top end") {
-								<div class="card-body">
+								<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
 									<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 									<p>+ signifies AND operation (i.e., food AND beverages)</p>
 									<p>| signifies OR operation (i.e., food OR beverages)</p>
@@ -460,7 +460,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 								Always fetch and show article content from original site.
 							</p>
 							@HelpPopover("show-full-article-help", "top end") {
-								<div class="card-body">
+								<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
 									<p>If articles in the subscription are only showing a summary, set this toggle to attempt to fetch the full content from the website.</p>
 									<p>Note: fetching full content is based on a heuristic that tries to locate the article content on the page. It does not always produce optimal results.</p>
 								</div>
@@ -638,15 +638,13 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 			// Help dialog.
 			<div class="ml-4">
 				@HelpPopover("subscription-filter-operators-help", "bottom end") {
-					<div tabindex="0" class="text-xs/tight sm:text-sm/tight rounded-box p-4 shadow-sm border border-base-content/15 bg-base-300">
+					<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
 						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-						<ul class="gap-y-2">
-							<li>+ signifies AND operation (i.e., food AND beverages)</li>
-							<li>| signifies OR operation (i.e., food OR beverages)</li>
-							<li>- negates a the word (i.e., NOT alcoholic)</li>
-							<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
-							<li>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</li>
-						</ul>
+						<p>+ signifies AND operation (i.e., food AND beverages)</p>
+						<p>| signifies OR operation (i.e., food OR beverages)</p>
+						<p>- negates a the word (i.e., NOT alcoholic)</p>
+						<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
+						<p>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</p>
 					</div>
 				}
 			</div>
