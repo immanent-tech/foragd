@@ -215,18 +215,30 @@ templ ArticleContent(article *models.Article) {
 	@main() {
 		// Title and actions menu.
 		<div id={ article.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
-			<div class="flex items-center pb-4">
-				<div class="flex flex-1">
-					@NewLink(
-						WithCustomAttribute("href", article.GetLink()),
-						WithCustomAttribute("target", "_blank"),
-						WithCustomAttribute("rel", "noopener"),
-						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
-					) {
-						<h2 class="page-title">{ article.GetTitle() }</h2>
+			<div class="flex flex-1 pb-4">
+				@NewLink(
+					WithCustomAttribute("href", article.GetLink()),
+					WithCustomAttribute("target", "_blank"),
+					WithCustomAttribute("rel", "noopener"),
+					WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
+				) {
+					<h2 class="page-title">{ article.GetTitle() }</h2>
+				}
+			</div>
+			<div class="flex items-center">
+				<div class="flex-1 inline-grid">
+					// Author(s) and Published Time.
+					if len(article.GetAuthors()) > 0 {
+						<p class="col-span-full text-sm/6 italic truncate">
+							{ strings.Join(article.GetAuthors(),",") }
+						</p>
 					}
+					<p class="col-span-full text-sm/6 capitalize">
+						Updated&nbsp;
+						@ShowTimestamp(article.GetUpdatedDate())
+					</p>
 				</div>
-				<div class="flex items-center">
+				<div class="flex items-center justify-end">
 					<el-dropdown>
 						<button id="article-content-menu-toggle">
 							<span class="sr-only">Article Actions</span>
@@ -283,16 +295,6 @@ templ ArticleContent(article *models.Article) {
 					</el-dropdown>
 				</div>
 			</div>
-			// Author(s) and Published Time.
-			if len(article.GetAuthors()) > 0 {
-				<p class="flex flex-1 text-sm/6 italic truncate">
-					{ strings.Join(article.GetAuthors(),",") }
-				</p>
-			}
-			<p class="flex flex-1 text-sm/6 capitalize">
-				Updated&nbsp;
-				@ShowTimestamp(article.GetUpdatedDate())
-			</p>
 			// Content.
 			if article.GetContent() != "" || article.GetDescription() != "" {
 				<article class="mt-8 prose prose-md sm:prose-lg dark:prose-invert prose-image:responsive-img prose-video:responsive-video prose-custom">
