@@ -21,7 +21,7 @@ import (
 
 // ListArticles handles fetching articles based on the given page filters and displaying them.
 func ListArticles(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters, setCacheControl).
+	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 			pagination := req.FormValue(models.ParamPagination)
@@ -77,7 +77,7 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 }
 
 func PaginateArticles(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters, setCacheControl).
+	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 			pagination := req.FormValue(models.ParamPagination)

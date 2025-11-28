@@ -25,43 +25,42 @@ import (
 
 // Home handles displaying the user's home page.
 func (a *API) Home() http.HandlerFunc {
-	return defaultHandlerChain.Append(setCacheControl).
-		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-			pageTitle := templates.GeneratePageTitle("Home")
-			ctx := req.Context()
-			user := models.UserFromCtx(ctx)
-			if user == nil {
-				msg := models.NewErrorMessage(
-					"Unable to complete request!",
-					"This might be temporary, please try again.",
-				)
-				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
-					http.StatusInternalServerError,
-				)
-			}
-			if user.GetSettings().ShowOnboarding {
-				template := templates.NewUserHome()
-				renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
-				return nil
-			}
-			data, err := a.getHomePageData(ctx)
-			if err != nil {
-				msg := models.NewErrorMessage(
-					"Unable to complete request!",
-					"This might be temporary, please try again.",
-				)
-				renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to retrieve home page data: %w", err),
-					http.StatusInternalServerError,
-				)
-			}
-			template := data.Template()
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		pageTitle := templates.GeneratePageTitle("Home")
+		ctx := req.Context()
+		user := models.UserFromCtx(ctx)
+		if user == nil {
+			msg := models.NewErrorMessage(
+				"Unable to complete request!",
+				"This might be temporary, please try again.",
+			)
+			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				http.StatusInternalServerError,
+			)
+		}
+		if user.GetSettings().ShowOnboarding {
+			template := templates.NewUserHome()
 			renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
 			return nil
-		})).
+		}
+		data, err := a.getHomePageData(ctx)
+		if err != nil {
+			msg := models.NewErrorMessage(
+				"Unable to complete request!",
+				"This might be temporary, please try again.",
+			)
+			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve home page data: %w", err),
+				http.StatusInternalServerError,
+			)
+		}
+		template := data.Template()
+		renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
+		return nil
+	})).
 		ServeHTTP
 }
 
