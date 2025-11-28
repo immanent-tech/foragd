@@ -70,8 +70,7 @@ templ EmptyContent() {
 	@main() {
 		<div class="text-center">
 			@tabler.FileUnknown(i.Props{Class: "mx-auto size-12"})
-			<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Nothing to show</h2>
-			<p class="text-base font-semibold">Try adjusting your filters, or maybe you are all caught up?</p>
+			<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">All caught up! 😺</h2>
 			<div class="mt-10 flex items-center justify-center gap-x-6">
 				@NewLink(
 					WithCustomAttribute("role", "button"),
@@ -79,13 +78,6 @@ templ EmptyContent() {
 					WithClasses("btn", "btn-primary"),
 				) {
 					Go Back Home
-				}
-				@NewLink(
-					WithCustomAttribute("role", "button"),
-					WithCustomAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
-					WithClasses("btn", "btn-ghost"),
-				) {
-					Email Support <span aria-hidden="true">&rarr;</span>
 				}
 			</div>
 		</div>
