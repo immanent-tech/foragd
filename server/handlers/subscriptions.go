@@ -6,6 +6,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -28,6 +29,74 @@ import (
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/web/templates"
 )
+
+// ListSubscriptions handles fetching subscriptions based on the given page filters and displaying them. When the
+// request method is GET (i.e. initial page load), the subscriptions are shown in a grid layout. When the request method
+// is POST (i.e. pagination request), the subscriptions are shown as a list.
+func ListSubscriptions(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.Append(parseFilters, setCacheControl).
+		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+			pagination := req.FormValue(models.ParamPagination)
+			// Redirect to include query parameters in address bar.
+			if req.Method == http.MethodGet && len(req.URL.Query()) == 0 {
+				if IsHTMX(req) {
+					res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
+				} else {
+					http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
+				}
+			}
+			var (
+				subscriptions models.Subscriptions
+				err           error
+				template      templ.Component
+				pageTitle     string
+			)
+			// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
+			if htmx.IsHistoryRestoreRequest(req) {
+				filters.Subscriptions = nil
+			}
+			// Get subscriptions matching filters.
+			subscriptions, pagination, err = api.FilterSubscriptions(req.Context(), filters, pagination)
+			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+				msg := models.NewErrorMessage(
+					"Server could not complete request!",
+					"This might be temporary, please try again.",
+				)
+				switch req.Method {
+				case http.MethodGet:
+					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+				case http.MethodPost:
+					template = templates.ServerErrorNotification(msg)
+					renderPartial(template).ServeHTTP(res, req)
+				}
+				return models.NewAPIError(
+					fmt.Errorf("unable to list subscriptions: %w", err),
+					http.StatusInternalServerError,
+				)
+			}
+			// Render appropriate content.
+			switch req.Method {
+			case http.MethodGet:
+				template = templates.SubscriptionsGrid(pagination, subscriptions...)
+			case http.MethodPost:
+				if len(subscriptions) > 0 {
+					template = templates.Subscriptions(pagination, subscriptions...)
+				} else {
+					res.WriteHeader(http.StatusNoContent)
+					return nil
+				}
+			}
+			// Choose rendering method based on method (get = page, post = partial).
+			switch req.Method {
+			case http.MethodGet:
+				renderPage(template, templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+			case http.MethodPost:
+				renderPartial(template).ServeHTTP(res, req)
+			}
+			return nil
+		})).ServeHTTP
+}
 
 // MarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
 func MarkSubscription(api *elastic.API) http.HandlerFunc {

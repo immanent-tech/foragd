@@ -212,12 +212,6 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.Get("/search", handlers.GetSearchResults(handler.Elastic))
 		r.Get("/search/updates", handlers.WatchSearchResults(handler.Elastic))
 
-		// Lists.
-		r.Route("/list/{list}", func(r chi.Router) {
-			r.Get("/", handlers.ShowList(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.ShowList(handler.Elastic))
-			r.Get("/updates", handlers.WatchList(handler.Elastic))
-		})
 		// Objects.
 		r.Get("/view/{object}/{id}", handlers.ViewObject(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/similar", handlers.FindSimilar(handler.Elastic))
@@ -225,8 +219,12 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues())
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues())
 		// Subscription specific.
-		r.With(middlewares.RequireHTMX).
-			Post("/list/subscriptions/mark/{mark}", handlers.MarkSubscriptions(handler.Elastic))
+		r.Route("/list/subscriptions", func(r chi.Router) {
+			r.Get("/", handlers.ListSubscriptions(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.ListSubscriptions(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkSubscriptions(handler.Elastic))
+			r.Get("/updates", handlers.WatchList(handler.Elastic))
+		})
 		r.With(middlewares.RequireHTMX).
 			Post("/mark/subscription/{subscription_id}/{mark}", handlers.MarkSubscription(handler.Elastic))
 		r.With(middlewares.RequireHTMX).
@@ -240,11 +238,20 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
 		})
 		// Article specific.
-		r.With(middlewares.RequireHTMX).Post("/list/articles/mark", handlers.MarkArticles(handler.Elastic))
+		r.Route("/list/articles", func(r chi.Router) {
+			r.Get("/", handlers.ListArticles(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.ListArticles(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles(handler.Elastic))
+			r.Get("/updates", handlers.WatchList(handler.Elastic))
+		})
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}/{mark}", handlers.MarkArticle(handler.Elastic))
 		// General.
 		r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues())
 		r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues())
+		// Favorite specific.
+		r.Route("/list/favorites", func(r chi.Router) {
+			r.Get("/", handlers.ListFavorites(handler.Elastic))
+		})
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
