@@ -53,6 +53,11 @@ func RateLimit(ratelimiter RateLimiter) func(next http.Handler) http.Handler {
 				next.ServeHTTP(res, req)
 				return
 			}
+			// Ignore rate-limiting from self.
+			if req.Host == "foragd.app" {
+				next.ServeHTTP(res, req)
+				return
+			}
 			// Find the client IP.
 			clientIP := ratelimiter.strategy.ClientIP(req.Header, req.RemoteAddr)
 			if clientIP == "" {
