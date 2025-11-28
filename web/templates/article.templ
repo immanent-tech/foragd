@@ -42,6 +42,7 @@ templ articleSummary(article *models.Article) {
 					{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": article.GetSubscriptionID()} }}
 					{{ overrides[models.ParamView] = string(models.ViewUnread) }}
 					{{ overrides[models.ParamSubscriptionID] = article.GetSubscriptionID() }}
+					{{ overrides[models.ParamSubscriptionName] = article.GetFeedTitle() }}
 					@NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXInclude("#content-filters"),
@@ -109,7 +110,10 @@ templ ArticleCard(article *models.Article) {
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
-						WithHXVals(map[string]any{models.ParamSubscriptions: article.GetSubscriptionID()}),
+						WithHXVals(map[string]any{
+							models.ParamSubscriptions:    article.GetSubscriptionID(),
+							models.ParamSubscriptionName: article.GetFeedTitle(),
+						}),
 						WithClasses("truncate"),
 					) {
 						{ article.GetFeedTitle() }
@@ -233,6 +237,7 @@ templ ArticleContent(article *models.Article) {
 					<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 					<input type="hidden" name={ models.ParamSort } value={ filters.GetSort() }/>
 					<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
+					<input type="hidden" name={ models.ParamSubscriptionName } value={ article.GetFeedTitle() }/>
 					@NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
