@@ -207,7 +207,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 // SearchResultsGrid renders the given articles returned from the given search in a grid layout with an actions menu.
 templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles, pagination models.Pagination) {
 	@main() {
-		<div class="flex items-center justify-between mt-4">
+		<div id="search-results" class="flex items-center justify-between mt-4">
 			// Page title.
 			<div class="min-w-0 flex-1">
 				<h2 class="page-title">
@@ -226,7 +226,7 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 						<input type="hidden" name={ models.ParamView } value={ models.ViewUnread }/>
 						<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 						<a
-							hx-post="/list/articles/mark"
+							hx-post="/list/articles/mark/read"
 							hx-target={ ContentID.Target() }
 							hx-include="#grid-objects,[name='csrf_token']"
 							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
@@ -241,7 +241,7 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 						<input type="hidden" name={ models.ParamView } value={ models.ViewRead }/>
 						<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
 						<a
-							hx-post="/list/articles/mark"
+							hx-post="/list/articles/mark/unread"
 							hx-target={ ContentID.Target() }
 							hx-include="#grid-objects,[name='csrf_token']"
 							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
@@ -591,8 +591,8 @@ templ SimilarArticles(articles models.Articles) {
 // NoSearchResults renders an informational message for when no search results were returned.
 templ NoSearchResults() {
 	<div class="text-center">
-		<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance">Nothing found 😕</h1>
-		<h2 class="mt-4 text-2xl font-semibold tracking-tight text-balance">Looks like there are no matches for that search.</h2>
+		<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Nothing found 😕</h2>
+		<p class="text-base font-semibold">Looks like there are no matches for that search.</p>
 		<div class="mt-10 flex items-center justify-center gap-x-6">
 			@NewLink(
 				WithCustomAttribute("role", "button"),
@@ -600,13 +600,6 @@ templ NoSearchResults() {
 				WithClasses("btn", "btn-primary"),
 			) {
 				Go Back Home
-			}
-			@NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
-				WithClasses("btn", "btn-ghost"),
-			) {
-				Email Support <span aria-hidden="true">&rarr;</span>
 			}
 		</div>
 	</div>
