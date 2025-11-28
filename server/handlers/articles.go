@@ -19,16 +19,14 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-// ListArticles handles fetching articles based on the given page filters and displaying them. When the request method
-// is GET (i.e. initial page load), the subscriptions are shown in a grid layout. When the request method is POST (i.e.
-// pagination request), the subscriptions are shown as a list.
+// ListArticles handles fetching articles based on the given page filters and displaying them.
 func ListArticles(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters, setCacheControl).
 		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 			pagination := req.FormValue(models.ParamPagination)
 			// Redirect to include query parameters in address bar.
-			if req.Method == http.MethodGet && len(req.URL.Query()) == 0 {
+			if len(req.URL.Query()) == 0 {
 				if IsHTMX(req) {
 					res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
 				} else {
@@ -53,8 +51,7 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 				case http.MethodGet:
 					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
 				case http.MethodPost:
-					template = templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req)
+					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
 				}
 				return models.NewAPIError(
 					fmt.Errorf("unable to list articles: %w", err),
@@ -62,26 +59,53 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 				)
 			}
 			// Render appropriate content.
-			switch req.Method {
-			case http.MethodGet:
-				// Get any subscriptionID parameter indicating the request is for a single subscription.
-				subscriptionID := req.FormValue(models.ParamSubscriptionID)
-				subscriptionName := req.FormValue(models.ParamSubscriptionName)
-				template = templates.ArticlesGrid(subscriptionName, subscriptionID, articles, pagination)
-			case http.MethodPost:
-				if len(articles) > 0 {
-					template = templates.Articles(articles, pagination)
-				} else {
-					res.WriteHeader(http.StatusNoContent)
-					return nil
-				}
-			}
+			// Get any subscriptionID parameter indicating the request is for a single subscription.
+			subscriptionID := req.FormValue(models.ParamSubscriptionID)
+			subscriptionName := req.FormValue(models.ParamSubscriptionName)
+			template = templates.ArticlesGrid(subscriptionName, subscriptionID, articles, pagination)
+
 			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {
 			case http.MethodGet:
 				renderPage(template, templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
 			case http.MethodPost:
 				renderPartial(template).ServeHTTP(res, req)
+			}
+			return nil
+		})).
+		ServeHTTP
+}
+
+func PaginateArticles(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.Append(parseFilters, setCacheControl).
+		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+			pagination := req.FormValue(models.ParamPagination)
+			var (
+				articles models.Articles
+				err      error
+			)
+
+			// Get articles matching filters.
+			articles, pagination, err = api.FilterArticles(req.Context(), filters, pagination)
+			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+				msg := models.NewErrorMessage(
+					"Server could not complete request!",
+					"This might be temporary, please try again.",
+				)
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("unable to list articles: %w", err),
+					http.StatusInternalServerError,
+				)
+			}
+
+			// If there are articles to show, render the articles. Else, return StatusNoContent.
+			if len(articles) > 0 {
+				renderPartial(templates.Articles(articles, pagination)).ServeHTTP(res, req)
+			} else {
+				res.WriteHeader(http.StatusNoContent)
+				return nil
 			}
 			return nil
 		})).

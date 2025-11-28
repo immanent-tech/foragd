@@ -38,7 +38,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 			pagination := req.FormValue(models.ParamPagination)
 			// Redirect to include query parameters in address bar.
-			if req.Method == http.MethodGet && len(req.URL.Query()) == 0 {
+			if len(req.URL.Query()) == 0 {
 				if IsHTMX(req) {
 					res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
 				} else {
@@ -66,33 +66,57 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				case http.MethodGet:
 					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
 				case http.MethodPost:
-					template = templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req)
+					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
 				}
 				return models.NewAPIError(
 					fmt.Errorf("unable to list subscriptions: %w", err),
 					http.StatusInternalServerError,
 				)
 			}
-			// Render appropriate content.
-			switch req.Method {
-			case http.MethodGet:
-				template = templates.SubscriptionsGrid(pagination, subscriptions...)
-			case http.MethodPost:
-				if len(subscriptions) > 0 {
-					template = templates.Subscriptions(pagination, subscriptions...)
-				} else {
-					res.WriteHeader(http.StatusNoContent)
-					return nil
-				}
-			}
+
 			// Choose rendering method based on method (get = page, post = partial).
+			template = templates.SubscriptionsGrid(pagination, subscriptions...)
 			switch req.Method {
 			case http.MethodGet:
 				renderPage(template, templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
 			case http.MethodPost:
 				renderPartial(template).ServeHTTP(res, req)
 			}
+			return nil
+		})).ServeHTTP
+}
+
+func PaginateSubscriptions(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.Append(parseFilters, setCacheControl).
+		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+			pagination := req.FormValue(models.ParamPagination)
+			var (
+				subscriptions models.Subscriptions
+				err           error
+			)
+
+			// Get subscriptions matching filters.
+			subscriptions, pagination, err = api.FilterSubscriptions(req.Context(), filters, pagination)
+			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+				msg := models.NewErrorMessage(
+					"Server could not complete request!",
+					"This might be temporary, please try again.",
+				)
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("unable to list subscriptions: %w", err),
+					http.StatusInternalServerError,
+				)
+			}
+			// Render appropriate content.
+			if len(subscriptions) > 0 {
+				renderPartial(templates.Subscriptions(pagination, subscriptions...)).ServeHTTP(res, req)
+			} else {
+				res.WriteHeader(http.StatusNoContent)
+				return nil
+			}
+
 			return nil
 		})).ServeHTTP
 }

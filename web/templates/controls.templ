@@ -4,13 +4,13 @@
 package templates
 
 import (
-	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 templ FilterControls(path string, categories models.CategoryCounts, filters *models.ListDisplayFilters) {
@@ -43,21 +43,11 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 								<div class="flex flex-col">
 									// Top 10 categories only.
 									for idx, category := range categories.GetTopCategories(10) {
-										@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
+										@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters)
 									}
 									if len(filters.GetCategories()) > 0 {
 										<div class="flex justify-end">
-											<button
-												hx-get={ path }
-												hx-push-url="true"
-												hx-target={ ContentID.Target() }
-												hx-trigger="click"
-												hx-vals={ models.GenerateHXVals(filters.Values()) }
-												hx-params="not categories"
-												class="btn btn-secondary btn-sm"
-											>
-												Clear
-											</button>
+											@clearCategoryFilters(path, "clear-category-filters-mobile", filters)
 										</div>
 									}
 								</div>
@@ -76,27 +66,11 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 						</h3>
 						<el-disclosure id="filter-section-view" hidden class="block pt-6">
 							<div class="space-y-6">
-								@viewFilter(path, "filter-mobile-view-unread", models.ViewUnread, filters.GetView())
-								@viewFilter(path, "filter-mobile-view-read", models.ViewRead, filters.GetView())
-								@viewFilter(path, "filter-mobile-view-all", models.ViewAll, filters.GetView())
-								if chi.RouteContext(ctx).URLParam(models.ParamListType) == "subscriptions" {
-									{{ var onlyFavoritesActiveClass string }}
-									{{ overrides := make(map[string]any) }}
-									if filters.OnlyFavorites {
-										{{ onlyFavoritesActiveClass = "text-primary font-semibold" }}
-										{{ overrides[models.ParamOnlyFavorites] = "false" }}
-									}
-									@NewLink(
-										WithHXMethod(http.MethodGet, path),
-										WithHXInclude("#content-filters"),
-										WithHXTarget(ContentID.Target()),
-										WithHXVals(overrides),
-										WithHXPushURL(),
-										WithHXVals(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
-										WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
-									) {
-										Only Favorites
-									}
+								@viewFilter(path, "filter-mobile-view-unread", models.ViewUnread, filters)
+								@viewFilter(path, "filter-mobile-view-read", models.ViewRead, filters)
+								@viewFilter(path, "filter-mobile-view-all", models.ViewAll, filters)
+								if path == "/list/subscriptions" {
+									@viewFilterOnlyFavorites(path, "filter-mobile-only-favorites", filters)
 								}
 							</div>
 						</el-disclosure>
@@ -116,11 +90,11 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 					</button>
 					<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/15 rounded-md bg-base-300 shadow-lg outline-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 						<div class="py-1">
-							@sortOption(path, models.SortNewestFirst, filters.GetSort())
-							@sortOption(path, models.SortOldestFirst, filters.GetSort())
+							@sortOption(path, models.SortNewestFirst, filters)
+							@sortOption(path, models.SortOldestFirst, filters)
 							if path == "/list/subscriptions" {
-								@sortOption(path, models.SortMostUnread, filters.GetSort())
-								@sortOption(path, models.SortLeastUnread, filters.GetSort())
+								@sortOption(path, models.SortMostUnread, filters)
+								@sortOption(path, models.SortLeastUnread, filters)
 							}
 						</div>
 					</el-menu>
@@ -143,23 +117,12 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 									<div class="py-1">
 										// Top 10 categories only.
 										for idx, category := range categories.GetTopCategories(10) {
-											@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters.GetCategories())
+											@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters)
 										}
 									</div>
 									if len(filters.GetCategories()) > 0 {
 										<div class="py-1">
-											<a
-												hx-get={ path }
-												hx-push-url="true"
-												hx-target={ ContentID.Target() }
-												hx-trigger="click"
-												hx-vals={ models.GenerateHXVals(filters.Values()) }
-												hx-params="not categories"
-												class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize"
-											>
-												@tabler.X(i.Props{Class: "size-4"})
-												Clear
-											</a>
+											@clearCategoryFilters(path, "clear-category-filters-desktop", filters)
 										</div>
 									}
 								</el-menu>
@@ -173,26 +136,13 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 							</button>
 							<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/15 rounded-md bg-base-300 shadow-lg outline-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 								<div class="py-1">
-									@viewFilter(path, "filter-view-unread", models.ViewUnread, filters.GetView())
-									@viewFilter(path, "filter-view-read", models.ViewRead, filters.GetView())
-									@viewFilter(path, "filter-view-all", models.ViewAll, filters.GetView())
+									@viewFilter(path, "filter-view-unread-desktop", models.ViewUnread, filters)
+									@viewFilter(path, "filter-view-read-desktop", models.ViewRead, filters)
+									@viewFilter(path, "filter-view-all-desktop", models.ViewAll, filters)
 								</div>
-								if chi.RouteContext(ctx).URLParam(models.ParamListType) == "subscriptions" {
+								if path == "/list/subscriptions" {
 									<div class="py-1">
-										{{ var onlyFavoritesActiveClass string }}
-										if filters.OnlyFavorites {
-											{{ onlyFavoritesActiveClass = "text-primary font-semibold" }}
-										}
-										@NewLink(
-											WithHXMethod(http.MethodGet, path),
-											WithHXInclude("#content-filters"),
-											WithHXTarget(ContentID.Target()),
-											WithHXPushURL(),
-											WithHXVals(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
-											WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
-										) {
-											Only Favorites
-										}
+										@viewFilterOnlyFavorites(path, "filter-only-favorites-desktop", filters)
 									</div>
 								}
 							</el-menu>
@@ -219,24 +169,34 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 							{ filters.GetSort().String() }
 						</div>
 						// Add favorites filter badge if listing subscriptions and favorites filter is active.
-						if chi.RouteContext(ctx).URLParam(models.ParamListType) == "subscriptions" && filters.OnlyFavorites {
-							<div class="badge badge-secondary badge-soft m-1">
-								Favorites
-								<button
-									hx-get={ models.PathFromCtx(ctx) }
-									hx-push-url="true"
-									hx-target={ ContentID.Target() }
-									hx-include="#content-filters"
-									hx-vals={ `{"only_favorites": "false"}` }
-								>
-									@tabler.X(i.Props{Class: "size-4"})
-								</button>
+						if path == "/list/subscriptions" && filters.OnlyFavorites {
+							<div class="badge badge-secondary m-1">
+								<form id="filter-clear-only-favorites" class="flex items-center">
+									<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+									<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+									<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+									for subscription := range slices.Values(filters.GetSubscriptions()) {
+										<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+									}
+									for category := range slices.Values(filters.GetCategories()) {
+										<input type="hidden" name={ models.ParamCategories } value={ category }/>
+									}
+									Favorites
+									<button
+										hx-get={ models.PathFromCtx(ctx) }
+										hx-push-url="true"
+										hx-target={ ContentID.Target() }
+										hx-vals={ `{"only_favorites": "false"}` }
+									>
+										@tabler.X(i.Props{Class: "size-4"})
+									</button>
+								</form>
 							</div>
 						}
 						// Add filter badges for any active category filters.
 						for category := range slices.Values(categories.GetTopCategories(10)) {
 							if slices.Contains(filters.GetCategories(),category.Category) {
-								@activeCategoryFilterBadge(category.Category)
+								@activeCategoryFilterBadge(path, category.Category, filters)
 							}
 						}
 					</div>
@@ -247,85 +207,166 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 }
 
 // viewFilter renders a checkbox for a view filter.
-templ viewFilter(path, id string, view models.View, current models.View) {
+templ viewFilter(path, id string, view models.View, filters *models.ListDisplayFilters) {
 	{{ var class string }}
-	if view == current {
+	if view == filters.GetView() {
 		{{ class = "text-primary font-semibold" }}
 	}
-	@NewLink(
-		WithHXMethod(http.MethodGet, path),
-		WithHXInclude("#content-filters"),
-		WithHXTarget(ContentID.Target()),
-		WithHXPushURL(),
-		WithHXVals(map[string]any{models.ParamView: string(view)}),
-		WithID(id),
-		WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
-	) {
-		{ string(view) }
+	<form id={ "view-filter-" + view }>
+		<input type="hidden" name={ models.ParamView } value={ view }/>
+		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+		for subscription := range slices.Values(filters.GetSubscriptions()) {
+			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+		}
+		for category := range slices.Values(filters.GetCategories()) {
+			<input type="hidden" name={ models.ParamCategories } value={ category }/>
+		}
+		@NewLink(
+			WithHXMethod(http.MethodPost, path),
+			WithHXTarget(ContentID.Target()),
+			WithHXInclude("[name='csrf_token']"),
+			WithHXPushURL(),
+			WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
+		) {
+			{ string(view) }
+		}
+	</form>
+}
+
+templ viewFilterOnlyFavorites(path, id string, filters *models.ListDisplayFilters) {
+	{{ var onlyFavoritesActiveClass string }}
+	{{ overrides := make(map[string]any) }}
+	if filters.OnlyFavorites {
+		{{ onlyFavoritesActiveClass = "text-primary font-semibold" }}
+		{{ overrides[models.ParamOnlyFavorites] = "false" }}
 	}
+	<form id={ id }>
+		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+		for subscription := range slices.Values(filters.GetSubscriptions()) {
+			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+		}
+		for category := range slices.Values(filters.GetCategories()) {
+			<input type="hidden" name={ models.ParamCategories } value={ category }/>
+		}
+		@NewLink(
+			WithHXMethod(http.MethodGet, path),
+			WithHXTarget(ContentID.Target()),
+			WithHXVals(overrides),
+			WithHXPushURL(),
+			WithHXVals(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
+			WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
+		) {
+			Only Favorites
+		}
+	</form>
 }
 
 // categoryFilter renders a checkbox for a category filter.
-templ categoryFilter(path, id string, category models.CategoryCount, current models.Categories) {
+templ categoryFilter(path, id string, category models.CategoryCount, filters *models.ListDisplayFilters) {
 	{{ var class string }}
-	{{ overrides := make(map[string]any) }}
-	if current.HasCategory(category.Category) {
+	if filters.GetCategories().HasCategory(category.Category) {
 		{{ class = "text-primary font-semibold" }}
-	} else {
-		{{ overrides[models.ParamCategories] = category.Category }}
 	}
-	@NewLink(
-		WithHXMethod(http.MethodGet, path),
-		WithHXInclude("#content-filters"),
-		WithHXTarget(ContentID.Target()),
-		WithHXPushURL(),
-		WithHXVals(overrides),
-		WithID(id),
-		WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
-	) {
-		{ string(category.Category) }
-	}
+	<form id={ "filter-category-" + strings.ToLower(strings.ReplaceAll(category.Category, " ", "_")) }>
+		<input type="hidden" name={ models.ParamCategories } value={ category.Category }/>
+		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+		for subscription := range slices.Values(filters.GetSubscriptions()) {
+			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+		}
+		@NewLink(
+			WithHXMethod(http.MethodPost, path),
+			WithHXTarget(ContentID.Target()),
+			WithHXInclude("[name='csrf_token']"),
+			WithHXPushURL(),
+			WithID(id),
+			WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
+		) {
+			{ string(category.Category) }
+		}
+	</form>
 }
 
-templ activeCategoryFilterBadge(category models.Category) {
+templ clearCategoryFilters(path, id string, filters *models.ListDisplayFilters) {
+	<form id={ id }>
+		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+		for subscription := range slices.Values(filters.GetSubscriptions()) {
+			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+		}
+		@NewLink(
+			WithHXMethod(http.MethodPost, path),
+			WithHXTarget(ContentID.Target()),
+			WithHXInclude("[name='csrf_token']"),
+			WithHXPushURL(),
+			WithClasses("link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize"),
+		) {
+			@tabler.X(i.Props{Class: "size-4"})
+			Clear
+		}
+	</form>
+}
+
+templ activeCategoryFilterBadge(path string, category models.Category, filters *models.ListDisplayFilters) {
 	<div class="badge badge-secondary m-1">
 		{ category }
-		<button
-			hx-get={ models.PathFromCtx(ctx) }
-			hx-push-url="true"
-			hx-target={ ContentID.Target() }
-			hx-include="#content-filters,[name='subscriptions']"
-			hx-params="not categories"
-		>
-			@tabler.X(i.Props{Class: "size-4"})
-		</button>
+		<form id={ "clear-filter-category-" + strings.ToLower(strings.ReplaceAll(category, " ", "_")) }>
+			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+			<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+			for subscription := range slices.Values(filters.GetSubscriptions()) {
+				<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+			}
+			@NewLink(
+				WithHXMethod(http.MethodPost, path),
+				WithHXTarget(ContentID.Target()),
+				WithHXInclude("[name='csrf_token']"),
+				WithHXPushURL(),
+			) {
+				@tabler.X(i.Props{Class: "size-4"})
+			}
+		</form>
 	</div>
 }
 
-templ sortOption(path string, sort models.Sort, current models.Sort) {
+templ sortOption(path string, sort models.Sort, filters *models.ListDisplayFilters) {
 	{{ var class string }}
-	if current == sort {
+	if sort == filters.GetSort() {
 		{{ class = "text-primary font-semibold" }}
 	}
-	@NewLink(
-		WithHXMethod(http.MethodGet, path),
-		WithHXInclude("#content-filters"),
-		WithHXTarget(ContentID.Target()),
-		WithHXPushURL(),
-		WithHXVals(map[string]any{models.ParamSort: string(sort)}),
-		WithID(string(sort)),
-		WithClasses("flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
-	) {
-		switch sort {
-			case models.SortNewestFirst:
-				@tabler.SortDescending2(i.Props{Class: "size-4"})
-			case models.SortOldestFirst:
-				@tabler.SortAscending2(i.Props{Class: "size-4"})
-			case models.SortMostUnread:
-				@tabler.SortDescendingNumbers(i.Props{Class: "size-4"})
-			case models.SortLeastUnread:
-				@tabler.SortAscendingNumbers(i.Props{Class: "size-4"})
+	<form id={ "sort-" + string(sort) }>
+		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+		<input type="hidden" name={ models.ParamSort } value={ string(sort) }/>
+		for subscription := range slices.Values(filters.GetSubscriptions()) {
+			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 		}
-		{ sort.String() }
-	}
+		for category := range slices.Values(filters.GetCategories()) {
+			<input type="hidden" name={ models.ParamCategories } value={ category }/>
+		}
+		@NewLink(
+			WithHXMethod(http.MethodPost, path),
+			WithHXTarget(ContentID.Target()),
+			WithHXInclude("[name='csrf_token']"),
+			WithHXPushURL(),
+			WithClasses("flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
+		) {
+			switch sort {
+				case models.SortNewestFirst:
+					@tabler.SortDescending2(i.Props{Class: "size-4"})
+				case models.SortOldestFirst:
+					@tabler.SortAscending2(i.Props{Class: "size-4"})
+				case models.SortMostUnread:
+					@tabler.SortDescendingNumbers(i.Props{Class: "size-4"})
+				case models.SortLeastUnread:
+					@tabler.SortAscendingNumbers(i.Props{Class: "size-4"})
+			}
+			{ sort.String() }
+		}
+	</form>
 }

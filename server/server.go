@@ -221,7 +221,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
 			r.Get("/", handlers.ListSubscriptions(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.ListSubscriptions(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/", handlers.ListSubscriptions(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateSubscriptions(handler.Elastic))
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkSubscriptions(handler.Elastic))
 			r.Get("/updates", handlers.WatchList(handler.Elastic))
 		})
@@ -240,7 +241,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		// Article specific.
 		r.Route("/list/articles", func(r chi.Router) {
 			r.Get("/", handlers.ListArticles(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.ListArticles(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/", handlers.ListArticles(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateArticles(handler.Elastic))
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles(handler.Elastic))
 			r.Get("/updates", handlers.WatchList(handler.Elastic))
 		})

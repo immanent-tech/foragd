@@ -56,7 +56,7 @@ type Filters interface {
 	GetSort() Sort
 	GetCount() int
 	GetView() View
-	GetCategories() []Category
+	GetCategories() Categories
 	Values() map[string]any
 	QueryString() string
 }
@@ -120,7 +120,7 @@ func (f *ListDisplayFilters) GetView() View {
 }
 
 // GetCategories returns any category filters.
-func (f *ListDisplayFilters) GetCategories() []Category {
+func (f *ListDisplayFilters) GetCategories() Categories {
 	return f.Categories
 }
 
