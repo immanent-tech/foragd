@@ -461,7 +461,7 @@ templ ArticlesGrid(subscriptionName string, subscriptionID models.SubscriptionID
 		</div>
 		@generateFilters(filters)
 		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
-		@FilterControls(articles.GetCategoryCounts(), filters)
+		@FilterControls("/list/articles", articles.GetCategoryCounts(), filters)
 		<section class="mt-4">
 			if len(articles) > 0 {
 				@grid() {

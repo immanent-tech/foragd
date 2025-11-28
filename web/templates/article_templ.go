@@ -1629,7 +1629,7 @@ func ArticlesGrid(subscriptionName string, subscriptionID models.SubscriptionID,
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = FilterControls(articles.GetCategoryCounts(), filters).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = FilterControls("/list/articles", articles.GetCategoryCounts(), filters).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

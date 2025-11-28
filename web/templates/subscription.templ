@@ -350,7 +350,7 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 		// Hidden content filters.
 		@generateFilters(filters)
 		<div id="update-notifications" sse-connect={ "/list/subscriptions/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
-		@FilterControls(models.GetCategoryCounts(subscriptions...), filters)
+		@FilterControls("/list/subscriptions", models.GetCategoryCounts(subscriptions...), filters)
 		<section class="mt-4">
 			if len(subscriptions) > 0 {
 				@grid() {

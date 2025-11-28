@@ -1159,7 +1159,7 @@ func SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.Su
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = FilterControls(models.GetCategoryCounts(subscriptions...), filters).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = FilterControls("/list/subscriptions", models.GetCategoryCounts(subscriptions...), filters).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

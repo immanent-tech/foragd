@@ -13,15 +13,7 @@ import (
 	"strconv"
 )
 
-templ FilterControls(categories models.CategoryCounts, filters *models.ListDisplayFilters) {
-	{{ listType := chi.RouteContext(ctx).URLParam(models.ParamListType) }}
-	{{ var path string }}
-	switch listType {
-		case "subscriptions":
-			{{ path = "/list/subscriptions" }}
-		case "articles":
-			{{ path = "/list/articles" }}
-	}
+templ FilterControls(path string, categories models.CategoryCounts, filters *models.ListDisplayFilters) {
 	// Mobile filters dialog slides in from the right.
 	<el-dialog>
 		<dialog id="mobile-filters-menu" class="overflow-hidden sm:hidden">
@@ -126,7 +118,7 @@ templ FilterControls(categories models.CategoryCounts, filters *models.ListDispl
 						<div class="py-1">
 							@sortOption(path, models.SortNewestFirst, filters.GetSort())
 							@sortOption(path, models.SortOldestFirst, filters.GetSort())
-							if listType == "subscriptions" {
+							if path == "/list/subscriptions" {
 								@sortOption(path, models.SortMostUnread, filters.GetSort())
 								@sortOption(path, models.SortLeastUnread, filters.GetSort())
 							}
