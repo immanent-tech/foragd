@@ -61,7 +61,7 @@ templ SubscriptionCard(s *models.Subscription) {
 							WithHXVals(overrides),
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
-							WithHXSwap("innerHTML show:top transition:true"),
+							WithHXSwap("innerHTML show:#articles:top transition:true"),
 							WithClasses("flex", "flex-1", "items-center", "gap-x-4"),
 						) {
 							<div class="flex flex-1 items-center">
@@ -110,7 +110,7 @@ templ SubscriptionCard(s *models.Subscription) {
 							WithHXVals(overrides),
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(),
-							WithHXSwap("innerHTML show:top transition:true"),
+							WithHXSwap("innerHTML show:#articles:top transition:true"),
 							WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 						) {
 							<div class="flex items-center">
@@ -265,7 +265,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.Subscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	@main() {
-		<div class="flex items-center justify-between mt-4">
+		<div id="subscriptions" class="flex items-center justify-between mt-4">
 			// Page heading.
 			<div class="min-w-0 flex-1">
 				<h2 class="page-title">

@@ -48,7 +48,7 @@ templ articleSummary(article *models.Article) {
 						WithHXVals(overrides),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
-						WithHXSwap("innerHTML show:top transition:true"),
+						WithHXSwap("innerHTML show:#articles:top transition:true"),
 						WithClasses("truncate"),
 					) {
 						{ article.GetFeedTitle() }
@@ -213,9 +213,9 @@ templ ArticleContent(article *models.Article) {
 	// Add the subscription ID as a hidden input that htmx can use for actions.
 	<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 	@main() {
-		// Title and actions menu.
 		<div id={ article.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
-			<div class="flex flex-1 pb-4">
+			// Article title.
+			<div class="flex flex-1 pb-2">
 				@NewLink(
 					WithCustomAttribute("href", article.GetLink()),
 					WithCustomAttribute("target", "_blank"),
@@ -224,6 +224,25 @@ templ ArticleContent(article *models.Article) {
 				) {
 					<h2 class="page-title">{ article.GetTitle() }</h2>
 				}
+			</div>
+			// Subscription link.
+			<div class="flex flex-1 pb-4">
+				<form>
+					{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
+					<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+					<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+					<input type="hidden" name={ models.ParamSort } value={ filters.GetSort() }/>
+					<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
+					@NewLink(
+						WithHXMethod(http.MethodGet, "/list/articles"),
+						WithHXTarget(ContentID.Target()),
+						WithHXPushURL(),
+						WithHXSwap("innerHTML show:#articles:top transition:true"),
+						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
+					) {
+						<h3>{ article.GetFeedTitle() }</h3>
+					}
+				</form>
 			</div>
 			<div class="flex items-center">
 				<div class="flex-1 inline-grid">
@@ -383,7 +402,7 @@ templ ArticlesGrid(subscriptionName string, subscriptionID models.SubscriptionID
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	@main() {
 		// Dynamic title with view and sort state.
-		<div class="flex items-center justify-between mt-4">
+		<div id="articles" class="flex items-center justify-between mt-4">
 			<div class="min-w-0 flex-1">
 				<h2 class="page-title sm:truncate">
 					if subscriptionID != "" && len(articles) > 0 {
@@ -495,7 +514,7 @@ templ articleImage(img *types.ImageInfo, altTitle string, classes ...string) {
 	if img.GetTitle() == "" {
 		{{ img.Title = altTitle }}
 	}
-	{{ classes = append(classes, "rounded-box responsive-img border border-base-content") }}
+	{{ classes = append(classes, "rounded-box responsive-img border border-base-content/15") }}
 	@NewProxiedImage(img, "rs:auto:300:200/sh:0.5/el:1",
 		WithClasses(classes...),
 		WithCustomAttribute("width", "300"),

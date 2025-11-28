@@ -224,7 +224,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				WithHXVals(overrides),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
-				WithHXSwap("innerHTML show:top transition:true"),
+				WithHXSwap("innerHTML show:#articles:top transition:true"),
 				WithClasses("flex", "flex-1", "items-center", "gap-x-4"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -374,7 +374,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				WithHXVals(overrides),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
-				WithHXSwap("innerHTML show:top transition:true"),
+				WithHXSwap("innerHTML show:#articles:top transition:true"),
 				WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -833,7 +833,7 @@ func SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.Su
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<div class=\"flex items-center justify-between mt-4\"><div class=\"min-w-0 flex-1\"><h2 class=\"page-title\">Subscriptions</h2></div><el-dropdown class=\"inline-block flex-none\"><button class=\"inline-flex flex-col items-center\"><span class=\"sr-only\">Subscriptions Actions</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "<div id=\"subscriptions\" class=\"flex items-center justify-between mt-4\"><div class=\"min-w-0 flex-1\"><h2 class=\"page-title\">Subscriptions</h2></div><el-dropdown class=\"inline-block flex-none\"><button class=\"inline-flex flex-col items-center\"><span class=\"sr-only\">Subscriptions Actions</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
