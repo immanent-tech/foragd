@@ -430,7 +430,11 @@ templ ArticlesGrid(subscriptionName string, subscriptionID models.SubscriptionID
 							<form>
 								<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 								<a
-									hx-post="/list/articles/mark"
+									if filters.GetView() == models.ViewUnread {
+										hx-post="/list/articles/mark/read"
+									} else {
+										hx-post="/list/articles/mark/unread"
+									}
 									hx-target={ ContentID.Target() }
 									hx-include="#grid-objects,[name='csrf_token']"
 								>
