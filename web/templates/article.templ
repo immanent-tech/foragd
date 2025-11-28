@@ -377,7 +377,7 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 }
 
 // ArticlesGrid renders the list of articles in a grid layout with filtering controls and an actions menu.
-templ ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Articles, pagination models.Pagination) {
+templ ArticlesGrid(subscriptionName string, subscriptionID models.SubscriptionID, articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	@main() {
 		// Dynamic title with view and sort state.
@@ -385,7 +385,7 @@ templ ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Article
 			<div class="min-w-0 flex-1">
 				<h2 class="page-title sm:truncate">
 					if subscriptionID != "" && len(articles) > 0 {
-						{ articles[0].GetFeedTitle() }
+						{ subscriptionName }
 					} else {
 						Articles
 					}

@@ -1316,7 +1316,7 @@ func UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) templ.Componen
 }
 
 // ArticlesGrid renders the list of articles in a grid layout with filtering controls and an actions menu.
-func ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Articles, pagination models.Pagination) templ.Component {
+func ArticlesGrid(subscriptionName string, subscriptionID models.SubscriptionID, articles models.Articles, pagination models.Pagination) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1356,9 +1356,9 @@ func ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Articles
 			}
 			if subscriptionID != "" && len(articles) > 0 {
 				var templ_7745c5c3_Var57 string
-				templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(articles[0].GetFeedTitle())
+				templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(subscriptionName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 388, Col: 34}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 388, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 				if templ_7745c5c3_Err != nil {
