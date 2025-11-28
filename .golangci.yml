@@ -442,6 +442,8 @@ linters:
 
 
   exclusions:
+    paths:
+      - '(.+)\.gen\.go'
     # Log a warning if an exclusion rule is unused.
     # Default: false
     warn-unused: true
@@ -476,3 +478,4 @@ linters:
           - wrapcheck
       - text: 'shadow: declaration of "(err|ctx)" shadows declaration at'
         linters: [ govet ]
+c
