@@ -494,6 +494,20 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 			subscription.Customisation = request.Customisation
 			subscription.Settings = request.Settings
 			subscription.SearchData.Search = request.Search
+		case models.SubscriptionTypeGroup:
+			request, valid, err := forms.DecodeForm[*models.GroupSubscriptionRequest](req)
+			if err != nil || !valid {
+				renderPartial(templates.ServerErrorNotification(
+					models.NewErrorMessage("Unable to save subscription", "Data is invalid."),
+				)).ServeHTTP(res, req)
+				return models.NewAPIError(
+					fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+					http.StatusUnprocessableEntity,
+				)
+			}
+			subscription.Customisation = request.Customisation
+			subscription.Settings = request.Settings
+			subscription.GroupData.Subscriptions = request.Subscriptions
 		}
 
 		_, err = api.UpdateSubscriptions(req.Context(), subscription)
