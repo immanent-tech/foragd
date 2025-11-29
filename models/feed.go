@@ -100,12 +100,12 @@ func (f *Feed) GetLanguage() string {
 // is a valid value, in that order.
 func (f *Feed) GetTimestamp() time.Time {
 	if !f.Updated.IsZero() && !f.Updated.Equal(types.UnixEpoch) {
-		return f.Updated
+		return f.Updated.UTC()
 	}
 	if !f.Published.IsZero() && !f.Published.Equal(types.UnixEpoch) {
-		return f.Published
+		return f.Published.UTC()
 	}
-	return f.LastFetched
+	return f.LastFetched.UTC()
 }
 
 // GetRights returns the rights or copyright of the feed content, if any.

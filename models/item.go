@@ -141,11 +141,11 @@ func (i *Item) GetContent() string {
 // is a valid value, in that order.
 func (i *Item) GetTimestamp() time.Time {
 	if valid, _ := validateDatetime(i.Updated); valid {
-		return i.Updated
+		return i.Updated.UTC()
 	} else if valid, _ = validateDatetime(i.Published); valid {
-		return i.Published
+		return i.Published.UTC()
 	}
-	return i.Timestamp
+	return i.Timestamp.UTC()
 }
 
 // IsNewer returns a boolean indicating whether this item has been updated or
