@@ -12,12 +12,3 @@ import _hyperscript from 'hyperscript.org/dist/_hyperscript.js'
 _hyperscript.browserInit()
 // custom element for timestamps
 import './timestamps.js'
-
-// Global shortcuts handling.
-import Shortcut from './Shortcut.js'
-/* Create a basic shortcut handler */
-const myShortcutHandler = new Shortcut()
-
-myShortcutHandler.register('Ctrl+K', () => {
-  htmx.trigger(document.body, 'customCtrlK')
-})

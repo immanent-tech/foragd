@@ -34,7 +34,7 @@ templ header(user *models.User) {
 							name="text"
 							hx-push-url="false"
 							placeholder="Search..."
-							_="on customCtrlK from body focus() me"
+							_="on keydown from body if the event's key is 'k' and event.altKey then focus() me"
 						/>
 						// Filters button opens advanced search dialog.
 						<button
