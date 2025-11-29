@@ -891,7 +891,7 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 		extraSubscriptions, err := a.GetSubscriptions(ctx,
 			GetSubscriptionsByIDs(extraIDs...),
 		)
-		if err != nil {
+		if err != nil && !errors.Is(err, ErrNotFound) {
 			return fmt.Errorf("add subscription dynamic info: get additional subscriptions: %w", err)
 		}
 		subscriptions = append(subscriptions, extraSubscriptions...)
