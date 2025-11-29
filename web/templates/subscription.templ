@@ -4,7 +4,6 @@
 package templates
 
 import (
-	"github.com/dustin/go-humanize"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
@@ -160,7 +159,7 @@ templ SubscriptionCard(s *models.Subscription) {
 				<p class="col-span-2 text-xs/4">
 					Last update
 					if !s.GetUpdatedDate().IsZero() {
-						{ humanize.Time(s.GetUpdatedDate()) }
+						@showTimestamp(s.GetUpdatedDate())
 					} else {
 						unknown
 					}

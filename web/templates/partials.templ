@@ -94,9 +94,9 @@ templ Content(user *models.User, content templ.Component) {
 	@Dock(nil)
 }
 
-// ShowTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time
+// showTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time
 // passes.
-templ ShowTimestamp(timestamp time.Time) {
+templ showTimestamp(timestamp time.Time) {
 	<human-time datetime={ timestamp.Format("2006-01-02T15:04:05-0700") }>{ timestamp.Format("2006-01-02 15:04:05 -0700") }</human-time>
 }
 

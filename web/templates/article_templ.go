@@ -128,7 +128,7 @@ func articleSummary(article *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = ShowTimestamp(article.GetUpdatedDate()).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = showTimestamp(article.GetUpdatedDate()).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -412,7 +412,7 @@ func ArticleCard(article *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = ShowTimestamp(article.GetUpdatedDate()).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = showTimestamp(article.GetUpdatedDate()).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -998,7 +998,7 @@ func ArticleContent(article *models.Article) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = ShowTimestamp(article.GetUpdatedDate()).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = showTimestamp(article.GetUpdatedDate()).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

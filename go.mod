@@ -11,7 +11,6 @@ require (
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.32.0
-	github.com/dustin/go-humanize v1.0.1
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e
 	github.com/go-playground/form/v4 v4.3.0

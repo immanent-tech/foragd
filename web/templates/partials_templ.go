@@ -381,9 +381,9 @@ func Content(user *models.User, content templ.Component) templ.Component {
 	})
 }
 
-// ShowTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time
+// showTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time
 // passes.
-func ShowTimestamp(timestamp time.Time) templ.Component {
+func showTimestamp(timestamp time.Time) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

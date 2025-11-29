@@ -36,7 +36,7 @@ templ articleSummary(article *models.Article) {
 			<div class="grid grid-flow-row justify-between">
 				<p class="flex text-xs/tight">
 					Updated&nbsp;
-					@ShowTimestamp(article.GetUpdatedDate())
+					@showTimestamp(article.GetUpdatedDate())
 				</p>
 				<p class="flex text-xs truncate">
 					{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": article.GetSubscriptionID()} }}
@@ -125,7 +125,7 @@ templ ArticleCard(article *models.Article) {
 				<div class="flex flex-1 gap-x-2">
 					<p class="text-xs/4 capitalize">
 						Updated&nbsp;
-						@ShowTimestamp(article.GetUpdatedDate())
+						@showTimestamp(article.GetUpdatedDate())
 					</p>
 				</div>
 				// Actions menu.
@@ -259,7 +259,7 @@ templ ArticleContent(article *models.Article) {
 					}
 					<p class="col-span-full text-sm/6 capitalize">
 						Updated&nbsp;
-						@ShowTimestamp(article.GetUpdatedDate())
+						@showTimestamp(article.GetUpdatedDate())
 					</p>
 				</div>
 				<div class="flex items-center justify-end">
