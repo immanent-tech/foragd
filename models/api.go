@@ -55,7 +55,6 @@ type ItemsAPI interface {
 	) (Items, Pagination, error)
 	AddItems(ctx context.Context, items ...*Item) (map[ItemID]*bulk.OperationResponse, error)
 	CountItems(ctx context.Context, query query.Option) (int64, error)
-	GetLastUpdatedItems(ctx context.Context, feedIDs ...FeedID) (Items, error)
 	ItemsAggregation(
 		ctx context.Context,
 		query query.Option,

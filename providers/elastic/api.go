@@ -912,10 +912,7 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 
 	// For search subscriptions, run queries directly to add unread count and last update.
 	fetchJobs.Go(func() error {
-		for subscription := range slices.Values(subscriptions) {
-			if subscription.GetSubscriptionType() != models.SubscriptionTypeSearch {
-				continue
-			}
+		for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeSearch)) {
 			search := subscription.SearchData.Search
 			// Build query to get unread count.
 			query, err := a.BuildSearchResultsQuery(ctx, user, &search)
@@ -991,45 +988,41 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 	}
 
 	// For feed subscriptions, add stats.
-	for subscription := range slices.Values(subscriptions) {
-		if subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
-			// Add stats for feed subscriptions.
-			subscription.Stats.UnreadCount = int(unreadCounts[subscription.FeedData.FeedID])
-			subscription.Stats.LastUpdate = lastUpdate[subscription.FeedData.FeedID]
-			if user.GetSettings().ShowSubscriptionStats {
-				subscription.Stats.AvgDailyUpdates = avgDailyUpdates[subscription.FeedData.FeedID]
-			}
+	for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeFeed)) {
+		// Add stats for feed subscriptions.
+		subscription.Stats.UnreadCount = int(unreadCounts[subscription.FeedData.FeedID])
+		subscription.Stats.LastUpdate = lastUpdate[subscription.FeedData.FeedID]
+		if user.GetSettings().ShowSubscriptionStats {
+			subscription.Stats.AvgDailyUpdates = avgDailyUpdates[subscription.FeedData.FeedID]
 		}
 	}
 
 	// For group subscriptions, calculate stats from other subscriptions.
-	for subscription := range slices.Values(subscriptions) {
-		if subscription.GetSubscriptionType() == models.SubscriptionTypeGroup {
-			var avgDailyUpdates []float64
-			var unreadCount int
-			var lastUpdates []time.Time
-			for groupSubscription := range slices.Values(subscriptions) {
-				if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
-					if user.GetSettings().ShowSubscriptionStats {
-						avgDailyUpdates = append(avgDailyUpdates, groupSubscription.Stats.AvgDailyUpdates)
-					}
-					unreadCount += groupSubscription.Stats.UnreadCount
-					lastUpdates = append(lastUpdates, groupSubscription.Stats.LastUpdate)
+	for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeGroup)) {
+		var avgDailyUpdates []float64
+		var unreadCount int
+		var lastUpdates []time.Time
+		for groupSubscription := range slices.Values(subscriptions) {
+			if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
+				if user.GetSettings().ShowSubscriptionStats {
+					avgDailyUpdates = append(avgDailyUpdates, groupSubscription.Stats.AvgDailyUpdates)
 				}
+				unreadCount += groupSubscription.Stats.UnreadCount
+				lastUpdates = append(lastUpdates, groupSubscription.Stats.LastUpdate)
 			}
-			if user.GetSettings().ShowSubscriptionStats {
-				slices.Sort(avgDailyUpdates)
-				slices.Reverse(avgDailyUpdates)
-				subscription.Stats.AvgDailyUpdates = avgDailyUpdates[0]
-			}
-			subscription.Stats.UnreadCount = unreadCount
-			// Sort by date ascending, with favorites before non-favorites.
-			slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
-				return timeA.Compare(timeB)
-			})
-			slices.Reverse(lastUpdates)
-			subscription.Stats.LastUpdate = lastUpdates[0]
 		}
+		if user.GetSettings().ShowSubscriptionStats {
+			slices.Sort(avgDailyUpdates)
+			slices.Reverse(avgDailyUpdates)
+			subscription.Stats.AvgDailyUpdates = avgDailyUpdates[0]
+		}
+		subscription.Stats.UnreadCount = unreadCount
+		// Sort by date ascending, with favorites before non-favorites.
+		slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
+			return timeA.Compare(timeB)
+		})
+		slices.Reverse(lastUpdates)
+		subscription.Stats.LastUpdate = lastUpdates[0]
 	}
 
 	return nil
@@ -1182,7 +1175,22 @@ func (a *API) getFeedUnreadCounts(
 }
 
 func (a *API) getFeedLastUpdates(ctx context.Context, ids ...models.FeedID) (map[models.FeedID]time.Time, error) {
-	items, err := a.GetLastUpdatedItems(ctx, ids...)
+	index, err := ItemsReadIndexFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get last updated items: %w", ErrNoIndexInCtx)
+	}
+
+	sort := models.SortNewestFirst
+
+	items, _, err := Search[*models.Item](
+		ctx,
+		a.GetAPI(),
+		index,
+		query.Terms("feed_id", ids...),
+		len(ids),
+		WithCollapseField("feed_id"),
+		WithSortOptions[*search.Search, SearchRequest](newItemSortOptions(&sort)...),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get feed last updates: %w", err)
 	}
@@ -1847,27 +1855,6 @@ func (a *API) SearchItems(
 		) //nolint:wrapcheck
 	}
 	return items, newPagination, nil
-}
-
-func (a *API) GetLastUpdatedItems(ctx context.Context, feedIDs ...models.FeedID) (models.Items, error) {
-	index, err := ItemsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get last updated items: %w", ErrNoIndexInCtx)
-	}
-
-	items, _, err := Search[*models.Item](
-		ctx,
-		a.GetAPI(),
-		index,
-		query.Terms("feed_id", feedIDs...),
-		len(feedIDs),
-		WithCollapseField("feed_id"),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get feed last updates: %w", err)
-	}
-
-	return items, nil
 }
 
 // ItemsAggregation performs an aggregation-only (i.e., search request with no hits returned) using the given query as

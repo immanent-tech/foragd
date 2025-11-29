@@ -362,6 +362,13 @@ func (s Subscriptions) FilterByFavorites(value bool) Subscriptions {
 	}))
 }
 
+// FilterByType returns a slice containing subscriptions of the specified type.
+func (s Subscriptions) FilterByType(t SubscriptionType) Subscriptions {
+	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+		return subscription.GetSubscriptionType() == t
+	}))
+}
+
 // Sort will sort the slice of subscriptions by the given sort option. Favorite subscriptions are always sorted before
 // other subscriptions, and the sort option is used as a tiebreaker.
 //
