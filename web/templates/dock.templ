@@ -21,7 +21,7 @@ templ Dock(attributes templ.Attributes) {
 			}
 		>
 			<span class="sr-only">Go to Home Page</span>
-			@tabler.HomeFilled(i.Props{Class: "size-6"})
+			@tabler.HomeFilled(i.Props{Class: "size-6 text-primary"})
 			<span class="dock-label">Home</span>
 		</button>
 		<button
@@ -34,7 +34,7 @@ templ Dock(attributes templ.Attributes) {
 				class="dock-active"
 			}
 		>
-			@tabler.Rss(i.Props{Class: "size-6"})
+			@tabler.Rss(i.Props{Class: "size-6 text-primary"})
 			<span class="sr-only">Go to Subscriptions</span>
 			<span class="dock-label">Subscriptions</span>
 		</button>
@@ -51,7 +51,7 @@ templ Dock(attributes templ.Attributes) {
 				hx-include="[name='subscriptions']"
 			}
 		>
-			@tabler.FileRssFilled(i.Props{Class: "size-6"})
+			@tabler.FileRssFilled(i.Props{Class: "size-6 text-primary"})
 			<span class="sr-only">Go to Articles</span>
 			<span class="dock-label">Articles</span>
 		</button>
@@ -63,7 +63,7 @@ templ Dock(attributes templ.Attributes) {
 				class="dock-active"
 			}
 		>
-			@tabler.HeartFilled(i.Props{Class: "size-6"})
+			@tabler.HeartFilled(i.Props{Class: "size-6 text-primary"})
 			<span class="sr-only">Go to Favorites</span>
 			<span class="dock-label">Favorites</span>
 		</button>

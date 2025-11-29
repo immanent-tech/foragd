@@ -75,7 +75,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.HomeFilled(i.Props{Class: "size-6"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tabler.HomeFilled(i.Props{Class: "size-6 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -132,7 +132,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.Rss(i.Props{Class: "size-6"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tabler.Rss(i.Props{Class: "size-6 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -187,7 +187,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.FileRssFilled(i.Props{Class: "size-6"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tabler.FileRssFilled(i.Props{Class: "size-6 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -218,7 +218,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.HeartFilled(i.Props{Class: "size-6"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = tabler.HeartFilled(i.Props{Class: "size-6 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
