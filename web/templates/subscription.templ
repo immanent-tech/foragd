@@ -73,7 +73,7 @@ templ SubscriptionCard(s *models.Subscription) {
 							</div>
 						}
 					case models.SubscriptionTypeSearch:
-						<form>
+						<form class="flex flex-1">
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
 							@NewLink(
 								WithHXMethod(http.MethodPost, "/search"),
@@ -81,10 +81,10 @@ templ SubscriptionCard(s *models.Subscription) {
 								WithHXValsJS(s.SearchData.Search.HXVals()),
 								WithHXTarget(ContentID.Target()),
 								WithHXPushURL(),
-								WithHXSwap("innerHTML show:top transition:true"),
+								WithHXSwap("innerHTML show:#search-results:top transition:true"),
 								WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 							) {
-								<div class="flex items-center">
+								<div class="flex flex-1 items-center">
 									<div class="mr-4 shrink-0 self-center">
 										@subscriptionThumbnail(s)
 									</div>

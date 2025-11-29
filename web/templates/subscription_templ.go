@@ -230,7 +230,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		case models.SubscriptionTypeSearch:
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<form><input type=\"hidden\" name=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<form class=\"flex flex-1\"><input type=\"hidden\" name=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -272,7 +272,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"flex items-center\"><div class=\"mr-4 shrink-0 self-center\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"flex flex-1 items-center\"><div class=\"mr-4 shrink-0 self-center\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -305,7 +305,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				WithHXValsJS(s.SearchData.Search.HXVals()),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
-				WithHXSwap("innerHTML show:top transition:true"),
+				WithHXSwap("innerHTML show:#search-results:top transition:true"),
 				WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var12), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

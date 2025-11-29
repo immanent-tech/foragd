@@ -337,7 +337,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 						WithHXValsJS(subscription.SearchData.Search.HXVals()),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
-						WithHXSwap("innerHTML show:top transition:true"),
+						WithHXSwap("innerHTML show:#search-results:top transition:true"),
 						WithClasses("group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"),
 						WithCustomAttribute("_", "on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"),
 					).Render(templ.WithChildren(ctx, templ_7745c5c3_Var12), templ_7745c5c3_Buffer)
