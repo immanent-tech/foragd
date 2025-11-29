@@ -57,7 +57,7 @@ func header(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<form hx-trigger=\"input changed delay:300ms\" hx-post=\"/search/suggestions\" hx-target=\"#global-search-suggestions\" hx-include=\"[name='csrf_token'],#search-filters\" hx-vals=\"js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}\" class=\"flex-1\" tabindex=\"0\" _=\"on customCtrlK from body focus() the #global-search\"><input id=\"global-search\" type=\"search\" name=\"text\" hx-push-url=\"false\" placeholder=\"Search...\"></form><button type=\"button\" command=\"show-modal\" commandfor=\"search-filters-dialog\" tabindex=\"0\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<input hx-post=\"/search/suggestions\" hx-target=\"#global-search-suggestions\" hx-include=\"[name='csrf_token'],#search-filters\" hx-vals=\"js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}\" hx-trigger=\"keyup changed delay:300ms\" id=\"global-search\" type=\"search\" name=\"text\" hx-push-url=\"false\" placeholder=\"Search...\" _=\"on customCtrlK from body focus() me\"><button type=\"button\" command=\"show-modal\" commandfor=\"search-filters-dialog\" tabindex=\"0\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -65,7 +65,7 @@ func header(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button></label><el-command-list id=\"global-search-suggestions\" class=\"absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-svh sm:h-fit scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10\" _=\"on keydown[key is 'Escape'] add .hidden\"></el-command-list></el-command-palette></div><div class=\"flex items-center justify-end mx-2 sm:mr-4\"><div aria-hidden=\"true\" class=\"hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10\"></div><el-dropdown id=\"header-user-menu\" class=\"relative\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button></label> <el-command-list id=\"global-search-suggestions\" class=\"absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-svh sm:h-fit scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10\" _=\"on keydown[key is 'Escape'] add .hidden\"></el-command-list></el-command-palette></div><div class=\"flex items-center justify-end mx-2 sm:mr-4\"><div aria-hidden=\"true\" class=\"hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10\"></div><el-dropdown id=\"header-user-menu\" class=\"relative\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

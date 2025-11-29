@@ -125,11 +125,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 		}
 
-		if len(subscriptions) == 0 && len(articles) == 0 {
-			res.WriteHeader(http.StatusNoContent)
-		} else {
-			renderPartial(templates.SearchSuggestions(request, subscriptions, articles)).ServeHTTP(res, req)
-		}
+		renderPartial(templates.SearchSuggestions(request, subscriptions, articles)).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 

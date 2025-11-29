@@ -590,17 +590,25 @@ templ SimilarArticles(articles models.Articles) {
 
 // NoSearchResults renders an informational message for when no search results were returned.
 templ NoSearchResults() {
-	<div class="text-center">
-		<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Nothing found 😕</h2>
-		<p class="text-base font-semibold">Looks like there are no matches for that search.</p>
-		<div class="mt-10 flex items-center justify-center gap-x-6">
-			@NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "/home"),
-				WithClasses("btn", "btn-primary"),
-			) {
-				Go Back Home
-			}
+	@main() {
+		// Page title.
+		<div class="min-w-0 flex flex-1">
+			<h2 class="page-title">
+				Search Results
+			</h2>
 		</div>
-	</div>
+		<div class="text-center mt-4">
+			<h3 class="text-xl/7 font-bold sm:truncate sm:text-2xl sm:tracking-tight">Nothing found 😕</h3>
+			<p class="text-base font-semibold">Looks like there are no matches for that search.</p>
+			<div class="mt-10 flex items-center justify-center gap-x-6">
+				@NewLink(
+					WithCustomAttribute("role", "button"),
+					WithCustomAttribute("href", "/home"),
+					WithClasses("btn", "btn-primary"),
+				) {
+					Go Back Home
+				}
+			</div>
+		</div>
+	}
 }
