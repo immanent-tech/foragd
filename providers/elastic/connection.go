@@ -10,10 +10,11 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"time"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
+
+	"github.com/immanent-tech/foragd/config"
 )
 
 var defaultTransportConfig = &http.Transport{
@@ -47,7 +48,7 @@ var defaultTransportConfig = &http.Transport{
 // Connect will connect to Elasticsearch using the config in the server configuration file or environment variables and
 // return an API object that can be used to issue requests.
 func Connect(ctx context.Context) (*API, error) {
-	env := os.Getenv("FORAGD_ENVIRONMENT")
+	env := config.Environment
 	if env == "" {
 		env = "development"
 	}

@@ -9,6 +9,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 
@@ -36,16 +37,24 @@ var (
 // Version is the application/stack version.
 var Version = "_UNKNOWN_"
 
+// Environment is the environment in which the app is running (i.e., production, development).
+var Environment string
+
 var configSrc *koanf.Koanf
 
 // Init initializes the config store. This will load the global (app) config
 // values and set up a config backend that other components can use via the Load
 // method. This only happens once.
 var Init = sync.OnceValue(func() error {
+	// Set the version. This *must* be set to a valid value.
 	if Version == "_UNKNOWN_" {
 		return fmt.Errorf("%w: version not set correctly", ErrLoadConfig)
 	}
 
+	// Set the environment.
+	Environment = os.Getenv("FORAGD_ENVIRONMENT")
+
+	// Initialise the config  object.
 	configSrc = koanf.New(".")
 
 	return nil

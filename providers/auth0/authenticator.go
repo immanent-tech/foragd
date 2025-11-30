@@ -9,12 +9,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"sync"
 
 	"golang.org/x/oauth2"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+
+	"github.com/immanent-tech/foragd/config"
 )
 
 var ErrNoIDToken = errors.New("no id_token field in oauth2 token")
@@ -90,7 +91,7 @@ func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 		return nil, fmt.Errorf("unable to generate logout url: %w", err)
 	}
 	scheme := "http"
-	if os.Getenv("FORAGD_ENVIRONMENT") == "production" {
+	if config.Environment == "production" {
 		scheme = "https"
 	}
 

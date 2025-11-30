@@ -23,6 +23,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/google/gcs"
 )
@@ -154,7 +155,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 }
 
 var loadImageCache = sync.OnceValue(func() error {
-	switch os.Getenv("FORAGD_ENVIRONMENT") {
+	switch config.Environment {
 	case "production":
 		bucketName := os.Getenv("FORAGD_IMAGEPROXY_BUCKET")
 		var err error

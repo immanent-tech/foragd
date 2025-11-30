@@ -6,13 +6,14 @@ package middlewares
 import (
 	"log/slog"
 	"net/http"
-	"os"
 	"slices"
 
 	"github.com/didip/tollbooth/v8"
 	"github.com/didip/tollbooth/v8/limiter"
 	"github.com/realclientip/realclientip-go"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/foragd/config"
 )
 
 const (
@@ -47,9 +48,8 @@ func NewRateLimiter() RateLimiter {
 func RateLimit(ratelimiter RateLimiter) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			env := os.Getenv("FORAGD_ENVIRONMENT")
 			// Ignore rate-limiting in development environment or for health probes in GCP.
-			if env == "development" || slices.Contains([]string{"/livenessProbe"}, req.URL.Path) {
+			if config.Environment == "development" || slices.Contains([]string{"/livenessProbe"}, req.URL.Path) {
 				next.ServeHTTP(res, req)
 				return
 			}
