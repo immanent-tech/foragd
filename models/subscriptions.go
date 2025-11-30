@@ -377,12 +377,11 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	sort = setValidSort(sort)
 	switch sort {
 	case SortNewestFirst, SortOldestFirst:
-		// Sort by date ascending, with favorites before non-favorites.
 		slices.SortFunc(s, func(subscriptionA, subscriptionB *Subscription) int {
 			switch {
-			case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite():
+			case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite(): // Favorites before non-favorites.
 				return 1
-			case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite():
+			case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite(): // Favorites before non-favorites.
 				return -1
 			default:
 				return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
@@ -396,19 +395,19 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 		// Sort by unread count, with favorite or search subscriptions before non-favorites/non-search subscriptions.
 		slices.SortFunc(s, func(subscriptionA, subscriptionB *Subscription) int {
 			switch {
-			case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite():
+			case subscriptionA.IsFavorite() && !subscriptionB.IsFavorite(): // Favorites before non-favorites.
 				return 1
-			case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite():
+			case !subscriptionA.IsFavorite() && subscriptionB.IsFavorite(): // Favorites before non-favorites.
 				return -1
-			case subscriptionA.GetSubscriptionType() != SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() == SubscriptionTypeFeed:
+			case subscriptionA.GetSubscriptionType() != SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() == SubscriptionTypeFeed: // Non-feed type before feed type.
 				return 1
-			case subscriptionA.GetSubscriptionType() == SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() != SubscriptionTypeFeed:
+			case subscriptionA.GetSubscriptionType() == SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() != SubscriptionTypeFeed: // Non-feed type before feed type.
 				return -1
-			case subscriptionA.GetSubscriptionType() != SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() != SubscriptionTypeFeed:
+			case subscriptionA.GetSubscriptionType() != SubscriptionTypeFeed && subscriptionB.GetSubscriptionType() != SubscriptionTypeFeed: // Use title is tiebreaker where both non feed type.
 				return cmp.Compare(subscriptionA.GetTitle(), subscriptionB.GetTitle())
 			default:
 				cmpValue := cmp.Compare(subscriptionA.GetStats().UnreadTotal(), subscriptionB.GetStats().UnreadTotal())
-				if cmpValue == 0 {
+				if cmpValue == 0 { // Use date as tiebreaker for equal unread counts.
 					return subscriptionA.GetUpdatedDate().Compare(subscriptionB.GetUpdatedDate())
 				}
 				return cmpValue
