@@ -9,10 +9,13 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strconv"
+	"strings"
 	"time"
 
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
+	"github.com/spaolacci/murmur3"
 	slogctx "github.com/veqryn/slog-context"
 )
 
@@ -143,8 +146,13 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 
 // NewFeedFromSource converts the raw types.FeedSource into a Feed object.
 func NewFeedFromSource(url string, source *feeds.Feed) *Feed {
+	// Generate an ID using a murmur hash of the feed's website URL.
+	id := strings.Join(
+		[]string{FeedPFX.String(), strconv.FormatUint(murmur3.Sum64([]byte(source.GetLink())), 10)},
+		"_",
+	)
 	feed := &Feed{
-		FeedID:       NewID(FeedPFX),
+		FeedID:       id,
 		CreatedAt:    time.Now().UTC(),
 		LastFetched:  types.UnixEpoch,
 		Published:    source.GetPublishedDate().UTC(),
@@ -164,6 +172,7 @@ func NewFeedFromSource(url string, source *feeds.Feed) *Feed {
 	if !slices.Contains(feed.SourceURLs, url) {
 		feed.SourceURLs = append(feed.SourceURLs, url)
 	}
+	// Add any image found.
 	if source.GetImage() != nil {
 		feed.Image = *source.GetImage()
 	}
