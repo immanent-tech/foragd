@@ -52,6 +52,9 @@ templ Page(title string, body templ.Component) {
 			<link rel="icon" href="/content/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>
 			<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon"/>
 			<link href="/content/fonts/inter/inter.css" rel="stylesheet"/>
+			if config.Environment == "production" {
+				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51"></script>
+			}
 			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 			<script src="/content/scripts.js"></script>
 			<link href="/content/styles.css" rel="stylesheet"/>
