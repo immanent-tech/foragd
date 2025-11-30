@@ -12,11 +12,11 @@ var CSPPolicy = []string{
 	`base-uri 'self';`,
 	`default-src 'self';`,
 	`style-src 'self' 'unsafe-inline';`,
-	`script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net;`,
+	`script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://cloud.umami.is https://static.cloudflareinsights.com;`,
 	`img-src * data: *;`,
 	`media-src *;`,
 	`font-src 'self';`,
-	`connect-src 'self' https://cdn.jsdelivr.net;`,
+	`connect-src 'self' https://cdn.jsdelivr.net https://cloud.umami.is https://static.cloudflareinsights.com;`,
 	`frame-src *;`,
 }
 
