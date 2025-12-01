@@ -1488,7 +1488,7 @@ func UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) templ.Componen
 }
 
 // ArticlesGrid renders the list of articles in a grid layout with filtering controls and an actions menu.
-func ArticlesGrid(articles models.Articles, pagination models.Pagination) templ.Component {
+func ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Articles, pagination models.Pagination) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1543,7 +1543,7 @@ func ArticlesGrid(articles models.Articles, pagination models.Pagination) templ.
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = FilterControls("/list/articles", articles.GetCategoryCounts(), filters, articlesActionsButton(filters)).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = FilterControls("/list/articles", articles.GetCategoryCounts(), filters, articlesActionsButton(subscriptionID, filters)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1597,7 +1597,7 @@ func ArticlesGrid(articles models.Articles, pagination models.Pagination) templ.
 
 // articlesActionsButton creates a button containing a menu of actions to apply to a list of articles, or
 // actions related to articles.
-func articlesActionsButton(filters *models.ListDisplayFilters) templ.Component {
+func articlesActionsButton(subscriptionID models.SubscriptionID, filters *models.ListDisplayFilters) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1630,7 +1630,7 @@ func articlesActionsButton(filters *models.ListDisplayFilters) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if len(filters.GetSubscriptions()) != 1 {
+		if subscriptionID == "" {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, " <form><input type=\"hidden\" name=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -1770,9 +1770,9 @@ func articlesActionsButton(filters *models.ListDisplayFilters) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var79 string
-			templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs("mark-" + filters.GetSubscriptions()[0])
+			templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs("mark-" + subscriptionID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 466, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 466, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
 			if templ_7745c5c3_Err != nil {
@@ -1786,11 +1786,11 @@ func articlesActionsButton(filters *models.ListDisplayFilters) templ.Component {
 			var markText string
 			var markIcon templ.Component
 			if filters.GetView() == models.ViewUnread {
-				markURL = "/mark/subscription/" + filters.GetSubscriptions()[0] + "/read"
+				markURL = "/mark/subscription/" + subscriptionID + "/read"
 				markText = "Mark Subscription Read"
 				markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 			} else {
-				markURL = "/mark/subscription/" + filters.GetSubscriptions()[0] + "/unread"
+				markURL = "/mark/subscription/" + subscriptionID + "/unread"
 				markText = "Mark Subscription Unread"
 				markIcon = tabler.MailFilled(i.Props{Class: "size-4"})
 			}
@@ -1859,7 +1859,7 @@ func articlesActionsButton(filters *models.ListDisplayFilters) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithHXMethod(http.MethodGet, "/edit/subscription/"+filters.GetSubscriptions()[0]),
+				WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var82), templ_7745c5c3_Buffer)

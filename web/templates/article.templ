@@ -406,12 +406,12 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 }
 
 // ArticlesGrid renders the list of articles in a grid layout with filtering controls and an actions menu.
-templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
+templ ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	@main() {
 		@generateFilters(filters)
 		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
-		@FilterControls("/list/articles", articles.GetCategoryCounts(), filters, articlesActionsButton(filters))
+		@FilterControls("/list/articles", articles.GetCategoryCounts(), filters, articlesActionsButton(subscriptionID, filters))
 		<section class="mt-4">
 			if len(articles) > 0 {
 				@grid() {
@@ -427,7 +427,7 @@ templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 
 // articlesActionsButton creates a button containing a menu of actions to apply to a list of articles, or
 // actions related to articles.
-templ articlesActionsButton(filters *models.ListDisplayFilters) {
+templ articlesActionsButton(subscriptionID models.SubscriptionID, filters *models.ListDisplayFilters) {
 	<el-dropdown class="inline-block flex-none">
 		<button class="inline-flex btn btn-wide">
 			Actions
@@ -435,7 +435,7 @@ templ articlesActionsButton(filters *models.ListDisplayFilters) {
 		</button>
 		<el-menu anchor="bottom end" popover>
 			<div class="py-1">
-				if len(filters.GetSubscriptions()) != 1 {
+				if subscriptionID == "" {
 					// Mark all articles action.
 					<form>
 						<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
@@ -463,17 +463,17 @@ templ articlesActionsButton(filters *models.ListDisplayFilters) {
 					</form>
 				} else {
 					// Mark subscription action.
-					<form id={ "mark-" + filters.GetSubscriptions()[0] }>
+					<form id={ "mark-" + subscriptionID }>
 						// MarkURL returns the app URL for marking the subscription.
 						{{ var markURL string }}
 						{{ var markText string }}
 						{{ var markIcon templ.Component }}
 						if filters.GetView() == models.ViewUnread {
-							{{ markURL = "/mark/subscription/" + filters.GetSubscriptions()[0] + "/read" }}
+							{{ markURL = "/mark/subscription/" + subscriptionID + "/read" }}
 							{{ markText = "Mark Subscription Read" }}
 							{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
 						} else {
-							{{ markURL = "/mark/subscription/" + filters.GetSubscriptions()[0] + "/unread" }}
+							{{ markURL = "/mark/subscription/" + subscriptionID + "/unread" }}
 							{{ markText = "Mark Subscription Unread" }}
 							{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
 						}
@@ -487,7 +487,7 @@ templ articlesActionsButton(filters *models.ListDisplayFilters) {
 					</form>
 					// Edit subscription action.
 					@NewLink(
-						WithHXMethod(http.MethodGet, "/edit/subscription/"+filters.GetSubscriptions()[0]),
+						WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
 					) {

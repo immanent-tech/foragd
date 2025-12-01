@@ -59,8 +59,8 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 				)
 			}
 			// Render appropriate content.
-			template = templates.ArticlesGrid(articles, pagination)
-
+			subscriptionID := req.FormValue(models.ParamSubscriptionID)
+			template = templates.ArticlesGrid(subscriptionID, articles, pagination)
 			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {
 			case http.MethodGet:

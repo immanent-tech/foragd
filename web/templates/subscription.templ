@@ -92,7 +92,6 @@ templ SubscriptionCard(s *models.Subscription) {
 							{{ overrides[models.ParamView] = string(models.ViewRead) }}
 						}
 						{{ overrides[models.ParamSubscriptionID] = s.GetID() }}
-						{{ overrides[models.ParamSubscriptionName] = s.GetTitle() }}
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/list/articles"),
 							WithHXInclude("#content-filters"),
@@ -252,7 +251,8 @@ templ subscriptionContextMenu(s *models.Subscription) {
 
 templ viewFeedSubscriptionLink(id models.SubscriptionID, title string, view models.View, options ...Option[element]) {
 	{{ values := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
-	{{ values[models.ParamSubscriptions] = id }}
+	{{ values[models.ParamSubscriptions] = id }} // used for filtering articles.
+	{{ values[models.ParamSubscriptionID] = id }} // used for subscription actions.
 	{{ values[models.ParamView] = view }}
 	{{
 		allOptions := []Option[element]{
