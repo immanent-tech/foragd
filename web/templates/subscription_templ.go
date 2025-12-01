@@ -223,7 +223,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				WithHXVals(overrides),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
-				WithHXSwap("innerHTML show:#articles:top transition:true"),
+				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithClasses("flex", "flex-1", "items-center", "gap-x-4"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -305,7 +305,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				WithHXValsJS(s.SearchData.Search.HXVals()),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
-				WithHXSwap("innerHTML show:#search-results:top transition:true"),
+				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var12), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -373,7 +373,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				WithHXVals(overrides),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
-				WithHXSwap("innerHTML show:#articles:top transition:true"),
+				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

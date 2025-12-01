@@ -118,7 +118,7 @@ func articleSummary(article *models.Article) templ.Component {
 		templ_7745c5c3_Err = NewLink(
 			WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 			WithHXTarget(ContentID.Target()),
-			WithHXSwap("innerHTML show:top,transition:true"),
+			WithHXSwap("innerHTML show:window:top,transition:true"),
 			WithHXPushURL(),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -169,7 +169,7 @@ func articleSummary(article *models.Article) templ.Component {
 			WithHXVals(overrides),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(),
-			WithHXSwap("innerHTML show:#articles:top transition:true"),
+			WithHXSwap("innerHTML show:window:top transition:true"),
 			WithClasses("truncate"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -965,7 +965,7 @@ func ArticleContent(article *models.Article) templ.Component {
 				WithHXMethod(http.MethodGet, "/list/articles"),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(),
-				WithHXSwap("innerHTML show:#articles:top transition:true"),
+				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var45), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

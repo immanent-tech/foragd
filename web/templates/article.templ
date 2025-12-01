@@ -27,7 +27,7 @@ templ articleSummary(article *models.Article) {
 			@NewLink(
 				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 				WithHXTarget(ContentID.Target()),
-				WithHXSwap("innerHTML show:top,transition:true"),
+				WithHXSwap("innerHTML show:window:top,transition:true"),
 				WithHXPushURL(),
 			) {
 				<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
@@ -49,7 +49,7 @@ templ articleSummary(article *models.Article) {
 						WithHXVals(overrides),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
-						WithHXSwap("innerHTML show:#articles:top transition:true"),
+						WithHXSwap("innerHTML show:window:top transition:true"),
 						WithClasses("truncate"),
 					) {
 						{ article.GetFeedTitle() }
@@ -242,7 +242,7 @@ templ ArticleContent(article *models.Article) {
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(),
-						WithHXSwap("innerHTML show:#articles:top transition:true"),
+						WithHXSwap("innerHTML show:window:top transition:true"),
 						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 					) {
 						<h3>{ article.GetFeedTitle() }</h3>

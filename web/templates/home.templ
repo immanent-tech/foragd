@@ -63,7 +63,7 @@ templ (page *Home) Template() {
 									@NewLink(
 										WithHXMethod(http.MethodGet, "/list/articles"),
 										WithHXTarget(ContentID.Target()),
-										WithHXSwap("innerHTML show:#articles:top transition:true"),
+										WithHXSwap("innerHTML show:window:top transition:true"),
 										WithHXVals(params),
 										WithHXPushURL(),
 									) {
@@ -105,7 +105,7 @@ templ (page *Home) Template() {
 											@NewLink(
 												WithHXMethod(http.MethodGet, "/list/articles"),
 												WithHXTarget(ContentID.Target()),
-												WithHXSwap("innerHTML show:#articles:top transition:true"),
+												WithHXSwap("innerHTML show:window:top transition:true"),
 												WithHXVals(params),
 												WithHXPushURL(),
 												WithCustomAttribute("tabindex", "0"),

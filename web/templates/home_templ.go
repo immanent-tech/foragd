@@ -153,7 +153,7 @@ func (page *Home) Template() templ.Component {
 						templ_7745c5c3_Err = NewLink(
 							WithHXMethod(http.MethodGet, "/list/articles"),
 							WithHXTarget(ContentID.Target()),
-							WithHXSwap("innerHTML show:#articles:top transition:true"),
+							WithHXSwap("innerHTML show:window:top transition:true"),
 							WithHXVals(params),
 							WithHXPushURL(),
 						).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
@@ -233,7 +233,7 @@ func (page *Home) Template() templ.Component {
 							templ_7745c5c3_Err = NewLink(
 								WithHXMethod(http.MethodGet, "/list/articles"),
 								WithHXTarget(ContentID.Target()),
-								WithHXSwap("innerHTML show:#articles:top transition:true"),
+								WithHXSwap("innerHTML show:window:top transition:true"),
 								WithHXVals(params),
 								WithHXPushURL(),
 								WithCustomAttribute("tabindex", "0"),

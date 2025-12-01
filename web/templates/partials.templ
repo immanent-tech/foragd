@@ -78,7 +78,7 @@ templ EmptyContent() {
 templ Content(user *models.User, content templ.Component) {
 	@header(user)
 	@SideBar(nil)
-	<div class="lg:pl-36">
+	<div class="lg:pl-36 scroll-mt-16">
 		<div id={ ContentID.String() } hx-indicator="#content-loading">
 			// @templ.Fragment(FragmentContent) {
 			@content
