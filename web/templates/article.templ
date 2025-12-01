@@ -39,21 +39,24 @@ templ articleSummary(article *models.Article) {
 					@showTimestamp(article.GetUpdatedDate())
 				</p>
 				<p class="flex text-xs truncate">
-					{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": article.GetSubscriptionID()} }}
-					{{ overrides[models.ParamView] = string(models.ViewUnread) }}
-					{{ overrides[models.ParamSubscriptionID] = article.GetSubscriptionID() }}
-					{{ overrides[models.ParamSubscriptionName] = article.GetFeedTitle() }}
-					@NewLink(
-						WithHXMethod(http.MethodGet, "/list/articles"),
-						WithHXInclude("#content-filters"),
-						WithHXVals(overrides),
-						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
-						WithHXSwap("innerHTML show:window:top transition:true"),
-						WithClasses("truncate"),
-					) {
+					@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
 						{ article.GetFeedTitle() }
 					}
+					// {{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": article.GetSubscriptionID()} }}
+					// {{ overrides[models.ParamView] = string(models.ViewUnread) }}
+					// {{ overrides[models.ParamSubscriptionID] = article.GetSubscriptionID() }}
+					// {{ overrides[models.ParamSubscriptionName] = article.GetFeedTitle() }}
+					// @NewLink(
+					// 	WithHXMethod(http.MethodGet, "/list/articles"),
+					// 	WithHXInclude("#content-filters"),
+					// 	WithHXVals(overrides),
+					// 	WithHXTarget(ContentID.Target()),
+					// 	WithHXPushURL(),
+					// 	WithHXSwap("innerHTML show:window:top transition:true"),
+					// 	WithClasses("truncate"),
+					// ) {
+					// 	{ article.GetFeedTitle() }
+					// }
 				</p>
 			</div>
 			// Article content summary.
@@ -403,95 +406,12 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 }
 
 // ArticlesGrid renders the list of articles in a grid layout with filtering controls and an actions menu.
-templ ArticlesGrid(subscriptionName string, subscriptionID models.SubscriptionID, articles models.Articles, pagination models.Pagination) {
+templ ArticlesGrid(articles models.Articles, pagination models.Pagination) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 	@main() {
-		// Dynamic title with view and sort state.
-		<div id="articles" class="flex items-center justify-between mt-4">
-			<div class="min-w-0 flex-1">
-				<h2 class="page-title sm:truncate">
-					if subscriptionID != "" && len(articles) > 0 {
-						{ subscriptionName }
-					} else {
-						Articles
-					}
-				</h2>
-			</div>
-			// Actions menu.
-			<el-dropdown class="inline-block flex-none">
-				<button class="inline-flex flex-col items-center">
-					<span class="sr-only">Articles Actions</span>
-					@tabler.DotsVertical(i.Props{Class: "size-6"})
-				</button>
-				<el-menu anchor="bottom end" popover>
-					<div class="py-1">
-						if subscriptionID == "" {
-							// Mark all articles action.
-							<form>
-								<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-								<a
-									if filters.GetView() == models.ViewUnread {
-										hx-post="/list/articles/mark/read"
-									} else {
-										hx-post="/list/articles/mark/unread"
-									}
-									hx-target={ ContentID.Target() }
-									hx-include="#grid-objects,[name='csrf_token']"
-								>
-									if filters.GetView() == models.ViewUnread {
-										@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-										<span class="sr-only">Mark All Read</span>
-										Mark Articles Read
-										<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-									} else {
-										@tabler.MailFilled(i.Props{Class: "size-4"})
-										<span class="sr-only">Mark All Unread</span>
-										Mark Articles Unread
-										<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-									}
-								</a>
-							</form>
-						} else {
-							// Mark subscription action.
-							<form id={ "mark-" + subscriptionID }>
-								// MarkURL returns the app URL for marking the subscription.
-								{{ var markURL string }}
-								{{ var markText string }}
-								{{ var markIcon templ.Component }}
-								if filters.GetView() == models.ViewUnread {
-									{{ markURL = "/mark/subscription/" + subscriptionID + "/read" }}
-									{{ markText = "Mark Subscription Read" }}
-									{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
-								} else {
-									{{ markURL = "/mark/subscription/" + subscriptionID + "/unread" }}
-									{{ markText = "Mark Subscription Unread" }}
-									{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
-								}
-								@NewLink(
-									WithHXMethod(http.MethodPost, markURL),
-									WithHXInclude("[name='csrf_token'],[name='view']"),
-								) {
-									@markIcon
-									{ markText }
-								}
-							</form>
-							// Edit subscription action.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
-								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(),
-							) {
-								@tabler.Edit(i.Props{Class: "size-4"})
-								Edit Subscription
-							}
-						}
-					</div>
-				</el-menu>
-			</el-dropdown>
-		</div>
 		@generateFilters(filters)
 		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
-		@FilterControls("/list/articles", articles.GetCategoryCounts(), filters)
+		@FilterControls("/list/articles", articles.GetCategoryCounts(), filters, articlesActionsButton(filters))
 		<section class="mt-4">
 			if len(articles) > 0 {
 				@grid() {
@@ -503,6 +423,81 @@ templ ArticlesGrid(subscriptionName string, subscriptionID models.SubscriptionID
 			}
 		</section>
 	}
+}
+
+// articlesActionsButton creates a button containing a menu of actions to apply to a list of articles, or
+// actions related to articles.
+templ articlesActionsButton(filters *models.ListDisplayFilters) {
+	<el-dropdown class="inline-block flex-none">
+		<button class="inline-flex btn btn-wide">
+			Actions
+			@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+		</button>
+		<el-menu anchor="bottom end" popover>
+			<div class="py-1">
+				if len(filters.GetSubscriptions()) != 1 {
+					// Mark all articles action.
+					<form>
+						<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+						<a
+							if filters.GetView() == models.ViewUnread {
+								hx-post="/list/articles/mark/read"
+							} else {
+								hx-post="/list/articles/mark/unread"
+							}
+							hx-target={ ContentID.Target() }
+							hx-include="#grid-objects,[name='csrf_token']"
+						>
+							if filters.GetView() == models.ViewUnread {
+								@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+								<span class="sr-only">Mark All Read</span>
+								Mark Articles Read
+								<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+							} else {
+								@tabler.MailFilled(i.Props{Class: "size-4"})
+								<span class="sr-only">Mark All Unread</span>
+								Mark Articles Unread
+								<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+							}
+						</a>
+					</form>
+				} else {
+					// Mark subscription action.
+					<form id={ "mark-" + filters.GetSubscriptions()[0] }>
+						// MarkURL returns the app URL for marking the subscription.
+						{{ var markURL string }}
+						{{ var markText string }}
+						{{ var markIcon templ.Component }}
+						if filters.GetView() == models.ViewUnread {
+							{{ markURL = "/mark/subscription/" + filters.GetSubscriptions()[0] + "/read" }}
+							{{ markText = "Mark Subscription Read" }}
+							{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
+						} else {
+							{{ markURL = "/mark/subscription/" + filters.GetSubscriptions()[0] + "/unread" }}
+							{{ markText = "Mark Subscription Unread" }}
+							{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
+						}
+						@NewLink(
+							WithHXMethod(http.MethodPost, markURL),
+							WithHXInclude("[name='csrf_token'],[name='view']"),
+						) {
+							@markIcon
+							{ markText }
+						}
+					</form>
+					// Edit subscription action.
+					@NewLink(
+						WithHXMethod(http.MethodGet, "/edit/subscription/"+filters.GetSubscriptions()[0]),
+						WithHXTarget(ContentID.Target()),
+						WithHXPushURL(),
+					) {
+						@tabler.Edit(i.Props{Class: "size-4"})
+						Edit Subscription
+					}
+				}
+			</div>
+		</el-menu>
+	</el-dropdown>
 }
 
 // Articles renders the given list of articles as cards with an optional element to trigger pagination to load more.

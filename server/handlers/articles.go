@@ -59,10 +59,7 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 				)
 			}
 			// Render appropriate content.
-			// Get any subscriptionID parameter indicating the request is for a single subscription.
-			subscriptionID := req.FormValue(models.ParamSubscriptionID)
-			subscriptionName := req.FormValue(models.ParamSubscriptionName)
-			template = templates.ArticlesGrid(subscriptionName, subscriptionID, articles, pagination)
+			template = templates.ArticlesGrid(articles, pagination)
 
 			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {

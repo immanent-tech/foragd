@@ -50,17 +50,7 @@ templ SubscriptionCard(s *models.Subscription) {
 						} else {
 							{{ view = models.ViewRead }}
 						}
-						{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), models.ParamSubscriptions: s.GetID()} }}
-						{{ overrides[models.ParamView] = string(view) }}
-						{{ overrides[models.ParamSubscriptionID] = s.GetID() }}
-						{{ overrides[models.ParamSubscriptionName] = s.GetTitle() }}
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/list/articles"),
-							WithHXInclude("#content-filters"),
-							WithHXVals(overrides),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
-							WithHXSwap("innerHTML show:window:top transition:true"),
+						@viewFeedSubscriptionLink(s.GetID(), s.GetTitle(), view,
 							WithClasses("flex", "flex-1", "items-center", "gap-x-4"),
 						) {
 							<div class="flex flex-1 items-center">
@@ -260,94 +250,33 @@ templ subscriptionContextMenu(s *models.Subscription) {
 	</el-dropdown>
 }
 
+templ viewFeedSubscriptionLink(id models.SubscriptionID, title string, view models.View, options ...Option[element]) {
+	{{ values := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
+	{{ values[models.ParamSubscriptions] = id }}
+	{{ values[models.ParamView] = view }}
+	{{
+		allOptions := []Option[element]{
+			WithHXMethod(http.MethodGet, "/list/articles"),
+			WithHXVals(values),
+			WithHXTarget(ContentID.Target()),
+			WithHXPushURL(),
+			WithHXSwap("innerHTML show:window:top transition:true"),
+		}
+		allOptions = append(allOptions, options...)
+	}}
+	@NewLink(allOptions...) {
+		{ children... }
+	}
+}
+
 // SubscriptionsGrid renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.Subscription) {
 	{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions") }}
 	@main() {
-		<div id="subscriptions" class="flex items-center justify-between mt-4">
-			// Page heading.
-			<div class="min-w-0 flex-1">
-				<h2 class="page-title">
-					Subscriptions
-				</h2>
-			</div>
-			// Subscriptions actions menu.
-			<el-dropdown class="inline-block flex-none">
-				<button class="inline-flex flex-col items-center">
-					<span class="sr-only">Subscriptions Actions</span>
-					@tabler.DotsVertical(i.Props{Class: "size-6"})
-				</button>
-				<el-menu anchor="bottom end" popover>
-					<div class="py-1">
-						// Mark all subscriptions action.
-						<form>
-							for subscription := range slices.Values(filters.GetSubscriptions()) {
-								<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-							}
-							<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-							{{ var markText string }}
-							{{ var markURL string }}
-							{{ var markIcon templ.Component }}
-							if filters.GetView() == models.ViewUnread {
-								{{ markText = "Mark All Read" }}
-								{{ markURL = "/list/subscriptions/mark/" + string(models.MarkRead) }}
-								{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
-								<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-							} else {
-								{{ markText = "Mark All Unread" }}
-								{{ markURL = "/list/subscriptions/mark/" + string(models.MarkUnread) }}
-								{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
-								<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
-							}
-							@NewLink(
-								WithHXMethod(http.MethodPost, markURL),
-								WithHXTarget(ContentID.Target()),
-								WithHXInclude("[name='csrf_token']"),
-							) {
-								@markIcon
-								<span class="sr-only">{ markText }</span>
-								{ markText }
-							}
-						</form>
-					</div>
-					<div class="py-1">
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
-						) {
-							@tabler.Plus(i.Props{Class: "size-4"})
-							Add Feed Subscription
-						}
-					</div>
-					<div class="py-1">
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/user/subscription/add/search"),
-							WithHXTarget(ContentID.Target()),
-							WithHXInclude("#search-filters"),
-							WithHXPushURL(),
-						) {
-							@tabler.Plus(i.Props{Class: "size-4"})
-							Add Search Subscription
-						}
-					</div>
-					<div class="py-1">
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/user/subscription/add/group"),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
-						) {
-							@tabler.Plus(i.Props{Class: "size-4"})
-							Add Group Subscription
-						}
-					</div>
-				</el-menu>
-			</el-dropdown>
-		</div>
 		// Hidden content filters.
 		@generateFilters(filters)
 		<div id="update-notifications" sse-connect={ "/list/subscriptions/updates?" + filters.QueryParams().Encode() } sse-swap="message" class="toast toast-center z-50"></div>
-		@FilterControls("/list/subscriptions", models.GetCategoryCounts(subscriptions...), filters)
+		@FilterControls("/list/subscriptions", models.GetCategoryCounts(subscriptions...), filters, subscriptionsActionsButton(filters))
 		<section class="mt-4">
 			if len(subscriptions) > 0 {
 				@grid() {
@@ -358,6 +287,83 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 			}
 		</section>
 	}
+}
+
+// subscriptionsActionsButton creates a button containing a menu of actions to apply to a list of subscriptions, or
+// actions related to subscriptions.
+templ subscriptionsActionsButton(filters *models.ListDisplayFilters) {
+	// Subscriptions actions menu.
+	<el-dropdown class="inline-block flex-none">
+		<button class="inline-flex btn btn-wide">
+			Actions
+			@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+		</button>
+		<el-menu anchor="bottom end" popover>
+			<div class="py-1">
+				// Mark all subscriptions action.
+				<form>
+					for subscription := range slices.Values(filters.GetSubscriptions()) {
+						<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+					}
+					<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+					{{ var markText string }}
+					{{ var markURL string }}
+					{{ var markIcon templ.Component }}
+					if filters.GetView() == models.ViewUnread {
+						{{ markText = "Mark All Read" }}
+						{{ markURL = "/list/subscriptions/mark/" + string(models.MarkRead) }}
+						{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
+						<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+					} else {
+						{{ markText = "Mark All Unread" }}
+						{{ markURL = "/list/subscriptions/mark/" + string(models.MarkUnread) }}
+						{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
+						<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+					}
+					@NewLink(
+						WithHXMethod(http.MethodPost, markURL),
+						WithHXTarget(ContentID.Target()),
+						WithHXInclude("[name='csrf_token']"),
+					) {
+						@markIcon
+						<span class="sr-only">{ markText }</span>
+						{ markText }
+					}
+				</form>
+			</div>
+			<div class="py-1">
+				@NewLink(
+					WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
+					WithHXTarget(ContentID.Target()),
+					WithHXPushURL(),
+				) {
+					@tabler.Plus(i.Props{Class: "size-4"})
+					Add Feed Subscription
+				}
+			</div>
+			<div class="py-1">
+				@NewLink(
+					WithHXMethod(http.MethodGet, "/user/subscription/add/search"),
+					WithHXTarget(ContentID.Target()),
+					WithHXInclude("#search-filters"),
+					WithHXPushURL(),
+				) {
+					@tabler.Plus(i.Props{Class: "size-4"})
+					Add Search Subscription
+				}
+			</div>
+			<div class="py-1">
+				@NewLink(
+					WithHXMethod(http.MethodGet, "/user/subscription/add/group"),
+					WithHXTarget(ContentID.Target()),
+					WithHXPushURL(),
+				) {
+					@tabler.Plus(i.Props{Class: "size-4"})
+					Add Group Subscription
+				}
+			</div>
+		</el-menu>
+	</el-dropdown>
 }
 
 // Subscriptions renders the given list of subscriptions as cards with an optional element to trigger pagination to load more.
