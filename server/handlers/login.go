@@ -7,7 +7,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -24,11 +23,6 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-// type authAPI interface {
-// 	AuthCodeURL(state string, opts ...oauth2.AuthCodeOption) string
-// 	Exchange(ctx context.Context, code string, opts ...oauth2.AuthCodeOption) (*oauth2.Token, error)
-// }
-
 // Login handles login requests.
 func Login() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -41,7 +35,10 @@ func Login() http.HandlerFunc {
 		// prompt=login&screen_hint=signup
 		state, err := generateRandomState()
 		if err != nil {
-			template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "")))
+			template := templates.Page(
+				"Foragd",
+				templates.ExternalErrorPage(models.NewErrorMessage("Unable to log in.", "")),
+			)
 			err := template.Render(req.Context(), res)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -53,6 +50,9 @@ func Login() http.HandlerFunc {
 		var authURL string
 		switch chi.RouteContext(req.Context()).RoutePattern() {
 		case "/signup":
+			// Retrieve and save the selected plan id into the session for later use.
+			planID := req.URL.Query().Get(models.ParamPlanID)
+			session.SaveToSession(req.Context(), models.ParamPlanID, planID)
 			authURL = auth0.AuthClient.AuthCodeURL(state,
 				oauth2.SetAuthURLParam("screen_hint", "signup"),
 			)
@@ -68,9 +68,7 @@ func Login() http.HandlerFunc {
 }
 
 // LoginCallback handles processing the response from a login provider.
-//
-//nolint:gocognit,nestif
-func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
+func LoginCallback(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// provider := chi.URLParam(req, "provider")
 
@@ -78,7 +76,7 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 		if state != session.Manager.GetString(req.Context(), "state") {
 			template := templates.Page(
 				"Foragd",
-				templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")),
+				templates.ExternalErrorPage(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")),
 			)
 			err := template.Render(req.Context(), res)
 			if err != nil {
@@ -95,7 +93,7 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 		if err != nil {
 			template := templates.Page(
 				"Foragd",
-				templates.ErrorPage(
+				templates.ExternalErrorPage(
 					models.NewErrorMessage(
 						"Unable to log in.",
 						"Failed to exchange an authorization code for a token.",
@@ -113,7 +111,9 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 
 		idToken, err := auth0.AuthClient.VerifyIDToken(req.Context(), token)
 		if err != nil {
-			template := templates.ErrorPage(models.NewErrorMessage("Unable to log in.", "Failed to verify ID Token."))
+			template := templates.ExternalErrorPage(
+				models.NewErrorMessage("Unable to log in.", "Failed to verify ID Token."),
+			)
 			renderPage(template, "").ServeHTTP(res, req)
 			return
 		}
@@ -123,7 +123,7 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 		if err != nil {
 			template := templates.Page(
 				"Foragd",
-				templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
+				templates.ExternalErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
 			)
 			err := template.Render(req.Context(), res)
 			if err != nil {
@@ -137,77 +137,67 @@ func LoginCallback(storeAPI *elastic.API) http.HandlerFunc {
 		session.Manager.Put(req.Context(), "access_token", token.AccessToken)
 		session.Manager.Put(req.Context(), "profile", profile)
 
-		_, err = storeAPI.FindUserByExternalID(req.Context(), profile.GetID())
-		if err != nil {
-			var apiError models.APIError
-			// If a local user is not found, create one.
-			if errors.As(err, &apiError) {
-				if apiError.StatusCode == http.StatusNotFound {
-					user := models.NewUser(
-						profile.GetID(),
-						profile.GetEmail(),
-						"auth0",
-						models.UserSubscriptionLevelGatherer,
-					)
-					valid, err := user.Valid(req.Context())
-					if err != nil || !valid {
-						template := templates.Page(
-							"Foragd",
-							templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
-						)
-						err := template.Render(req.Context(), res)
-						if err != nil {
-							slogctx.FromCtx(req.Context()).
-								Error("Failed to render page template.", slog.Any("error", err))
-							http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-							return
-						}
-						return
-					}
-					err = storeAPI.CreateUser(req.Context(), user)
-					if err != nil {
-						template := templates.Page(
-							"Foragd",
-							templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
-						)
-						err := template.Render(req.Context(), res)
-						if err != nil {
-							slogctx.FromCtx(req.Context()).
-								Error("Failed to render page template.", slog.Any("error", err))
-							http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-							return
-						}
-						return
-					}
-					slogctx.FromCtx(req.Context()).Debug("Created new local user.")
-				}
-			} else {
-				template := templates.Page("Foragd", templates.ErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())))
+		user, err := api.FindUserByExternalID(req.Context(), profile.GetID())
+		switch {
+		case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
+			// Create a new local account for the user
+			if err := createLocalUser(req.Context(), api, profile); err != nil {
+				template := templates.Page(
+					"Foragd",
+					templates.ExternalErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
+				)
 				err := template.Render(req.Context(), res)
 				if err != nil {
-					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+					slogctx.FromCtx(req.Context()).
+						Error("Failed to render page template.", slog.Any("error", err))
 					http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
 					return
 				}
 				return
 			}
+		case err != nil: // Backend error.
+			template := templates.Page(
+				"Foragd",
+				templates.ExternalErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
+			)
+			err := template.Render(req.Context(), res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
+			return
+		default: // Existing user.
+			// Sync user data from the backend.
+			syncLocalUser(req.Context(), api, user, profile)
 		}
-		// Sync user data from the backend.
-		syncLocalUser(req.Context(), storeAPI, profile)
-		// slogctx.FromCtx(req.Context()).Debug("Redirecting")
-		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
+		ctx := models.UserToCtx(req.Context(), user)
+		// Check whether this is a first-time login for the user. If so, redirect to choosing a subscription plan, else,
+		// redirect to home page.
+		if profile.LoginsCount == 1 {
+			http.Redirect(res, req.WithContext(ctx), "/signup/choose-plan", http.StatusSeeOther)
+		} else {
+			http.Redirect(res, req.WithContext(ctx), "/home", http.StatusTemporaryRedirect)
+		}
 	}).ServeHTTP
 }
 
-// syncLocalUser tries to sync relevant user data from the auth backend to the local data.
-func syncLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProfile) {
-	user, err := api.FindUserByExternalID(ctx, profile.GetID())
-	if err != nil {
-		slogctx.FromCtx(ctx).Error("Could not sync user data.",
-			slog.Any("error", err))
-		return
+func createLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProfile) error {
+	user := models.NewUser(profile.GetID(), profile.GetEmail())
+	valid, err := user.Valid(ctx)
+	if err != nil || !valid {
+		return fmt.Errorf("create local user: %w", err)
 	}
-	ctx = models.UserToCtx(ctx, user)
+	err = api.CreateUser(ctx, user)
+	if err != nil {
+		return fmt.Errorf("create local user: %w", err)
+	}
+
+	return nil
+}
+
+// syncLocalUser tries to sync relevant user data from the auth backend to the local data.
+func syncLocalUser(ctx context.Context, api *elastic.API, user *models.User, profile auth0.UserProfile) {
 	ctx = elastic.SetupIndexAliases(ctx)
 	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
 	updates := make(map[string]any)
@@ -225,13 +215,14 @@ func syncLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProf
 	}
 	// If no updates are necessary, bail early.
 	if len(updates) > 0 {
-		err = api.UpdateUser(ctx, user.GetID(), updates)
+		err := api.UpdateUser(ctx, user.GetID(), updates)
 		if err != nil {
 			slogctx.FromCtx(ctx).Error("Could not sync user data.",
 				slog.Any("error", err))
 			return
 		}
 	}
+
 }
 
 func generateRandomState() (string, error) {

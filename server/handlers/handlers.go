@@ -237,6 +237,10 @@ func renderPartial(template templ.Component) http.Handler {
 	return templ.Handler(templ.Join(template, templates.UpdateCSRFToken()))
 }
 
+func externalPage(title string, template templ.Component) http.Handler {
+	return templ.Handler(templates.Page(title, template))
+}
+
 // IsHTMX returns a boolean indicating whether the request is a HTMX request.
 func IsHTMX(req *http.Request) bool {
 	return req.Header.Get("HX-Request") == "true" //nolint:goconst // unnecessary.
@@ -298,14 +302,6 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 			)
 			return
 		}
-		updateInterval, err := time.ParseDuration(user.GetSettings().UpdatesFrequency)
-		if err != nil {
-			res.WriteHeader(http.StatusNoContent)
-			slogctx.FromCtx(req.Context()).Error("Unable to watch for updates.",
-				slog.Any("error", err),
-			)
-			return
-		}
 
 		// Set headers for SSE.
 		res.Header().Set("Content-Type", "text/event-stream")
@@ -322,7 +318,7 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 			currentCount int64
 			prevCount    int64
 		)
-		prevCount, err = api.CountItems(req.Context(), watch)
+		prevCount, err := api.CountItems(req.Context(), watch)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
 				slog.Any("error", err))
@@ -330,6 +326,7 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 			return
 		}
 
+		updateInterval := user.GetUpdatesFrequency()
 		for {
 			select {
 			case <-req.Context().Done():

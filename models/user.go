@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/immanent-tech/foragd/validation"
@@ -16,12 +17,12 @@ const (
 	// DefaultUserTheme is the default theme for the app.
 	DefaultUserTheme = "light"
 
-	BasicAccountMaxHistory          = 7 * 24 * time.Hour // One week.
-	BasicAccountUpdatesFrequency    = time.Hour
-	StandardAccountMaxHistory       = 30 * 24 * time.Hour // One month.
-	StandardAccountUpdatesFrequency = 5 * time.Minute
-	PremiumAccountMaxHistory        = 365 * 24 * time.Hour // One year.
-	PremiumAccountUpdatesFrequency  = time.Minute
+	GathererMaxHistory        = 7 * 24 * time.Hour // One week.
+	GathererUpdatesFrequency  = time.Hour
+	CollectorMaxHistory       = 30 * 24 * time.Hour // One month.
+	CollectorUpdatesFrequency = 5 * time.Minute
+	CuratorMaxHistory         = 365 * 24 * time.Hour // One year.
+	CuratorUpdatesFrequency   = time.Minute
 )
 
 var (
@@ -30,14 +31,14 @@ var (
 )
 
 // NewUser creates a new user from the external provider details.
-func NewUser(externalID, email, provider string, level UserSubscriptionLevel) *User {
+func NewUser(externalID, email string) *User {
 	ts := time.Now().UTC()
 	user := &User{
 		CreatedAt:      ts,
 		UpdatedAt:      ts,
 		ExternalUserId: externalID,
+		Provider:       strings.Split(externalID, "|")[0],
 		Email:          email,
-		Provider:       provider,
 		UserID:         NewID(UserPFX),
 		Settings: UserSettings{
 			Theme:                 DefaultUserTheme,
@@ -45,20 +46,8 @@ func NewUser(externalID, email, provider string, level UserSubscriptionLevel) *U
 			ShowSubscriptionStats: false,
 			MarkArticleReadOnView: true,
 		},
-		SubscriptionLevel: level,
 	}
-	// Set account level based user settings.
-	switch user.SubscriptionLevel {
-	case UserSubscriptionLevelGatherer:
-		user.Settings.MaxHistory = BasicAccountMaxHistory.String()
-		user.Settings.UpdatesFrequency = BasicAccountUpdatesFrequency.String()
-	case UserSubscriptionLevelCollector:
-		user.Settings.MaxHistory = StandardAccountMaxHistory.String()
-		user.Settings.UpdatesFrequency = StandardAccountUpdatesFrequency.String()
-	case UserSubscriptionLevelCurator:
-		user.Settings.MaxHistory = PremiumAccountMaxHistory.String()
-		user.Settings.UpdatesFrequency = PremiumAccountUpdatesFrequency.String()
-	}
+
 	return user
 }
 
@@ -92,19 +81,29 @@ func (u *User) GetEmail() string {
 	return u.Email
 }
 
-// GetMaxHistory returns a timestamp in the past from which the user can view
-// items.
+// GetMaxHistory returns a timestamp in the past from which the user can view items. If there is an issue retrieving and
+// parsing the value from the user's metadata, it will default to using the lowest plan max history.
 func (u *User) GetMaxHistory() time.Time {
-	if u.GetSettings().MaxHistory == "" {
-		return time.Now().Add(-BasicAccountMaxHistory)
+	if u.Metadata.MaxHistory == "" {
+		return time.Now().Add(-GathererMaxHistory)
 	}
 
-	dur, err := time.ParseDuration(u.GetSettings().MaxHistory)
+	dur, err := time.ParseDuration(u.Metadata.MaxHistory)
 	if err != nil {
-		return time.Now().Add(-BasicAccountMaxHistory)
+		return time.Now().Add(-GathererMaxHistory)
 	}
 
 	return time.Now().Add(-dur)
+}
+
+// GetUpdatesFrequency returns a duration on which the user will see new updates. If there is an issue retrieving and
+// parsing the value from the user's metdata, it will use the lowest plan updates frequency.
+func (u *User) GetUpdatesFrequency() time.Duration {
+	freq, err := time.ParseDuration(u.Metadata.UpdatesFrequency)
+	if err != nil {
+		return GathererUpdatesFrequency
+	}
+	return freq
 }
 
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be
@@ -113,13 +112,10 @@ func (u *User) GetSettings() *UserSettings {
 	return &u.Settings
 }
 
-// GetSubscriptionLevel returns the subscription level the user has paid for. If this is missing, it defaults to the
+// GetPlan returns the subscription level the user has paid for. If this is missing, it defaults to the
 // lowest level (gatherer) subscription.
-func (u *User) GetSubscriptionLevel() string {
-	if u.SubscriptionLevel != "" {
-		return string(u.SubscriptionLevel)
-	}
-	return string(UserSubscriptionLevelGatherer)
+func (u *User) GetPlan() string {
+	return u.Metadata.Plan
 }
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
@@ -134,6 +130,16 @@ func (s *UserSettings) Valid() error {
 
 // Sanitise will sanitise UserSettings values.
 func (s *UserSettings) Sanitise() error {
+	return nil
+}
+
+// Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
+// (false) a non-nil error is also returned which contains validation issues.
+func (s *UserMetadata) Valid() error {
+	err := validation.Validate.Struct(s)
+	if err != nil {
+		return fmt.Errorf("invalid user metadata: %w", err)
+	}
 	return nil
 }
 

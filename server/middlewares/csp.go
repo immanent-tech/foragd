@@ -12,11 +12,11 @@ var CSPPolicy = []string{
 	`base-uri 'self';`,
 	`default-src 'self';`,
 	`style-src 'self' 'unsafe-inline';`,
-	`script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://cloud.umami.is https://static.cloudflareinsights.com;`,
+	`script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://cloud.umami.is https://static.cloudflareinsights.com https://*.stripe.com;`,
 	`img-src * data: *;`,
 	`media-src *;`,
 	`font-src 'self';`,
-	`connect-src 'self' https://cdn.jsdelivr.net https://cloud.umami.is https://static.cloudflareinsights.com;`,
+	`connect-src 'self' https://auth.foragd.app https://cdn.jsdelivr.net https://cloud.umami.is https://static.cloudflareinsights.com https://*.stripe.com;`,
 	`frame-src *;`,
 }
 
@@ -29,6 +29,7 @@ func SetupCSP() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			res.Header().Add("Content-Security-Policy", strings.Join(CSPPolicy, " "))
+			res.Header().Add("Access-Control-Allow-Origin", "https://auth.foragd.app")
 			next.ServeHTTP(res, req)
 		})
 	}

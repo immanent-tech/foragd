@@ -61,5 +61,7 @@ func SetupCORS() func(next http.Handler) http.Handler {
 			[]string{"Link"},
 			HTMXResponseHeaders...,
 		),
+		AllowedMethods: []string{http.MethodGet, http.MethodHead, http.MethodPost, http.MethodOptions},
+		AllowedOrigins: []string{"https://auth.foragd.app"},
 	}).Handler
 }

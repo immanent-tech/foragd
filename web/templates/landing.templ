@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
@@ -25,8 +26,8 @@ templ Landing() {
 							<h1 class="text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Foragd&nbsp;<sup class="text-sm uppercase">beta</sup></h1>
 							<p class="mt-8 text-lg font-medium text-pretty sm:text-xl/8">Gather whats important to you.</p>
 							<div class="mt-10 flex items-center justify-center gap-x-6">
-								<a href="/signup" role="button" class="btn btn-primary">Sign up</a>
-								<a href="#features" class="link link-hover text-sm/6 font-semibold">Features <span aria-hidden="true">→</span></a>
+								<a role="button" href="#features" class="btn btn-primary text-sm/6 font-semibold">Features</a>
+								<a role="button" href="#pricing" class="btn btn-primary text-sm/6 font-semibold">Pricing</a>
 							</div>
 							<div class="text-sm/6 font-semibold mt-5">
 								Already have an account?<a href="/login" class="link">&nbsp;Log in</a>
@@ -123,119 +124,11 @@ templ Landing() {
 						<h2 id="pricing" class="text-base/7 font-semibold text-primary">Subscriptions and Pricing.</h2>
 						<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">Keep up to date without breaking the bank</p>
 					</div>
-					<p class="mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">Choose an affordable plan with the features you need.</p>
-					<div class="join join-vertical sm:join-horizontal w-full justify-center items-center">
-						<div class="card w-96 bg-base-100 shadow-sm join-item">
-							<div class="card-body">
-								<div class="flex justify-between">
-									<h2 class="text-3xl font-bold">Gatherer</h2>
-									<span class="text-xl">USD $TBD/mo</span>
-								</div>
-								<p class="mt-4 text-sm/6">Perfect for keeping up with the latest news feeds.</p>
-								<ul class="mt-6 flex flex-col gap-2 text-xs">
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>Last week article history</span>
-									</li>
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>15 subscriptions</span>
-									</li>
-								</ul>
-								<div class="mt-6">
-									<button class="btn btn-accent btn-block">Subscribe</button>
-								</div>
-							</div>
-						</div>
-						<div class="card w-96 bg-base-100 shadow-sm join-item">
-							<div class="card-body">
-								<span class="badge badge-xs badge-primary">Recommended</span>
-								<div class="flex justify-between">
-									<h2 class="text-3xl font-bold">Collector</h2>
-									<span class="text-xl">USD $TBD/mo</span>
-								</div>
-								<p class="mt-4 text-sm/6">Great for following the news and your favorite blogs/content sites.</p>
-								<ul class="mt-6 flex flex-col gap-2 text-xs">
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>Last six months article history</span>
-									</li>
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>150 subscriptions</span>
-									</li>
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>Subscription/Article favorites</span>
-									</li>
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-warning"})
-										<span>Selected new features as they are released</span>
-									</li>
-								</ul>
-								<div class="mt-6">
-									<button class="btn btn-accent btn-block">Subscribe</button>
-								</div>
-							</div>
-						</div>
-						<div class="card w-96 bg-base-100 shadow-sm join-item">
-							<div class="card-body">
-								<div class="flex justify-between">
-									<h2 class="text-3xl font-bold">Curator</h2>
-									<span class="text-xl">USD $TBD/mo</span>
-								</div>
-								<p class="mt-4 text-sm/6">Extensive article history and all current and new features.</p>
-								<ul class="mt-6 flex flex-col gap-2 text-xs">
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>Last two years article history</span>
-									</li>
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>Unlimited subscriptions</span>
-									</li>
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>Group subscriptions</span>
-									</li>
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>Search subscriptions</span>
-									</li>
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>Subscription/Article favorites</span>
-									</li>
-									<li>
-										@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-										<span>All new features as they are released</span>
-									</li>
-								</ul>
-								<div class="mt-6">
-									<button class="btn btn-accent btn-block">Subscribe</button>
-								</div>
-							</div>
-						</div>
-					</div>
+					<p class="mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">Choose an affordable plan with the features you need.</p>
+					<p class="mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">All subscription plans come with a 14-day free trial.</p>
+					@planSelection(models.RouteSignup, "get", "Collector-07ad4d0", "Recommended")
 				</div>
 			</div>
-			// // FAQ
-			// <div class="mx-auto mt-32 max-w-7xl px-6 sm:mt-56 lg:px-8">
-			// 	<div class="mx-auto max-w-4xl">
-			// 		<h2 id="faq" class="text-4xl font-semibold tracking-tight sm:text-5xl">Frequently asked questions</h2>
-			// 		<dl class="mt-16 divide-y divide-base-content/10">
-			// 			@landingFAQEntry("faq-support", "Is support available?") {
-			// 				Yes! At the moment, we offer support <a class="link" href="mailto:support@immanent.tech&subject=Foragd Support">via email.</a>
-			// 			}
-			// 			@landingFAQEntry("faq-import", "Can I import my existing subscriptions from elsewhere?") {
-			// 				Yep. Once logged in, there is an action for starting an import in the settings. Foragd supports importing from the <a href="https://opml.org/" class="link">OPML format</a>. Most other feed readers support exporting your subscriptions to OPML, consult their documentation for how to do so.
-			// 			}
-			// 			@landingFAQEntry("faq-new", "I'm new to feeds, I don't have any subscriptions but want to start...") {
-			// 				Welcome to the world of syndication and taking back control of your feeds! When you log in for the first time, you can subscribe to one (or all) of our curated subscription lists: <i>Informed</i>, <i>Inspired</i> and <i>Enlightened</i>. They offer a good selection of curated subscriptions to get you going.
-			// 			}
-			// 		</dl>
-			// 	</div>
-			// </div>
 		</main>
 		// Footer.
 		<footer class="mx-auto max-w-7xl px-6 lg:px-8 mt-32">

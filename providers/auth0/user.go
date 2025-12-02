@@ -26,23 +26,23 @@ func init() {
 // https://pkg.go.dev/github.com/coreos/go-oidc/v3@v3.15.0/oidc#IDToken
 type UserProfile struct {
 	// URL of the server which issued this token.
-	Issuer string `json:"iss" validate:"required,url"`
+	Issuer string `json:"iss"            validate:"required,url"`
 	// The client ID, or set of client IDs, that this token is issued for.
-	Audience string `json:"aud" validate:"required"`
+	Audience string `json:"aud"            validate:"required"`
 	// When the token was issued by the provider.
-	IssuedAt int64 `json:"iat" validate:"required"`
+	IssuedAt int64 `json:"iat"            validate:"required"`
 	// Expiry of the token.
-	Expiry int64 `json:"exp" validate:"required"`
+	Expiry int64 `json:"exp"            validate:"required"`
 	// A unique string which identifies the end user.
-	Subject string `json:"sub" validate:"required"`
+	Subject string `json:"sub"            validate:"required"`
 	// ID of the current session.
-	SessionID string `json:"sid" validate:"required"`
+	SessionID string `json:"sid"            validate:"required"`
 	// The user's email address.
-	Email string `json:"email" validate:"email"`
+	Email string `json:"email"          validate:"email"`
 	// Indicates whether the user has verified their email address.
 	EmailVerified bool `json:"email_verified"`
 	// URL pointing to the user's profile picture.
-	Picture string `json:"picture" validate:"omitempty,url"`
+	Picture string `json:"picture"        validate:"omitempty,url"`
 	// The user's family name.
 	FamilyName string `json:"family_name"`
 	// The user's family name.
@@ -53,6 +53,12 @@ type UserProfile struct {
 	Nickname string `json:"nickname"`
 	// Timestamp indicating when the user's profile was last updated/modified.
 	UpdatedAt string `json:"updated_at"`
+	// LoginsCount is the number of times the user has logged in. If a user is blocked and logs in, the blocked session
+	// is still counted. For a new user, this will be 1 as creating the account is counted as the first login.
+	LoginsCount int64 `json:"logins_count"   validate:"omitempty,gt=1"`
+	// Blocked indicates whether the user has been blocked. Importing enables subscribers to ensure that users remain
+	// blocked when migrating to Auth0.
+	Blocked bool `json:"blocked"`
 }
 
 // GetID returns a string that represents the ID of the external user.

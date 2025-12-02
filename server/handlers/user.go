@@ -12,18 +12,22 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-syndication/opml"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/github"
+	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/validation"
@@ -750,6 +754,156 @@ func SubmitPageIssues() http.HandlerFunc {
 			templates.IssueReportedConfirmation(msg),
 			templates.GeneratePageTitle("Report subscription issue"),
 		).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+// UserChooseSubscriptionPlan handles displaying a page on which the user can choose a subscription plan for purchase.
+func UserChooseSubscriptionPlan() http.HandlerFunc {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Try to find a selected plan id if it exists, from either the request query params or current session data.
+		var planID string
+		switch {
+		case req.URL.Query().Get(models.ParamPlanID) != "":
+			planID = req.URL.Query().Get(models.ParamPlanID)
+		case session.RestoreFromSession(req.Context(), models.ParamPlanID, func() string { return "" }) != "":
+			planID = session.RestoreFromSession(req.Context(), models.ParamPlanID, func() string { return "" })
+		}
+
+		template := templates.Page(
+			"Choose Subscription Plan - "+config.AppName,
+			templates.UserChooseSubscriptionPlan(planID),
+		)
+		err := template.Render(req.Context(), res)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Failed to render page.", slog.Any("error", err))
+			http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+			return
+		}
+	}).ServeHTTP
+}
+
+// UserSubscriptionPlanCheckout handles processing the user's choice of subscription plan and redirecting to the payment
+// processor.
+func UserSubscriptionPlanCheckout() http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Fetch the user details from context.
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			externalPage("Checkout Subscription Plan - "+config.AppName,
+				templates.ExternalErrorPage(models.NewErrorMessage(
+					"Unable to process checkout",
+					"This might be a temporary error, please try again.",
+				)),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf(
+					"user checkout session: unable to retrieve user: %w",
+					models.ErrNoUserCtx,
+				),
+				http.StatusInternalServerError,
+			)
+		}
+
+		// Retrieve the plan id from the session data.
+		planID := req.FormValue(models.ParamPlanID)
+		if planID == "" {
+			externalPage("Checkout Subscription Plan - "+config.AppName,
+				templates.ExternalErrorPage(models.NewErrorMessage(
+					"Unable to process checkout",
+					"This might be a temporary error, please try again.",
+				)),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf(
+					"user checkout session: unable to retrieve plan id from session: %w",
+					ErrInvalidRequestParams,
+				),
+				http.StatusInternalServerError,
+			)
+		}
+
+		// Create a new strip checkout session.
+		var session *stripe.Checkout
+		session, err := stripe.NewCheckoutSession(user, planID)
+		if err != nil {
+			externalPage("Checkout Subscription Plan - "+config.AppName,
+				templates.ExternalErrorPage(models.NewErrorMessage(
+					"Unable to process checkout",
+					"This might be a temporary error, please try again.",
+				)),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("user account checkout: %w", err),
+				http.StatusInternalServerError,
+			)
+		}
+
+		// Redirect to strip processor to complete checkout session.
+		slogctx.FromCtx(req.Context()).Debug("Redirecting user to Stripe for payment.")
+		http.Redirect(res, req, session.URL, http.StatusSeeOther)
+		return nil
+	})).ServeHTTP
+}
+
+func UserAccountSuccess() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// stripeSessionID := req.FormValue("session_id")
+		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
+		return nil
+	})).ServeHTTP
+}
+
+func UserAccountCancel() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		template := templ.Join(
+			templates.Page(config.AppName, templates.Landing()),
+			templates.Notification(
+				models.NewInfoMessage("Subscription sign-up cancelled at user request", ""),
+				10*time.Second,
+			),
+		)
+
+		err := template.Render(req.Context(), res)
+		if err != nil {
+			models.NewAPIError(
+				fmt.Errorf("user account cancel: %w", err),
+				http.StatusInternalServerError,
+			)
+		}
+		return nil
+	})).ServeHTTP
+}
+
+func UserManageAccountSubscription() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+
+		sessionID := req.FormValue("session_id")
+		if sessionID == "" {
+			renderPage(templates.ExternalErrorPage(models.NewErrorMessage(
+				"Unable to process checkout",
+				"This might be a temporary error, please try again.",
+			)), "Subscription Plan Checkout").ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("user manage subscription: %w: no stripe session ID", stripe.ErrInvalidSubscription),
+				http.StatusInternalServerError,
+			)
+		}
+
+		portalSession, err := stripe.NewPortalSession(sessionID)
+		if err != nil {
+			renderPage(templates.ExternalErrorPage(models.NewErrorMessage(
+				"Unable to process checkout",
+				"This might be a temporary error, please try again.",
+			)), "Subscription Plan Checkout").ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("user account checkout: %w", err),
+				http.StatusInternalServerError,
+			)
+		}
+
+		// Redirect to payment processor to complete checkout.
+		http.Redirect(res, req, portalSession.URL, http.StatusSeeOther)
 		return nil
 	})).ServeHTTP
 }

@@ -37,6 +37,35 @@ templ NotFound() {
 	}
 }
 
+// ExternalErrorPage renders a page containing a link to contact support and/or go back to the landing page.
+templ ExternalErrorPage(msg *models.UserMessage) {
+	@main() {
+		<div class="text-center">
+			<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Whoops 😿</h1>
+			<h2 class="mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-5xl">{ msg.Summary }</h2>
+			if msg.HasDetails() {
+				<p class="mt-6 text-lg font-medium text-pretty sm:text-xl/8">{ msg.Details }</p>
+			}
+			<div class="mt-10 flex items-center justify-center gap-x-6">
+				@NewLink(
+					WithCustomAttribute("role", "button"),
+					WithCustomAttribute("href", "/"),
+					WithClasses("btn", "btn-primary"),
+				) {
+					Go Back
+				}
+				@NewLink(
+					WithCustomAttribute("role", "button"),
+					WithCustomAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
+					WithClasses("btn", "btn-ghost"),
+				) {
+					Email Support <span aria-hidden="true">&rarr;</span>
+				}
+			</div>
+		</div>
+	}
+}
+
 templ ErrorPage(msg *models.UserMessage) {
 	@main() {
 		<div class="text-center">

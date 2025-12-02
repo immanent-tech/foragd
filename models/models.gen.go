@@ -93,13 +93,6 @@ const (
 	SubscriptionMetadataTypeSearch SubscriptionMetadataType = "search"
 )
 
-// Defines values for UserSubscriptionLevel.
-const (
-	UserSubscriptionLevelCollector UserSubscriptionLevel = "collector"
-	UserSubscriptionLevelCurator   UserSubscriptionLevel = "curator"
-	UserSubscriptionLevelGatherer  UserSubscriptionLevel = "gatherer"
-)
-
 // Defines values for UserMessageStatus.
 const (
 	UserMessageStatusError   UserMessageStatus = "error"
@@ -344,7 +337,7 @@ type EditSubscriptionRequest struct {
 	NicknameErr error `form:"-" json:"-"`
 
 	// ShowFullArticleContent toggles whether articles in the subscription should be always displayed with remote content.
-	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content,omitempty,omitzero"`
+	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content"`
 
 	// ShowSubscriptionStats indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
 	ShowSubscriptionStats bool `form:"-" json:"-"`
@@ -849,7 +842,7 @@ type SubscriptionMetadataType string
 // SubscriptionSettings contains options that control how the subscription is stored/displayed.
 type SubscriptionSettings struct {
 	// ShowFullArticleContent toggles whether articles in the subscription should be always displayed with remote content.
-	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content,omitempty,omitzero"`
+	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content"`
 
 	// ShowSubscriptionStats indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
 	ShowSubscriptionStats bool `form:"-" json:"-"`
@@ -890,11 +883,11 @@ type User struct {
 	// ExternalUserId is the ID of the user on the external backend that was used to create the account.
 	ExternalUserId string `json:"external_user_id" validate:"required"`
 
-	// IsTrial indicates whether the user is on a trial.
-	IsTrial bool `json:"is_trial"`
-
 	// ItemFavorites is the IDs of items (articles) the user has favorited.
 	ItemFavorites []ItemID `json:"item_favorites,omitempty,omitzero" validate:"omitempty,dive,startswith=item_"`
+
+	// Metadata contains metadata related to the user's account.
+	Metadata UserMetadata `json:"metadata,omitempty,omitzero" validate:"omitempty"`
 
 	// Nickname is a nickname for the user.
 	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero"`
@@ -905,18 +898,12 @@ type User struct {
 	// Settings contains user-specific settings for the application.
 	Settings UserSettings `json:"settings,omitempty,omitzero"`
 
-	// SubscriptionLevel is the subscription level that the account is paying for.
-	SubscriptionLevel UserSubscriptionLevel `json:"subscription_level,omitempty,omitzero" validate:"required,oneof=gatherer collector curator"`
-
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
 	// UserID is the unique ID of a user.
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
 }
-
-// UserSubscriptionLevel is the subscription level that the account is paying for.
-type UserSubscriptionLevel string
 
 // UserCustomisation contains account fields that a user can customize.
 type UserCustomisation struct {
@@ -948,6 +935,27 @@ type UserMessage struct {
 // UserMessageStatus indicates the severity or importance of the message.
 type UserMessageStatus string
 
+// UserMetadata contains metadata related to the user's account.
+type UserMetadata struct {
+	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available. Set by the account level.
+	MaxHistory string `json:"max_history,omitempty,omitzero" validate:"required,duration"`
+
+	// Plan is the name of the subscription plan that the user is paying for.
+	Plan string `json:"plan,omitempty,omitzero" validate:"required"`
+
+	// PlanStatus is the name current status of the subscription plan.
+	PlanStatus string `json:"plan_status,omitempty,omitzero" validate:"required"`
+
+	// StripeCustomerId is the stripe customer id of the user.
+	StripeCustomerId string `json:"stripe_customer_id,omitempty,omitzero" validate:"required"`
+
+	// StripeSubscriptionId is the stripe subscription id of the user's plan.
+	StripeSubscriptionId string `json:"stripe_subscription_id,omitempty,omitzero" validate:"required"`
+
+	// UpdatesFrequency is a duration indicating how often the account should check for updates in various places within the apply. Set by the account level.
+	UpdatesFrequency string `json:"updates_frequency,omitempty,omitzero" validate:"required,duration"`
+}
+
 // UserSession tracks a user session.
 type UserSession struct {
 	// Data the encoded session data.
@@ -965,9 +973,6 @@ type UserSettings struct {
 	// MarkArticleReadOnView indicates whether to automatically mark an article as read when viewed.
 	MarkArticleReadOnView bool `form:"mark_article_read_on_view" json:"mark_article_read_on_view"`
 
-	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available. Set by the account level.
-	MaxHistory string `form:"-" json:"max_history"`
-
 	// ShowOnboarding indicates whether to show onboarding information (i.e., for a new user).
 	ShowOnboarding bool `form:"-" json:"show_onboarding"`
 
@@ -976,9 +981,6 @@ type UserSettings struct {
 
 	// Theme the user interface theme chosen by the user.
 	Theme string `form:"-" json:"theme,omitempty,omitzero"`
-
-	// UpdatesFrequency is a duration indicating how often the account should check for updates in various places within the apply. Set by the account level.
-	UpdatesFrequency string `form:"-" json:"updates_frequency,omitempty,omitzero"`
 }
 
 // View The state of objects to view.

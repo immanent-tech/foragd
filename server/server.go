@@ -24,6 +24,7 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/session"
@@ -54,6 +55,7 @@ func NewServer(ctx context.Context) (Server, error) {
 
 	csrfRouter := nosurf.New(router)
 	csrfRouter.SetFailureHandler(handlers.CSRFError())
+	csrfRouter.ExemptPath("/checkout/webhooks")
 
 	h2s := &http2.Server{}
 	svr.Server = &http.Server{
@@ -180,17 +182,21 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 
 	// Front page.
 	router.Get("/", handlers.Landing())
-	// Access routes.
+
 	router.Group(func(r chi.Router) {
 		r.Use(
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
 		)
-		r.Get("/login", handlers.Login())
+		// Access routes.
 		r.Get("/signup", handlers.Login())
+		r.Get("/login", handlers.Login())
 		r.Get("/login/callback", handlers.LoginCallback(handler.Elastic))
 		r.Get("/logout", handlers.Logout())
 	})
+
+	// Handle incoming webhook requests from Stripe.
+	router.With(middlewares.SetupElastic()).Post("/checkout/webhooks", stripe.HandleWebhook(handler.Elastic))
 
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {
@@ -201,6 +207,13 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			middlewares.RequireUserAuth(handler.DataAPI()),
 			// middleware.NoCache,
 		)
+		// Payment routes (Stripe).
+		r.Route("/checkout", func(r chi.Router) {
+			r.Get("/choose-plan", handlers.UserChooseSubscriptionPlan())
+			r.Post("/", handlers.UserSubscriptionPlanCheckout())
+			r.Get("/success", handlers.UserAccountSuccess())
+			r.Get("/cancel", handlers.Landing())
+		})
 		r.Get("/home", handler.Home())
 		r.Get("/home/updates", handlers.WatchHome(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.GetSearchSuggestions(handler.Elastic))
@@ -294,6 +307,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 				r.With(middlewares.RequireHTMX).Post("/display", handlers.SaveDisplaySettings(handler.Elastic))
 				r.With(middlewares.RequireHTMX).Get("/account", handlers.ShowAccountSettings())
 				r.With(middlewares.RequireHTMX).Post("/account", handlers.SaveAccountSettings(handler.Elastic))
+				r.Get("/subscription", handlers.UserManageAccountSubscription())
 				r.With(middlewares.RequireHTMX).Post("/password", handlers.ChangePassword())
 				r.Route("/theme", func(r chi.Router) {
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())

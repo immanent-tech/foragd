@@ -31,12 +31,15 @@ func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler 
 				next.ServeHTTP(res, req)
 			}
 			// Continue for unprotected routes.
-			if slices.ContainsFunc(UnprotectedRoutes, func(route string) bool { return strings.HasPrefix(routePattern, route) }) {
+			if slices.ContainsFunc(
+				UnprotectedRoutes,
+				func(route string) bool { return strings.HasPrefix(routePattern, route) },
+			) {
 				next.ServeHTTP(res, req)
 				return
 			}
 			ctx := req.Context()
-			profile, ok := session.Manager.Get(req.Context(), "profile").(auth0.UserProfile)
+			profile, ok := session.Manager.Get(ctx, "profile").(auth0.UserProfile)
 			if !ok {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.String("error", "Invalid user data."))

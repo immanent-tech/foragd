@@ -18,7 +18,12 @@ type Option func(*reindex.Reindex)
 // NewReindexOperation creates a new reindex operation from the given source to given destination, with the given options.
 //
 // https://www.elastic.co/docs/api/doc/elasticsearch/operation/operation-reindex
-func NewReindexOperation(api *elasticsearch.TypedClient, src *types.ReindexSource, dest *types.ReindexDestination, options ...Option) *reindex.Reindex {
+func NewReindexOperation(
+	api *elasticsearch.TypedClient,
+	src *types.ReindexSource,
+	dest *types.ReindexDestination,
+	options ...Option,
+) *reindex.Reindex {
 	// Create the base operation.
 	reidx := api.Reindex().Source(src).Dest(dest)
 	// Apply options.
@@ -37,9 +42,13 @@ func NewSource(src string) *types.ReindexSource {
 }
 
 // NewDest sets up a new reindex destination.
-func NewDest(dest string) *types.ReindexDestination {
-	return &types.ReindexDestination{
-		Index:  dest,
+func NewDest(indexName, pipeline string) *types.ReindexDestination {
+	dest := &types.ReindexDestination{
+		Index:  indexName,
 		OpType: &optype.Create,
 	}
+	if pipeline != "" {
+		dest.Pipeline = &pipeline
+	}
+	return dest
 }

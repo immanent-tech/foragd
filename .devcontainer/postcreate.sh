@@ -22,4 +22,9 @@ go install github.com/a-h/templ/cmd/templ@latest
 # Install the step CA root CA cert.
 step ca bootstrap --ca-url https://stepca:9000 --fingerprint ${CA_FINGERPRINT} --install
 
+
+curl https://github.com/stripe/stripe-cli/releases/download/v1.33.0/stripe_1.33.0_linux_x86_64.tar.gz | tar xvf -C /tmp && \
+    sudo mv stripe /usr/local/bin
+
+
 exit 0

@@ -199,6 +199,92 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'avatar_url'
             validate: 'omitempty,url'
+    UserSettings:
+      description: >
+        contains user-specific settings for the application.
+      type: object
+      required:
+        - max_history
+        - show_onboarding
+      properties:
+        theme:
+          description: >
+            the user interface theme chosen by the user.
+          type: string
+          default: silk
+          x-oapi-codegen-extra-tags:
+            form: '-'
+        show_onboarding:
+          description: >
+            indicates whether to show onboarding information (i.e., for a new user).
+          type: boolean
+          default: true
+          x-oapi-codegen-extra-tags:
+            form: '-'
+          x-omitzero: false
+          x-omitempty: false
+        show_subscription_stats:
+          description: >
+            indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: 'show_subscription_stats'
+          x-omitzero: false
+          x-omitempty: false
+        mark_article_read_on_view:
+          description: >
+            indicates whether to automatically mark an article as read when viewed.
+          type: boolean
+          default: true
+          x-oapi-codegen-extra-tags:
+            form: 'mark_article_read_on_view'
+          x-omitzero: false
+          x-omitempty: false
+    UserMetadata:
+      description: >
+        contains metadata related to the user's account.
+      type: object
+      properties:
+        stripe_customer_id:
+          description: >
+            is the stripe customer id of the user.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        stripe_subscription_id:
+          description: >
+            is the stripe subscription id of the user's plan.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        plan_status:
+          description: >
+            is the name current status of the subscription plan.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        plan:
+          description: >
+            is the name of the subscription plan that the user is paying for.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        max_history:
+          description: >
+            is a duration representing the maximum time-frame over which objects contained within are available. Set by
+            the account level.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,duration'
+        updates_frequency:
+          description: >
+            is a duration indicating how often the account should check for updates in various places within the apply.
+            Set by the account level.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,duration'
+      x-oapi-codegen-extra-tags:
+        validate: 'omitempty'
     User:
       description: is a user of the application.
       allOf:
@@ -228,22 +314,10 @@ components:
               type: string
               x-oapi-codegen-extra-tags:
                 validate: 'required'
-            subscription_level:
-              description: >
-                is the subscription level that the account is paying for.
-              type: string
-              enum: ['gatherer','collector','curator']
-              default: gatherer
-              x-oapi-codegen-extra-tags:
-                validate: 'required,oneof=gatherer collector curator'
-            is_trial:
-              description: >
-                indicates whether the user is on a trial.
-              type: boolean
-              x-omitempty: false
-              x-omitzero: false
             settings:
               $ref: '#/components/schemas/UserSettings'
+            metadata:
+              $ref: '#/components/schemas/UserMetadata'
             item_favorites:
               description: >
                 is the IDs of items (articles) the user has favorited.
@@ -279,61 +353,6 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'confirm_new_password'
             validate: 'required'
-    UserSettings:
-      description: >
-        contains user-specific settings for the application.
-      type: object
-      required:
-        - max_history
-        - show_onboarding
-      properties:
-        theme:
-          description: >
-            the user interface theme chosen by the user.
-          type: string
-          default: silk
-          x-oapi-codegen-extra-tags:
-            form: '-'
-        show_onboarding:
-          description: >
-            indicates whether to show onboarding information (i.e., for a new user).
-          type: boolean
-          default: true
-          x-oapi-codegen-extra-tags:
-            form: '-'
-          x-omitzero: false
-          x-omitempty: false
-        max_history:
-          description: >
-            is a duration representing the maximum time-frame over which objects contained within are available. Set by
-            the account level.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: '-'
-        updates_frequency:
-          description: >
-            is a duration indicating how often the account should check for updates in various places within the apply.
-            Set by the account level.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: '-'
-        show_subscription_stats:
-          description: >
-            indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
-          type: boolean
-          x-oapi-codegen-extra-tags:
-            form: 'show_subscription_stats'
-          x-omitzero: false
-          x-omitempty: false
-        mark_article_read_on_view:
-          description: >
-            indicates whether to automatically mark an article as read when viewed.
-          type: boolean
-          default: true
-          x-oapi-codegen-extra-tags:
-            form: 'mark_article_read_on_view'
-          x-omitzero: false
-          x-omitempty: false
     UserSession:
       description: tracks a user session.
       type: object
@@ -546,6 +565,8 @@ components:
           type: boolean
           x-oapi-codegen-extra-tags:
             form: "show_full_article_content"
+          x-omitzero: false
+          x-omitempty: false
         show_subscription_stats:
           description: >
             indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.

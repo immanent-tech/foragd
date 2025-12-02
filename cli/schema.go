@@ -14,28 +14,27 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
-// MigrateCmd defines the `migrate` command, which performs data-store migrations for schema changes.
 type SchemaCmd struct {
-	Migrate MigrateCmd `cmd:"migrate" help:"Migrate schemas"`
+	Create CreateCmd `cmd:"create" help:"Create schemas"`
 }
 
-type MigrateCmd struct {
-	schema.MigrationOptions
+type CreateCmd struct {
+	schema.Options
 }
 
-func (r *MigrateCmd) Run(opts *MigrateCmd) error {
+func (r *CreateCmd) Run(opts *CreateCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	// Load the Elastic backend
 	elasticClient, err := elastic.Connect(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to connect to backend: %w", err)
+		return fmt.Errorf("create schemas: %w", err)
 	}
 	// Perform migrations.
-	err = schema.PerformMigrations(ctx, elasticClient.GetAPI(), &opts.MigrationOptions)
+	err = schema.CreateSchemas(ctx, elasticClient.GetAPI(), &opts.Options)
 	if err != nil {
-		return fmt.Errorf("unable to perform Elastic migration: %w", err)
+		return fmt.Errorf("create schemas: %w", err)
 	}
 	return nil
 }

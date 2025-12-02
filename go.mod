@@ -106,6 +106,7 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/spf13/viper v1.7.1 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
+	github.com/stripe/stripe-go/v83 v83.2.1 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/ulikunitz/xz v0.5.14 // indirect
@@ -186,6 +187,7 @@ require (
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
+	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/veqryn/slog-context v0.8.0
 	github.com/veqryn/slog-json v0.5.0
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
