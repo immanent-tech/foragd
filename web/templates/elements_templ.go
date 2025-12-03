@@ -19,7 +19,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/types"
 	"html"
 	"net/http"
@@ -225,7 +224,7 @@ func NewLink(options ...Option[element]) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(link.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 192, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 191, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -333,7 +332,6 @@ func NewMailtoLink(to string, options ...MailtoOption) templ.Component {
 			linkOption(mailto.link)
 		}
 		WithClasses("link", "link-hover")(mailto.link)
-		godump.Dump(mailto)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<a")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -346,7 +344,7 @@ func NewMailtoLink(to string, options ...MailtoOption) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(mailto.link.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 261, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 259, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -424,7 +422,7 @@ func NewButton(options ...Option[element]) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(btn.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 283, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 281, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -500,7 +498,7 @@ func NewDiv(options ...Option[element]) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(div.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 303, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 301, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -573,7 +571,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[eleme
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(elem.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 323, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 321, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -591,7 +589,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[eleme
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(generateImageProxyURL(ctx, img.GetURL(), props))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 325, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 323, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -604,7 +602,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[eleme
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 326, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 324, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {

@@ -10,7 +10,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/types"
 	"html"
 	"net/http"
@@ -255,7 +254,6 @@ templ NewMailtoLink(to string, options ...MailtoOption) {
 		{{ linkOption(mailto.link) }}
 	}
 	{{ WithClasses("link", "link-hover")(mailto.link) }}
-	{{ godump.Dump(mailto) }}
 	<a
 		if mailto.link.GetID() != "" {
 			id={ mailto.link.GetID() }
