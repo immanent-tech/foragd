@@ -36,7 +36,10 @@ import (
 // ShowSettings handles retrieving and rendering the user settings page.
 func (a *API) ShowSettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		renderPage(templates.SettingsPage(), templates.GeneratePageTitle("Settings")).ServeHTTP(res, req)
+		renderPage(
+			wrapContent(req, templates.SettingsPage()),
+			templates.GeneratePageTitle("Settings"),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -702,7 +705,10 @@ func GetPageIssues() http.HandlerFunc {
 		}
 		// Display the report issue form.
 		template := templates.ReportPageIssue(&models.IssueRequest{PageUrl: currentURL})
-		renderPage(template, templates.GeneratePageTitle("Report subscription issue")).ServeHTTP(res, req)
+		renderPage(
+			wrapContent(req, template),
+			templates.GeneratePageTitle("Report subscription issue"),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -750,7 +756,7 @@ func SubmitPageIssues() http.HandlerFunc {
 			"We will look into it and implement fixes as appropriate.",
 		)
 		renderPage(
-			templates.IssueReportedConfirmation(msg),
+			wrapContent(req, templates.IssueReportedConfirmation(msg)),
 			templates.GeneratePageTitle("Report subscription issue"),
 		).ServeHTTP(res, req)
 		return nil
@@ -848,10 +854,10 @@ func UserAccountCancel() http.HandlerFunc {
 	return Landing()
 }
 
+// UserAccountIssue handles showing a page with a message indicating the user needs to contact support, as there is a
+// critical issue with their account blocking access to the service.
 func UserAccountIssue() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		templ.Handler(templates.UserAccountIssuePage()).ServeHTTP(res, req)
-	}
+	return renderPage(templates.UserAccountIssue(), "Account Issue").ServeHTTP
 }
 
 func UserManageAccountSubscription() http.HandlerFunc {
@@ -859,10 +865,10 @@ func UserManageAccountSubscription() http.HandlerFunc {
 
 		sessionID := req.FormValue("session_id")
 		if sessionID == "" {
-			renderPage(templates.ExternalErrorPage(models.NewErrorMessage(
+			renderPage(wrapContent(req, templates.ExternalErrorPage(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
-			)), "Subscription Plan Checkout").ServeHTTP(res, req)
+			))), "Subscription Plan Checkout").ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("user manage subscription: %w: no stripe session ID", stripe.ErrInvalidSubscription),
 				http.StatusInternalServerError,
@@ -871,10 +877,10 @@ func UserManageAccountSubscription() http.HandlerFunc {
 
 		portalSession, err := stripe.NewPortalSession(sessionID)
 		if err != nil {
-			renderPage(templates.ExternalErrorPage(models.NewErrorMessage(
+			renderPage(wrapContent(req, templates.ExternalErrorPage(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
-			)), "Subscription Plan Checkout").ServeHTTP(res, req)
+			))), "Subscription Plan Checkout").ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("user account checkout: %w", err),
 				http.StatusInternalServerError,

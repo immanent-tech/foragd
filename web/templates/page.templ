@@ -32,6 +32,7 @@ templ SetPageTitle(title string) {
 	}
 }
 
+// UpdateCSRFToken renders an input with the csrf token taken from the context.
 templ UpdateCSRFToken() {
 	<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 }
@@ -40,28 +41,41 @@ templ UpdateCSRFToken() {
 templ Page(title string, body templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en" class="h-full">
-		<head>
-			<meta charset="UTF-8"/>
-			// https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Viewport_meta_element#interactive-widget
-			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual"/>
-			<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
-			<link rel="manifest" href="/content/manifest.json"/>
-			<link rel="apple-touch-icon" href="/content/apple-touch-icon.png"/>
-			<link rel="icon" href="/content/favicon.svg" type="image/svg+xml"/>
-			<link rel="icon" href="/content/favicon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>
-			<link rel="icon" href="/content/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>
-			<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon"/>
-			<link href="/content/fonts/inter/inter.css" rel="stylesheet"/>
-			if config.Environment == "production" {
-				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51"></script>
+		@Head(title)
+		if body != nil {
+			@Body(body)
+		} else {
+			@Body(nil) {
+				{ children... }
 			}
-			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
-			<script src="/content/scripts.js"></script>
-			<link href="/content/styles.css" rel="stylesheet"/>
-			// Site-wide htmx config.
-			<meta
-				name="htmx-config"
-				content='{
+		}
+	</html>
+}
+
+// Head renders the `<head>` html element. If the title is blank, a default title is used.
+templ Head(title string) {
+	<head>
+		<meta charset="UTF-8"/>
+		// https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Viewport_meta_element#interactive-widget
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual"/>
+		<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+		<link rel="manifest" href="/content/manifest.json"/>
+		<link rel="apple-touch-icon" href="/content/apple-touch-icon.png"/>
+		<link rel="icon" href="/content/favicon.svg" type="image/svg+xml"/>
+		<link rel="icon" href="/content/favicon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>
+		<link rel="icon" href="/content/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>
+		<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon"/>
+		<link href="/content/fonts/inter/inter.css" rel="stylesheet"/>
+		if config.Environment == "production" {
+			<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51"></script>
+		}
+		<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
+		<script src="/content/scripts.js"></script>
+		<link href="/content/styles.css" rel="stylesheet"/>
+		// Site-wide htmx config.
+		<meta
+			name="htmx-config"
+			content='{
 				"selfRequestsOnly":true,
 				"allowNestedOobSwaps":true,
 				"historyRestoreAsHxRequest":false,
@@ -70,39 +84,34 @@ templ Page(title string, body templ.Component) {
             		{"code":"204", "swap": false},
             		{"code":"[23]..", "swap": true},
             		{"code":"422", "swap": true},
-            		{"code":"400", "swap": true},
-            		{"code":"500", "swap": true},
             		{"code":"[45]..", "swap": false, "error":true},
-            		{"code":"...", "swap": true}
+            		{"code":"...", "swap": false}
         		]
 			}'
-			/>
-			@SetPageTitle(title)
-		</head>
-		<body
-			class="h-full"
-			hx-ext="response-targets,preload,sse"
-			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
-			hx-target-404={ ContentID.Target() }
-		>
-			<input id="page-theme" type="checkbox" value={ models.GetUserTheme(ctx) } class="toggle theme-controller hidden" checked="checked"/>
-			<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-			<div id={ ModalContainerID.String() } hx-target-error="#modal-errors"></div>
-			if body != nil {
-				@body
-			}
-			{ children... }
-			//  px-4 py-6 sm:p-6
-			<div aria-live="assertive" class="pointer-events-none fixed inset-0 flex items-end sm:items-start z-999">
-				<div id={ NotificationsID.String() } class="flex w-full flex-col items-center space-y-4 m-4 sm:items-end"></div>
-			</div>
-			// @ShowTailwindBreakpoints()
-		</body>
-	</html>
+		/>
+		@SetPageTitle(title)
+	</head>
 }
 
-templ pageTitle(title string) {
-	<div class="min-w-0 flex-1 pb-8">
-		<h2 class="text-2xl/7 font-bold tracking-tight sm:text-3xl">{ title }</h2>
-	</div>
+// Body renders the `<body>` element. Body content can be passed directly or the children templ syntax can be used.
+templ Body(content templ.Component) {
+	<body
+		class="h-full"
+		hx-ext="response-targets,preload,sse"
+		_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
+		hx-target-404={ ContentID.Target() }
+	>
+		<input id="page-theme" type="checkbox" value={ models.GetUserTheme(ctx) } class="toggle theme-controller hidden" checked="checked"/>
+		<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+		<div id={ ModalContainerID.String() } hx-target-error="#modal-errors"></div>
+		if content != nil {
+			@content
+		}
+		{ children... }
+		//  px-4 py-6 sm:p-6
+		<div aria-live="assertive" class="pointer-events-none fixed inset-0 flex items-end sm:items-start z-999">
+			<div id={ NotificationsID.String() } class="flex w-full flex-col items-center space-y-4 m-4 sm:items-end"></div>
+		</div>
+		// @ShowTailwindBreakpoints()
+	</body>
 }

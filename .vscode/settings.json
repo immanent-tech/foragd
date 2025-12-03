@@ -58,7 +58,8 @@
     "pkg",
     "cli",
     "types",
-    "parser"
+    "parser",
+    "stripe"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

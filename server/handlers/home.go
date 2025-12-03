@@ -34,7 +34,7 @@ func (a *API) Home() http.HandlerFunc {
 				"Unable to complete request!",
 				"This might be temporary, please try again.",
 			)
-			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+			renderPage(wrapContent(req, templates.ErrorPage(msg)), pageTitle).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
 				http.StatusInternalServerError,
@@ -51,14 +51,14 @@ func (a *API) Home() http.HandlerFunc {
 				"Unable to complete request!",
 				"This might be temporary, please try again.",
 			)
-			renderPage(templates.ErrorPage(msg), pageTitle).ServeHTTP(res, req)
+			renderPage(wrapContent(req, templates.ErrorPage(msg)), pageTitle).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve home page data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
 		template := data.Template()
-		renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(wrapContent(req, template), pageTitle).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).
 		ServeHTTP

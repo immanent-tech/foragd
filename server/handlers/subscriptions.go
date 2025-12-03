@@ -64,7 +64,10 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				)
 				switch req.Method {
 				case http.MethodGet:
-					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+					renderPage(
+						wrapContent(req, templates.ErrorPage(msg)),
+						templates.GeneratePageTitle(pageTitle),
+					).ServeHTTP(res, req)
 				case http.MethodPost:
 					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
 				}
@@ -78,7 +81,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 			template = templates.SubscriptionsGrid(pagination, subscriptions...)
 			switch req.Method {
 			case http.MethodGet:
-				renderPage(template, templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+				renderPage(wrapContent(req, template), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
 			case http.MethodPost:
 				renderPartial(template).ServeHTTP(res, req)
 			}
@@ -442,7 +445,7 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 			template = templates.EditGroupSubscription(request)
 			pageTitle = templates.GeneratePageTitle("Editing " + request.Customisation.Nickname)
 		}
-		renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(wrapContent(req, template), pageTitle).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -532,7 +535,7 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			template := templates.AddFeedSubscription(&models.AddFeedSubscriptionRequest{})
-			renderPage(template, templates.GeneratePageTitle("Add Subscription")).ServeHTTP(res, req)
+			renderPage(wrapContent(req, template), templates.GeneratePageTitle("Add Subscription")).ServeHTTP(res, req)
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.AddFeedSubscriptionRequest](req)
 			if err != nil || !valid {
@@ -632,7 +635,7 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 			}
 			template := templates.AddSearchSubscription(&models.SearchSubscriptionRequest{Search: *request})
 			renderPage(
-				template,
+				wrapContent(req, template),
 				templates.GeneratePageTitle("Add A Search Subscription"),
 			).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
@@ -677,7 +680,10 @@ func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			template := templates.AddGroupSubscription(&models.GroupSubscriptionRequest{})
-			renderPage(template, templates.GeneratePageTitle("Add A Group Subscription")).ServeHTTP(res, req)
+			renderPage(
+				wrapContent(req, template),
+				templates.GeneratePageTitle("Add A Group Subscription"),
+			).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Decode request.
 			request, valid, err := forms.DecodeForm[*models.GroupSubscriptionRequest](req)
@@ -743,7 +749,10 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 		// GET: show import modal.
 		case http.MethodGet:
 			template := templates.ImportSubscriptions()
-			renderPage(template, templates.GeneratePageTitle("Import Subscriptions")).ServeHTTP(res, req)
+			renderPage(
+				wrapContent(req, template),
+				templates.GeneratePageTitle("Import Subscriptions"),
+			).ServeHTTP(res, req)
 		// POST: process import.
 		case http.MethodPost:
 			// Extract OPML file.
@@ -844,7 +853,10 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 				"This might be a temporary problem, please try again.",
 			)
 			template := templ.Join(templates.ExportSubscriptions(), templates.ServerErrorNotification(msg))
-			renderPage(template, templates.GeneratePageTitle("Export Subscriptions")).ServeHTTP(res, req)
+			renderPage(
+				wrapContent(req, template),
+				templates.GeneratePageTitle("Export Subscriptions"),
+			).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
 				http.StatusInternalServerError,
@@ -854,7 +866,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 		// GET: show import modal.
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export":
 			renderPage(
-				templates.ExportSubscriptions(),
+				wrapContent(req, templates.ExportSubscriptions()),
 				templates.GeneratePageTitle("Export Subscriptions"),
 			).ServeHTTP(res, req)
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":

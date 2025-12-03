@@ -64,7 +64,10 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {
 			case http.MethodGet:
-				renderPage(template, templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+				renderPage(
+					wrapContent(req, template),
+					templates.GeneratePageTitle(pageTitle),
+				).ServeHTTP(res, req)
 			case http.MethodPost:
 				renderPartial(template).ServeHTTP(res, req)
 			}

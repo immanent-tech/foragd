@@ -36,7 +36,10 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 				)
 				switch req.Method {
 				case http.MethodGet:
-					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+					renderPage(
+						wrapContent(req, templates.ErrorPage(msg)),
+						templates.GeneratePageTitle(pageTitle),
+					).ServeHTTP(res, req)
 				case http.MethodPost:
 					template = templates.ServerErrorNotification(msg)
 					renderPartial(template).ServeHTTP(res, req)
@@ -79,7 +82,10 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 				)
 				switch req.Method {
 				case http.MethodGet:
-					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+					renderPage(
+						wrapContent(req, templates.ErrorPage(msg)),
+						templates.GeneratePageTitle(pageTitle),
+					).ServeHTTP(res, req)
 				case http.MethodPost:
 					template = templates.ServerErrorNotification(msg)
 					renderPartial(template).ServeHTTP(res, req)
@@ -100,7 +106,7 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {
 			case http.MethodGet:
-				renderPage(template, templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+				renderPage(wrapContent(req, template), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
 			case http.MethodPost:
 				renderPartial(template).ServeHTTP(res, req)
 			}

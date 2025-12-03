@@ -30,7 +30,10 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 		}
 		err := params.Valid()
 		if err != nil {
-			renderPage(templates.NotFound(), templates.GeneratePageTitle("Unknown article")).ServeHTTP(res, req)
+			renderPage(
+				wrapContent(req, templates.NotFound()),
+				templates.GeneratePageTitle("Unknown article"),
+			).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				http.StatusUnprocessableEntity,
@@ -44,7 +47,10 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 					"Server could not complete request!",
 					"This might be temporary, please try again.",
 				)
-				renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle("View Article")).ServeHTTP(res, req)
+				renderPage(
+					wrapContent(req, templates.ErrorPage(msg)),
+					templates.GeneratePageTitle("View Article"),
+				).ServeHTTP(res, req)
 				return models.NewAPIError(
 					fmt.Errorf("unable to fetch article content: %w", err),
 					http.StatusInternalServerError,
@@ -86,7 +92,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 			} else {
 				template = templates.ArticleContent(article)
 			}
-			renderPage(template, pageTitle).ServeHTTP(res, req)
+			renderPage(wrapContent(req, template), pageTitle).ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}
@@ -134,7 +140,7 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 			} else {
 				template = templates.NoSearchResults()
 			}
-			renderPage(template, templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
+			renderPage(wrapContent(req, template), templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}
@@ -203,7 +209,7 @@ func GetObjectIssues() http.HandlerFunc {
 			params.ObjectID,
 			models.NewObjectIssue(params, currentURL),
 		)
-		renderPage(template, templates.GeneratePageTitle("Report an issue")).ServeHTTP(res, req)
+		renderPage(wrapContent(req, template), templates.GeneratePageTitle("Report an issue")).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -274,7 +280,7 @@ func SubmitObjectIssues() http.HandlerFunc {
 			"We will look into it and implement fixes as appropriate.",
 		)
 		renderPage(
-			templates.IssueReportedConfirmation(msg),
+			wrapContent(req, templates.IssueReportedConfirmation(msg)),
 			templates.GeneratePageTitle("Report subscription issue"),
 		).ServeHTTP(res, req)
 		return nil

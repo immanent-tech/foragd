@@ -188,8 +188,8 @@ func SetRedirect(res http.ResponseWriter, request HXLocationRequest) error {
 	return nil
 }
 
-// renderPage will render the given template as a full page. It handles htmx and non-htmx requests, rendering the
-// appropriate full or partial HTML response as appropriate.
+// renderPage will render the given template either as a full page or as partial content. For partial content, it will
+// also update the page title (if one is given) and CSRF token.
 func renderPage(template templ.Component, title string) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if template == nil {
@@ -197,44 +197,51 @@ func renderPage(template templ.Component, title string) http.Handler {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		if !IsHTMX(req) || IsHistoryRestoreRequest(req) { // Non-HTMX or HistoryRestoreRequests render a full-page.
-			user := models.UserFromCtx(req.Context())
-			if user == nil {
-				templ.Handler(templates.Page(title, templates.ErrorPage(
-					models.NewErrorMessage("Invalid request", "This might be a temporary error, please try again."),
-				))).ServeHTTP(res, req)
-				return
-			}
-			template = templates.Content(user, template)
+		switch {
+		case !IsHTMX(req) || IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
 			templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
 			return
-		}
-		// HTMX request renders partial content.
-		// Add OOB swaps depending on path.
-		template = templ.Join(template,
-			templates.SideBar(templ.Attributes{"hx-swap-oob": "true"}),
-			templates.Dock(templ.Attributes{"hx-swap-oob": "true"}),
-		)
-		// Update page title if set.
-		if title != "" {
-			// Update the page title if set.
-			template = templ.Join(template, templates.SetPageTitle(title))
-		}
-		// Add OOB swap to update CSRF token.
-		template = templ.Join(template, templates.UpdateCSRFToken())
-		// Render template (or template fragment).
-		target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget))
-		if target != "" && target != templates.FragmentContent {
-			templ.Handler(template, templ.WithFragments(target)).ServeHTTP(res, req)
-		} else {
-			templ.Handler(template).ServeHTTP(res, req)
+		default: // HTMX request renders partial content.
+			if title != "" {
+				// Update the page title if set.
+				template = templ.Join(template, templates.SetPageTitle(title))
+			}
+			// Add OOB swap to update CSRF token.
+			template = templ.Join(template, templates.UpdateCSRFToken())
+			// Render template (or template fragment).
+			target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget))
+			if target != "" && target != templates.FragmentContent {
+				templ.Handler(template, templ.WithFragments(target)).ServeHTTP(res, req)
+			} else {
+				templ.Handler(template).ServeHTTP(res, req)
+			}
 		}
 	})
 }
 
-// renderPartial will render the given template, optionally updating the page title if one is given.
+// renderPartial will render the given template only as a partial update.
 func renderPartial(template templ.Component) http.Handler {
 	return templ.Handler(templ.Join(template, templates.UpdateCSRFToken()))
+}
+
+// wrapContent will wrap the given template with additional structure suitable for replacing the content target on a
+// page. The additional structure will place a header, footer/sidebar around the content.
+func wrapContent(req *http.Request, template templ.Component) templ.Component {
+	switch {
+	case !IsHTMX(req) || IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			return templates.ErrorPage(
+				models.NewErrorMessage("Invalid request", "This might be a temporary error, please try again."),
+			)
+		}
+		return templates.Content(user, template)
+	default: // HTMX request renders partial content.
+		return templ.Join(template,
+			templates.SideBar(templ.Attributes{"hx-swap-oob": "true"}),
+			templates.Dock(templ.Attributes{"hx-swap-oob": "true"}),
+		)
+	}
 }
 
 func externalPage(title string, template templ.Component) http.Handler {

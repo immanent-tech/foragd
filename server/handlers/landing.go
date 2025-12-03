@@ -6,14 +6,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/a-h/templ"
-
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // Landing handles displaying the landing page of the site.
 func Landing() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		templ.Handler(templates.LandingPage()).ServeHTTP(res, req)
-	}
+	return renderPage(templates.Landing(), "").ServeHTTP
 }

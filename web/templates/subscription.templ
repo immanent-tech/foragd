@@ -1026,7 +1026,9 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 templ ImportSubscriptions() {
 	@main() {
 		<div class="mx-auto max-w-3xl">
-			@pageTitle("Import Subscriptions")
+			<div class="min-w-0 flex-1 pb-8">
+				<h2 class="text-2xl/7 font-bold tracking-tight sm:text-3xl">Import Subscriptions</h2>
+			</div>
 			<div class="md:flex md:items-center md:justify-between">
 				<p class="mt-2 max-w-4xl text-sm text-base-content/80">
 					You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.
@@ -1082,7 +1084,9 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 	{{ successfulResults := filterSuccessfulResults(results) }}
 	{{ failedResults := filterUnsuccessfulResults(results) }}
 	{{ warningResults := filterWarningResults(results) }}
-	@pageTitle("Import Results")
+	<div class="min-w-0 flex-1 pb-8">
+		<h2 class="text-2xl/7 font-bold tracking-tight sm:text-3xl">Import Results</h2>
+	</div>
 	// Import results summary.
 	<div class="stats shadow">
 		<div class="stat">

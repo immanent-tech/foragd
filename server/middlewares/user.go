@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -40,10 +41,16 @@ func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler 
 			}
 			ctx := req.Context()
 			profile, ok := session.Manager.Get(ctx, "profile").(auth0.UserProfile)
-			if !ok {
+			switch {
+			case !ok: // Invalid session profile data.
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
-					slog.String("error", "Invalid user data."))
-				http.Redirect(res, req, "/", http.StatusSeeOther)
+					slog.String("error", "invalid session profile data"))
+				res.Header().Set(htmx.HeaderRedirect, "/")
+				return
+			case profile.Blocked: // Account is blocked.
+				slogctx.FromCtx(ctx).Error("Authentication Error.",
+					slog.String("error", "account is blocked"))
+				res.Header().Set(htmx.HeaderRedirect, models.RouteUserAccountIssue)
 				return
 			}
 			// Fetch the user from the user management API.
@@ -51,7 +58,7 @@ func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler 
 			if err != nil {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.Any("error", err))
-				http.Redirect(res, req, "/", http.StatusSeeOther)
+				res.Header().Set(htmx.HeaderRedirect, "/")
 				return
 			}
 			// Else load the user into the context and pass the new context
