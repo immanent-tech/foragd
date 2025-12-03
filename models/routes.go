@@ -4,6 +4,11 @@
 package models
 
 const (
-	RouteCheckoutSubscriptionPlan = "/checkout"
-	RouteSignup                   = "/signup"
+	RouteHome = "/home"
+
+	RouteSignup             = "/signup"
+	RouteCheckout           = "/checkout"
+	RouteCheckoutChoosePlan = "/checkout/choose-plan"
+
+	RouteUserAccountIssue = "/user/account-issue"
 )

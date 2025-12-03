@@ -4,154 +4,157 @@
 package templates
 
 import (
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
 
 // Landing is the landing page layout.
-templ Landing() {
-	<div class="bg-base-100">
-		<main class="isolate bg-base-100">
-			<div class="relative pt-14">
-				<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
-					<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20"></div>
+templ LandingPage() {
+	@Page(config.AppName, nil) {
+		<div class="bg-base-100">
+			<main class="isolate bg-base-100">
+				<div class="relative pt-14">
+					<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
+						<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20"></div>
+					</div>
+					<div class="lg:pb-40">
+						<div class="mx-auto max-w-7xl px-6 lg:px-8">
+							<div class="mx-auto flow-root">
+								@Logo("logo-landing", "md:mx-auto", "md:size-96")
+							</div>
+							<div class="mx-auto max-w-2xl mt-16 sm:mt-24 text-center">
+								<h1 class="text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Foragd&nbsp;<sup class="text-sm uppercase">beta</sup></h1>
+								<p class="mt-8 text-lg font-medium text-pretty sm:text-xl/8">Gather whats important to you.</p>
+								<div class="mt-10 flex items-center justify-center gap-x-6">
+									<a role="button" href="#features" class="btn btn-primary text-sm/6 font-semibold">Features</a>
+									<a role="button" href="#pricing" class="btn btn-primary text-sm/6 font-semibold">Pricing</a>
+								</div>
+								<div class="text-sm/6 font-semibold mt-5">
+									Already have an account?<a href="/login" class="link">&nbsp;Log in</a>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div aria-hidden="true" class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
+						<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20"></div>
+					</div>
 				</div>
-				<div class="lg:pb-40">
+				// Features.
+				<div id="features" class="mt-32 sm:mt-56">
 					<div class="mx-auto max-w-7xl px-6 lg:px-8">
-						<div class="mx-auto flow-root">
-							@Logo("logo-landing", "md:mx-auto", "md:size-96")
+						<div class="mx-auto max-w-4xl sm:text-center">
+							<h2 id="features" class="text-base/7 font-semibold text-primary">Collect, collate and consume.</h2>
+							<p class="mt-2 text-4xl font-semibold tracking-tight text-pretty sm:text-5xl sm:text-balance">A beautiful, cloud-based feed reader.</p>
+							<p class="mt-6 text-lg/8 text-base-content/80">Keep your content subscriptions in one place. Stay up to date with new and old content, across all your devices.</p>
 						</div>
-						<div class="mx-auto max-w-2xl mt-16 sm:mt-24 text-center">
-							<h1 class="text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Foragd&nbsp;<sup class="text-sm uppercase">beta</sup></h1>
-							<p class="mt-8 text-lg font-medium text-pretty sm:text-xl/8">Gather whats important to you.</p>
-							<div class="mt-10 flex items-center justify-center gap-x-6">
-								<a role="button" href="#features" class="btn btn-primary text-sm/6 font-semibold">Features</a>
-								<a role="button" href="#pricing" class="btn btn-primary text-sm/6 font-semibold">Pricing</a>
+					</div>
+					<div class="relative overflow-hidden pt-16">
+						<div class="mx-auto max-w-7xl px-6 lg:px-8 w-full flex flex-col sm:flex-row">
+							<img width="1664" height="928" src="/content/screenshots/screenshot-home.webp" alt="Foragd Homepage Screenshot" class="mb-[-12%] rounded-xl shadow-2xl ring-1 ring-white/10"/>
+							<div aria-hidden="true" class="relative">
+								<div class="absolute -inset-x-20 bottom-0 bg-linear-to-t from-gray-900 pt-[7%]"></div>
 							</div>
-							<div class="text-sm/6 font-semibold mt-5">
-								Already have an account?<a href="/login" class="link">&nbsp;Log in</a>
+						</div>
+					</div>
+					<div class="mx-auto mt-16 max-w-7xl px-6 sm:mt-20 md:mt-24 lg:px-8">
+						<dl class="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
+							<div class="relative pl-9">
+								<dt class="inline font-semibold">
+									@tabler.InputSearch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Functional Search.&nbsp;
+								</dt>
+								<dd class="inline">Full-text search across subscriptions and articles. Quickly access subscriptions and perform actions from search bar.</dd>
 							</div>
-						</div>
+							<div class="relative pl-9">
+								<dt class="inline font-semibold">
+									@tabler.Filter(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Article Filtering.&nbsp;
+								</dt>
+								<dd class="inline">Define subscription-level filters on article titles/content, authors or categories to control exactly what is shown. Filter to the content you are really interested in, without all the noise.</dd>
+							</div>
+							<div class="relative pl-9">
+								<dt class="inline font-semibold">
+									@tabler.Pencil(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Subscription Customisation.&nbsp;
+								</dt>
+								<dd class="inline">Set a nickname for your subscriptions. Add your own categories to easily group and find similar content.</dd>
+							</div>
+							<div class="relative pl-9">
+								<dt class="inline font-semibold">
+									@tabler.Heart(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Subscription and Article Favorites.&nbsp;
+								</dt>
+								<dd class="inline">Mark subscriptions and articles as favorites, to quickly access them later.</dd>
+							</div>
+							<div class="relative pl-9">
+								<dt class="inline font-semibold">
+									@tabler.CategoryPlus(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Custom Group subscriptions.&nbsp;
+								</dt>
+								<dd class="inline">Combine multiple subscriptions to present a unified view of articles from any of them. Make it easy to keep up with similar posts across different sources.</dd>
+							</div>
+							<div class="relative pl-9">
+								<dt class="inline font-semibold">
+									@tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Custom Search Subscriptions.&nbsp;
+								</dt>
+								<dd class="inline">Use the powerful search to find what you need. Save the search terms as a search subscription to always find new articles that match. Great for keeping track of news or topics across multiple subscriptions.</dd>
+							</div>
+							<div class="relative pl-9">
+								<dt class="inline font-semibold">
+									@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Get Remote Article Content.&nbsp;
+								</dt>
+								<dd class="inline">Fetch the remote article content where the feed only shows a summary.</dd>
+							</div>
+							<div class="relative pl-9">
+								<dt class="inline font-semibold">
+									@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Cloud Sync.&nbsp;
+								</dt>
+								<dd class="inline">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</dd>
+							</div>
+						</dl>
 					</div>
 				</div>
-				<div aria-hidden="true" class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
-					<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20"></div>
-				</div>
-			</div>
-			// Features.
-			<div id="features" class="mt-32 sm:mt-56">
-				<div class="mx-auto max-w-7xl px-6 lg:px-8">
-					<div class="mx-auto max-w-4xl sm:text-center">
-						<h2 id="features" class="text-base/7 font-semibold text-primary">Collect, collate and consume.</h2>
-						<p class="mt-2 text-4xl font-semibold tracking-tight text-pretty sm:text-5xl sm:text-balance">A beautiful, cloud-based feed reader.</p>
-						<p class="mt-6 text-lg/8 text-base-content/80">Keep your content subscriptions in one place. Stay up to date with new and old content, across all your devices.</p>
+				// Pricing
+				<div class="py-24 sm:pt-48">
+					<div class="mx-auto max-w-7xl px-6 lg:px-8">
+						<div class="mx-auto max-w-4xl text-center">
+							<h2 id="pricing" class="text-base/7 font-semibold text-primary">Subscriptions and Pricing.</h2>
+							<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">Keep up to date without breaking the bank</p>
+						</div>
+						<p class="mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">Choose an affordable plan with the features you need.</p>
+						<p class="mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">All subscription plans come with a 14-day free trial.</p>
+						@planSelection(models.RouteSignup, "get", "Collector-07ad4d0", "Recommended")
 					</div>
 				</div>
-				<div class="relative overflow-hidden pt-16">
-					<div class="mx-auto max-w-7xl px-6 lg:px-8 w-full flex flex-col sm:flex-row">
-						<img width="1664" height="928" src="/content/screenshots/screenshot-home.webp" alt="Foragd Homepage Screenshot" class="mb-[-12%] rounded-xl shadow-2xl ring-1 ring-white/10"/>
-						<div aria-hidden="true" class="relative">
-							<div class="absolute -inset-x-20 bottom-0 bg-linear-to-t from-gray-900 pt-[7%]"></div>
-						</div>
+			</main>
+			// Footer.
+			<footer class="mx-auto max-w-7xl px-6 lg:px-8 mt-32">
+				<div class="border-t border-base-content/10 py-12 md:flex md:items-center md:justify-between">
+					<div class="flex justify-center gap-x-6 md:order-2 items-center">
+						<a href="mailto:support@immanent.tech" class="text-base-content/80">
+							Support
+						</a>
+						<a href="/docs/tos" class="text-base-content/80">
+							Terms of Service
+						</a>
+						<a href="/docs/acceptable-use" class="text-base-content/80">
+							Acceptable Use
+						</a>
+						<a href="/docs/policies/privacy" class="text-base-content/80">
+							Privacy Policy
+						</a>
 					</div>
+					<p class="mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0">Built for humans by a human. Built for a love of the indie web.</p>
+					<p class="mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0">&copy; 2025 Immanent Tech. All rights reserved.</p>
 				</div>
-				<div class="mx-auto mt-16 max-w-7xl px-6 sm:mt-20 md:mt-24 lg:px-8">
-					<dl class="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
-						<div class="relative pl-9">
-							<dt class="inline font-semibold">
-								@tabler.InputSearch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Functional Search.&nbsp;
-							</dt>
-							<dd class="inline">Full-text search across subscriptions and articles. Quickly access subscriptions and perform actions from search bar.</dd>
-						</div>
-						<div class="relative pl-9">
-							<dt class="inline font-semibold">
-								@tabler.Filter(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Article Filtering.&nbsp;
-							</dt>
-							<dd class="inline">Define subscription-level filters on article titles/content, authors or categories to control exactly what is shown. Filter to the content you are really interested in, without all the noise.</dd>
-						</div>
-						<div class="relative pl-9">
-							<dt class="inline font-semibold">
-								@tabler.Pencil(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Subscription Customisation.&nbsp;
-							</dt>
-							<dd class="inline">Set a nickname for your subscriptions. Add your own categories to easily group and find similar content.</dd>
-						</div>
-						<div class="relative pl-9">
-							<dt class="inline font-semibold">
-								@tabler.Heart(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Subscription and Article Favorites.&nbsp;
-							</dt>
-							<dd class="inline">Mark subscriptions and articles as favorites, to quickly access them later.</dd>
-						</div>
-						<div class="relative pl-9">
-							<dt class="inline font-semibold">
-								@tabler.CategoryPlus(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Custom Group subscriptions.&nbsp;
-							</dt>
-							<dd class="inline">Combine multiple subscriptions to present a unified view of articles from any of them. Make it easy to keep up with similar posts across different sources.</dd>
-						</div>
-						<div class="relative pl-9">
-							<dt class="inline font-semibold">
-								@tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Custom Search Subscriptions.&nbsp;
-							</dt>
-							<dd class="inline">Use the powerful search to find what you need. Save the search terms as a search subscription to always find new articles that match. Great for keeping track of news or topics across multiple subscriptions.</dd>
-						</div>
-						<div class="relative pl-9">
-							<dt class="inline font-semibold">
-								@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Get Remote Article Content.&nbsp;
-							</dt>
-							<dd class="inline">Fetch the remote article content where the feed only shows a summary.</dd>
-						</div>
-						<div class="relative pl-9">
-							<dt class="inline font-semibold">
-								@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-								Cloud Sync.&nbsp;
-							</dt>
-							<dd class="inline">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</dd>
-						</div>
-					</dl>
-				</div>
-			</div>
-			// Pricing
-			<div class="py-24 sm:pt-48">
-				<div class="mx-auto max-w-7xl px-6 lg:px-8">
-					<div class="mx-auto max-w-4xl text-center">
-						<h2 id="pricing" class="text-base/7 font-semibold text-primary">Subscriptions and Pricing.</h2>
-						<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">Keep up to date without breaking the bank</p>
-					</div>
-					<p class="mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">Choose an affordable plan with the features you need.</p>
-					<p class="mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">All subscription plans come with a 14-day free trial.</p>
-					@planSelection(models.RouteSignup, "get", "Collector-07ad4d0", "Recommended")
-				</div>
-			</div>
-		</main>
-		// Footer.
-		<footer class="mx-auto max-w-7xl px-6 lg:px-8 mt-32">
-			<div class="border-t border-base-content/10 py-12 md:flex md:items-center md:justify-between">
-				<div class="flex justify-center gap-x-6 md:order-2 items-center">
-					<a href="mailto:support@immanent.tech" class="text-base-content/80">
-						Support
-					</a>
-					<a href="/docs/tos" class="text-base-content/80">
-						Terms of Service
-					</a>
-					<a href="/docs/acceptable-use" class="text-base-content/80">
-						Acceptable Use
-					</a>
-					<a href="/docs/policies/privacy" class="text-base-content/80">
-						Privacy Policy
-					</a>
-				</div>
-				<p class="mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0">Built for humans by a human. Built for a love of the indie web.</p>
-				<p class="mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0">&copy; 2025 Immanent Tech. All rights reserved.</p>
-			</div>
-		</footer>
-	</div>
+			</footer>
+		</div>
+	}
 }
 
 // landingFAQEntry is a conveinience template to quickly add a FAQ entry on the landing page.

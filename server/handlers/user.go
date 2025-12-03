@@ -12,7 +12,6 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -769,7 +768,7 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 		case session.RestoreFromSession(req.Context(), models.ParamPlanID, func() string { return "" }) != "":
 			planID = session.RestoreFromSession(req.Context(), models.ParamPlanID, func() string { return "" })
 		}
-
+		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
 		templ.Handler(templates.UserChooseSubscriptionPlanPage(planID)).ServeHTTP(res, req)
 	}).ServeHTTP
 }
@@ -846,24 +845,7 @@ func UserAccountSuccess() http.HandlerFunc {
 }
 
 func UserAccountCancel() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		template := templ.Join(
-			templates.Page(config.AppName, templates.Landing()),
-			templates.Notification(
-				models.NewInfoMessage("Subscription sign-up cancelled at user request", ""),
-				10*time.Second,
-			),
-		)
-
-		err := template.Render(req.Context(), res)
-		if err != nil {
-			models.NewAPIError(
-				fmt.Errorf("user account cancel: %w", err),
-				http.StatusInternalServerError,
-			)
-		}
-		return nil
-	})).ServeHTTP
+	return Landing()
 }
 
 func UserAccountIssue() http.HandlerFunc {

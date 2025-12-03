@@ -24,6 +24,7 @@ require (
 	github.com/samber/slog-chi v1.17.0
 	github.com/samber/slog-multi v1.6.0
 	github.com/sebasvil20/templicons v1.1.0
+	github.com/stripe/stripe-go/v83 v83.2.1
 	golang.org/x/oauth2 v0.33.0
 )
 
@@ -106,7 +107,6 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/spf13/viper v1.7.1 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
-	github.com/stripe/stripe-go/v83 v83.2.1 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/ulikunitz/xz v0.5.14 // indirect

@@ -173,18 +173,16 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		}
 		ctx := models.UserToCtx(req.Context(), user)
 		// Redirect the user appropriately.
-		if profile.LoginsCount == 1 {
+		switch {
+		case profile.LoginsCount == 1:
 			// New user; redirect to choose subscription plan to complete onboarding.
-			http.Redirect(res, req.WithContext(ctx), "/signup/choose-plan", http.StatusSeeOther)
-		} else {
-			if !user.Active() {
-				slog.Info("here")
-				// Account issues; redirect user to page indicating they need to contact support to resolve an issue with their account.
-				http.Redirect(res, req.WithContext(ctx), "/user/account-issue", http.StatusSeeOther)
-			} else {
-				// Active user; redirect to home page.
-				http.Redirect(res, req.WithContext(ctx), "/home", http.StatusTemporaryRedirect)
-			}
+			http.Redirect(res, req.WithContext(ctx), models.RouteCheckoutChoosePlan, http.StatusSeeOther)
+		case !user.Active():
+			// Account issues; redirect user to page indicating they need to contact support to resolve an issue with their account.
+			http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
+		default:
+			// Active user; redirect to home page.
+			http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)
 		}
 	}).ServeHTTP
 }

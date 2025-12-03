@@ -4,25 +4,16 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
 
-	"github.com/justinas/alice"
-	slogctx "github.com/veqryn/slog-context"
+	"github.com/a-h/templ"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // Landing handles displaying the landing page of the site.
 func Landing() http.HandlerFunc {
-	template := templates.Page(config.AppName, templates.Landing())
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		err := template.Render(req.Context(), res)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to render page.", slog.Any("error", err))
-			http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-			return
-		}
-	}).ServeHTTP
+	return func(res http.ResponseWriter, req *http.Request) {
+		templ.Handler(templates.LandingPage()).ServeHTTP(res, req)
+	}
 }

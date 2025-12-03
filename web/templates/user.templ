@@ -145,7 +145,7 @@ templ UserChooseSubscriptionPlanPage(planID string) {
 				<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">You'll be taken to Stripe to finalise your account.</p>
 				<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">Entering payment details is optional. You can start a trial today and pay later.</p>
 			</div>
-			@planSelection(models.RouteCheckoutSubscriptionPlan, "post", planID, "Selected")
+			@planSelection(models.RouteCheckout, "post", planID, "Selected")
 		}
 	}
 }
