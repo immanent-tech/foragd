@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"os"
 	"strings"
 )
 
@@ -41,14 +42,31 @@ templ SettingsPage() {
 templ AccountSettings(user *models.User) {
 	<div id="account-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 		<div>
-			<h3 class="text-base/7 font-semibold">Subscription Level</h3>
+			<h3 class="text-base/7 font-semibold">Subscription Plan</h3>
+			<p class="mt-1 text-sm/6">
+				if user.OnTrial() {
+					{ user.GetSubscriptionPlan() +" (Trial)" }
+				} else {
+					{ user.GetSubscriptionPlan() }
+				}
+			</p>
 		</div>
 		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
 			<div class="sm:col-span-full gap-4">
-				// <p class="font-semibold capitalize">
-				// 	{ user.GetSubscriptionLevel() }
-				// </p>
-				<a role="button" class="btn btn-primary" hx-get="/user/settings/subscription" hx-swap="none">Manage Subscription</a>
+				if mgmtLink := os.Getenv("FORAGD_STRIPE_SUBCRIPTIONMGMTURL"); mgmtLink != "" {
+					<a role="button" class="btn btn-primary" href={ mgmtLink }>Manage Subscription Plan</a>
+				} else {
+					@NewMailtoLink(
+						"support@immanent.tech",
+						WithMailtoSubject("Foragd Subscription Question"),
+						WithLinkOptions(
+							WithCustomAttribute("role", "button"),
+							WithClasses("btn", "btn-primary"),
+						),
+					) {
+						Email support to manage your subscription
+					}
+				}
 			</div>
 		</div>
 		<div>

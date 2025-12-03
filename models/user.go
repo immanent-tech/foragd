@@ -122,6 +122,10 @@ func (u *User) Active() bool {
 	return u.Metadata.PlanStatus == stripe.SubscriptionStatusActive || u.OnTrial()
 }
 
+func (u *User) GetSubscriptionPlan() string {
+	return u.Metadata.Plan
+}
+
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be
 // returned.
 func (u *User) GetSettings() *UserSettings {
