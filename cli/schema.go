@@ -15,26 +15,48 @@ import (
 )
 
 type SchemaCmd struct {
-	Create CreateCmd `cmd:"create" help:"Create schemas"`
+	Update  UpdateCmd  `cmd:"update"  help:"Update schema(s)"`
+	Migrate MigrateCmd `cmd:"migrate" help:"Migrate schema(s)"`
 }
 
-type CreateCmd struct {
+type UpdateCmd struct {
 	schema.Options
 }
 
-func (r *CreateCmd) Run(opts *CreateCmd) error {
+func (r *UpdateCmd) Run(opts *UpdateCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	// Load the Elastic backend
 	elasticClient, err := elastic.Connect(ctx)
 	if err != nil {
-		return fmt.Errorf("create schemas: %w", err)
+		return fmt.Errorf("update schemas: %w", err)
 	}
 	// Perform migrations.
 	err = schema.CreateSchemas(ctx, elasticClient.GetAPI(), &opts.Options)
 	if err != nil {
-		return fmt.Errorf("create schemas: %w", err)
+		return fmt.Errorf("update schemas: %w", err)
+	}
+	return nil
+}
+
+type MigrateCmd struct {
+	schema.Options
+}
+
+func (r *MigrateCmd) Run(opts *MigrateCmd) error {
+	// Set up context.
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
+	// Load the Elastic backend
+	elasticClient, err := elastic.Connect(ctx)
+	if err != nil {
+		return fmt.Errorf("update schemas: %w", err)
+	}
+	// Perform migrations.
+	err = schema.Migrate(ctx, elasticClient.GetAPI(), &opts.Options)
+	if err != nil {
+		return fmt.Errorf("update schemas: %w", err)
 	}
 	return nil
 }

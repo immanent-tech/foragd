@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -20,37 +21,36 @@ import (
 )
 
 // Migrate performs all requested schema migrations.
-//
-//nolint:funlen,maintidx // will not reduce size
-// func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
-// 	// If no migrations are specified, perform migrations for all items.
-// 	if slices.Contains(opts.Indices, "all") {
-// 		opts.Indices = []string{"users", "feeds", "items", "favorites", "scheduler", "sessions", "subscriptions"}
-// 	}
+func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
+	// If no migrations are specified, perform migrations for all items.
+	if slices.Contains(opts.Indices, "all") {
+		opts.Indices = []string{"users", "feeds", "items", "favorites", "scheduler", "sessions", "subscriptions"}
+	}
 
-// 	for index := range slices.Values(opts.Indices) {
-// 		switch index {
-// 		case "users":
-// 			err := migrateIndexData(ctx, api, UsersSchemaPrefix,
-// 				ingest.NewIngestPipeline(
-// 					ingest.WithProcessor(types.ProcessorContainer{
-// 						Rename: &types.RenameProcessor{
-// 							Field:       "settings.max_history",
-// 							TargetField: "metadata.max_history",
-// 						},
-// 					}),
-// 					ingest.WithProcessor(types.ProcessorContainer{
-// 						Rename: &types.RenameProcessor{
-// 							Field:       "settings.updates_frequency",
-// 							TargetField: "metadata.updates_frequency",
-// 						},
-// 					}),
-// 				),
-// 			)
-
-// 		}
-// 	}
-// }
+	for index := range slices.Values(opts.Indices) {
+		switch index {
+		case "users":
+			err := migrateIndexData(ctx, api, UsersSchemaPrefix, nil) // ingest.NewIngestPipeline(
+			// 	ingest.WithProcessor(types.ProcessorContainer{
+			// 		Rename: &types.RenameProcessor{
+			// 			Field:       "settings.max_history",
+			// 			TargetField: "metadata.max_history",
+			// 		},
+			// 	}),
+			// 	ingest.WithProcessor(types.ProcessorContainer{
+			// 		Rename: &types.RenameProcessor{
+			// 			Field:       "settings.updates_frequency",
+			// 			TargetField: "metadata.updates_frequency",
+			// 		},
+			// 	}),
+			// ),
+			if err != nil {
+				return fmt.Errorf("could not migrate users: %w", err)
+			}
+		}
+	}
+	return nil
+}
 
 func migrateIndexData(
 	ctx context.Context,
