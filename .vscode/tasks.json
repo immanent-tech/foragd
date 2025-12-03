@@ -38,6 +38,46 @@
       }
     },
     {
+      "label": "run: update schema(s)",
+      "type": "shell",
+      "command": "export $(grep -v '^#' .env.development | xargs) && go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file schema update ${input:schemas}",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": ["-c"]
+        }
+      }
+    },
+    {
+      "label": "run: migrate schema(s)",
+      "type": "shell",
+      "command": "export $(grep -v '^#' .env.development | xargs) && go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file schema migrate ${input:schemas}",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": ["-c"]
+        }
+      }
+    },
+    {
       "label": "run: stripe listen",
       "type": "shell",
       "command": "stripe listen --skip-verify --forward-to localhost:7000/checkout/webhooks",
@@ -56,6 +96,13 @@
           "args": ["-c"]
         }
       }
+    }
+  ],
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "schemas",
+      "description": "list of schemas to update (leave blank for all schemas)"
     }
   ]
 }
