@@ -770,16 +770,7 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 			planID = session.RestoreFromSession(req.Context(), models.ParamPlanID, func() string { return "" })
 		}
 
-		template := templates.Page(
-			"Choose Subscription Plan - "+config.AppName,
-			templates.UserChooseSubscriptionPlan(planID),
-		)
-		err := template.Render(req.Context(), res)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to render page.", slog.Any("error", err))
-			http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-			return
-		}
+		templ.Handler(templates.UserChooseSubscriptionPlanPage(planID)).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
@@ -873,6 +864,12 @@ func UserAccountCancel() http.HandlerFunc {
 		}
 		return nil
 	})).ServeHTTP
+}
+
+func UserAccountIssue() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		templ.Handler(templates.UserAccountIssuePage()).ServeHTTP(res, req)
+	}
 }
 
 func UserManageAccountSubscription() http.HandlerFunc {

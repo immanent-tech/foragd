@@ -172,12 +172,19 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 			syncLocalUser(req.Context(), api, user, profile)
 		}
 		ctx := models.UserToCtx(req.Context(), user)
-		// Check whether this is a first-time login for the user. If so, redirect to choosing a subscription plan, else,
-		// redirect to home page.
+		// Redirect the user appropriately.
 		if profile.LoginsCount == 1 {
+			// New user; redirect to choose subscription plan to complete onboarding.
 			http.Redirect(res, req.WithContext(ctx), "/signup/choose-plan", http.StatusSeeOther)
 		} else {
-			http.Redirect(res, req.WithContext(ctx), "/home", http.StatusTemporaryRedirect)
+			if !user.Active() {
+				slog.Info("here")
+				// Account issues; redirect user to page indicating they need to contact support to resolve an issue with their account.
+				http.Redirect(res, req.WithContext(ctx), "/user/account-issue", http.StatusSeeOther)
+			} else {
+				// Active user; redirect to home page.
+				http.Redirect(res, req.WithContext(ctx), "/home", http.StatusTemporaryRedirect)
+			}
 		}
 	}).ServeHTTP
 }

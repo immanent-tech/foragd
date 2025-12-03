@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/stripe/stripe-go/v83"
+
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -45,6 +47,9 @@ func NewUser(externalID, email string) *User {
 			ShowOnboarding:        true,
 			ShowSubscriptionStats: false,
 			MarkArticleReadOnView: true,
+		},
+		Metadata: UserMetadata{
+			PlanStatus: stripe.SubscriptionStatusTrialing,
 		},
 	}
 
@@ -104,6 +109,17 @@ func (u *User) GetUpdatesFrequency() time.Duration {
 		return GathererUpdatesFrequency
 	}
 	return freq
+}
+
+// OnTrial returns a boolean indicating whether the user is currently in a trial period.
+func (u *User) OnTrial() bool {
+	return u.Metadata.PlanStatus == stripe.SubscriptionStatusTrialing
+}
+
+// Active returns a boolean indicating whether the user is "active", which means a paying customer with no payment
+// issues or customer currently on a trial.
+func (u *User) Active() bool {
+	return u.Metadata.PlanStatus == stripe.SubscriptionStatusActive || u.OnTrial()
 }
 
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be

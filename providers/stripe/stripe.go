@@ -234,7 +234,7 @@ func handleSubscriptionCreated(ctx context.Context, api *elastic.API, subscripti
 	// Set base metadata
 	metadata := models.UserMetadata{
 		Plan:                 prod.Name,
-		PlanStatus:           string(subscription.Status),
+		PlanStatus:           subscription.Status,
 		StripeCustomerId:     subscription.Customer.ID,
 		StripeSubscriptionId: subscription.ID,
 	}

@@ -10,7 +10,9 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/types"
+	"html"
 	"net/http"
 	"slices"
 	"strings"
@@ -191,6 +193,75 @@ templ NewLink(options ...Option[element]) {
 		}
 		tabindex="0"
 		{ link.attributes... }
+	>
+		{ children... }
+	</a>
+}
+
+// MailtoLink represents a link that will open the user's mail client, with optionall pre-filled details).
+type MailtoLink struct {
+	to          string
+	parts       []string
+	linkOptions []Option[element]
+	link        *Link
+}
+
+// MailtoOption is a functional option to apply to a mailto: link object.
+type MailtoOption func(*MailtoLink)
+
+// WithMailtoSubject option adds a subject to the mailto: link.
+func WithMailtoSubject(subject string) MailtoOption {
+	return func(mtl *MailtoLink) {
+		mtl.parts = append(mtl.parts, "subject="+html.EscapeString(subject))
+	}
+}
+
+// WithMailtoBody option adds body text to the mailto: link.
+func WithMailtoBody(body string) MailtoOption {
+	return func(mtl *MailtoLink) {
+		mtl.parts = append(mtl.parts, "body="+html.EscapeString(body))
+	}
+}
+
+// WithLinkOptions option passes the given options to the underlying link object. It can be used for further
+// customisation of the link.
+func WithLinkOptions(options ...Option[element]) MailtoOption {
+	return func(mtl *MailtoLink) {
+		mtl.linkOptions = append(mtl.linkOptions, options...)
+	}
+}
+
+// NewMailtoLink creates a new html link with a `mailto:` href attribute.
+templ NewMailtoLink(to string, options ...MailtoOption) {
+	{{
+		mailto := &MailtoLink{
+			link: &Link{HTMLElement: NewHTMLElement()},
+		}
+	}}
+	{{
+		for mtOption := range slices.Values(options) {
+			mtOption(mailto)
+		}
+		var builder strings.Builder
+		builder.WriteString("mailto:")
+		builder.WriteString(mailto.to)
+		if len(mailto.parts) > 0 {
+			builder.WriteString("?")
+			builder.WriteString(strings.Join(mailto.parts, "&"))
+		}
+		WithCustomAttribute("href", builder.String())(mailto.link)
+	}}
+	for linkOption := range slices.Values(mailto.linkOptions) {
+		{{ linkOption(mailto.link) }}
+	}
+	{{ WithClasses("link", "link-hover")(mailto.link) }}
+	{{ godump.Dump(mailto) }}
+	<a
+		if mailto.link.GetID() != "" {
+			id={ mailto.link.GetID() }
+		}
+		tabindex="0"
+		{ mailto.link.attributes... }
 	>
 		{ children... }
 	</a>

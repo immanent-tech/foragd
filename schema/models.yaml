@@ -248,24 +248,36 @@ components:
         stripe_customer_id:
           description: >
             is the stripe customer id of the user.
+
+            https://docs.stripe.com/api/customers/object?api-version=2025-11-17.preview#customer_object-id
           type: string
           x-oapi-codegen-extra-tags:
             validate: 'required'
         stripe_subscription_id:
           description: >
             is the stripe subscription id of the user's plan.
+
+            https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-id
           type: string
           x-oapi-codegen-extra-tags:
             validate: 'required'
         plan_status:
           description: >
             is the name current status of the subscription plan.
-          type: string
+
+            Possible values come directly from the Stripe API:
+
+            https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-status
+          x-go-type: stripe.SubscriptionStatus
+          x-go-type-import:
+            path: github.com/stripe/stripe-go/v83
           x-oapi-codegen-extra-tags:
             validate: 'required'
         plan:
           description: >
             is the name of the subscription plan that the user is paying for.
+
+            Possible values will come from the products defined in Stripe.
           type: string
           x-oapi-codegen-extra-tags:
             validate: 'required'

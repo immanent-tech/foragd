@@ -270,6 +270,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
+			r.Get("/account-issue", handlers.UserAccountIssue())
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
 				// Add feed subscription.

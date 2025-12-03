@@ -11,6 +11,7 @@ import (
 	"time"
 
 	externalRef0 "github.com/immanent-tech/go-syndication/types"
+	"github.com/stripe/stripe-go/v83"
 )
 
 // Defines values for ArticleArchiveSourceType.
@@ -941,15 +942,20 @@ type UserMetadata struct {
 	MaxHistory string `json:"max_history,omitempty,omitzero" validate:"required,duration"`
 
 	// Plan is the name of the subscription plan that the user is paying for.
+	// Possible values will come from the products defined in Stripe.
 	Plan string `json:"plan,omitempty,omitzero" validate:"required"`
 
 	// PlanStatus is the name current status of the subscription plan.
-	PlanStatus string `json:"plan_status,omitempty,omitzero" validate:"required"`
+	// Possible values come directly from the Stripe API:
+	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-status
+	PlanStatus stripe.SubscriptionStatus `json:"plan_status,omitempty,omitzero" validate:"required"`
 
 	// StripeCustomerId is the stripe customer id of the user.
+	// https://docs.stripe.com/api/customers/object?api-version=2025-11-17.preview#customer_object-id
 	StripeCustomerId string `json:"stripe_customer_id,omitempty,omitzero" validate:"required"`
 
 	// StripeSubscriptionId is the stripe subscription id of the user's plan.
+	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-id
 	StripeSubscriptionId string `json:"stripe_subscription_id,omitempty,omitzero" validate:"required"`
 
 	// UpdatesFrequency is a duration indicating how often the account should check for updates in various places within the apply. Set by the account level.
