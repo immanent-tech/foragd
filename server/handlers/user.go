@@ -775,7 +775,7 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 			planID = session.RestoreFromSession(req.Context(), models.ParamPlanID, func() string { return "" })
 		}
 		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
-		templ.Handler(templates.UserChooseSubscriptionPlanPage(planID)).ServeHTTP(res, req)
+		renderPage(templates.UserChooseSubscriptionPlan(planID), "Choose a Subscription Plan").ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
@@ -787,7 +787,7 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			externalPage("Checkout Subscription Plan - "+config.AppName,
-				templates.ExternalErrorPage(models.NewErrorMessage(
+				templates.ExternalError(models.NewErrorMessage(
 					"Unable to process checkout",
 					"This might be a temporary error, please try again.",
 				)),
@@ -805,7 +805,7 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 		planID := req.FormValue(models.ParamPlanID)
 		if planID == "" {
 			externalPage("Checkout Subscription Plan - "+config.AppName,
-				templates.ExternalErrorPage(models.NewErrorMessage(
+				templates.ExternalError(models.NewErrorMessage(
 					"Unable to process checkout",
 					"This might be a temporary error, please try again.",
 				)),
@@ -824,7 +824,7 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 		session, err := stripe.NewCheckoutSession(user, planID)
 		if err != nil {
 			externalPage("Checkout Subscription Plan - "+config.AppName,
-				templates.ExternalErrorPage(models.NewErrorMessage(
+				templates.ExternalError(models.NewErrorMessage(
 					"Unable to process checkout",
 					"This might be a temporary error, please try again.",
 				)),
@@ -865,7 +865,7 @@ func UserManageAccountSubscription() http.HandlerFunc {
 
 		sessionID := req.FormValue("session_id")
 		if sessionID == "" {
-			renderPage(wrapContent(req, templates.ExternalErrorPage(models.NewErrorMessage(
+			renderPage(wrapContent(req, templates.ExternalError(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
 			))), "Subscription Plan Checkout").ServeHTTP(res, req)
@@ -877,7 +877,7 @@ func UserManageAccountSubscription() http.HandlerFunc {
 
 		portalSession, err := stripe.NewPortalSession(sessionID)
 		if err != nil {
-			renderPage(wrapContent(req, templates.ExternalErrorPage(models.NewErrorMessage(
+			renderPage(wrapContent(req, templates.ExternalError(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
 			))), "Subscription Plan Checkout").ServeHTTP(res, req)

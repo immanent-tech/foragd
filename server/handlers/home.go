@@ -26,7 +26,7 @@ import (
 // Home handles displaying the user's home page.
 func (a *API) Home() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		pageTitle := templates.GeneratePageTitle("Home")
+		pageTitle := "Home"
 		ctx := req.Context()
 		user := models.UserFromCtx(ctx)
 		if user == nil {
@@ -41,8 +41,7 @@ func (a *API) Home() http.HandlerFunc {
 			)
 		}
 		if user.GetSettings().ShowOnboarding {
-			template := templates.NewUserHome()
-			renderPage(template, pageTitle).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(wrapContent(req, templates.NewUserHome()), pageTitle).ServeHTTP(res, req.WithContext(ctx))
 			return nil
 		}
 		data, err := a.getHomePageData(ctx)
@@ -57,8 +56,7 @@ func (a *API) Home() http.HandlerFunc {
 				http.StatusInternalServerError,
 			)
 		}
-		template := data.Template()
-		renderPage(wrapContent(req, template), pageTitle).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(wrapContent(req, data.Template()), pageTitle).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).
 		ServeHTTP

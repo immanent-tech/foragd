@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -25,27 +26,24 @@ import (
 
 // Login handles login requests.
 func Login() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		err := auth0.InitAuthenticator(req.Context())
 		if err != nil {
-			http.Error(res, "Login is not available.", http.StatusServiceUnavailable)
-			return
+			renderPage(
+				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Can't contact auth backend")),
+				"Login",
+			).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
 		// prompt=login&screen_hint=signup
 		state, err := generateRandomState()
 		if err != nil {
-			template := templates.Page(
-				"Foragd",
-				templates.ExternalErrorPage(models.NewErrorMessage("Unable to log in.", "")),
-			)
-			err := template.Render(req.Context(), res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-				return
-			}
-			return
+			renderPage(
+				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid state")),
+				"Login",
+			).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		var authURL string
 		switch chi.RouteContext(req.Context()).RoutePattern() {
@@ -64,74 +62,52 @@ func Login() http.HandlerFunc {
 			slog.String("url", auth0.AuthClient.AuthCodeURL(state)),
 		)
 		http.Redirect(res, req, authURL, http.StatusTemporaryRedirect)
-	}).ServeHTTP
+		return nil
+	})).ServeHTTP
 }
 
 // LoginCallback handles processing the response from a login provider.
 func LoginCallback(api *elastic.API) http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// provider := chi.URLParam(req, "provider")
 
 		state := req.FormValue("state")
 		if state != session.Manager.GetString(req.Context(), "state") {
-			template := templates.Page(
-				"Foragd",
-				templates.ExternalErrorPage(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")),
-			)
-			err := template.Render(req.Context(), res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-				return
-			}
-			return
+			renderPage(
+				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")),
+				"Login",
+			).ServeHTTP(res, req)
+			return models.NewAPIError(errors.New("invalid session state"), http.StatusInternalServerError)
 		}
 
 		// Exchange an authorization code for a token.
 		code := req.FormValue("code")
 		token, err := auth0.AuthClient.Exchange(req.Context(), code)
 		if err != nil {
-			template := templates.Page(
-				"Foragd",
-				templates.ExternalErrorPage(
-					models.NewErrorMessage(
-						"Unable to log in.",
-						"Failed to exchange an authorization code for a token.",
-					),
-				),
-			)
-			err := template.Render(req.Context(), res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-				return
-			}
-			return
+			renderPage(
+				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
+				"Login",
+			).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
 		idToken, err := auth0.AuthClient.VerifyIDToken(req.Context(), token)
 		if err != nil {
-			template := templates.ExternalErrorPage(
-				models.NewErrorMessage("Unable to log in.", "Failed to verify ID Token."),
-			)
-			renderPage(template, "").ServeHTTP(res, req)
-			return
+			renderPage(
+				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
+				"Login",
+			).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
 		var profile auth0.UserProfile
 		err = idToken.Claims(&profile)
 		if err != nil {
-			template := templates.Page(
-				"Foragd",
-				templates.ExternalErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
-			)
-			err := template.Render(req.Context(), res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-				return
-			}
-			return
+			renderPage(
+				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
+				"Login",
+			).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
 		session.Manager.Put(req.Context(), "access_token", token.AccessToken)
@@ -142,31 +118,18 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
 			// Create a new local account for the user
 			if err := createLocalUser(req.Context(), api, profile); err != nil {
-				template := templates.Page(
-					"Foragd",
-					templates.ExternalErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
-				)
-				err := template.Render(req.Context(), res)
-				if err != nil {
-					slogctx.FromCtx(req.Context()).
-						Error("Failed to render page template.", slog.Any("error", err))
-					http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-					return
-				}
-				return
+				renderPage(
+					templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Account creation failed")),
+					"Login",
+				).ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
 		case err != nil: // Backend error.
-			template := templates.Page(
-				"Foragd",
-				templates.ExternalErrorPage(models.NewErrorMessage("Unable to log in.", err.Error())),
-			)
-			err := template.Render(req.Context(), res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-				return
-			}
-			return
+			renderPage(
+				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Authorization backend error")),
+				"Login",
+			).ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		default: // Existing user.
 			// Sync user data from the backend.
 			syncLocalUser(req.Context(), api, user, profile)
@@ -184,7 +147,8 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 			// Active user; redirect to home page.
 			http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)
 		}
-	}).ServeHTTP
+		return nil
+	})).ServeHTTP
 }
 
 func createLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProfile) error {
@@ -227,11 +191,11 @@ func syncLocalUser(ctx context.Context, api *elastic.API, user *models.User, pro
 			return
 		}
 	}
-
 }
 
 func generateRandomState() (string, error) {
-	bytes := make([]byte, 32)
+	const stateSize = 32
+	bytes := make([]byte, stateSize)
 	_, err := rand.Read(bytes)
 	if err != nil {
 		return "", fmt.Errorf("unable to generate random state: %w", err)

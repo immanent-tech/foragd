@@ -4,7 +4,6 @@
 package templates
 
 import (
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -137,16 +136,14 @@ templ planSelection(action, method, selectedID, selectedText string) {
 // UserChooseSubscriptionPlanPage renders a full page for the user to choose their subscription plan, with any
 // previously selected option highlighted. This is displayed after a user account has been created (in Auth0) and
 // redirects the user to Stripe for payment.
-templ UserChooseSubscriptionPlanPage(planID string) {
-	@Page("Choose a Subscription Plan - "+config.AppName, nil) {
-		@main() {
-			<div class="mx-auto max-w-4xl text-center mb-16">
-				<h1 id="pricing" class="text-lg sm:text-xl/8 font-semibold text-primary mb-16">Choose your plan.</h1>
-				<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">You'll be taken to Stripe to finalise your account.</p>
-				<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">Entering payment details is optional. You can start a trial today and pay later.</p>
-			</div>
-			@planSelection(models.RouteCheckout, "post", planID, "Selected")
-		}
+templ UserChooseSubscriptionPlan(planID string) {
+	@main() {
+		<div class="mx-auto max-w-4xl text-center mb-16">
+			<h1 id="pricing" class="text-lg sm:text-xl/8 font-semibold text-primary mb-16">Choose your plan.</h1>
+			<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">You'll be taken to Stripe to finalise your account.</p>
+			<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">Entering payment details is optional. You can start a trial today and pay later.</p>
+		</div>
+		@planSelection(models.RouteCheckout, "post", planID, "Selected")
 	}
 }
 

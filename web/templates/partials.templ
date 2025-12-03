@@ -38,7 +38,7 @@ templ NotFound() {
 }
 
 // ExternalErrorPage renders a page containing a link to contact support and/or go back to the landing page.
-templ ExternalErrorPage(msg *models.UserMessage) {
+templ ExternalError(msg *models.UserMessage) {
 	@main() {
 		<div class="text-center">
 			<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Whoops 😿</h1>
