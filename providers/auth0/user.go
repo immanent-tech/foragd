@@ -71,41 +71,20 @@ func (u *UserProfile) GetEmail() string {
 	return u.Email
 }
 
-// ManagementAPI represents the Auth0 management API backend connection.
-type ManagementAPI struct {
-	*management.Management
-}
-
-// NewManagementAPI creates a new management API connection.
-func NewManagementAPI() (*ManagementAPI, error) {
-	api, err := management.New(
-		cfg.Domain,
-		management.WithClientCredentials(
-			context.Background(),
-			cfg.ClientID,
-			cfg.ClientSecret,
-		),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("auth0: management api backend: %w", err)
-	}
-	return &ManagementAPI{Management: api}, nil
-}
-
 // DeleteUser will delete the given user from the Auth0 backend.
 func DeleteUser(ctx context.Context, user *models.User) error {
-	api, err := NewManagementAPI()
+	err := LoadManagementAPI()
 	if err != nil {
 		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
 	}
 	// Delete the user's active sessions.
-	err = api.User.DeleteUserSessions(ctx, user.ExternalUserId)
+	err = mgmt.User.DeleteUserSessions(ctx, user.GetExternalID())
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Could not remove active sessions for user while deleting account.",
 			slog.Any("error", err),
 		)
 	}
-	err = api.User.Delete(ctx, user.ExternalUserId)
+	err = mgmt.User.Delete(ctx, user.GetExternalID())
 	if err != nil {
 		return fmt.Errorf("unable to delete user account on backend: %w", err)
 	}
@@ -113,7 +92,7 @@ func DeleteUser(ctx context.Context, user *models.User) error {
 }
 
 func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
-	api, err := NewManagementAPI()
+	err := LoadManagementAPI()
 	if err != nil {
 		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
 	}
@@ -134,7 +113,7 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 		VerifyEmail: &verifyEmail,
 	}
 	// Update the user.
-	err = api.User.Update(ctx, user.ExternalUserId, updates)
+	err = mgmt.User.Update(ctx, user.GetExternalID(), updates)
 	if err != nil {
 		return fmt.Errorf("unable to update user in backend: %w", err)
 	}
@@ -143,7 +122,7 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 
 // ChangeUserPassword will perform a password change on behalf of a user.
 func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error {
-	api, err := NewManagementAPI()
+	err := LoadManagementAPI()
 	if err != nil {
 		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
 	}
@@ -156,7 +135,7 @@ func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordReque
 		Password: &request.NewPassword,
 	}
 	// Update the user.
-	err = api.User.Update(ctx, user.ExternalUserId, updates)
+	err = mgmt.User.Update(ctx, user.GetExternalID(), updates)
 	if err != nil {
 		return fmt.Errorf("unable to update user in backend: %w", err)
 	}

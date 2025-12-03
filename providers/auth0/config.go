@@ -28,9 +28,7 @@ type Config struct {
 
 // LoadConfigOnce loads the auth0 configuration and ensures this is only done
 // one time, no matter how many times it is called.
-var LoadConfigOnce = sync.OnceValue(loadConfig)
-
-func loadConfig() error {
+var LoadConfigOnce = sync.OnceValue(func() error {
 	err := config.Load(ConfigEnvPrefix, cfg)
 	if err != nil {
 		return fmt.Errorf("auth0: unable to load config: %w", err)
@@ -40,4 +38,4 @@ func loadConfig() error {
 		return fmt.Errorf("auth0: unable to validate config: %w", err)
 	}
 	return nil
-}
+})
