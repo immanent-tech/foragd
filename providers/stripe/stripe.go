@@ -18,6 +18,7 @@ import (
 	"github.com/stripe/stripe-go/v83/checkout/session"
 	"github.com/stripe/stripe-go/v83/price"
 	"github.com/stripe/stripe-go/v83/product"
+	"github.com/stripe/stripe-go/v83/subscription"
 	"github.com/stripe/stripe-go/webhook"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -124,6 +125,20 @@ func NewPortalSession(sessionID string) (*PortalSession, error) {
 	return &PortalSession{BillingPortalSession: ps}, nil
 }
 
+// CancelSubscription will cancel a user's active subscription. Subscriptions are cancelled immediately and the customer
+// will be issues a refund for any credit.
+func CancelSubscription(user *models.User) error {
+	params := &stripe.SubscriptionCancelParams{
+		Prorate: stripe.Bool(true),
+	}
+	_, err := subscription.Cancel(user.Metadata.StripeSubscriptionId, params)
+	if err != nil {
+		return fmt.Errorf("cancel subscription: %w", err)
+	}
+
+	return nil
+}
+
 // HandleWebhook will handle incoming webhook requests from Stripe, that are sent in response to events related to a
 // user's subscription (like plan changes, trial expiry, payment events).
 func HandleWebhook(api *elastic.API) http.HandlerFunc {
@@ -138,10 +153,7 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
-		// Replace this endpoint secret with your endpoint's unique secret
-		// If you are testing with the CLI, find the secret by running 'stripe listen'
-		// If you are using an endpoint defined with the API or dashboard, look in your webhook settings
-		// at https://dashboard.stripe.com/webhooks
+
 		endpointSecret := cfg.WebHookSecret
 
 		// Verify recieved webhook was sent by Stripe.
@@ -245,24 +257,23 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 }
 
 func handleSubscriptionDeleted(ctx context.Context, api *elastic.API, subscription stripe.Subscription) error {
-	user, err := api.GetUser(ctx, subscription.Metadata[metadataAuth0UserID])
-	if err != nil {
-		return fmt.Errorf("subscription deleted: %w", err)
-	}
+	// user, err := api.GetUser(ctx, subscription.Metadata[metadataAuth0UserID])
+	// if err != nil {
+	// 	return fmt.Errorf("subscription deleted: %w", err)
+	// }
 
-	// Update subscription plan status.
-	metadata := models.UserMetadata{
-		PlanStatus: subscription.Status,
-	}
+	// // Update subscription plan status.
+	// metadata := models.UserMetadata{
+	// 	PlanStatus: subscription.Status,
+	// }
 
-	// Update the user object with the new metadata.
-	err = api.UpdateUser(ctx, user.GetID(), map[string]any{
-		"metadata": metadata,
-	})
-	if err != nil {
-		return fmt.Errorf("subscription deleted: %w", err)
-	}
-
+	// // Update the user object with the new metadata.
+	// err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+	// 	"metadata": metadata,
+	// })
+	// if err != nil {
+	// 	return fmt.Errorf("subscription deleted: %w", err)
+	// }
 	return nil
 }
 

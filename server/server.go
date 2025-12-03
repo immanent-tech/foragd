@@ -314,8 +314,8 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())
 				})
 			})
-			r.With(middlewares.RequireHTMX).Get("/delete", handler.DeleteUser())
-			r.With(middlewares.RequireHTMX).Post("/delete", handler.DeleteUser())
+			r.With(middlewares.RequireHTMX).Get("/delete", handlers.DeleteUser(handler.Elastic))
+			r.With(middlewares.RequireHTMX).Post("/delete", handlers.DeleteUser(handler.Elastic))
 		})
 	})
 

@@ -173,7 +173,16 @@ templ AccountSettings(user *models.User) {
 		// Delete account.
 		<div>
 			<h3 class="text-base/7 font-semibold">Delete Account</h3>
-			<p class="mt-1 text-sm/6">No longer want to use our service? You can delete your account here. This action is not reversible. All information related to this account will be deleted permanently and you will be redirected back to the landing page.</p>
+			<p class="mt-1 text-sm/6">
+				No longer want to use our service? You can delete your account here. This will:
+			</p>
+			<ul class="mt-1 text-sm/6 list-disc">
+				<li>Delete your user account, including all subscriptions, favorites and other preferences.</li>
+				<li>Cancel your subscription plan and issue a prorata refund for the current billing period left.</li>
+			</ul>
+			<p class="mt-1 text-sm/6">
+				You will be automatically logged out after it completes. We have no way to recover your account data after this action.
+			</p>
 		</div>
 		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
 			<div class="sm:col-span-full">
