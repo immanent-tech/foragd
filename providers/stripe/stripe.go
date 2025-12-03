@@ -12,7 +12,6 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
-	"os"
 
 	"github.com/stripe/stripe-go/v83"
 	portalsession "github.com/stripe/stripe-go/v83/billingportal/session"
@@ -24,6 +23,10 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+)
+
+const (
+	metadataAuth0UserID = "auth0_user_id"
 )
 
 // ErrInvalidSubscription indicates there was invalid data sent or received about a subscription.
@@ -72,7 +75,7 @@ func NewCheckoutSession(user *models.User, planID string) (*Checkout, error) {
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			// Add the user's auth0 id so we can match the subscription to the user.
 			Metadata: map[string]string{
-				"auth0_user_id": user.GetID(),
+				metadataAuth0UserID: user.GetID(),
 			},
 			// Define trial period.z
 			TrialPeriodDays: stripe.Int64(trialPeriodDays),
@@ -129,7 +132,9 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 		bodyReader := http.MaxBytesReader(res, req.Body, maxBodyBytes)
 		payload, err := io.ReadAll(bodyReader)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading request body: %v\n", err)
+			slogctx.FromCtx(req.Context()).Error("Error reading webhook request body.",
+				slog.Any("error", err),
+			)
 			res.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
@@ -137,13 +142,15 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 		// If you are testing with the CLI, find the secret by running 'stripe listen'
 		// If you are using an endpoint defined with the API or dashboard, look in your webhook settings
 		// at https://dashboard.stripe.com/webhooks
-		endpointSecret := "whsec_f88d16a9b4112c2715105e17025251216752407a9feb110cde156a67e66e3acc"
+		endpointSecret := cfg.WebHookSecret
 
 		// Verify recieved webhook was sent by Stripe.
 		signatureHeader := req.Header.Get("Stripe-Signature")
 		event, err := webhook.ConstructEvent(payload, signatureHeader, endpointSecret)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "⚠️  Webhook signature verification failed. %v\n", err)
+			slogctx.FromCtx(req.Context()).Error("⚠️  Webhook signature verification failed.",
+				slog.Any("error", err),
+			)
 			res.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
 			return
 		}
@@ -154,18 +161,28 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 			var subscription stripe.Subscription
 			err := json.Unmarshal(event.Data.Raw, &subscription)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error parsing webhook JSON: %v\n", err)
+				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+					slog.Any("error", err),
+				)
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			log.Printf("Subscription deleted for %d.", subscription.ID)
-			// Then define and call a func to handle the deleted subscription.
-			// handleSubscriptionCanceled(subscription)
+			err = handleSubscriptionDeleted(req.Context(), api, subscription)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).
+					Error("Handle Webhook: error occurred processing subscription deletion.",
+						slog.Any("error", err),
+					)
+				res.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 		case "customer.subscription.updated":
 			var subscription stripe.Subscription
 			err := json.Unmarshal(event.Data.Raw, &subscription)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error parsing webhook JSON: %v\n", err)
+				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+					slog.Any("error", err),
+				)
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -176,7 +193,9 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 			var subscription stripe.Subscription
 			err := json.Unmarshal(event.Data.Raw, &subscription)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error parsing webhook JSON: %v\n", err)
+				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+					slog.Any("error", err),
+				)
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -184,7 +203,7 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 			// Then define and call a func to handle the successful attachment of a PaymentMethod.
 			err = handleSubscriptionCreated(req.Context(), api, subscription)
 			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Could not process new subscription.",
+				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
 					slog.Any("error", err),
 				)
 				res.WriteHeader(http.StatusInternalServerError)
@@ -194,7 +213,9 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 			var subscription stripe.Subscription
 			err := json.Unmarshal(event.Data.Raw, &subscription)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error parsing webhook JSON: %v\n", err)
+				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+					slog.Any("error", err),
+				)
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -205,7 +226,9 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 			var subscription stripe.Subscription
 			err := json.Unmarshal(event.Data.Raw, &subscription)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error parsing webhook JSON: %v\n", err)
+				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+					slog.Any("error", err),
+				)
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -213,22 +236,46 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 			// Then define and call a func to handle active entitlement summary updated.
 			// handleEntitlementUpdated(subscription)
 		default:
-			fmt.Fprintf(os.Stderr, "Unhandled event type: %s\n", event.Type)
+			slogctx.FromCtx(req.Context()).Warn("Unhandled webhook event.",
+				slog.String("type", event.Type),
+			)
 		}
 		res.WriteHeader(http.StatusOK)
 	}
+}
+
+func handleSubscriptionDeleted(ctx context.Context, api *elastic.API, subscription stripe.Subscription) error {
+	user, err := api.GetUser(ctx, subscription.Metadata[metadataAuth0UserID])
+	if err != nil {
+		return fmt.Errorf("subscription deleted: %w", err)
+	}
+
+	// Update subscription plan status.
+	metadata := models.UserMetadata{
+		PlanStatus: subscription.Status,
+	}
+
+	// Update the user object with the new metadata.
+	err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+		"metadata": metadata,
+	})
+	if err != nil {
+		return fmt.Errorf("subscription deleted: %w", err)
+	}
+
+	return nil
 }
 
 func handleSubscriptionCreated(ctx context.Context, api *elastic.API, subscription stripe.Subscription) error {
 	// Retrieve the product details
 	prod, err := product.Get(subscription.Items.Data[0].Price.Product.ID, &stripe.ProductParams{})
 	if err != nil {
-		return fmt.Errorf("handle subscription created webhook: %w", err)
+		return fmt.Errorf("subscription created: %w", err)
 	}
 
-	user, err := api.GetUser(ctx, subscription.Metadata["auth0_user_id"])
+	user, err := api.GetUser(ctx, subscription.Metadata[metadataAuth0UserID])
 	if err != nil {
-		return fmt.Errorf("handle subscription created webhook: %w", err)
+		return fmt.Errorf("subscription created: %w", err)
 	}
 
 	// Set base metadata
@@ -256,7 +303,7 @@ func handleSubscriptionCreated(ctx context.Context, api *elastic.API, subscripti
 		"metadata": metadata,
 	})
 	if err != nil {
-		return fmt.Errorf("handle subscription created webhook: %w", err)
+		return fmt.Errorf("subscription created: %w", err)
 	}
 
 	return nil

@@ -27,8 +27,9 @@ var cfg = &Config{}
 // Config structure.
 type Config struct {
 	// APIKey is the Stripe API key for communicating securely with the Stripe API.
-	APIKey  string `koanf:"apikey"  validate:"required"`
-	BaseURL string `koanf:"baseurl" validate:"required,url"`
+	APIKey        string `koanf:"apikey"        validate:"required"`
+	BaseURL       string `koanf:"baseurl"       validate:"required,url"`
+	WebHookSecret string `koanf:"webhooksecret" validate:"required"`
 }
 
 // LoadConfigOnce loads the Stripe configuration and ensures this is only done
