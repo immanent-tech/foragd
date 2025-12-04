@@ -15,7 +15,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
-	"github.com/stripe/stripe-go/v83"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/oauth2"
 
@@ -138,20 +137,23 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		}
 		ctx := models.UserToCtx(req.Context(), user)
 		// Redirect the user appropriately.
-		switch {
-		case profile.LoginsCount == 1:
+		if profile.LoginsCount == 1 {
 			// New user; redirect to choose subscription plan to complete onboarding.
 			http.Redirect(res, req.WithContext(ctx), models.RouteCheckoutChoosePlan, http.StatusSeeOther)
-		case !user.Active():
+			return nil
+		}
+		if !user.Active() {
 			// Account issues; redirect user to page indicating they need to contact support to resolve an issue with their account.
 			http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
-		case user.Metadata.PlanStatus == stripe.SubscriptionStatusCanceled && user.Metadata.CancelAt.Before(time.Now().UTC()):
+			return nil
+		}
+		if cancelled, endAt := user.Cancelled(); cancelled && endAt.Before(time.Now().UTC()) {
 			// Account has been cancelled and past cancellation date; redirect to home page.
 			http.Redirect(res, req.WithContext(ctx), "/", http.StatusSeeOther)
-		default:
-			// Active user; redirect to home page.
-			http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)
+			return nil
 		}
+		// Active user; redirect to home page.
+		http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)
 		return nil
 	})).ServeHTTP
 }
