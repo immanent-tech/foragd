@@ -11,9 +11,11 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
+	"github.com/stripe/stripe-go/v83"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/oauth2"
 
@@ -143,6 +145,9 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		case !user.Active():
 			// Account issues; redirect user to page indicating they need to contact support to resolve an issue with their account.
 			http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
+		case user.Metadata.PlanStatus == stripe.SubscriptionStatusCanceled && user.Metadata.CancelAt.Before(time.Now().UTC()):
+			// Account has been cancelled and past cancellation date; redirect to home page.
+			http.Redirect(res, req.WithContext(ctx), "/", http.StatusSeeOther)
 		default:
 			// Active user; redirect to home page.
 			http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)

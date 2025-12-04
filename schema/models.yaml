@@ -251,6 +251,7 @@ components:
 
             https://docs.stripe.com/api/customers/object?api-version=2025-11-17.preview#customer_object-id
           type: string
+          x-go-name: StripeCustomerID
           x-oapi-codegen-extra-tags:
             validate: 'required'
         stripe_subscription_id:
@@ -259,6 +260,7 @@ components:
 
             https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-id
           type: string
+          x-go-name: StripeSubscriptionID
           x-oapi-codegen-extra-tags:
             validate: 'required'
         plan_status:
@@ -277,10 +279,27 @@ components:
           description: >
             is the name of the subscription plan that the user is paying for.
 
-            Possible values will come from the products defined in Stripe.
+            Possible values will come from the product defined in Stripe.
           type: string
           x-oapi-codegen-extra-tags:
             validate: 'required'
+        plan_id:
+          description: >
+            is the unique identifier for the plan.
+
+            Possible values will come from the product defined in Stripe.
+          type: string
+          x-go-name: PlanID
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        cancel_at:
+          description: >
+            is a date in the future at which the subscription will automatically get canceled.
+          x-go-type: time.Time
+        trial_end:
+          description: >
+            is the date when the trial for the subscription ended.
+          x-go-type: time.Time
         max_history:
           description: >
             is a duration representing the maximum time-frame over which objects contained within are available. Set by
@@ -318,6 +337,7 @@ components:
               description: >
                 is the ID of the user on the external backend that was used to create the account.
               type: string
+              x-go-name: ExternalUserID
               x-oapi-codegen-extra-tags:
                 validate: 'required'
             provider:

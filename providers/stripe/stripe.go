@@ -12,6 +12,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/stripe/stripe-go/v83"
 	portalsession "github.com/stripe/stripe-go/v83/billingportal/session"
@@ -27,6 +28,7 @@ import (
 )
 
 const (
+	metadataUserID      = "foragd_user_id"
 	metadataAuth0UserID = "auth0_user_id"
 )
 
@@ -76,7 +78,8 @@ func NewCheckoutSession(user *models.User, planID string) (*Checkout, error) {
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			// Add the user's auth0 id so we can match the subscription to the user.
 			Metadata: map[string]string{
-				metadataAuth0UserID: user.GetID(),
+				metadataUserID:      user.GetID(),
+				metadataAuth0UserID: user.GetExternalID(),
 			},
 			// Define trial period.z
 			TrialPeriodDays: stripe.Int64(trialPeriodDays),
@@ -125,15 +128,38 @@ func NewPortalSession(sessionID string) (*PortalSession, error) {
 	return &PortalSession{BillingPortalSession: ps}, nil
 }
 
-// CancelSubscription will cancel a user's active subscription. Subscriptions are cancelled immediately and the customer
-// will be issues a refund for any credit.
+// CancelSubscription will cancel a user's active subscription. Subscription will be cancelled at the end of the current
+// billing period.
+//
+// https://docs.stripe.com/billing/subscriptions/cancel?dashboard-or-api=api#cancel-at-the-end-of-the-current-billing-period
 func CancelSubscription(user *models.User) error {
-	params := &stripe.SubscriptionCancelParams{
-		Prorate: stripe.Bool(true),
-	}
-	_, err := subscription.Cancel(user.Metadata.StripeSubscriptionId, params)
+	err := LoadConfigOnce()
 	if err != nil {
 		return fmt.Errorf("cancel subscription: %w", err)
+	}
+
+	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(true)}
+	_, err = subscription.Update(user.Metadata.StripeSubscriptionID, params)
+	if err != nil {
+		return fmt.Errorf("cancel subscription: %w", err)
+	}
+
+	return nil
+}
+
+// StopPendingCancellation will stop the pending cancellation of a user's subscription.
+//
+// https://docs.stripe.com/billing/subscriptions/cancel?dashboard-or-api=api#reactivating-canceled-subscriptions
+func StopPendingCancellation(user *models.User) error {
+	err := LoadConfigOnce()
+	if err != nil {
+		return fmt.Errorf("stop pending subscription cancellation: %w", err)
+	}
+
+	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(false)}
+	_, err = subscription.Update(user.Metadata.StripeSubscriptionID, params)
+	if err != nil {
+		return fmt.Errorf("stop pending subscription cancellation: %w", err)
 	}
 
 	return nil
@@ -198,9 +224,15 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			log.Printf("Subscription updated for %d.", subscription.ID)
-			// Then define and call a func to handle the successful attachment of a PaymentMethod.
-			// handleSubscriptionUpdated(subscription)
+			err = handleSubscriptionUpdated(req.Context(), api, subscription)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).
+					Error("Handle Webhook: error occurred processing subscription deletion.",
+						slog.Any("error", err),
+					)
+				res.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 		case "customer.subscription.created":
 			var subscription stripe.Subscription
 			err := json.Unmarshal(event.Data.Raw, &subscription)
@@ -256,35 +288,39 @@ func HandleWebhook(api *elastic.API) http.HandlerFunc {
 	}
 }
 
+// handleSubscriptionDeleted will update the user metadata with the new subscription status (i.e., cancelled) and set
+// the cancelAt timestamp.
 func handleSubscriptionDeleted(ctx context.Context, api *elastic.API, subscription stripe.Subscription) error {
-	// user, err := api.GetUser(ctx, subscription.Metadata[metadataAuth0UserID])
-	// if err != nil {
-	// 	return fmt.Errorf("subscription deleted: %w", err)
-	// }
+	user, err := api.GetUser(ctx, subscription.Metadata[metadataUserID])
+	if err != nil {
+		return fmt.Errorf("subscription deleted: %w", err)
+	}
 
-	// // Update subscription plan status.
-	// metadata := models.UserMetadata{
-	// 	PlanStatus: subscription.Status,
-	// }
+	// Update subscription plan status.
+	metadata := user.Metadata
+	metadata.PlanStatus = subscription.Status
+	metadata.CancelAt = time.Unix(subscription.CancelAt, 0)
 
-	// // Update the user object with the new metadata.
-	// err = api.UpdateUser(ctx, user.GetID(), map[string]any{
-	// 	"metadata": metadata,
-	// })
-	// if err != nil {
-	// 	return fmt.Errorf("subscription deleted: %w", err)
-	// }
+	// Update the user object with the new metadata.
+	err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+		"metadata": metadata,
+	})
+	if err != nil {
+		return fmt.Errorf("subscription deleted: %w", err)
+	}
 	return nil
 }
 
-func handleSubscriptionCreated(ctx context.Context, api *elastic.API, subscription stripe.Subscription) error {
+// handleSubscriptionUpdated will update the user metadata with any changed subscription plan, update the plan status
+// and adjust the max history and updates frequency, if required.
+func handleSubscriptionUpdated(ctx context.Context, api *elastic.API, subscription stripe.Subscription) error {
 	// Retrieve the product details
 	prod, err := product.Get(subscription.Items.Data[0].Price.Product.ID, &stripe.ProductParams{})
 	if err != nil {
 		return fmt.Errorf("subscription created: %w", err)
 	}
 
-	user, err := api.GetUser(ctx, subscription.Metadata[metadataAuth0UserID])
+	user, err := api.GetUser(ctx, subscription.Metadata[metadataUserID])
 	if err != nil {
 		return fmt.Errorf("subscription created: %w", err)
 	}
@@ -293,8 +329,56 @@ func handleSubscriptionCreated(ctx context.Context, api *elastic.API, subscripti
 	metadata := models.UserMetadata{
 		Plan:                 prod.Name,
 		PlanStatus:           subscription.Status,
-		StripeCustomerId:     subscription.Customer.ID,
-		StripeSubscriptionId: subscription.ID,
+		PlanID:               prod.ID,
+		StripeSubscriptionID: subscription.ID,
+		CancelAt:             time.Unix(subscription.CancelAt, 0),
+	}
+	// Set plan-specific metadata
+	switch metadata.Plan {
+	case "Gatherer":
+		metadata.MaxHistory = models.GathererMaxHistory.String()
+		metadata.UpdatesFrequency = models.GathererUpdatesFrequency.String()
+	case "Collector":
+		metadata.MaxHistory = models.CollectorMaxHistory.String()
+		metadata.UpdatesFrequency = models.CollectorUpdatesFrequency.String()
+	case "Curator":
+		metadata.MaxHistory = models.CuratorMaxHistory.String()
+		metadata.UpdatesFrequency = models.CuratorUpdatesFrequency.String()
+	}
+
+	// Update the user object with the new metadata.
+	err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+		"metadata": metadata,
+	})
+	if err != nil {
+		return fmt.Errorf("subscription created: %w", err)
+	}
+
+	return nil
+}
+
+// handleSubscriptionCreate will add all details about the new subscription to the user metadata and set appropriate
+// values for the max history and updates frequency.
+func handleSubscriptionCreated(ctx context.Context, api *elastic.API, subscription stripe.Subscription) error {
+	// Retrieve the product details
+	prod, err := product.Get(subscription.Items.Data[0].Price.Product.ID, &stripe.ProductParams{})
+	if err != nil {
+		return fmt.Errorf("subscription created: %w", err)
+	}
+
+	user, err := api.GetUser(ctx, subscription.Metadata[metadataUserID])
+	if err != nil {
+		return fmt.Errorf("subscription created: %w", err)
+	}
+
+	// Set base metadata
+	metadata := models.UserMetadata{
+		Plan:                 prod.Name,
+		PlanStatus:           subscription.Status,
+		PlanID:               prod.ID,
+		TrialEnd:             time.Unix(subscription.TrialEnd, 0),
+		StripeCustomerID:     subscription.Customer.ID,
+		StripeSubscriptionID: subscription.ID,
 	}
 	// Set plan-specific metadata
 	switch metadata.Plan {

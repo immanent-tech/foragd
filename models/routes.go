@@ -10,5 +10,7 @@ const (
 	RouteCheckout           = "/checkout"
 	RouteCheckoutChoosePlan = "/checkout/choose-plan"
 
-	RouteUserAccountIssue = "/user/account-issue"
+	RouteUserAccountIssue              = "/user/account-issue"
+	RouteUserDeactivateAccount         = "/user/deactivate"
+	RouteUserCancelDeactivationAccount = "/user/deactivate/cancel"
 )

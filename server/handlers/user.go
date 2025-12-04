@@ -514,13 +514,14 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// DeleteUser handles removing a user account from the local and backend databases. Once the account is removed, any
-// active session is destroyed and the browser is redirected back to the landing page.
-func DeleteUser(api *elastic.API) http.HandlerFunc {
+// UserDeactivateAccount handles a user request to deactivate their account. Their subscription in Stripe will be cancelled at
+// the end of the current billing period. They can continue to log in and use the service during the current billing
+// period, after which a scheduled job will delete their account.
+func UserDeactivateAccount() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		case http.MethodGet:
-			renderPartial(templates.DeleteAccountModal()).ServeHTTP(res, req)
+			renderPartial(templates.DeactivateAccountModal()).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get user account details.
 			user := models.UserFromCtx(req.Context())
@@ -534,29 +535,8 @@ func DeleteUser(api *elastic.API) http.HandlerFunc {
 					http.StatusInternalServerError,
 				)
 			}
-			// Delete Auth0 account.
-			err := auth0.DeleteUser(req.Context(), user)
-			if err != nil {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to delete account", ""),
-				),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to delete account in auth backend: %w", err),
-					http.StatusInternalServerError,
-				)
-			}
-			// Delete account locally.
-			err = api.DeleteUser(req.Context(), user.GetID())
-			if err != nil {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to delete account", ""),
-				),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to delete user: %w", err), http.StatusInternalServerError)
-			}
 			// Delete Stripe subscription.
-			err = stripe.CancelSubscription(user)
+			err := stripe.CancelSubscription(user)
 			if err != nil {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to delete account", ""),
@@ -564,24 +544,52 @@ func DeleteUser(api *elastic.API) http.HandlerFunc {
 				).ServeHTTP(res, req)
 				return models.NewAPIError(fmt.Errorf("unable to delete user: %w", err), http.StatusInternalServerError)
 			}
-			// Remove session cookie. This effectively logs the user out.
-			err = session.Manager.Destroy(req.Context())
-			if err != nil {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage(
-						"Unable to delete account",
-						"This might be a temporary error, please try again.",
-					),
+			// Refresh the page
+			res.Header().Set(htmx.HeaderRefresh, "true")
+			renderPartial(
+				templates.Notification(
+					models.NewInfoMessage("Account cancelled", ""),
+					templates.DefaultNotificationTimeout,
 				),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to delete user sessions: %w", err),
-					http.StatusInternalServerError,
-				)
-			}
-			// Redirect back to the landing page.
-			res.Header().Add(htmx.HeaderRedirect, "/")
+			).ServeHTTP(res, req)
 		}
+		return nil
+	})).ServeHTTP
+}
+
+// UserCancelDeactivation handles a user request to stop the pending deactivation of their account. The cancellation
+// will be reversed in Stripe and full account functionality restored.
+func UserCancelDeactivation() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Get user account details.
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			renderPartial(templates.ServerErrorNotification(
+				models.NewErrorMessage("Unable to stop account deactivation", ""),
+			),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(
+				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				http.StatusInternalServerError,
+			)
+		}
+		// Delete Stripe subscription.
+		err := stripe.StopPendingCancellation(user)
+		if err != nil {
+			renderPartial(templates.ServerErrorNotification(
+				models.NewErrorMessage("Unable to stop account deactivation", ""),
+			),
+			).ServeHTTP(res, req)
+			return models.NewAPIError(fmt.Errorf("unable to delete user: %w", err), http.StatusInternalServerError)
+		}
+		// Refresh the page
+		res.Header().Set(htmx.HeaderRefresh, "true")
+		renderPartial(
+			templates.Notification(
+				models.NewSuccessMessage("Stopped account deactivation", ""),
+				templates.DefaultNotificationTimeout,
+			),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

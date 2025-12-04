@@ -881,8 +881,8 @@ type User struct {
 	// Email is the email address of the user.
 	Email string `form:"email" json:"email,omitempty,omitzero" validate:"omitempty,email"`
 
-	// ExternalUserId is the ID of the user on the external backend that was used to create the account.
-	ExternalUserId string `json:"external_user_id" validate:"required"`
+	// ExternalUserID is the ID of the user on the external backend that was used to create the account.
+	ExternalUserID string `json:"external_user_id" validate:"required"`
 
 	// ItemFavorites is the IDs of items (articles) the user has favorited.
 	ItemFavorites []ItemID `json:"item_favorites,omitempty,omitzero" validate:"omitempty,dive,startswith=item_"`
@@ -938,25 +938,35 @@ type UserMessageStatus string
 
 // UserMetadata contains metadata related to the user's account.
 type UserMetadata struct {
+	// CancelAt is a date in the future at which the subscription will automatically get canceled.
+	CancelAt time.Time `json:"cancel_at,omitempty,omitzero"`
+
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available. Set by the account level.
 	MaxHistory string `json:"max_history,omitempty,omitzero" validate:"required,duration"`
 
 	// Plan is the name of the subscription plan that the user is paying for.
-	// Possible values will come from the products defined in Stripe.
+	// Possible values will come from the product defined in Stripe.
 	Plan string `json:"plan,omitempty,omitzero" validate:"required"`
+
+	// PlanID is the unique identifier for the plan.
+	// Possible values will come from the product defined in Stripe.
+	PlanID string `json:"plan_id,omitempty,omitzero" validate:"required"`
 
 	// PlanStatus is the name current status of the subscription plan.
 	// Possible values come directly from the Stripe API:
 	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-status
 	PlanStatus stripe.SubscriptionStatus `json:"plan_status,omitempty,omitzero" validate:"required"`
 
-	// StripeCustomerId is the stripe customer id of the user.
+	// StripeCustomerID is the stripe customer id of the user.
 	// https://docs.stripe.com/api/customers/object?api-version=2025-11-17.preview#customer_object-id
-	StripeCustomerId string `json:"stripe_customer_id,omitempty,omitzero" validate:"required"`
+	StripeCustomerID string `json:"stripe_customer_id,omitempty,omitzero" validate:"required"`
 
-	// StripeSubscriptionId is the stripe subscription id of the user's plan.
+	// StripeSubscriptionID is the stripe subscription id of the user's plan.
 	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-id
-	StripeSubscriptionId string `json:"stripe_subscription_id,omitempty,omitzero" validate:"required"`
+	StripeSubscriptionID string `json:"stripe_subscription_id,omitempty,omitzero" validate:"required"`
+
+	// TrialEnd is the date when the trial for the subscription ended.
+	TrialEnd time.Time `json:"trial_end,omitempty,omitzero"`
 
 	// UpdatesFrequency is a duration indicating how often the account should check for updates in various places within the apply. Set by the account level.
 	UpdatesFrequency string `json:"updates_frequency,omitempty,omitzero" validate:"required,duration"`

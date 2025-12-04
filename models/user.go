@@ -38,7 +38,7 @@ func NewUser(externalID, email string) *User {
 	user := &User{
 		CreatedAt:      ts,
 		UpdatedAt:      ts,
-		ExternalUserId: externalID,
+		ExternalUserID: externalID,
 		Provider:       strings.Split(externalID, "|")[0],
 		Email:          email,
 		UserID:         NewID(UserPFX),
@@ -69,6 +69,11 @@ func (u *User) Valid(_ context.Context) (bool, error) {
 // GetID returns the ID for the user.
 func (u *User) GetID() UserID {
 	return u.UserID
+}
+
+// GetExternalID returns the backend ID for the user.
+func (u *User) GetExternalID() UserID {
+	return u.ExternalUserID
 }
 
 // GetAvatar retrieves the URL to the image to represent the user.
@@ -111,17 +116,37 @@ func (u *User) GetUpdatesFrequency() time.Duration {
 	return freq
 }
 
-// OnTrial returns a boolean indicating whether the user is currently in a trial period.
-func (u *User) OnTrial() bool {
-	return u.Metadata.PlanStatus == stripe.SubscriptionStatusTrialing
+// OnTrial returns a boolean indicating whether the user is currently in a trial period and if so, a timestamp
+// indicating when the trial will end.
+func (u *User) OnTrial() (bool, time.Time) {
+	if u.Metadata.PlanStatus == stripe.SubscriptionStatusTrialing {
+		return true, u.Metadata.TrialEnd
+	}
+	return false, time.Time{}
+}
+
+// Cancelled returns a boolean indicating whether the user has cancelled their subscription plan and if so, a timestamp
+// indicating when the cancellation will apply.
+func (u *User) Cancelled() (bool, time.Time) {
+	if u.Metadata.PlanStatus == stripe.SubscriptionStatusCanceled || u.Metadata.CancelAt.After(time.Now().UTC()) {
+		return true, u.Metadata.CancelAt
+	}
+	return false, time.Time{}
 }
 
 // Active returns a boolean indicating whether the user is "active", which means a paying customer with no payment
 // issues or customer currently on a trial.
 func (u *User) Active() bool {
-	return u.Metadata.PlanStatus == stripe.SubscriptionStatusActive || u.OnTrial()
+	if u.Metadata.PlanStatus == stripe.SubscriptionStatusActive {
+		return true
+	}
+	if trial, _ := u.OnTrial(); trial {
+		return true
+	}
+	return false
 }
 
+// GetSubscriptionPlan returns the name of the subscription plan of the user.
 func (u *User) GetSubscriptionPlan() string {
 	return u.Metadata.Plan
 }

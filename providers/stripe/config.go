@@ -34,9 +34,7 @@ type Config struct {
 
 // LoadConfigOnce loads the Stripe configuration and ensures this is only done
 // one time, no matter how many times it is called.
-var LoadConfigOnce = sync.OnceValue(loadConfig)
-
-func loadConfig() error {
+var LoadConfigOnce = sync.OnceValue(func() error {
 	err := config.Load(ConfigEnvPrefix, cfg)
 	if err != nil {
 		return fmt.Errorf("stripe: unable to load config: %w", err)
@@ -50,4 +48,4 @@ func loadConfig() error {
 		return fmt.Errorf("stripe: unable to validate config: %w", err)
 	}
 	return nil
-}
+})
