@@ -292,12 +292,13 @@ templ DisplaySettings(user *models.User) {
 			// * Changing themes here also requires updating the list in styles.css.
 			<div class="grid max-w-7xl col-span-full grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8">
 				{{ currentTheme := user.GetSettings().Theme }}
+				@themePreview("greenhouse", currentTheme)
 				@themePreview("light", currentTheme)
 				@themePreview("dark", currentTheme)
-				@themePreview("dracula", currentTheme)
-				@themePreview("nord", currentTheme)
 				@themePreview("latte", currentTheme)
 				@themePreview("mocha", currentTheme)
+				@themePreview("nord", currentTheme)
+				@themePreview("dracula", currentTheme)
 			</div>
 		</div>
 	</div>

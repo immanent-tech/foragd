@@ -17,7 +17,7 @@ import (
 
 const (
 	// DefaultUserTheme is the default theme for the app.
-	DefaultUserTheme = "light"
+	DefaultUserTheme = "greenhouse"
 
 	GathererMaxHistory        = 7 * 24 * time.Hour // One week.
 	GathererUpdatesFrequency  = time.Hour

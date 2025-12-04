@@ -2,9 +2,9 @@
 @plugin '@tailwindcss/typography';
 @plugin 'daisyui' {
   themes:
-    light --default,
-    dark --prefersdark,
-    dracula,
+    light,
+    dark,
+    dracula --prefersdark,
     nord,
     abyss;
 }
