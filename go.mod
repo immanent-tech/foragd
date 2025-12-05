@@ -19,7 +19,6 @@ require (
 	github.com/knadh/koanf/v2 v2.3.0
 	github.com/lmittmann/tint v1.1.2
 	github.com/mattn/go-isatty v0.0.20
-	github.com/oapi-codegen/runtime v1.1.2
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-chi v1.17.0
 	github.com/samber/slog-multi v1.6.0
@@ -133,7 +132,6 @@ require (
 	cloud.google.com/go/storage v1.57.2
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/alecthomas/kong v1.13.0
-	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/didip/tollbooth/v8 v8.0.1
