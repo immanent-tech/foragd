@@ -48,7 +48,7 @@ type PortalSession struct {
 // NewCheckoutSession creates a new checkout session, that is used to allow a user to purchase a subscription plan.
 func NewCheckoutSession(user *models.User, planID string) (*Checkout, error) {
 	if err := LoadConfigOnce(); err != nil {
-		return nil, fmt.Errorf("create checkout session: %w", err)
+		return nil, fmt.Errorf("load stripe config: %w", err)
 	}
 
 	params := &stripe.PriceListParams{
@@ -101,7 +101,7 @@ func NewCheckoutSession(user *models.User, planID string) (*Checkout, error) {
 
 	s, err := session.New(checkoutParams)
 	if err != nil {
-		return nil, fmt.Errorf("create checkout session: %w", ErrInvalidSubscription)
+		return nil, fmt.Errorf("create new checkout session: %w", ErrInvalidSubscription)
 	}
 
 	return &Checkout{CheckoutSession: s}, nil
@@ -111,7 +111,7 @@ func NewCheckoutSession(user *models.User, planID string) (*Checkout, error) {
 func NewPortalSession(sessionID string) (*PortalSession, error) {
 	portalSession, err := session.Get(sessionID, nil)
 	if err != nil {
-		return nil, fmt.Errorf("create portal session: %w", err)
+		return nil, fmt.Errorf("get stripe session id: %w", err)
 	}
 
 	// Authenticate your user.
@@ -121,7 +121,7 @@ func NewPortalSession(sessionID string) (*PortalSession, error) {
 	}
 	ps, err := portalsession.New(params)
 	if err != nil {
-		return nil, fmt.Errorf("create portal session: %w", err)
+		return nil, fmt.Errorf("create new portal session: %w", err)
 	}
 
 	return &PortalSession{BillingPortalSession: ps}, nil
@@ -134,13 +134,13 @@ func NewPortalSession(sessionID string) (*PortalSession, error) {
 func CancelSubscription(user *models.User) error {
 	err := LoadConfigOnce()
 	if err != nil {
-		return fmt.Errorf("cancel subscription: %w", err)
+		return fmt.Errorf("load config: %w", err)
 	}
 
 	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(true)}
 	_, err = subscription.Update(user.Metadata.StripeSubscriptionID, params)
 	if err != nil {
-		return fmt.Errorf("cancel subscription: %w", err)
+		return fmt.Errorf("update subscription cancel period: %w", err)
 	}
 
 	return nil
@@ -152,7 +152,7 @@ func CancelSubscription(user *models.User) error {
 func StopPendingCancellation(user *models.User) error {
 	err := LoadConfigOnce()
 	if err != nil {
-		return fmt.Errorf("stop pending subscription cancellation: %w", err)
+		return fmt.Errorf("load config: %w", err)
 	}
 
 	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(false)}
@@ -316,12 +316,12 @@ func handleSubscriptionUpdated(ctx context.Context, api *elastic.API, subscripti
 	// Retrieve the product details
 	prod, err := product.Get(subscription.Items.Data[0].Price.Product.ID, &stripe.ProductParams{})
 	if err != nil {
-		return fmt.Errorf("subscription created: %w", err)
+		return fmt.Errorf("get product details: %w", err)
 	}
 
 	user, err := api.GetUser(ctx, subscription.Metadata[metadataUserID])
 	if err != nil {
-		return fmt.Errorf("subscription created: %w", err)
+		return fmt.Errorf("get user details: %w", err)
 	}
 
 	// Set base metadata
@@ -350,7 +350,7 @@ func handleSubscriptionUpdated(ctx context.Context, api *elastic.API, subscripti
 		"metadata": metadata,
 	})
 	if err != nil {
-		return fmt.Errorf("subscription created: %w", err)
+		return fmt.Errorf("update user: %w", err)
 	}
 
 	return nil
@@ -362,12 +362,12 @@ func handleSubscriptionCreated(ctx context.Context, api *elastic.API, subscripti
 	// Retrieve the product details
 	prod, err := product.Get(subscription.Items.Data[0].Price.Product.ID, &stripe.ProductParams{})
 	if err != nil {
-		return fmt.Errorf("subscription created: %w", err)
+		return fmt.Errorf("get product details: %w", err)
 	}
 
 	user, err := api.GetUser(ctx, subscription.Metadata[metadataUserID])
 	if err != nil {
-		return fmt.Errorf("subscription created: %w", err)
+		return fmt.Errorf("get user details: %w", err)
 	}
 
 	// Set base metadata
@@ -397,7 +397,7 @@ func handleSubscriptionCreated(ctx context.Context, api *elastic.API, subscripti
 		"metadata": metadata,
 	})
 	if err != nil {
-		return fmt.Errorf("subscription created: %w", err)
+		return fmt.Errorf("update user: %w", err)
 	}
 
 	return nil

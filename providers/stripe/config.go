@@ -37,7 +37,7 @@ type Config struct {
 var LoadConfigOnce = sync.OnceValue(func() error {
 	err := config.Load(ConfigEnvPrefix, cfg)
 	if err != nil {
-		return fmt.Errorf("stripe: unable to load config: %w", err)
+		return fmt.Errorf("load environment variables: %w", err)
 	}
 
 	stripe.Key = cfg.APIKey //nolint:reassign // seems to be a recommended approach in the docs.
@@ -45,7 +45,7 @@ var LoadConfigOnce = sync.OnceValue(func() error {
 
 	err = validation.Validate.Struct(cfg)
 	if err != nil {
-		return fmt.Errorf("stripe: unable to validate config: %w", err)
+		return fmt.Errorf("validate config: %w", err)
 	}
 	return nil
 })
