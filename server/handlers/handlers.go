@@ -39,8 +39,6 @@ var (
 	ErrInvalidContent = errors.New("invalid content")
 	// ErrInvalidRequestParams indicates that the request parameters received were invalid.
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
-	// ErrBackendAPIError indicates that an invalid response was received from a backend API.
-	ErrBackendAPIError = errors.New("backend API reported error")
 )
 
 var defaultHandlerChain = alice.New(

@@ -39,18 +39,16 @@ var imgCache objectCache
 func ImageProxy(proxyURLBase string) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Load the http client used for making requests to the image proxy.
-		err := loadHTTPClient()
-		if err != nil {
+		if err := loadHTTPClient(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(fmt.Errorf("image proxy: decode image url: %w", err),
+			return models.NewAPIError(fmt.Errorf("load http client: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
 		// Load the image cache.
-		err = loadImageCache()
-		if err != nil {
+		if err := loadImageCache(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(fmt.Errorf("image proxy: decode image url: %w", err),
+			return models.NewAPIError(fmt.Errorf("load image cache: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -69,11 +67,10 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		imageData, found := imgCache.Get(req.Context(), imgHash)
 		if found {
 			// Write the image to the response.
-			_, err = res.Write(imageData)
-			if err != nil {
+			if _, err := res.Write(imageData); err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
 				return models.NewAPIError(
-					fmt.Errorf("image proxy: write image: %w", err),
+					fmt.Errorf("write image: %w", err),
 					http.StatusInternalServerError,
 				)
 			}
@@ -90,7 +87,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			originalURL, err := base64.RawURLEncoding.DecodeString(params[len(params)-1])
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
-				return models.NewAPIError(fmt.Errorf("image proxy: decode image url: %w", err),
+				return models.NewAPIError(fmt.Errorf("decode image url: %w", err),
 					http.StatusInternalServerError,
 				)
 			}
@@ -104,14 +101,14 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			return models.NewAPIError(
-				fmt.Errorf("image proxy: send image request: %w", err),
+				fmt.Errorf("send image request to proxy: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
 		if resp.IsError() {
 			res.WriteHeader(resp.StatusCode())
 			return models.NewAPIError(
-				fmt.Errorf("image proxy: send image request: %w: %s", ErrBackendAPIError, resp.Status()),
+				fmt.Errorf("send image request to proxy: %s", resp.Status()),
 				resp.StatusCode(),
 			)
 		}
@@ -119,7 +116,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			return models.NewAPIError(
-				fmt.Errorf("image proxy: read image response: %w", err),
+				fmt.Errorf("read image response: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -131,7 +128,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
 				return models.NewAPIError(
-					fmt.Errorf("image proxy: write image: %w", err),
+					fmt.Errorf("write image: %w", err),
 					http.StatusInternalServerError,
 				)
 			}
@@ -147,7 +144,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		})
 
 		if err := wg.Wait(); err != nil {
-			return err
+			return fmt.Errorf("background image jobs: %w", err)
 		}
 
 		return nil
@@ -161,13 +158,13 @@ var loadImageCache = sync.OnceValue(func() error {
 		var err error
 		imgCache, err = gcs.Connect(context.Background(), bucketName, "")
 		if err != nil {
-			return fmt.Errorf("unable to load image cache: %w", err)
+			return fmt.Errorf("connect to gcs: %w", err)
 		}
 	default:
 		var err error
 		imgCache, err = newDirCache()
 		if err != nil {
-			return fmt.Errorf("unable to load image cache: %w", err)
+			return fmt.Errorf("create dir cache: %w", err)
 		}
 	}
 
@@ -208,6 +205,10 @@ func (d *dirCache) Set(ctx context.Context, key string, value []byte) {
 		)
 	}
 }
-func (d *dirCache) Delete(_ context.Context, key string) {
-	d.Remove(key)
+func (d *dirCache) Delete(ctx context.Context, key string) {
+	if err := d.Remove(key); err != nil {
+		slogctx.FromCtx(ctx).Error("Unable to remove file: %w",
+			slog.Any("error", err),
+		)
+	}
 }
