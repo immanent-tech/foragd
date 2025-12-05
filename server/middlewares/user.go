@@ -45,12 +45,20 @@ func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler 
 			case !ok: // Invalid session profile data.
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.String("error", "invalid session profile data"))
-				res.Header().Set(htmx.HeaderRedirect, "/")
+				if htmx.IsHTMX(req) {
+					res.Header().Set(htmx.HeaderRedirect, "/")
+				} else {
+					http.Redirect(res, req, "/", http.StatusTemporaryRedirect)
+				}
 				return
 			case profile.Blocked: // Account is blocked.
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.String("error", "account is blocked"))
-				res.Header().Set(htmx.HeaderRedirect, models.RouteUserAccountIssue)
+				if htmx.IsHTMX(req) {
+					res.Header().Set(htmx.HeaderRedirect, models.RouteUserAccountIssue)
+				} else {
+					http.Redirect(res, req, models.RouteUserAccountIssue, http.StatusTemporaryRedirect)
+				}
 				return
 			}
 			// Fetch the user from the user management API.
@@ -58,7 +66,11 @@ func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler 
 			if err != nil {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.Any("error", err))
-				res.Header().Set(htmx.HeaderRedirect, "/")
+				if htmx.IsHTMX(req) {
+					res.Header().Set(htmx.HeaderRedirect, "/")
+				} else {
+					http.Redirect(res, req, "/", http.StatusTemporaryRedirect)
+				}
 				return
 			}
 			// Else load the user into the context and pass the new context
