@@ -41,8 +41,7 @@ type Server struct {
 func NewServer(ctx context.Context) (Server, error) {
 	svr := Server{}
 	// Load the server config.
-	err := LoadConfigOnce()
-	if err != nil {
+	if err := LoadConfigOnce(); err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
 	// Set up handlers api.
@@ -89,10 +88,9 @@ func (s *Server) Start(ctx context.Context) error {
 		signal.Notify(stop, os.Interrupt)
 		<-stop
 
-		err := s.Shutdown(context.Background())
-		// Can't do much here except for logging any errors
-		if err != nil {
-			slogctx.FromCtx(ctx).Error("Error occurred when trying to shut down server.",
+		if err := s.Shutdown(context.Background()); err != nil {
+			// Can't do much here except for logging any errors
+			slogctx.FromCtx(context.Background()).Error("Error occurred when trying to shut down server.",
 				slog.Any("error", err),
 			)
 		}

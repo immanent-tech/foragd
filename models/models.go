@@ -102,8 +102,7 @@ func ExtractTextFromURL(url string) (string, error) {
 }
 
 func (p *ObjectParams) Valid() error {
-	err := validation.Validate.Struct(p)
-	if err != nil {
+	if err := validation.Validate.Struct(p); err != nil {
 		return err
 	}
 	return nil
@@ -114,8 +113,7 @@ func (v *ObjectParams) Sanitise() error {
 }
 
 func (m *MarkObjectParams) Valid() error {
-	err := validation.Validate.Struct(m)
-	if err != nil {
+	if err := validation.Validate.Struct(m); err != nil {
 		return err
 	}
 	return nil
@@ -134,8 +132,7 @@ func NewObjectIssue(obj *ObjectParams, url string) *ObjectIssueRequest {
 }
 
 func (i *ObjectIssueRequest) Valid() error {
-	err := validation.Validate.Struct(i)
-	if err != nil {
+	if err := validation.Validate.Struct(i); err != nil {
 		return err
 	}
 	return nil
@@ -147,8 +144,7 @@ func (i *ObjectIssueRequest) Sanitise() error {
 }
 
 func (i *IssueRequest) Valid() error {
-	err := validation.Validate.Struct(i)
-	if err != nil {
+	if err := validation.Validate.Struct(i); err != nil {
 		return err
 	}
 	return nil

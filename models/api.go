@@ -81,8 +81,7 @@ type DataAPI interface {
 
 // CreateFeed stores a new Feed.
 func CreateFeed(ctx context.Context, dataAPI DataAPI, feed *Feed) error {
-	err := dataAPI.CreateFeed(ctx, feed)
-	if err != nil {
+	if err := dataAPI.CreateFeed(ctx, feed); err != nil {
 		return fmt.Errorf("unable to create feed: %w", err)
 	}
 	return nil
@@ -126,8 +125,7 @@ func GetArticleTopCategories(ctx context.Context, dataAPI DataAPI, feeds ...Feed
 	topCategories := make([]Category, 0)
 
 	for bucket := range slices.Values(topCategoriesBuckets) {
-		category, ok := bucket.Key.(Category)
-		if ok {
+		if category, ok := bucket.Key.(Category); ok {
 			topCategories = append(topCategories, category)
 		}
 	}

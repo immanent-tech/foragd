@@ -137,8 +137,7 @@ func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState,
 
 // UpdateJobState will update the job state for the job with the given id.
 func (m *manager) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
-	err := m.api.UpdateJobState(ctx, id, updates)
-	if err != nil {
+	if err := m.api.UpdateJobState(ctx, id, updates); err != nil {
 		return fmt.Errorf("scheduled: update job state: %w", err)
 	}
 	return nil

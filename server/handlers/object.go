@@ -28,8 +28,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
-		err := params.Valid()
-		if err != nil {
+		if err := params.Valid(); err != nil {
 			renderPage(
 				wrapContent(req, templates.NotFound()),
 				templates.GeneratePageTitle("Unknown article"),
@@ -68,8 +67,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 			var remoteContentErrMsg templ.Component
 			// Fetch and set remote content if required.
 			if article.ShowFullContent {
-				content, err := models.ExtractTextFromURL(article.GetLink())
-				if err != nil {
+				if content, err := models.ExtractTextFromURL(article.GetLink()); err != nil {
 					// Couldn't fetch remote article content, show an error message.
 					remoteContentErrMsg = templates.Notification(
 						models.NewErrorMessage("Unable to fetch article remote content", ""), 0,
@@ -108,8 +106,7 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
-		err := params.Valid()
-		if err != nil {
+		if err := params.Valid(); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Server could not complete request!",
@@ -187,8 +184,7 @@ func GetObjectIssues() http.HandlerFunc {
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
-		err := params.Valid()
-		if err != nil {
+		if err := params.Valid(); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Server could not complete request",

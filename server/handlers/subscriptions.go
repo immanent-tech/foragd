@@ -378,8 +378,7 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 			}
 			// Get top categories across items in subscription feed and add as suggested categories for the
 			// subscription.
-			categories, resp := models.GetArticleTopCategories(ctx, api, subscription.FeedData.GetFeedID())
-			if resp == nil {
+			if categories, resp := models.GetArticleTopCategories(ctx, api, subscription.FeedData.GetFeedID()); resp == nil {
 				request.SuggestedCategories = categories
 			}
 			// Generate page template.
@@ -936,15 +935,14 @@ func AdjustSubscriptionCategories() http.HandlerFunc {
 		switch req.Method {
 		case http.MethodPost: // Add category.
 			// Parse form values.
-			err := req.ParseForm()
-			if err != nil {
+			if err := req.ParseForm(); err != nil {
 				return fmt.Errorf("unable to parse category changes: %w", err)
 			}
 			currentCategories := req.PostForm["user_categories"]
-			category := req.FormValue("category")
 			inputName := req.FormValue("inputName")
 			// Only add a category if it isn't already added.
-			if category == "" || (currentCategories != nil && slices.Contains(currentCategories, category)) ||
+			if category := req.FormValue("category"); category == "" ||
+				(currentCategories != nil && slices.Contains(currentCategories, category)) ||
 				inputName == "" {
 				res.WriteHeader(http.StatusNoContent)
 			} else {

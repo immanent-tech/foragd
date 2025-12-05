@@ -85,8 +85,7 @@ func GenerateArticle(user *User, item *Item, subscription *Subscription) (*Artic
 	// Toggle marking read on view.
 	article.MarkArticleReadOnView = user.GetSettings().MarkArticleReadOnView
 	// Validate the article.
-	err := article.Valid()
-	if err != nil {
+	if err := article.Valid(); err != nil {
 		return nil, fmt.Errorf("could not generate article: %w", err)
 	}
 
@@ -96,8 +95,7 @@ func GenerateArticle(user *User, item *Item, subscription *Subscription) (*Artic
 // Valid returns a boolean indicating if the article contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (a *Article) Valid() error {
-	err := validation.Validate.Struct(a)
-	if err != nil {
+	if err := validation.Validate.Struct(a); err != nil {
 		return fmt.Errorf("article is invalid: %w", err)
 	}
 	return nil

@@ -82,8 +82,7 @@ func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) 
 
 // GenerateLogoutURL generates URL to log the user out from the auth backend.
 func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
-	err := InitAuthenticator(req.Context())
-	if err != nil {
+	if err := InitAuthenticator(req.Context()); err != nil {
 		return nil, fmt.Errorf("unable to generate logout URL: %w", err)
 	}
 	logoutURL, err := url.Parse("https://" + cfg.Domain + "/v2/logout")

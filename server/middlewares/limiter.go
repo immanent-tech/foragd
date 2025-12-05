@@ -68,8 +68,7 @@ func RateLimit(ratelimiter RateLimiter) func(next http.Handler) http.Handler {
 			// We don't want to include the zone in our limiter key
 			clientIP, _ = realclientip.SplitHostZone(clientIP)
 
-			httpErr := tollbooth.LimitByKeys(ratelimiter.limiter, []string{clientIP})
-			if httpErr != nil {
+			if httpErr := tollbooth.LimitByKeys(ratelimiter.limiter, []string{clientIP}); httpErr != nil {
 				slogctx.FromCtx(req.Context()).Warn("Request rate-limited.",
 					slog.String("error", httpErr.Message),
 					slog.Int("code", httpErr.StatusCode),

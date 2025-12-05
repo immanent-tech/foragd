@@ -141,8 +141,7 @@ func NewILMPolicy(name string, options ...Option[*types.IlmPolicy]) *ILMPolicy {
 
 // Put will send a request to create the index template in the cluster.
 func (p *ILMPolicy) Put(ctx context.Context, api *elasticsearch.TypedClient) error {
-	_, err := api.Ilm.PutLifecycle(p.name).Request(p.Request).Do(ctx)
-	if err != nil {
+	if _, err := api.Ilm.PutLifecycle(p.name).Request(p.Request).Do(ctx); err != nil {
 		return fmt.Errorf("unable to put ILM policy: %w", err)
 	}
 	return nil

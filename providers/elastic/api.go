@@ -90,8 +90,7 @@ func (a *API) GetSession(ctx context.Context, token string) (*models.UserSession
 // DeleteSession removes the session data for the given token.
 func (a *API) DeleteSession(ctx context.Context, token string) error {
 	index := schema.SessionsSchemaPrefix + schema.IndexWriteSuffix
-	err := DeleteDoc(ctx, a.GetAPI(), index, token)
-	if err != nil {
+	if err := DeleteDoc(ctx, a.GetAPI(), index, token); err != nil {
 		return fmt.Errorf("delete session: %w", err)
 	}
 	return nil
@@ -100,12 +99,11 @@ func (a *API) DeleteSession(ctx context.Context, token string) error {
 // UpdateSession updates the session data.
 func (a *API) UpdateSession(ctx context.Context, token string, data map[string]any) error {
 	index := schema.SessionsSchemaPrefix + schema.IndexWriteSuffix
-	err := UpdateDoc(ctx, a.GetAPI(), index,
+	if err := UpdateDoc(ctx, a.GetAPI(), index,
 		token,
 		data,
 		UpdateDocAsUpsert(),
-	)
-	if err != nil {
+	); err != nil {
 		return fmt.Errorf("update session: %w", err)
 	}
 	return nil
@@ -382,19 +380,16 @@ func (a *API) AddSubscriptions(ctx context.Context, subscriptions ...*models.Sub
 	if user == nil {
 		return fmt.Errorf("add subscriptions: get user data: %w", ErrNoUserInCtx)
 	}
-	_, err := a.UpdateSubscriptions(ctx, subscriptions...)
-	if err != nil {
+	if _, err := a.UpdateSubscriptions(ctx, subscriptions...); err != nil {
 		return fmt.Errorf("add subscriptions: %w", err)
 	}
 	// Disable onboarding once a subscription has been added.
-	settings := user.GetSettings()
-	if settings.ShowOnboarding {
+	if settings := user.GetSettings(); settings.ShowOnboarding {
 		settings.ShowOnboarding = false
 		// Update the user object.
-		err = a.UpdateUser(ctx, user.GetID(), map[string]any{
+		if err := a.UpdateUser(ctx, user.GetID(), map[string]any{
 			"settings": settings,
-		})
-		if err != nil {
+		}); err != nil {
 			return fmt.Errorf("add subscriptions: update user: %w", err)
 		}
 	}
@@ -490,8 +485,7 @@ func (a *API) CreateFeedSubscriptions(ctx context.Context, results ...*models.Ad
 		result.Message = *models.NewSuccessMessage("Subscription Created: "+result.Feed.GetTitle(), "Articles will be fetched shortly...")
 	}
 	// Add subscriptions
-	err := a.AddSubscriptions(ctx, subscriptions...)
-	if err != nil {
+	if err := a.AddSubscriptions(ctx, subscriptions...); err != nil {
 		return fmt.Errorf("unable to create subscriptions: %w", err)
 	}
 	return nil
@@ -516,8 +510,7 @@ func (a *API) CreateSearchSubscriptions(ctx context.Context, requests ...*models
 		subscriptions = append(subscriptions, subscription)
 	}
 	// Add subscriptions
-	err := a.AddSubscriptions(ctx, subscriptions...)
-	if err != nil {
+	if err := a.AddSubscriptions(ctx, subscriptions...); err != nil {
 		return fmt.Errorf("create search subscription: add subscriptions failed: %w", err)
 	}
 	return nil
@@ -942,11 +935,8 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 					err,
 				)
 			}
-			items, _, err := a.SearchItems(ctx, query, 1, &sort, nil)
-			if err == nil {
-				if len(items) > 0 {
-					subscription.Stats.LastUpdate = items[0].GetTimestamp()
-				}
+			if items, _, err := a.SearchItems(ctx, query, 1, &sort, nil); err == nil && len(items) > 0 {
+				subscription.Stats.LastUpdate = items[0].GetTimestamp()
 			} else {
 				slogctx.FromCtx(ctx).Warn("Add subscription dynamic info, could not get last update for search subscription.",
 					slog.String("subscription_id", subscription.GetID()),
@@ -981,8 +971,7 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 		})
 	}
 
-	err := fetchJobs.Wait()
-	if err != nil {
+	if err := fetchJobs.Wait(); err != nil {
 		return fmt.Errorf("add subscription dynamic info: run jobs: %w", err)
 	}
 

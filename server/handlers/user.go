@@ -283,10 +283,9 @@ func (a *API) SetTheme() http.HandlerFunc {
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
-		err := a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
+		if err := a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"settings": settings,
-		})
-		if err != nil {
+		}); err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage(
@@ -306,8 +305,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
-		err := validation.Validate.Var(id, "required,startswith=sub_")
-		if err != nil {
+		if err := validation.Validate.Var(id, "required,startswith=sub_"); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite subscription", "Data is invalid."),
 			)).ServeHTTP(res, req)
@@ -317,8 +315,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			)
 		}
 		// Get the subscription state.
-		err = a.Elastic.UpdateFavoriteSubscription(req.Context(), id, true)
-		if err != nil {
+		if err := a.Elastic.UpdateFavoriteSubscription(req.Context(), id, true); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Unable to add favorite subscription",
@@ -348,8 +345,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
-		err := validation.Validate.Var(id, "required,startswith=sub_")
-		if err != nil {
+		if err := validation.Validate.Var(id, "required,startswith=sub_"); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite subscription", "Data is invalid."),
 			)).ServeHTTP(res, req)
@@ -358,8 +354,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
-		err = a.Elastic.UpdateFavoriteSubscription(req.Context(), id, false)
-		if err != nil {
+		if err := a.Elastic.UpdateFavoriteSubscription(req.Context(), id, false); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Unable to remove favorite subscription",
@@ -370,8 +365,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
 		}
 		// Update the display as appropriate.
-		currentURL, found := htmx.GetCurrentURL(req)
-		if found && strings.Contains(currentURL, "/favorites") {
+		if currentURL, found := htmx.GetCurrentURL(req); found && strings.Contains(currentURL, "/favorites") {
 			// On the favorites page, remove the subscription card when removing it as a favorite.
 			res.Header().Add(htmx.HeaderReswap, "delete transition:true")
 			res.Header().Set(htmx.HeaderRetarget, "#"+id)
@@ -395,8 +389,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 func (a *API) AddFavoriteArticle() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamItemID)
-		err := validation.Validate.Var(id, "required,startswith=item_")
-		if err != nil {
+		if err := validation.Validate.Var(id, "required,startswith=item_"); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to add favorite article", "Data is invalid."),
 			)).ServeHTTP(res, req)
@@ -419,8 +412,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 				http.StatusInternalServerError,
 			)
 		}
-		err = a.Elastic.UpdateFavoriteArticle(req.Context(), user, id, true)
-		if err != nil {
+		if err := a.Elastic.UpdateFavoriteArticle(req.Context(), user, id, true); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Unable to add favorite article",
@@ -456,8 +448,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamItemID)
-		err := validation.Validate.Var(id, "required,startswith=item_")
-		if err != nil {
+		if err := validation.Validate.Var(id, "required,startswith=item_"); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to remove favorite article", "Data is invalid."),
 			)).ServeHTTP(res, req)
@@ -480,8 +471,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 				http.StatusInternalServerError,
 			)
 		}
-		err = a.Elastic.UpdateFavoriteArticle(req.Context(), user, id, false)
-		if err != nil {
+		if err := a.Elastic.UpdateFavoriteArticle(req.Context(), user, id, false); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Unable to remove favorite article",
@@ -492,11 +482,9 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			return models.NewAPIError(fmt.Errorf("unable to archive article: %w", err), http.StatusInternalServerError)
 		}
 
-		// Get the display type.
-		display := req.FormValue("display")
 		// Update the content as appropriate.
 		var template templ.Component
-		switch display {
+		switch req.FormValue("display") {
 		case "card":
 			template = templates.ToggleFavorite(id, string(models.ObjectTypeArticle), false)
 		case "content":
@@ -536,8 +524,7 @@ func UserDeactivateAccount() http.HandlerFunc {
 				)
 			}
 			// Delete Stripe subscription.
-			err := stripe.CancelSubscription(user)
-			if err != nil {
+			if err := stripe.CancelSubscription(user); err != nil {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to delete account", ""),
 				),
@@ -574,8 +561,7 @@ func UserCancelDeactivation() http.HandlerFunc {
 			)
 		}
 		// Delete Stripe subscription.
-		err := stripe.StopPendingCancellation(user)
-		if err != nil {
+		if err := stripe.StopPendingCancellation(user); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to stop account deactivation", ""),
 			),

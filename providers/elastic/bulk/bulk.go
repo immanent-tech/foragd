@@ -83,7 +83,10 @@ func (r *Request) AddOperation(operation Operation) error {
 	switch operation.opType {
 	case BulkCreate:
 		if operation.id != "" {
-			err = r.CreateOp(types.CreateOperation{Index_: &operation.index, Id_: &operation.id, RequireAlias: &requireIndexAlias}, operation.document)
+			err = r.CreateOp(
+				types.CreateOperation{Index_: &operation.index, Id_: &operation.id, RequireAlias: &requireIndexAlias},
+				operation.document,
+			)
 		} else {
 			err = r.CreateOp(types.CreateOperation{Index_: &operation.index, RequireAlias: &requireIndexAlias}, operation.document)
 		}
@@ -95,7 +98,16 @@ func (r *Request) AddOperation(operation Operation) error {
 		}
 		action := types.NewUpdateAction()
 		action.DocAsUpsert = &operation.upsert
-		err = r.UpdateOp(types.UpdateOperation{Index_: &operation.index, Id_: &operation.id, RequireAlias: &requireIndexAlias, RetryOnConflict: &retryOnConflict}, operation.document, action)
+		err = r.UpdateOp(
+			types.UpdateOperation{
+				Index_:          &operation.index,
+				Id_:             &operation.id,
+				RequireAlias:    &requireIndexAlias,
+				RetryOnConflict: &retryOnConflict,
+			},
+			operation.document,
+			action,
+		)
 	}
 
 	if err != nil {
@@ -119,8 +131,7 @@ func (r *Response) FailedDocs() []string {
 		if resp.Id_ == nil {
 			continue
 		}
-		_, err := resp.State()
-		if err != nil {
+		if _, err := resp.State(); err != nil {
 			failedDocIDs = append(failedDocIDs, *resp.Id_)
 		}
 	}
@@ -235,8 +246,7 @@ func NewRequest(ctx context.Context, client Client, options ...Option) (chan Ope
 		defer close(respCh)
 
 		for op := range bulkOps {
-			err := req.AddOperation(op)
-			if err != nil {
+			if err := req.AddOperation(op); err != nil {
 				slogctx.FromCtx(ctx).Warn("Could not add operation to bulk request.",
 					slog.Any("error", err))
 			}

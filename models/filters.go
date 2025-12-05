@@ -93,8 +93,7 @@ func (f *ListDisplayFilters) Valid() error {
 	if f == nil {
 		return forms.ErrNoFormData
 	}
-	err := validation.Validate.Struct(f)
-	if err != nil {
+	if err := validation.Validate.Struct(f); err != nil {
 		return fmt.Errorf("filters are invalid: %w", err)
 	}
 	return nil

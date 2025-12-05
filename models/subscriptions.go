@@ -52,8 +52,7 @@ func NewFeedSubscription(ctx context.Context, feed *Feed, request *AddFeedSubscr
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *FeedSubscription) Valid() error {
-	err := validation.Validate.Struct(s)
-	if err != nil {
+	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("feed subscription is invalid: %w", err)
 	}
 	return nil
@@ -99,8 +98,7 @@ func (s *FeedSubscription) GetItemState(itemID ItemID) *ArticleState {
 		}
 	}
 	// If a state is found return that.
-	state, found := s.ArticleStates[itemID]
-	if found {
+	if state, found := s.ArticleStates[itemID]; found {
 		return &state
 	}
 	// Return unread state if no state found.
@@ -135,8 +133,7 @@ func NewSearchSubscription(ctx context.Context, request *SearchSubscriptionReque
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *SearchSubscription) Valid() error {
-	err := validation.Validate.Struct(s)
-	if err != nil {
+	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("search subscription is invalid: %w", err)
 	}
 	return nil
@@ -159,8 +156,7 @@ func NewGroupSubscription(ctx context.Context, request *GroupSubscriptionRequest
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *GroupSubscription) Valid() error {
-	err := validation.Validate.Struct(s)
-	if err != nil {
+	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("feed subscription is invalid: %w", err)
 	}
 	return nil
@@ -169,8 +165,7 @@ func (s *GroupSubscription) Valid() error {
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *Subscription) Valid() error {
-	err := validation.Validate.Struct(s)
-	if err != nil {
+	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("subscription is invalid: %w", err)
 	}
 	return nil
@@ -313,10 +308,9 @@ func (s Subscriptions) GetFeedIDs() []FeedID {
 
 // GetByFeedID will return the subscription that matches the given feed ID, if any.
 func (s Subscriptions) GetByFeedID(id FeedID) *Subscription {
-	idx := slices.IndexFunc(s, func(e *Subscription) bool {
+	if idx := slices.IndexFunc(s, func(e *Subscription) bool {
 		return e.FeedData.GetFeedID() == id
-	})
-	if idx != -1 {
+	}); idx != -1 {
 		return s[idx]
 	}
 	return nil
@@ -426,8 +420,7 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions, Pagination) {
 	var from, to int
 	if pagination != "" {
-		value, err := strconv.Atoi(pagination)
-		if err == nil {
+		if value, err := strconv.Atoi(pagination); err == nil {
 			from = value
 		}
 	}
@@ -456,8 +449,7 @@ func GetCategoryCounts(subscriptions ...*Subscription) CategoryCounts {
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
 func (r *AddFeedSubscriptionRequest) Valid() error {
-	err := validation.Validate.Struct(r)
-	if err != nil {
+	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("subscription validation error: %w", err)
 	}
 	return nil
@@ -500,8 +492,7 @@ func (r *AddFeedSubscriptionRequest) HasError() bool {
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
 func (r *SearchSubscriptionRequest) Valid() error {
-	err := validation.Validate.Struct(r)
-	if err != nil {
+	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("subscription validation error: %w", err)
 	}
 	return nil
@@ -509,8 +500,7 @@ func (r *SearchSubscriptionRequest) Valid() error {
 
 // Sanitise will sanitise the input values of the SubscriptionRequest.
 func (r *SearchSubscriptionRequest) Sanitise() error {
-	err := r.Search.Sanitise()
-	if err != nil {
+	if err := r.Search.Sanitise(); err != nil {
 		return err
 	}
 	if r.Customisation.Nickname != "" {
@@ -528,8 +518,7 @@ func (r *SearchSubscriptionRequest) Sanitise() error {
 // Valid returns a boolean indicating whether the GroupSubscriptionRequest is valid,
 // and any validation errors if applicable.
 func (r *GroupSubscriptionRequest) Valid() error {
-	err := validation.Validate.Struct(r)
-	if err != nil {
+	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("group subscription error: %w", err)
 	}
 	return nil
@@ -567,8 +556,7 @@ func (s *EditSubscriptionRequest) GetCategories() Categories {
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *EditSubscriptionRequest) Valid() error {
-	err := validation.Validate.Struct(s)
-	if err != nil {
+	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("subscription is invalid: %w", err)
 	}
 	return nil
@@ -596,8 +584,7 @@ func (s *EditSubscriptionRequest) HasError() bool {
 
 // Valid checks that the MarkSubscriptionsRequest contains valid data.
 func (s *MarkSubscriptionsRequest) Valid() error {
-	err := validation.Validate.Struct(s)
-	if err != nil {
+	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("mark subscriptions request is invalid: %w", err)
 	}
 	return nil
@@ -614,8 +601,7 @@ func (s *MarkSubscriptionsRequest) Sanitise() error {
 
 // Valid checks that the RemoveSubscriptionRequest contains valid data.
 func (r *RemoveSubscriptionRequest) Valid() error {
-	err := validation.Validate.Struct(r)
-	if err != nil {
+	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("remove subscription request is invalid: %w", err)
 	}
 	return nil

@@ -86,8 +86,7 @@ func CSRFError() http.HandlerFunc {
 func StaticFileHandler(fs http.FileSystem) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Check, if the requested file is existing.
-		_, err := fs.Open(req.URL.Path)
-		if err != nil {
+		if _, err := fs.Open(req.URL.Path); err != nil {
 			// If file is not found, return HTTP 404 error.
 			http.NotFound(res, req)
 			return
@@ -120,8 +119,7 @@ func DocsHandler(fs embed.FS) http.HandlerFunc {
 
 func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		err := f(res, req)
-		if err != nil {
+		if err := f(res, req); err != nil {
 			var apiErr interface {
 				error
 				HTTPStatus() int
@@ -209,8 +207,8 @@ func renderPage(template templ.Component, title string) http.Handler {
 			// Add OOB swap to update CSRF token.
 			template = templ.Join(template, templates.UpdateCSRFToken())
 			// Render template (or template fragment).
-			target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget))
-			if target != "" && target != templates.FragmentContent {
+			if target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget)); target != "" &&
+				target != templates.FragmentContent {
 				templ.Handler(template, templ.WithFragments(target)).ServeHTTP(res, req)
 			} else {
 				templ.Handler(template).ServeHTTP(res, req)

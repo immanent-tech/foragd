@@ -69,8 +69,7 @@ func migrateIndexData(
 	var pipelineName string
 	if pipeline != nil {
 		pipelineName = "pipeline-" + index
-		_, err := api.Ingest.PutPipeline(pipelineName).Request(pipeline).Do(ctx)
-		if err != nil {
+		if _, err := api.Ingest.PutPipeline(pipelineName).Request(pipeline).Do(ctx); err != nil {
 			return fmt.Errorf("migrate index %s: put pipeline: %w", index, err)
 		}
 	}
@@ -102,9 +101,10 @@ func migrateIndexData(
 	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index, pipelineName)).
 		WaitForCompletion(true).
 		Do(ctx)
+	const statusCodeErrLevel = 500
 	switch {
 	case err != nil:
-		if getStatusCode(err) >= 500 {
+		if getStatusCode(err) >= statusCodeErrLevel {
 			return fmt.Errorf("could not reindex: %w", err)
 		}
 		slogctx.FromCtx(ctx).Info("Reindex completed with warnings.",
@@ -141,8 +141,7 @@ func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias stri
 	}
 	// Remove existing index marked as write index from alias.
 	for aliasedIndex, aliases := range aliasesResp {
-		_, found := aliases.Aliases[alias]
-		if found {
+		if _, found := aliases.Aliases[alias]; found {
 			_, err = api.Indices.DeleteAlias(aliasedIndex, alias).Do(ctx)
 			if err != nil {
 				return fmt.Errorf("unable to remove index %s from alias %s: %w", aliasedIndex, alias, err)

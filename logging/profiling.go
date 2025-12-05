@@ -151,8 +151,7 @@ func startWebProfiler(logger *slog.Logger, enable string) error {
 				logger.Debug("Starting profiler web interface.",
 					slog.String("address", "http://localhost:"+strconv.Itoa(i)))
 
-				err := http.ListenAndServe("localhost:"+strconv.Itoa(i), nil) // #nosec G114
-				if err != nil {
+				if err := http.ListenAndServe("localhost:"+strconv.Itoa(i), nil); err != nil { // #nosec G114
 					logger.Warn("Could not start profiler web interface. Trying different port.")
 				}
 			}

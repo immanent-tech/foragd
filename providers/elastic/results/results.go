@@ -86,8 +86,7 @@ func ExtractSourceFromDocs[T any](docs []types.MgetResponseItem) ([]T, error) {
 // returned if the source cannot be extracted.
 func ExtractSource[T any](doc json.RawMessage) (T, error) {
 	var source T
-	err := json.Unmarshal(doc, &source)
-	if err != nil {
+	if err := json.Unmarshal(doc, &source); err != nil {
 		return source, fmt.Errorf("%w: %w", ErrExtractSource, err)
 	}
 	return source, nil
@@ -128,8 +127,7 @@ func ExtractFieldValue[T any](field string, fields map[string]json.RawMessage) (
 		return fieldValue[0], ErrFieldNotFound
 	}
 
-	err := json.Unmarshal(value, &fieldValue)
-	if err != nil {
+	if err := json.Unmarshal(value, &fieldValue); err != nil {
 		return fieldValue[0], errors.Join(ErrFieldNotFound, err)
 	}
 

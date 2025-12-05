@@ -627,8 +627,7 @@ func migrateIndexTemplates(
 		for template := range slices.Values(migration.componentTemplates) {
 			slogctx.FromCtx(ctx).Info("Migrating component template...",
 				slog.String("name", template.name))
-			err := template.Put(ctx, api)
-			if err != nil {
+			if err := template.Put(ctx, api); err != nil {
 				return fmt.Errorf("could not migrate component template %s: %w", template.name, err)
 			}
 		}
@@ -637,8 +636,7 @@ func migrateIndexTemplates(
 	if migration.indexTemplate != nil {
 		slogctx.FromCtx(ctx).Info("Migrating index template...",
 			slog.String("name", migration.indexTemplate.name))
-		err := migration.indexTemplate.Put(ctx, api)
-		if err != nil {
+		if err := migration.indexTemplate.Put(ctx, api); err != nil {
 			return fmt.Errorf("could not migrate index template %s: %w", migration.indexTemplate.name, err)
 		}
 	}
@@ -646,8 +644,7 @@ func migrateIndexTemplates(
 	if migration.ilmPolicy != nil {
 		slogctx.FromCtx(ctx).Info("Migrating ILM policy...",
 			slog.String("name", migration.ilmPolicy.name))
-		err := migration.ilmPolicy.Put(ctx, api)
-		if err != nil {
+		if err := migration.ilmPolicy.Put(ctx, api); err != nil {
 			return fmt.Errorf("could not migrate ilm policy %s: %w", migration.ilmPolicy.name, err)
 		}
 	}

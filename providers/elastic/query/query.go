@@ -175,12 +175,9 @@ func Since(field string, since time.Time) Option {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
 func Between(field string, from time.Time, to time.Time) Option {
 	return func(query *types.Query) {
-		var fromStr, toStr string
-
 		if !from.IsZero() && !to.IsZero() {
-			fromStr = from.UTC().Format(time.RFC3339Nano)
-			toStr = to.UTC().Format(time.RFC3339Nano)
-
+			fromStr := from.UTC().Format(time.RFC3339Nano)
+			toStr := to.UTC().Format(time.RFC3339Nano)
 			query.Range = map[string]types.RangeQuery{
 				field: types.DateRangeQuery{
 					Gte: &fromStr,

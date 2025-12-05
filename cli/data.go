@@ -35,8 +35,7 @@ func (c *DeleteCmd) Run(opts *DeleteCmd) error {
 	}
 	switch {
 	case strings.HasPrefix(opts.ObjectID, "feed_"):
-		err := client.DeleteFeed(ctx, opts.ObjectID)
-		if err != nil {
+		if err := client.DeleteFeed(ctx, opts.ObjectID); err != nil {
 			return fmt.Errorf("unable to delete feed %s: %w", opts.ObjectID, err)
 		}
 	}

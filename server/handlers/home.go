@@ -238,7 +238,6 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 		}
 	}
 	// Get the rare categories.
-	maxRareCategoriesCount := 10
 	if rareCategoriesAgg, ok := queryResult.Aggregations["rare_categories"].(*types.StringRareTermsAggregate); ok {
 		// Generate category counts from buckets.
 		var rareCategoryBuckets []types.StringRareTermsBucket
@@ -251,6 +250,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 				)
 			}
 			data.RareCategories.Sort()
+			maxRareCategoriesCount := 10
 			if len(data.RareCategories) > maxRareCategoriesCount {
 				data.RareCategories = data.RareCategories[:maxRareCategoriesCount]
 			}

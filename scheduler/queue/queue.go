@@ -190,8 +190,7 @@ func (jq *JobQueue) Size() (int, error) {
 func (jq *JobQueue) Clear() error {
 	ctx := context.Background()
 
-	err := jq.storeAPI.RemoveAllJobs(ctx)
-	if err != nil {
+	if err := jq.storeAPI.RemoveAllJobs(ctx); err != nil {
 		return fmt.Errorf("%w: %w", ErrClearJobs, err)
 	}
 
@@ -203,8 +202,7 @@ func (jq *JobQueue) Clear() error {
 func (jq *JobQueue) delete(id string) error {
 	ctx := context.Background()
 
-	err := jq.storeAPI.RemoveJob(ctx, id)
-	if err != nil {
+	if err := jq.storeAPI.RemoveJob(ctx, id); err != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
 	}
 

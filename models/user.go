@@ -59,8 +59,7 @@ func NewUser(externalID, email string) *User {
 // Valid returns a boolean indicating whether the user data is valid. If not valid, it will also return a non-nil error
 // that contains the validation issues.
 func (u *User) Valid(_ context.Context) (bool, error) {
-	err := validation.Validate.Struct(u)
-	if err != nil {
+	if err := validation.Validate.Struct(u); err != nil {
 		return false, fmt.Errorf("user data is invalid: %w", err)
 	}
 	return true, nil
@@ -166,8 +165,7 @@ func (u *User) GetPlan() string {
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *UserSettings) Valid() error {
-	err := validation.Validate.Struct(s)
-	if err != nil {
+	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("invalid user settings: %w", err)
 	}
 	return nil
@@ -181,8 +179,7 @@ func (s *UserSettings) Sanitise() error {
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *UserMetadata) Valid() error {
-	err := validation.Validate.Struct(s)
-	if err != nil {
+	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("invalid user metadata: %w", err)
 	}
 	return nil
@@ -203,8 +200,7 @@ func GetUserTheme(ctx context.Context) string {
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *EditUserRequest) Valid() error {
-	err := validation.Validate.Struct(s)
-	if err != nil {
+	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("request is invalid: %w", err)
 	}
 	return nil
@@ -218,8 +214,7 @@ func (s *EditUserRequest) Sanitise() error {
 
 // Valid returns a boolean indicating whether the ChangePasswordRequest contains valid data.
 func (r *ChangePasswordRequest) Valid() error {
-	err := validation.Validate.Struct(r)
-	if err != nil {
+	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("request is invalid: %w", err)
 	}
 	return nil

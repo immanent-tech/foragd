@@ -14,8 +14,7 @@ import (
 func Logout() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Delete the session cookie.
-		err := session.Manager.Destroy(req.Context())
-		if err != nil {
+		if err := session.Manager.Destroy(req.Context()); err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return
 		}

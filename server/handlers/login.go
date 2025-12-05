@@ -28,8 +28,7 @@ import (
 // Login handles login requests.
 func Login() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		err := auth0.InitAuthenticator(req.Context())
-		if err != nil {
+		if err := auth0.InitAuthenticator(req.Context()); err != nil {
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Can't contact auth backend")),
 				"Login",
@@ -72,8 +71,7 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// provider := chi.URLParam(req, "provider")
 
-		state := req.FormValue("state")
-		if state != session.Manager.GetString(req.Context(), "state") {
+		if req.FormValue("state") != session.Manager.GetString(req.Context(), "state") {
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")),
 				"Login",
@@ -82,8 +80,7 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		}
 
 		// Exchange an authorization code for a token.
-		code := req.FormValue("code")
-		token, err := auth0.AuthClient.Exchange(req.Context(), code)
+		token, err := auth0.AuthClient.Exchange(req.Context(), req.FormValue("code"))
 		if err != nil {
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
@@ -196,8 +193,7 @@ func syncLocalUser(ctx context.Context, api *elastic.API, user *models.User, pro
 	}
 	// If no updates are necessary, bail early.
 	if len(updates) > 0 {
-		err := api.UpdateUser(ctx, user.GetID(), updates)
-		if err != nil {
+		if err := api.UpdateUser(ctx, user.GetID(), updates); err != nil {
 			slogctx.FromCtx(ctx).Error("Could not sync user data.",
 				slog.Any("error", err))
 			return
@@ -208,8 +204,7 @@ func syncLocalUser(ctx context.Context, api *elastic.API, user *models.User, pro
 func generateRandomState() (string, error) {
 	const stateSize = 32
 	bytes := make([]byte, stateSize)
-	_, err := rand.Read(bytes)
-	if err != nil {
+	if _, err := rand.Read(bytes); err != nil {
 		return "", fmt.Errorf("unable to generate random state: %w", err)
 	}
 

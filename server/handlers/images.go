@@ -201,8 +201,8 @@ func (d *dirCache) Get(ctx context.Context, key string) ([]byte, bool) {
 	return data, true
 }
 func (d *dirCache) Set(ctx context.Context, key string, value []byte) {
-	err := d.WriteFile(key, value, 0666)
-	if err != nil {
+	const defaultFilePerms = 0666
+	if err := d.WriteFile(key, value, defaultFilePerms); err != nil {
 		slogctx.FromCtx(ctx).Error("Unable to save file: %w",
 			slog.Any("error", err),
 		)

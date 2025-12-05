@@ -70,8 +70,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	}
 
 	state := &GetNewFeedsJobState{}
-	lastState, err := dataAPI.GetJobState(ctx, jobStateID)
-	if err != nil {
+	if lastState, err := dataAPI.GetJobState(ctx, jobStateID); err != nil {
 		if models.HTTPStatus(err) != http.StatusNotFound {
 			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}

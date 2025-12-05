@@ -47,8 +47,7 @@ type PortalSession struct {
 
 // NewCheckoutSession creates a new checkout session, that is used to allow a user to purchase a subscription plan.
 func NewCheckoutSession(user *models.User, planID string) (*Checkout, error) {
-	err := LoadConfigOnce()
-	if err != nil {
+	if err := LoadConfigOnce(); err != nil {
 		return nil, fmt.Errorf("create checkout session: %w", err)
 	}
 
@@ -58,10 +57,10 @@ func NewCheckoutSession(user *models.User, planID string) (*Checkout, error) {
 		}),
 	}
 	i := price.List(params)
-	var price *stripe.Price
+	var subscriptionPrice *stripe.Price
 	for i.Next() {
 		p := i.Price()
-		price = p
+		subscriptionPrice = p
 	}
 
 	checkoutParams := &stripe.CheckoutSessionParams{
@@ -71,7 +70,7 @@ func NewCheckoutSession(user *models.User, planID string) (*Checkout, error) {
 		// Subscription level price.
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
-				Price:    stripe.String(price.ID),
+				Price:    stripe.String(subscriptionPrice.ID),
 				Quantity: stripe.Int64(1),
 			},
 		},

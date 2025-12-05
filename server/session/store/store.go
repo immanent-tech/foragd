@@ -48,8 +48,7 @@ func NewSessionStore(ctx context.Context, client Datastore) (*Store, error) {
 // session store. If the token does not exist then Delete should be a no-op
 // and return nil (not an error).
 func (s *Store) Delete(token string) error {
-	err := s.data.DeleteSession(sessionCtx, token)
-	if err != nil {
+	if err := s.data.DeleteSession(sessionCtx, token); err != nil {
 		return fmt.Errorf("could not delete session: %w", err)
 	}
 	return nil
@@ -77,13 +76,12 @@ func (s *Store) Find(token string) ([]byte, bool, error) {
 // expiry time. If the session token already exists, then the data and
 // expiry time should be overwritten.
 func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
-	err := s.data.UpdateSession(sessionCtx, token, map[string]any{
+	if err := s.data.UpdateSession(sessionCtx, token, map[string]any{
 		"token":      token,
 		"data":       b,
 		"expiry":     expiry,
 		"updated_at": time.Now().UTC(),
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("could not commit session: %w", err)
 	}
 

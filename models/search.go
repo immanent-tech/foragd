@@ -27,8 +27,7 @@ func NewSearchRequest() *SearchRequest {
 
 // Valid returns a boolean indicating whether the search request data is valid.
 func (r *SearchRequest) Valid() error {
-	err := validation.Validate.Struct(r)
-	if err != nil {
+	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("search request is invalid: %w", err)
 	}
 	return nil

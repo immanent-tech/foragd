@@ -50,8 +50,7 @@ func NewUpdateFeedJob(id models.FeedID, urls []models.URL, trigger *pollTrigger)
 // backend.
 func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	var jobData UpdateFeedJobData
-	err := json.Unmarshal(job.JobData, &jobData)
-	if err != nil {
+	if err := json.Unmarshal(job.JobData, &jobData); err != nil {
 		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
 

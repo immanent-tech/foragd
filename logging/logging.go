@@ -84,8 +84,7 @@ func New(options Options) *slog.Logger {
 
 	// Unless no log file was requested, set up file logging.
 	if logFile != "" {
-		logFH, err := openLogFile(logFile)
-		if err != nil {
+		if logFH, err := openLogFile(logFile); err != nil {
 			fmt.Fprintln(os.Stderr, "unable to open log file: %w", err)
 		} else {
 			handlers = append(handlers,
@@ -180,8 +179,7 @@ func fileLevelReplacer(_ []string, attr slog.Attr) slog.Attr {
 		}
 
 		// Format custom log level.
-		levelLabel, exists := LevelNames[level]
-		if exists {
+		if levelLabel, exists := LevelNames[level]; exists {
 			attr.Value = slog.StringValue(levelLabel)
 		}
 	}
@@ -194,9 +192,7 @@ func fileLevelReplacer(_ []string, attr slog.Attr) slog.Attr {
 func openLogFile(logFile string) (*os.File, error) {
 	logDir := filepath.Dir(logFile)
 	// Create the log directory if it does not exist.
-	_, err := os.Stat(logDir)
-
-	if err == nil || errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(logDir); err == nil || errors.Is(err, os.ErrNotExist) {
 		err = os.MkdirAll(logDir, 0o750)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create log file directory %s: %w", logDir, err)

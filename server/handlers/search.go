@@ -143,11 +143,8 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
-		// Extract the current pagination value.
-		pagination := req.FormValue(models.ParamPagination)
 		// Extract any subscription ID for the search and add to the request object.
-		subscriptionID := req.FormValue(models.ParamSubscriptionID)
-		if subscriptionID != "" {
+		if subscriptionID := req.FormValue(models.ParamSubscriptionID); subscriptionID != "" {
 			request.ID = subscriptionID
 		}
 
@@ -202,6 +199,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 				http.StatusInternalServerError,
 			)
 		}
+		pagination := req.FormValue(models.ParamPagination)
 		itemResults, pagination, err := api.SearchItems(
 			ctx,
 			query,

@@ -228,7 +228,11 @@ type ComponentTemplate struct {
 type ComponentTemplateOption Option[*ComponentTemplate]
 
 // NewComponentTemplate creates a component template with the given name and template options.
-func NewComponentTemplate(name string, templateSettings *Template, options ...ComponentTemplateOption) *ComponentTemplate {
+func NewComponentTemplate(
+	name string,
+	templateSettings *Template,
+	options ...ComponentTemplateOption,
+) *ComponentTemplate {
 	template := &ComponentTemplate{
 		name: name,
 		Request: &putcomponenttemplate.Request{
@@ -250,8 +254,7 @@ func WithComponentTemplateMetadata(metadata types.Metadata) ComponentTemplateOpt
 
 // Put will send a request to create the component template in the cluster.
 func (t *ComponentTemplate) Put(ctx context.Context, api *elasticsearch.TypedClient) error {
-	_, err := api.Cluster.PutComponentTemplate(t.name).Request(t.Request).Do(ctx)
-	if err != nil {
+	if _, err := api.Cluster.PutComponentTemplate(t.name).Request(t.Request).Do(ctx); err != nil {
 		return fmt.Errorf("put component template: %w", err)
 	}
 
@@ -319,8 +322,7 @@ func WithPriority(pri int64) IndexTemplateOption {
 
 // Put will send a request to create the index template in the cluster.
 func (t *IndexTemplate) Put(ctx context.Context, api *elasticsearch.TypedClient) error {
-	_, err := api.Indices.PutIndexTemplate(t.name).Request(t.Request).Do(ctx)
-	if err != nil {
+	if _, err := api.Indices.PutIndexTemplate(t.name).Request(t.Request).Do(ctx); err != nil {
 		return fmt.Errorf("put index template: %w", err)
 	}
 

@@ -130,8 +130,7 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 			return nil, fmt.Errorf("could not create feed from URL %s: %w", url, result.Err)
 		}
 		if result.Feed.GetImage() == nil {
-			err := feeds.FindFeedImage(ctx, result.Feed)
-			if err != nil {
+			if err := feeds.FindFeedImage(ctx, result.Feed); err != nil {
 				slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
 					slog.String("feed", result.Feed.GetTitle()),
 					slog.String("url", result.Feed.GetSourceURL()),
