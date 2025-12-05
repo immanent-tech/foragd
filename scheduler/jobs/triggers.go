@@ -12,51 +12,51 @@ import (
 )
 
 const (
-	DefaultCronJobTrigger = "0 */5 * * * *"
-	DefaultPollInterval   = time.Minute
-	DefaultPollJitter     = 5 * time.Second
+	defaultCronJobTrigger = "0 */5 * * * *"
+	defaultPollInterval   = time.Minute
+	defaultPollJitter     = 5 * time.Second
 	pollTriggerID         = "PollTrigger"
 	cronTriggerID         = "CronTrigger"
 )
 
 // Verify PollTrigger satisfies the Trigger interface.
-var _ quartz.Trigger = (*PollTrigger)(nil)
+var _ quartz.Trigger = (*pollTrigger)(nil)
 
-// NewPollTrigger returns a new polling job using the given interval and jitter.
-func NewPollTrigger(interval, jitter any) *PollTrigger {
-	return &PollTrigger{
-		Interval: asDuration(interval, DefaultPollInterval),
-		Jitter:   asDuration(jitter, DefaultPollJitter),
+// newPollTrigger returns a new polling job using the given interval and jitter.
+func newPollTrigger(interval, jitter any) *pollTrigger {
+	return &pollTrigger{
+		Interval: asDuration(interval, defaultPollInterval),
+		Jitter:   asDuration(jitter, defaultPollJitter),
 	}
 }
 
 // NextFireTime returns the next time at which the PollTriggerWithJitter is scheduled to fire.
-func (t *PollTrigger) NextFireTime(prev int64) (int64, error) {
+func (t *pollTrigger) NextFireTime(prev int64) (int64, error) {
 	jitter := rand.NormFloat64()*float64(t.Jitter) + float64(t.Interval) // #nosec: G404
 	next := prev + int64(jitter)
 	return next, nil
 }
 
 // Description returns the description of the PollTriggerWithJitter.
-func (t *PollTrigger) Description() string {
+func (t *pollTrigger) Description() string {
 	return strings.Join([]string{pollTriggerID, t.Interval.String(), t.Jitter.String()}, quartz.Sep)
 }
 
-// ParseTrigger will attempt to parse the given trigger interface into its concrete trigger type. If the interface value
+// parseTrigger will attempt to parse the given trigger interface into its concrete trigger type. If the interface value
 // cannot be parsed, a default polling trigger will be returned.
-func ParseTrigger(trigger quartz.Trigger) any {
+func parseTrigger(trigger quartz.Trigger) any {
 	desc := trigger.Description()
 	triggerOpts := strings.Split(desc, quartz.Sep)
 	switch {
 	case strings.HasPrefix(desc, pollTriggerID):
 		if len(triggerOpts) != 3 { //nolint:mnd // this is a very specific check.
-			return NewPollTrigger(DefaultPollInterval, DefaultPollJitter)
+			return newPollTrigger(defaultPollInterval, defaultPollJitter)
 		}
-		return NewPollTrigger(triggerOpts[1], triggerOpts[2])
+		return newPollTrigger(triggerOpts[1], triggerOpts[2])
 	case strings.HasPrefix(desc, cronTriggerID):
-		return &CronTrigger{Schedule: triggerOpts[1]}
+		return &cronTrigger{Schedule: triggerOpts[1]}
 	}
-	return NewPollTrigger(DefaultPollInterval, DefaultPollJitter)
+	return newPollTrigger(defaultPollInterval, defaultPollJitter)
 }
 
 // asDuration will attempt to parse the given input value as a duration. If the value cannot be parsed, the given

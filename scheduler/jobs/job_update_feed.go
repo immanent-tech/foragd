@@ -25,7 +25,7 @@ type UpdateFeedJobData struct {
 }
 
 // NewUpdateFeedJob creates a job that can be scheduled from the given feed data.
-func NewUpdateFeedJob(id models.FeedID, urls []models.URL, trigger *PollTrigger) (*ScheduledJob, error) {
+func NewUpdateFeedJob(id models.FeedID, urls []models.URL, trigger *pollTrigger) (*ScheduledJob, error) {
 	job := &ScheduledJob{
 		CreatedAt:      time.Now().UTC(),
 		JobTriggerType: jobTriggerTypePoll,
@@ -46,9 +46,9 @@ func NewUpdateFeedJob(id models.FeedID, urls []models.URL, trigger *PollTrigger)
 	return job, nil
 }
 
-// ExecuteUpdateFeedJob will execute a job that attempts to find new items for a feed and index them into the data
+// executeUpdateFeedJob will execute a job that attempts to find new items for a feed and index them into the data
 // backend.
-func ExecuteUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
+func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	var jobData UpdateFeedJobData
 	err := json.Unmarshal(job.JobData, &jobData)
 	if err != nil {

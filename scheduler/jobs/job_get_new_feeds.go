@@ -41,7 +41,7 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 		JobDescription: "Find new feeds",
 	}
 
-	if data, err := json.Marshal(NewPollTrigger(DefaultPollInterval, DefaultPollJitter)); err != nil {
+	if data, err := json.Marshal(newPollTrigger(defaultPollInterval, defaultPollJitter)); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
 	} else {
 		job.JobTrigger = data
@@ -54,9 +54,9 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 	return job, nil
 }
 
-// ExecuteGetNewFeedsJob runs a job that will look for newly added feeds and schedule new jobs to fetch item updates for
+// executeGetNewFeedsJob runs a job that will look for newly added feeds and schedule new jobs to fetch item updates for
 // them.
-func ExecuteGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
+func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	jobStateID := "get_new_feeds_state"
 
 	dataAPI, ok := ctx.Value(dataAPICtxKey).(DataAPI)
@@ -123,7 +123,7 @@ func ExecuteGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 				newJob, err := NewUpdateFeedJob(
 					feed.GetID(),
 					feed.SourceURLs,
-					NewPollTrigger(DefaultPollInterval, DefaultPollJitter),
+					newPollTrigger(defaultPollInterval, defaultPollJitter),
 				)
 				if err != nil {
 					slogctx.FromCtx(ctx).Warn("Unable to create new update feed job for feed.",

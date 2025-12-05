@@ -68,13 +68,13 @@ func SchedulerAPIToCtx(ctx context.Context, schedulerAPI SchedulerAPI) context.C
 	return context.WithValue(ctx, schedulerAPICtxKey, schedulerAPI)
 }
 
-// CronTrigger represents a trigger that runs on a Cron schedule.
-type CronTrigger struct {
+// cronTrigger represents a trigger that runs on a Cron schedule.
+type cronTrigger struct {
 	Schedule string `json:"schedule" validate:"required,cron"`
 }
 
-// PollTrigger represents a polling trigger for a job.
-type PollTrigger struct {
+// pollTrigger represents a polling trigger for a job.
+type pollTrigger struct {
 	Interval time.Duration `json:"interval" validate:"required"`
 	Jitter   time.Duration `json:"jitter"   validate:"required,len"`
 }
@@ -109,9 +109,9 @@ func (job *ScheduledJob) Execute(ctx context.Context) error {
 	var err error
 	switch job.JobType {
 	case jobTypeGetNewFeeds:
-		err = ExecuteGetNewFeedsJob(ctx, job)
+		err = executeGetNewFeedsJob(ctx, job)
 	case jobTypeUpdateFeed:
-		err = ExecuteUpdateFeedJob(ctx, job)
+		err = executeUpdateFeedJob(ctx, job)
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
@@ -148,21 +148,21 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 func (job *ScheduledJob) Trigger() quartz.Trigger {
 	switch job.JobTriggerType {
 	case jobTriggerTypeCron:
-		var body CronTrigger
+		var body cronTrigger
 		if err := json.Unmarshal(job.JobTrigger, &body); err != nil {
-			trigger, _ := quartz.NewCronTrigger(DefaultCronJobTrigger)
+			trigger, _ := quartz.NewCronTrigger(defaultCronJobTrigger)
 			return trigger
 		}
 		trigger, _ := quartz.NewCronTrigger(body.Schedule)
 		return trigger
 	case jobTriggerTypePoll:
-		var body PollTrigger
+		var body pollTrigger
 		if err := json.Unmarshal(job.JobTrigger, &body); err != nil {
-			return NewPollTrigger(DefaultPollInterval, DefaultPollJitter)
+			return newPollTrigger(defaultPollInterval, defaultPollJitter)
 		}
-		return NewPollTrigger(body.Interval, body.Jitter)
+		return newPollTrigger(body.Interval, body.Jitter)
 	}
-	return NewPollTrigger(DefaultPollInterval, DefaultPollJitter)
+	return newPollTrigger(defaultPollInterval, defaultPollJitter)
 }
 
 // NextRunTime returns the next scheduled run time for the job.
