@@ -495,6 +495,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 									WithFlattenedMapping("job_options"),
 									WithFlattenedMapping("job_data"),
 									WithKeywordMapping("job_type"),
+									WithKeywordMapping("job_description"),
 									WithKeywordMapping("job_trigger_type"),
 									WithFlattenedMapping("job_trigger"),
 									WithDatetimeMapping("job_next_run"),

@@ -14,7 +14,6 @@ const (
 	pathCtxKey          contextKey = "req_path"
 	searchRequestCtxKey contextKey = "search_request"
 	subscriptionsCtxKey contextKey = "subscriptions"
-	schedulerAPICtxKey  contextKey = "scheduler_api"
 	dataAPICtxKey       contextKey = "data_api"
 )
 
@@ -106,18 +105,6 @@ func SubscriptionsFromCtx(ctx context.Context) Subscriptions {
 		return make(Subscriptions, 0)
 	}
 	return subscriptions
-}
-
-func SchedulerAPIToCtx(ctx context.Context, api SchedulerAPI) context.Context {
-	return context.WithValue(ctx, schedulerAPICtxKey, api)
-}
-
-func SchedulerAPIFromCtx(ctx context.Context) SchedulerAPI {
-	api, found := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
-	if !found {
-		return nil
-	}
-	return api
 }
 
 func DataAPIToCtx(ctx context.Context, api DataAPI) context.Context {

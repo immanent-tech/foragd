@@ -20,6 +20,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
 )
 
@@ -48,6 +49,8 @@ func Run(ctx context.Context) error {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
 	ctx = elastic.SetupIndexAliases(ctx)
+	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
+	ctx = jobs.DataAPIToCtx(ctx, elasticAPI)
 
 	// Create distributed queue instance.
 	jobQueue, err := queue.NewJobQueue(ctx, elasticAPI)
@@ -73,12 +76,8 @@ func Run(ctx context.Context) error {
 		queue:     jobQueue,
 	}
 
-	// Embed scheduler and data api in context.
-	ctx = models.SchedulerAPIToCtx(ctx, Manager)
-	ctx = models.DataAPIToCtx(ctx, elasticAPI)
-
 	// Setup get new feeds job.
-	job, err := models.NewGetNewFeedsJob()
+	job, err := jobs.NewGetNewFeedsJob()
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}

@@ -20,6 +20,8 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
+//go:generate go tool oapi-codegen -config models-cfg.yaml models.yaml
+
 // DefaultHTTPRequestTimeout is the maximum time allowed for a background HTTP request to execute.
 var DefaultHTTPRequestTimeout = 30 * time.Second
 

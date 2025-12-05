@@ -17,6 +17,7 @@ import (
 	"github.com/immanent-tech/foragd/logging"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/scheduler/jobs"
 )
 
 // Make sure out jobQueue implementation satisfies quartz.JobQueue.
@@ -36,19 +37,28 @@ var (
 	ErrClearJobs            = errors.New("clearing jobs failed")
 )
 
-var backendAPI *elastic.API
+type storeAPI interface {
+	ScheduleJob(ctx context.Context, id string, _ quartz.ScheduledJob, data *jobs.ScheduledJob) error
+	GetNextScheduledJob(ctx context.Context) (*jobs.ScheduledJob, error)
+	GetScheduledJob(ctx context.Context, id string) (*jobs.ScheduledJob, error)
+	GetAllScheduledJobs(ctx context.Context) ([]jobs.ScheduledJob, error)
+	CountJobs(ctx context.Context) (int64, error)
+	RemoveAllJobs(ctx context.Context) error
+	RemoveJob(ctx context.Context, id string) error
+}
 
 // JobQueue implements the quartz.JobQueue interface, using Elasticsearch as the
 // persistence layer.
 type JobQueue struct {
-	logger *slog.Logger
+	logger   *slog.Logger
+	storeAPI storeAPI
 }
 
 // NewJobQueue initializes and returns an empty jobQueue.
-func NewJobQueue(ctx context.Context, api *elastic.API) (*JobQueue, error) {
-	backendAPI = api
+func NewJobQueue(ctx context.Context, storeAPI storeAPI) (*JobQueue, error) {
 	return &JobQueue{
-		logger: slogctx.FromCtx(ctx),
+		logger:   slogctx.FromCtx(ctx),
+		storeAPI: storeAPI,
 	}, nil
 }
 
@@ -56,14 +66,14 @@ func NewJobQueue(ctx context.Context, api *elastic.API) (*JobQueue, error) {
 // This method is also used by the Scheduler to reschedule existing jobs that
 // have been dequeued for execution.
 func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
-	data, err := models.MarshalJob(job)
+	data, err := jobs.MarshalJob(job)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
 
 	ctx := context.Background()
 
-	err = backendAPI.ScheduleJob(ctx, jobKeyToDocID(job.JobDetail().JobKey().String()), job, data)
+	err = jq.storeAPI.ScheduleJob(ctx, jobKeyToDocID(job.JobDetail().JobKey().String()), job, data)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
@@ -100,7 +110,7 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	ctx := context.Background()
 
-	job, err := backendAPI.GetNextScheduledJob(ctx)
+	job, err := jq.storeAPI.GetNextScheduledJob(ctx)
 	if err != nil {
 		if models.HTTPStatus(err) == http.StatusNotFound {
 			return nil, fmt.Errorf("head: %w", quartz.ErrQueueEmpty)
@@ -115,7 +125,7 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	ctx := context.Background()
 
-	job, err := backendAPI.GetScheduledJob(ctx, jobKeyToDocID(jobKey.String()))
+	job, err := jq.storeAPI.GetScheduledJob(ctx, jobKeyToDocID(jobKey.String()))
 	if err != nil {
 		if errors.Is(err, elastic.ErrNotFound) {
 			return nil, quartz.ErrJobNotFound
@@ -148,7 +158,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 	ctx := context.Background()
 
-	allJobs, err := backendAPI.GetAllScheduledJobs(ctx)
+	allJobs, err := jq.storeAPI.GetAllScheduledJobs(ctx)
 	if err != nil {
 		if errors.Is(err, elastic.ErrNotFound) {
 			return nil, quartz.ErrJobNotFound
@@ -169,7 +179,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 func (jq *JobQueue) Size() (int, error) {
 	ctx := context.Background()
 
-	count, err := backendAPI.CountJobs(ctx)
+	count, err := jq.storeAPI.CountJobs(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("could not get size of scheduled jobs queue: %w", err)
 	}
@@ -180,7 +190,7 @@ func (jq *JobQueue) Size() (int, error) {
 func (jq *JobQueue) Clear() error {
 	ctx := context.Background()
 
-	err := backendAPI.RemoveAllJobs(ctx)
+	err := jq.storeAPI.RemoveAllJobs(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrClearJobs, err)
 	}
@@ -193,7 +203,7 @@ func (jq *JobQueue) Clear() error {
 func (jq *JobQueue) delete(id string) error {
 	ctx := context.Background()
 
-	err := backendAPI.RemoveJob(ctx, id)
+	err := jq.storeAPI.RemoveJob(ctx, id)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
 	}

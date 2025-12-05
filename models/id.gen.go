@@ -25,8 +25,9 @@ const _IDPrefix_name = "InvalidMinsubfeeditemschedulersessionuserfavMax"
 var _IDPrefix_index = [...]uint8{0, 7, 10, 13, 17, 21, 30, 37, 41, 44, 47}
 
 func (i IDPrefix) String() string {
-	if i < 0 || i >= IDPrefix(len(_IDPrefix_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_IDPrefix_index)-1 {
 		return "IDPrefix(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _IDPrefix_name[_IDPrefix_index[i]:_IDPrefix_index[i+1]]
+	return _IDPrefix_name[_IDPrefix_index[idx]:_IDPrefix_index[idx+1]]
 }
