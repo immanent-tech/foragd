@@ -137,10 +137,15 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		}
 		ctx := models.UserToCtx(req.Context(), user)
 		// Redirect the user appropriately.
-		if profile.LoginsCount == 1 {
-			// New user; redirect to choose subscription plan to complete onboarding.
+		if profile.LoginsCount == 1 || user.Metadata.Plan == "" {
+			// New user or user without a plan; redirect to choose subscription plan.
 			http.Redirect(res, req.WithContext(ctx), models.RouteCheckoutChoosePlan, http.StatusSeeOther)
 			return nil
+		}
+		if err := user.Metadata.Valid(); err != nil {
+			// User metadata is invalid, redirect user to page indicating they need to contact support to resolve the issue.
+			http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
+			return fmt.Errorf("checking user data: %w", err)
 		}
 		if !user.Active() {
 			// Account issues; redirect user to page indicating they need to contact support to resolve an issue with their account.
