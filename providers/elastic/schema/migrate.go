@@ -28,9 +28,10 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 	}
 
 	for index := range slices.Values(opts.Indices) {
+		var err error
 		switch index {
 		case "users":
-			err := migrateIndexData(ctx, api, UsersSchemaPrefix, nil) // ingest.NewIngestPipeline(
+			err = migrateIndexData(ctx, api, UsersSchemaPrefix, nil) // ingest.NewIngestPipeline(
 			// 	ingest.WithProcessor(types.ProcessorContainer{
 			// 		Rename: &types.RenameProcessor{
 			// 			Field:       "settings.max_history",
@@ -44,9 +45,11 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 			// 		},
 			// 	}),
 			// ),
-			if err != nil {
-				return fmt.Errorf("could not migrate users: %w", err)
-			}
+		case "scheduler":
+			err = migrateIndexData(ctx, api, SchedulerIndexPrefix, nil) // ingest.NewIngestPipeline(
+		}
+		if err != nil {
+			return fmt.Errorf("could not migrate users: %w", err)
 		}
 	}
 	return nil
