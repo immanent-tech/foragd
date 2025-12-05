@@ -942,7 +942,7 @@ type UserMetadata struct {
 	CancelAt time.Time `json:"cancel_at,omitempty,omitzero"`
 
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available. Set by the account level.
-	MaxHistory string `json:"max_history,omitempty,omitzero" validate:"required,duration"`
+	MaxHistory string `json:"max_history,omitempty,omitzero" validate:"required"`
 
 	// Plan is the name of the subscription plan that the user is paying for.
 	// Possible values will come from the product defined in Stripe.
@@ -969,7 +969,7 @@ type UserMetadata struct {
 	TrialEnd time.Time `json:"trial_end,omitempty,omitzero"`
 
 	// UpdatesFrequency is a duration indicating how often the account should check for updates in various places within the apply. Set by the account level.
-	UpdatesFrequency string `json:"updates_frequency,omitempty,omitzero" validate:"required,duration"`
+	UpdatesFrequency string `json:"updates_frequency,omitempty,omitzero" validate:"required"`
 }
 
 // UserSession tracks a user session.

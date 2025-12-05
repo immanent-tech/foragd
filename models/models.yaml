@@ -306,14 +306,14 @@ components:
             the account level.
           type: string
           x-oapi-codegen-extra-tags:
-            validate: 'required,duration'
+            validate: 'required'
         updates_frequency:
           description: >
             is a duration indicating how often the account should check for updates in various places within the apply.
             Set by the account level.
           type: string
           x-oapi-codegen-extra-tags:
-            validate: 'required,duration'
+            validate: 'required'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
     User:
