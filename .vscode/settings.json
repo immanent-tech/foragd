@@ -59,7 +59,8 @@
     "cli",
     "types",
     "parser",
-    "stripe"
+    "stripe",
+    "google"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

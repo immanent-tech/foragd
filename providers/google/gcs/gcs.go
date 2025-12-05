@@ -26,7 +26,7 @@ func (b *Bucket) Get(ctx context.Context, key string) ([]byte, bool) {
 	r, err := b.object(key).NewReader(ctx)
 	if err != nil {
 		if !errors.Is(err, storage.ErrObjectNotExist) {
-			slogctx.FromCtx(ctx).Warn("Error reading from bucket.",
+			slogctx.FromCtx(ctx).Warn("Could not get object.",
 				slog.String("bucket", b.storage.BucketName()),
 				slog.Any("error", err),
 			)
@@ -37,7 +37,7 @@ func (b *Bucket) Get(ctx context.Context, key string) ([]byte, bool) {
 
 	value, err := io.ReadAll(r)
 	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Error reading from bucket.",
+		slogctx.FromCtx(ctx).Warn("Could not read object data.",
 			slog.String("bucket", b.storage.BucketName()),
 			slog.Any("error", err),
 		)
@@ -50,13 +50,13 @@ func (b *Bucket) Get(ctx context.Context, key string) ([]byte, bool) {
 func (b *Bucket) Set(ctx context.Context, key string, value []byte) {
 	objWriter := b.object(key).NewWriter(ctx)
 	if _, err := objWriter.Write(value); err != nil {
-		slogctx.FromCtx(ctx).Warn("Error writing to bucket.",
+		slogctx.FromCtx(ctx).Warn("Could not write object to bucket.",
 			slog.String("bucket", b.storage.BucketName()),
 			slog.Any("error", err),
 		)
 	}
 	if err := objWriter.Close(); err != nil {
-		slogctx.FromCtx(ctx).Warn("Error closing object.",
+		slogctx.FromCtx(ctx).Warn("Could not close object writer.",
 			slog.String("bucket", b.storage.BucketName()),
 			slog.Any("error", err),
 		)
@@ -65,7 +65,7 @@ func (b *Bucket) Set(ctx context.Context, key string, value []byte) {
 
 func (b *Bucket) Delete(ctx context.Context, key string) {
 	if err := b.object(key).Delete(ctx); err != nil {
-		slogctx.FromCtx(ctx).Warn("Error deleting object.",
+		slogctx.FromCtx(ctx).Warn("Could not delete object.",
 			slog.String("bucket", b.storage.BucketName()),
 			slog.Any("error", err),
 		)
@@ -80,7 +80,7 @@ func (b *Bucket) object(key string) *storage.ObjectHandle {
 func Connect(ctx context.Context, name, prefix string) (*Bucket, error) {
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("new bucket connection: %w", err)
+		return nil, fmt.Errorf("create storage client: %w", err)
 	}
 
 	return &Bucket{
