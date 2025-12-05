@@ -1,7 +1,9 @@
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-FROM --platform=$BUILDPLATFORM docker.io/alpine:3.22.2 AS builder
+# Alpine base.
+# https://hub.docker.com/_/alpine/
+FROM --platform=$BUILDPLATFORM docker.io/alpine:3.23.0@sha256:51183f2cfa6320055da30872f211093f9ff1d3cf06f39a0bdb212314c5dc7375 AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -10,9 +12,11 @@ ARG APPVERSION
 WORKDIR /build
 
 # Copy go from official image.
-COPY --from=docker.io/golang:1.25.3-alpine /usr/local/go/ /usr/local/go/
+# https://hub.docker.com/_/golang
+COPY --from=docker.io/golang:1.25.3-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9 /usr/local/go/ /usr/local/go/
 # Copy bun from official image
-COPY --from=docker.io/oven/bun:1.3.1-alpine /usr/local/bin/bun /usr/local/bin/bun
+# https://hub.docker.com/r/oven/bun
+COPY --from=docker.io/oven/bun:1.3.1-alpine@sha256:a224d0713378ca9e51f0959f6edbf97a1c23cfb82e3884544cafced03af1df58 /usr/local/bin/bun /usr/local/bin/bun
 # Update $PATH.
 ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
 
@@ -43,7 +47,7 @@ RUN go build -ldflags="-s -w -X github.com/immanent-tech/foragd/config.Version=$
 # compress binary with upx
 RUN upx --best --lzma foragd
 
-FROM docker.io/alpine:3.22.2 AS server
+FROM docker.io/alpine:3.23.0@sha256:51183f2cfa6320055da30872f211093f9ff1d3cf06f39a0bdb212314c5dc7375 AS server
 
 ENV FORAGD_CONTAINER=1
 
