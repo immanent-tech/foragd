@@ -316,6 +316,8 @@ templ NewProxiedImage(img *types.ImageInfo, props string, options ...Option[elem
 		{{ option(elem) }}
 	}
 	{{ elem.SetAttribute("class", strings.Join(elem.GetClasses(), " ")) }}
+	{{ elem.SetAttribute("loading", "lazy") }}
+	{{ elem.SetAttribute("decoding", "async") }}
 	<img
 		if elem.GetID() != "" {
 			id={ elem.GetID() }
