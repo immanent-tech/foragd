@@ -90,6 +90,7 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 			return
 		}
 		// File is found, return to standard http.FileServer.
+		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		http.FileServer(fs).ServeHTTP(res, req)
 	})
 }
