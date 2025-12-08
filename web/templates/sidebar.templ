@@ -35,6 +35,7 @@ templ SideBar(attributes templ.Attributes) {
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/list/subscriptions"),
 							WithHXTarget(ContentID.Target()),
+							WithHXSwap("innerHTML show:window:top transition:true"),
 							WithHXPushURL(true),
 							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
 							WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
@@ -48,6 +49,7 @@ templ SideBar(attributes templ.Attributes) {
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/list/articles"),
 							WithHXTarget(ContentID.Target()),
+							WithHXSwap("innerHTML show:window:top transition:true"),
 							WithHXPushURL(true),
 							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
 							WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
@@ -61,6 +63,7 @@ templ SideBar(attributes templ.Attributes) {
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/list/favorites"),
 							WithHXTarget(ContentID.Target()),
+							WithHXSwap("innerHTML show:window:top transition:true"),
 							WithHXPushURL(true),
 							WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 						) {

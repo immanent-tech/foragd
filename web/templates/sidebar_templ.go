@@ -119,6 +119,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		templ_7745c5c3_Err = NewLink(
 			WithHXMethod(http.MethodGet, "/list/subscriptions"),
 			WithHXTarget(ContentID.Target()),
+			WithHXSwap("innerHTML show:window:top transition:true"),
 			WithHXPushURL(true),
 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
 			WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
@@ -159,6 +160,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		templ_7745c5c3_Err = NewLink(
 			WithHXMethod(http.MethodGet, "/list/articles"),
 			WithHXTarget(ContentID.Target()),
+			WithHXSwap("innerHTML show:window:top transition:true"),
 			WithHXPushURL(true),
 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
 			WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
@@ -199,6 +201,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		templ_7745c5c3_Err = NewLink(
 			WithHXMethod(http.MethodGet, "/list/favorites"),
 			WithHXTarget(ContentID.Target()),
+			WithHXSwap("innerHTML show:window:top transition:true"),
 			WithHXPushURL(true),
 			WithClasses("group link link-hover hover:text-primary flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
