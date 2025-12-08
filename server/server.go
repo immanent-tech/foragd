@@ -162,7 +162,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		middlewares.SaveCSRFToken,
 		middlewares.RateLimit(rateLimiter),
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
-		middleware.Compress(5, "text/html", "text/css", "text/javascript"),
+		middleware.Compress(5, "text/html", "text/css", "text/javascript", "font/woff2"),
 	)
 
 	// Static content.

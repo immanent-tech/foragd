@@ -132,12 +132,10 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 // GetSearchResults performs a search with the user input and renders a page with the search results.
 func GetSearchResults(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		pageTitle := templates.GeneratePageTitle("Search Results")
-
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			renderPage(wrapContent(req, templates.NotFound()), pageTitle).ServeHTTP(res, req)
+			renderPage(wrapContent(req, templates.NotFound())).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				http.StatusUnprocessableEntity,
@@ -162,7 +160,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 					"Unable to process request",
 					"This might be a temporary issue, please try again.",
 				)
-				renderPage(wrapContent(req, templates.ErrorPage(msg)), pageTitle).ServeHTTP(res, req)
+				renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
 				return models.NewAPIError(
 					fmt.Errorf("unable to retrieve subscriptions: %w", err),
 					http.StatusInternalServerError,
@@ -178,7 +176,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 				"Unable to process request",
 				"This might be a temporary issue, please try again.",
 			)
-			renderPage(wrapContent(req, templates.ErrorPage(msg)), pageTitle).ServeHTTP(res, req)
+			renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve subscriptions: %w", models.ErrNoUserCtx),
 				http.StatusInternalServerError,
@@ -193,7 +191,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 				"Unable to process request",
 				"This might be a temporary issue, please try again.",
 			)
-			renderPage(wrapContent(req, templates.ErrorPage(msg)), pageTitle).ServeHTTP(res, req)
+			renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve subscriptions: %w", err),
 				http.StatusInternalServerError,
@@ -212,7 +210,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 				"Unable to process request",
 				"This might be a temporary issue, please try again.",
 			)
-			renderPage(wrapContent(req, templates.ErrorPage(msg)), pageTitle).ServeHTTP(res, req)
+			renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve subscriptions: %w", err),
 				http.StatusInternalServerError,
@@ -225,7 +223,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 					"Unable to process request",
 					"This might be a temporary issue, please try again.",
 				)
-				renderPage(wrapContent(req, templates.ErrorPage(msg)), pageTitle).ServeHTTP(res, req)
+				renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
 				return models.NewAPIError(
 					fmt.Errorf("unable to retrieve subscriptions: %w", err),
 					http.StatusInternalServerError,
@@ -252,9 +250,9 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			template = templ.Join(template, templates.SearchFilters(templ.Attributes{"hx-swap-oob": "true"}))
 		}
 		res.Header().Add(htmx.HeaderPushURL, "/search?"+request.Query())
+		ctx = templates.PageTitleToCtx(ctx, "Search results")
 		renderPage(
-			wrapContent(req, template),
-			templates.GeneratePageTitle("Search Results"),
+			wrapContent(req.WithContext(ctx), template),
 		).ServeHTTP(res, req.WithContext(ctx))
 
 		return nil

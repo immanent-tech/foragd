@@ -25,7 +25,6 @@ import (
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -47,7 +46,7 @@ var defaultHandlerChain = alice.New(
 
 // NotFound handles showing a page for a 404 response.
 func NotFound() http.HandlerFunc {
-	return alice.New().Then(renderPage(templates.NotFound(), "Not Found")).ServeHTTP
+	return alice.New().Then(renderPage(templates.NotFound())).ServeHTTP
 }
 
 // CSRFError handles CSRF error conditions. It will log details about the request then show an error page to the user.
@@ -74,7 +73,7 @@ func CSRFError() http.HandlerFunc {
 		)
 		renderPage(templates.ErrorPage(
 			models.NewErrorMessage("CSRF Check Failed", "Cannot complete your request."),
-		), "Error")
+		))
 		res.WriteHeader(http.StatusBadRequest)
 	}).ServeHTTP
 }
@@ -107,8 +106,9 @@ func DocsHandler(fs embed.FS) http.HandlerFunc {
 			return fmt.Errorf("unable to render document %s: %w", doc, err)
 		}
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
-		template := templates.Page(strings.ToTitle(doc)+" - "+config.AppName, templates.Document(output))
-		err = template.Render(req.Context(), res)
+		ctx := templates.PageTitleToCtx(req.Context(), strings.ToTitle(doc))
+		template := templates.Page(templates.Document(output))
+		err = template.Render(ctx, res)
 		if err != nil {
 			return fmt.Errorf("unable to render document %s: %w", doc, err)
 		}
@@ -187,7 +187,7 @@ func SetRedirect(res http.ResponseWriter, request HXLocationRequest) error {
 
 // renderPage will render the given template either as a full page or as partial content. For partial content, it will
 // also update the page title (if one is given) and CSRF token.
-func renderPage(template templ.Component, title string) http.Handler {
+func renderPage(template templ.Component) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if template == nil {
 			// If there is no response, return 204: No Content.
@@ -196,13 +196,11 @@ func renderPage(template templ.Component, title string) http.Handler {
 		}
 		switch {
 		case !IsHTMX(req) || IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
-			templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
+			templ.Handler(templates.Page(template)).ServeHTTP(res, req)
 			return
 		default: // HTMX request renders partial content.
-			if title != "" {
-				// Update the page title if set.
-				template = templ.Join(template, templates.SetPageTitle(title))
-			}
+			// Update the page title if set.
+			template = templ.Join(template, templates.PageTitle())
 			// Add OOB swap to update CSRF token.
 			template = templ.Join(template, templates.UpdateCSRFToken())
 			// Render template (or template fragment).
@@ -241,8 +239,8 @@ func wrapContent(req *http.Request, template templ.Component) templ.Component {
 	}
 }
 
-func externalPage(title string, template templ.Component) http.Handler {
-	return templ.Handler(templates.Page(title, template))
+func externalPage(template templ.Component) http.Handler {
+	return templ.Handler(templates.Page(template))
 }
 
 // IsHTMX returns a boolean indicating whether the request is a HTMX request.

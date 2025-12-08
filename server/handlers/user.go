@@ -21,7 +21,6 @@ import (
 
 	"github.com/immanent-tech/go-syndication/opml"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -36,10 +35,10 @@ import (
 // ShowSettings handles retrieving and rendering the user settings page.
 func (a *API) ShowSettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		ctx := templates.PageTitleToCtx(req.Context(), "Settings")
 		renderPage(
-			wrapContent(req, templates.SettingsPage()),
-			templates.GeneratePageTitle("Settings"),
-		).ServeHTTP(res, req)
+			wrapContent(req.WithContext(ctx), templates.SettingsPage()),
+		).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -700,10 +699,8 @@ func GetPageIssues() http.HandlerFunc {
 		}
 		// Display the report issue form.
 		template := templates.ReportPageIssue(&models.IssueRequest{PageUrl: currentURL})
-		renderPage(
-			wrapContent(req, template),
-			templates.GeneratePageTitle("Report subscription issue"),
-		).ServeHTTP(res, req)
+		ctx := templates.PageTitleToCtx(req.Context(), "Report Page Issue")
+		renderPage(wrapContent(req, template)).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -750,10 +747,8 @@ func SubmitPageIssues() http.HandlerFunc {
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
-		renderPage(
-			wrapContent(req, templates.IssueReportedConfirmation(msg)),
-			templates.GeneratePageTitle("Report subscription issue"),
-		).ServeHTTP(res, req)
+		ctx := templates.PageTitleToCtx(req.Context(), "Report Page Issue")
+		renderPage(wrapContent(req, templates.IssueReportedConfirmation(msg))).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -770,7 +765,8 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 			planID = session.RestoreFromSession(req.Context(), models.ParamPlanID, func() string { return "" })
 		}
 		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
-		renderPage(templates.UserChooseSubscriptionPlan(planID), "Choose a Subscription Plan").ServeHTTP(res, req)
+		ctx := templates.PageTitleToCtx(req.Context(), "Choose a Subscription Plan")
+		renderPage(templates.UserChooseSubscriptionPlan(planID)).ServeHTTP(res, req.WithContext(ctx))
 	}).ServeHTTP
 }
 
@@ -780,13 +776,12 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Fetch the user details from context.
 		user := models.UserFromCtx(req.Context())
+		ctx := templates.PageTitleToCtx(req.Context(), "Checkout Subscription Plan")
 		if user == nil {
-			externalPage("Checkout Subscription Plan - "+config.AppName,
-				templates.ExternalError(models.NewErrorMessage(
-					"Unable to process checkout",
-					"This might be a temporary error, please try again.",
-				)),
-			).ServeHTTP(res, req)
+			templ.Handler(templates.ExternalError(models.NewErrorMessage(
+				"Unable to process checkout",
+				"This might be a temporary error, please try again.",
+			))).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(
 				fmt.Errorf(
 					"user checkout session: unable to retrieve user: %w",
@@ -799,12 +794,10 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 		// Retrieve the plan id from the session data.
 		planID := req.FormValue(models.ParamPlanID)
 		if planID == "" {
-			externalPage("Checkout Subscription Plan - "+config.AppName,
-				templates.ExternalError(models.NewErrorMessage(
-					"Unable to process checkout",
-					"This might be a temporary error, please try again.",
-				)),
-			).ServeHTTP(res, req)
+			templ.Handler(templates.ExternalError(models.NewErrorMessage(
+				"Unable to process checkout",
+				"This might be a temporary error, please try again.",
+			))).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(
 				fmt.Errorf(
 					"user checkout session: unable to retrieve plan id from session: %w",
@@ -818,12 +811,10 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 		var session *stripe.Checkout
 		session, err := stripe.NewCheckoutSession(user, planID)
 		if err != nil {
-			externalPage("Checkout Subscription Plan - "+config.AppName,
-				templates.ExternalError(models.NewErrorMessage(
-					"Unable to process checkout",
-					"This might be a temporary error, please try again.",
-				)),
-			).ServeHTTP(res, req)
+			templ.Handler(templates.ExternalError(models.NewErrorMessage(
+				"Unable to process checkout",
+				"This might be a temporary error, please try again.",
+			))).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(
 				fmt.Errorf("user account checkout: %w", err),
 				http.StatusInternalServerError,
@@ -831,8 +822,8 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 		}
 
 		// Redirect to strip processor to complete checkout session.
-		slogctx.FromCtx(req.Context()).Debug("Redirecting user to Stripe for payment.")
-		http.Redirect(res, req, session.URL, http.StatusSeeOther)
+		slogctx.FromCtx(ctx).Debug("Redirecting user to Stripe for payment.")
+		http.Redirect(res, req.WithContext(ctx), session.URL, http.StatusSeeOther)
 		return nil
 	})).ServeHTTP
 }
@@ -852,18 +843,24 @@ func UserAccountCancel() http.HandlerFunc {
 // UserAccountIssue handles showing a page with a message indicating the user needs to contact support, as there is a
 // critical issue with their account blocking access to the service.
 func UserAccountIssue() http.HandlerFunc {
-	return renderPage(templates.UserAccountIssue(), "Account Issue").ServeHTTP
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		ctx := templates.PageTitleToCtx(req.Context(), "Account Issue")
+		// stripeSessionID := req.FormValue("session_id")
+		renderPage(templates.UserAccountIssue()).ServeHTTP(res, req.WithContext(ctx))
+		return nil
+	})).ServeHTTP
 }
 
 func UserManageAccountSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		ctx := templates.PageTitleToCtx(req.Context(), "Subscription Plan Checkout")
 
 		sessionID := req.FormValue("session_id")
 		if sessionID == "" {
-			renderPage(wrapContent(req, templates.ExternalError(models.NewErrorMessage(
+			renderPage(wrapContent(req.WithContext(ctx), templates.ExternalError(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
-			))), "Subscription Plan Checkout").ServeHTTP(res, req)
+			)))).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(
 				fmt.Errorf("user manage subscription: %w: no stripe session ID", stripe.ErrInvalidSubscription),
 				http.StatusInternalServerError,
@@ -872,10 +869,10 @@ func UserManageAccountSubscription() http.HandlerFunc {
 
 		portalSession, err := stripe.NewPortalSession(sessionID)
 		if err != nil {
-			renderPage(wrapContent(req, templates.ExternalError(models.NewErrorMessage(
+			renderPage(wrapContent(req.WithContext(ctx), templates.ExternalError(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
-			))), "Subscription Plan Checkout").ServeHTTP(res, req)
+			)))).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(
 				fmt.Errorf("user account checkout: %w", err),
 				http.StatusInternalServerError,

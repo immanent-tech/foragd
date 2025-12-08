@@ -11,5 +11,5 @@ import (
 
 // Landing handles displaying the landing page of the site.
 func Landing() http.HandlerFunc {
-	return renderPage(templates.Landing(), "").ServeHTTP
+	return renderPage(templates.Landing()).ServeHTTP
 }

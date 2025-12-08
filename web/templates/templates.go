@@ -4,9 +4,17 @@
 package templates
 
 const (
+	FragmentContent FragmentKey = "content"
+
 	ImgProxyKey  contextKey = "imgproxy_key"
 	ImgProxySalt contextKey = "imgproxy_salt"
 )
+
+type FragmentKey string
+
+type contextKey string
+
+type partialsCtxKey string
 
 var (
 	// ContentID points to the element containing the main content of the page.
@@ -21,10 +29,6 @@ var (
 	NotificationsID = ID("notifications")
 )
 
-type contextKey string
-
-type partialsCtxKey string
-
 // ID represents an id attribute in a HTML element.
 type ID string
 
@@ -38,5 +42,3 @@ func (a ID) Target() string {
 func (a ID) String() string {
 	return string(a)
 }
-
-

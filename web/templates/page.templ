@@ -4,44 +4,45 @@
 package templates
 
 import (
+	"context"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 )
 
 const (
-	FragmentContent FragmentKey = "content"
+	pageTitleCtxKey contextKey = "page_title"
 )
-
-type FragmentKey string
 
 // DefaultPageTitle is the default <title> tag value if none is set.
 var DefaultPageTitle = config.AppName + ": " + config.AppDescription
 
-// GeneratePageTitle generates an appropriate page title string by combining the input with the app name.
-func GeneratePageTitle(title string) string {
-	return title + " " + config.AppName
+func PageTitleToCtx(ctx context.Context, title string) context.Context {
+	return context.WithValue(ctx, pageTitleCtxKey, GeneratePageTitle(title))
 }
 
-// SetPageTitle sets (or updates) the page's <title></title> tag. If the title is an empty string, a default title will
-// be set instead.
-templ SetPageTitle(title string) {
-	if title != "" {
-		<title>{ title }</title>
-	} else {
-		<title>{ DefaultPageTitle }</title>
+func PageTitleFromCtx(ctx context.Context) string {
+	title, ok := ctx.Value(pageTitleCtxKey).(string)
+	if !ok {
+		return DefaultPageTitle
 	}
+	return title
+}
+
+// GeneratePageTitle generates an appropriate page title string by combining the input with the app name.
+func GeneratePageTitle(title string) string {
+	return title + " | " + config.AppName
 }
 
 // UpdateCSRFToken renders an input with the csrf token taken from the context.
 templ UpdateCSRFToken() {
-	<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+	<input id="csrf_token" c hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 }
 
 // Page renders a full HTML page with the given body content and title.
-templ Page(title string, body templ.Component) {
+templ Page(body templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en" class="h-full">
-		@Head(title)
+		@Head()
 		if body != nil {
 			@Body(body)
 		} else {
@@ -53,7 +54,7 @@ templ Page(title string, body templ.Component) {
 }
 
 // Head renders the `<head>` html element. If the title is blank, a default title is used.
-templ Head(title string) {
+templ Head() {
 	<head>
 		<meta charset="UTF-8"/>
 		// https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Viewport_meta_element#interactive-widget
@@ -89,7 +90,7 @@ templ Head(title string) {
         		]
 			}'
 		/>
-		@SetPageTitle(title)
+		@PageTitle()
 	</head>
 }
 
@@ -114,4 +115,8 @@ templ Body(content templ.Component) {
 		</div>
 		// @ShowTailwindBreakpoints()
 	</body>
+}
+
+templ PageTitle() {
+	<title>{ PageTitleFromCtx(ctx) }</title>
 }

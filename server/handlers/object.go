@@ -31,7 +31,6 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 		if err := params.Valid(); err != nil {
 			renderPage(
 				wrapContent(req, templates.NotFound()),
-				templates.GeneratePageTitle("Unknown article"),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(
 				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
@@ -48,7 +47,6 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 				)
 				renderPage(
 					wrapContent(req, templates.ErrorPage(msg)),
-					templates.GeneratePageTitle("View Article"),
 				).ServeHTTP(res, req)
 				return models.NewAPIError(
 					fmt.Errorf("unable to fetch article content: %w", err),
@@ -56,7 +54,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 				)
 			}
 			article := articles[0]
-			pageTitle := templates.GeneratePageTitle(article.GetTitle())
+			ctx := templates.PageTitleToCtx(req.Context(), article.GetTitle()+" | "+article.GetFeedTitle()+" | ")
 			// Get the "show_full_content" value and override the article value.
 			fullContent, err := strconv.ParseBool(req.FormValue(models.ParamFullArticleContent))
 			if err != nil || !fullContent {
@@ -90,7 +88,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 			} else {
 				template = templates.ArticleContent(article)
 			}
-			renderPage(wrapContent(req, template), pageTitle).ServeHTTP(res, req)
+			renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}
@@ -137,7 +135,8 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 			} else {
 				template = templates.NoSearchResults()
 			}
-			renderPage(wrapContent(req, template), templates.GeneratePageTitle("Similar Articles")).ServeHTTP(res, req)
+			ctx := templates.PageTitleToCtx(req.Context(), "Similar Articles")
+			renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
 		default:
 			res.WriteHeader(http.StatusNotImplemented)
 		}
@@ -205,7 +204,8 @@ func GetObjectIssues() http.HandlerFunc {
 			params.ObjectID,
 			models.NewObjectIssue(params, currentURL),
 		)
-		renderPage(wrapContent(req, template), templates.GeneratePageTitle("Report an issue")).ServeHTTP(res, req)
+		ctx := templates.PageTitleToCtx(req.Context(), "Report an issue")
+		renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -275,10 +275,10 @@ func SubmitObjectIssues() http.HandlerFunc {
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
+		ctx := templates.PageTitleToCtx(req.Context(), "Report issue")
 		renderPage(
-			wrapContent(req, templates.IssueReportedConfirmation(msg)),
-			templates.GeneratePageTitle("Report subscription issue"),
-		).ServeHTTP(res, req)
+			wrapContent(req.WithContext(ctx), templates.IssueReportedConfirmation(msg)),
+		).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }

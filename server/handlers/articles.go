@@ -25,23 +25,23 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 			pagination := req.FormValue(models.ParamPagination)
+			ctx := templates.PageTitleToCtx(req.Context(), "Articles")
 			// Redirect to include query parameters in address bar.
 			if len(req.URL.Query()) == 0 {
 				if IsHTMX(req) {
 					res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
 				} else {
-					http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
+					http.Redirect(res, req.WithContext(ctx), req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
 				}
 			}
 			var (
-				articles  models.Articles
-				err       error
-				template  templ.Component
-				pageTitle string
+				articles models.Articles
+				err      error
+				template templ.Component
 			)
 
 			// Get articles matching filters.
-			articles, pagination, err = api.FilterArticles(req.Context(), filters, pagination)
+			articles, pagination, err = api.FilterArticles(ctx, filters, pagination)
 			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 				msg := models.NewErrorMessage(
 					"Server could not complete request!",
@@ -49,9 +49,9 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 				)
 				switch req.Method {
 				case http.MethodGet:
-					renderPage(templates.ErrorPage(msg), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+					renderPage(templates.ErrorPage(msg)).ServeHTTP(res, req.WithContext(ctx))
 				case http.MethodPost:
-					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
 				}
 				return models.NewAPIError(
 					fmt.Errorf("unable to list articles: %w", err),
@@ -60,22 +60,27 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 			}
 			// Render appropriate content.
 			subscriptionID := req.FormValue(models.ParamSubscriptionID)
+			// If the list of articles is from a single subscription, update the page tile to include the subsscription
+			// name.
+			if subscriptionID != "" {
+				ctx = templates.PageTitleToCtx(ctx, articles[0].GetFeedTitle()+" | Articles")
+			}
 			template = templates.ArticlesGrid(subscriptionID, articles, pagination)
 			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {
 			case http.MethodGet:
 				renderPage(
-					wrapContent(req, template),
-					templates.GeneratePageTitle(pageTitle),
-				).ServeHTTP(res, req)
+					wrapContent(req.WithContext(ctx), template),
+				).ServeHTTP(res, req.WithContext(ctx))
 			case http.MethodPost:
-				renderPartial(template).ServeHTTP(res, req)
+				renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
 			}
 			return nil
 		})).
 		ServeHTTP
 }
 
+// PaginateArticles handles a request to list more articles.
 func PaginateArticles(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {

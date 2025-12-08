@@ -28,11 +28,12 @@ import (
 // Login handles login requests.
 func Login() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		if err := auth0.InitAuthenticator(req.Context()); err != nil {
+		ctx := templates.PageTitleToCtx(req.Context(), "Login")
+
+		if err := auth0.InitAuthenticator(ctx); err != nil {
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Can't contact auth backend")),
-				"Login",
-			).ServeHTTP(res, req)
+			).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
@@ -41,27 +42,26 @@ func Login() http.HandlerFunc {
 		if err != nil {
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid state")),
-				"Login",
-			).ServeHTTP(res, req)
+			).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		var authURL string
-		switch chi.RouteContext(req.Context()).RoutePattern() {
+		switch chi.RouteContext(ctx).RoutePattern() {
 		case "/signup":
 			// Retrieve and save the selected plan id into the session for later use.
 			planID := req.URL.Query().Get(models.ParamPlanID)
-			session.SaveToSession(req.Context(), models.ParamPlanID, planID)
+			session.SaveToSession(ctx, models.ParamPlanID, planID)
 			authURL = auth0.AuthClient.AuthCodeURL(state,
 				oauth2.SetAuthURLParam("screen_hint", "signup"),
 			)
 		case "/login":
 			authURL = auth0.AuthClient.AuthCodeURL(state)
 		}
-		session.Manager.Put(req.Context(), "state", state)
-		slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
+		session.Manager.Put(ctx, "state", state)
+		slogctx.FromCtx(ctx).Debug("Authentication required, redirecting to provider.",
 			slog.String("url", auth0.AuthClient.AuthCodeURL(state)),
 		)
-		http.Redirect(res, req, authURL, http.StatusTemporaryRedirect)
+		http.Redirect(res, req.WithContext(ctx), authURL, http.StatusTemporaryRedirect)
 		return nil
 	})).ServeHTTP
 }
@@ -69,32 +69,29 @@ func Login() http.HandlerFunc {
 // LoginCallback handles processing the response from a login provider.
 func LoginCallback(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// provider := chi.URLParam(req, "provider")
+		ctx := templates.PageTitleToCtx(req.Context(), "Login")
 
-		if req.FormValue("state") != session.Manager.GetString(req.Context(), "state") {
+		if req.FormValue("state") != session.Manager.GetString(ctx, "state") {
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")),
-				"Login",
-			).ServeHTTP(res, req)
+			).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(errors.New("invalid session state"), http.StatusInternalServerError)
 		}
 
 		// Exchange an authorization code for a token.
-		token, err := auth0.AuthClient.Exchange(req.Context(), req.FormValue("code"))
+		token, err := auth0.AuthClient.Exchange(ctx, req.FormValue("code"))
 		if err != nil {
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
-				"Login",
-			).ServeHTTP(res, req)
+			).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
-		idToken, err := auth0.AuthClient.VerifyIDToken(req.Context(), token)
+		idToken, err := auth0.AuthClient.VerifyIDToken(ctx, token)
 		if err != nil {
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
-				"Login",
-			).ServeHTTP(res, req)
+			).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
@@ -103,36 +100,33 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		if err != nil {
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
-				"Login",
-			).ServeHTTP(res, req)
+			).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
-		session.Manager.Put(req.Context(), "access_token", token.AccessToken)
-		session.Manager.Put(req.Context(), "profile", profile)
+		session.Manager.Put(ctx, "access_token", token.AccessToken)
+		session.Manager.Put(ctx, "profile", profile)
 
-		user, err := api.FindUserByExternalID(req.Context(), profile.GetID())
+		user, err := api.FindUserByExternalID(ctx, profile.GetID())
 		switch {
 		case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
 			// Create a new local account for the user
-			if err := createLocalUser(req.Context(), api, profile); err != nil {
+			if err := createLocalUser(ctx, api, profile); err != nil {
 				renderPage(
 					templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Account creation failed")),
-					"Login",
-				).ServeHTTP(res, req)
+				).ServeHTTP(res, req.WithContext(ctx))
 				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
 		case err != nil: // Backend error.
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Authorization backend error")),
-				"Login",
-			).ServeHTTP(res, req)
+			).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		default: // Existing user.
 			// Sync user data from the backend.
-			syncLocalUser(req.Context(), api, user, profile)
+			syncLocalUser(ctx, api, user, profile)
 		}
-		ctx := models.UserToCtx(req.Context(), user)
+		ctx = models.UserToCtx(ctx, user)
 		// Redirect the user appropriately.
 		if profile.LoginsCount == 1 || user.Metadata.Plan == "" {
 			// New user or user without a plan; redirect to choose subscription plan.

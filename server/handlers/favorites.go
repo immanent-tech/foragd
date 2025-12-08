@@ -23,12 +23,14 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 				articles      models.Articles
 				subscriptions models.Subscriptions
 				template      templ.Component
-				pageTitle     string
 				wg            errgroup.Group
 				err           error
 			)
 
-			user := models.UserFromCtx(req.Context())
+			ctx := templates.PageTitleToCtx(req.Context(), "Favorites")
+
+			user := models.UserFromCtx(ctx)
+
 			if user == nil {
 				msg := models.NewErrorMessage(
 					"Server could not complete request!",
@@ -37,12 +39,11 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 				switch req.Method {
 				case http.MethodGet:
 					renderPage(
-						wrapContent(req, templates.ErrorPage(msg)),
-						templates.GeneratePageTitle(pageTitle),
-					).ServeHTTP(res, req)
+						wrapContent(req.WithContext(ctx), templates.ErrorPage(msg)),
+					).ServeHTTP(res, req.WithContext(ctx))
 				case http.MethodPost:
 					template = templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req)
+					renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
 				}
 				return models.NewAPIError(
 					fmt.Errorf("could not fetch user info from context: %w", err),
@@ -54,7 +55,7 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 			wg.Go(func() error {
 				if len(user.ItemFavorites) > 0 {
 					var err error
-					articles, err = api.GetArticles(req.Context(), user.ItemFavorites...)
+					articles, err = api.GetArticles(ctx, user.ItemFavorites...)
 					if err != nil {
 						return fmt.Errorf("list favorites: get favorite articles: %w", err)
 					}
@@ -65,7 +66,7 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 			// Get favorite subscriptions.
 			wg.Go(func() error {
 				var err error
-				subscriptions, err = api.GetSubscriptions(req.Context(),
+				subscriptions, err = api.GetSubscriptions(ctx,
 					elastic.GetSubscriptionsByFavorite(true),
 					elastic.GetSubscriptionsDynamicInfo(true),
 				)
@@ -83,12 +84,11 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 				switch req.Method {
 				case http.MethodGet:
 					renderPage(
-						wrapContent(req, templates.ErrorPage(msg)),
-						templates.GeneratePageTitle(pageTitle),
-					).ServeHTTP(res, req)
+						wrapContent(req.WithContext(ctx), templates.ErrorPage(msg)),
+					).ServeHTTP(res, req.WithContext(ctx))
 				case http.MethodPost:
 					template = templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req)
+					renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
 				}
 				return models.NewAPIError(
 					fmt.Errorf("could not fetch user info from context: %w", err),
@@ -106,9 +106,9 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {
 			case http.MethodGet:
-				renderPage(wrapContent(req, template), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+				renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
 			case http.MethodPost:
-				renderPartial(template).ServeHTTP(res, req)
+				renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
 			}
 			return nil
 		})).

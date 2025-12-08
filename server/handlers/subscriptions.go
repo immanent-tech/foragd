@@ -49,7 +49,6 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				subscriptions models.Subscriptions
 				err           error
 				template      templ.Component
-				pageTitle     string
 			)
 			// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
 			if htmx.IsHistoryRestoreRequest(req) {
@@ -66,7 +65,6 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				case http.MethodGet:
 					renderPage(
 						wrapContent(req, templates.ErrorPage(msg)),
-						templates.GeneratePageTitle(pageTitle),
 					).ServeHTTP(res, req)
 				case http.MethodPost:
 					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
@@ -79,11 +77,12 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 
 			// Choose rendering method based on method (get = page, post = partial).
 			template = templates.SubscriptionsGrid(pagination, subscriptions...)
+			ctx := templates.PageTitleToCtx(req.Context(), "Subscriptions")
 			switch req.Method {
 			case http.MethodGet:
-				renderPage(wrapContent(req, template), templates.GeneratePageTitle(pageTitle)).ServeHTTP(res, req)
+				renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
 			case http.MethodPost:
-				renderPartial(template).ServeHTTP(res, req)
+				renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
 			}
 			return nil
 		})).ServeHTTP
@@ -444,7 +443,8 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 			template = templates.EditGroupSubscription(request)
 			pageTitle = templates.GeneratePageTitle("Editing " + request.Customisation.Nickname)
 		}
-		renderPage(wrapContent(req, template), pageTitle).ServeHTTP(res, req.WithContext(ctx))
+		ctx = templates.PageTitleToCtx(ctx, pageTitle)
+		renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -531,17 +531,18 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 // AddFeedSubscription handles adding a new subscription to a feed.
 func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		ctx := templates.PageTitleToCtx(req.Context(), "Add subscription")
 		switch req.Method {
 		case http.MethodGet:
 			template := templates.AddFeedSubscription(&models.AddFeedSubscriptionRequest{})
-			renderPage(wrapContent(req, template), templates.GeneratePageTitle("Add Subscription")).ServeHTTP(res, req)
+			renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
-			request, valid, err := forms.DecodeForm[*models.AddFeedSubscriptionRequest](req)
+			request, valid, err := forms.DecodeForm[*models.AddFeedSubscriptionRequest](req.WithContext(ctx))
 			if err != nil || !valid {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to add subscription", "Data is invalid."),
-				)).ServeHTTP(res, req)
+				)).ServeHTTP(res, req.WithContext(ctx))
 				return models.NewAPIError(
 					fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 					http.StatusUnprocessableEntity,
@@ -552,7 +553,7 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 			resultsCh := make(chan models.AddFeedSubscriptionResult)
 			var wg sync.WaitGroup
 			wg.Go(func() {
-				api.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
+				api.ProcessSubscriptionRequest(ctx, request, resultsCh)
 			})
 			// Wait for all request processing to complete.
 			go func() {
@@ -564,29 +565,29 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 			if result.Error != nil {
 				switch result.Message.Status {
 				case models.UserMessageStatusError:
-					slogctx.FromCtx(req.Context()).Error("Error occurred during subscription request processing.",
+					slogctx.FromCtx(ctx).Error("Error occurred during subscription request processing.",
 						slog.String("url", result.Request.GetURL()),
 						slog.Any("error", result.Error),
 					)
 				case models.UserMessageStatusWarning:
 					fallthrough
 				default:
-					slogctx.FromCtx(req.Context()).Warn("Warning occurred during subscription request processing.",
+					slogctx.FromCtx(ctx).Warn("Warning occurred during subscription request processing.",
 						slog.String("url", result.Request.GetURL()),
 						slog.Any("error", result.Error),
 					)
 				}
 			} else {
-				err = api.CreateFeedSubscriptions(req.Context(), &result)
+				err = api.CreateFeedSubscriptions(ctx, &result)
 				if err != nil {
 					res.Header().Add(htmx.HeaderReswap, "none")
 					msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
-					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
 					return models.NewAPIError(fmt.Errorf("unable process import request: %w", err), http.StatusInternalServerError)
 				}
 			}
 
-			renderPartial(templates.Notification(&result.Message, 0)).ServeHTTP(res, req)
+			renderPartial(templates.Notification(&result.Message, 0)).ServeHTTP(res, req.WithContext(ctx))
 		}
 		return nil
 	})).ServeHTTP
@@ -633,9 +634,9 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
 			template := templates.AddSearchSubscription(&models.SearchSubscriptionRequest{Search: *request})
+			ctx = templates.PageTitleToCtx(ctx, "Add search subscription")
 			renderPage(
-				wrapContent(req, template),
-				templates.GeneratePageTitle("Add A Search Subscription"),
+				wrapContent(req.WithContext(ctx), template),
 			).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SearchSubscriptionRequest](req)
@@ -679,10 +680,10 @@ func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			template := templates.AddGroupSubscription(&models.GroupSubscriptionRequest{})
+			ctx := templates.PageTitleToCtx(req.Context(), "Add group subscription")
 			renderPage(
-				wrapContent(req, template),
-				templates.GeneratePageTitle("Add A Group Subscription"),
-			).ServeHTTP(res, req)
+				wrapContent(req.WithContext(ctx), template),
+			).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
 			// Decode request.
 			request, valid, err := forms.DecodeForm[*models.GroupSubscriptionRequest](req)
@@ -748,10 +749,10 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 		// GET: show import modal.
 		case http.MethodGet:
 			template := templates.ImportSubscriptions()
+			ctx := templates.PageTitleToCtx(req.Context(), "Import subscriptions")
 			renderPage(
-				wrapContent(req, template),
-				templates.GeneratePageTitle("Import Subscriptions"),
-			).ServeHTTP(res, req)
+				wrapContent(req.WithContext(ctx), template),
+			).ServeHTTP(res, req.WithContext(ctx))
 		// POST: process import.
 		case http.MethodPost:
 			// Extract OPML file.
@@ -845,6 +846,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 func (a *API) ExportSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
+		ctx := templates.PageTitleToCtx(req.Context(), "Export subscriptions")
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			msg := models.NewErrorMessage(
@@ -853,9 +855,8 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			)
 			template := templ.Join(templates.ExportSubscriptions(), templates.ServerErrorNotification(msg))
 			renderPage(
-				wrapContent(req, template),
-				templates.GeneratePageTitle("Export Subscriptions"),
-			).ServeHTTP(res, req)
+				wrapContent(req.WithContext(ctx), template),
+			).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(
 				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
 				http.StatusInternalServerError,
@@ -863,22 +864,21 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 		}
 		switch {
 		// GET: show import modal.
-		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export":
+		case chi.RouteContext(ctx).RoutePattern() == "/user/export":
 			renderPage(
-				wrapContent(req, templates.ExportSubscriptions()),
-				templates.GeneratePageTitle("Export Subscriptions"),
-			).ServeHTTP(res, req)
-		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":
+				wrapContent(req.WithContext(ctx), templates.ExportSubscriptions()),
+			).ServeHTTP(res, req.WithContext(ctx))
+		case chi.RouteContext(ctx).RoutePattern() == "/user/export/opml":
 			// Get all subscriptions.
 			filters := models.NewListDisplayFilters()
-			subscriptions, _, err := a.Elastic.FilterSubscriptions(req.Context(), &filters, "")
+			subscriptions, _, err := a.Elastic.FilterSubscriptions(ctx, &filters, "")
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				msg := models.NewErrorMessage(
 					"Error exporting OPML file.",
 					"The backend had issues generating the OPML file, please try again.",
 				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
 				return models.NewAPIError(
 					fmt.Errorf("unable process import request: %w", err),
 					http.StatusInternalServerError,
@@ -912,7 +912,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 					"Error exporting OPML file.",
 					"The backend had issues generating the OPML file, please try again.",
 				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
 				return models.NewAPIError(
 					fmt.Errorf("unable process import request: %w", err),
 					http.StatusInternalServerError,
@@ -922,7 +922,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
 			filename := config.AppName + "-Export.opml"
 			res.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
-			http.ServeContent(res, req, filename, time.Now(), bytes.NewReader(data))
+			http.ServeContent(res, req.WithContext(ctx), filename, time.Now(), bytes.NewReader(data))
 		}
 		return nil
 	})).ServeHTTP
