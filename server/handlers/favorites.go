@@ -17,7 +17,7 @@ import (
 
 // ListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.
 func ListFavorites(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters).
+	return defaultHandlerChain.Append(parseFilters, setCacheControl).
 		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 			var (
 				articles      models.Articles

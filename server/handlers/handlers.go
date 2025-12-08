@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -302,6 +303,18 @@ func storePath(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := models.PathToCtx(req.Context(), req.URL.Path)
 		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+func setCacheControl(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			return
+		}
+		updateFreq := strconv.FormatFloat(user.GetUpdatesFrequency().Seconds(), 'f', 0, 64)
+		res.Header().Set("Cache-Control", "private, max-age="+updateFreq+", must-revalidate")
+		next.ServeHTTP(res, req)
 	})
 }
 
