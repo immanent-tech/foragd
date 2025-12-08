@@ -220,9 +220,6 @@ func renderPage(template templ.Component) http.Handler {
 		}
 		switch {
 		case !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
-			if htmx.IsHistoryRestoreRequest(req) {
-				res.Header().Set(htmx.HeaderReswap, "innerHTML transition:true")
-			}
 			templ.Handler(templates.Page(template)).ServeHTTP(res, req)
 			return
 		default: // HTMX request renders partial content.
