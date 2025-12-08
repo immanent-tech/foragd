@@ -22,7 +22,7 @@ templ AddFeedsetsSuccessNotification(feedsets []string) {
 			@NewLink(
 				WithHXMethod(http.MethodGet, "/list/subscriptions"),
 				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(),
+				WithHXPushURL(true),
 			) {
 				Go to Subscriptions <span aria-hidden="true">&rarr;</span>
 			}
@@ -70,7 +70,7 @@ templ SubscriptionCard(s *models.Subscription) {
 								WithHXInclude("[name='csrf_token']"),
 								WithHXValsJS(s.SearchData.Search.HXVals()),
 								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(),
+								WithHXPushURL(true),
 								WithHXSwap("innerHTML show:window:top transition:true"),
 								WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 							) {
@@ -97,7 +97,7 @@ templ SubscriptionCard(s *models.Subscription) {
 							WithHXInclude("#content-filters"),
 							WithHXVals(overrides),
 							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
+							WithHXPushURL(true),
 							WithHXSwap("innerHTML show:window:top transition:true"),
 							WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 						) {
@@ -125,7 +125,7 @@ templ SubscriptionCard(s *models.Subscription) {
 							@NewLink(
 								WithHXMethod(http.MethodGet, "/list/subscriptions"),
 								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(),
+								WithHXPushURL(true),
 								WithHXVals(filters),
 							) {
 								<div class="flex gap-2 capitalize">
@@ -218,7 +218,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 				WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
 				WithHXTarget(ContentID.Target()),
 				WithHXSwap("innerHTML show:window:top transition:true"),
-				WithHXPushURL(),
+				WithHXPushURL(true),
 			) {
 				@tabler.Edit(i.Props{Class: "size-4"})
 				Edit Subscription
@@ -259,7 +259,7 @@ templ viewFeedSubscriptionLink(id models.SubscriptionID, title string, view mode
 			WithHXMethod(http.MethodGet, "/list/articles"),
 			WithHXVals(values),
 			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 			WithHXSwap("innerHTML show:window:top transition:true"),
 		}
 		allOptions = append(allOptions, options...)
@@ -335,7 +335,7 @@ templ subscriptionsActionsButton(filters *models.ListDisplayFilters) {
 				@NewLink(
 					WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
 					WithHXTarget(ContentID.Target()),
-					WithHXPushURL(),
+					WithHXPushURL(true),
 				) {
 					@tabler.Plus(i.Props{Class: "size-4"})
 					Add Feed Subscription
@@ -346,7 +346,7 @@ templ subscriptionsActionsButton(filters *models.ListDisplayFilters) {
 					WithHXMethod(http.MethodGet, "/user/subscription/add/search"),
 					WithHXTarget(ContentID.Target()),
 					WithHXInclude("#search-filters"),
-					WithHXPushURL(),
+					WithHXPushURL(true),
 				) {
 					@tabler.Plus(i.Props{Class: "size-4"})
 					Add Search Subscription
@@ -356,7 +356,7 @@ templ subscriptionsActionsButton(filters *models.ListDisplayFilters) {
 				@NewLink(
 					WithHXMethod(http.MethodGet, "/user/subscription/add/group"),
 					WithHXTarget(ContentID.Target()),
-					WithHXPushURL(),
+					WithHXPushURL(true),
 				) {
 					@tabler.Plus(i.Props{Class: "size-4"})
 					Add Group Subscription

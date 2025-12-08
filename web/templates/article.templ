@@ -28,7 +28,7 @@ templ articleSummary(article *models.Article) {
 				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 				WithHXTarget(ContentID.Target()),
 				WithHXSwap("innerHTML show:window:top transition:true"),
-				WithHXPushURL(),
+				WithHXPushURL(true),
 			) {
 				<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
 			}
@@ -42,30 +42,13 @@ templ articleSummary(article *models.Article) {
 					@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
 						{ article.GetFeedTitle() }
 					}
-					// {{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), "subscriptions": article.GetSubscriptionID()} }}
-					// {{ overrides[models.ParamView] = string(models.ViewUnread) }}
-					// {{ overrides[models.ParamSubscriptionID] = article.GetSubscriptionID() }}
-					// {{ overrides[models.ParamSubscriptionName] = article.GetFeedTitle() }}
-					// @NewLink(
-					// 	WithHXMethod(http.MethodGet, "/list/articles"),
-					// 	WithHXInclude("#content-filters"),
-					// 	WithHXVals(overrides),
-					// 	WithHXTarget(ContentID.Target()),
-					// 	WithHXPushURL(),
-					// 	WithHXSwap("innerHTML show:window:top transition:true"),
-					// 	WithClasses("truncate"),
-					// ) {
-					// 	{ article.GetFeedTitle() }
-					// }
 				</p>
 			</div>
 			// Article content summary.
-			{{ text, err := models.ExtractText(article.GetContent()) }}
-			if err == nil {
-				<article class="mt-4 prose prose-md line-clamp-3 prose-custom">
-					{ text }
-				</article>
-			}
+			<article class="mt-4 prose prose-sm line-clamp-3 prose-custom prose-img:hidden prose-figure:hidden prose-video:hidden">
+				@templ.Raw(article.GetContent())
+			</article>
+			// }
 		</div>
 	</div>
 }
@@ -83,7 +66,7 @@ templ ArticleCard(article *models.Article) {
 			@NewLink(
 				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(),
+				WithHXPushURL(true),
 			) {
 				@articleImage(img, article.GetTitle())
 			}
@@ -92,7 +75,7 @@ templ ArticleCard(article *models.Article) {
 			@NewLink(
 				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(),
+				WithHXPushURL(true),
 			) {
 				<h2 class="card-title text-pretty line-clamp-3">
 					if article.GetTitle() != "" {
@@ -112,7 +95,7 @@ templ ArticleCard(article *models.Article) {
 					@NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
+						WithHXPushURL(true),
 						WithHXVals(map[string]any{
 							models.ParamSubscriptions:    article.GetSubscriptionID(),
 							models.ParamSubscriptionName: article.GetFeedTitle(),
@@ -156,7 +139,7 @@ templ ArticleCard(article *models.Article) {
 							@NewLink(
 								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
 								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(),
+								WithHXPushURL(true),
 							) {
 								@tabler.FileSearch(i.Props{Class: "size-4"})
 								Find similar...
@@ -244,7 +227,7 @@ templ ArticleContent(article *models.Article) {
 					@NewLink(
 						WithHXMethod(http.MethodGet, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
+						WithHXPushURL(true),
 						WithHXSwap("innerHTML show:window:top transition:true"),
 						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 					) {
@@ -489,7 +472,7 @@ templ articlesActionsButton(subscriptionID models.SubscriptionID, filters *model
 					@NewLink(
 						WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
 						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
+						WithHXPushURL(true),
 					) {
 						@tabler.Edit(i.Props{Class: "size-4"})
 						Edit Subscription

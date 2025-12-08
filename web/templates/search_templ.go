@@ -319,7 +319,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 						WithHXInclude("[name='csrf_token']"),
 						WithHXValsJS(subscription.SearchData.Search.HXVals()),
 						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(),
+						WithHXPushURL(true),
 						WithHXSwap("innerHTML show:#search-results:top transition:true"),
 						WithClasses("group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"),
 						WithCustomAttribute("_", "on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"),
@@ -628,7 +628,7 @@ func SearchResultsGrid(request *models.SearchRequest, articles models.Articles, 
 					WithHXMethod(http.MethodGet, "/edit/subscription/"+request.ID),
 					WithHXTarget(ContentID.Target()),
 					WithHXSwap("innerHTML show:window:top transition:true"),
-					WithHXPushURL(),
+					WithHXPushURL(true),
 				).Render(templ.WithChildren(ctx, templ_7745c5c3_Var29), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -668,7 +668,7 @@ func SearchResultsGrid(request *models.SearchRequest, articles models.Articles, 
 					WithHXMethod(http.MethodGet, "/user/subscription/add/search"),
 					WithHXTarget(ContentID.Target()),
 					WithHXInclude("#search-filters"),
-					WithHXPushURL(),
+					WithHXPushURL(true),
 					WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-primary", "focus:outline-hidden"),
 				).Render(templ.WithChildren(ctx, templ_7745c5c3_Var30), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
@@ -1191,7 +1191,7 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 				WithHXVals(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}),
 				WithHXInclude("[name='csrf_token']"),
 				WithHXParams("subscription_id,subscription_name,csrf_token,subscriptions-input-name"),
-				WithoutHXPushURL(),
+				WithHXPushURL(false),
 				WithClasses("btn-sm hover:btn-success"),
 				WithCustomAttribute("_", "on htmx:afterRequest(successful) remove me"),
 				// then set the previous #subscriptions-filter-select value to ''

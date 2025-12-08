@@ -65,7 +65,7 @@ templ (page *Home) Template() {
 										WithHXTarget(ContentID.Target()),
 										WithHXSwap("innerHTML show:window:top transition:true"),
 										WithHXVals(params),
-										WithHXPushURL(),
+										WithHXPushURL(true),
 									) {
 										<div class="block gap-2 text-sm capitalize line-clamp-1 truncate">
 											<div class="badge badge-secondary">
@@ -107,7 +107,7 @@ templ (page *Home) Template() {
 												WithHXTarget(ContentID.Target()),
 												WithHXSwap("innerHTML show:window:top transition:true"),
 												WithHXVals(params),
-												WithHXPushURL(),
+												WithHXPushURL(true),
 												WithCustomAttribute("tabindex", "0"),
 											) {
 												<div class="block gap-2 text-sm capitalize line-clamp-1 truncate">
@@ -146,7 +146,7 @@ templ NewUserHome() {
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
 							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
+							WithHXPushURL(true),
 							WithClasses("focus:outline-hidden"),
 						) {
 							<span aria-hidden="true" class="absolute inset-0"></span>
@@ -166,7 +166,7 @@ templ NewUserHome() {
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/user/import"),
 							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
+							WithHXPushURL(true),
 							WithClasses("focus:outline-hidden"),
 						) {
 							<span aria-hidden="true" class="absolute inset-0"></span>

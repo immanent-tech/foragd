@@ -3,6 +3,8 @@
 
 package templates
 
+import "github.com/a-h/templ"
+
 const (
 	FragmentContent FragmentKey = "content"
 
@@ -41,4 +43,9 @@ func (a ID) Target() string {
 // String returns the id attribute as a string.
 func (a ID) String() string {
 	return string(a)
+}
+
+type TemplateData struct {
+	IsHtmx   bool
+	Template templ.Component
 }

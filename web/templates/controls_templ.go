@@ -744,7 +744,7 @@ func viewFilter(path, id string, view models.View, filters *models.ListDisplayFi
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 			WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var29), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -966,7 +966,7 @@ func viewFilterOnlyFavorites(path, id string, filters *models.ListDisplayFilters
 			WithHXMethod(http.MethodGet, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXVals(overrides),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 			WithHXVals(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
 			WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var43), templ_7745c5c3_Buffer)
@@ -1187,7 +1187,7 @@ func categoryFilter(path, id string, category models.CategoryCount, filters *mod
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 			WithID(id),
 			WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var56), templ_7745c5c3_Buffer)
@@ -1376,7 +1376,7 @@ func clearCategoryFilters(path, id string, filters *models.ListDisplayFilters) t
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 			WithClasses("link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var68), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -1573,7 +1573,7 @@ func activeCategoryFilterBadge(path string, category models.Category, filters *m
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var80), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1823,7 +1823,7 @@ func sortOption(path string, sort models.Sort, filters *models.ListDisplayFilter
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 			WithClasses("flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var93), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

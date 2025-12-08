@@ -83,7 +83,7 @@ func AddFeedsetsSuccessNotification(feedsets []string) templ.Component {
 			templ_7745c5c3_Err = NewLink(
 				WithHXMethod(http.MethodGet, "/list/subscriptions"),
 				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(),
+				WithHXPushURL(true),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -294,7 +294,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				WithHXInclude("[name='csrf_token']"),
 				WithHXValsJS(s.SearchData.Search.HXVals()),
 				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(),
+				WithHXPushURL(true),
 				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var12), templ_7745c5c3_Buffer)
@@ -361,7 +361,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				WithHXInclude("#content-filters"),
 				WithHXVals(overrides),
 				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(),
+				WithHXPushURL(true),
 				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
@@ -423,7 +423,7 @@ func SubscriptionCard(s *models.Subscription) templ.Component {
 				templ_7745c5c3_Err = NewLink(
 					WithHXMethod(http.MethodGet, "/list/subscriptions"),
 					WithHXTarget(ContentID.Target()),
-					WithHXPushURL(),
+					WithHXPushURL(true),
 					WithHXVals(filters),
 				).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
@@ -687,7 +687,7 @@ func subscriptionContextMenu(s *models.Subscription) templ.Component {
 			WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
 			WithHXTarget(ContentID.Target()),
 			WithHXSwap("innerHTML show:window:top transition:true"),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var25), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -810,7 +810,7 @@ func viewFeedSubscriptionLink(id models.SubscriptionID, title string, view model
 			WithHXMethod(http.MethodGet, "/list/articles"),
 			WithHXVals(values),
 			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 			WithHXSwap("innerHTML show:window:top transition:true"),
 		}
 		allOptions = append(allOptions, options...)
@@ -1201,7 +1201,7 @@ func subscriptionsActionsButton(filters *models.ListDisplayFilters) templ.Compon
 		templ_7745c5c3_Err = NewLink(
 			WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
 			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var47), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1236,7 +1236,7 @@ func subscriptionsActionsButton(filters *models.ListDisplayFilters) templ.Compon
 			WithHXMethod(http.MethodGet, "/user/subscription/add/search"),
 			WithHXTarget(ContentID.Target()),
 			WithHXInclude("#search-filters"),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var48), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1270,7 +1270,7 @@ func subscriptionsActionsButton(filters *models.ListDisplayFilters) templ.Compon
 		templ_7745c5c3_Err = NewLink(
 			WithHXMethod(http.MethodGet, "/user/subscription/add/group"),
 			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var49), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

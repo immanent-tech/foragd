@@ -73,7 +73,7 @@ templ header(user *models.User) {
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/user/settings"),
 							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(),
+							WithHXPushURL(true),
 							WithCustomAttribute("_", "on click remove @open from #header-menu"),
 						) {
 							<div class="flex flex-1 items-center gap-x-2">

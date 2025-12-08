@@ -155,7 +155,7 @@ func (page *Home) Template() templ.Component {
 							WithHXTarget(ContentID.Target()),
 							WithHXSwap("innerHTML show:window:top transition:true"),
 							WithHXVals(params),
-							WithHXPushURL(),
+							WithHXPushURL(true),
 						).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
@@ -235,7 +235,7 @@ func (page *Home) Template() templ.Component {
 								WithHXTarget(ContentID.Target()),
 								WithHXSwap("innerHTML show:window:top transition:true"),
 								WithHXVals(params),
-								WithHXPushURL(),
+								WithHXPushURL(true),
 								WithCustomAttribute("tabindex", "0"),
 							).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
@@ -350,7 +350,7 @@ func NewUserHome() templ.Component {
 			templ_7745c5c3_Err = NewLink(
 				WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
 				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(),
+				WithHXPushURL(true),
 				WithClasses("focus:outline-hidden"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -389,7 +389,7 @@ func NewUserHome() templ.Component {
 			templ_7745c5c3_Err = NewLink(
 				WithHXMethod(http.MethodGet, "/user/import"),
 				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(),
+				WithHXPushURL(true),
 				WithClasses("focus:outline-hidden"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

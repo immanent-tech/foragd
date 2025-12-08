@@ -14,6 +14,7 @@ import (
 	"html"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -148,15 +149,15 @@ func WithHXTrigger(trigger string) Option[element] {
 	}
 }
 
-func WithHXPushURL() Option[element] {
+func WithHXPushURL(value bool) Option[element] {
 	return func(e element) {
-		e.SetAttribute("hx-push-url", "true")
+		e.SetAttribute("hx-push-url", strconv.FormatBool(value))
 	}
 }
 
-func WithoutHXPushURL() Option[element] {
+func WithHXReplaceURL(value bool) Option[element] {
 	return func(e element) {
-		e.SetAttribute("hx-push-url", "false")
+		e.SetAttribute("hx-replace-url", strconv.FormatBool(value))
 	}
 }
 

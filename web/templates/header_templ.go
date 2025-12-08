@@ -135,7 +135,7 @@ func header(user *models.User) templ.Component {
 		templ_7745c5c3_Err = NewLink(
 			WithHXMethod(http.MethodGet, "/user/settings"),
 			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(),
+			WithHXPushURL(true),
 			WithCustomAttribute("_", "on click remove @open from #header-menu"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
