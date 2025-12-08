@@ -23,8 +23,7 @@
     "editor.wordWrap": "wordWrapColumn"
   },
   "[templ]": {
-    "editor.defaultFormatter": "a-h.templ",
-    "editor.wordWrap": "wordWrapColumn"
+    "editor.defaultFormatter": "a-h.templ"
   },
   "[xml]": {
     "editor.defaultFormatter": "DotJoshJohnson.xml"
