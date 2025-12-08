@@ -56,7 +56,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "Functional Search.&nbsp;</dt><dd class=\"inline\">Full-text search across subscriptions and articles. Quickly access subscriptions and perform actions from search bar.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "Functional search.&nbsp;</dt><dd class=\"inline\">Full-text search across subscriptions and articles. Quickly access subscriptions and perform actions from search bar.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -64,7 +64,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Article Filtering.&nbsp;</dt><dd class=\"inline\">Define subscription-level filters on article titles/content, authors or categories to control exactly what is shown. Filter to the content you are really interested in, without all the noise.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Article filtering.&nbsp;</dt><dd class=\"inline\">Define subscription-level filters on article titles/content, authors or categories to control exactly what is shown. Filter to the content you are really interested in, without all the noise.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -72,7 +72,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Subscription Customisation.&nbsp;</dt><dd class=\"inline\">Set a nickname for your subscriptions. Add your own categories to easily group and find similar content.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Subscription customisation.&nbsp;</dt><dd class=\"inline\">Set a nickname for your subscriptions. Add your own categories to easily group and find similar content.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -80,7 +80,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "Subscription and Article Favorites.&nbsp;</dt><dd class=\"inline\">Mark subscriptions and articles as favorites, to quickly access them later.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "Subscription and article favorites.&nbsp;</dt><dd class=\"inline\">Mark subscriptions and articles as favorites, to quickly access them later.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -88,7 +88,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "Custom Group subscriptions.&nbsp;</dt><dd class=\"inline\">Combine multiple subscriptions to present a unified view of articles from any of them. Make it easy to keep up with similar posts across different sources.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "Group subscriptions.&nbsp;</dt><dd class=\"inline\">Combine multiple subscriptions to present a unified view of articles from any of them. Make it easy to keep up with similar posts across different sources.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -96,7 +96,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "Custom Search Subscriptions.&nbsp;</dt><dd class=\"inline\">Use the powerful search to find what you need. Save the search terms as a search subscription to always find new articles that match. Great for keeping track of news or topics across multiple subscriptions.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "Search subscriptions.&nbsp;</dt><dd class=\"inline\">Use the powerful search to find what you need. Save the search terms as a search subscription to always find new articles that match. Great for keeping track of news or topics across multiple subscriptions.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -104,7 +104,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "Get Remote Article Content.&nbsp;</dt><dd class=\"inline\">Fetch the remote article content where the feed only shows a summary.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "Get remote article content.&nbsp;</dt><dd class=\"inline\">Fetch the remote article content where the feed only shows a summary.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -112,7 +112,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "Cloud Sync.&nbsp;</dt><dd class=\"inline\">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "Cloud sync.&nbsp;</dt><dd class=\"inline\">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -128,7 +128,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></div><div class=\"mx-auto max-w-2xl px-6 pb-8 sm:pt-12 sm:pb-24 lg:max-w-7xl lg:px-8 lg:pb-32\"><h2 class=\"text-4xl font-semibold tracking-tightsm:text-5xl\">Frequently asked questions</h2><dl class=\"mt-20 divide-y divide-accent\"><div class=\"py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8\"><dt class=\"text-base/7 font-semibold lg:col-span-5\">Do you offer a trial period?</dt><dd class=\"mt-4 lg:col-span-7 lg:mt-0\"><p class=\"text-base/7\">Yes! All plans come with a 14-day trial. You can sign up without payment details, then add them before the trial ends to keep your plan active if you like it.</p></dd></div><div class=\"py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8\"><dt class=\"text-base/7 font-semibold lg:col-span-5\">Can I change plans?</dt><dd class=\"mt-4 lg:col-span-7 lg:mt-0\"><p class=\"text-base/7\">Yes! You can change your plan any time.</p></dd></div><div class=\"py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8\"><dt class=\"text-base/7 font-semibold lg:col-span-5\">Can I import or export my subscriptions from elsewhere?</dt><dd class=\"mt-4 lg:col-span-7 lg:mt-0\"><p class=\"text-base/7\">Definitely. Foragd supports importing and exporting as OPML, which is the de-facto standard for sharing a list of subscriptions. Most good feed readers will supporting OPML.</p></dd></div><div class=\"py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8\"><dt class=\"text-base/7 font-semibold lg:col-span-5\">Do you offer support?</dt><dd class=\"mt-4 lg:col-span-7 lg:mt-0\"><p class=\"text-base/7\">Yes. You can email or log issues through the website when logged in and we will endeavour to get back to you as soon as we can.</p></dd></div></dl></div><div class=\"relative -z-10 mt-32 px-6 lg:px-8\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20\"></div></div><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"#pricing\" role=\"button\" class=\"btn btn-primary\">Sign-up</a></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20\"></div></div></div></main><footer class=\"mx-auto max-w-7xl px-6 lg:px-8 mt-32\"><div class=\"border-t border-base-content/10 py-12 md:flex md:items-center md:justify-between\"><div class=\"flex justify-center gap-x-6 md:order-2 items-center\"><a href=\"mailto:support@immanent.tech\" class=\"text-base-content/80\">Support</a> <a href=\"/docs/tos\" class=\"text-base-content/80\">Terms of Service</a> <a href=\"/docs/acceptable-use\" class=\"text-base-content/80\">Acceptable Use</a> <a href=\"/docs/policies/privacy\" class=\"text-base-content/80\">Privacy Policy</a></div><p class=\"mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0\">Built for humans by a human. Built for a love of the indie web.</p><p class=\"mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0\">&copy; 2025 Immanent Tech. All rights reserved.</p></div></footer></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></div><div class=\"mx-auto max-w-2xl px-6 pb-8 sm:pt-12 sm:pb-24 lg:max-w-7xl lg:px-8 lg:pb-32\"><h2 class=\"text-4xl font-semibold tracking-tightsm:text-5xl\">Frequently asked questions</h2><dl class=\"mt-20 divide-y divide-accent\"><div class=\"py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8\"><dt class=\"text-base/7 font-semibold lg:col-span-5\">Do you offer a trial period?</dt><dd class=\"mt-4 lg:col-span-7 lg:mt-0\"><p class=\"text-base/7\">Yes! All plans come with a 14-day trial. You can sign up without payment details, then add them before the trial ends to keep your plan active if you like it.</p></dd></div><div class=\"py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8\"><dt class=\"text-base/7 font-semibold lg:col-span-5\">Can I change plans?</dt><dd class=\"mt-4 lg:col-span-7 lg:mt-0\"><p class=\"text-base/7\">Yes! You can change your plan any time.</p></dd></div><div class=\"py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8\"><dt class=\"text-base/7 font-semibold lg:col-span-5\">Can I import or export my subscriptions from elsewhere?</dt><dd class=\"mt-4 lg:col-span-7 lg:mt-0\"><p class=\"text-base/7\">Definitely. Foragd supports importing and exporting as OPML, which is the de facto standard for sharing a list of subscriptions. Most good feed readers will supporting OPML.</p></dd></div><div class=\"py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8\"><dt class=\"text-base/7 font-semibold lg:col-span-5\">Do you offer support?</dt><dd class=\"mt-4 lg:col-span-7 lg:mt-0\"><p class=\"text-base/7\">Yes. You can email or log issues through the website when logged in and we will get back to you as soon as we can.</p></dd></div></dl></div><div class=\"relative -z-10 mt-32 px-6 lg:px-8\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20\"></div></div><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"#pricing\" role=\"button\" class=\"btn btn-primary\">Sign-up</a></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20\"></div></div></div></main><footer class=\"mx-auto max-w-7xl px-6 lg:px-8 mt-32\"><div class=\"border-t border-base-content/10 py-12 md:flex md:items-center md:justify-between\"><div class=\"flex justify-center gap-x-6 md:order-2 items-center\"><a href=\"mailto:support@immanent.tech\" class=\"text-base-content/80\">Support</a> <a href=\"/docs/tos\" class=\"text-base-content/80\">Terms of Service</a> <a href=\"/docs/acceptable-use\" class=\"text-base-content/80\">Acceptable Use</a> <a href=\"/docs/policies/privacy\" class=\"text-base-content/80\">Privacy Policy</a></div><p class=\"mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0\">Built for humans by a human. Built for a love of the indie web.</p><p class=\"mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0\">&copy; 2025 Immanent Tech. All rights reserved.</p></div></footer></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
