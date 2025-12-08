@@ -103,13 +103,16 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 func RobotsHandler() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if err := loadRobotsTxt(); err != nil {
-			// If file is not found, return HTTP 404 error.
 			http.NotFound(res, req)
 			return
 		}
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		res.WriteHeader(http.StatusOK)
-		res.Write(robotsTxt)
+		if _, err := res.Write(robotsTxt); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Unable to send robots.txt response.",
+				slog.Any("error", err),
+			)
+		}
 	})
 }
 
