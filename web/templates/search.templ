@@ -244,7 +244,7 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 							@NewLink(
 								WithHXMethod(http.MethodGet, "/edit/subscription/"+request.ID),
 								WithHXTarget(ContentID.Target()),
-								WithHXSwap("innerHTML show:top transition:true"),
+								WithHXSwap("innerHTML show:window:top transition:true"),
 								WithHXPushURL(),
 							) {
 								@tabler.Edit(i.Props{Class: "size-4"})

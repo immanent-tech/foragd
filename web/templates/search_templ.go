@@ -627,7 +627,7 @@ func SearchResultsGrid(request *models.SearchRequest, articles models.Articles, 
 				templ_7745c5c3_Err = NewLink(
 					WithHXMethod(http.MethodGet, "/edit/subscription/"+request.ID),
 					WithHXTarget(ContentID.Target()),
-					WithHXSwap("innerHTML show:top transition:true"),
+					WithHXSwap("innerHTML show:window:top transition:true"),
 					WithHXPushURL(),
 				).Render(templ.WithChildren(ctx, templ_7745c5c3_Var29), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {

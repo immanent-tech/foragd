@@ -27,7 +27,7 @@ templ articleSummary(article *models.Article) {
 			@NewLink(
 				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 				WithHXTarget(ContentID.Target()),
-				WithHXSwap("innerHTML show:window:top,transition:true"),
+				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithHXPushURL(),
 			) {
 				<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>

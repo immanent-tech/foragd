@@ -238,13 +238,13 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 			err = SetRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
-				Swap:   "innerHTML transition:true",
+				Swap:   "innerHTML show:window:top transition:true",
 			})
 		} else {
 			err = SetRedirect(res, HXLocationRequest{
 				Path:   currentURL,
 				Target: templates.ContentID.Target(),
-				Swap:   "innerHTML transition:true",
+				Swap:   "innerHTML show:window:top transition:true",
 			})
 		}
 		if err != nil {
