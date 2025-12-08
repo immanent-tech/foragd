@@ -63,7 +63,7 @@ func planSelection(action, method, selectedID, selectedText string) templ.Compon
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex justify-between\"><h2 class=\"text-3xl font-bold\">Gatherer</h2><span class=\"text-xl\">USD $4/mo</span></div><p class=\"mt-4 text-sm/6\">Perfect for keeping up with the latest news feeds.</p><ul class=\"mt-6 flex flex-col gap-2 text-xs\"><li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"flex justify-between\"><h2 class=\"text-3xl font-bold\">Gatherer</h2><span class=\"text-xl\">USD $6/mo</span></div><p class=\"mt-4 text-sm/6\">Perfect for keeping up with the latest news feeds.</p><ul class=\"mt-6 flex flex-col gap-2 text-xs\"><li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -267,7 +267,7 @@ func planSelection(action, method, selectedID, selectedText string) templ.Compon
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"flex justify-between\"><h2 class=\"text-3xl font-bold\">Curator</h2><span class=\"text-xl\">USD $20/mo</span></div><p class=\"mt-4 text-sm/6\">Extensive article history and all current and new features.</p><ul class=\"mt-6 flex flex-col gap-2 text-xs\"><li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"flex justify-between\"><h2 class=\"text-3xl font-bold\">Curator</h2><span class=\"text-xl\">USD $18/mo</span></div><p class=\"mt-4 text-sm/6\">Extensive article history and all current and new features.</p><ul class=\"mt-6 flex flex-col gap-2 text-xs\"><li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
