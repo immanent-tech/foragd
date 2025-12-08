@@ -165,29 +165,26 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 		middleware.Compress(5, "text/html", "text/css", "text/javascript", "font/woff2"),
 	)
 
+	// Error handling.
+	router.NotFound(handlers.NotFound())
 	// Static content.
 	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContent)))
+	router.Handle("/robots.txt", handlers.RobotsHandler())
 	// Docs.
 	router.Get("/docs/*", handlers.DocsHandler(web.StaticContent))
-
 	// Image proxy.
 	router.Get(
 		"/img-proxy/*",
 		handlers.ImageProxy(cfg.ImgProxy.BaseURL),
 	)
-
-	// Error handling.
-	router.NotFound(handlers.NotFound())
-
 	// Front page.
 	router.Get("/", handlers.Landing())
-
+	// Sign-up/Login.
 	router.Group(func(r chi.Router) {
 		r.Use(
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
 		)
-		// Access routes.
 		r.Get("/signup", handlers.Login())
 		r.Get("/login", handlers.Login())
 		r.Get("/login/callback", handlers.LoginCallback(handler.Elastic))

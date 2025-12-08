@@ -14,6 +14,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/a-h/templ"
@@ -30,6 +31,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
+	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -39,6 +41,8 @@ var (
 	// ErrInvalidRequestParams indicates that the request parameters received were invalid.
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
+
+var robotsTxt []byte
 
 var defaultHandlerChain = alice.New(
 	storePath,
@@ -88,9 +92,24 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 			http.NotFound(res, req)
 			return
 		}
-		// File is found, return to standard http.FileServer.
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
+		// File is found, return to standard http.FileServer.
 		http.FileServer(fs).ServeHTTP(res, req)
+	})
+}
+
+// RobotsHandler handles requests for robots.txt. In the future, it may handle more requests from non natural human
+// clients...
+func RobotsHandler() http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if err := loadRobotsTxt(); err != nil {
+			// If file is not found, return HTTP 404 error.
+			http.NotFound(res, req)
+			return
+		}
+		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
+		res.WriteHeader(http.StatusOK)
+		res.Write(robotsTxt)
 	})
 }
 
@@ -105,6 +124,7 @@ func DocsHandler(fs embed.FS) http.HandlerFunc {
 			http.NotFound(res, req)
 			return fmt.Errorf("unable to render document %s: %w", doc, err)
 		}
+		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
 		ctx := templates.PageTitleToCtx(req.Context(), strings.ToTitle(doc))
 		template := templates.Page(templates.Document(output))
@@ -373,3 +393,12 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 		}
 	})
 }
+
+var loadRobotsTxt = sync.OnceValue(func() error {
+	var err error
+	robotsTxt, err = web.StaticContent.ReadFile("content/robots.txt")
+	if err != nil {
+		return fmt.Errorf("read robots.txt: %w", err)
+	}
+	return nil
+})
