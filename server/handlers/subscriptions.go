@@ -39,7 +39,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 			pagination := req.FormValue(models.ParamPagination)
 			// Redirect to include query parameters in address bar.
 			if len(req.URL.Query()) == 0 {
-				if IsHTMX(req) {
+				if htmx.IsHTMX(req) {
 					res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
 				} else {
 					http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)

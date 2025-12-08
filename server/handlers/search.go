@@ -246,7 +246,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		} else {
 			template = templates.NoSearchResults()
 		}
-		if IsHTMX(req) {
+		if htmx.IsHTMX(req) {
 			template = templ.Join(template, templates.SearchFilters(templ.Attributes{"hx-swap-oob": "true"}))
 		}
 		res.Header().Add(htmx.HeaderPushURL, "/search?"+request.Query())

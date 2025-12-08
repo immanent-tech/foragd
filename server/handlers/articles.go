@@ -28,7 +28,7 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 			ctx := templates.PageTitleToCtx(req.Context(), "Articles")
 			// Redirect to include query parameters in address bar.
 			if len(req.URL.Query()) == 0 {
-				if IsHTMX(req) {
+				if htmx.IsHTMX(req) {
 					res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
 				} else {
 					http.Redirect(res, req.WithContext(ctx), req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
@@ -60,7 +60,7 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 			}
 			// Render appropriate content.
 			subscriptionID := req.FormValue(models.ParamSubscriptionID)
-			// If the list of articles is from a single subscription, update the page tile to include the subsscription
+			// If the list of articles is from a single subscription, update the page tile to include the subscription
 			// name.
 			if subscriptionID != "" {
 				ctx = templates.PageTitleToCtx(ctx, articles[0].GetFeedTitle()+" | Articles")
@@ -81,6 +81,8 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 }
 
 // PaginateArticles handles a request to list more articles.
+//
+//nolint:dupl // this is not a duplicate.
 func PaginateArticles(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
@@ -264,8 +266,6 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// markArticles will mark Articles for a Subscription as appropriate. Marking Articles involves updating the User object
-// with an ItemState that tracks the mark status for the underlying Item an Article represents.
 func markArticles(
 	ctx context.Context,
 	api *elastic.API,

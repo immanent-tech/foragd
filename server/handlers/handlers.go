@@ -113,7 +113,7 @@ func RobotsHandler() http.Handler {
 	})
 }
 
-// DocsHandler handles serving markdown documents from the docs content directory.
+// DocsHandler handles serving Markdown documents from the docs content directory.
 func DocsHandler(fs embed.FS) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		doc := chi.URLParam(req, "*")
@@ -215,7 +215,7 @@ func renderPage(template templ.Component) http.Handler {
 			return
 		}
 		switch {
-		case !IsHTMX(req) || IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
+		case !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
 			templ.Handler(templates.Page(template)).ServeHTTP(res, req)
 			return
 		default: // HTMX request renders partial content.
@@ -243,7 +243,7 @@ func renderPartial(template templ.Component) http.Handler {
 // page. The additional structure will place a header, footer/sidebar around the content.
 func wrapContent(req *http.Request, template templ.Component) templ.Component {
 	switch {
-	case !IsHTMX(req) || IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
+	case !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			return templates.ErrorPage(
@@ -257,20 +257,6 @@ func wrapContent(req *http.Request, template templ.Component) templ.Component {
 			templates.Dock(templ.Attributes{"hx-swap-oob": "true"}),
 		)
 	}
-}
-
-func externalPage(template templ.Component) http.Handler {
-	return templ.Handler(templates.Page(template))
-}
-
-// IsHTMX returns a boolean indicating whether the request is a HTMX request.
-func IsHTMX(req *http.Request) bool {
-	return req.Header.Get("HX-Request") == "true" //nolint:goconst // unnecessary.
-}
-
-// IsHistoryRestoreRequest returns a boolean indicating whether the request is a HTMX history restore request.
-func IsHistoryRestoreRequest(req *http.Request) bool {
-	return req.Header.Get("HX-History-Restore-Request") == "true"
 }
 
 func parseFilters(next http.Handler) http.Handler {
