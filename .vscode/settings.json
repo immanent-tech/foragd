@@ -19,10 +19,12 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.wordWrap": "wordWrapColumn"
   },
   "[templ]": {
-    "editor.defaultFormatter": "a-h.templ"
+    "editor.defaultFormatter": "a-h.templ",
+    "editor.wordWrap": "wordWrapColumn"
   },
   "[xml]": {
     "editor.defaultFormatter": "DotJoshJohnson.xml"
@@ -116,5 +118,8 @@
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000,
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
-  "xmlTools.splitAttributesOnFormat": true
+  "xmlTools.splitAttributesOnFormat": true,
+  "languageToolLinter.external.url": "http://languagetool:8010",
+  "languageToolLinter.languageTool.language": "auto",
+  "languageToolLinter.languageTool.level": "picky"
 }

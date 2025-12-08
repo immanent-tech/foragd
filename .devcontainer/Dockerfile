@@ -1,7 +1,7 @@
 FROM docker.io/alpine AS builder
 
 # Copy go from official image
-COPY --from=docker.io/golang:1.25.4-alpine /usr/local/go/ /usr/local/go/
+COPY --from=docker.io/golang:1.25.4-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9 /usr/local/go/ /usr/local/go/
 
 # Install additional packages
 RUN apk update && apk add sudo openssh curl git bash fish micro graphviz step-cli step-certificates nodejs npm cosign
