@@ -217,7 +217,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 			@NewLink(
 				WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
 				WithHXTarget(ContentID.Target()),
-				WithHXSwap("innerHTML show:window:top,transition:true"),
+				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithHXPushURL(),
 			) {
 				@tabler.Edit(i.Props{Class: "size-4"})

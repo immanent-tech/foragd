@@ -686,7 +686,7 @@ func subscriptionContextMenu(s *models.Subscription) templ.Component {
 		templ_7745c5c3_Err = NewLink(
 			WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
 			WithHXTarget(ContentID.Target()),
-			WithHXSwap("innerHTML show:window:top,transition:true"),
+			WithHXSwap("innerHTML show:window:top transition:true"),
 			WithHXPushURL(),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var25), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
