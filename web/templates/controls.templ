@@ -207,9 +207,10 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 									Favorites
 									<button
 										hx-get={ models.PathFromCtx(ctx) }
-										hx-push-url="true"
+										hx-replace-url="true"
 										hx-target={ ContentID.Target() }
 										hx-vals={ `{"only_favorites": "false"}` }
+										hx-swap="innerHTML transition:true"
 									>
 										@tabler.X(i.Props{Class: "size-4"})
 									</button>
@@ -249,7 +250,8 @@ templ viewFilter(path, id string, view models.View, filters *models.ListDisplayF
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXPushURL(true),
+			WithHXReplaceURL(true),
+			WithHXSwap("innerHTML transition:true"),
 			WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
 		) {
 			{ string(view) }
@@ -278,7 +280,8 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListDisplayFilter
 			WithHXMethod(http.MethodGet, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXVals(overrides),
-			WithHXPushURL(true),
+			WithHXReplaceURL(true),
+			WithHXSwap("innerHTML transition:true"),
 			WithHXVals(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
 			WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
 		) {
@@ -305,7 +308,8 @@ templ categoryFilter(path, id string, category models.CategoryCount, filters *mo
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXPushURL(true),
+			WithHXReplaceURL(true),
+			WithHXSwap("innerHTML transition:true"),
 			WithID(id),
 			WithClasses("block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
 		) {
@@ -326,7 +330,8 @@ templ clearCategoryFilters(path, id string, filters *models.ListDisplayFilters) 
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXPushURL(true),
+			WithHXReplaceURL(true),
+			WithHXSwap("innerHTML transition:true"),
 			WithClasses("link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize"),
 		) {
 			@tabler.X(i.Props{Class: "size-4"})
@@ -349,7 +354,8 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 				WithHXMethod(http.MethodPost, path),
 				WithHXTarget(ContentID.Target()),
 				WithHXInclude("[name='csrf_token']"),
-				WithHXPushURL(true),
+				WithHXReplaceURL(true),
+				WithHXSwap("innerHTML transition:true"),
 			) {
 				@tabler.X(i.Props{Class: "size-4"})
 			}
@@ -376,7 +382,8 @@ templ sortOption(path string, sort models.Sort, filters *models.ListDisplayFilte
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
 			WithHXInclude("[name='csrf_token']"),
-			WithHXPushURL(true),
+			WithHXReplaceURL(true),
+			WithHXSwap("innerHTML transition:true"),
 			WithClasses("flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
 		) {
 			switch sort {
