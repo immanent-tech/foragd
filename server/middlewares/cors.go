@@ -58,7 +58,7 @@ func SetupCORS() func(next http.Handler) http.Handler {
 			HTMXRequestHeaders...,
 		),
 		ExposedHeaders: append(
-			[]string{"Link"},
+			[]string{"Link", "Accept-CH"},
 			HTMXResponseHeaders...,
 		),
 		AllowedMethods: []string{http.MethodGet, http.MethodHead, http.MethodPost, http.MethodOptions},
