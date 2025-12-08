@@ -11,7 +11,6 @@ import (
 	"iter"
 	"maps"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/go-shiori/go-readability"
@@ -77,17 +76,6 @@ func GenerateHXVals(values map[string]any) string {
 		return ""
 	}
 	return string(data)
-}
-
-// ExtractText attempts to extract the textual representation of the article content using the readability package. If
-// it fails, it will return an empty string and a non-nill error.
-func ExtractText(content string) (string, error) {
-	txt := strings.NewReader(content)
-	article, err := readability.FromReader(txt, nil)
-	if err != nil {
-		return "", fmt.Errorf("could not extract content as text: %w", err)
-	}
-	return article.TextContent, nil
 }
 
 // ExtractTextFromURL fetches the text content of the given URL and attempts to extract the main article content from
