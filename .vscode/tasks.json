@@ -80,7 +80,7 @@
     {
       "label": "run: stripe listen",
       "type": "shell",
-      "command": "stripe listen --skip-verify --forward-to localhost:7000/checkout/webhooks",
+      "command": "/usr/local/bin/stripe listen --skip-verify --forward-to localhost:7000/checkout/webhooks",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
