@@ -45,7 +45,7 @@ templ articleSummary(article *models.Article) {
 				</p>
 			</div>
 			// Article content summary.
-			<article class="mt-4 prose prose-sm line-clamp-3 prose-custom prose-img:hidden prose-figure:hidden prose-video:hidden">
+			<article class="mt-4 prose-summary">
 				@templ.Raw(article.GetContent())
 			</article>
 			// }

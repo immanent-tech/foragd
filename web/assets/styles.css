@@ -134,11 +134,24 @@
   @apply text-base-content;
 }
 
+@utility prose-summary {
+  @apply prose-custom prose-sm sm:prose prose-img:hidden prose-figure:hidden prose-video:hidden line-clamp-3;
+  img {
+    @apply hidden;
+  }
+  figure {
+    @apply hidden;
+  }
+  video {
+    @apply hidden;
+  }
+}
+
 @utility responsive-img {
   width: 100%;
   height: auto;
   aspect-ratio: var(--aspect-ratio);
-  object-fit: cover;
+  object-fit: scale-down;
   /* Prevent haptic touch previews */
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
@@ -148,5 +161,5 @@
   max-width: fit-content;
   height: auto;
   aspect-ratio: var(--aspect-ratio);
-  object-fit: cover;
+  object-fit: scale-down;
 }
