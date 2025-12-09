@@ -195,6 +195,7 @@ templ ArticleCard(article *models.Article) {
 				</div>
 			</div>
 		</div>
+		@ShareObjectModal(article.GetID(), "Sharing "+article.GetTitle(), article.GetLink())
 	</div>
 }
 
