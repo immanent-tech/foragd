@@ -168,10 +168,10 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 	// Error handling.
 	router.NotFound(handlers.NotFound())
 	// Static content.
-	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContent)))
+	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	router.Handle("/robots.txt", handlers.RobotsHandler())
-	// Docs.
-	router.Get("/docs/*", handlers.DocsHandler(web.StaticContent))
+	// Policy documents (i.e., terms of service, privacy).
+	router.Get("/policies/*", handlers.PolicyDocsHandler())
 	// Image proxy.
 	router.Get(
 		"/img-proxy/*",
@@ -264,6 +264,9 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			r.Get("/", handlers.ListFavorites(handler.Elastic))
 		})
 
+		// Help documentation.
+		r.Get("/help/*", handlers.DocumentationHandler())
+
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
 			r.Get("/account-issue", handlers.UserAccountIssue())
@@ -282,7 +285,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 				r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
 				r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
 			})
-			r.Post("/feedset", handlers.AddFeedset(handler.Elastic, web.StaticContent))
+			r.Post("/feedset", handlers.AddFeedset(handler.Elastic, web.StaticContentFS))
 			// Import/export.
 			r.Get("/import", handler.ImportSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/import", handler.ImportSubscriptions())

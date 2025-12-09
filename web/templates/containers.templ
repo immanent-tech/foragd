@@ -27,7 +27,7 @@ templ grid() {
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
 templ Document(data []byte) {
-	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 prose my-4">
+	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 prose sm:prose-lg prose-img:shadow-md my-4">
 		@templ.Raw(string(data))
 	</main>
 }

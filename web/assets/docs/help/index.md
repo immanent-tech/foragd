@@ -1,0 +1,122 @@
+# Foragd Help
+
+- [Foragd Help](#foragd-help)
+  - [Where to get help](#where-to-get-help)
+  - [Terminology](#terminology)
+  - [Accounts](#accounts)
+  - [Usage](#usage)
+    - [Navigation](#navigation)
+    - [Searching](#searching)
+    - [Subscriptions](#subscriptions)
+      - [Customisation](#customisation)
+      - [Filtering articles within a subscription](#filtering-articles-within-a-subscription)
+      - [Group Subscriptions (Curator plan level)](#group-subscriptions-curator-plan-level)
+      - [Search Subscriptions (Curator plan level)](#search-subscriptions-curator-plan-level)
+    - [Favorites (Collector and Curator plan levels)](#favorites-collector-and-curator-plan-levels)
+    - [Filtering](#filtering)
+    - [Global Keyboard Shortcuts](#global-keyboard-shortcuts)
+  - [Policies and Terms of Service](#policies-and-terms-of-service)
+
+## Where to get help
+
+- This document.
+- Email us at [support@immanent.tech](mailto:support@immanent.tech).
+
+## Terminology
+
+- **Subscription** is a source of articles created by the user. The articles may come from different sources, such as a single website, a group of other subscriptions or a configured search. These can also be referred to individually as:
+  - **Feed Subscription**: a subscription to a single website (i.e., an RSS/Atom feed for a particular website).
+  - **Group Subscription**: a subscription that aggregates the articles from other subscriptions (Curator level account plans).
+  - **Search Subscription**: a subscription created from a particular set of search terms (Curator level account plans).
+- **Article**: is a single item from a subscription (i.e., an article, blog post, etc.).
+
+## Accounts
+
+- You can manage your account at [Settings->Account](/user/settings).
+- You can change your plan level or cancel anytime.
+- Cancelling a plan occurs at your next billing date. Until then, you can continue to use your plan. You can also reverse a cancellation during this period if you change your mind.
+
+## Usage
+
+### Navigation
+
+Use the sidebar (desktops, tablets) or bottom dock (mobile) to navigate between the Home, Subscriptions, Articles, or Favorites pages.
+
+You can also get to these pages from the global search bar actions. Just start typing any of these page names (i.e., _Sub_, _Art_, etc.) and selecting them in the results. The global search also has actions for quickly adding subscriptions (just start typing _Add_…). You can quickly focus the global search with a [keyboard shortcut](#global-keyboard-shortcuts).
+
+### Searching
+
+Use the global search in the header bar to search for anything. It will search across all Subscriptions and Articles, offering both as suggestions. Choose the search action or hit enter/return to get a full set of results.
+
+Use the advanced search (filter icon at the right of the search bar) to filter by subscription, category, author, date and status. See also [filtering](#filtering) for operators that can be used in the text fields.
+
+### Subscriptions
+
+#### Customisation
+
+You can customise any subscription, by changing its name or adding/removing categories. To customise a subscription, choose **Edit Subscription** from the context menu of the Subscription card:
+
+![Screenshot of subscription customisation](/content/screenshots/screenshot-subscription-customisation.png)
+
+Categories allow you to easily group and filter your subscriptions. Where possible, some suggested categories will be presented as auto-complete options in the **Add Categories** input. These will be taken from the most common categories on Articles within the feed.
+
+#### Filtering articles within a subscription
+
+You can filter the articles in a subscription by text, authors, or categories. To adjust filters, edit the subscription and enter your filter terms in the appropriate inputs:
+
+![Screenshot of subscription filtering options](/content/screenshots/screenshot-subscription-article-filters.png)
+
+See [filtering](#filtering) for usage.
+
+**Note:** article filters are applied globally, meaning all searches, views and any group/search Subscriptions you create will have the subscription article filters applied.
+
+#### Group Subscriptions (Curator plan level)
+
+You can add a _Group Subscription_ which aggregates all the Articles from two or more Feed Subscriptions. This is useful where you subscribe to a number of feeds that have similar content, like Android news sites. When creating a Group Subscription, use the provided search input to filter your existing subscriptions for the ones you want to add:
+
+![Screenshot of creating a Group Subscription](/content/screenshots/screenshot-add-group-subscription.png)
+
+To add a Group Subscription:
+
+- Search for _Add_ in the global search and choose the **Add A Group Subscription** action.
+- On the [Subscriptions](/list/subscriptions) page, select **Add A Group Subscription** from the _Actions_ menu.
+
+#### Search Subscriptions (Curator plan level)
+
+Any [search](#searching) can also be made into a Search Subscription. This is useful for keeping track of particular keywords or content across any number of your feed subscriptions.
+
+To add a Group Subscription:
+
+- Search for _Add_ in the global search and choose the **Add A Search Subscription** action.
+- On the [Subscriptions](/list/subscriptions) page, select **Add A Search Subscription** from the _Actions_ menu.
+
+![Screenshot of creating a Search Subscription](/content/screenshots/screenshot-add-search-subscription.png)
+
+### Favorites (Collector and Curator plan levels)
+
+- You can mark any subscription or article as a favorite.
+- All favorites can be found on the [favorites](/list/favorites) page.
+- Favorite subscriptions will appear first on the [subscriptions](/list/subscriptions) page.
+- Favorite articles will be kept indefinitely.
+
+### Filtering
+
+By default words are matched with **OR** (i.e., cats dogs will match cats **OR** dogs). The following operators can be used for more refined searches:
+
+- `+` signifies AND operation (i.e., food **AND** beverages).
+- `|` signifies OR operation (i.e., food **OR** beverages).
+- `-` negates the word (i.e., **NOT** alcoholic)
+- `""` represents an exact phrase match (i.e., `"rum-based drinks"`).
+- `\*` at the end of indicates a prefix match (i.e., `bird\*` will match bird, birding and birds).
+
+Operators can be combined, for e.g., `alcoholic + -daquiri + -"rum-based drinks"`.
+
+### Global Keyboard Shortcuts
+
+- `Alt+k` activates the global search input.
+
+## Policies and Terms of Service
+
+- [Acceptable Use Policy](/policies/acceptable-use).
+- [Terms of Service](/policies/tos).
+- [Privacy Policy](/policies/privacy).

@@ -81,6 +81,16 @@ templ header(user *models.User) {
 								Settings
 							</div>
 						}
+						// Help documentation.
+						@NewLink(
+							WithCustomAttribute("href", "/help/index"),
+							WithCustomAttribute("_", "on click remove @open from #header-menu"),
+						) {
+							<div class="flex flex-1 items-center gap-x-2">
+								@tabler.Help(i.Props{Class: "size-4"})
+								Help/Documentation
+							</div>
+						}
 						// Report issue.
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/issue"),

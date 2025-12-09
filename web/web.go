@@ -6,4 +6,7 @@ package web
 import "embed"
 
 //go:embed all:content
-var StaticContent embed.FS
+var StaticContentFS embed.FS
+
+//go:embed all:assets/docs
+var DocsFS embed.FS

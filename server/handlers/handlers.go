@@ -7,12 +7,12 @@ package handlers
 import (
 	"bufio"
 	"bytes"
-	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -117,12 +117,12 @@ func RobotsHandler() http.Handler {
 	})
 }
 
-// DocsHandler handles serving Markdown documents from the docs content directory.
-func DocsHandler(fs embed.FS) http.HandlerFunc {
+// PolicyDocsHandler handles serving policy Markdown documents from directory in the embedded fs.
+func PolicyDocsHandler() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		doc := chi.URLParam(req, "*")
 		// Check, if the requested file is existing.
-		contents, err := fs.ReadFile("content/docs/" + doc + ".md")
+		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "policies", doc+".md"))
 		if err != nil {
 			// If file is not found, return HTTP 404 error.
 			http.NotFound(res, req)
@@ -136,6 +136,25 @@ func DocsHandler(fs embed.FS) http.HandlerFunc {
 		if err != nil {
 			return fmt.Errorf("unable to render document %s: %w", doc, err)
 		}
+		return nil
+	})).ServeHTTP
+}
+
+// DocumentationHandler handles serving Markdown documents for help/documentation from directory in the embedded fs.
+func DocumentationHandler() http.HandlerFunc {
+	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		doc := chi.URLParam(req, "*")
+		// Check, if the requested file is existing.
+		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "help", doc+".md"))
+		if err != nil {
+			// If file is not found, return HTTP 404 error.
+			http.NotFound(res, req)
+			return fmt.Errorf("unable to render document %s: %w", doc, err)
+		}
+		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
+		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
+		ctx := templates.PageTitleToCtx(req.Context(), "Documentation")
+		renderPage(wrapContent(req.WithContext(ctx), templates.Document(output))).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -398,7 +417,7 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 
 var loadRobotsTxt = sync.OnceValue(func() error {
 	var err error
-	robotsTxt, err = web.StaticContent.ReadFile("content/robots.txt")
+	robotsTxt, err = web.StaticContentFS.ReadFile("content/robots.txt")
 	if err != nil {
 		return fmt.Errorf("read robots.txt: %w", err)
 	}
