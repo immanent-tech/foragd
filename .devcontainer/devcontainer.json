@@ -30,7 +30,8 @@
         "dnut.rewrap-revived",
         "dz4k.vscode-hyperscript-org",
         "DotJoshJohnson.xml",
-        "redhat.vscode-xml"
+        "redhat.vscode-xml",
+        "davidlday.languagetool-linter"
       ]
     }
   }
