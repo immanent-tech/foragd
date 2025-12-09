@@ -151,7 +151,7 @@
   width: 100%;
   height: auto;
   aspect-ratio: var(--aspect-ratio);
-  object-fit: scale-down;
+  object-fit: cover;
   /* Prevent haptic touch previews */
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
@@ -161,5 +161,5 @@
   max-width: fit-content;
   height: auto;
   aspect-ratio: var(--aspect-ratio);
-  object-fit: scale-down;
+  object-fit: cover;
 }
