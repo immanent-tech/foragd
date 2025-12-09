@@ -114,6 +114,8 @@ Operators can be combined, for e.g., `alcoholic + -daquiri + -"rum-based drinks"
 ### Global Keyboard Shortcuts
 
 - `Alt+k` activates the global search input.
+- On [Subscriptions](/list/subscriptions) or [Articles](/list/articles) pages:
+  - `Alt+a` activates the actions menu.
 
 ## Policies and Terms of Service
 

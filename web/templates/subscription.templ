@@ -294,11 +294,19 @@ templ SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.S
 templ subscriptionsActionsButton(filters *models.ListDisplayFilters) {
 	// Subscriptions actions menu.
 	<el-dropdown class="inline-block flex-none">
-		<button class="inline-flex btn btn-wide">
+		<button
+			id="subscriptions-actions-button"
+			class="inline-flex btn btn-wide"
+		>
 			Actions
 			@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 		</button>
-		<el-menu anchor="bottom end" popover>
+		<el-menu
+			id="subscriptions-actions-menu"
+			anchor="bottom end"
+			popover
+			_="on keydown from body if the event's key is 'a' and event.altKey then togglePopover() on me"
+		>
 			<div class="py-1">
 				// Mark all subscriptions action.
 				<form>

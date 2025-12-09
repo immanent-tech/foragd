@@ -412,11 +412,16 @@ templ ArticlesGrid(subscriptionID models.SubscriptionID, articles models.Article
 // actions related to articles.
 templ articlesActionsButton(subscriptionID models.SubscriptionID, filters *models.ListDisplayFilters) {
 	<el-dropdown class="inline-block flex-none">
-		<button class="inline-flex btn btn-wide">
+		<button id="articles-actions-button" class="inline-flex btn btn-wide">
 			Actions
 			@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 		</button>
-		<el-menu anchor="bottom end" popover>
+		<el-menu
+			id="articles-actions-menu"
+			anchor="bottom end"
+			popover
+			_="on keydown from body if the event's key is 'a' and event.altKey then togglePopover() on me"
+		>
 			<div class="py-1">
 				if subscriptionID == "" {
 					// Mark all articles action.
