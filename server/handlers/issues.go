@@ -56,7 +56,7 @@ func SubmitPageIssues() http.HandlerFunc {
 			)
 		}
 		// Create the issue in Github.
-		err = github.Connect()
+		err = github.Connect(req.Context())
 		if err != nil {
 			res.Header().Add(htmx.HeaderReswap, "none")
 			renderPartial(templates.ServerErrorNotification(
@@ -167,7 +167,7 @@ func SubmitObjectIssues() http.HandlerFunc {
 		// 	return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
 		// }
 
-		err = github.Connect()
+		err = github.Connect(req.Context())
 		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
