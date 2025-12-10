@@ -34,7 +34,7 @@ templ AddFeedsetsSuccessNotification(feedsets []string) {
 templ SubscriptionCard(s *models.Subscription) {
 	<div
 		id={ s.GetID() }
-		class={ "card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
+		class={ "card h-full bg-base-100 shadow-sm",
 			templ.KV("row-span-2",len(s.GetCategories(0))== 0),
 			templ.KV("row-span-3",len(s.GetCategories(0)) >0),
 			templ.KV("opacity-50",!s.GetStats().IsUnread()) }

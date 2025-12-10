@@ -201,7 +201,7 @@ func ArticleCard(article *models.Article) templ.Component {
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var9 = []any{"card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
+		var templ_7745c5c3_Var9 = []any{"card card-border h-full bg-base-100 shadow-sm",
 			templ.KV("row-span-1", article.GetImage() == nil),
 			templ.KV("row-span-2", article.GetImage() != nil),
 			templ.KV("opacity-50", !article.IsUnread())}

@@ -57,7 +57,7 @@ templ articleSummary(article *models.Article) {
 templ ArticleCard(article *models.Article) {
 	<div
 		id={ article.GetID() }
-		class={ "card card-border border-base-content/15 h-full bg-base-100 shadow-sm",
+		class={ "card card-border h-full bg-base-100 shadow-sm",
 		templ.KV("row-span-1",article.GetImage() == nil),
 		templ.KV("row-span-2",article.GetImage() != nil),
 		templ.KV("opacity-50",!article.IsUnread()) }
