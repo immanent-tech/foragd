@@ -93,7 +93,6 @@ require (
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/sdboyer/constext v0.0.0-20170321163424-836a14457353 // indirect
-	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/sonatype-nexus-community/go-sona-types v0.1.6 // indirect
@@ -130,6 +129,7 @@ require (
 
 require (
 	cloud.google.com/go/storage v1.57.2
+	codeberg.org/readeck/go-readability/v2 v2.1.0
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/alecthomas/kong v1.13.0
 	github.com/coreos/go-oidc/v3 v3.17.0
@@ -149,10 +149,8 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-resty/resty/v2 v2.17.0
-	github.com/go-shiori/go-readability v0.0.0-20250217085726-9f5bf5ca7612
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
-	github.com/goforj/godump v1.6.0
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0

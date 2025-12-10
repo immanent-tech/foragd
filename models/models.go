@@ -5,6 +5,7 @@
 package models
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/go-shiori/go-readability"
+	"codeberg.org/readeck/go-readability/v2"
 
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
@@ -78,14 +79,18 @@ func GenerateHXVals(values map[string]any) string {
 	return string(data)
 }
 
-// ExtractTextFromURL fetches the text content of the given URL and attempts to extract the main article content from
+// ExtractArticleFromURL fetches the text content of the given URL and attempts to extract the main article content from
 // it.
-func ExtractTextFromURL(url string) (string, error) {
+func ExtractArticleFromURL(url string) (string, error) {
 	remote, err := readability.FromURL(url, DefaultHTTPRequestTimeout)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse content for %s, %w", url, err)
+		return "", fmt.Errorf("extract article from url %s: %w", url, err)
 	}
-	content := validation.SanitizeString(remote.Content)
+	var article bytes.Buffer
+	if err := remote.RenderHTML(&article); err != nil {
+		return "", fmt.Errorf("render article html: %w", err)
+	}
+	content := validation.SanitizeString(article.String())
 	return content, nil
 }
 
