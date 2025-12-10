@@ -33,7 +33,6 @@
     "prettier": "^3.7.4",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "prettier-plugin-toml": "^2.0.6",
     "release-please": "^17.1.3"
   }
 }

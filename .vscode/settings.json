@@ -19,11 +19,14 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
     "editor.wordWrap": "wordWrapColumn"
   },
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
   },
   "[xml]": {
     "editor.defaultFormatter": "DotJoshJohnson.xml"
@@ -83,7 +86,10 @@
   "go.alternateTools": {
     "customFormatter": "golangci-lint-v2"
   },
-  "go.formatFlags": ["fmt", "--stdin"],
+  "go.formatFlags": [
+    "fmt",
+    "--stdin"
+  ],
   "go.formatTool": "custom",
   "go.inlayHints.constantValues": true,
   "go.lintFlags": [
@@ -100,6 +106,9 @@
   "gopls": {
     "ui.semanticTokens": true
   },
+  "languageToolLinter.external.url": "http://languagetool:8010",
+  "languageToolLinter.languageTool.language": "auto",
+  "languageToolLinter.languageTool.level": "picky",
   "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
   "licenser.license": "AGPLv3",
   "licenser.useSPDXLicenseFormat": true,
@@ -117,8 +126,5 @@
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000,
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
-  "xmlTools.splitAttributesOnFormat": true,
-  "languageToolLinter.external.url": "http://languagetool:8010",
-  "languageToolLinter.languageTool.language": "auto",
-  "languageToolLinter.languageTool.level": "picky"
+  "xmlTools.splitAttributesOnFormat": true
 }
