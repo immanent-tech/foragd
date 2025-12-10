@@ -4,11 +4,13 @@
 package elastic
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/validation"
 
@@ -49,38 +51,40 @@ type ConfigProduction struct {
 
 // loadConfigOnce loads the elasticsearch configuration and ensures this is done
 // one-time only, no matter how many times it is called.
-func loadConfigOnce(environment string) (*elasticsearch.Config, error) {
+func loadConfigOnce(ctx context.Context) (*elasticsearch.Config, error) {
 	return sync.OnceValues(func() (*elasticsearch.Config, error) {
 		var err error
-		switch environment {
+		switch config.Environment {
 		case "development":
 			c := &ConfigDevelopment{}
 			err = config.Load(elasticConfigEnvPrefix, c)
 			if err != nil {
-				return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
+				return nil, fmt.Errorf("unable to load development config: %w", err)
 			}
 			cfg.Development = *c
 		case "production":
 			c := &ConfigProduction{}
 			err = config.Load(elasticConfigEnvPrefix, c)
 			if err != nil {
-				return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
+				return nil, fmt.Errorf("unable to load production config: %w", err)
 			}
 			cfg.Production = *c
 		}
-		clientConfig, err := genConfig(environment)
+		clientConfig, err := genConfig(config.Environment)
 		if err != nil {
-			return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
+			return nil, fmt.Errorf("unable to generate config: %w", err)
 		}
-		switch environment {
+		switch config.Environment {
 		case "development":
 			err = validation.Validate.Struct(cfg.Development)
 		case "production":
 			err = validation.Validate.Struct(cfg.Production)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("elastic: unable to load %s config: %w", environment, err)
+			return nil, fmt.Errorf("config validation failed: %w", err)
 		}
+
+		slogctx.FromCtx(ctx).Debug("Loaded elastic config.")
 
 		return clientConfig, nil
 	},

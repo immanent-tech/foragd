@@ -48,11 +48,10 @@ var defaultTransportConfig = &http.Transport{
 // Connect will connect to Elasticsearch using the config in the server configuration file or environment variables and
 // return an API object that can be used to issue requests.
 func Connect(ctx context.Context) (*API, error) {
-	env := config.Environment
-	if env == "" {
-		env = "development"
+	if err := config.Init(); err != nil {
+		return nil, fmt.Errorf("unable to connect: %w", err)
 	}
-	clientConfig, err := loadConfigOnce(env)
+	clientConfig, err := loadConfigOnce(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not load config: %w", err)
 	}
