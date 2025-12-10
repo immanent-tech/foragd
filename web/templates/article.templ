@@ -67,6 +67,7 @@ templ ArticleCard(article *models.Article) {
 				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(true),
+				WithHXSwap("innerHTML show:window:top"),
 			) {
 				@articleImage(img, article.GetTitle())
 			}
@@ -76,6 +77,7 @@ templ ArticleCard(article *models.Article) {
 				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(true),
+				WithHXSwap("innerHTML show:window:top"),
 			) {
 				<h2 class="card-title text-pretty line-clamp-3">
 					if article.GetTitle() != "" {
