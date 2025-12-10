@@ -111,11 +111,12 @@ func (m *MarkObjectParams) Sanitise() error {
 	return nil
 }
 
-func NewObjectIssue(obj *ObjectParams, url string) *ObjectIssueRequest {
+func NewObjectIssue(obj *ObjectParams, email, url string) *ObjectIssueRequest {
 	return &ObjectIssueRequest{
-		PageUrl:  url,
-		ObjectID: obj.ObjectID,
-		Object:   obj.Object,
+		UserEmail: email,
+		PageUrl:   url,
+		ObjectID:  obj.ObjectID,
+		Object:    obj.Object,
 	}
 }
 

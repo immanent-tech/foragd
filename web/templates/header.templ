@@ -95,6 +95,7 @@ templ header(user *models.User) {
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/issue"),
 							WithHXTarget(ContentID.Target()),
+							WithHXReplaceURL(true),
 						) {
 							<div class="flex flex-1 items-center gap-x-2">
 								@tabler.FlagFilled(i.Props{Class: "size-4"})

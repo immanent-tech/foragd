@@ -27,9 +27,9 @@ var client *github.Client
 // Connect will create a client connection with the GitHub API. The connection will be cached for re-use. It is safe to
 // call multiple times, with subsequent calls being no-ops.
 var Connect = sync.OnceValue(func() error {
-	err := LoadConfigOnce()
+	err := loadConfigOnce()
 	if err != nil {
-		return fmt.Errorf("unable to create github client: %w", err)
+		return fmt.Errorf("load config: %w", err)
 	}
 
 	// Generate app installation token.
@@ -37,11 +37,11 @@ var Connect = sync.OnceValue(func() error {
 	// https://github.com/jferrl/go-githubauth?tab=readme-ov-file#generate-github-app-installation-token
 	data, err := base64.StdEncoding.DecodeString(cfg.Key)
 	if err != nil {
-		return fmt.Errorf("unable to use github api: %w", err)
+		return fmt.Errorf("decode app installation token: %w", err)
 	}
 	appTokenSource, err := githubauth.NewApplicationTokenSource(cfg.ClientID, data)
 	if err != nil {
-		return fmt.Errorf("unable to use github api: %w", err)
+		return fmt.Errorf("generate app authentication token: %w", err)
 	}
 	installationTokenSource := githubauth.NewInstallationTokenSource(int64(cfg.InstallationID), appTokenSource)
 
@@ -59,10 +59,18 @@ var Connect = sync.OnceValue(func() error {
 
 // CreateObjectIssue creates a new issue in Github about problems with a particular object reported by a user.
 func CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) error {
-	title := "Object Issue: " + string(details.Object)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrNoUserCtx)
+	}
+	title := "Object Issue: " + string(details.Object) + " reported by " + user.GetNickname()
 	labels := []string{"subscription"}
 	// Build issue body.
 	var bodyBuilder strings.Builder
+	bodyBuilder.WriteString("User ID: " + user.GetID())
+	bodyBuilder.WriteRune('\n')
+	bodyBuilder.WriteString("Contact Email: " + details.UserEmail)
+	bodyBuilder.WriteRune('\n')
 	bodyBuilder.WriteString("Object ID: " + details.ObjectID)
 	bodyBuilder.WriteRune('\n')
 	bodyBuilder.WriteString("Page URL: " + details.PageUrl)
@@ -119,13 +127,15 @@ func CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) 
 func CreateIssue(ctx context.Context, details *models.IssueRequest) error {
 	user := models.UserFromCtx(ctx)
 	if user == nil {
-		return fmt.Errorf("unable to create app issue: %w", models.ErrNoUserCtx)
+		return fmt.Errorf("get user data: %w", models.ErrNoUserCtx)
 	}
 	title := "App Issue reported by " + user.GetNickname()
 	labels := []string{"subscription"}
 	// Build issue body.
 	var bodyBuilder strings.Builder
 	bodyBuilder.WriteString("User ID: " + user.GetID())
+	bodyBuilder.WriteRune('\n')
+	bodyBuilder.WriteString("Contact Email: " + details.UserEmail)
 	bodyBuilder.WriteRune('\n')
 	bodyBuilder.WriteString("Page URL: " + details.PageUrl)
 	bodyBuilder.WriteRune('\n')

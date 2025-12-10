@@ -203,6 +203,7 @@ func header(user *models.User) templ.Component {
 		templ_7745c5c3_Err = NewLink(
 			WithHXMethod(http.MethodGet, "/issue"),
 			WithHXTarget(ContentID.Target()),
+			WithHXReplaceURL(true),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

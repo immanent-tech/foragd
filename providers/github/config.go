@@ -25,9 +25,9 @@ type Config struct {
 	InstallationID int    `koanf:"installationid"`
 }
 
-// LoadConfigOnce loads the Auth0 configuration and ensures this is only done
+// loadConfigOnce loads the Auth0 configuration and ensures this is only done
 // one time, no matter how many times it is called.
-var LoadConfigOnce = sync.OnceValue(func() error {
+var loadConfigOnce = sync.OnceValue(func() error {
 	err := config.Load(ConfigEnvPrefix, cfg)
 	if err != nil {
 		return fmt.Errorf("github: unable to load config: %w", err)

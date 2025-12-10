@@ -23,7 +23,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/github"
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
@@ -684,70 +683,6 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 			}
 		}
 		renderPartial(templates.AddFeedsetsSuccessNotification(request.Feedset)).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
-// GetPageIssues handles presenting a form for the user to submit issues about the app.
-func GetPageIssues() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Get the current URL on which the issue is being reported.
-		currentURL, found := htmx.GetCurrentURL(req)
-		if !found {
-			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
-		}
-		// Display the report issue form.
-		template := templates.ReportPageIssue(&models.IssueRequest{PageUrl: currentURL})
-		ctx := templates.PageTitleToCtx(req.Context(), "Report Page Issue")
-		renderPage(wrapContent(req, template)).ServeHTTP(res, req.WithContext(ctx))
-		return nil
-	})).ServeHTTP
-}
-
-// SubmitPageIssues handles processing the user submitted subscription issues form.
-func SubmitPageIssues() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Validate the subscription issue request.
-		request, valid, err := forms.DecodeForm[*models.IssueRequest](req)
-		if err != nil || !valid {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
-		}
-		// Create the issue in Github.
-		err = github.Connect()
-		if err != nil {
-			res.Header().Add(htmx.HeaderReswap, "none")
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("unable to connect to github: %w", err),
-				http.StatusInternalServerError,
-			)
-		}
-		err = github.CreateIssue(req.Context(), request)
-		if err != nil {
-			res.Header().Add(htmx.HeaderReswap, "none")
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
-		}
-		// Force refresh of page.
-		msg := models.NewErrorMessage(
-			"Thanks for reporting the issue!",
-			"We will look into it and implement fixes as appropriate.",
-		)
-		ctx := templates.PageTitleToCtx(req.Context(), "Report Page Issue")
-		renderPage(wrapContent(req, templates.IssueReportedConfirmation(msg))).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }

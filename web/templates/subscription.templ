@@ -241,6 +241,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 			@NewLink(
 				WithHXMethod(http.MethodGet, "/issue/subscription/"+s.GetID()),
 				WithHXTarget(ContentID.Target()),
+				WithHXReplaceURL(true),
 			) {
 				@tabler.FlagFilled(i.Props{Class: "size-4"})
 				Report an issue

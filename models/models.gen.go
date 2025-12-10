@@ -460,7 +460,10 @@ type IssueRequest struct {
 	Details string `form:"details" json:"details,omitempty,omitzero"`
 
 	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
+	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"required,url"`
+
+	// UserEmail is the email address the user has entered for getting in touch about the issue.
+	UserEmail string `form:"user_email" json:"user_email,omitempty,omitzero" validate:"required,email"`
 }
 
 // Item defines model for Item.
@@ -652,7 +655,10 @@ type ObjectIssueRequest struct {
 	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
 
 	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"omitempty,url"`
+	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"required,url"`
+
+	// UserEmail is the email address the user has entered for getting in touch about the issue.
+	UserEmail string `form:"user_email" json:"user_email,omitempty,omitzero" validate:"required,email"`
 }
 
 // ObjectParams contains the parameters for viewing an object.

@@ -1282,13 +1282,20 @@ components:
         contains details about an issue with the service.
       type: object
       properties:
+        user_email:
+          description: >
+            is the email address the user has entered for getting in touch about the issue.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'user_email'
+            validate: 'required,email'
         page_url:
           description: >
             is the URL of the page on which the user selected the report issue action.
           type: string
           x-oapi-codegen-extra-tags:
             form: 'page_url'
-            validate: 'omitempty,url'
+            validate: 'required,url'
         details:
           description: >
             is the user-submitted text about the issue.
