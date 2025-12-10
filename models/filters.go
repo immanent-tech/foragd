@@ -20,12 +20,12 @@ func init() {
 
 const (
 	// maxUserCount is the maximum number of results a user can retrieve at a single time.
-	maxUserCount = 20
+	maxUserCount = 45
 	// minUserCount is the mininum number of results a user can retrieve at a single time.
 	minUserCount = 1
 	// defaultCount is to show 10 objects.
-	defaultCount    = "10"
-	defaultCountInt = 10
+	defaultCount    = "15"
+	defaultCountInt = 15
 	// defaultView is to show unread objects.
 	defaultView = ViewUnread
 )
