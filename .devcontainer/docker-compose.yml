@@ -30,22 +30,6 @@ services:
         hard: 65535
       nproc: 65535
 
-  stepca:
-    env_file:
-      - .env
-    hostname: stepca
-    image: docker.io/smallstep/step-ca
-    restart: always
-    volumes:
-      - ../deployments/stepca:/home/step
-    environment:
-      - DOCKER_STEPCA_INIT_NAME=foragd-dev
-      - DOCKER_STEPCA_INIT_DNS_NAMES=localhost,stepca
-      - DOCKER_STEPCA_INIT_REMOTE_MANAGEMENT=true
-      - DOCKER_STEPCA_INIT_PASSWORD=$STEPCA_INIT_PASSWORD
-    ports:
-      - $STEPCA_PORT:9000
-
   setup:
     env_file:
       - .env
@@ -343,8 +327,6 @@ services:
 
   imgproxy:
     image: ghcr.io/imgproxy/imgproxy:$IMAGEPROXY_VERSION
-    ports:
-      - $FORAGD_IMGPROXY_PORT:8080
     environment:
       IMGPROXY_KEY: 7c3e9eecb5f62436587d86aba82b16a1efcbcaa95469e9923a72822bcacb284d77bd16f1427e20693733c5f24fadfb2c468dabe533d94152006f04e8121080b2
       IMGPROXY_SALT: d94a9bf2767e97c0d28e6514b3ebfb2a6eb82e0929bc0d028df93bf337ce99899f9077edf4dfc67c57fdee1c50a1f9f860277930725234d6c814ab0c66712d2f
@@ -357,7 +339,5 @@ services:
     image: docker.io/silviof/docker-languagetool:$LANGUAGETOOL_VERSION
     cap_drop:
       - ALL
-    ports:
-      - $LANGUAGETOOL_PORT:8010
     volumes:
       - ../deployments/languagetool/ngrams:/ngrams
