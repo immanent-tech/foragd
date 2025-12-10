@@ -841,7 +841,7 @@ func viewFeedSubscriptionLink(id models.SubscriptionID, title string, view model
 }
 
 // SubscriptionsGrid renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
-func SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.Subscription) templ.Component {
+func SubscriptionsGrid(counts models.CategoryCounts, pagination models.Pagination, subscriptions ...*models.Subscription) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -900,7 +900,7 @@ func SubscriptionsGrid(pagination models.Pagination, subscriptions ...*models.Su
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = FilterControls("/list/subscriptions", models.GetCategoryCounts(subscriptions...), filters, subscriptionsActionsButton(filters)).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = FilterControls("/list/subscriptions", counts, filters, subscriptionsActionsButton(filters)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

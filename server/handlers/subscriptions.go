@@ -21,6 +21,7 @@ import (
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -47,6 +48,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 			}
 			var (
 				subscriptions models.Subscriptions
+				counts        models.CategoryCounts
 				err           error
 				template      templ.Component
 			)
@@ -54,9 +56,30 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 			if htmx.IsHistoryRestoreRequest(req) {
 				filters.Subscriptions = nil
 			}
+
+			var wg errgroup.Group
+
 			// Get subscriptions matching filters.
-			subscriptions, pagination, err = api.FilterSubscriptions(req.Context(), filters, pagination)
-			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+			wg.Go(func() error {
+				subscriptions, pagination, err = api.FilterSubscriptions(req.Context(), filters, pagination)
+				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+					return fmt.Errorf("filter subscriptions: %w", err)
+				}
+				return nil
+			})
+			// Get all subscription categories.
+			wg.Go(func() error {
+				counts, err = api.GetAllSubscriptionCategories(req.Context())
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
+						slog.Any("error", err),
+					)
+				}
+				return nil
+			})
+
+			// Wait for fetch jobs to finish.
+			if err := wg.Wait(); err != nil {
 				msg := models.NewErrorMessage(
 					"Server could not complete request!",
 					"This might be temporary, please try again.",
@@ -76,7 +99,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 			}
 
 			// Choose rendering method based on method (get = page, post = partial).
-			template = templates.SubscriptionsGrid(pagination, subscriptions...)
+			template = templates.SubscriptionsGrid(counts, pagination, subscriptions...)
 			ctx := templates.PageTitleToCtx(req.Context(), "Subscriptions")
 			switch req.Method {
 			case http.MethodGet:

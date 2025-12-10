@@ -35,6 +35,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 	"github.com/immanent-tech/foragd/server/session/store"
 	"github.com/immanent-tech/foragd/validation"
 )
@@ -513,6 +514,7 @@ func (a *API) FilterSubscriptions(
 		FilterByFavorites(filters.OnlyFavorites).
 		Sort(filters.Sort).
 		Paginate(pagination, filters.GetCount())
+
 	return subscriptions, pagination, nil
 }
 
@@ -713,6 +715,72 @@ func (a *API) searchSubscriptions(
 	}
 
 	return subscriptions, "", nil
+}
+
+// getAllSubscriptionCategories retrieves a map of categories from user subscriptions by count.
+func (a *API) GetAllSubscriptionCategories(ctx context.Context) (models.CategoryCounts, error) {
+	// Retrieve user object.
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", models.ErrNoUserCtx)
+	}
+
+	// Build query.
+	query := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+		),
+	)
+
+	// Build aggregations.
+	termsField := "customisation.categories.raw"
+	termsCount := 200
+	aggs := aggregations.Aggs{
+		"CategoryCounts": types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+		},
+	}
+
+	resp, err := NewSearchRequest(a.GetAPI(),
+		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
+		WithIndex[*search.Search, SearchRequest](schema.SubscriptionsSchemaPrefix+schema.IndexReadSuffix),
+		WithQueryOptions[*search.Search, SearchRequest](query),
+		WithSize[*search.Search, SearchRequest](0),
+		WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
+		WithAggregations[*search.Search, SearchRequest](aggs),
+	).Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("perform search and aggregation: %w", err)
+	}
+
+	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf(
+			"category counts aggregation invalid: %w",
+			models.ErrInvalidAPIResult,
+		)
+	}
+	categoryCountsBuckets, ok := categoryCounts.Buckets.([]types.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf(
+			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
+			models.ErrInvalidAPIResult,
+		)
+	}
+
+	counts := make(models.CategoryCounts, 0, len(categoryCountsBuckets))
+
+	// Loop through the aggregation results and extract the unread count for each feed.
+	for bucket := range slices.Values(categoryCountsBuckets) {
+		var category models.Category
+		if category, ok = bucket.Key.(string); ok {
+			counts = append(counts, models.CategoryCount{Category: category, Count: int(bucket.DocCount)})
+		}
+	}
+	return counts, nil
 }
 
 // addSubscriptionDynamicInfo adds dynamically generated information (e.g., unread count, stats, etc.) to subscriptions.
