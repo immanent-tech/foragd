@@ -9,7 +9,7 @@
     "build:css": "bunx tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
   },
   "dependencies": {
-    "daisyui": "^5.5.8",
+    "daisyui": "^5.5.11",
     "date-fns": "^4.1.0",
     "htmx-ext-preload": "^2.1.2",
     "htmx-ext-response-targets": "^2.0.4",
