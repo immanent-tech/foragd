@@ -184,6 +184,8 @@ templ subscriptionContextMenu(s *models.Subscription) {
 					@tabler.ExternalLink(i.Props{Class: "size-4"})
 					Feed Website
 				}
+			}
+			if s.GetSubscriptionType() == models.SubscriptionTypeFeed || s.GetSubscriptionType() == models.SubscriptionTypeGroup {
 				// Mark action.
 				<form id={ "mark-" + s.GetID() }>
 					// MarkURL returns the app URL for marking the subscription.
@@ -208,6 +210,8 @@ templ subscriptionContextMenu(s *models.Subscription) {
 						}
 					}
 				</form>
+			}
+			if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
 				// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 				<div id={ "favorite_" + s.GetID() }>
 					@ToggleFavorite(s.GetID(), string(models.ObjectTypeSubscription), s.IsFavorite())
