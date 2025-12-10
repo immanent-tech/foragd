@@ -41,7 +41,7 @@ templ (page *Home) Template() {
 					if len(page.LatestArticles) > 0 {
 						<ul role="list" class="grid grid-cols-1 justify-center space-y-4 sm:space-y-8">
 							for article := range slices.Values(page.LatestArticles) {
-								<li class="py-4 sm:px-4">
+								<li class="py-4 sm:px-4 w-full max-h-64 overflow-hidden">
 									@articleSummary(article)
 								</li>
 							}
@@ -84,7 +84,7 @@ templ (page *Home) Template() {
 						</div>
 						<ul role="list" class="grid grid-cols-1 justify-center space-y-4 sm:space-y-8">
 							for article := range slices.Values(page.TopArticles) {
-								<li class="py-4 sm:px-4">
+								<li class="py-4 sm:px-4 w-full max-h-64 overflow-hidden">
 									@articleSummary(article)
 								</li>
 							}

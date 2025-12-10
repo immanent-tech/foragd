@@ -89,7 +89,7 @@ func (page *Home) Template() templ.Component {
 						return templ_7745c5c3_Err
 					}
 					for article := range slices.Values(page.LatestArticles) {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<li class=\"py-4 sm:px-4\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<li class=\"py-4 sm:px-4 w-full max-h-64 overflow-hidden\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -172,7 +172,7 @@ func (page *Home) Template() templ.Component {
 						return templ_7745c5c3_Err
 					}
 					for article := range slices.Values(page.TopArticles) {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<li class=\"py-4 sm:px-4\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<li class=\"py-4 sm:px-4 w-full max-h-64 overflow-hidden\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
