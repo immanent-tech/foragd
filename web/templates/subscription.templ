@@ -117,8 +117,8 @@ templ SubscriptionCard(s *models.Subscription) {
 			</div>
 			// Display up to 5 of the subscription categories.
 			if len(s.GetCategories(0)) > 0 {
-				<div class="flex justify-center my-auto">
-					<div class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+				<div class="flex justify-start my-2">
+					<div class="flex flex-row flex-wrap p-2 gap-2">
 						for category := range slices.Values(s.GetCategories(5)) {
 							{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
 							{{ filters[models.ParamCategories] = category }}
@@ -129,7 +129,7 @@ templ SubscriptionCard(s *models.Subscription) {
 								WithHXVals(filters),
 							) {
 								<div class="flex gap-2 capitalize">
-									<div class="badge badge-secondary badge-sm">{ category }</div>
+									<div class="badge badge-outline badge-sm">{ category }</div>
 								</div>
 							}
 						}
@@ -137,7 +137,7 @@ templ SubscriptionCard(s *models.Subscription) {
 				</div>
 			}
 			// Show stats and info as appropriate.
-			<div class="card-actions grid grid-cols-3 mt-4">
+			<div class="card-actions grid grid-cols-3 mt-auto">
 				if s.Settings.ShowSubscriptionStats {
 					if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
 						<p class="grid justify-end col-span-3 text-xs/4">
