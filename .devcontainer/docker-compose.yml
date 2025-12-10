@@ -316,7 +316,7 @@ services:
     volumes:
       - ../deployments/certs:/usr/share/filebeat/config/certs
       - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - "./filebeat_ingest_data/:/usr/share/filebeat/ingest_data/"
+      - "../deployments/filebeat_ingest_data/:/usr/share/filebeat/ingest_data/"
       - "../../../.local/share/containers:/var/lib/docker/containers:ro"
       - /run/user/1000/podman/podman.sock:/var/run/docker.sock
     environment:
