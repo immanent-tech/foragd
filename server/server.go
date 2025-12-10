@@ -210,7 +210,7 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			r.Get("/success", handlers.UserAccountSuccess())
 			r.Get("/cancel", handlers.Landing())
 		})
-		r.Get("/home", handler.Home())
+		r.Get("/home", handlers.Home(handler.Elastic))
 		r.Get("/home/updates", handlers.WatchHome(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.GetSearchSuggestions(handler.Elastic))
 		r.With(middlewares.RequireHTMX).Post("/search", handlers.GetSearchResults(handler.Elastic))

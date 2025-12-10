@@ -24,7 +24,7 @@ import (
 )
 
 // Home handles displaying the user's home page.
-func (a *API) Home() http.HandlerFunc {
+func Home(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(setCacheControl).
 		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 			ctx := templates.PageTitleToCtx(req.Context(), "Home")
@@ -49,7 +49,7 @@ func (a *API) Home() http.HandlerFunc {
 				return nil
 			}
 
-			data, err := a.getHomePageData(ctx)
+			data, err := getHomePageData(ctx, api)
 			if err != nil {
 				msg := models.NewErrorMessage(
 					"Unable to complete request!",
@@ -88,7 +88,7 @@ func WatchHome(api *elastic.API) http.HandlerFunc {
 // getHomePageData retrieves the data required to construct the homepage content.
 //
 //nolint:funlen,gocognit,nestif // mostly aggregation definitions.
-func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
+func getHomePageData(ctx context.Context, api *elastic.API) (*templates.Home, error) {
 	data := &templates.Home{}
 	// Retrieve user object.
 	user := models.UserFromCtx(ctx)
@@ -97,7 +97,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	}
 	data.User = user
 
-	subscriptions, err := a.Elastic.GetSubscriptions(ctx)
+	subscriptions, err := api.GetSubscriptions(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("filter articles: get subscriptions: %w", err)
 	}
@@ -114,7 +114,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
 			query.Bool(
-				query.Should(a.Elastic.BuildSubscriptionQueries(user, models.ViewUnread, subscriptions)...),
+				query.Should(api.BuildSubscriptionQueries(user, models.ViewUnread, subscriptions)...),
 			),
 		),
 	)
@@ -122,11 +122,11 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	// Fetch latest articles.
 	sort := models.SortNewestFirst
 	maxLatestItemsCount := 12
-	latestItems, _, err := a.DataAPI().SearchItems(ctx, articlesQuery, maxLatestItemsCount, &sort, nil)
+	latestItems, _, err := api.SearchItems(ctx, articlesQuery, maxLatestItemsCount, &sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
 	}
-	data.LatestArticles, err = a.Elastic.GenerateArticles(ctx, latestItems)
+	data.LatestArticles, err = api.GenerateArticles(ctx, latestItems)
 	if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 		return nil, fmt.Errorf("unable to generate articles: %w", err)
 	}
@@ -190,7 +190,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 	}
 
 	// Perform the request.
-	queryResult, err := a.DataAPI().ItemsAggregation(ctx, articlesQuery, 0, aggs)
+	queryResult, err := api.ItemsAggregation(ctx, articlesQuery, 0, aggs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to calculate aggregations: %w", err)
 	}
@@ -227,7 +227,7 @@ func (a *API) getHomePageData(ctx context.Context) (*templates.Home, error) {
 						continue
 					}
 					var articles models.Articles
-					if articles, err = a.Elastic.GenerateArticles(ctx, items); err != nil {
+					if articles, err = api.GenerateArticles(ctx, items); err != nil {
 						continue
 					}
 					data.TopArticles = append(data.TopArticles, articles...)

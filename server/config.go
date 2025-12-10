@@ -65,17 +65,17 @@ var LoadConfigOnce = sync.OnceValue(func() error {
 	// Load server config.
 	err := config.Load(serverConfigEnvPrefix, cfg)
 	if err != nil {
-		return fmt.Errorf("server: load config: %w", err)
+		return fmt.Errorf("load server environment: %w", err)
 	}
 	// Load image proxy config into server config.
 	err = config.Load(imgProxyConfigEnvPrefix, cfg.ImgProxy)
 	if err != nil {
-		return fmt.Errorf("server: load config: %w", err)
+		return fmt.Errorf("load image proxy environment: %w", err)
 	}
 
 	err = validation.Validate.Struct(cfg)
 	if err != nil {
-		return fmt.Errorf("server: validate config: %w", err)
+		return fmt.Errorf("validate config: %w", err)
 	}
 	return nil
 })
