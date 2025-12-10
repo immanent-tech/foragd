@@ -36,7 +36,7 @@ func btnBackToTop() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button class=\"btn btn-circle btn-secondary hidden fixed bottom-20 right-5 sm:bottom-10 sm:right-10\" _=\"\n\t\ton scroll from window queue last\n  \t\t\tif the window's pageYOffset is greater than 20\n    \t\t\tremove .hidden\n  \t\t\totherwise\n    \t\t\tadd .hidden\n\t\tend\n\t\ton click go to the top of the body smoothly\n\t\t\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button class=\"btn btn-circle btn-secondary hidden fixed bottom-20 right-5 md:bottom-10 sm:right-10\" _=\"\n\t\ton scroll from window queue last\n  \t\t\tif the window's pageYOffset is greater than 20\n    \t\t\tremove .hidden\n  \t\t\totherwise\n    \t\t\tadd .hidden\n\t\tend\n\t\ton click go to the top of the body smoothly\n\t\t\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
