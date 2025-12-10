@@ -35,7 +35,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 	"github.com/immanent-tech/foragd/server/session/store"
 	"github.com/immanent-tech/foragd/validation"
 )
@@ -77,146 +76,9 @@ type Object[T ~string] interface {
 // Option is a generic type for functional options.
 type Option[T any] func(T)
 
-// GetSession retrieves session data with the given token.
-func (a *API) GetSession(ctx context.Context, token string) (*models.UserSession, error) {
-	index := schema.SessionsSchemaPrefix + schema.IndexReadSuffix
-	session, err := GetDoc[string, models.UserSession](ctx, a.GetAPI(), index, token)
-	if err != nil {
-		return nil, fmt.Errorf("get session: %w", err)
-	}
-	return &session, nil
-}
-
-// DeleteSession removes the session data for the given token.
-func (a *API) DeleteSession(ctx context.Context, token string) error {
-	index := schema.SessionsSchemaPrefix + schema.IndexWriteSuffix
-	if err := DeleteDoc(ctx, a.GetAPI(), index, token); err != nil {
-		return fmt.Errorf("delete session: %w", err)
-	}
-	return nil
-}
-
-// UpdateSession updates the session data.
-func (a *API) UpdateSession(ctx context.Context, token string, data map[string]any) error {
-	index := schema.SessionsSchemaPrefix + schema.IndexWriteSuffix
-	if err := UpdateDoc(ctx, a.GetAPI(), index,
-		token,
-		data,
-		UpdateDocAsUpsert(),
-	); err != nil {
-		return fmt.Errorf("update session: %w", err)
-	}
-	return nil
-}
-
-// FindAllSessions returns all active (non-expired) sessions.
-func (a *API) FindAllSessions(ctx context.Context) ([]models.UserSession, error) {
-	index := schema.SessionsSchemaPrefix + schema.IndexReadSuffix
-	sessions, err := SearchAll[models.UserSession](
-		ctx,
-		a.GetAPI(),
-		index,
-		query.Since("expiry", time.Now().UTC()),
-		defaultPaginationSize,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("find all sessions: %w", err)
-	}
-	return sessions, nil
-}
-
 // GetAPI returns the raw API object.
 func (a *API) GetAPI() *elasticsearch.TypedClient {
 	return a.TypedClient
-}
-
-// UserExists checks if a user doc with the given ID exists.
-func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
-	index, err := UserReadIndexFromCtx(ctx)
-	if err != nil {
-		return false, fmt.Errorf("user exists: %w", ErrNoIndexInCtx)
-	}
-	found, err := exists(ctx, a.TypedClient, index, id)
-	if err != nil {
-		return false, fmt.Errorf("user exists: %w", err)
-	}
-	return found, nil
-}
-
-// CreateUser creates a new user doc in Elasticsearch.
-func (a *API) CreateUser(ctx context.Context, user *models.User) error {
-	index, err := UserWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("create user: %w", ErrNoIndexInCtx)
-	}
-	err = CreateDoc(ctx, a.GetAPI(), index, user.GetID(), user)
-	if err != nil {
-		return fmt.Errorf("create user: %w", err)
-	}
-	return nil
-}
-
-// GetUser retrieves the user doc with the given id.
-func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
-	index, err := UserReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user: %w", ErrNoIndexInCtx)
-	}
-	user, err := GetDoc[models.UserID, *models.User](ctx, a.GetAPI(), index, id)
-	if err != nil {
-		return nil, fmt.Errorf("get user: %w", err)
-	}
-	return user, nil
-}
-
-// DeleteUser removes the user doc with the given ID.
-func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
-	index, err := UserWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("delete user: %w", ErrNoIndexInCtx)
-	}
-	err = DeleteDoc(ctx, a.GetAPI(), index, id)
-	if err != nil {
-		return fmt.Errorf("delete user: %w", err)
-	}
-	return nil
-}
-
-// UpdateUser will apply the given updates to the user.
-func (a *API) UpdateUser(ctx context.Context, userID models.UserID, updates map[string]any) error {
-	updates["updated_at"] = time.Now().UTC()
-	index, err := UserWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("update user: %w", ErrNoIndexInCtx)
-	}
-	err = UpdateDoc(ctx, a.GetAPI(), index, userID, updates,
-		WithRefresh("true"),
-		WithRetryOnConflict(defaultRetries),
-	)
-	if err != nil {
-		return fmt.Errorf("update user: %w", err)
-	}
-	return nil
-}
-
-// FindUserByExternalID will search for and return a user that matches the given external ID, if exists.
-func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
-	index, err := UserReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("find user by external id: %w", ErrNoIndexInCtx)
-	}
-	// Get the user.
-	users, _, err := Search[*models.User](ctx, a.GetAPI(), index, query.Term("external_user_id", externalID), 1,
-		WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
-		WithTrackTotalHits(false),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("find user by external id: %w", err)
-	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("find user by external id: %w", ErrNotFound)
-	}
-	return users[0], nil
 }
 
 // GetSubscription returns the subscription that matches the given ID.
@@ -1702,105 +1564,6 @@ func (a *API) BuildSearchResultsQuery(
 	), nil
 }
 
-// GetFeed retrieves a single feed with the given ID.
-func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	index, err := FeedsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get feed: %w", ErrNoIndexInCtx)
-	}
-	feed, err := GetDoc[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, id)
-	if err != nil {
-		return nil, fmt.Errorf("get feed: %w", err)
-	}
-	return feed, nil
-}
-
-// CreateFeed creates a new feed doc in Elasticsearch.
-func (a *API) CreateFeed(ctx context.Context, feed *models.Feed) error {
-	index, err := FeedsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("create feed: %w", ErrNoIndexInCtx)
-	}
-	err = CreateDoc(ctx, a.GetAPI(), index, feed.GetID(), feed)
-	if err != nil {
-		return fmt.Errorf("create feed: %w", err)
-	}
-	return nil
-}
-
-// DeleteFeed deletes a feed doc with the given ID from Elasticsearch.
-func (a *API) DeleteFeed(ctx context.Context, id models.FeedID) error {
-	index, err := FeedsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("delete feed: %w", ErrNoIndexInCtx)
-	}
-	// Delete the feed.
-	err = DeleteDoc(ctx, a.GetAPI(), index, id)
-	if err != nil {
-		return fmt.Errorf("delete feed: %w", err)
-	}
-	return nil
-}
-
-// GetFeeds retrieves the feeds with the given IDs.
-func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
-	index, err := FeedsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get feeds: %w", ErrNoIndexInCtx)
-	}
-
-	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, ids...)
-	if err != nil {
-		return nil, fmt.Errorf("get feeds: %w", err)
-	}
-	return feeds, nil
-}
-
-// SearchFeeds will search the feeds index for feed matching the given query. Count, sort and pagination values are
-// optional.
-func (a *API) SearchFeeds(
-	ctx context.Context,
-	query query.Option,
-	count int,
-	sort *models.Sort,
-	pagination *models.Pagination,
-) (models.Feeds, models.Pagination, error) {
-	index, err := FeedsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, "", fmt.Errorf("search feeds: %w", ErrNoIndexInCtx)
-	}
-
-	searchAfter, err := decodePagination(pagination)
-	if err != nil {
-		return nil, "", models.NewAPIError( //nolint:wrapcheck
-			fmt.Errorf("search feeds: decode pagination failed: %w", err),
-			http.StatusInternalServerError,
-		)
-	}
-
-	// Perform search.
-	feeds, newSearchAfter, err := Search[*models.Feed](ctx, a.GetAPI(), index, query, count,
-		WithSortOptions[*search.Search, SearchRequest](newFeedSortOptions(sort)...),
-		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
-	)
-	if err != nil {
-		return nil, "", fmt.Errorf("search feeds: %w", err)
-	}
-	// Parse search after into pagination.
-	if pagination != nil {
-		*pagination, err = encodePagination(newSearchAfter)
-		if err != nil {
-			return nil, "", models.NewAPIError( //nolint:wrapcheck
-				fmt.Errorf("search feeds: encode pagination failed: %w", err),
-				http.StatusInternalServerError,
-			)
-		}
-		return feeds, *pagination, nil
-	}
-
-	return feeds, "", nil
-}
-
 // func (e *API) MultiSearchFeeds(ctx context.Context, queries ...*models.MultiSearchQuery) (results.MSearchResults, error) {
 // 	return MultiSearch(ctx, e.GetAPI(), queries...)
 // }
@@ -1927,44 +1690,6 @@ func (a *API) UnarchiveArticle(ctx context.Context, userID models.UserID, itemID
 	err = DeleteDocs(ctx, a.GetAPI(), index, query)
 	if err != nil {
 		return fmt.Errorf("unarchive article: %w", err)
-	}
-	return nil
-}
-
-// GetNewFeeds will return a slice of all feeds that have been created but not fetched.
-func (a *API) GetNewFeeds(ctx context.Context) (models.Feeds, error) {
-	index := schema.FeedsIndexPrefix + schema.IndexReadSuffix
-
-	var (
-		feeds models.Feeds
-		err   error
-	)
-
-	//  We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
-	// don't have a job scheduled for updating their items.
-	feeds, err = SearchAll[*models.Feed](
-		ctx,
-		a.GetAPI(),
-		index,
-		query.Term("last_fetched", models.UnixEpoch),
-		defaultPaginationSize,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("get new feeds since: %w", err)
-	}
-	return feeds, nil
-}
-
-// UpdateFeedLastFetched will update the feed with the given id, using the new feed information provided.
-func (a *API) UpdateFeedLastFetched(ctx context.Context, id models.FeedID, timestamp time.Time) error {
-	index := schema.FeedsIndexPrefix + schema.IndexWriteSuffix
-
-	updates := map[string]any{
-		"last_fetched": timestamp,
-	}
-
-	if err := UpdateDoc(ctx, a.GetAPI(), index, id, updates); err != nil {
-		return fmt.Errorf("update feed: %w", err)
 	}
 	return nil
 }
