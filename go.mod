@@ -94,7 +94,7 @@ require (
 	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/sdboyer/constext v0.0.0-20170321163424-836a14457353 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
+	github.com/sirupsen/logrus v1.9.1 // indirect
 	github.com/sonatype-nexus-community/go-sona-types v0.1.6 // indirect
 	github.com/sonatype-nexus-community/nancy v1.0.51 // indirect
 	github.com/speakeasy-api/jsonpath v0.6.0 // indirect
