@@ -9,7 +9,7 @@ args_bin = [
 ]
 cmd = 'go build -ldflags="-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)" -o ./tmp/foragd .'
 bin = "tmp/foragd"
-full_bin = "export $(grep -v '^#' .env.development | xargs) && tmp/foragd"
+full_bin = "bunx dotenv-cli -e .env.development -- tmp/foragd"
 delay = 1000
 exclude_dir = [
   "bin",
