@@ -17,41 +17,36 @@ const (
 	imgProxyConfigEnvPrefix = config.ConfigEnvPrefix + "IMGPROXY_"
 )
 
-var defaultCSP = []string{
-	"default-src 'self' https://dev-zuc8oqf6gd86s4rw.us.auth0.com;",
-	"script-src 'self' 'unsafe-eval' 'unsafe-inline';",
-	"connect-src 'self' wss://localhost:*  https://dev-zuc8oqf6gd86s4rw.us.auth0.com;",
-	"img-src 'self' https: data:;",
-	"frame-ancestors 'self';",
-	"form-action 'self'",
-	"upgrade-insecure-requests;",
+var cfg Config
+
+type timeout string
+
+func (t timeout) Validate() error {
+	if _, err := time.ParseDuration(string(t)); err != nil {
+		return fmt.Errorf("parse timeout: %w", err)
+	}
+	return nil
 }
 
-var cfg = &Config{
-	// Host is the hostname to listen on.
-	Host: "",
-	// Port is the port to listen on.
-	Port: 7000,
-	CSP:  defaultCSP,
-	// https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/
-	// https://blog.cloudflare.com/exposing-go-on-the-internet/
-	ReadTimeout:  5 * time.Second,
-	WriteTimeout: 10 * time.Second,
-	IdleTimeout:  120 * time.Second,
+func (t timeout) Duration() time.Duration {
+	duration, err := time.ParseDuration(string(t))
+	if err != nil {
+		return time.Minute
+	}
+	return duration
 }
 
 // Config contains the server configuration options.
 type Config struct {
-	CSP          []string
-	Port         int           `koanf:"port"`
-	Host         string        `koanf:"host"`
-	CertFile     string        `koanf:"crt"`
-	KeyFile      string        `koanf:"key"`
-	ReadTimeout  time.Duration `koanf:"read_timeout"`
-	WriteTimeout time.Duration `koanf:"write_timeout"`
-	IdleTimeout  time.Duration `koanf:"idle_timeout"`
-	BlockSignup  bool          `koanf:"blocksignup"`
-	BlockLogin   bool          `koanf:"blocklogin"`
+	Port         uint64  `koanf:"port"         validate:"port"`
+	Host         string  `koanf:"host"         validate:"hostname|fqdn|ip"`
+	CertFile     string  `koanf:"crt"          validate:"omitempty,file"`
+	KeyFile      string  `koanf:"key"          validate:"omitempty,file"`
+	ReadTimeout  timeout `koanf:"readtimeout"  validate:"required,validateFn"`
+	WriteTimeout timeout `koanf:"writetimeout" validate:"required,validateFn"`
+	IdleTimeout  timeout `koanf:"idletimeout"  validate:"required,validateFn"`
+	BlockSignup  bool    `koanf:"blocksignup"`
+	BlockLogin   bool    `koanf:"blocklogin"`
 	ImgProxy     ImgProxyConfig
 }
 
@@ -64,16 +59,19 @@ type ImgProxyConfig struct {
 // loadConfigOnce loads the server configuration and ensures this is only done
 // one time, no matter how many times it is called.
 var loadConfigOnce = sync.OnceValue(func() error {
+	var err error
 	// Load server config.
-	err := config.Load(serverConfigEnvPrefix, cfg)
+	cfg, err = config.Load[Config](serverConfigEnvPrefix)
 	if err != nil {
 		return fmt.Errorf("load server environment: %w", err)
 	}
 	// Load image proxy config into server config.
-	err = config.Load(imgProxyConfigEnvPrefix, cfg.ImgProxy)
+	var imgProxyCfg ImgProxyConfig
+	imgProxyCfg, err = config.Load[ImgProxyConfig](imgProxyConfigEnvPrefix)
 	if err != nil {
 		return fmt.Errorf("load image proxy environment: %w", err)
 	}
+	cfg.ImgProxy = imgProxyCfg
 
 	err = validation.Validate.Struct(cfg)
 	if err != nil {

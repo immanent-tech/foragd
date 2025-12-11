@@ -59,10 +59,10 @@ func NewServer(ctx context.Context) (Server, error) {
 	h2s := &http2.Server{}
 	svr.Server = &http.Server{
 		Handler:     h2c.NewHandler(csrfRouter, h2s),
-		Addr:        net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
-		ReadTimeout: cfg.ReadTimeout,
+		Addr:        net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
+		ReadTimeout: cfg.ReadTimeout.Duration(),
 		// WriteTimeout: ServerConfig.WriteTimeout,
-		IdleTimeout: cfg.IdleTimeout,
+		IdleTimeout: cfg.IdleTimeout.Duration(),
 	}
 
 	err = http2.ConfigureServer(svr.Server, h2s)
@@ -156,7 +156,7 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 		middleware.Recoverer,
 		middlewares.Logger(),
 		middlewares.SetupCORS(),
-		middlewares.SetupCSP(),
+		middlewares.ContentSecurityPolicy,
 		middlewares.Etag,
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,

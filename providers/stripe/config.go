@@ -22,7 +22,7 @@ const (
 	trialEndBehavior = "pause"
 )
 
-var cfg = &Config{}
+var cfg Config
 
 // Config structure.
 type Config struct {
@@ -35,7 +35,8 @@ type Config struct {
 // loadConfigOnce loads the Stripe configuration and ensures this is only done
 // one time, no matter how many times it is called.
 var loadConfigOnce = sync.OnceValue(func() error {
-	err := config.Load(ConfigEnvPrefix, cfg)
+	var err error
+	cfg, err = config.Load[Config](ConfigEnvPrefix)
 	if err != nil {
 		return fmt.Errorf("load environment variables: %w", err)
 	}

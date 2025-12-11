@@ -16,7 +16,7 @@ const (
 	ConfigEnvPrefix = config.ConfigEnvPrefix + "AUTH0_"
 )
 
-var cfg = &Config{}
+var cfg Config
 
 // Config structure.
 type Config struct {
@@ -29,7 +29,8 @@ type Config struct {
 // LoadConfigOnce loads the auth0 configuration and ensures this is only done
 // one time, no matter how many times it is called.
 var LoadConfigOnce = sync.OnceValue(func() error {
-	err := config.Load(ConfigEnvPrefix, cfg)
+	var err error
+	cfg, err = config.Load[Config](ConfigEnvPrefix)
 	if err != nil {
 		return fmt.Errorf("auth0: unable to load config: %w", err)
 	}

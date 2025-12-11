@@ -37,10 +37,10 @@ type Config struct {
 
 // ConfigDevelopment are the config options for a development environment.
 type ConfigDevelopment struct {
-	CAFile   string   `koanf:"cafile"`
+	CAFile   string   `koanf:"cafile"   validate:"required,file"`
 	Username string   `koanf:"username" validate:"required"`
 	Password string   `koanf:"password" validate:"required"`
-	URLs     []string `koanf:"urls"     validate:"required"`
+	URLs     []string `koanf:"urls"     validate:"required,dive,url"`
 }
 
 // ConfigProduction are the config options for a production environment.
@@ -56,19 +56,19 @@ func loadConfigOnce(ctx context.Context) (*elasticsearch.Config, error) {
 		var err error
 		switch config.Environment {
 		case "development":
-			c := &ConfigDevelopment{}
-			err = config.Load(elasticConfigEnvPrefix, c)
+			var c ConfigDevelopment
+			c, err = config.Load[ConfigDevelopment](elasticConfigEnvPrefix)
 			if err != nil {
 				return nil, fmt.Errorf("unable to load development config: %w", err)
 			}
-			cfg.Development = *c
+			cfg.Development = c
 		case "production":
-			c := &ConfigProduction{}
-			err = config.Load(elasticConfigEnvPrefix, c)
+			var c ConfigProduction
+			c, err = config.Load[ConfigProduction](elasticConfigEnvPrefix)
 			if err != nil {
 				return nil, fmt.Errorf("unable to load production config: %w", err)
 			}
-			cfg.Production = *c
+			cfg.Production = c
 		}
 		clientConfig, err := genConfig(config.Environment)
 		if err != nil {

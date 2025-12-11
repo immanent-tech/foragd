@@ -23,7 +23,7 @@ const (
 	// AppID is the application name formatted for use as an ID.
 	AppID = "foragd-app"
 	// AppDescription is the catch-line of the application.
-	AppDescription = "Gather what's important to you"
+	AppDescription = "Collect. Curate. Consume."
 	// ConfigEnvPrefix defines the environment variable prefix for reading
 	// server configuration from the environment.
 	ConfigEnvPrefix = "FORAGD_"
@@ -40,11 +40,7 @@ var Version = "_UNKNOWN_"
 // Environment is the environment in which the app is running (i.e., production, development).
 var Environment string
 
-var configSrc *koanf.Koanf
-
-// Init initializes the config store. This will load the global (app) config
-// values and set up a config backend that other components can use via the Load
-// method. This only happens once.
+// Init ensures the application will have appropriate Version and Envrionment vars set.
 var Init = sync.OnceValue(func() error {
 	// Set the version. This *must* be set to a valid value.
 	if Version == "_UNKNOWN_" {
@@ -54,14 +50,14 @@ var Init = sync.OnceValue(func() error {
 	// Set the environment.
 	Environment = os.Getenv("FORAGD_ENVIRONMENT")
 
-	// Initialise the config  object.
-	configSrc = koanf.New(".")
-
 	return nil
 })
 
-// Load will populate the given cfg object with values from environment variables that match the given prefix.
-func Load(envPrefix string, cfg any) error {
+// Load will load a config via environment variables with the given prefix into an object of the given type.
+func Load[T any](envPrefix string) (T, error) {
+	var cfg T
+	// Initialise the config  object.
+	configSrc := koanf.New(".")
 	// Load environment variables.
 	err := configSrc.Load(env.Provider(".", env.Opt{
 		Prefix: envPrefix,
@@ -79,7 +75,7 @@ func Load(envPrefix string, cfg any) error {
 		},
 	}), nil)
 	if err != nil {
-		return fmt.Errorf("unable to load config: %w", err)
+		return cfg, fmt.Errorf("unable to load config: %w", err)
 	}
 	// Unmarshal config, overwriting defaults.
 	err = configSrc.Unmarshal(
@@ -87,8 +83,8 @@ func Load(envPrefix string, cfg any) error {
 		&cfg,
 	)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+		return cfg, fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 
-	return nil
+	return cfg, nil
 }
