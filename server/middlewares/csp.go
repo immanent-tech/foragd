@@ -69,7 +69,7 @@ type CSP struct {
 	PrefetchSrc []string `koanf:"prefetchsrc"`
 }
 
-var hdr string
+var cspHeader string
 
 // LoadConfigOnce loads the auth0 configuration and ensures this is only done
 // one time, no matter how many times it is called.
@@ -141,7 +141,7 @@ var loadCSP = sync.OnceValue(func() error {
 		policy.WriteString("worker-src " + strings.Join(csp.WorkerSrc, " ") + "; ")
 	}
 
-	hdr = strings.TrimSpace(policy.String())
+	cspHeader = strings.TrimSpace(policy.String())
 
 	return nil
 })
@@ -154,7 +154,7 @@ func ContentSecurityPolicy(next http.Handler) http.Handler {
 			return
 		}
 
-		res.Header().Add("Content-Security-Policy", hdr)
+		res.Header().Add("Content-Security-Policy", cspHeader)
 		res.Header().Add("Access-Control-Allow-Origin", "https://auth.foragd.app")
 
 		next.ServeHTTP(res, req)
