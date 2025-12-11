@@ -6,11 +6,8 @@ package middlewares
 import (
 	"log/slog"
 	"net/http"
-	"slices"
-	"strings"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -19,26 +16,10 @@ import (
 	"github.com/immanent-tech/foragd/server/session"
 )
 
-// UnprotectedRoutes are routes that DO NOT require authentication. All other routes are assumed to require authentication.
-var UnprotectedRoutes = []string{"/login", "/tos", "/policies", "/img-proxy", "/content"}
-
 // RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
 func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			routePattern := chi.RouteContext(req.Context()).RoutePattern()
-			// Landing page always unauthenticated.
-			if routePattern == "/" {
-				next.ServeHTTP(res, req)
-			}
-			// Continue for unprotected routes.
-			if slices.ContainsFunc(
-				UnprotectedRoutes,
-				func(route string) bool { return strings.HasPrefix(routePattern, route) },
-			) {
-				next.ServeHTTP(res, req)
-				return
-			}
 			ctx := req.Context()
 			profile, ok := session.Manager.Get(ctx, "profile").(auth0.UserProfile)
 			switch {
