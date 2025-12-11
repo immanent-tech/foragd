@@ -18,7 +18,7 @@ const (
 	// ConfigEnvPrefix is the prefix applied to environment variables for configuring Stripe.
 	ConfigEnvPrefix = config.ConfigEnvPrefix + "STRIPE_"
 	// trialPeriodDays is the number of days a trial of an account lasts.
-	trialPeriodDays  = 14
+	trialPeriodDays  = 90
 	trialEndBehavior = "pause"
 )
 
@@ -32,9 +32,9 @@ type Config struct {
 	WebHookSecret string `koanf:"webhooksecret" validate:"required"`
 }
 
-// LoadConfigOnce loads the Stripe configuration and ensures this is only done
+// loadConfigOnce loads the Stripe configuration and ensures this is only done
 // one time, no matter how many times it is called.
-var LoadConfigOnce = sync.OnceValue(func() error {
+var loadConfigOnce = sync.OnceValue(func() error {
 	err := config.Load(ConfigEnvPrefix, cfg)
 	if err != nil {
 		return fmt.Errorf("load environment variables: %w", err)

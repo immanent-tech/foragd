@@ -47,7 +47,7 @@ type PortalSession struct {
 
 // NewCheckoutSession creates a new checkout session, that is used to allow a user to purchase a subscription plan.
 func NewCheckoutSession(user *models.User, planID string) (*Checkout, error) {
-	if err := LoadConfigOnce(); err != nil {
+	if err := loadConfigOnce(); err != nil {
 		return nil, fmt.Errorf("load stripe config: %w", err)
 	}
 
@@ -132,7 +132,7 @@ func NewPortalSession(sessionID string) (*PortalSession, error) {
 //
 // https://docs.stripe.com/billing/subscriptions/cancel?dashboard-or-api=api#cancel-at-the-end-of-the-current-billing-period
 func CancelSubscription(user *models.User) error {
-	err := LoadConfigOnce()
+	err := loadConfigOnce()
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
@@ -150,7 +150,7 @@ func CancelSubscription(user *models.User) error {
 //
 // https://docs.stripe.com/billing/subscriptions/cancel?dashboard-or-api=api#reactivating-canceled-subscriptions
 func StopPendingCancellation(user *models.User) error {
-	err := LoadConfigOnce()
+	err := loadConfigOnce()
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
