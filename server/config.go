@@ -50,6 +50,8 @@ type Config struct {
 	ReadTimeout  time.Duration `koanf:"read_timeout"`
 	WriteTimeout time.Duration `koanf:"write_timeout"`
 	IdleTimeout  time.Duration `koanf:"idle_timeout"`
+	BlockSignup  bool          `koanf:"blocksignup"`
+	BlockLogin   bool          `koanf:"blocklogin"`
 	ImgProxy     ImgProxyConfig
 }
 
@@ -59,9 +61,9 @@ type ImgProxyConfig struct {
 	BaseURL string `koanf:"baseurl" validate:"required,url"`
 }
 
-// LoadConfigOnce loads the server configuration and ensures this is only done
+// loadConfigOnce loads the server configuration and ensures this is only done
 // one time, no matter how many times it is called.
-var LoadConfigOnce = sync.OnceValue(func() error {
+var loadConfigOnce = sync.OnceValue(func() error {
 	// Load server config.
 	err := config.Load(serverConfigEnvPrefix, cfg)
 	if err != nil {

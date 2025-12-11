@@ -41,7 +41,7 @@ type Server struct {
 func NewServer(ctx context.Context) (Server, error) {
 	svr := Server{}
 	// Load the server config.
-	if err := LoadConfigOnce(); err != nil {
+	if err := loadConfigOnce(); err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
 	// Set up handlers api.
@@ -50,7 +50,7 @@ func NewServer(ctx context.Context) (Server, error) {
 		return svr, fmt.Errorf("unable to set up handlers api: %w", err)
 	}
 	// Set up routes.
-	router := svr.setupRoutes(api)
+	router := svr.setupRoutes(ctx, api)
 
 	csrfRouter := nosurf.New(router)
 	csrfRouter.SetFailureHandler(handlers.CSRFError())
@@ -141,7 +141,7 @@ func (s *Server) setupAPI(ctx context.Context) (*handlers.API, error) {
 }
 
 //nolint:funlen
-func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
+func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mux {
 	rateLimiter := middlewares.NewRateLimiter()
 
 	// Set up a new chi router.
@@ -185,9 +185,17 @@ func (s *Server) setupRoutes(handler *handlers.API) *chi.Mux {
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
 		)
-		r.Get("/signup", handlers.Login())
-		r.Get("/login", handlers.Login())
-		r.Get("/login/callback", handlers.LoginCallback(handler.Elastic))
+		if !cfg.BlockSignup {
+			r.Get("/signup", handlers.Login())
+		} else {
+			slogctx.FromCtx(ctx).Warn("Signups have been BLOCKED by configuration.")
+		}
+		if !cfg.BlockLogin {
+			r.Get("/login", handlers.Login())
+			r.Get("/login/callback", handlers.LoginCallback(handler.Elastic))
+		} else {
+			slogctx.FromCtx(ctx).Warn("Logins have been BLOCKED by configuration.")
+		}
 		r.Get("/logout", handlers.Logout())
 	})
 
