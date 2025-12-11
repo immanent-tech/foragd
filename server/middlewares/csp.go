@@ -153,10 +153,7 @@ func ContentSecurityPolicy(next http.Handler) http.Handler {
 			http.Error(res, fmt.Sprintf("failed to load CSP: %v", err), http.StatusInternalServerError)
 			return
 		}
-
 		res.Header().Add("Content-Security-Policy", cspHeader)
-		res.Header().Add("Access-Control-Allow-Origin", "https://auth.foragd.app")
-
 		next.ServeHTTP(res, req)
 	})
 }

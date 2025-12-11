@@ -157,6 +157,7 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 		middlewares.Logger(),
 		middlewares.SetupCORS(),
 		middlewares.ContentSecurityPolicy,
+		middlewares.Security,
 		middlewares.Etag,
 		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
