@@ -4,13 +4,15 @@
 package elastic
 
 import (
-	"context"
+	"crypto/tls"
 	"fmt"
+	"net"
+	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/validation"
 
@@ -20,6 +22,34 @@ import (
 const (
 	elasticConfigEnvPrefix = config.ConfigEnvPrefix + "ELASTIC_"
 )
+
+var defaultTransportConfig = &http.Transport{
+	ResponseHeaderTimeout: 5 * time.Second,
+	IdleConnTimeout:       120 * time.Second,
+	MaxIdleConnsPerHost:   10,
+	DialContext:           (&net.Dialer{Timeout: 10 * time.Second}).DialContext,
+	TLSClientConfig: &tls.Config{
+		// Only use curves which have assembly implementations
+		CurvePreferences: []tls.CurveID{
+			tls.CurveP256,
+			tls.X25519, // Go 1.8 only
+		},
+		MinVersion: tls.VersionTLS12,
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305, // Go 1.8 only
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,   // Go 1.8 only
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+
+			// Best disabled, as they don't provide Forward Secrecy,
+			// but might be necessary for some clients
+			// tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+			// tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+		},
+	},
+}
 
 // Define default server configuration options.
 var cfg = &Config{
@@ -51,45 +81,40 @@ type ConfigProduction struct {
 
 // loadConfigOnce loads the elasticsearch configuration and ensures this is done
 // one-time only, no matter how many times it is called.
-func loadConfigOnce(ctx context.Context) (*elasticsearch.Config, error) {
-	return sync.OnceValues(func() (*elasticsearch.Config, error) {
-		var err error
-		switch config.Environment {
-		case "development":
-			var c ConfigDevelopment
-			c, err = config.Load[ConfigDevelopment](elasticConfigEnvPrefix)
-			if err != nil {
-				return nil, fmt.Errorf("unable to load development config: %w", err)
-			}
-			cfg.Development = c
-		case "production":
-			var c ConfigProduction
-			c, err = config.Load[ConfigProduction](elasticConfigEnvPrefix)
-			if err != nil {
-				return nil, fmt.Errorf("unable to load production config: %w", err)
-			}
-			cfg.Production = c
-		}
-		clientConfig, err := genConfig(config.Environment)
+var loadConfigOnce = sync.OnceValues(func() (*elasticsearch.Config, error) {
+	var err error
+	switch config.Environment {
+	case "development":
+		var c ConfigDevelopment
+		c, err = config.Load[ConfigDevelopment](elasticConfigEnvPrefix)
 		if err != nil {
-			return nil, fmt.Errorf("unable to generate config: %w", err)
+			return nil, fmt.Errorf("unable to load development config: %w", err)
 		}
-		switch config.Environment {
-		case "development":
-			err = validation.Validate.Struct(cfg.Development)
-		case "production":
-			err = validation.Validate.Struct(cfg.Production)
-		}
+		cfg.Development = c
+	case "production":
+		var c ConfigProduction
+		c, err = config.Load[ConfigProduction](elasticConfigEnvPrefix)
 		if err != nil {
-			return nil, fmt.Errorf("config validation failed: %w", err)
+			return nil, fmt.Errorf("unable to load production config: %w", err)
 		}
+		cfg.Production = c
+	}
+	clientConfig, err := genConfig(config.Environment)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate config: %w", err)
+	}
+	switch config.Environment {
+	case "development":
+		err = validation.Validate.Struct(cfg.Development)
+	case "production":
+		err = validation.Validate.Struct(cfg.Production)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("config validation failed: %w", err)
+	}
 
-		slogctx.FromCtx(ctx).Debug("Loaded elastic config.")
-
-		return clientConfig, nil
-	},
-	)()
-}
+	return clientConfig, nil
+})
 
 // genConfig will generate an Elasticsearch client config, required by the
 // underlying package for connecting to an Elasticsearch cluster.

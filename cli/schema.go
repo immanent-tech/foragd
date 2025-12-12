@@ -28,7 +28,7 @@ func (r *UpdateCmd) Run(opts *UpdateCmd) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	// Load the Elastic backend
-	elasticClient, err := elastic.Connect(ctx)
+	elasticClient, err := elastic.NewConnection()
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}
@@ -49,7 +49,7 @@ func (r *MigrateCmd) Run(opts *MigrateCmd) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	// Load the Elastic backend
-	elasticClient, err := elastic.Connect(ctx)
+	elasticClient, err := elastic.NewConnection()
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}

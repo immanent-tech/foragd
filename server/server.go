@@ -126,7 +126,7 @@ func (s *Server) Start(ctx context.Context) error {
 // SetupAPI creates the object containing the various backend APIs needed by handlers.
 func (s *Server) setupAPI(ctx context.Context) (*handlers.API, error) {
 	// Load the Elastic backend
-	elasticAPI, err := elastic.Connect(ctx)
+	elasticAPI, err := elastic.NewConnection()
 	if err != nil {
 		return nil, fmt.Errorf("unable to set up elastic api: %w", err)
 	}
@@ -158,12 +158,12 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 		middlewares.SetupCORS(),
 		middlewares.ContentSecurityPolicy,
 		middlewares.Security,
-		middlewares.Etag,
-		middleware.StripSlashes,
 		middlewares.SaveCSRFToken,
+		middlewares.Etag,
 		middlewares.RateLimit(rateLimiter),
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
 		middleware.Compress(5, "text/html", "text/css", "text/javascript", "font/woff2"),
+		middleware.StripSlashes,
 	)
 
 	// Error handling.

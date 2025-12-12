@@ -44,9 +44,9 @@ var Manager *manager
 // Run starts the scheduler manager.
 func Run(ctx context.Context) error {
 	// Connect to elastic and setup context.
-	elasticAPI, err := elastic.Connect(ctx)
+	elasticAPI, err := elastic.NewConnection()
 	if err != nil {
-		return fmt.Errorf("failed to start scheduler: %w", err)
+		return fmt.Errorf("new elastic connection: %w", err)
 	}
 	ctx = elastic.SetupIndexAliases(ctx)
 	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
@@ -55,7 +55,7 @@ func Run(ctx context.Context) error {
 	// Create distributed queue instance.
 	jobQueue, err := queue.NewJobQueue(ctx, elasticAPI)
 	if err != nil {
-		return fmt.Errorf("failed to start scheduler: %w", err)
+		return fmt.Errorf("new job queue: %w", err)
 	}
 
 	// Create scheduler instance.
@@ -66,7 +66,7 @@ func Run(ctx context.Context) error {
 		// quartz.WithLogger(logger),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to start scheduler: %w", err)
+		return fmt.Errorf("new scheduler: %w", err)
 	}
 
 	Manager = &manager{
