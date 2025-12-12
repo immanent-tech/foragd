@@ -31,7 +31,8 @@
         "dz4k.vscode-hyperscript-org",
         "DotJoshJohnson.xml",
         "redhat.vscode-xml",
-        "davidlday.languagetool-linter"
+        "davidlday.languagetool-linter",
+        "nize.oklch-preview"
       ]
     }
   }
