@@ -7,13 +7,11 @@ package session
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -24,7 +22,7 @@ const (
 	sessionLifetime = 24 * time.Hour
 )
 
-var Manager *scs.SessionManager
+var manager *scs.SessionManager
 
 // NewSessionManager creates a new session manager.
 func NewSessionManager(ctx context.Context, api *elastic.API) error {
@@ -34,29 +32,38 @@ func NewSessionManager(ctx context.Context, api *elastic.API) error {
 		return fmt.Errorf("failed to start session manager: %w", err)
 	}
 	// Set up the session manager.
-	Manager = scs.New()
-	Manager.Store = sessionStore
-	Manager.Lifetime = sessionLifetime
-	Manager.Cookie.Name = strings.ToLower(config.AppName) + "_session"
-	Manager.Cookie.Secure = true
-	Manager.Cookie.HttpOnly = true
-	Manager.Cookie.SameSite = http.SameSiteLaxMode
+	manager = scs.New()
+	manager.Store = sessionStore
+	manager.Lifetime = sessionLifetime
+	manager.Cookie.Name = strings.ToLower(config.AppName) + "_session"
+	manager.Cookie.Secure = true
+	manager.Cookie.HttpOnly = true
+	manager.Cookie.SameSite = http.SameSiteLaxMode
 	return nil
 }
 
-// SaveToSession saves the given object to the session storage with the given key.
-func SaveToSession[T any](ctx context.Context, key string, obj T) {
-	Manager.Put(ctx, key, obj)
+// Save saves the given object to the session storage with the given key.
+func Save[T any](ctx context.Context, key string, obj T) {
+	manager.Put(ctx, key, obj)
 }
 
-// RestoreFromSession retrieves an object from the session storage with the given key. If the object cannot be
+// Restore retrieves an object from the session storage with the given key. If the object cannot be
 // retrieved, then the defaultFunc is used to generate a new default value.
-func RestoreFromSession[T any](ctx context.Context, key string, defaultFunc func() T) T {
-	value, ok := Manager.Get(ctx, key).(T)
+func Restore[T any](ctx context.Context, key string) (T, error) {
+	value, ok := manager.Get(ctx, key).(T)
 	if !ok {
-		slogctx.FromCtx(ctx).Debug("Invalid session data found.",
-			slog.String("error", fmt.Sprintf("wanted %T, got %T", value, Manager.Get(ctx, key))))
-		return defaultFunc()
+		return value, fmt.Errorf("unable to restore session data as %T", value)
 	}
-	return value
+	return value, nil
+}
+
+func Clear(ctx context.Context) error {
+	if err := manager.Destroy(ctx); err != nil {
+		return fmt.Errorf("clear session: %w", err)
+	}
+	return nil
+}
+
+func LoadAndSave(next http.Handler) http.Handler {
+	return manager.LoadAndSave(next)
 }

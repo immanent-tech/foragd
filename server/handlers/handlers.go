@@ -289,7 +289,10 @@ func parseFilters(next http.Handler) http.Handler {
 		switch {
 		case err != nil:
 			if errors.Is(err, forms.ErrNoFormData) {
-				restored := session.RestoreFromSession(ctx, "filters_"+req.URL.Path, models.NewListDisplayFilters)
+				restored, err := session.Restore[models.ListDisplayFilters](ctx, "filters_"+req.URL.Path)
+				if err != nil {
+					restored = models.NewListDisplayFilters()
+				}
 				filters = &restored
 				ctx = models.PageFiltersToCtx(req.Context(), req.URL.Path, filters)
 				slogctx.FromCtx(ctx).Debug("No form data. Using filters from session.",
@@ -297,18 +300,18 @@ func parseFilters(next http.Handler) http.Handler {
 			} else {
 				slogctx.FromCtx(ctx).Debug("Error parsing filters. Using default filters.")
 				newFilters := models.NewListDisplayFilters()
-				session.SaveToSession(ctx, "filters_"+req.URL.Path, newFilters)
+				session.Save(ctx, "filters_"+req.URL.Path, newFilters)
 				ctx = models.PageFiltersToCtx(req.Context(), req.URL.Path, filters)
 			}
 		case !valid:
 			slogctx.FromCtx(ctx).Debug("Invalid filters. Using default.")
 			newFilters := models.NewListDisplayFilters()
-			session.SaveToSession(ctx, "filters_"+req.URL.Path, newFilters)
+			session.Save(ctx, "filters_"+req.URL.Path, newFilters)
 			ctx = models.PageFiltersToCtx(req.Context(), req.URL.Path, filters)
 		default:
 			slogctx.FromCtx(ctx).Debug("Saving filters.",
 				slog.String("filters", filters.QueryString()))
-			session.SaveToSession(ctx, "filters_"+req.URL.Path, *filters)
+			session.Save(ctx, "filters_"+req.URL.Path, *filters)
 			ctx = models.PageFiltersToCtx(req.Context(), req.URL.Path, filters)
 		}
 		next.ServeHTTP(res, req.WithContext(ctx))
@@ -332,6 +335,22 @@ func setCacheControl(next http.Handler) http.Handler {
 		res.Header().Set("Cache-Control", "private, max-age="+updateFreq+", must-revalidate")
 		next.ServeHTTP(res, req)
 	})
+}
+
+// WatchList handles watching a list of object for any updates and rendering a notification to the user to refresh the page.
+func WatchList(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+		query, err := api.BuildItemsQuery(req.Context(), filters)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
+				slog.Any("error", err))
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		// Watch list for updates.
+		watchForUpdates(api, query).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
 //nolint:gocognit

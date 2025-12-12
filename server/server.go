@@ -37,6 +37,10 @@ type Server struct {
 	*http.Server
 }
 
+type APIs struct {
+	elastic *elastic.API
+}
+
 // NewServer sets up a new server.
 func NewServer(ctx context.Context) (Server, error) {
 	svr := Server{}
@@ -184,7 +188,7 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 	router.Group(func(r chi.Router) {
 		r.Use(
 			middlewares.SetupElastic(),
-			session.Manager.LoadAndSave,
+			session.LoadAndSave,
 		)
 		if !cfg.BlockSignup {
 			r.Get("/signup", handlers.Login())
@@ -208,7 +212,7 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 		r.Use(
 			middlewares.SetupHTMX,
 			middlewares.SetupElastic(),
-			session.Manager.LoadAndSave,
+			session.LoadAndSave,
 			middlewares.RequireUserAuth(handler.DataAPI()),
 			// middleware.NoCache,
 		)

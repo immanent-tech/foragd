@@ -692,11 +692,16 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Try to find a selected plan id if it exists, from either the request query params or current session data.
 		var planID string
-		switch {
-		case req.URL.Query().Get(models.ParamPlanID) != "":
+		if req.URL.Query().Get(models.ParamPlanID) != "" {
 			planID = req.URL.Query().Get(models.ParamPlanID)
-		case session.RestoreFromSession(req.Context(), models.ParamPlanID, func() string { return "" }) != "":
-			planID = session.RestoreFromSession(req.Context(), models.ParamPlanID, func() string { return "" })
+		} else if p, err := session.Restore[string](req.Context(), models.ParamPlanID); err != nil {
+			planID = p
+		} else {
+			renderPage(templates.ExternalError(models.NewErrorMessage(
+				"Unable to process checkout",
+				"This might be a temporary error, please try again.",
+			))).ServeHTTP(res, req)
+			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
 		ctx := templates.PageTitleToCtx(req.Context(), "Choose a Subscription Plan")

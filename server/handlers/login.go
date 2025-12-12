@@ -50,14 +50,14 @@ func Login() http.HandlerFunc {
 		case "/signup":
 			// Retrieve and save the selected plan id into the session for later use.
 			planID := req.URL.Query().Get(models.ParamPlanID)
-			session.SaveToSession(ctx, models.ParamPlanID, planID)
+			session.Save(ctx, models.ParamPlanID, planID)
 			authURL = auth0.AuthClient.AuthCodeURL(state,
 				oauth2.SetAuthURLParam("screen_hint", "signup"),
 			)
 		case "/login":
 			authURL = auth0.AuthClient.AuthCodeURL(state)
 		}
-		session.Manager.Put(ctx, "state", state)
+		session.Save(ctx, "state", state)
 		slogctx.FromCtx(ctx).Debug("Authentication required, redirecting to provider.",
 			slog.String("url", auth0.AuthClient.AuthCodeURL(state)),
 		)
@@ -71,7 +71,14 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		ctx := templates.PageTitleToCtx(req.Context(), "Login")
 
-		if req.FormValue("state") != session.Manager.GetString(ctx, "state") {
+		state, err := session.Restore[string](ctx, "state")
+		if err != nil {
+			renderPage(
+				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
+			).ServeHTTP(res, req.WithContext(ctx))
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		if req.FormValue("state") != state {
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")),
 			).ServeHTTP(res, req.WithContext(ctx))
@@ -104,8 +111,8 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
-		session.Manager.Put(ctx, "access_token", token.AccessToken)
-		session.Manager.Put(ctx, "profile", profile)
+		session.Save(ctx, "access_token", token.AccessToken)
+		session.Save(ctx, "profile", profile)
 
 		user, err := api.FindUserByExternalID(ctx, profile.GetID())
 		switch {
