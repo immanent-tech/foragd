@@ -21,8 +21,13 @@ var mgmt *management.Management
 // LoadManagementAPI loads a connection to the Auth0 management API.
 var LoadManagementAPI = sync.OnceValue(func() error {
 	var err error
+	err = loadConfigOnce()
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+
 	mgmt, err = management.New(
-		cfg.Domain,
+		cfg.MgmtDomain,
 		management.WithClientCredentials(
 			context.Background(),
 			cfg.ClientID,
@@ -30,7 +35,7 @@ var LoadManagementAPI = sync.OnceValue(func() error {
 		),
 	)
 	if err != nil {
-		return fmt.Errorf("auth0: management api backend: %w", err)
+		return fmt.Errorf("new management api connection: %w", err)
 	}
 	return nil
 })

@@ -32,7 +32,7 @@ var AuthClient *Authenticator
 // perform initialisation once (so it can be lazily loaded by calling it before any Auth0 actions).
 var InitAuthenticator = func(ctx context.Context) error {
 	err := sync.OnceValue(func() error {
-		err := LoadConfigOnce()
+		err := loadConfigOnce()
 		if err != nil {
 			return fmt.Errorf("unable to create authenticator: %w", err)
 		}

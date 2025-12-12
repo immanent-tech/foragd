@@ -21,14 +21,15 @@ var cfg Config
 // Config structure.
 type Config struct {
 	Domain       string `koanf:"domain"       validate:"required"`
+	MgmtDomain   string `koanf:"mgmtdomain"   validate:"required"`
 	ClientID     string `koanf:"clientid"     validate:"required"`
 	ClientSecret string `koanf:"clientsecret" validate:"required"`
 	CallbackURL  string `koanf:"callbackurl"  validate:"required,url"`
 }
 
-// LoadConfigOnce loads the auth0 configuration and ensures this is only done
+// loadConfigOnce loads the auth0 configuration and ensures this is only done
 // one time, no matter how many times it is called.
-var LoadConfigOnce = sync.OnceValue(func() error {
+var loadConfigOnce = sync.OnceValue(func() error {
 	var err error
 	cfg, err = config.Load[Config](ConfigEnvPrefix)
 	if err != nil {
