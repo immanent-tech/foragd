@@ -15,7 +15,11 @@ import (
 const (
 	serverConfigEnvPrefix   = config.ConfigEnvPrefix
 	imgProxyConfigEnvPrefix = config.ConfigEnvPrefix + "IMGPROXY_"
+
+	defaultCompressionLevel = 5
 )
+
+var compressMimetypes = []string{"text/html", "text/css", "text/javascript", "font/woff2"}
 
 var cfg Config
 

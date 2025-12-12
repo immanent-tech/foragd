@@ -31,7 +31,7 @@ import (
 )
 
 // ShowSettings handles retrieving and rendering the user settings page.
-func (a *API) ShowSettings() http.HandlerFunc {
+func ShowSettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		ctx := templates.PageTitleToCtx(req.Context(), "Settings")
 		renderPage(
@@ -265,7 +265,7 @@ func ChangePassword() http.HandlerFunc {
 }
 
 // SetTheme handles setting a theme selected by the user.
-func (a *API) SetTheme() http.HandlerFunc {
+func SetTheme(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		theme := chi.URLParam(req, "theme")
 		user := models.UserFromCtx(req.Context())
@@ -280,7 +280,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
-		if err := a.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
+		if err := api.UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"settings": settings,
 		}); err != nil {
 			renderPartial(
@@ -299,7 +299,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 }
 
 // AddFavoriteSubscription handles adding a new favorite subscription for a user.
-func (a *API) AddFavoriteSubscription() http.HandlerFunc {
+func AddFavoriteSubscription(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		if err := validation.Validate.Var(id, "required,startswith=sub_"); err != nil {
@@ -312,7 +312,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			)
 		}
 		// Get the subscription state.
-		if err := a.Elastic.UpdateFavoriteSubscription(req.Context(), id, true); err != nil {
+		if err := api.UpdateFavoriteSubscription(req.Context(), id, true); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Unable to add favorite subscription",
@@ -339,7 +339,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 }
 
 // RemoveFavoriteSubscription handles removing a favorite subscription for a user.
-func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
+func RemoveFavoriteSubscription(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		if err := validation.Validate.Var(id, "required,startswith=sub_"); err != nil {
@@ -351,7 +351,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
-		if err := a.Elastic.UpdateFavoriteSubscription(req.Context(), id, false); err != nil {
+		if err := api.UpdateFavoriteSubscription(req.Context(), id, false); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Unable to remove favorite subscription",
@@ -383,7 +383,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 }
 
 // AddFavoriteArticle handles adding a new favorite article for a user.
-func (a *API) AddFavoriteArticle() http.HandlerFunc {
+func AddFavoriteArticle(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(id, "required,startswith=item_"); err != nil {
@@ -409,7 +409,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 				http.StatusInternalServerError,
 			)
 		}
-		if err := a.Elastic.UpdateFavoriteArticle(req.Context(), user, id, true); err != nil {
+		if err := api.UpdateFavoriteArticle(req.Context(), user, id, true); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Unable to add favorite article",
@@ -442,7 +442,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 }
 
 // RemoveFavoriteArticle handles removing a favorite article for a user.
-func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
+func RemoveFavoriteArticle(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(id, "required,startswith=item_"); err != nil {
@@ -468,7 +468,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 				http.StatusInternalServerError,
 			)
 		}
-		if err := a.Elastic.UpdateFavoriteArticle(req.Context(), user, id, false); err != nil {
+		if err := api.UpdateFavoriteArticle(req.Context(), user, id, false); err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Unable to remove favorite article",

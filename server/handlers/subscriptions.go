@@ -766,7 +766,7 @@ func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
 }
 
 // ImportSubscriptions handles assisting the user with importing subscriptions from an external source.
-func (a *API) ImportSubscriptions() http.HandlerFunc {
+func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		// GET: show import modal.
@@ -815,7 +815,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 			var wg sync.WaitGroup
 			for request := range slices.Values(requests) {
 				wg.Go(func() {
-					a.Elastic.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
+					api.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
 				})
 			}
 			// Wait for all request processing to complete.
@@ -829,7 +829,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				results = append(results, &result)
 			}
 			// Create the subscriptions for any results that don't already indicate an error.
-			err = a.Elastic.CreateFeedSubscriptions(req.Context(), slices.Collect(models.FilterSlice(results,
+			err = api.CreateFeedSubscriptions(req.Context(), slices.Collect(models.FilterSlice(results,
 				func(r *models.AddFeedSubscriptionResult) bool {
 					if r.Message.Status != models.UserMessageStatusError &&
 						r.Message.Status != models.UserMessageStatusWarning {
@@ -866,7 +866,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 }
 
 // ExportSubscriptions handles configuring and performing an export of user subscriptions.
-func (a *API) ExportSubscriptions() http.HandlerFunc {
+func ExportSubscriptions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
 		ctx := templates.PageTitleToCtx(req.Context(), "Export subscriptions")
@@ -894,7 +894,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 		case chi.RouteContext(ctx).RoutePattern() == "/user/export/opml":
 			// Get all subscriptions.
 			filters := models.NewListDisplayFilters()
-			subscriptions, _, err := a.Elastic.FilterSubscriptions(ctx, &filters, "")
+			subscriptions, _, err := api.FilterSubscriptions(ctx, &filters, "")
 			if err != nil {
 				res.Header().Add(htmx.HeaderReswap, "none")
 				msg := models.NewErrorMessage(

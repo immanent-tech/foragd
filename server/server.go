@@ -31,15 +31,17 @@ import (
 	"github.com/immanent-tech/foragd/web"
 )
 
-// Server represents the application server. It contains the underlying server object, the handlers, and embedded FS
-// for static content.
+// Server represents the application server.
 type Server struct {
 	*http.Server
 }
 
+// APIs contains backend APIs used by the server or handlers/middlewares.
 type APIs struct {
 	elastic *elastic.API
 }
+
+var apis APIs
 
 // NewServer sets up a new server.
 func NewServer(ctx context.Context) (Server, error) {
@@ -48,13 +50,22 @@ func NewServer(ctx context.Context) (Server, error) {
 	if err := loadConfigOnce(); err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
-	// Set up handlers api.
-	api, err := svr.setupAPI(ctx)
+
+	var err error
+
+	// Load the Elastic backend
+	apis.elastic, err = elastic.NewConnection()
 	if err != nil {
-		return svr, fmt.Errorf("unable to set up handlers api: %w", err)
+		return svr, fmt.Errorf("unable to set up elastic api: %w", err)
 	}
+	// Set up the session manager.
+	err = session.NewSessionManager(apis.elastic)
+	if err != nil {
+		return svr, fmt.Errorf("unable to set up session api: %w", err)
+	}
+
 	// Set up routes.
-	router := svr.setupRoutes(ctx, api)
+	router := svr.setupRoutes(ctx)
 
 	csrfRouter := nosurf.New(router)
 	csrfRouter.SetFailureHandler(handlers.CSRFError())
@@ -127,25 +138,8 @@ func (s *Server) Start(ctx context.Context) error {
 	return nil
 }
 
-// SetupAPI creates the object containing the various backend APIs needed by handlers.
-func (s *Server) setupAPI(ctx context.Context) (*handlers.API, error) {
-	// Load the Elastic backend
-	elasticAPI, err := elastic.NewConnection()
-	if err != nil {
-		return nil, fmt.Errorf("unable to set up elastic api: %w", err)
-	}
-	// Set up the session manager.
-	err = session.NewSessionManager(elasticAPI)
-	if err != nil {
-		return nil, fmt.Errorf("unable to set up session api: %w", err)
-	}
-	return &handlers.API{
-		Elastic: elasticAPI,
-	}, nil
-}
-
 //nolint:funlen
-func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mux {
+func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	rateLimiter := middlewares.NewRateLimiter()
 
 	// Set up a new chi router.
@@ -166,7 +160,7 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 		middlewares.Etag,
 		middlewares.RateLimit(rateLimiter),
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
-		middleware.Compress(5, "text/html", "text/css", "text/javascript", "font/woff2"),
+		middleware.Compress(defaultCompressionLevel, compressMimetypes...),
 		middleware.StripSlashes,
 	)
 
@@ -197,7 +191,7 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 		}
 		if !cfg.BlockLogin {
 			r.Get("/login", handlers.Login())
-			r.Get("/login/callback", handlers.LoginCallback(handler.Elastic))
+			r.Get("/login/callback", handlers.LoginCallback(apis.elastic))
 		} else {
 			slogctx.FromCtx(ctx).Warn("Logins have been BLOCKED by configuration.")
 		}
@@ -205,7 +199,7 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 	})
 
 	// Handle incoming webhook requests from Stripe.
-	router.With(middlewares.SetupElastic()).Post("/checkout/webhooks", stripe.HandleWebhook(handler.Elastic))
+	router.With(middlewares.SetupElastic()).Post("/checkout/webhooks", stripe.HandleWebhook(apis.elastic))
 
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {
@@ -213,7 +207,7 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 			middlewares.SetupHTMX,
 			middlewares.SetupElastic(),
 			session.LoadAndSave,
-			middlewares.RequireUserAuth(handler.DataAPI()),
+			middlewares.RequireUserAuth(apis.elastic),
 			// middleware.NoCache,
 		)
 		// Payment routes (Stripe).
@@ -223,58 +217,58 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 			r.Get("/success", handlers.UserAccountSuccess())
 			r.Get("/cancel", handlers.Landing())
 		})
-		r.Get("/home", handlers.Home(handler.Elastic))
-		r.Get("/home/updates", handlers.WatchHome(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.GetSearchSuggestions(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/search", handlers.GetSearchResults(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Post("/search/paginate", handlers.GetSearchResults(handler.Elastic))
+		r.Get("/home", handlers.Home(apis.elastic))
+		r.Get("/home/updates", handlers.WatchHome(apis.elastic))
+		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.GetSearchSuggestions(apis.elastic))
+		r.With(middlewares.RequireHTMX).Post("/search", handlers.GetSearchResults(apis.elastic))
+		r.With(middlewares.RequireHTMX).Post("/search/paginate", handlers.GetSearchResults(apis.elastic))
 		r.With(middlewares.RequireHTMX).
-			Post("/search/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions(handler.Elastic))
+			Post("/search/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions(apis.elastic))
 		r.With(middlewares.RequireHTMX).Post("/search/subscription", handlers.AddSubscriptionFilter())
-		r.Get("/search", handlers.GetSearchResults(handler.Elastic))
-		r.Get("/search/updates", handlers.WatchSearchResults(handler.Elastic))
+		r.Get("/search", handlers.GetSearchResults(apis.elastic))
+		r.Get("/search/updates", handlers.WatchSearchResults(apis.elastic))
 
 		// Objects.
-		r.Get("/view/{object}/{id}", handlers.ViewObject(handler.Elastic))
-		r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/similar", handlers.FindSimilar(handler.Elastic))
-		// r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/share", handlers.ShareObject(handler.Elastic))
+		r.Get("/view/{object}/{id}", handlers.ViewObject(apis.elastic))
+		r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/similar", handlers.FindSimilar(apis.elastic))
+		// r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/share", handlers.ShareObject(apis.elastic))
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues())
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues())
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
-			r.Get("/", handlers.ListSubscriptions(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/", handlers.ListSubscriptions(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateSubscriptions(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkSubscriptions(handler.Elastic))
-			r.Get("/updates", handlers.WatchList(handler.Elastic))
+			r.Get("/", handlers.ListSubscriptions(apis.elastic))
+			r.With(middlewares.RequireHTMX).Post("/", handlers.ListSubscriptions(apis.elastic))
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateSubscriptions(apis.elastic))
+			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkSubscriptions(apis.elastic))
+			r.Get("/updates", handlers.WatchList(apis.elastic))
 		})
 		r.With(middlewares.RequireHTMX).
-			Post("/mark/subscription/{subscription_id}/{mark}", handlers.MarkSubscription(handler.Elastic))
+			Post("/mark/subscription/{subscription_id}/{mark}", handlers.MarkSubscription(apis.elastic))
 		r.With(middlewares.RequireHTMX).
-			Post("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
+			Post("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(apis.elastic))
 		r.With(middlewares.RequireHTMX).
-			Delete("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(handler.Elastic))
+			Delete("/remove/subscription/{subscription_id}", handlers.RemoveSubscription(apis.elastic))
 		r.Route("/edit/subscription/{subscription_id}", func(r chi.Router) {
-			r.Get("/", handlers.EditSubscription(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/", handlers.SaveSubscription(handler.Elastic))
+			r.Get("/", handlers.EditSubscription(apis.elastic))
+			r.With(middlewares.RequireHTMX).Post("/", handlers.SaveSubscription(apis.elastic))
 			r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
 			r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
 		})
 		// Article specific.
 		r.Route("/list/articles", func(r chi.Router) {
-			r.Get("/", handlers.ListArticles(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/", handlers.ListArticles(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateArticles(handler.Elastic))
-			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles(handler.Elastic))
-			r.Get("/updates", handlers.WatchList(handler.Elastic))
+			r.Get("/", handlers.ListArticles(apis.elastic))
+			r.With(middlewares.RequireHTMX).Post("/", handlers.ListArticles(apis.elastic))
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateArticles(apis.elastic))
+			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles(apis.elastic))
+			r.Get("/updates", handlers.WatchList(apis.elastic))
 		})
-		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}/{mark}", handlers.MarkArticle(handler.Elastic))
+		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}/{mark}", handlers.MarkArticle(apis.elastic))
 		// General.
 		r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues())
 		r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues())
 		// Favorite specific.
 		r.Route("/list/favorites", func(r chi.Router) {
-			r.Get("/", handlers.ListFavorites(handler.Elastic))
+			r.Get("/", handlers.ListFavorites(apis.elastic))
 		})
 
 		// Help documentation.
@@ -286,44 +280,44 @@ func (s *Server) setupRoutes(ctx context.Context, handler *handlers.API) *chi.Mu
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
 				// Add feed subscription.
-				r.Get("/add/feed", handlers.AddFeedSubscription(handler.Elastic))
-				r.With(middlewares.RequireHTMX).Post("/add/feed", handlers.AddFeedSubscription(handler.Elastic))
+				r.Get("/add/feed", handlers.AddFeedSubscription(apis.elastic))
+				r.With(middlewares.RequireHTMX).Post("/add/feed", handlers.AddFeedSubscription(apis.elastic))
 				// Add search subscription.
-				r.Get("/add/search", handlers.AddSearchSubscription(handler.Elastic))
-				r.With(middlewares.RequireHTMX).Post("/add/search", handlers.AddSearchSubscription(handler.Elastic))
+				r.Get("/add/search", handlers.AddSearchSubscription(apis.elastic))
+				r.With(middlewares.RequireHTMX).Post("/add/search", handlers.AddSearchSubscription(apis.elastic))
 				// Add group subscription.
-				r.Get("/add/group", handlers.AddGroupSubscription(handler.Elastic))
-				r.With(middlewares.RequireHTMX).Post("/add/group", handlers.AddGroupSubscription(handler.Elastic))
+				r.Get("/add/group", handlers.AddGroupSubscription(apis.elastic))
+				r.With(middlewares.RequireHTMX).Post("/add/group", handlers.AddGroupSubscription(apis.elastic))
 				// Category management for add/edit subscription.
 				r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
 				r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
 			})
-			r.Post("/feedset", handlers.AddFeedset(handler.Elastic, web.StaticContentFS))
+			r.Post("/feedset", handlers.AddFeedset(apis.elastic, web.StaticContentFS))
 			// Import/export.
-			r.Get("/import", handler.ImportSubscriptions())
-			r.With(middlewares.RequireHTMX).Post("/import", handler.ImportSubscriptions())
-			r.Get("/export", handler.ExportSubscriptions())
-			r.Get("/export/opml", handler.ExportSubscriptions())
+			r.Get("/import", handlers.ImportSubscriptions(apis.elastic))
+			r.With(middlewares.RequireHTMX).Post("/import", handlers.ImportSubscriptions(apis.elastic))
+			r.Get("/export", handlers.ExportSubscriptions(apis.elastic))
+			r.Get("/export/opml", handlers.ExportSubscriptions(apis.elastic))
 			// Favorites.
 			r.Route("/favorite", func(r chi.Router) {
-				r.Post("/add/subscription/{subscription_id}", handler.AddFavoriteSubscription())
-				r.Post("/remove/subscription/{subscription_id}", handler.RemoveFavoriteSubscription())
-				r.Post("/add/article/{item_id}", handler.AddFavoriteArticle())
-				r.Post("/remove/article/{item_id}", handler.RemoveFavoriteArticle())
+				r.Post("/add/subscription/{subscription_id}", handlers.AddFavoriteSubscription(apis.elastic))
+				r.Post("/remove/subscription/{subscription_id}", handlers.RemoveFavoriteSubscription(apis.elastic))
+				r.Post("/add/article/{item_id}", handlers.AddFavoriteArticle(apis.elastic))
+				r.Post("/remove/article/{item_id}", handlers.RemoveFavoriteArticle(apis.elastic))
 				// r.Post("/add/search", handler.AddFavoriteSearch())
 				// r.Post("/remove/search", handler.RemoveFavoriteSearch())
 			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {
-				r.Get("/", handler.ShowSettings())
+				r.Get("/", handlers.ShowSettings())
 				r.With(middlewares.RequireHTMX).Get("/display", handlers.ShowDisplaySettings())
-				r.With(middlewares.RequireHTMX).Post("/display", handlers.SaveDisplaySettings(handler.Elastic))
+				r.With(middlewares.RequireHTMX).Post("/display", handlers.SaveDisplaySettings(apis.elastic))
 				r.With(middlewares.RequireHTMX).Get("/account", handlers.ShowAccountSettings())
-				r.With(middlewares.RequireHTMX).Post("/account", handlers.SaveAccountSettings(handler.Elastic))
+				r.With(middlewares.RequireHTMX).Post("/account", handlers.SaveAccountSettings(apis.elastic))
 				r.Get("/subscription", handlers.UserManageAccountSubscription())
 				r.With(middlewares.RequireHTMX).Post("/password", handlers.ChangePassword())
 				r.Route("/theme", func(r chi.Router) {
-					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())
+					r.With(middlewares.RequireHTMX).Put("/{theme}", handlers.SetTheme(apis.elastic))
 				})
 			})
 			r.With(middlewares.RequireHTMX).Get("/deactivate", handlers.UserDeactivateAccount())
