@@ -19,7 +19,7 @@ const (
 	defaultCompressionLevel = 5
 )
 
-var compressMimetypes = []string{"text/html", "text/css", "text/javascript", "font/woff2"}
+var compressMimetypes = []string{"text/html", "text/css", "text/javascript", "font/woff2", "image/svg+xml"}
 
 var cfg Config
 
