@@ -23,6 +23,8 @@ var CommonCategoryFilters = []string{
 	"Links",
 	"Uncategorized",
 	"Featured",
+	"Headline",
+	"Home Feed",
 }
 
 // Categories is a slice of categories.
