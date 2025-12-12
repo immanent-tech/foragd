@@ -135,7 +135,7 @@ func (s *Server) setupAPI(ctx context.Context) (*handlers.API, error) {
 		return nil, fmt.Errorf("unable to set up elastic api: %w", err)
 	}
 	// Set up the session manager.
-	err = session.NewSessionManager(ctx, elasticAPI)
+	err = session.NewSessionManager(elasticAPI)
 	if err != nil {
 		return nil, fmt.Errorf("unable to set up session api: %w", err)
 	}

@@ -25,9 +25,9 @@ const (
 var manager *scs.SessionManager
 
 // NewSessionManager creates a new session manager.
-func NewSessionManager(ctx context.Context, api *elastic.API) error {
+func NewSessionManager(api *elastic.API) error {
 	// Load the session store.
-	sessionStore, err := store.NewSessionStore(ctx, api)
+	sessionStore, err := store.NewSessionStore(api)
 	if err != nil {
 		return fmt.Errorf("failed to start session manager: %w", err)
 	}
