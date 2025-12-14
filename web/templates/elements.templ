@@ -179,7 +179,7 @@ type Link struct {
 
 templ NewLink(options ...Option[element]) {
 	{{ link := &Link{HTMLElement: NewHTMLElement()} }}
-	{{ WithClasses("link", "link-hover")(link) }}
+	{{ WithClasses("link")(link) }}
 	for option := range slices.Values(options) {
 		{{ option(link) }}
 	}

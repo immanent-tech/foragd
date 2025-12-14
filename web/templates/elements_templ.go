@@ -208,7 +208,7 @@ func NewLink(options ...Option[element]) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		link := &Link{HTMLElement: NewHTMLElement()}
-		WithClasses("link", "link-hover")(link)
+		WithClasses("link")(link)
 		for option := range slices.Values(options) {
 			option(link)
 		}
