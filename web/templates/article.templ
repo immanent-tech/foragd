@@ -259,31 +259,6 @@ templ ArticleContent(article *models.Article) {
 							@tabler.DotsVertical(i.Props{Class: "size-6"})
 						</button>
 						<el-menu id="article-content-menu" anchor="bottom end" popover>
-							// Toggle view full content action.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-								WithHXTarget(ContentID.Target()),
-								WithHXInclude("#content-filters,[name='csrf_token']"),
-								WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
-								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
-							) {
-								@tabler.FileDownloadFilled(i.Props{Class: "size-4"})
-								if article.IsRemoteContent() {
-									Show Feed Content
-								} else {
-									Show Remote Content
-								}
-							}
-							// View original article action.
-							@NewLink(
-								WithCustomAttribute("href", article.GetLink()),
-								WithCustomAttribute("target", "_blank"),
-								WithCustomAttribute("rel", "noopener"),
-								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
-							) {
-								@tabler.ExternalLink(i.Props{Class: "size-4"})
-								Go To Article
-							}
 							<form>
 								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 								<div id={ "mark_" + article.GetID() }>
@@ -320,6 +295,30 @@ templ ArticleContent(article *models.Article) {
 					}
 				</article>
 			}
+			<div class="flex items-center justify-center gap-x-4 text-sm mt-8">
+				// Toggle view full content action.
+				@NewLink(
+					WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+					WithHXTarget(ContentID.Target()),
+					WithHXInclude("#content-filters,[name='csrf_token']"),
+					WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
+				) {
+					if article.IsRemoteContent() {
+						Load feed content
+					} else {
+						Load external content
+					}
+				}
+				|
+				// View original article action.
+				@NewLink(
+					WithCustomAttribute("href", article.GetLink()),
+					WithCustomAttribute("target", "_blank"),
+					WithCustomAttribute("rel", "noopener"),
+				) {
+					Go to article
+				}
+			</div>
 			// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 			// read and mark it so (when the user has set this option).
 			if article.IsUnread() && article.MarkArticleReadOnView {
