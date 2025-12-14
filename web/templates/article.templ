@@ -510,7 +510,14 @@ templ articleImage(img *types.ImageInfo, altTitle string, classes ...string) {
 		{{ img.Title = altTitle }}
 	}
 	{{ classes = append(classes, "rounded-box responsive-img border border-base-content/15") }}
-	@NewProxiedImage(img, "rs:auto:300:200/sh:0.5/el:1",
+	// rs:auto:300:200 - resize to 300x200 https://docs.imgproxy.net/usage/processing#resize
+	// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
+	// el:1 - enlarge if smaller https://docs.imgproxy.net/usage/processing#enlarge
+	// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
+	// sm:1 - strip metadata
+	// kcr:1 - keep copyright
+	// scp:1 - convert color profile to sRGB
+	@NewProxiedImage(img, "rs:auto:300:200/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
 		WithClasses(classes...),
 		WithCustomAttribute("width", "300"),
 		WithCustomAttribute("height", "200"),

@@ -1962,7 +1962,7 @@ func articleImage(img *types.ImageInfo, altTitle string, classes ...string) temp
 			img.Title = altTitle
 		}
 		classes = append(classes, "rounded-box responsive-img border border-base-content/15")
-		templ_7745c5c3_Err = NewProxiedImage(img, "rs:auto:300:200/sh:0.5/el:1",
+		templ_7745c5c3_Err = NewProxiedImage(img, "rs:auto:300:200/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
 			WithClasses(classes...),
 			WithCustomAttribute("width", "300"),
 			WithCustomAttribute("height", "200"),

@@ -1269,7 +1269,13 @@ templ subscriptionThumbnail(subscription *models.Subscription) {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar">
 			<div class="rounded-box size-12 border border-base-content">
-				@NewProxiedImage(&types.ImageInfo{Title: subscription.GetTitle(), URL: img}, "rs:auto:48:48/sh:0.5",
+				// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
+				// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
+				// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
+				// sm:1 - strip metadata
+				// kcr:1 - keep copyright
+				// scp:1 - convert color profile to sRGB
+				@NewProxiedImage(&types.ImageInfo{Title: subscription.GetTitle(), URL: img}, "rs:auto:48:48/sh:0.5/q:80/sm:1/kcr:1/scp:1",
 					WithCustomAttribute("width", "48"),
 					WithCustomAttribute("height", "48"),
 				)
