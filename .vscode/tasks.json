@@ -20,7 +20,7 @@
     {
       "label": "run: scheduler",
       "type": "shell",
-      "command": "bunx dotenv-cli -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file scheduler run",
+      "command": "bunx dotenv-cli -e .env.development -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file scheduler run",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
