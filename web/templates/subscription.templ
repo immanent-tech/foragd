@@ -72,7 +72,7 @@ templ SubscriptionCard(s *models.Subscription) {
 								WithHXTarget(ContentID.Target()),
 								WithHXPushURL(true),
 								WithHXSwap("innerHTML show:window:top transition:true"),
-								WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
+								WithClasses("link-hover", "flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 							) {
 								<div class="flex flex-1 items-center">
 									<div class="mr-4 shrink-0 self-center">
@@ -99,7 +99,7 @@ templ SubscriptionCard(s *models.Subscription) {
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(true),
 							WithHXSwap("innerHTML show:window:top transition:true"),
-							WithClasses("flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
+							WithClasses("link-hover", "flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
 						) {
 							<div class="flex items-center">
 								<div class="mr-4 shrink-0 self-center">
@@ -127,6 +127,7 @@ templ SubscriptionCard(s *models.Subscription) {
 								WithHXTarget(ContentID.Target()),
 								WithHXPushURL(true),
 								WithHXVals(filters),
+								WithClasses("link-hover"),
 							) {
 								<div class="flex gap-2 capitalize">
 									<div class="badge badge-outline badge-sm">{ category }</div>
@@ -180,6 +181,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 					WithCustomAttribute("href", s.GetLink()),
 					WithCustomAttribute("rel", "noopener"),
 					WithCustomAttribute("target", "_blank"),
+					WithClasses("link-hover"),
 				) {
 					@tabler.ExternalLink(i.Props{Class: "size-4"})
 					Feed Website
@@ -199,6 +201,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 						WithHXMethod(http.MethodPost, markURL),
 						WithHXInclude("[name='csrf_token'],#content-filters"),
 						WithHXTarget("#"+s.GetID()),
+						WithClasses("link-hover"),
 					) {
 						switch s.GetStats().IsUnread() {
 							case true:
@@ -223,6 +226,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 				WithHXTarget(ContentID.Target()),
 				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithHXPushURL(true),
+				WithClasses("link-hover"),
 			) {
 				@tabler.Edit(i.Props{Class: "size-4"})
 				Edit Subscription
@@ -236,6 +240,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 					WithHXTarget(ModalContainerID.Target()),
 					WithHXInclude("[name='csrf_token']"),
 					WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"),
+					WithClasses("link-hover"),
 				) {
 					@tabler.TrashFilled(i.Props{Class: "size-4"})
 					Remove Subscription
@@ -246,6 +251,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 				WithHXMethod(http.MethodGet, "/issue/subscription/"+s.GetID()),
 				WithHXTarget(ContentID.Target()),
 				WithHXReplaceURL(true),
+				WithClasses("link-hover"),
 			) {
 				@tabler.FlagFilled(i.Props{Class: "size-4"})
 				Report an issue
@@ -266,6 +272,7 @@ templ viewFeedSubscriptionLink(id models.SubscriptionID, title string, view mode
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(true),
 			WithHXSwap("innerHTML show:window:top transition:true"),
+			WithClasses("link-hover"),
 		}
 		allOptions = append(allOptions, options...)
 	}}
@@ -337,6 +344,7 @@ templ subscriptionsActionsButton(filters *models.ListDisplayFilters) {
 						WithHXMethod(http.MethodPost, markURL),
 						WithHXTarget(ContentID.Target()),
 						WithHXInclude("[name='csrf_token']"),
+						WithClasses("link-hover"),
 					) {
 						@markIcon
 						<span class="sr-only">{ markText }</span>
@@ -349,6 +357,7 @@ templ subscriptionsActionsButton(filters *models.ListDisplayFilters) {
 					WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
 					WithHXTarget(ContentID.Target()),
 					WithHXPushURL(true),
+					WithClasses("link-hover"),
 				) {
 					@tabler.Plus(i.Props{Class: "size-4"})
 					Add Feed Subscription
@@ -360,6 +369,7 @@ templ subscriptionsActionsButton(filters *models.ListDisplayFilters) {
 					WithHXTarget(ContentID.Target()),
 					WithHXInclude("#search-filters"),
 					WithHXPushURL(true),
+					WithClasses("link-hover"),
 				) {
 					@tabler.Plus(i.Props{Class: "size-4"})
 					Add Search Subscription
@@ -370,6 +380,7 @@ templ subscriptionsActionsButton(filters *models.ListDisplayFilters) {
 					WithHXMethod(http.MethodGet, "/user/subscription/add/group"),
 					WithHXTarget(ContentID.Target()),
 					WithHXPushURL(true),
+					WithClasses("link-hover"),
 				) {
 					@tabler.Plus(i.Props{Class: "size-4"})
 					Add Group Subscription

@@ -29,6 +29,7 @@ templ articleSummary(article *models.Article) {
 				WithHXTarget(ContentID.Target()),
 				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithHXPushURL(true),
+				WithClasses("link-hover"),
 			) {
 				<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
 			}
@@ -68,6 +69,7 @@ templ ArticleCard(article *models.Article) {
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(true),
 				WithHXSwap("innerHTML show:window:top"),
+				WithClasses("link-hover"),
 			) {
 				@articleImage(img, article.GetTitle())
 			}
@@ -78,6 +80,7 @@ templ ArticleCard(article *models.Article) {
 				WithHXTarget(ContentID.Target()),
 				WithHXPushURL(true),
 				WithHXSwap("innerHTML show:window:top"),
+				WithClasses("link-hover"),
 			) {
 				<h2 class="card-title text-pretty line-clamp-3">
 					if article.GetTitle() != "" {
@@ -102,7 +105,7 @@ templ ArticleCard(article *models.Article) {
 							models.ParamSubscriptions:    article.GetSubscriptionID(),
 							models.ParamSubscriptionName: article.GetFeedTitle(),
 						}),
-						WithClasses("truncate"),
+						WithClasses("link-hover", "truncate"),
 					) {
 						{ article.GetFeedTitle() }
 					}
@@ -132,7 +135,7 @@ templ ArticleCard(article *models.Article) {
 								WithCustomAttribute("href", article.GetLink()),
 								WithCustomAttribute("target", "_blank"),
 								WithCustomAttribute("rel", "noopener"),
-								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
+								WithClasses("link-hover", "group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
 							) {
 								@tabler.ExternalLink(i.Props{Class: "size-4"})
 								Go To Article
@@ -142,6 +145,7 @@ templ ArticleCard(article *models.Article) {
 								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
 								WithHXTarget(ContentID.Target()),
 								WithHXPushURL(true),
+								WithClasses("link-hover"),
 							) {
 								@tabler.FileSearch(i.Props{Class: "size-4"})
 								Find similar...
@@ -159,6 +163,7 @@ templ ArticleCard(article *models.Article) {
 									WithHXMethod(http.MethodPost, markURL),
 									WithHXTarget("#"+article.GetID()),
 									WithHXInclude("[name='csrf_token'],#content-filters"),
+									WithClasses("link-hover"),
 								) {
 									switch article.IsUnread() {
 										case true:
@@ -179,6 +184,7 @@ templ ArticleCard(article *models.Article) {
 							</form>
 							// Share action.
 							@NewLink(
+								WithClasses("link-hover"),
 								WithCustomAttribute("_", "on click if navigator.share then "+shareAPIDialog(article.GetTitle(), article.GetLink())+" else call document.getElementById('share-"+article.GetID()+"').show() "),
 							) {
 								@tabler.Share(i.Props{Class: "size-4"})
@@ -189,6 +195,7 @@ templ ArticleCard(article *models.Article) {
 								WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
 								WithHXTarget(ContentID.Target()),
 								WithHXReplaceURL(true),
+								WithClasses("link-hover"),
 							) {
 								@tabler.FlagFilled(i.Props{Class: "size-4"})
 								Report an issue
@@ -352,7 +359,7 @@ templ UpdateViewArticleMark(id string, isUnread bool) {
 		WithHXMethod(http.MethodPost, markURL),
 		WithHXTarget("#mark_"+id),
 		WithHXInclude("[name='csrf_token']"),
-		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
+		WithClasses("link-hover", "group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
 	) {
 		switch isUnread {
 			case true:
@@ -378,7 +385,7 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 		WithHXTarget("#favorite_"+id),
 		WithHXInclude("[name='csrf_token']"),
 		WithHXVals(map[string]any{"display": "content"}),
-		WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
+		WithClasses("link-hover", "group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
 	) {
 		switch isFavorite {
 			case true:
@@ -431,6 +438,7 @@ templ articlesActionsButton(subscriptionID models.SubscriptionID, filters *model
 					<form>
 						<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 						<a
+							class="link link-hover"
 							if filters.GetView() == models.ViewUnread {
 								hx-post="/list/articles/mark/read"
 							} else {
@@ -471,6 +479,7 @@ templ articlesActionsButton(subscriptionID models.SubscriptionID, filters *model
 						@NewLink(
 							WithHXMethod(http.MethodPost, markURL),
 							WithHXInclude("[name='csrf_token'],[name='view']"),
+							WithClasses("link-hover"),
 						) {
 							@markIcon
 							{ markText }
@@ -481,6 +490,7 @@ templ articlesActionsButton(subscriptionID models.SubscriptionID, filters *model
 						WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(true),
+						WithClasses("link-hover"),
 					) {
 						@tabler.Edit(i.Props{Class: "size-4"})
 						Edit Subscription
