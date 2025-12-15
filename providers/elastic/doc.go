@@ -4,7 +4,6 @@
 package elastic
 
 import (
-	"log/slog"
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v9"
@@ -15,7 +14,11 @@ import (
 
 // NewDeleteByQueryRequest creates a new delete by query request that will operate on the given index with the given
 // options.
-func NewDeleteByQueryRequest(api *elasticsearch.TypedClient, index string, options ...any) *deletebyquery.DeleteByQuery {
+func NewDeleteByQueryRequest(
+	api *elasticsearch.TypedClient,
+	index string,
+	options ...any,
+) *deletebyquery.DeleteByQuery {
 	req := api.DeleteByQuery(index)
 
 	for option := range slices.Values(options) {
@@ -26,8 +29,6 @@ func NewDeleteByQueryRequest(api *elasticsearch.TypedClient, index string, optio
 			value(req)
 		case Option[*deletebyquery.DeleteByQuery]:
 			value(req)
-		default:
-			slog.Warn("ignoring option")
 		}
 	}
 
@@ -43,8 +44,6 @@ func NewGetRequest(api *elasticsearch.TypedClient, index, id string, options ...
 			value(req)
 		case Option[*get.Get]:
 			value(req)
-		default:
-			slog.Warn("ignoring option")
 		}
 	}
 

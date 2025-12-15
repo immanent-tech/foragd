@@ -46,12 +46,8 @@ const (
 )
 
 var (
-	errNotFound     = errors.New("not found")
-	ErrNotFound     = models.NewAPIError(errNotFound, http.StatusNotFound)
-	ErrNoIndexInCtx = models.NewAPIError(
-		fmt.Errorf("get index from context: %w", errNotFound),
-		http.StatusInternalServerError,
-	)
+	errNotFound    = errors.New("not found")
+	ErrNotFound    = models.NewAPIError(errNotFound, http.StatusNotFound)
 	ErrNoUserInCtx = models.NewAPIError(
 		fmt.Errorf("get user from context: %w", errNotFound),
 		http.StatusInternalServerError,

@@ -16,16 +16,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
-// UserExists checks if a user doc with the given ID exists.
-func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
-	index := schema.UsersSchemaPrefix + schema.IndexReadSuffix
-	found, err := exists(ctx, a.TypedClient, index, id)
-	if err != nil {
-		return false, fmt.Errorf("user exists: %w", err)
-	}
-	return found, nil
-}
-
 // CreateUser creates a new user doc in Elasticsearch.
 func (a *API) CreateUser(ctx context.Context, user *models.User) error {
 	index := schema.UsersSchemaPrefix + schema.IndexWriteSuffix
