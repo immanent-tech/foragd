@@ -24,7 +24,7 @@ require (
 	github.com/samber/slog-multi v1.6.0
 	github.com/sebasvil20/templicons v1.1.0
 	github.com/stripe/stripe-go/v83 v83.2.1
-	golang.org/x/oauth2 v0.33.0
+	golang.org/x/oauth2 v0.34.0
 )
 
 require (
