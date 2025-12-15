@@ -137,6 +137,7 @@ func header(user *models.User) templ.Component {
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(true),
 			WithCustomAttribute("_", "on click remove @open from #header-menu"),
+			WithClasses("link-hover"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -170,6 +171,7 @@ func header(user *models.User) templ.Component {
 		templ_7745c5c3_Err = NewLink(
 			WithCustomAttribute("href", "/help/index"),
 			WithCustomAttribute("_", "on click remove @open from #header-menu"),
+			WithClasses("link-hover"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -204,6 +206,7 @@ func header(user *models.User) templ.Component {
 			WithHXMethod(http.MethodGet, "/issue"),
 			WithHXTarget(ContentID.Target()),
 			WithHXReplaceURL(true),
+			WithClasses("link-hover"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -236,6 +239,7 @@ func header(user *models.User) templ.Component {
 		})
 		templ_7745c5c3_Err = NewLink(
 			WithCustomAttribute("href", "/logout"),
+			WithClasses("link-hover"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
