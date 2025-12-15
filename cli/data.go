@@ -27,7 +27,6 @@ func (c *DeleteCmd) Run(opts *DeleteCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
-	ctx = elastic.SetupIndexAliases(ctx)
 	// Load the Elastic backend
 	client, err := elastic.NewConnection()
 	if err != nil {

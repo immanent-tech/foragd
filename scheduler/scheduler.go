@@ -48,7 +48,6 @@ func Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("new elastic connection: %w", err)
 	}
-	ctx = elastic.SetupIndexAliases(ctx)
 	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
 	ctx = jobs.DataAPIToCtx(ctx, elasticAPI)
 

@@ -13,14 +13,12 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 // UserExists checks if a user doc with the given ID exists.
 func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
-	index, err := UserReadIndexFromCtx(ctx)
-	if err != nil {
-		return false, fmt.Errorf("user exists: %w", ErrNoIndexInCtx)
-	}
+	index := schema.UsersSchemaPrefix + schema.IndexReadSuffix
 	found, err := exists(ctx, a.TypedClient, index, id)
 	if err != nil {
 		return false, fmt.Errorf("user exists: %w", err)
@@ -30,12 +28,8 @@ func (a *API) UserExists(ctx context.Context, id models.UserID) (bool, error) {
 
 // CreateUser creates a new user doc in Elasticsearch.
 func (a *API) CreateUser(ctx context.Context, user *models.User) error {
-	index, err := UserWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("create user: %w", ErrNoIndexInCtx)
-	}
-	err = CreateDoc(ctx, a.GetAPI(), index, user.GetID(), user)
-	if err != nil {
+	index := schema.UsersSchemaPrefix + schema.IndexWriteSuffix
+	if err := CreateDoc(ctx, a.GetAPI(), index, user.GetID(), user); err != nil {
 		return fmt.Errorf("create user: %w", err)
 	}
 	return nil
@@ -43,10 +37,7 @@ func (a *API) CreateUser(ctx context.Context, user *models.User) error {
 
 // GetUser retrieves the user doc with the given id.
 func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
-	index, err := UserReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user: %w", ErrNoIndexInCtx)
-	}
+	index := schema.UsersSchemaPrefix + schema.IndexReadSuffix
 	user, err := GetDoc[models.UserID, *models.User](ctx, a.GetAPI(), index, id)
 	if err != nil {
 		return nil, fmt.Errorf("get user: %w", err)
@@ -56,12 +47,8 @@ func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, erro
 
 // DeleteUser removes the user doc with the given ID.
 func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
-	index, err := UserWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("delete user: %w", ErrNoIndexInCtx)
-	}
-	err = DeleteDoc(ctx, a.GetAPI(), index, id)
-	if err != nil {
+	index := schema.UsersSchemaPrefix + schema.IndexWriteSuffix
+	if err := DeleteDoc(ctx, a.GetAPI(), index, id); err != nil {
 		return fmt.Errorf("delete user: %w", err)
 	}
 	return nil
@@ -69,16 +56,12 @@ func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
 
 // UpdateUser will apply the given updates to the user.
 func (a *API) UpdateUser(ctx context.Context, userID models.UserID, updates map[string]any) error {
+	index := schema.UsersSchemaPrefix + schema.IndexWriteSuffix
 	updates["updated_at"] = time.Now().UTC()
-	index, err := UserWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("update user: %w", ErrNoIndexInCtx)
-	}
-	err = UpdateDoc(ctx, a.GetAPI(), index, userID, updates,
+	if err := UpdateDoc(ctx, a.GetAPI(), index, userID, updates,
 		WithRefresh("true"),
 		WithRetryOnConflict(defaultRetries),
-	)
-	if err != nil {
+	); err != nil {
 		return fmt.Errorf("update user: %w", err)
 	}
 	return nil
@@ -86,20 +69,18 @@ func (a *API) UpdateUser(ctx context.Context, userID models.UserID, updates map[
 
 // FindUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
-	index, err := UserReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("find user by external id: %w", ErrNoIndexInCtx)
-	}
+	index := schema.UsersSchemaPrefix + schema.IndexReadSuffix
 	// Get the user.
 	users, _, err := Search[*models.User](ctx, a.GetAPI(), index, query.Term("external_user_id", externalID), 1,
 		WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
 		WithTrackTotalHits(false),
 	)
-	if err != nil {
+	switch {
+	case err != nil:
 		return nil, fmt.Errorf("find user by external id: %w", err)
-	}
-	if len(users) == 0 {
+	case len(users) == 0:
 		return nil, fmt.Errorf("find user by external id: %w", ErrNotFound)
+	default:
+		return users[0], nil
 	}
-	return users[0], nil
 }

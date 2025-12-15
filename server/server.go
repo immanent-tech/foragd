@@ -180,10 +180,7 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	router.Get("/", handlers.Landing())
 	// Sign-up/Login.
 	router.Group(func(r chi.Router) {
-		r.Use(
-			middlewares.SetupElastic(),
-			session.LoadAndSave,
-		)
+		r.Use(session.LoadAndSave)
 		if !cfg.BlockSignup {
 			r.Get("/signup", handlers.Login())
 		} else {
@@ -199,13 +196,12 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	})
 
 	// Handle incoming webhook requests from Stripe.
-	router.With(middlewares.SetupElastic()).Post("/checkout/webhooks", stripe.HandleWebhook(apis.elastic))
+	router.Post("/checkout/webhooks", stripe.HandleWebhook(apis.elastic))
 
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {
 		r.Use(
 			middlewares.SetupHTMX,
-			middlewares.SetupElastic(),
 			session.LoadAndSave,
 			middlewares.RequireUserAuth(apis.elastic),
 			// middleware.NoCache,

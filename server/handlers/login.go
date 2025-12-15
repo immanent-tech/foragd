@@ -177,7 +177,6 @@ func createLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserPr
 
 // syncLocalUser tries to sync relevant user data from the auth backend to the local data.
 func syncLocalUser(ctx context.Context, api *elastic.API, user *models.User, profile auth0.UserProfile) {
-	ctx = elastic.SetupIndexAliases(ctx)
 	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
 	updates := make(map[string]any)
 	// Overwrite local avatar with remote avatar if different

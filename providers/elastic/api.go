@@ -265,19 +265,15 @@ func (a *API) RemoveSubscriptions(ctx context.Context, ids ...models.Subscriptio
 	if user == nil {
 		return fmt.Errorf("remove subscriptions: %w", ErrNoUserInCtx)
 	}
-	index, err := SubscriptionsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("remove subscriptions: %w", ErrNoIndexInCtx)
-	}
-	err = DeleteDocs(ctx, a.GetAPI(), index,
+	index := schema.SubscriptionsSchemaPrefix + schema.IndexWriteSuffix
+	if err := DeleteDocs(ctx, a.GetAPI(), index,
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
 				query.Terms("subscription_id", ids...),
 			),
 		),
-	)
-	if err != nil {
+	); err != nil {
 		return fmt.Errorf("remove subscriptions: %w", err)
 	}
 	return nil
@@ -288,10 +284,7 @@ func (a *API) UpdateSubscriptions(
 	ctx context.Context,
 	subscriptions ...*models.Subscription,
 ) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
-	index, err := SubscriptionsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("update subscriptions: %w", ErrNoIndexInCtx)
-	}
+	index := schema.SubscriptionsSchemaPrefix + schema.IndexWriteSuffix
 	resp, err := BulkUpdate(ctx, a, index, subscriptions...)
 	if err != nil {
 		return nil, fmt.Errorf("update subscriptions: %w", err)
@@ -676,10 +669,7 @@ func (a *API) searchSubscriptions(
 		req.count = 10
 	}
 
-	index, err := SubscriptionsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, "", fmt.Errorf("search subscriptions: %w", ErrNoIndexInCtx)
-	}
+	index := schema.SubscriptionsSchemaPrefix + schema.IndexReadSuffix
 
 	searchAfter, err := decodePagination(req.pagination)
 	if err != nil {
@@ -1093,11 +1083,7 @@ func (a *API) getFeedUnreadCounts(
 }
 
 func (a *API) getFeedLastUpdates(ctx context.Context, ids ...models.FeedID) (map[models.FeedID]time.Time, error) {
-	index, err := ItemsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get last updated items: %w", ErrNoIndexInCtx)
-	}
-
+	index := schema.ItemsSchemaPrefix + schema.IndexReadSuffix
 	sort := models.SortNewestFirst
 
 	items, _, err := Search[*models.Item](
@@ -1159,12 +1145,12 @@ func (a *API) MarkSubscriptions(
 
 // getAllSubscriptionsByQuery returns all subscriptions that match the given query.
 func (a *API) getAllSubscriptionsByQuery(ctx context.Context, query query.Option) (models.Subscriptions, error) {
-	index, err := SubscriptionsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get all subscriptions by query: %w", ErrNoIndexInCtx)
-	}
+	index := schema.SubscriptionsSchemaPrefix + schema.IndexReadSuffix
 
-	var subscriptions models.Subscriptions
+	var (
+		subscriptions models.Subscriptions
+		err           error
+	)
 	subscriptions, err = SearchAll[*models.Subscription](ctx, a.GetAPI(), index, query, defaultPaginationSize)
 	if err != nil {
 		return nil, fmt.Errorf("get all subscriptions by query: %w", err)
@@ -1645,10 +1631,7 @@ func (a *API) SearchItems(
 	sort *models.Sort,
 	pagination *models.Pagination,
 ) (models.Items, models.Pagination, error) {
-	index, err := ItemsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, "", fmt.Errorf("search items: %w", ErrNoIndexInCtx)
-	}
+	index := schema.ItemsSchemaPrefix + schema.IndexReadSuffix
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
@@ -1684,10 +1667,7 @@ func (a *API) ItemsAggregation(
 	size int,
 	aggregations aggregations.Aggs,
 ) (*search.Response, error) {
-	index, err := ItemsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("items aggregation: %w", ErrNoIndexInCtx)
-	}
+	index := schema.ItemsSchemaPrefix + schema.IndexReadSuffix
 
 	req := NewSearchRequest(a.GetAPI(),
 		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
@@ -1707,10 +1687,7 @@ func (a *API) ItemsAggregation(
 
 // CountItems returns a count of items that match the given query.
 func (a *API) CountItems(ctx context.Context, query query.Option) (int64, error) {
-	index, err := ItemsReadIndexFromCtx(ctx)
-	if err != nil {
-		return 0, ErrNoIndexInCtx //nolint:wrapcheck
-	}
+	index := schema.ItemsSchemaPrefix + schema.IndexReadSuffix
 
 	count, err := Count(ctx, a.GetAPI(), index, query)
 	if err != nil {
@@ -1722,21 +1699,14 @@ func (a *API) CountItems(ctx context.Context, query query.Option) (int64, error)
 
 // AddItems will bulk index the given items.
 func (a *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.ItemID]*bulk.OperationResponse, error) {
-	index, err := ItemsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return nil, ErrNoIndexInCtx //nolint:wrapcheck
-	}
+	index := schema.ItemsSchemaPrefix + schema.IndexWriteSuffix
 	return BulkUpdate(ctx, a, index, items...)
 }
 
 // ArchiveArticle will index the given article content to the article archive for permanent storage.
 func (a *API) ArchiveArticle(ctx context.Context, article *models.ArticleArchive) error {
-	index, err := FavoriteItemsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return ErrNoIndexInCtx //nolint:wrapcheck
-	}
-	err = CreateDoc(ctx, a.GetAPI(), index, article.ItemID, article)
-	if err != nil {
+	index := schema.FavoriteItemsSchemaPrefix + schema.IndexWriteSuffix
+	if err := CreateDoc(ctx, a.GetAPI(), index, article.ItemID, article); err != nil {
 		return fmt.Errorf("archive article: %w", err)
 	}
 	return nil
@@ -1744,10 +1714,7 @@ func (a *API) ArchiveArticle(ctx context.Context, article *models.ArticleArchive
 
 // UnarchiveArticle will delete an article from the archive.
 func (a *API) UnarchiveArticle(ctx context.Context, userID models.UserID, itemID models.ItemID) error {
-	index, err := FavoriteItemsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return ErrNoIndexInCtx //nolint:wrapcheck
-	}
+	index := schema.FavoriteItemsSchemaPrefix + schema.IndexWriteSuffix
 	// Set up the query to match the user's favorited article.
 	query := query.Bool(
 		query.Filter(
@@ -1755,8 +1722,7 @@ func (a *API) UnarchiveArticle(ctx context.Context, userID models.UserID, itemID
 			query.Term("item_id", itemID),
 		),
 	)
-	err = DeleteDocs(ctx, a.GetAPI(), index, query)
-	if err != nil {
+	if err := DeleteDocs(ctx, a.GetAPI(), index, query); err != nil {
 		return fmt.Errorf("unarchive article: %w", err)
 	}
 	return nil

@@ -18,10 +18,7 @@ import (
 
 // GetFeed retrieves a single feed with the given ID.
 func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	index, err := FeedsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get feed: %w", ErrNoIndexInCtx)
-	}
+	index := schema.FeedsIndexPrefix + schema.IndexReadSuffix
 	feed, err := GetDoc[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, id)
 	if err != nil {
 		return nil, fmt.Errorf("get feed: %w", err)
@@ -29,14 +26,20 @@ func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, erro
 	return feed, nil
 }
 
+// GetFeeds retrieves the feeds with the given IDs.
+func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
+	index := schema.FeedsIndexPrefix + schema.IndexReadSuffix
+	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, ids...)
+	if err != nil {
+		return nil, fmt.Errorf("get feeds: %w", err)
+	}
+	return feeds, nil
+}
+
 // CreateFeed creates a new feed doc in Elasticsearch.
 func (a *API) CreateFeed(ctx context.Context, feed *models.Feed) error {
-	index, err := FeedsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("create feed: %w", ErrNoIndexInCtx)
-	}
-	err = CreateDoc(ctx, a.GetAPI(), index, feed.GetID(), feed)
-	if err != nil {
+	index := schema.FeedsIndexPrefix + schema.IndexWriteSuffix
+	if err := CreateDoc(ctx, a.GetAPI(), index, feed.GetID(), feed); err != nil {
 		return fmt.Errorf("create feed: %w", err)
 	}
 	return nil
@@ -44,30 +47,11 @@ func (a *API) CreateFeed(ctx context.Context, feed *models.Feed) error {
 
 // DeleteFeed deletes a feed doc with the given ID from Elasticsearch.
 func (a *API) DeleteFeed(ctx context.Context, id models.FeedID) error {
-	index, err := FeedsWriteIndexFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("delete feed: %w", ErrNoIndexInCtx)
-	}
-	// Delete the feed.
-	err = DeleteDoc(ctx, a.GetAPI(), index, id)
-	if err != nil {
+	index := schema.FeedsIndexPrefix + schema.IndexWriteSuffix
+	if err := DeleteDoc(ctx, a.GetAPI(), index, id); err != nil {
 		return fmt.Errorf("delete feed: %w", err)
 	}
 	return nil
-}
-
-// GetFeeds retrieves the feeds with the given IDs.
-func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
-	index, err := FeedsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get feeds: %w", ErrNoIndexInCtx)
-	}
-
-	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, ids...)
-	if err != nil {
-		return nil, fmt.Errorf("get feeds: %w", err)
-	}
-	return feeds, nil
 }
 
 // SearchFeeds will search the feeds index for feed matching the given query. Count, sort and pagination values are
@@ -79,10 +63,7 @@ func (a *API) SearchFeeds(
 	sort *models.Sort,
 	pagination *models.Pagination,
 ) (models.Feeds, models.Pagination, error) {
-	index, err := FeedsReadIndexFromCtx(ctx)
-	if err != nil {
-		return nil, "", fmt.Errorf("search feeds: %w", ErrNoIndexInCtx)
-	}
+	index := schema.FeedsIndexPrefix + schema.IndexReadSuffix
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
