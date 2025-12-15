@@ -41,16 +41,25 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 		JobDescription: "Find new feeds",
 	}
 
-	if data, err := json.Marshal(newPollTrigger(defaultPollInterval, defaultPollJitter)); err != nil {
+	var (
+		data []byte
+		err  error
+	)
+
+	// Create trigger.
+	data, err = json.Marshal(newPollTrigger(defaultPollInterval, defaultPollJitter))
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
-	} else {
-		job.JobTrigger = data
 	}
-	if data, err := json.Marshal(GetNewFeedsJobData{Interval: time.Minute.String()}); err != nil {
+	job.JobTrigger = data
+
+	// Create job data.
+	data, err = json.Marshal(GetNewFeedsJobData{Interval: time.Minute.String()})
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
-	} else {
-		job.JobData = data
 	}
+	job.JobData = data
+
 	return job, nil
 }
 
@@ -60,12 +69,12 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	jobStateID := "get_new_feeds_state"
 
 	dataAPI, ok := ctx.Value(dataAPICtxKey).(DataAPI)
-	if !ok {
+	if !ok || dataAPI == nil {
 		return fmt.Errorf("%w: unable to get data api from context", ErrExecuteJobFailed)
 	}
 
 	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
-	if !ok {
+	if !ok || schedulerAPI == nil {
 		return fmt.Errorf("%w: unable to get scheduler api from context", ErrExecuteJobFailed)
 	}
 

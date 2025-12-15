@@ -32,16 +32,25 @@ func NewUpdateFeedJob(id models.FeedID, urls []models.URL, trigger *pollTrigger)
 		JobType:        jobTypeUpdateFeed,
 		JobDescription: "Get new items for " + id,
 	}
-	if data, err := json.Marshal(trigger); err != nil {
+
+	var (
+		data []byte
+		err  error
+	)
+
+	// Create trigger.
+	data, err = json.Marshal(trigger)
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
-	} else {
-		job.JobTrigger = data
 	}
-	if data, err := json.Marshal(UpdateFeedJobData{FeedID: id, URLs: urls}); err != nil {
+	job.JobTrigger = data
+
+	// Create job data.
+	data, err = json.Marshal(UpdateFeedJobData{FeedID: id, URLs: urls})
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
-	} else {
-		job.JobData = data
 	}
+	job.JobData = data
 
 	return job, nil
 }

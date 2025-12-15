@@ -48,7 +48,6 @@ func Run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("new elastic connection: %w", err)
 	}
-	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
 	ctx = jobs.DataAPIToCtx(ctx, elasticAPI)
 
 	// Create distributed queue instance.
@@ -74,6 +73,8 @@ func Run(ctx context.Context) error {
 		api:       elasticAPI,
 		queue:     jobQueue,
 	}
+
+	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
 
 	// Setup get new feeds job.
 	job, err := jobs.NewGetNewFeedsJob()
