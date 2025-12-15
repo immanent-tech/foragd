@@ -18,7 +18,7 @@
     "htmx.org": "^2.0.8",
     "hyperscript.org": "^0.9.14",
     "idiomorph": "^0.7.4",
-    "tailwindcss": "^4.1.17"
+    "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
     "@catppuccin/daisyui": "^2.1.1",
