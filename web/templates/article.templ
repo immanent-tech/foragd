@@ -31,22 +31,22 @@ templ articleSummary(article *models.Article) {
 				WithHXPushURL(true),
 				WithClasses("link-hover"),
 			) {
-				<h4 class="text-lg font-bold line-clamp-3">{ article.GetTitle() }</h4>
+				<h4 class="text-lg/5 font-bold line-clamp-3 tracking-tight">{ article.GetTitle() }</h4>
 			}
 			// Timestamp, Subscription.
-			<div class="grid grid-flow-row justify-between">
+			<div class="grid grid-flow-row justify-between mt-2">
 				<p class="flex text-xs/tight">
 					Updated&nbsp;
 					@showTimestamp(article.GetUpdatedDate())
 				</p>
-				<p class="flex text-xs truncate">
+				<p class="flex text-xs/tight truncate">
 					@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
 						{ article.GetFeedTitle() }
 					}
 				</p>
 			</div>
 			// Article content summary.
-			<article class="mt-4 prose-summary">
+			<article class="prose-summary">
 				@templ.Raw(article.GetContent())
 			</article>
 			// }
@@ -223,7 +223,7 @@ templ ArticleContent(article *models.Article) {
 					WithCustomAttribute("rel", "noopener"),
 					WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 				) {
-					<h2 class="page-title">{ article.GetTitle() }</h2>
+					<h2 class="page-title tracking-tight">{ article.GetTitle() }</h2>
 				}
 			</div>
 			// Subscription link.
