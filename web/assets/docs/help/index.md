@@ -109,7 +109,7 @@ By default words are matched with **OR** (i.e., cats dogs will match cats **OR**
 - `""` represents an exact phrase match (i.e., `"rum-based drinks"`).
 - `\*` at the end of indicates a prefix match (i.e., `bird\*` will match bird, birding and birds).
 
-Operators can be combined, for e.g., `alcoholic + -daquiri + -"rum-based drinks"`.
+Operators can be combined, for e.g., `alcoholic + -"rum-based drinks" +daquiri`.
 
 ### Global Keyboard Shortcuts
 
