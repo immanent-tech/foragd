@@ -11,7 +11,7 @@ import (
 )
 
 templ Dock(attributes templ.Attributes) {
-	<div id="page-dock" class="dock bg-base-200 border-t border-base-content/10 lg:hidden" { attributes... }>
+	<div id="page-dock" class="dock bg-base-200 border-t border-base-content/10 lg:hidden text-primary" { attributes... }>
 		<button
 			hx-get="/home"
 			hx-trigger="click,globalShortcutHome"
