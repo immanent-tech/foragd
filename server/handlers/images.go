@@ -6,11 +6,8 @@ package handlers
 import (
 	"context"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
-	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -20,19 +17,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	"github.com/spaolacci/murmur3"
-	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/google/gcs"
 )
-
-type objectCache interface {
-	Get(ctx context.Context, key string) ([]byte, bool)
-	Set(ctx context.Context, key string, value []byte)
-	Delete(ctx context.Context, key string)
-}
 
 var imgCache objectCache
 
@@ -63,11 +53,16 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			10,
 		)
 
+		imgBufPtr := imgBufPool.Get().(*[]byte)
+		imgBuf := *imgBufPtr
+		defer imgBufPool.Put(imgBufPtr)
+		var found bool
+
 		// Try to fetch the image from the cache. If found, return the cached image.
-		imageData, found := imgCache.Get(req.Context(), imgHash)
+		imgBuf, found = imgCache.Get(req.Context(), imgHash)
 		if found {
 			// Write the image to the response.
-			if _, err := res.Write(imageData); err != nil {
+			if _, err := res.Write(imgBuf); err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
 				return models.NewAPIError(
 					fmt.Errorf("write image: %w", err),
@@ -112,7 +107,8 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 				resp.StatusCode(),
 			)
 		}
-		imageData, err = io.ReadAll(resp.RawBody())
+
+		imgBuf, err = io.ReadAll(resp.RawBody())
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			return models.NewAPIError(
@@ -126,7 +122,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		var wg errgroup.Group
 		// Write the image to the response.
 		wg.Go(func() error {
-			_, err = res.Write(imageData)
+			_, err = res.Write(imgBuf)
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
 				return models.NewAPIError(
@@ -140,7 +136,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		// Save to the cache if not saved already.
 		wg.Go(func() error {
 			if !found {
-				imgCache.Set(req.Context(), imgHash, imageData)
+				imgCache.Set(req.Context(), imgHash, imgBuf)
 			}
 			return nil
 		})
@@ -151,6 +147,13 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 
 		return nil
 	})).ServeHTTP
+}
+
+var imgBufPool = sync.Pool{
+	New: func() any {
+		buf := make([]byte, 8388608) // TODO: fetch from IMGPROXY_MAX_SRC_FILE_SIZE env var.
+		return &buf
+	},
 }
 
 var loadImageCache = sync.OnceValue(func() error {
@@ -172,45 +175,3 @@ var loadImageCache = sync.OnceValue(func() error {
 
 	return nil
 })
-
-// dirCache is a really simple object cache using a directory on the local filesystem. It is used in development
-// environment to simulate an image cache.
-type dirCache struct {
-	*os.Root
-}
-
-func newDirCache() (*dirCache, error) {
-	root, err := os.OpenRoot("deployments/imgproxy")
-	if err != nil {
-		return nil, fmt.Errorf("unable to open dircache: %w", err)
-	}
-	return &dirCache{Root: root}, nil
-}
-
-func (d *dirCache) Get(ctx context.Context, key string) ([]byte, bool) {
-	data, err := d.ReadFile(key)
-	if err != nil {
-		if !errors.Is(err, fs.ErrNotExist) {
-			slogctx.FromCtx(ctx).Error("Unable to get file.",
-				slog.Any("error", err),
-			)
-		}
-		return nil, false
-	}
-	return data, true
-}
-func (d *dirCache) Set(ctx context.Context, key string, value []byte) {
-	const defaultFilePerms = 0666
-	if err := d.WriteFile(key, value, defaultFilePerms); err != nil {
-		slogctx.FromCtx(ctx).Error("Unable to save file: %w",
-			slog.Any("error", err),
-		)
-	}
-}
-func (d *dirCache) Delete(ctx context.Context, key string) {
-	if err := d.Remove(key); err != nil {
-		slogctx.FromCtx(ctx).Error("Unable to remove file: %w",
-			slog.Any("error", err),
-		)
-	}
-}
