@@ -273,19 +273,15 @@ func markArticles(
 	subscriptionID models.SubscriptionID,
 	itemIDs ...models.ItemID,
 ) error {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("mark articles: get user data: %w", models.ErrNoUserCtx)
-	}
 	subscription, err := api.GetSubscription(ctx, subscriptionID)
 	if err != nil {
-		return fmt.Errorf("mark articles: get subscriptions: %w", err)
+		return fmt.Errorf("get subscriptions: %w", err)
 	}
 	subscription.MarkItems(mark, itemIDs...)
 
 	_, err = api.UpdateSubscriptions(ctx, subscription)
 	if err != nil {
-		return fmt.Errorf("mark articles: update subscription data: %w", err)
+		return fmt.Errorf("update subscription data: %w", err)
 	}
 
 	return nil

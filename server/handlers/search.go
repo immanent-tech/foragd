@@ -46,14 +46,6 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		// Get user object.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			slogctx.FromCtx(req.Context()).Debug("Get search suggestions failed.",
-				slog.Any("error", models.ErrNoUserCtx))
-			res.WriteHeader(http.StatusForbidden)
-			return
-		}
 
 		fetchJobs, jobCtx := errgroup.WithContext(req.Context())
 
@@ -170,15 +162,15 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		}
 
 		// Retrieve the user object.
-		user := models.UserFromCtx(ctx)
-		if user == nil {
+		user, err := models.UserFromCtx(ctx)
+		if err != nil {
 			msg := models.NewErrorMessage(
 				"Unable to process request",
 				"This might be a temporary issue, please try again.",
 			)
 			renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
 			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve subscriptions: %w", models.ErrNoUserCtx),
+				fmt.Errorf("unable to retrieve subscriptions: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -263,9 +255,9 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user data.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			return fmt.Errorf("unable to get user data: %w", models.ErrNoUserCtx)
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get user data: %w", err)
 		}
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)

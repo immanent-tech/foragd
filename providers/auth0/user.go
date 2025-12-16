@@ -94,11 +94,11 @@ func DeleteUser(ctx context.Context, user *models.User) error {
 func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 	err := LoadManagementAPI()
 	if err != nil {
-		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
+		return fmt.Errorf("load management API: %w", err)
 	}
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("could not retrieve current user from context: %w", models.ErrNoUserCtx)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("get user data: %w", err)
 	}
 	// If the user changed their email, end a new verification email.
 	var verifyEmail bool
@@ -115,7 +115,7 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 	// Update the user.
 	err = mgmt.User.Update(ctx, user.GetExternalID(), updates)
 	if err != nil {
-		return fmt.Errorf("unable to update user in backend: %w", err)
+		return fmt.Errorf("update user: %w", err)
 	}
 	return nil
 }
@@ -124,11 +124,11 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error {
 	err := LoadManagementAPI()
 	if err != nil {
-		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
+		return fmt.Errorf("load management API: %w", err)
 	}
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("could not retrieve current user from context: %w", models.ErrNoUserCtx)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("get user data: %w", err)
 	}
 	// Create update object.
 	updates := &management.User{
@@ -137,7 +137,7 @@ func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordReque
 	// Update the user.
 	err = mgmt.User.Update(ctx, user.GetExternalID(), updates)
 	if err != nil {
-		return fmt.Errorf("unable to update user in backend: %w", err)
+		return fmt.Errorf("update user: %w", err)
 	}
 	return nil
 }

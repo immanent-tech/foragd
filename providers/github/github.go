@@ -60,9 +60,9 @@ func Connect(ctx context.Context) error {
 
 // CreateObjectIssue creates a new issue in Github about problems with a particular object reported by a user.
 func CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) error {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", models.ErrNoUserCtx)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("get user data: %w", err)
 	}
 	title := "Object Issue: " + string(details.Object) + " reported by " + user.GetNickname()
 	labels := []string{"subscription"}
@@ -105,7 +105,7 @@ func CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) 
 		Labels: &labels,
 	}
 	ctx = context.WithValue(ctx, github.BypassRateLimitCheck, true)
-	_, _, err := client.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
+	_, _, err = client.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
 	var priRateErr *github.RateLimitError
 	if errors.As(err, &priRateErr) {
 		slogctx.FromCtx(ctx).Warn("Hit primary rate limit.",
@@ -125,9 +125,9 @@ func CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) 
 
 // CreateIssue creates a new issue in Github about problems with the app reported by a user.
 func CreateIssue(ctx context.Context, details *models.IssueRequest) error {
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", models.ErrNoUserCtx)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return fmt.Errorf("get user data: %w", err)
 	}
 	title := "App Issue reported by " + user.GetNickname()
 	labels := []string{"subscription"}
@@ -154,7 +154,7 @@ func CreateIssue(ctx context.Context, details *models.IssueRequest) error {
 		Labels: &labels,
 	}
 	ctx = context.WithValue(ctx, github.BypassRateLimitCheck, true)
-	_, _, err := client.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
+	_, _, err = client.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
 	var priRateErr *github.RateLimitError
 	if errors.As(err, &priRateErr) {
 		slogctx.FromCtx(ctx).Warn("Hit primary rate limit.",

@@ -643,9 +643,9 @@ func newSubscription(
 	settings SubscriptionSettings,
 	data any,
 ) (*Subscription, error) {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return nil, fmt.Errorf("new subscription: %w", ErrNoUserCtx)
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get user data: %w", err)
 	}
 	ts := time.Now().UTC()
 	subscription := &Subscription{

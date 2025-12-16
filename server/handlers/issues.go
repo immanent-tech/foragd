@@ -21,10 +21,10 @@ import (
 func GetPageIssues() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user data.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			return models.NewAPIError(
-				fmt.Errorf("get user data: %w", models.ErrUserNotFound),
+				fmt.Errorf("get user data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -110,10 +110,10 @@ func GetObjectIssues() http.HandlerFunc {
 			)
 		}
 		// Get user data.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			return models.NewAPIError(
-				fmt.Errorf("get user data: %w", models.ErrUserNotFound),
+				err,
 				http.StatusInternalServerError,
 			)
 		}

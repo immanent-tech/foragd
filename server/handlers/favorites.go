@@ -29,9 +29,8 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 
 			ctx := templates.PageTitleToCtx(req.Context(), "Favorites")
 
-			user := models.UserFromCtx(ctx)
-
-			if user == nil {
+			user, err := models.UserFromCtx(ctx)
+			if err != nil {
 				msg := models.NewErrorMessage(
 					"Server could not complete request!",
 					"This might be temporary, please try again.",

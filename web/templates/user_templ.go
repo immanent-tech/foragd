@@ -373,7 +373,7 @@ func planSelection(action, method, selectedID, selectedText string) templ.Compon
 // UserChooseSubscriptionPlanPage renders a full page for the user to choose their subscription plan, with any
 // previously selected option highlighted. This is displayed after a user account has been created (in Auth0) and
 // redirects the user to Stripe for payment.
-func UserChooseSubscriptionPlan(planID string) templ.Component {
+func UserChooseSubscriptionPlan(user *models.User, planID string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -394,7 +394,6 @@ func UserChooseSubscriptionPlan(planID string) templ.Component {
 			templ_7745c5c3_Var14 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		user := models.UserFromCtx(ctx)
 		templ_7745c5c3_Var15 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -420,7 +419,7 @@ func UserChooseSubscriptionPlan(planID string) templ.Component {
 					var templ_7745c5c3_Var16 templ.SafeURL
 					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinURLErrs(mgmtLink)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 148, Col: 61}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 147, Col: 61}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 					if templ_7745c5c3_Err != nil {
@@ -643,7 +642,7 @@ func DeactivateAccountModal() templ.Component {
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 224, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 223, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
@@ -656,7 +655,7 @@ func DeactivateAccountModal() templ.Component {
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs("on click remove #" + id + "-modal")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 225, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 224, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -669,7 +668,7 @@ func DeactivateAccountModal() templ.Component {
 			var templ_7745c5c3_Var26 string
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(models.RouteUserDeactivateAccount)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 230, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 229, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
@@ -682,7 +681,7 @@ func DeactivateAccountModal() templ.Component {
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs("on htmx:afterRequest(successful) if successful remove #" + id + "-modal")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 232, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 231, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {

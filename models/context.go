@@ -5,6 +5,9 @@ package models
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"net/http"
 )
 
 const (
@@ -14,10 +17,11 @@ const (
 	pathCtxKey          contextKey = "req_path"
 	searchRequestCtxKey contextKey = "search_request"
 	subscriptionsCtxKey contextKey = "subscriptions"
-	dataAPICtxKey       contextKey = "data_api"
 )
 
 type contextKey string
+
+var ErrCtxValueNotFound = NewAPIError(errors.New("context value not found"), http.StatusNotFound)
 
 // UserToCtx stores a user in the context.
 func UserToCtx(ctx context.Context, user *User) context.Context {
@@ -25,12 +29,12 @@ func UserToCtx(ctx context.Context, user *User) context.Context {
 }
 
 // UserFromCtx retrieves a user from the context, if any.
-func UserFromCtx(ctx context.Context) *User {
+func UserFromCtx(ctx context.Context) (*User, error) {
 	user, found := ctx.Value(userCtxKey).(*User)
 	if !found {
-		return nil
+		return nil, fmt.Errorf("get user from context: %w", ErrCtxValueNotFound)
 	}
-	return user
+	return user, nil
 }
 
 // CSRFTokenToCtx stores the current valid CSRF token in the context.
@@ -105,16 +109,4 @@ func SubscriptionsFromCtx(ctx context.Context) Subscriptions {
 		return make(Subscriptions, 0)
 	}
 	return subscriptions
-}
-
-func DataAPIToCtx(ctx context.Context, api DataAPI) context.Context {
-	return context.WithValue(ctx, dataAPICtxKey, api)
-}
-
-func DataAPIFromCtx(ctx context.Context) DataAPI {
-	api, found := ctx.Value(dataAPICtxKey).(DataAPI)
-	if !found {
-		return nil
-	}
-	return api
 }

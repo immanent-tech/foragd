@@ -44,8 +44,8 @@ func ShowSettings() http.HandlerFunc {
 // ShowDisplaySettings handles showing the settings related to the application display.
 func ShowDisplaySettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage(
@@ -55,7 +55,7 @@ func ShowDisplaySettings() http.HandlerFunc {
 				),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				fmt.Errorf("unable to retrieve user data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -67,8 +67,8 @@ func ShowDisplaySettings() http.HandlerFunc {
 // ShowAccountSettings handles showing the settings related to user accounts.
 func ShowAccountSettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage(
@@ -78,7 +78,7 @@ func ShowAccountSettings() http.HandlerFunc {
 				),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				fmt.Errorf("unable to retrieve user data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -102,8 +102,8 @@ func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
 			)
 		}
 		// Get user object
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage(
@@ -113,7 +113,7 @@ func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
 				),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(
-				fmt.Errorf("save display settings: get user data: %w", models.ErrNoUserCtx),
+				fmt.Errorf("save display settings: get user data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -156,8 +156,8 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 			)
 		}
 		// Get user object
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			renderPartial(
 				templates.ServerErrorNotification(
 					models.NewErrorMessage(
@@ -167,7 +167,7 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 				),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(
-				fmt.Errorf("save account settings: get user data: %w", models.ErrNoUserCtx),
+				fmt.Errorf("save account settings: get user data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -268,13 +268,13 @@ func ChangePassword() http.HandlerFunc {
 func SetTheme(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		theme := chi.URLParam(req, "theme")
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to set theme", "This might be a temporary error, please try again.")),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				fmt.Errorf("unable to retrieve user data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -395,8 +395,8 @@ func AddFavoriteArticle(api *elastic.API) http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Unable to add favorite article",
@@ -405,7 +405,7 @@ func AddFavoriteArticle(api *elastic.API) http.HandlerFunc {
 			),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				fmt.Errorf("unable to retrieve user data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -454,8 +454,8 @@ func RemoveFavoriteArticle(api *elastic.API) http.HandlerFunc {
 				http.StatusUnprocessableEntity,
 			)
 		}
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage(
 					"Unable to remove favorite article",
@@ -464,7 +464,7 @@ func RemoveFavoriteArticle(api *elastic.API) http.HandlerFunc {
 			),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				fmt.Errorf("unable to retrieve user data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -509,14 +509,14 @@ func UserDeactivateAccount() http.HandlerFunc {
 			renderPartial(templates.DeactivateAccountModal()).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get user account details.
-			user := models.UserFromCtx(req.Context())
-			if user == nil {
+			user, err := models.UserFromCtx(req.Context())
+			if err != nil {
 				renderPartial(templates.ServerErrorNotification(
 					models.NewErrorMessage("Unable to delete account", ""),
 				),
 				).ServeHTTP(res, req)
 				return models.NewAPIError(
-					fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+					fmt.Errorf("unable to retrieve user data: %w", err),
 					http.StatusInternalServerError,
 				)
 			}
@@ -546,14 +546,14 @@ func UserDeactivateAccount() http.HandlerFunc {
 func UserCancelDeactivation() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user account details.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			renderPartial(templates.ServerErrorNotification(
 				models.NewErrorMessage("Unable to stop account deactivation", ""),
 			),
 			).ServeHTTP(res, req)
 			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				fmt.Errorf("unable to retrieve user data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
@@ -690,6 +690,14 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 // UserChooseSubscriptionPlan handles displaying a page on which the user can choose a subscription plan for purchase.
 func UserChooseSubscriptionPlan() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			renderPage(templates.ExternalError(models.NewErrorMessage(
+				"Unable to process checkout",
+				"This might be a temporary error, please try again.",
+			))).ServeHTTP(res, req)
+			return
+		}
 		// Try to find a selected plan id if it exists, from either the request query params or current session data.
 		var planID string
 		if req.URL.Query().Get(models.ParamPlanID) != "" {
@@ -705,7 +713,7 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 		}
 		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
 		ctx := templates.PageTitleToCtx(req.Context(), "Choose a Subscription Plan")
-		renderPage(templates.UserChooseSubscriptionPlan(planID)).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(templates.UserChooseSubscriptionPlan(user, planID)).ServeHTTP(res, req.WithContext(ctx))
 	}).ServeHTTP
 }
 
@@ -713,10 +721,10 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 // processor.
 func UserSubscriptionPlanCheckout() http.HandlerFunc {
 	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		// Fetch the user details from context.
-		user := models.UserFromCtx(req.Context())
 		ctx := templates.PageTitleToCtx(req.Context(), "Checkout Subscription Plan")
-		if user == nil {
+		// Fetch the user details from context.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			templ.Handler(templates.ExternalError(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
@@ -724,7 +732,7 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 			return models.NewAPIError(
 				fmt.Errorf(
 					"user checkout session: unable to retrieve user: %w",
-					models.ErrNoUserCtx,
+					err,
 				),
 				http.StatusInternalServerError,
 			)
@@ -748,7 +756,7 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 
 		// Create a new strip checkout session.
 		var session *stripe.Checkout
-		session, err := stripe.NewCheckoutSession(user, planID)
+		session, err = stripe.NewCheckoutSession(user, planID)
 		if err != nil {
 			templ.Handler(templates.ExternalError(models.NewErrorMessage(
 				"Unable to process checkout",

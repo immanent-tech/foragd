@@ -267,8 +267,8 @@ func renderPartial(template templ.Component) http.Handler {
 func wrapContent(req *http.Request, template templ.Component) templ.Component {
 	switch {
 	case !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			return templates.ErrorPage(
 				models.NewErrorMessage("Invalid request", "This might be a temporary error, please try again."),
 			)
@@ -327,8 +327,8 @@ func storePath(next http.Handler) http.Handler {
 
 func setCacheControl(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			return
 		}
 		updateFreq := strconv.FormatFloat(user.GetUpdatesFrequency().Seconds(), 'f', 0, 64)
@@ -356,11 +356,11 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 //nolint:gocognit
 func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			res.WriteHeader(http.StatusNoContent)
 			slogctx.FromCtx(req.Context()).Error("Unable to watch for updates.",
-				slog.Any("error", models.ErrNoUserCtx),
+				slog.Any("error", err),
 			)
 			return
 		}
@@ -380,7 +380,7 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 			currentCount int64
 			prevCount    int64
 		)
-		prevCount, err := api.CountItems(req.Context(), watch)
+		prevCount, err = api.CountItems(req.Context(), watch)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
 				slog.Any("error", err))

@@ -28,8 +28,8 @@ func Home(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(setCacheControl).
 		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 			ctx := templates.PageTitleToCtx(req.Context(), "Home")
-			user := models.UserFromCtx(ctx)
-			if user == nil {
+			user, err := models.UserFromCtx(ctx)
+			if err != nil {
 				msg := models.NewErrorMessage(
 					"Unable to complete request!",
 					"This might be temporary, please try again.",
@@ -38,7 +38,7 @@ func Home(api *elastic.API) http.HandlerFunc {
 					wrapContent(req.WithContext(ctx), templates.ErrorPage(msg)),
 				).ServeHTTP(res, req.WithContext(ctx))
 				return models.NewAPIError(
-					fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+					fmt.Errorf("unable to retrieve user data: %w", err),
 					http.StatusInternalServerError,
 				)
 			}
@@ -91,9 +91,9 @@ func WatchHome(api *elastic.API) http.HandlerFunc {
 func getHomePageData(ctx context.Context, api *elastic.API) (*templates.Home, error) {
 	data := &templates.Home{}
 	// Retrieve user object.
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return data, fmt.Errorf("unable to retrieve user: %w", models.ErrNoUserCtx)
+	user, err := models.UserFromCtx(ctx)
+	if err != nil {
+		return data, fmt.Errorf("unable to retrieve user: %w", err)
 	}
 	data.User = user
 

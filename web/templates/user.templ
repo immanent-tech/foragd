@@ -137,8 +137,7 @@ templ planSelection(action, method, selectedID, selectedText string) {
 // UserChooseSubscriptionPlanPage renders a full page for the user to choose their subscription plan, with any
 // previously selected option highlighted. This is displayed after a user account has been created (in Auth0) and
 // redirects the user to Stripe for payment.
-templ UserChooseSubscriptionPlan(planID string) {
-	{{ user := models.UserFromCtx(ctx) }}
+templ UserChooseSubscriptionPlan(user *models.User, planID string) {
 	@main() {
 		if user != nil && user.Active() {
 			// User has an active plan, show them an action to manage it.

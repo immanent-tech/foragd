@@ -400,7 +400,7 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 			}
 			// Get top categories across items in subscription feed and add as suggested categories for the
 			// subscription.
-			if categories, resp := models.GetArticleTopCategories(ctx, api, subscription.FeedData.GetFeedID()); resp == nil {
+			if categories, resp := api.GetArticleTopCategories(ctx, subscription.FeedData.GetFeedID()); resp == nil {
 				request.SuggestedCategories = categories
 			}
 			// Generate page template.
@@ -870,8 +870,8 @@ func ExportSubscriptions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
 		ctx := templates.PageTitleToCtx(req.Context(), "Export subscriptions")
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
 			msg := models.NewErrorMessage(
 				"Unable to load export form",
 				"This might be a temporary problem, please try again.",
@@ -881,7 +881,7 @@ func ExportSubscriptions(api *elastic.API) http.HandlerFunc {
 				wrapContent(req.WithContext(ctx), template),
 			).ServeHTTP(res, req.WithContext(ctx))
 			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve user data: %w", models.ErrNoUserCtx),
+				fmt.Errorf("unable to retrieve user data: %w", err),
 				http.StatusInternalServerError,
 			)
 		}
