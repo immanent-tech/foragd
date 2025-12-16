@@ -10,6 +10,10 @@ const (
 	RouteCheckout           = "/checkout"
 	RouteCheckoutChoosePlan = "/checkout/choose-plan"
 
+	RouteListSubscriptions = "/list/subscriptions"
+	RouteListArticles      = "/list/articles"
+	RouteListFavorites     = "/list/favorites"
+
 	RouteUserAccountIssue              = "/user/account-issue"
 	RouteUserDeactivateAccount         = "/user/deactivate"
 	RouteUserCancelDeactivationAccount = "/user/deactivate/cancel"
