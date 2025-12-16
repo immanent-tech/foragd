@@ -135,7 +135,7 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		}
 		ctx = models.UserToCtx(ctx, user)
 		// Redirect the user appropriately.
-		if profile.LoginsCount == 1 || user.Metadata.Plan == "" {
+		if profile.LoginsCount <= 1 || user.Metadata.Plan == "" {
 			// New user or user without a plan; redirect to choose subscription plan.
 			http.Redirect(res, req.WithContext(ctx), models.RouteCheckoutChoosePlan, http.StatusSeeOther)
 			return nil
@@ -163,12 +163,7 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 
 func createLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProfile) error {
 	user := models.NewUser(profile.GetID(), profile.GetEmail())
-	valid, err := user.Valid(ctx)
-	if err != nil || !valid {
-		return fmt.Errorf("create local user: %w", err)
-	}
-	err = api.CreateUser(ctx, user)
-	if err != nil {
+	if err := api.CreateUser(ctx, user); err != nil {
 		return fmt.Errorf("create local user: %w", err)
 	}
 

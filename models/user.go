@@ -48,9 +48,6 @@ func NewUser(externalID, email string) *User {
 			ShowSubscriptionStats: false,
 			MarkArticleReadOnView: true,
 		},
-		Metadata: UserMetadata{
-			PlanStatus: stripe.SubscriptionStatusTrialing,
-		},
 	}
 
 	return user
@@ -58,11 +55,11 @@ func NewUser(externalID, email string) *User {
 
 // Valid returns a boolean indicating whether the user data is valid. If not valid, it will also return a non-nil error
 // that contains the validation issues.
-func (u *User) Valid(_ context.Context) (bool, error) {
+func (u *User) Valid(_ context.Context) error {
 	if err := validation.Validate.Struct(u); err != nil {
-		return false, fmt.Errorf("user data is invalid: %w", err)
+		return fmt.Errorf("user data is invalid: %w", err)
 	}
-	return true, nil
+	return nil
 }
 
 // GetID returns the ID for the user.
