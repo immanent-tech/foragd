@@ -34,7 +34,6 @@ var ErrScheduler = errors.New("scheduler encountered an error")
 type manager struct {
 	quartz.Scheduler
 
-	id    string
 	api   *elastic.API
 	queue quartz.JobQueue
 }
@@ -69,7 +68,6 @@ func Run(ctx context.Context) error {
 
 	Manager = &manager{
 		Scheduler: scheduler,
-		id:        models.NewID(models.SchedulerPFX),
 		api:       elasticAPI,
 		queue:     jobQueue,
 	}

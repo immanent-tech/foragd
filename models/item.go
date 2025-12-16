@@ -160,11 +160,11 @@ func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 	var itemID ItemID
 	if sourceID := source.GetID(); sourceID != "" {
 		itemID = strings.Join(
-			[]string{ItemPFX.String(), strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+sourceID)), 10)},
+			[]string{"item_", strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+sourceID)), 10)},
 			"_",
 		)
 	} else {
-		itemID = strings.Join([]string{ItemPFX.String(), strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+source.GetLink())), 10)}, "_")
+		itemID = strings.Join([]string{"item_", strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+source.GetLink())), 10)}, "_")
 	}
 	item := &Item{
 		ItemID:       itemID,

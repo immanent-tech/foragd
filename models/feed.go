@@ -147,7 +147,7 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 func NewFeedFromSource(url string, source *feeds.Feed) *Feed {
 	// Generate an ID using a murmur hash of the feed's website URL.
 	id := strings.Join(
-		[]string{FeedPFX.String(), strconv.FormatUint(murmur3.Sum64([]byte(source.GetLink())), 10)},
+		[]string{"feed_", strconv.FormatUint(murmur3.Sum64([]byte(source.GetLink())), 10)},
 		"_",
 	)
 	feed := &Feed{

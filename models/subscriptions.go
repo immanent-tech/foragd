@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spaolacci/murmur3"
+
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -649,14 +651,17 @@ func newSubscription(
 	}
 	ts := time.Now().UTC()
 	subscription := &Subscription{
-		SubscriptionID: NewID(SubscriptionPFX),
-		UserID:         user.GetID(),
-		UpdatedAt:      ts,
-		CreatedAt:      ts,
-		MarkedReadAt:   user.GetMaxHistory(),
-		Customisation:  customisation,
-		Settings:       settings,
-		Favorite:       false,
+		SubscriptionID: strings.Join(
+			[]string{"sub_", strconv.FormatUint(murmur3.Sum64([]byte(user.GetID()+customisation.Nickname)), 10)},
+			"_",
+		),
+		UserID:        user.GetID(),
+		UpdatedAt:     ts,
+		CreatedAt:     ts,
+		MarkedReadAt:  user.GetMaxHistory(),
+		Customisation: customisation,
+		Settings:      settings,
+		Favorite:      false,
 	}
 
 	switch typeData := data.(type) {

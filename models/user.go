@@ -7,9 +7,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/spaolacci/murmur3"
 	"github.com/stripe/stripe-go/v83"
 
 	"github.com/immanent-tech/foragd/validation"
@@ -41,7 +43,7 @@ func NewUser(externalID, email string) *User {
 		ExternalUserID: externalID,
 		Provider:       strings.Split(externalID, "|")[0],
 		Email:          email,
-		UserID:         NewID(UserPFX),
+		UserID:         strings.Join([]string{"user_", strconv.FormatUint(murmur3.Sum64([]byte(externalID)), 10)}, "_"),
 		Settings: UserSettings{
 			Theme:                 DefaultUserTheme,
 			ShowOnboarding:        true,
