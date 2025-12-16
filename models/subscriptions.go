@@ -367,8 +367,6 @@ func (s Subscriptions) FilterByType(t SubscriptionType) Subscriptions {
 
 // Sort will sort the slice of subscriptions by the given sort option. Favorite subscriptions are always sorted before
 // other subscriptions, and the sort option is used as a tiebreaker.
-//
-//nolint:gocognit
 func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	sort = setValidSort(sort)
 	switch sort {
