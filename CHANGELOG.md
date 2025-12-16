@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3](https://github.com/immanent-tech/foragd/compare/v0.0.2...v0.0.3) (2025-12-16)
+
+
+### Bug Fixes
+
+* :bug: first login fixes ([d4f9319](https://github.com/immanent-tech/foragd/commit/d4f9319128dac3594bbbfcccb7ba3c072d3db7c1))
+* **scheduler:** :bug: ensure values are added to context after proper creation ([02dd35c](https://github.com/immanent-tech/foragd/commit/02dd35c2b819987e0d5570609e876439874ed147))
+
 ## [0.0.2](https://github.com/immanent-tech/foragd/compare/v0.0.1...v0.0.2) (2025-12-15)
 
 
