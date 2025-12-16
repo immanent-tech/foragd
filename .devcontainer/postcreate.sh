@@ -21,7 +21,7 @@ go install github.com/a-h/templ/cmd/templ@latest
 
 # Install Stripe CLI.
 cd /tmp \
-    && curl -L -O https://github.com/stripe/stripe-cli/releases/download/v1.33.0/stripe_1.33.0_linux_x86_64.tar.gz \
+    && curl -L -O https://github.com/stripe/stripe-cli/releases/download/v1.33.2/stripe_1.33.2_linux_x86_64.tar.gz \
     && tar xvf stripe* \
     && sudo mv stripe /usr/local/bin
 
