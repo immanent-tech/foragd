@@ -334,10 +334,3 @@ services:
       IMGPROXY_USE_LAST_MODIFIED: "true"
       IMGPROXY_CACHE_CONTROL_PASSTHROUGH: "true"
       IMGPROXY_SO_REUSEPORT: "true"
-
-  languagetool:
-    image: docker.io/silviof/docker-languagetool:$LANGUAGETOOL_VERSION
-    cap_drop:
-      - ALL
-    volumes:
-      - ../deployments/languagetool/ngrams:/ngrams
