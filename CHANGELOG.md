@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.4](https://github.com/immanent-tech/foragd/compare/v0.0.3...v0.0.4) (2025-12-17)
+
+
+### Performance Improvements
+
+* **handlers:** :zap: use a sync.Pool for image buffer ([1e5fe00](https://github.com/immanent-tech/foragd/commit/1e5fe00d3ee3e9504ea2f32c1464d05024b4f658))
+
 ## [0.0.3](https://github.com/immanent-tech/foragd/compare/v0.0.2...v0.0.3) (2025-12-16)
 
 
