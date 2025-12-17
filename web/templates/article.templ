@@ -307,7 +307,7 @@ templ ArticleContent(article *models.Article) {
 				@NewLink(
 					WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 					WithHXTarget(ContentID.Target()),
-					WithHXInclude("#content-filters,[name='csrf_token']"),
+					WithHXInclude("[name='csrf_token']"),
 					WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
 				) {
 					if article.IsRemoteContent() {

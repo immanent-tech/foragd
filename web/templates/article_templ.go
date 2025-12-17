@@ -1160,7 +1160,7 @@ func ArticleContent(article *models.Article) templ.Component {
 			templ_7745c5c3_Err = NewLink(
 				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
 				WithHXTarget(ContentID.Target()),
-				WithHXInclude("#content-filters,[name='csrf_token']"),
+				WithHXInclude("[name='csrf_token']"),
 				WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var52), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
