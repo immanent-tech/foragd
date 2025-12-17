@@ -332,7 +332,10 @@ func (a *API) CreateFeedSubscriptions(ctx context.Context, results ...*models.Ad
 		}
 		result.Subscription = *subscription
 		subscriptions = append(subscriptions, subscription)
-		result.Message = *models.NewSuccessMessage("Subscription Created: "+result.Feed.GetTitle(), "Articles will be fetched shortly...")
+		result.Message = models.NewSuccessMessage(
+			"Subscription Created: "+result.Feed.GetTitle(),
+			"Articles will be fetched shortly...",
+		)
 	}
 	// Add subscriptions
 	if err := a.AddSubscriptions(ctx, subscriptions...); err != nil {
@@ -524,7 +527,10 @@ func (a *API) ProcessSubscriptionRequest(
 	feeds, _, err := a.SearchFeeds(ctx, query.Term("source_urls", request.GetURL()), 1, nil, nil)
 	if err != nil {
 		result.Error = err
-		result.Message = *models.NewErrorMessage("Unable to determine existing subscription status", "The backend produced an error. This might be temporary, please try again.")
+		result.Message = models.NewErrorMessage(
+			"Unable to determine existing subscription status",
+			"The backend produced an error. This might be temporary, please try again.",
+		)
 		resultsCh <- result
 		return
 	}
@@ -539,21 +545,36 @@ func (a *API) ProcessSubscriptionRequest(
 		newFeed, err = models.NewFeedFromURL(ctx, request.GetURL())
 		if err != nil {
 			result.Error = err
-			result.Message = *models.NewErrorMessage("Unable to create subscription", fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL()))
+			result.Message = models.NewErrorMessage(
+				"Unable to create subscription",
+				fmt.Sprintf(
+					"The feed URL %q cannot be parsed as a feed source or is not a valid URL.",
+					request.GetURL(),
+				),
+			)
 			resultsCh <- result
 			return
 		}
 		err = validation.Validate.Struct(newFeed)
 		if err != nil {
 			result.Error = err
-			result.Message = *models.NewErrorMessage("Unable to create subscription", fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL()))
+			result.Message = models.NewErrorMessage(
+				"Unable to create subscription",
+				fmt.Sprintf(
+					"The feed URL %q cannot be parsed as a feed source or is not a valid URL.",
+					request.GetURL(),
+				),
+			)
 			resultsCh <- result
 			return
 		}
 		err = a.CreateFeed(ctx, newFeed)
 		if err != nil {
 			result.Error = err
-			result.Message = *models.NewErrorMessage("Unable to create new feed for subscription", "The backend produced an error. This might be temporary, please try again.")
+			result.Message = models.NewErrorMessage(
+				"Unable to create new feed for subscription",
+				"The backend produced an error. This might be temporary, please try again.",
+			)
 			resultsCh <- result
 			return
 		}
@@ -574,13 +595,16 @@ func (a *API) ProcessSubscriptionRequest(
 	subscription, err := a.GetSubscriptionByFeedID(ctx, feed.GetID())
 	if err != nil && models.HTTPStatus(err) != http.StatusNotFound {
 		result.Error = err
-		result.Message = *models.NewErrorMessage("Unable to check for existing subscription for "+request.GetURL(), "The backend produced an error. This might be temporary, please try again.")
+		result.Message = models.NewErrorMessage(
+			"Unable to check for existing subscription for "+request.GetURL(),
+			"The backend produced an error. This might be temporary, please try again.",
+		)
 		resultsCh <- result
 		return
 	}
 	if subscription != nil {
 		result.Error = models.NewAPIError(errors.New("already subscribed"), http.StatusConflict)
-		result.Message = *models.NewWarningMessage("Already subscribed to feed", feed.GetTitle()+" ("+request.URL+")")
+		result.Message = models.NewWarningMessage("Already subscribed to feed", feed.GetTitle()+" ("+request.URL+")")
 		resultsCh <- result
 		return
 	}

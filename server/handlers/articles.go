@@ -22,70 +22,69 @@ import (
 // ListArticles handles fetching articles based on the given page filters and displaying them.
 func ListArticles(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters, setCacheControl).
-		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-			pagination := req.FormValue(models.ParamPagination)
-			ctx := templates.PageTitleToCtx(req.Context(), "Articles")
-			// Redirect to include query parameters in address bar.
-			if len(req.URL.Query()) == 0 {
-				if htmx.IsHTMX(req) {
-					res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
-				} else {
-					http.Redirect(res, req.WithContext(ctx), req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
+		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+			list := func(res http.ResponseWriter, req *http.Request) error {
+				filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+				pagination := req.FormValue(models.ParamPagination)
+				ctx := templates.PageTitleToCtx(req.Context(), "Articles")
+				// Redirect to include query parameters in address bar.
+				if len(req.URL.Query()) == 0 {
+					if htmx.IsHTMX(req) {
+						res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
+					} else {
+						http.Redirect(res, req.WithContext(ctx), req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
+					}
 				}
-			}
-			var (
-				articles models.Articles
-				err      error
-				template templ.Component
-			)
-
-			// Get articles matching filters.
-			articles, pagination, err = api.FilterArticles(ctx, filters, pagination)
-			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-				msg := models.NewErrorMessage(
-					"Server could not complete request!",
-					"This might be temporary, please try again.",
+				var (
+					articles models.Articles
+					err      error
+					template templ.Component
 				)
+
+				// Get articles matching filters.
+				articles, pagination, err = api.FilterArticles(ctx, filters, pagination)
+				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+					return &models.APIError{
+						InternalError: fmt.Errorf("unable to list articles: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Server could not complete request!",
+							"This might be temporary, please try again.",
+						),
+					}
+				}
+				// Render appropriate content.
+				subscriptionID := req.FormValue(models.ParamSubscriptionID)
+				// If the list of articles is from a single subscription, update the page tile to include the subscription
+				// name.
+				if subscriptionID != "" {
+					ctx = templates.PageTitleToCtx(ctx, articles[0].GetFeedTitle()+" | Articles")
+				}
+				template = templates.ArticlesGrid(subscriptionID, articles, pagination)
+				// Choose rendering method based on method (get = page, post = partial).
 				switch req.Method {
 				case http.MethodGet:
-					renderPage(templates.ErrorPage(msg)).ServeHTTP(res, req.WithContext(ctx))
+					renderPage(
+						wrapContent(req.WithContext(ctx), template),
+					).ServeHTTP(res, req.WithContext(ctx))
 				case http.MethodPost:
-					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
+					renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
 				}
-				return models.NewAPIError(
-					fmt.Errorf("unable to list articles: %w", err),
-					http.StatusInternalServerError,
-				)
+				return nil
 			}
-			// Render appropriate content.
-			subscriptionID := req.FormValue(models.ParamSubscriptionID)
-			// If the list of articles is from a single subscription, update the page tile to include the subscription
-			// name.
-			if subscriptionID != "" {
-				ctx = templates.PageTitleToCtx(ctx, articles[0].GetFeedTitle()+" | Articles")
-			}
-			template = templates.ArticlesGrid(subscriptionID, articles, pagination)
-			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {
 			case http.MethodGet:
-				renderPage(
-					wrapContent(req.WithContext(ctx), template),
-				).ServeHTTP(res, req.WithContext(ctx))
+				showOnError(list).ServeHTTP(res, req)
 			case http.MethodPost:
-				renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
+				notifyOnError(list).ServeHTTP(res, req)
 			}
-			return nil
-		})).
-		ServeHTTP
+		}).ServeHTTP
 }
 
 // PaginateArticles handles a request to list more articles.
-//
-//nolint:dupl // this is not a duplicate.
 func PaginateArticles(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
-		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 			pagination := req.FormValue(models.ParamPagination)
 			var (
@@ -96,15 +95,14 @@ func PaginateArticles(api *elastic.API) http.HandlerFunc {
 			// Get articles matching filters.
 			articles, pagination, err = api.FilterArticles(req.Context(), filters, pagination)
 			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-				msg := models.NewErrorMessage(
-					"Server could not complete request!",
-					"This might be temporary, please try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to list articles: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("unable to list articles: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Could not list more articles",
+						"This might be temporary, please try again.",
+					),
+				}
 			}
 
 			// If there are articles to show, render the articles. Else, return StatusNoContent.
@@ -121,7 +119,7 @@ func PaginateArticles(api *elastic.API) http.HandlerFunc {
 
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
 func MarkArticle(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request values.
 		subscriptionID := req.FormValue(models.ParamSubscriptionID)
 		itemID := chi.URLParam(req, models.ParamItemID)
@@ -132,30 +130,28 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 		}
 		err := request.Valid()
 		if err != nil {
-			res.Header().Add(htmx.HeaderReswap, "none")
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to mark article", "This might be a temporary issue, please try again."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark article",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
 
 		// Mark articles.
 		for subscriptionID, itemIDs := range request.Metadata {
 			err = markArticles(req.Context(), api, request.Mark, subscriptionID, itemIDs...)
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				renderPartial(
-					templates.ServerErrorNotification(
-						models.NewErrorMessage(
-							"Unable to mark objects",
-							"This might be a temporary error, please try again.",
-						),
+				return &models.APIError{
+					InternalError: fmt.Errorf("unable to update user: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark article",
+						"This might be a temporary issue, please try again.",
 					),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
+				}
 			}
 		}
 
@@ -170,12 +166,11 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 				// Get updated article.
 				articles, err := api.GetArticles(req.Context(), itemID)
 				if err != nil || len(articles) == 0 || len(articles) > 1 {
-					res.Header().Add(htmx.HeaderReswap, "none")
-					renderPartial(
-						templates.ServerErrorNotification(
-							models.NewErrorMessage("Unable to mark objects", "This might be a temporary error, please try again.")),
-					).ServeHTTP(res, req)
-					return models.NewAPIError(fmt.Errorf("could not retrieve updated articles: %w", err), http.StatusInternalServerError)
+					return &models.APIError{
+						InternalError: fmt.Errorf("could not retrieve updated articles: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage:   models.NewErrorMessage("Unable to mark objects", "This might be a temporary error, please try again."),
+					}
 				}
 				// Render new article card.
 				renderPartial(templates.ArticleCard(articles[0])).ServeHTTP(res, req)
@@ -193,45 +188,41 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 
 // MarkArticles handles marking multiple articles as read/unread and updating the UI appropriately.
 func MarkArticles(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Decode request parameters.
 		request, valid, err := forms.DecodeForm[*models.MarkArticlesRequest](req)
 		if err != nil {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage(
-						"Unable to mark articles.",
-						"This might be a temporary error, please try again.",
-					),
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode mark articles request: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark articles.",
+					"This might be a temporary error, please try again.",
 				),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("mark subscriptions: %w", err), http.StatusInternalServerError)
+			}
 		}
 		if !valid {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage(
-						"Unable to mark articles.",
-						"This might be a temporary error, please try again.",
-					),
+			return &models.APIError{
+				InternalError: fmt.Errorf("validate mark articles request: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark articles.",
+					"This might be a temporary error, please try again.",
 				),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("mark subscriptions: %w", err), http.StatusUnprocessableEntity)
+			}
 		}
 
 		// Mark Articles.
 		for subscriptionID, itemIDs := range request.Metadata {
-			err = markArticles(req.Context(), api, request.Mark, subscriptionID, itemIDs...)
-			if err != nil {
-				renderPartial(
-					templates.ServerErrorNotification(
-						models.NewErrorMessage(
-							"Unable to mark articles",
-							"This might be a temporary problem, please try again",
-						),
+			if err = markArticles(req.Context(), api, request.Mark, subscriptionID, itemIDs...); err != nil {
+				return &models.APIError{
+					InternalError: fmt.Errorf("mark subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark articles.",
+						"This might be a temporary error, please try again.",
 					),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("mark articles: %w", err), http.StatusInternalServerError)
+				}
 			}
 		}
 
@@ -250,15 +241,14 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 			})
 		}
 		if err != nil {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage(
-						"Unable to mark articles",
-						"This might be a temporary problem, please try again",
-					),
+			return &models.APIError{
+				InternalError: fmt.Errorf("mark subscriptions: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark articles.",
+					"This might be a temporary error, please try again.",
 				),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("mark articles: %w", err), http.StatusInternalServerError)
+			}
 		}
 
 		res.WriteHeader(http.StatusOK)

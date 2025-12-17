@@ -18,7 +18,7 @@ import (
 // ListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.
 func ListFavorites(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters, setCacheControl).
-		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 			var (
 				articles      models.Articles
 				subscriptions models.Subscriptions
@@ -31,23 +31,14 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 
 			user, err := models.UserFromCtx(ctx)
 			if err != nil {
-				msg := models.NewErrorMessage(
-					"Server could not complete request!",
-					"This might be temporary, please try again.",
-				)
-				switch req.Method {
-				case http.MethodGet:
-					renderPage(
-						wrapContent(req.WithContext(ctx), templates.ErrorPage(msg)),
-					).ServeHTTP(res, req.WithContext(ctx))
-				case http.MethodPost:
-					template = templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
+				return &models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Could not list favorites",
+						"This might be temporary, please try again.",
+					),
 				}
-				return models.NewAPIError(
-					fmt.Errorf("could not fetch user info from context: %w", err),
-					http.StatusInternalServerError,
-				)
 			}
 
 			// Get favorite articles.
@@ -76,23 +67,14 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 			})
 
 			if err := wg.Wait(); err != nil {
-				msg := models.NewErrorMessage(
-					"Server could not complete request!",
-					"This might be temporary, please try again.",
-				)
-				switch req.Method {
-				case http.MethodGet:
-					renderPage(
-						wrapContent(req.WithContext(ctx), templates.ErrorPage(msg)),
-					).ServeHTTP(res, req.WithContext(ctx))
-				case http.MethodPost:
-					template = templates.ServerErrorNotification(msg)
-					renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
+				return &models.APIError{
+					InternalError: fmt.Errorf("run data collection: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Could not list favorites",
+						"This might be temporary, please try again.",
+					),
 				}
-				return models.NewAPIError(
-					fmt.Errorf("could not fetch user info from context: %w", err),
-					http.StatusInternalServerError,
-				)
 			}
 
 			// Render appropriate content.

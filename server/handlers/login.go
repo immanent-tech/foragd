@@ -7,14 +7,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/oauth2"
 
@@ -27,23 +25,26 @@ import (
 
 // Login handles login requests.
 func Login() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return func(res http.ResponseWriter, req *http.Request) {
 		ctx := templates.PageTitleToCtx(req.Context(), "Login")
 
 		if err := auth0.InitAuthenticator(ctx); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Unable to initialise authenticator backend.",
+				slog.Any("error", err),
+			)
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Can't contact auth backend")),
 			).ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-
 		// prompt=login&screen_hint=signup
 		state, err := generateRandomState()
 		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
+				slog.Any("error", err),
+			)
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid state")),
 			).ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		var authURL string
 		switch chi.RouteContext(ctx).RoutePattern() {
@@ -62,53 +63,60 @@ func Login() http.HandlerFunc {
 			slog.String("url", auth0.AuthClient.AuthCodeURL(state)),
 		)
 		http.Redirect(res, req.WithContext(ctx), authURL, http.StatusTemporaryRedirect)
-		return nil
-	})).ServeHTTP
+	}
 }
 
 // LoginCallback handles processing the response from a login provider.
 func LoginCallback(api *elastic.API) http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return func(res http.ResponseWriter, req *http.Request) {
 		ctx := templates.PageTitleToCtx(req.Context(), "Login")
 
 		state, err := session.Restore[string](ctx, "state")
 		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Restore state from session failed.",
+				slog.Any("error", err),
+			)
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
 			).ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		if req.FormValue("state") != state {
+			slogctx.FromCtx(req.Context()).Error("Invalid state.")
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")),
 			).ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(errors.New("invalid session state"), http.StatusInternalServerError)
 		}
 
 		// Exchange an authorization code for a token.
 		token, err := auth0.AuthClient.Exchange(ctx, req.FormValue("code"))
 		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Unable to exchange auth token.",
+				slog.Any("error", err),
+			)
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
 			).ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
 		idToken, err := auth0.AuthClient.VerifyIDToken(ctx, token)
 		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Unable to verify token.",
+				slog.Any("error", err),
+			)
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
 			).ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
 		var profile auth0.UserProfile
 		err = idToken.Claims(&profile)
 		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Invalid authorization data.",
+				slog.Any("error", err),
+			)
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
 			).ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 
 		session.Save(ctx, "access_token", token.AccessToken)
@@ -119,46 +127,58 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
 			// Create a new local account for the user
 			if err := createLocalUser(ctx, api, profile); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Unable to create new local user.",
+					slog.Any("error", err),
+				)
 				renderPage(
 					templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Account creation failed")),
 				).ServeHTTP(res, req.WithContext(ctx))
-				return models.NewAPIError(err, http.StatusInternalServerError)
 			}
 		case err != nil: // Backend error.
+			slogctx.FromCtx(req.Context()).Error("Unable to find a local user match.",
+				slog.Any("error", err),
+			)
 			renderPage(
 				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Authorization backend error")),
 			).ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(err, http.StatusInternalServerError)
 		default: // Existing user.
 			// Sync user data from the backend.
 			syncLocalUser(ctx, api, user, profile)
 		}
 		ctx = models.UserToCtx(ctx, user)
 		// Redirect the user appropriately.
-		if profile.LoginsCount <= 1 || user.Metadata.Plan == "" {
+		if user.Metadata.Plan == "" {
 			// New user or user without a plan; redirect to choose subscription plan.
 			http.Redirect(res, req.WithContext(ctx), models.RouteCheckoutChoosePlan, http.StatusSeeOther)
-			return nil
+			return
 		}
 		if err := user.Metadata.Valid(); err != nil {
 			// User metadata is invalid, redirect user to page indicating they need to contact support to resolve the issue.
+			slogctx.FromCtx(req.Context()).Error("User data is invalid.",
+				slog.Any("error", err),
+			)
 			http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
-			return fmt.Errorf("checking user data: %w", err)
+			return
 		}
 		if !user.Active() {
+			slogctx.FromCtx(req.Context()).Error("User is not active.",
+				slog.Any("error", err),
+			)
 			// Account issues; redirect user to page indicating they need to contact support to resolve an issue with their account.
 			http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
-			return nil
+			return
 		}
 		if cancelled, endAt := user.Cancelled(); cancelled && endAt.Before(time.Now().UTC()) {
+			slogctx.FromCtx(req.Context()).Error("User has cancelled plan.",
+				slog.Any("error", err),
+			)
 			// Account has been cancelled and past cancellation date; redirect to home page.
 			http.Redirect(res, req.WithContext(ctx), "/", http.StatusSeeOther)
-			return nil
+			return
 		}
 		// Active user; redirect to home page.
 		http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)
-		return nil
-	})).ServeHTTP
+	}
 }
 
 func createLocalUser(ctx context.Context, api *elastic.API, profile auth0.UserProfile) error {

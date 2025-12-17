@@ -1028,6 +1028,8 @@ components:
           description: >
             is the status code associated with the error. Usually, this is a HTTP status code.
           type: integer
+        user_message:
+          $ref: '#/components/schemas/UserMessage'
     SearchRequest:
       description: >
         represents a search request by the user.
@@ -1328,6 +1330,7 @@ components:
           enum: ['info', 'success', 'warning', 'error']
           x-oapi-codegen-extra-tags:
             validate: 'required'
+      x-go-type-skip-optional-pointer: false
     FileUpload:
       description: >
         represents a file upload by a user.

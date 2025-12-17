@@ -19,14 +19,18 @@ import (
 
 // GetPageIssues handles presenting a form for the user to submit issues about the app.
 func GetPageIssues() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user data.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			return models.NewAPIError(
-				fmt.Errorf("get user data: %w", err),
-				http.StatusInternalServerError,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to generate issues form",
+					"There was a problem with the request. Please try again.",
+				),
+			}
 		}
 		// Get the current URL on which the issue is being reported.
 		currentURL, found := htmx.GetCurrentURL(req)
@@ -43,40 +47,38 @@ func GetPageIssues() http.HandlerFunc {
 
 // SubmitPageIssues handles processing the user submitted subscription issues form.
 func SubmitPageIssues() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeForm[*models.IssueRequest](req)
 		if err != nil || !valid {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage:   models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
+			}
 		}
 		// Create the issue in Github.
 		err = github.Connect(req.Context())
 		if err != nil {
-			res.Header().Add(htmx.HeaderReswap, "none")
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("unable to connect to github: %w", err),
-				http.StatusInternalServerError,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("unable to connect to github: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to submit issue",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
 		err = github.CreateIssue(req.Context(), request)
 		if err != nil {
-			res.Header().Add(htmx.HeaderReswap, "none")
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("create github issue: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to submit issue",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
 		// Force refresh of page.
 		msg := models.NewErrorMessage(
@@ -91,31 +93,33 @@ func SubmitPageIssues() http.HandlerFunc {
 
 // GetObjectIssues presents a form for entering issues about a particular object (subscription/article).
 func GetObjectIssues() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
 		params := &models.ObjectParams{
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
 		if err := params.Valid(); err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage(
-					"Server could not complete request",
-					"This might be temporary, please try again.",
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode object: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to generate issues form",
+					"There was a problem with the request. Please try again.",
 				),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			}
 		}
 		// Get user data.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			return models.NewAPIError(
-				err,
-				http.StatusInternalServerError,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to generate issues form",
+					"There was a problem with the request. Please try again.",
+				),
+			}
 		}
 
 		currentURL, found := htmx.GetCurrentURL(req)
@@ -135,20 +139,18 @@ func GetObjectIssues() http.HandlerFunc {
 
 // SubmitObjectIssues handles processing the issue form and creating a github issue with the details.
 func SubmitObjectIssues() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract the issue request details.
 		request, valid, err := forms.DecodeForm[*models.ObjectIssueRequest](req)
 		if err != nil || !valid {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage(
-					"Server could not complete request",
-					"This might be temporary, please try again.",
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode object: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to generate issues form",
+					"There was a problem with the request. Please try again.",
 				),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			}
 		}
 		// // Extract any attached screenshot.
 		// screenshot, err := forms.DecodeMultipartFile2(req, "screenshot")
@@ -169,29 +171,26 @@ func SubmitObjectIssues() http.HandlerFunc {
 
 		err = github.Connect(req.Context())
 		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to submit issue", "This might be a temporary issue, please try again."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("unable to connect to github: %w", err),
-				http.StatusInternalServerError,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("connect to github: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to submit issue",
+					"There was a problem with the request. Please try again.",
+				),
+			}
 		}
 		// Create the issue in Github.
 		err = github.CreateObjectIssue(req.Context(), request)
 		if err != nil {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage(
-						"Unable to submit issue",
-						"This might be a temporary error, please try again.",
-					),
+			return &models.APIError{
+				InternalError: fmt.Errorf("create github issue: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to submit issue",
+					"There was a problem with the request. Please try again.",
 				),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("unable to create issue in github: %w", err),
-				http.StatusInternalServerError,
-			)
+			}
 		}
 		// Force refresh of page.
 		msg := models.NewInfoMessage(

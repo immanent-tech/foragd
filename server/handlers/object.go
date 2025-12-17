@@ -18,36 +18,34 @@ import (
 
 // ViewObject handles showing an object's content (e.g. viewing article content).
 func ViewObject(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
 		params := &models.ObjectParams{
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
 		if err := params.Valid(); err != nil {
-			renderPage(
-				wrapContent(req, templates.NotFound()),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to view object",
+					"There was a problem with the request. Please try again.",
+				),
+			}
 		}
 		switch params.Object {
 		case models.ObjectTypeArticle:
 			articles, err := api.GetArticles(req.Context(), params.ObjectID)
 			if err != nil {
-				msg := models.NewErrorMessage(
-					"Server could not complete request!",
-					"This might be temporary, please try again.",
-				)
-				renderPage(
-					wrapContent(req, templates.ErrorPage(msg)),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to fetch article content: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("get article content: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to view object",
+						"There was a problem with the request. Please try again.",
+					),
+				}
 			}
 			article := articles[0]
 			ctx := templates.PageTitleToCtx(req.Context(), article.GetTitle()+" | "+article.GetFeedTitle()+" | ")
@@ -94,35 +92,34 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 
 // FindSimilar handles finding objects similar to the given objects and showing the results.
 func FindSimilar(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
 		params := &models.ObjectParams{
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
 		}
 		if err := params.Valid(); err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage(
-					"Server could not complete request!",
-					"This might be temporary, please try again.",
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode request: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to find similar",
+					"There was a problem with the request. Please try again.",
 				),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			}
 		}
 		switch params.Object {
 		case models.ObjectTypeArticle:
 			articles, err := api.FindSimilarArticles(req.Context(), params.ObjectID)
 			if err != nil {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to find similar articles", ""),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("find similar articles request failed: %w", err),
-					http.StatusUnprocessableEntity,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("find similar articles: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to find similar",
+						"There was a problem with the request. Please try again.",
+					),
+				}
 			}
 			// Show results.
 			var template templ.Component
@@ -139,34 +136,3 @@ func FindSimilar(api *elastic.API) http.HandlerFunc {
 		return nil
 	})).ServeHTTP
 }
-
-// func ShareObject(api *elastic.API) http.HandlerFunc {
-// 	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-// 		// Extract request parameters.
-// 		params := &models.ObjectParams{
-// 			ObjectID: chi.URLParam(req, models.ParamObjectID),
-// 			Object:   models.ObjectType(chi.URLParam(req, models.ParamObjectType)),
-// 		}
-// 		valid, err := params.Valid()
-// 		if err != nil || !valid {
-// 			renderPartial(templates.ServerErrorNotification(
-// 				models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again."),
-// 			)).ServeHTTP(res, req)
-// 			return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
-// 		}
-// 		switch params.Object {
-// 		case models.ObjectTypeArticle:
-// 			articles, err := models.GetArticles(req.Context(), api, params.ObjectID)
-// 			if err != nil || len(articles) == 0 || len(articles) > 1 {
-// 				renderPartial(templates.ServerErrorNotification(
-// 					models.NewErrorMessage("Server could not complete request!", "This might be temporary, please try again."),
-// 				)).ServeHTTP(res, req)
-// 				return models.NewAPIError(fmt.Errorf("could not retrieve subscriptions: %w", err), http.StatusInternalServerError)
-// 			}
-// 			renderPartial(templates.ShareObjectModal(articles[0])).ServeHTTP(res, req)
-// 		default:
-// 			res.WriteHeader(http.StatusNotImplemented)
-// 		}
-// 		return nil
-// 	})).ServeHTTP
-// }

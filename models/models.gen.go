@@ -116,6 +116,9 @@ type APIError struct {
 
 	// StatusCode is the status code associated with the error. Usually, this is a HTTP status code.
 	StatusCode int `json:"status_code,omitempty,omitzero"`
+
+	// UserMessage represents a message that can be displayed to the user as the result of an action.
+	UserMessage *UserMessage `json:"user_message,omitempty"`
 }
 
 // AddFeedSubscriptionRequest represents a request to create a subscription to a feed.
@@ -147,7 +150,7 @@ type AddFeedSubscriptionResult struct {
 	Feed Feed `json:"feed,omitempty,omitzero"`
 
 	// Message represents a message that can be displayed to the user as the result of an action.
-	Message UserMessage `json:"message,omitempty,omitzero"`
+	Message *UserMessage `json:"message,omitempty"`
 
 	// Request represents a request to create a subscription to a feed.
 	Request AddFeedSubscriptionRequest `json:"request"`

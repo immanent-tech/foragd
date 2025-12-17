@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -15,8 +16,8 @@ import (
 	"sync"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/justinas/alice"
 	"github.com/spaolacci/murmur3"
+	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
@@ -27,20 +28,22 @@ import (
 var imgCache objectCache
 
 func ImageProxy(proxyURLBase string) http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return func(res http.ResponseWriter, req *http.Request) {
 		// Load the http client used for making requests to the image proxy.
 		if err := loadHTTPClient(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(fmt.Errorf("load http client: %w", err),
-				http.StatusInternalServerError,
+			slogctx.FromCtx(req.Context()).Error("Load http client failed.",
+				slog.Any("error", err),
 			)
+			return
 		}
 		// Load the image cache.
 		if err := loadImageCache(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(fmt.Errorf("load image cache: %w", err),
-				http.StatusInternalServerError,
+			slogctx.FromCtx(req.Context()).Error("Load image cache failed.",
+				slog.Any("error", err),
 			)
+			return
 		}
 
 		// Get the URL parameters for the request.
@@ -64,13 +67,14 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			// Write the image to the response.
 			if _, err := res.Write(imgBuf); err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
-				return models.NewAPIError(
-					fmt.Errorf("write image: %w", err),
-					http.StatusInternalServerError,
+				slogctx.FromCtx(req.Context()).Error("Write image data.",
+					slog.Any("error", err),
 				)
+				return
 			}
+			// Return success.
 			res.WriteHeader(http.StatusOK)
-			return nil
+			return
 		}
 
 		// Generate a URL to either send the image to the image proxy for processing or fetch it directly.
@@ -82,9 +86,10 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			originalURL, err := base64.RawURLEncoding.DecodeString(params[len(params)-1])
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
-				return models.NewAPIError(fmt.Errorf("decode image url: %w", err),
-					http.StatusInternalServerError,
+				slogctx.FromCtx(req.Context()).Error("Generate encoded URL for image proxy failed.",
+					slog.Any("error", err),
 				)
+				return
 			}
 			proxiedURL = string(originalURL)
 		}
@@ -95,26 +100,26 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			Get(proxiedURL)
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(
-				fmt.Errorf("send image request to proxy: %w", err),
-				http.StatusInternalServerError,
+			slogctx.FromCtx(req.Context()).Error("Get image from proxy failed.",
+				slog.Any("error", err),
 			)
+			return
 		}
 		if resp.IsError() {
 			res.WriteHeader(resp.StatusCode())
-			return models.NewAPIError(
-				fmt.Errorf("send image request to proxy: %s", resp.Status()),
-				resp.StatusCode(),
+			slogctx.FromCtx(req.Context()).Error("Image proxy returned error response.",
+				slog.Any("error", err),
 			)
+			return
 		}
 
 		imgBuf, err = io.ReadAll(resp.RawBody())
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			return models.NewAPIError(
-				fmt.Errorf("read image response: %w", err),
-				http.StatusInternalServerError,
+			slogctx.FromCtx(req.Context()).Error("Read image proxy response failed.",
+				slog.Any("error", err),
 			)
+			return
 		}
 
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
@@ -142,11 +147,14 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		})
 
 		if err := wg.Wait(); err != nil {
-			return fmt.Errorf("background image jobs: %w", err)
+			slogctx.FromCtx(req.Context()).Error("Run background image jobs failed.",
+				slog.Any("error", err),
+			)
+			return
 		}
 
-		return nil
-	})).ServeHTTP
+		res.WriteHeader(http.StatusOK)
+	}
 }
 
 var imgBufPool = sync.Pool{

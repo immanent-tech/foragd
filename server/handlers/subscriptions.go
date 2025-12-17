@@ -35,85 +35,85 @@ import (
 // is POST (i.e. pagination request), the subscriptions are shown as a list.
 func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters, setCacheControl).
-		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-			pagination := req.FormValue(models.ParamPagination)
-			// Redirect to include query parameters in address bar.
-			if len(req.URL.Query()) == 0 {
-				if htmx.IsHTMX(req) {
-					res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
-				} else {
-					http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
+		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+			list := func(res http.ResponseWriter, req *http.Request) error {
+				filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+				pagination := req.FormValue(models.ParamPagination)
+				// Redirect to include query parameters in address bar.
+				if len(req.URL.Query()) == 0 {
+					if htmx.IsHTMX(req) {
+						res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
+					} else {
+						http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
+					}
 				}
-			}
-			var (
-				subscriptions models.Subscriptions
-				counts        models.CategoryCounts
-				err           error
-				template      templ.Component
-			)
-			// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
-			if htmx.IsHistoryRestoreRequest(req) {
-				filters.Subscriptions = nil
-			}
-
-			var wg errgroup.Group
-
-			// Get subscriptions matching filters.
-			wg.Go(func() error {
-				subscriptions, pagination, err = api.FilterSubscriptions(req.Context(), filters, pagination)
-				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-					return fmt.Errorf("filter subscriptions: %w", err)
-				}
-				return nil
-			})
-			// Get all subscription categories.
-			wg.Go(func() error {
-				counts, err = api.GetAllSubscriptionCategories(req.Context())
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
-						slog.Any("error", err),
-					)
-				}
-				return nil
-			})
-
-			// Wait for fetch jobs to finish.
-			if err := wg.Wait(); err != nil {
-				msg := models.NewErrorMessage(
-					"Server could not complete request!",
-					"This might be temporary, please try again.",
+				var (
+					subscriptions models.Subscriptions
+					counts        models.CategoryCounts
+					err           error
+					template      templ.Component
 				)
+				// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
+				if htmx.IsHistoryRestoreRequest(req) {
+					filters.Subscriptions = nil
+				}
+
+				var wg errgroup.Group
+
+				// Get subscriptions matching filters.
+				wg.Go(func() error {
+					subscriptions, pagination, err = api.FilterSubscriptions(req.Context(), filters, pagination)
+					if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+						return fmt.Errorf("filter subscriptions: %w", err)
+					}
+					return nil
+				})
+				// Get all subscription categories.
+				wg.Go(func() error {
+					counts, err = api.GetAllSubscriptionCategories(req.Context())
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
+							slog.Any("error", err),
+						)
+					}
+					return nil
+				})
+
+				// Wait for fetch jobs to finish.
+				if err := wg.Wait(); err != nil {
+					return &models.APIError{
+						InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Server could not complete request!",
+							"This might be temporary, please try again.",
+						),
+					}
+				}
+
+				// Choose rendering method based on method (get = page, post = partial).
+				template = templates.SubscriptionsGrid(counts, pagination, subscriptions...)
+				ctx := templates.PageTitleToCtx(req.Context(), "Subscriptions")
 				switch req.Method {
 				case http.MethodGet:
-					renderPage(
-						wrapContent(req, templates.ErrorPage(msg)),
-					).ServeHTTP(res, req)
+					renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
 				case http.MethodPost:
-					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
+					renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
 				}
-				return models.NewAPIError(
-					fmt.Errorf("unable to list subscriptions: %w", err),
-					http.StatusInternalServerError,
-				)
+				return nil
 			}
-
-			// Choose rendering method based on method (get = page, post = partial).
-			template = templates.SubscriptionsGrid(counts, pagination, subscriptions...)
-			ctx := templates.PageTitleToCtx(req.Context(), "Subscriptions")
 			switch req.Method {
 			case http.MethodGet:
-				renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
+				showOnError(list).ServeHTTP(res, req)
 			case http.MethodPost:
-				renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
+				notifyOnError(list).ServeHTTP(res, req)
 			}
-			return nil
-		})).ServeHTTP
+		}).ServeHTTP
 }
 
 func PaginateSubscriptions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
-		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 			pagination := req.FormValue(models.ParamPagination)
 			var (
@@ -124,15 +124,14 @@ func PaginateSubscriptions(api *elastic.API) http.HandlerFunc {
 			// Get subscriptions matching filters.
 			subscriptions, pagination, err = api.FilterSubscriptions(req.Context(), filters, pagination)
 			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-				msg := models.NewErrorMessage(
-					"Server could not complete request!",
-					"This might be temporary, please try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to list subscriptions: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Could not list more subscriptions",
+						"This might be temporary, please try again.",
+					),
+				}
 			}
 			// Render appropriate content.
 			if len(subscriptions) > 0 {
@@ -148,7 +147,7 @@ func PaginateSubscriptions(api *elastic.API) http.HandlerFunc {
 
 // MarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
 func MarkSubscription(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request values.
 		subscriptionID := chi.URLParam(req, models.ParamSubscriptionID)
 		request := &models.MarkSubscriptionsRequest{
@@ -158,32 +157,27 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 		}
 		err := request.Valid()
 		if err != nil {
-			res.Header().Add(htmx.HeaderReswap, "none")
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage(
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
 					"Unable to mark subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			}
 		}
 
 		// Mark subscription.
 		err = api.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...)
 		if err != nil {
-			res.Header().Add(htmx.HeaderReswap, "none")
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage(
-						"Unable to mark subscription",
-						"This might be a temporary error, please try again.",
-					),
+			return &models.APIError{
+				InternalError: fmt.Errorf("mark subscriptions: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark subscription",
+					"This might be a temporary issue, please try again.",
 				),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
+			}
 		}
 
 		// Determine the URL the request came from.
@@ -194,16 +188,14 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 				Target: templates.ContentID.Target(),
 			})
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				renderPartial(
-					templates.ServerErrorNotification(
-						models.NewErrorMessage(
-							"Unable to mark subscription",
-							"This might be a temporary error, please try again.",
-						),
+				return &models.APIError{
+					InternalError: fmt.Errorf("set redirect: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark subscription",
+						"This might be a temporary issue, please try again.",
 					),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
+				}
 			}
 		}
 		if strings.Contains(currentURL, "/list/articles") {
@@ -214,16 +206,14 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 				Values: models.PageFiltersFromCtx(req.Context(), "/list/subscriptions").Values(),
 			})
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				renderPartial(
-					templates.ServerErrorNotification(
-						models.NewErrorMessage(
-							"Unable to mark subscription",
-							"This might be a temporary error, please try again.",
-						),
+				return &models.APIError{
+					InternalError: fmt.Errorf("set redirect: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to mark subscription",
+						"This might be a temporary issue, please try again.",
 					),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
+				}
 			}
 			res.WriteHeader(http.StatusOK)
 		} else {
@@ -235,12 +225,14 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 			case models.ViewAll:
 				subscription, err := api.GetSubscription(req.Context(), request.Subscriptions[0], elastic.GetSubscriptionsDynamicInfo(true))
 				if err != nil {
-					res.Header().Add(htmx.HeaderReswap, "none")
-					renderPartial(
-						templates.ServerErrorNotification(
-							models.NewErrorMessage("Unable to mark subscription", "This might be a temporary error, please try again.")),
-					).ServeHTTP(res, req)
-					return models.NewAPIError(fmt.Errorf("unable to update user: %w", err), http.StatusInternalServerError)
+					return &models.APIError{
+						InternalError: fmt.Errorf("get subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to mark subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}
 				}
 				res.Header().Set(htmx.HeaderReswap, "outerHTML transition:true")
 				renderPartial(templates.SubscriptionCard(subscription)).ServeHTTP(res, req)
@@ -252,30 +244,28 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 
 // MarkSubscriptions handles marking a list of subscriptions.
 func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Decode request parameters.
 		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
 		if err != nil {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage(
-						"Unable to mark subscriptions.",
-						"This might be a temporary error, please try again.",
-					),
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode mark subscription request: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark subscription",
+					"This might be a temporary issue, please try again.",
 				),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("mark subscriptions: %w", err), http.StatusInternalServerError)
+			}
 		}
 		if !valid {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage(
-						"Unable to mark subscriptions.",
-						"This might be a temporary error, please try again.",
-					),
+			return &models.APIError{
+				InternalError: fmt.Errorf("validate mark subscription request: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark subscription",
+					"This might be a temporary issue, please try again.",
 				),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("mark subscriptions: %w", err), http.StatusUnprocessableEntity)
+			}
 		}
 
 		// Determine what mark to apply from view and where to redirect.
@@ -298,21 +288,27 @@ func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
 			})
 		}
 		if err != nil {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to mark objects!", "")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("mark subscriptions failed: %w", err), http.StatusInternalServerError)
+			return &models.APIError{
+				InternalError: fmt.Errorf("set redirect: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark subscription",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
 
 		// Mark subscriptions.
 		err = api.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...)
 		if err != nil {
-			renderPartial(
-				templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to mark objects!", "")),
-			).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("mark subscriptions failed: %w", err), http.StatusInternalServerError)
+			return &models.APIError{
+				InternalError: fmt.Errorf("mark subscriptions: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark subscription",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
 		res.WriteHeader(http.StatusOK)
 		return nil
@@ -321,41 +317,34 @@ func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
 
 // RemoveSubscription handles removing (unsubscribing) from a subscription.
 func RemoveSubscription(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		request := &models.RemoveSubscriptionRequest{
 			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
 			Nickname:       req.FormValue("nickname"),
 		}
-		err := request.Valid()
-		if err != nil {
-			res.Header().Add(htmx.HeaderReswap, "none")
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage(
-					"Server could not complete request",
-					"This might be temporary, please try again.",
+		if err := request.Valid(); err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("validate remove subscription request: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to remove subscription",
+					"This might be a temporary issue, please try again.",
 				),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			}
 		}
 		switch req.FormValue("confirmed") {
 		case "false":
 			renderPartial(templates.RemoveSubscriptionModal(request)).ServeHTTP(res, req)
 		case "true":
-			err = api.RemoveSubscriptions(req.Context(), request.SubscriptionID)
-			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				renderPartial(
-					templates.ServerErrorNotification(
-						models.NewErrorMessage(
-							"Unable to unsubscribe to "+request.Nickname,
-							"This might be a temporary error, please try again.",
-						),
+			if err := api.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
+				return &models.APIError{
+					InternalError: fmt.Errorf("remove subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to remove subscription",
+						"This might be a temporary issue, please try again.",
 					),
-				).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("remove subscription: %w", err), http.StatusInternalServerError)
+				}
 			}
 			// Show success notification.
 			renderPartial(
@@ -371,19 +360,20 @@ func RemoveSubscription(api *elastic.API) http.HandlerFunc {
 
 // EditSubscription handles presenting the user with a form for editing a subscription.
 func EditSubscription(api *elastic.API) http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Get the subscription.
 		subscription, err := api.GetSubscription(req.Context(), id)
 		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to edit subscription", "Data in invalid."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("get subscription: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to edit subscription",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
 		var template templ.Component
 		var pageTitle string
@@ -420,17 +410,14 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 					elastic.GetSubscriptionsByIDs(request.Search.Subscriptions...),
 				)
 				if err != nil {
-					res.Header().Add(htmx.HeaderReswap, "none")
-					renderPartial(templates.ServerErrorNotification(
-						models.NewErrorMessage(
-							"Unable to add subscription",
-							"Data is invalid. Please check your inputs and try again.",
+					return &models.APIError{
+						InternalError: fmt.Errorf("get subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to edit subscription",
+							"This might be a temporary issue, please try again.",
 						),
-					)).ServeHTTP(res, req.WithContext(ctx))
-					return models.NewAPIError(
-						fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err),
-						http.StatusUnprocessableEntity,
-					)
+					}
 				}
 				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
@@ -449,17 +436,14 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 				elastic.GetSubscriptionsByIDs(request.Subscriptions...),
 			)
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage(
-						"Unable to add subscription",
-						"Data is invalid. Please check your inputs and try again.",
+				return &models.APIError{
+					InternalError: fmt.Errorf("get subscription: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to edit subscription",
+						"This might be a temporary issue, please try again.",
 					),
-				)).ServeHTTP(res, req.WithContext(ctx))
-				return models.NewAPIError(
-					fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err),
-					http.StatusUnprocessableEntity,
-				)
+				}
 			}
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			// Generate page template.
@@ -474,30 +458,32 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 
 // SaveSubscription handles saving the edits made by a user to a subscription.
 func SaveSubscription(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Get the subscription.
 		subscription, err := api.GetSubscription(req.Context(), id)
 		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage("Unable to save subscription", "Data in invalid."),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("get subscription: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to save subscription",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
 		switch models.SubscriptionType(req.FormValue("subscription_type")) {
 		case models.SubscriptionTypeFeed:
 			request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
 			if err != nil || !valid {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save subscription", "Data is invalid."),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					http.StatusUnprocessableEntity,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("decode subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}
 			}
 			subscription.Customisation.Nickname = request.GetNickname()
 			subscription.Customisation.Categories = request.GetCategories()
@@ -508,13 +494,14 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 		case models.SubscriptionTypeSearch:
 			request, valid, err := forms.DecodeForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save subscription", "Data is invalid."),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					http.StatusUnprocessableEntity,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("decode search subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}
 			}
 			subscription.Customisation = request.Customisation
 			subscription.Settings = request.Settings
@@ -522,13 +509,14 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 		case models.SubscriptionTypeGroup:
 			request, valid, err := forms.DecodeForm[*models.GroupSubscriptionRequest](req)
 			if err != nil || !valid {
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to save subscription", "Data is invalid."),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					http.StatusUnprocessableEntity,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("decode group subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}
 			}
 			subscription.Customisation = request.Customisation
 			subscription.Settings = request.Settings
@@ -537,13 +525,14 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 
 		_, err = api.UpdateSubscriptions(req.Context(), subscription)
 		if err != nil {
-			renderPartial(templates.ServerErrorNotification(
-				models.NewErrorMessage(
+			return &models.APIError{
+				InternalError: fmt.Errorf("update subscription: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
 					"Unable to save subscription",
-					"This might be a temporary problem, please try again.",
+					"This might be a temporary issue, please try again.",
 				),
-			)).ServeHTTP(res, req)
-			return models.NewAPIError(fmt.Errorf("unable to update user data: %w", err), http.StatusInternalServerError)
+			}
 		}
 		renderPartial(templates.EditSubscriptionSuccessNotification(subscription)).ServeHTTP(res, req)
 
@@ -553,7 +542,7 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 
 // AddFeedSubscription handles adding a new subscription to a feed.
 func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		ctx := templates.PageTitleToCtx(req.Context(), "Add subscription")
 		switch req.Method {
 		case http.MethodGet:
@@ -562,14 +551,14 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.AddFeedSubscriptionRequest](req.WithContext(ctx))
 			if err != nil || !valid {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage("Unable to add subscription", "Data is invalid."),
-				)).ServeHTTP(res, req.WithContext(ctx))
-				return models.NewAPIError(
-					fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-					http.StatusUnprocessableEntity,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("decode add subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}
 			}
 
 			// Process requests.
@@ -603,14 +592,18 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 			} else {
 				err = api.CreateFeedSubscriptions(ctx, &result)
 				if err != nil {
-					res.Header().Add(htmx.HeaderReswap, "none")
-					msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
-					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
-					return models.NewAPIError(fmt.Errorf("unable process import request: %w", err), http.StatusInternalServerError)
+					return &models.APIError{
+						InternalError: fmt.Errorf("add subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					}
 				}
 			}
 
-			renderPartial(templates.Notification(&result.Message, 0)).ServeHTTP(res, req.WithContext(ctx))
+			renderPartial(templates.Notification(result.Message, 0)).ServeHTTP(res, req.WithContext(ctx))
 		}
 		return nil
 	})).ServeHTTP
@@ -618,22 +611,19 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 
 // AddSearchSubscription handles adding a new search subscription.
 func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		case http.MethodGet:
 			request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 			if err != nil || !valid {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage(
+				return &models.APIError{
+					InternalError: fmt.Errorf("decode add search subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
 						"Unable to add subscription",
-						"Data is invalid. Please check your inputs and try again.",
+						"This might be a temporary issue, please try again.",
 					),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err),
-					http.StatusUnprocessableEntity,
-				)
+				}
 			}
 			// If the search request has subscription filters, get subscription details.
 			ctx := req.Context()
@@ -642,17 +632,14 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 					elastic.GetSubscriptionsByIDs(request.Subscriptions...),
 				)
 				if err != nil {
-					res.Header().Add(htmx.HeaderReswap, "none")
-					renderPartial(templates.ServerErrorNotification(
-						models.NewErrorMessage(
+					return &models.APIError{
+						InternalError: fmt.Errorf("get subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
 							"Unable to add subscription",
-							"Data is invalid. Please check your inputs and try again.",
+							"This might be a temporary issue, please try again.",
 						),
-					)).ServeHTTP(res, req)
-					return models.NewAPIError(
-						fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err),
-						http.StatusUnprocessableEntity,
-					)
+					}
 				}
 				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
@@ -664,30 +651,25 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage(
+				return &models.APIError{
+					InternalError: fmt.Errorf("decode search subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
 						"Unable to add subscription",
-						"Data is invalid. Please check your inputs and try again.",
+						"This might be a temporary issue, please try again.",
 					),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("add search subscription: %w: %w", ErrInvalidRequestParams, err),
-					http.StatusUnprocessableEntity,
-				)
+				}
 			}
 			err = api.CreateSearchSubscriptions(req.Context(), request)
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				msg := models.NewErrorMessage(
-					"Failed to create subscription.",
-					"The backend produced an error. This might be temporary, please try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("add search subscription: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("create search subscription: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}
 			}
 			renderPartial(
 				templates.Notification(models.NewSuccessMessage("Search Subscription Created!", ""), 0),
@@ -699,7 +681,7 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 
 // AddGroupSubscription handles adding a new group subscription.
 func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		case http.MethodGet:
 			template := templates.AddGroupSubscription(&models.GroupSubscriptionRequest{})
@@ -711,50 +693,48 @@ func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
 			// Decode request.
 			request, valid, err := forms.DecodeForm[*models.GroupSubscriptionRequest](req)
 			if err != nil || !valid {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				renderPartial(templates.ServerErrorNotification(
-					models.NewErrorMessage(
+				return &models.APIError{
+					InternalError: fmt.Errorf("decode group subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
 						"Unable to add subscription",
-						"Data is invalid. Please check your inputs and try again.",
+						"This might be a temporary issue, please try again.",
 					),
-				)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("add group subscription: %w: %w", ErrInvalidRequestParams, err),
-					http.StatusUnprocessableEntity,
-				)
+				}
 			}
 			// Generate subscription metadata from request.
 			subscription, err := models.NewGroupSubscription(req.Context(), request)
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				msg := models.NewErrorMessage(
-					"Failed to create subscription.",
-					"The backend produced an error. This might be temporary, please try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("add group subscription: %w", err), http.StatusInternalServerError)
+				return &models.APIError{
+					InternalError: fmt.Errorf("new group subscription: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}
 			}
 			// Validate subscription.
-			err = subscription.Valid()
-			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				msg := models.NewErrorMessage(
-					"Failed to create subscription.",
-					"The backend produced an error. This might be temporary, please try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("add group subscription: %w", err), http.StatusInternalServerError)
+			if err = subscription.Valid(); err != nil {
+				return &models.APIError{
+					InternalError: fmt.Errorf("validate group subscription: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}
 			}
 			// Add subscriptions
-			err = api.AddSubscriptions(req.Context(), subscription)
-			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				msg := models.NewErrorMessage(
-					"Failed to create subscription.",
-					"The backend produced an error. This might be temporary, please try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(fmt.Errorf("add group subscription: %w", err), http.StatusInternalServerError)
+			if err := api.AddSubscriptions(req.Context(), subscription); err != nil {
+				return &models.APIError{
+					InternalError: fmt.Errorf("add subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}
 			}
 			// Render notification.
 			renderPartial(
@@ -767,7 +747,7 @@ func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
 
 // ImportSubscriptions handles assisting the user with importing subscriptions from an external source.
 func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		// GET: show import modal.
 		case http.MethodGet:
@@ -781,16 +761,14 @@ func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 			// Extract OPML file.
 			opmlFileUpload, err := forms.DecodeMultipartFile(req, "source")
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				msg := models.NewErrorMessage(
-					"Failed to read OPML file",
-					"The OPML could not be read. Is it a valid OPML file? Please check the contents, correct any issues and try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable process import request: %w", err),
-					http.StatusUnprocessableEntity,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("decode opml: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Failed to read OPML file",
+						"The OPML could not be read. Is it a valid OPML file? Please check the contents, correct any issues and try again.",
+					),
+				}
 			}
 			opmlFile := &models.OPMLFile{
 				FileUpload: opmlFileUpload,
@@ -798,16 +776,14 @@ func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 			// Generate subscription requests from OPML file contents.
 			requests, err := opmlFile.GenerateRequests()
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				msg := models.NewWarningMessage(
-					"Failed to extract subscriptions from OPML file.",
-					"There was a problem reading the individual feed entries in the OPML file. Please check the contents, correct any issues and try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable process import request: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("generate subscription requests: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Failed to extract subscriptions from OPML file.",
+						"There was a problem reading the individual feed entries in the OPML file. Please check the contents, correct any issues and try again.",
+					),
+				}
 			}
 
 			// Process requests.
@@ -839,16 +815,14 @@ func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 				},
 			))...)
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				msg := models.NewErrorMessage(
-					"Failed to import.",
-					"The backend produced an error. This might be temporary, please try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable process import request: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("create subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Failed to import.",
+						"The backend produced an error. This might be temporary, please try again.",
+					),
+				}
 			}
 			// Display all results.
 			msg := models.NewSuccessMessage(
@@ -867,23 +841,19 @@ func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 
 // ExportSubscriptions handles configuring and performing an export of user subscriptions.
 func ExportSubscriptions(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
 		ctx := templates.PageTitleToCtx(req.Context(), "Export subscriptions")
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			msg := models.NewErrorMessage(
-				"Unable to load export form",
-				"This might be a temporary problem, please try again.",
-			)
-			template := templ.Join(templates.ExportSubscriptions(), templates.ServerErrorNotification(msg))
-			renderPage(
-				wrapContent(req.WithContext(ctx), template),
-			).ServeHTTP(res, req.WithContext(ctx))
-			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve user data: %w", err),
-				http.StatusInternalServerError,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Failed to export.",
+					"The backend produced an error. This might be temporary, please try again.",
+				),
+			}
 		}
 		switch {
 		// GET: show import modal.
@@ -896,16 +866,14 @@ func ExportSubscriptions(api *elastic.API) http.HandlerFunc {
 			filters := models.NewListDisplayFilters()
 			subscriptions, _, err := api.FilterSubscriptions(ctx, &filters, "")
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				msg := models.NewErrorMessage(
-					"Error exporting OPML file.",
-					"The backend had issues generating the OPML file, please try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
-				return models.NewAPIError(
-					fmt.Errorf("unable process import request: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("filter subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Failed to export.",
+						"The backend produced an error. This might be temporary, please try again.",
+					),
+				}
 			}
 			// Create outlines for all subscriptions.
 			outlines := make([]opml.Outline, 0, len(subscriptions))
@@ -930,16 +898,14 @@ func ExportSubscriptions(api *elastic.API) http.HandlerFunc {
 			data, err := xml.Marshal(opmlExport)
 			data = []byte(xml.Header + string(data))
 			if err != nil {
-				res.Header().Add(htmx.HeaderReswap, "none")
-				msg := models.NewErrorMessage(
-					"Error exporting OPML file.",
-					"The backend had issues generating the OPML file, please try again.",
-				)
-				renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
-				return models.NewAPIError(
-					fmt.Errorf("unable process import request: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("create opml: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Failed to export.",
+						"The backend produced an error. This might be temporary, please try again.",
+					),
+				}
 			}
 			// Serve the opml content via http.ServeContent.
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
@@ -954,12 +920,19 @@ func ExportSubscriptions(api *elastic.API) http.HandlerFunc {
 // AdjustSubscriptionCategories handles adding and removing categories from a subscription, either when editing or
 // adding.
 func AdjustSubscriptionCategories() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		case http.MethodPost: // Add category.
 			// Parse form values.
 			if err := req.ParseForm(); err != nil {
-				return fmt.Errorf("unable to parse category changes: %w", err)
+				return &models.APIError{
+					InternalError: fmt.Errorf("parse form: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Adjust categories failed.",
+						"The backend produced an error. This might be temporary, please try again.",
+					),
+				}
 			}
 			currentCategories := req.PostForm["user_categories"]
 			inputName := req.FormValue("inputName")

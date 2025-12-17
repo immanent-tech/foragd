@@ -123,15 +123,18 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 
 // GetSearchResults performs a search with the user input and renders a page with the search results.
 func GetSearchResults(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			renderPage(wrapContent(req, templates.NotFound())).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
-				http.StatusUnprocessableEntity,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Invalid search request",
+					"Please check the search request data and try again",
+				),
+			}
 		}
 		// Extract any subscription ID for the search and add to the request object.
 		if subscriptionID := req.FormValue(models.ParamSubscriptionID); subscriptionID != "" {
@@ -148,15 +151,14 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 				elastic.GetSubscriptionsDynamicInfo(true),
 			)
 			if err != nil {
-				msg := models.NewErrorMessage(
-					"Unable to process request",
-					"This might be a temporary issue, please try again.",
-				)
-				renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to retrieve subscriptions: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("get subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to process request",
+						"This might be a temporary issue, please try again.",
+					),
+				}
 			}
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 		}
@@ -164,30 +166,28 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		// Retrieve the user object.
 		user, err := models.UserFromCtx(ctx)
 		if err != nil {
-			msg := models.NewErrorMessage(
-				"Unable to process request",
-				"This might be a temporary issue, please try again.",
-			)
-			renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve subscriptions: %w", err),
-				http.StatusInternalServerError,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to process request",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
 
 		// Find articles that match search request.
 		var articles models.Articles
 		query, err := api.BuildSearchResultsQuery(ctx, user, request)
 		if err != nil {
-			msg := models.NewErrorMessage(
-				"Unable to process request",
-				"This might be a temporary issue, please try again.",
-			)
-			renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve subscriptions: %w", err),
-				http.StatusInternalServerError,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("build search query: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to process request",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
 		pagination := req.FormValue(models.ParamPagination)
 		itemResults, pagination, err := api.SearchItems(
@@ -198,28 +198,26 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			&pagination,
 		)
 		if err != nil {
-			msg := models.NewErrorMessage(
-				"Unable to process request",
-				"This might be a temporary issue, please try again.",
-			)
-			renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
-			return models.NewAPIError(
-				fmt.Errorf("unable to retrieve subscriptions: %w", err),
-				http.StatusInternalServerError,
-			)
+			return &models.APIError{
+				InternalError: fmt.Errorf("search items: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to process request",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
 		if len(itemResults) > 0 {
 			articles, err = api.GenerateArticles(ctx, itemResults)
 			if err != nil {
-				msg := models.NewErrorMessage(
-					"Unable to process request",
-					"This might be a temporary issue, please try again.",
-				)
-				renderPage(wrapContent(req, templates.ErrorPage(msg))).ServeHTTP(res, req)
-				return models.NewAPIError(
-					fmt.Errorf("unable to retrieve subscriptions: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("generate articles: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to process request",
+						"This might be a temporary issue, please try again.",
+					),
+				}
 			}
 		}
 
@@ -253,21 +251,33 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 
 // WatchSearchResults handles watching the search results for any updates and rendering a notification to the user to refresh the page.
 func WatchSearchResults(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user data.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			return fmt.Errorf("unable to get user data: %w", err)
+			return &models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage:   models.NewErrorMessage("Unable to watch for search results updates", ""),
+			}
 		}
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			return fmt.Errorf("unable to get search request updates: %w", err)
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode search request: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage:   models.NewErrorMessage("Unable to watch for search results updates", ""),
+			}
 		}
 		// Build query.
 		query, err := api.BuildSearchResultsQuery(req.Context(), user, request)
 		if err != nil {
-			return fmt.Errorf("unable to get search request updates: %w", err)
+			return &models.APIError{
+				InternalError: fmt.Errorf("build search query: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage:   models.NewErrorMessage("Unable to watch for search results updates", ""),
+			}
 		}
 		// Watch for updates to search results.
 		watchForUpdates(api, query).ServeHTTP(res, req)
@@ -277,13 +287,19 @@ func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 
 // AddSubscriptionFilter handles adding a subscription as a search filter.
 func AddSubscriptionFilter() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		id := req.FormValue("subscription_id")
 		name := req.FormValue("subscription_name")
 		input := req.FormValue("subscriptions-input-name")
 		if id == "" || name == "" || input == "" {
-			res.WriteHeader(http.StatusUnprocessableEntity)
-			return nil
+			return &models.APIError{
+				InternalError: fmt.Errorf("add subscription filter: %w", ErrInvalidRequestParams),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add subscription filter",
+					"There was a problem with the request, please try again",
+				),
+			}
 		}
 		renderPartial(templates.AddSearchSubscriptionFilter(id, name, input)).ServeHTTP(res, req)
 		return nil

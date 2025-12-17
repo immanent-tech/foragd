@@ -26,21 +26,18 @@ import (
 // Home handles displaying the user's home page.
 func Home(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(setCacheControl).
-		ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 			ctx := templates.PageTitleToCtx(req.Context(), "Home")
 			user, err := models.UserFromCtx(ctx)
 			if err != nil {
-				msg := models.NewErrorMessage(
-					"Unable to complete request!",
-					"This might be temporary, please try again.",
-				)
-				renderPage(
-					wrapContent(req.WithContext(ctx), templates.ErrorPage(msg)),
-				).ServeHTTP(res, req.WithContext(ctx))
-				return models.NewAPIError(
-					fmt.Errorf("unable to retrieve user data: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("get user data: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Could display home",
+						"This might be temporary, please try again.",
+					),
+				}
 			}
 			if user.GetSettings().ShowOnboarding {
 				renderPage(
@@ -51,17 +48,14 @@ func Home(api *elastic.API) http.HandlerFunc {
 
 			data, err := getHomePageData(ctx, api)
 			if err != nil {
-				msg := models.NewErrorMessage(
-					"Unable to complete request!",
-					"This might be temporary, please try again.",
-				)
-				renderPage(
-					wrapContent(req.WithContext(ctx), templates.ErrorPage(msg)),
-				).ServeHTTP(res, req.WithContext(ctx))
-				return models.NewAPIError(
-					fmt.Errorf("unable to retrieve home page data: %w", err),
-					http.StatusInternalServerError,
-				)
+				return &models.APIError{
+					InternalError: fmt.Errorf("run data collection: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Could display home",
+						"This might be temporary, please try again.",
+					),
+				}
 			}
 			renderPage(wrapContent(req.WithContext(ctx), data.Template())).ServeHTTP(res, req.WithContext(ctx))
 			return nil

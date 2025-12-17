@@ -119,14 +119,17 @@ func RobotsHandler() http.Handler {
 
 // PolicyDocsHandler handles serving policy Markdown documents from directory in the embedded fs.
 func PolicyDocsHandler() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return func(res http.ResponseWriter, req *http.Request) {
 		doc := chi.URLParam(req, "*")
 		// Check, if the requested file is existing.
 		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "policies", doc+".md"))
 		if err != nil {
 			// If file is not found, return HTTP 404 error.
+			slogctx.FromCtx(req.Context()).Error("Could not read policy document.",
+				slog.String("doc", doc),
+				slog.Any("error", err),
+			)
 			http.NotFound(res, req)
-			return fmt.Errorf("unable to render document %s: %w", doc, err)
 		}
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
@@ -134,54 +137,84 @@ func PolicyDocsHandler() http.HandlerFunc {
 		template := templates.Page(templates.Document(output))
 		err = template.Render(ctx, res)
 		if err != nil {
-			return fmt.Errorf("unable to render document %s: %w", doc, err)
+			slogctx.FromCtx(req.Context()).Error("Could not render policy document.",
+				slog.String("doc", doc),
+				slog.Any("error", err),
+			)
 		}
-		return nil
-	})).ServeHTTP
+	}
 }
 
 // DocumentationHandler handles serving Markdown documents for help/documentation from directory in the embedded fs.
 func DocumentationHandler() http.HandlerFunc {
-	return alice.New().ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+	return func(res http.ResponseWriter, req *http.Request) {
 		doc := chi.URLParam(req, "*")
 		// Check, if the requested file is existing.
 		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "help", doc+".md"))
 		if err != nil {
 			// If file is not found, return HTTP 404 error.
+			slogctx.FromCtx(req.Context()).Error("Could not read document.",
+				slog.String("doc", doc),
+				slog.Any("error", err),
+			)
 			http.NotFound(res, req)
-			return fmt.Errorf("unable to render document %s: %w", doc, err)
 		}
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
 		ctx := templates.PageTitleToCtx(req.Context(), "Documentation")
 		renderPage(wrapContent(req.WithContext(ctx), templates.Document(output))).ServeHTTP(res, req.WithContext(ctx))
-		return nil
-	})).ServeHTTP
+	}
 }
 
-func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+// notifyOnError handles showing a notification to the user when an error occurs while handling the request. It should
+// only be used for HTMX requests.
+func notifyOnError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if err := f(res, req); err != nil {
-			var apiErr interface {
-				error
-				HTTPStatus() int
-			}
+			var apiErr *models.APIError
 			if errors.As(err, &apiErr) {
+				apiErr.WriteLog(req.Context())
 				switch {
-				case apiErr.HTTPStatus() < 400: //nolint:mnd // easier to read as a number.
-					slogctx.FromCtx(req.Context()).DebugContext(req.Context(), apiErr.Error())
-				case apiErr.HTTPStatus() < 500: //nolint:mnd // easier to read as a number.
-					slogctx.FromCtx(req.Context()).WarnContext(req.Context(), apiErr.Error())
-				default:
-					slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), apiErr.Error())
+				case apiErr.UserMessage != nil && htmx.IsHTMX(req): // show notification.
+					res.WriteHeader(apiErr.HTTPStatus())
+					res.Header().Add(htmx.HeaderReswap, "none")
+					renderPartial(
+						templates.ServerErrorNotification(apiErr.UserMessage),
+					).ServeHTTP(res, req)
+				default: // called with non-HTMX request. Show plain error and log problem.
+					slogctx.FromCtx(req.Context()).Debug("notifyOnError called in non-HTMX request.")
+					http.Error(res, apiErr.Error(), apiErr.HTTPStatus())
 				}
-				res.WriteHeader(apiErr.HTTPStatus())
 			} else {
-				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(),
-					"Unknown API Error.",
+				slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
 					slog.Any("error", err),
 				)
-				http.Error(res, err.Error(), http.StatusInternalServerError)
+				res.WriteHeader(http.StatusInternalServerError)
+			}
+		}
+	}
+}
+
+// showOnError handles either rendering an error page or partial to the user when an error occurs while handling the
+// request. It can be used to handle both HTMX and non-HTMX requests. For non-HTMX requests, a full page with the error
+// message will be shown. For HTMX requests, the error message will be rendered in place of the main content.
+func showOnError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		if err := f(res, req); err != nil {
+			var apiErr *models.APIError
+			if errors.As(err, &apiErr) {
+				apiErr.WriteLog(req.Context())
+				res.WriteHeader(apiErr.HTTPStatus())
+				if apiErr.UserMessage != nil {
+					renderPage(
+						wrapContent(req, templates.ErrorPage(apiErr.UserMessage)),
+					).ServeHTTP(res, req)
+				}
+			} else {
+				slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
+					slog.Any("error", err),
+				)
+				res.WriteHeader(http.StatusInternalServerError)
 			}
 		}
 	}
