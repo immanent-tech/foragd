@@ -6,7 +6,6 @@ package elastic
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -67,10 +66,7 @@ func (a *API) SearchFeeds(
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
-		return nil, "", models.NewAPIError( //nolint:wrapcheck
-			fmt.Errorf("search feeds: decode pagination failed: %w", err),
-			http.StatusInternalServerError,
-		)
+		return nil, "", ErrInvalidParams
 	}
 
 	// Perform search.
@@ -85,10 +81,7 @@ func (a *API) SearchFeeds(
 	if pagination != nil {
 		*pagination, err = encodePagination(newSearchAfter)
 		if err != nil {
-			return nil, "", models.NewAPIError( //nolint:wrapcheck
-				fmt.Errorf("search feeds: encode pagination failed: %w", err),
-				http.StatusInternalServerError,
-			)
+			return nil, "", ErrInvalidParams
 		}
 		return feeds, *pagination, nil
 	}

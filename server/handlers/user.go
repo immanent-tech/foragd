@@ -640,9 +640,14 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 			} else {
 				err = api.CreateFeedSubscriptions(req.Context(), &result)
 				if err != nil {
-					msg := models.NewErrorMessage("Failed to create subscription.", "The backend produced an error. This might be temporary, please try again.")
-					renderPartial(templates.ServerErrorNotification(msg)).ServeHTTP(res, req)
-					return models.NewAPIError(fmt.Errorf("unable process import request: %w", err), http.StatusInternalServerError)
+					return &models.APIError{
+						InternalError: fmt.Errorf("create subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: models.NewErrorMessage(
+							"Unable to add feedset",
+							"This might be a temporary issue, please try again.",
+						),
+					}
 				}
 			}
 		}

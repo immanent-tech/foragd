@@ -11,22 +11,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 )
 
-// ErrInvalidMimeType indicates that the mime type is not valid.
-var ErrInvalidMimeType = errors.New("invalid mime type")
-
-var ErrUserNotFound = NewAPIError(
-	errors.New("no valid user found"), //nolint:err113 // this is wrapped.
-	http.StatusForbidden,
-)
-
-// NewAPIError creates a new API error with the given internal error  and status code.
-func NewAPIError(err error, status int) error {
-	return &APIError{
-		InternalError: err,
-		StatusCode:    status,
-	}
-}
-
 func (e *APIError) Error() string { return e.InternalError.Error() }
 func (e *APIError) Unwrap() error { return e.InternalError }
 

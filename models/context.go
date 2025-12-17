@@ -21,7 +21,10 @@ const (
 
 type contextKey string
 
-var ErrCtxValueNotFound = NewAPIError(errors.New("context value not found"), http.StatusNotFound)
+var ErrCtxValueNotFound = &APIError{
+	InternalError: errors.New("context value not found"),
+	StatusCode:    http.StatusNotFound,
+}
 
 // UserToCtx stores a user in the context.
 func UserToCtx(ctx context.Context, user *User) context.Context {

@@ -46,10 +46,21 @@ const (
 )
 
 var (
-	errNotFound = errors.New("not found")
-	ErrNotFound = models.NewAPIError(errNotFound, http.StatusNotFound)
+	// ErrNotFound indicates the backend API returned no results.
+	ErrNotFound = &models.APIError{
+		InternalError: errors.New("not found"),
+		StatusCode:    http.StatusNotFound,
+	}
 	// ErrInvalidAPIResult indicates that the backend API returned unexpected, invalid or an otherwise incorrect response.
-	ErrInvalidAPIResult = models.NewAPIError(errors.New("invalid backend API result"), http.StatusInternalServerError)
+	ErrInvalidAPIResult = &models.APIError{
+		InternalError: errors.New("invalid backend API result"),
+		StatusCode:    http.StatusInternalServerError,
+	}
+	// ErrInvalidParams indicates that invalid parameters were received or generated.
+	ErrInvalidParams = &models.APIError{
+		InternalError: errors.New("invalid parameters"),
+		StatusCode:    http.StatusUnprocessableEntity,
+	}
 )
 
 var (
@@ -603,7 +614,10 @@ func (a *API) ProcessSubscriptionRequest(
 		return
 	}
 	if subscription != nil {
-		result.Error = models.NewAPIError(errors.New("already subscribed"), http.StatusConflict)
+		result.Error = &models.APIError{
+			InternalError: errors.New("already subscribed"),
+			StatusCode:    http.StatusConflict,
+		}
 		result.Message = models.NewWarningMessage("Already subscribed to feed", feed.GetTitle()+" ("+request.URL+")")
 		resultsCh <- result
 		return
@@ -679,10 +693,7 @@ func (a *API) searchSubscriptions(
 
 	searchAfter, err := decodePagination(req.pagination)
 	if err != nil {
-		return nil, "", models.NewAPIError( //nolint:wrapcheck
-			fmt.Errorf("search subscriptions: decode pagination failed: %w", err),
-			http.StatusInternalServerError,
-		)
+		return nil, "", ErrInvalidParams
 	}
 
 	// Perform search.
@@ -702,10 +713,7 @@ func (a *API) searchSubscriptions(
 	if req.pagination != nil {
 		*req.pagination, err = encodePagination(newSearchAfter)
 		if err != nil {
-			return nil, "", models.NewAPIError( //nolint:wrapcheck
-				fmt.Errorf("search subscriptions: encode pagination failed: %w", err),
-				http.StatusInternalServerError,
-			)
+			return nil, "", ErrInvalidParams
 		}
 		return subscriptions, *req.pagination, nil
 	}
@@ -1641,10 +1649,7 @@ func (a *API) SearchItems(
 
 	searchAfter, err := decodePagination(pagination)
 	if err != nil {
-		return nil, "", models.NewAPIError(
-			fmt.Errorf("search items: decode pagination failed: %w", err),
-			http.StatusInternalServerError,
-		) //nolint:wrapcheck
+		return nil, "", ErrInvalidParams
 	}
 	// Perform search.
 	items, newSearchAfter, err := Search[*models.Item](ctx, a.GetAPI(), index, query, count,
@@ -1657,10 +1662,7 @@ func (a *API) SearchItems(
 	// Parse last search after value into pagination.
 	newPagination, err := encodePagination(newSearchAfter)
 	if err != nil {
-		return nil, "", models.NewAPIError(
-			fmt.Errorf("search items: encode pagination failed: %w", err),
-			http.StatusInternalServerError,
-		) //nolint:wrapcheck
+		return nil, "", ErrInvalidParams
 	}
 	return items, newPagination, nil
 }
@@ -2092,16 +2094,19 @@ func SearchAll[O any](
 // 	return results, nil
 // }
 
-//nolint:wrapcheck,err113
+// toAPIError converts an Elastic package error into a models.APIError.
 func toAPIError(msg string, err error) error {
 	var esErr *types.ElasticsearchError
 	if errors.As(err, &esErr) {
-		return models.NewAPIError(
-			fmt.Errorf("%s: %s: %s", msg, esErr.ErrorCause.Type, *esErr.ErrorCause.Reason),
-			esErr.Status,
-		)
+		return &models.APIError{
+			InternalError: fmt.Errorf("%s: %s: %s", msg, esErr.ErrorCause.Type, *esErr.ErrorCause.Reason),
+			StatusCode:    esErr.Status,
+		}
 	}
-	return models.NewAPIError(fmt.Errorf("%s: %w", msg, err), http.StatusInternalServerError)
+	return &models.APIError{
+		InternalError: fmt.Errorf("%s: %w", msg, err),
+		StatusCode:    http.StatusInternalServerError,
+	}
 }
 
 // paginationValue is a value that can be used as a sort value as a search after option.

@@ -4,6 +4,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"slices"
@@ -14,6 +15,9 @@ import (
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 )
+
+// ErrInvalidMimeType indicates that the mime type is not valid.
+var ErrInvalidMimeType = errors.New("invalid mime type")
 
 // OPMLFile is an opml file used for importing/exporting subscriptions.
 type OPMLFile struct {

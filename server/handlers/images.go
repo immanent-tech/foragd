@@ -21,7 +21,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/google/gcs"
 )
 
@@ -130,10 +129,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			_, err = res.Write(imgBuf)
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
-				return models.NewAPIError(
-					fmt.Errorf("write image: %w", err),
-					http.StatusInternalServerError,
-				)
+				return fmt.Errorf("write image: %w", err)
 			}
 			res.WriteHeader(http.StatusOK)
 			return nil
