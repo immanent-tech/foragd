@@ -59,7 +59,7 @@ func ViewObject(api *elastic.API) http.HandlerFunc {
 			var remoteContentErrMsg templ.Component
 			// Fetch and set remote content if required.
 			if article.ShowFullContent {
-				if content, err := models.ExtractArticleFromURL(article.GetLink()); err != nil {
+				if content, err := extractArticleFromURL(article.GetLink()); err != nil {
 					// Couldn't fetch remote article content, show an error message.
 					remoteContentErrMsg = templates.Notification(
 						models.NewErrorMessage("Unable to fetch article remote content", ""), 0,

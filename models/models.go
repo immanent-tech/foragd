@@ -5,7 +5,6 @@
 package models
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,8 +12,6 @@ import (
 	"maps"
 	"slices"
 	"time"
-
-	"codeberg.org/readeck/go-readability/v2"
 
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
@@ -24,7 +21,6 @@ import (
 
 // DefaultHTTPRequestTimeout is the maximum time allowed for a background HTTP request to execute.
 var DefaultHTTPRequestTimeout = 30 * time.Second
-
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
 var UnixEpoch = time.Unix(0, 0)
 
@@ -79,21 +75,6 @@ func GenerateHXVals(values map[string]any) string {
 	return string(data)
 }
 
-// ExtractArticleFromURL fetches the text content of the given URL and attempts to extract the main article content from
-// it.
-func ExtractArticleFromURL(url string) (string, error) {
-	remote, err := readability.FromURL(url, DefaultHTTPRequestTimeout)
-	if err != nil {
-		return "", fmt.Errorf("extract article from url %s: %w", url, err)
-	}
-	var article bytes.Buffer
-	if err := remote.RenderHTML(&article); err != nil {
-		return "", fmt.Errorf("render article html: %w", err)
-	}
-	content := validation.SanitizeString(article.String())
-	return content, nil
-}
-
 func (p *ObjectParams) Valid() error {
 	if err := validation.Validate.Struct(p); err != nil {
 		return err
@@ -101,7 +82,7 @@ func (p *ObjectParams) Valid() error {
 	return nil
 }
 
-func (v *ObjectParams) Sanitise() error {
+func (p *ObjectParams) Sanitise() error {
 	return nil
 }
 

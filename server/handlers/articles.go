@@ -4,11 +4,13 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
 
+	"codeberg.org/readeck/go-readability/v2"
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
@@ -16,6 +18,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -275,4 +278,19 @@ func markArticles(
 	}
 
 	return nil
+}
+
+// ExtractArticleFromURL fetches the text content of the given URL and attempts to extract the main article content from
+// it.
+func extractArticleFromURL(url string) (string, error) {
+	remote, err := readability.FromURL(url, models.DefaultHTTPRequestTimeout)
+	if err != nil {
+		return "", fmt.Errorf("extract article from url %s: %w", url, err)
+	}
+	var article bytes.Buffer
+	if err := remote.RenderHTML(&article); err != nil {
+		return "", fmt.Errorf("render article html: %w", err)
+	}
+	content := validation.SanitizeString(article.String())
+	return content, nil
 }
