@@ -180,15 +180,15 @@ func notifyOnError(f func(http.ResponseWriter, *http.Request) error) http.Handle
 			if errors.As(err, &apiErr) {
 				apiErr.WriteLog(req.Context())
 				switch {
-				case apiErr.UserMessage != nil && htmx.IsHTMX(req): // show notification.
+				case htmx.IsHTMX(req): // show notification.
 					res.WriteHeader(apiErr.HTTPStatus())
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(
-						templates.ServerErrorNotification(apiErr.UserMessage),
+						templates.ServerErrorNotification(apiErr.GetUserMessage()),
 					).ServeHTTP(res, req)
 				default: // called with non-HTMX request. Show plain error and log problem.
 					slogctx.FromCtx(req.Context()).Debug("notifyOnError called in non-HTMX request.")
-					http.Error(res, apiErr.Error(), apiErr.HTTPStatus())
+					http.Error(res, apiErr.GetUserMessage().String(), apiErr.HTTPStatus())
 				}
 			} else {
 				slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
@@ -210,11 +210,9 @@ func showOnError(f func(http.ResponseWriter, *http.Request) error) http.HandlerF
 			if errors.As(err, &apiErr) {
 				apiErr.WriteLog(req.Context())
 				res.WriteHeader(apiErr.HTTPStatus())
-				if apiErr.UserMessage != nil {
-					renderPage(
-						wrapContent(req, templates.ErrorPage(apiErr.UserMessage)),
-					).ServeHTTP(res, req)
-				}
+				renderPage(
+					wrapContent(req, templates.ErrorPage(apiErr.GetUserMessage())),
+				).ServeHTTP(res, req)
 			} else {
 				slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
 					slog.Any("error", err),

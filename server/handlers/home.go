@@ -34,7 +34,7 @@ func Home(api *elastic.API) http.HandlerFunc {
 					InternalError: fmt.Errorf("get user data: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
-						"Could display home",
+						"Could not display home page",
 						"This might be temporary, please try again.",
 					),
 				}
@@ -52,7 +52,7 @@ func Home(api *elastic.API) http.HandlerFunc {
 					InternalError: fmt.Errorf("run data collection: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
-						"Could display home",
+						"Could not display home page",
 						"This might be temporary, please try again.",
 					),
 				}

@@ -84,10 +84,6 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 					return &models.APIError{
 						InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
 						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Server could not complete request!",
-							"This might be temporary, please try again.",
-						),
 					}
 				}
 

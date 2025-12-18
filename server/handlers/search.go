@@ -154,10 +154,6 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 				return &models.APIError{
 					InternalError: fmt.Errorf("get subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to process request",
-						"This might be a temporary issue, please try again.",
-					),
 				}
 			}
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
@@ -169,10 +165,6 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			return &models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", err),
 				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to process request",
-					"This might be a temporary issue, please try again.",
-				),
 			}
 		}
 
@@ -183,10 +175,6 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			return &models.APIError{
 				InternalError: fmt.Errorf("build search query: %w", err),
 				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to process request",
-					"This might be a temporary issue, please try again.",
-				),
 			}
 		}
 		pagination := req.FormValue(models.ParamPagination)
@@ -201,10 +189,6 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			return &models.APIError{
 				InternalError: fmt.Errorf("search items: %w", err),
 				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to process request",
-					"This might be a temporary issue, please try again.",
-				),
 			}
 		}
 		if len(itemResults) > 0 {
@@ -213,10 +197,6 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 				return &models.APIError{
 					InternalError: fmt.Errorf("generate articles: %w", err),
 					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to process request",
-						"This might be a temporary issue, please try again.",
-					),
 				}
 			}
 		}
