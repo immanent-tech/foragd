@@ -104,8 +104,8 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		}
 		if resp.IsError() {
 			res.WriteHeader(resp.StatusCode())
-			slogctx.FromCtx(req.Context()).Error("Image proxy returned error response.",
-				slog.Any("error", err),
+			slogctx.FromCtx(req.Context()).Error("Image proxy returned error status code.",
+				slog.Any("error", resp.Status()),
 			)
 			return
 		}
