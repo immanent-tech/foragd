@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/immanent-tech/foragd/compare/v0.1.0...v0.1.1) (2025-12-18)
+
+
+### Bug Fixes
+
+* **handlers:** :bug: load correct cache in avatar handler ([c3f2fc9](https://github.com/immanent-tech/foragd/commit/c3f2fc945328eed7c73912e41e96df526d083171))
+
 ## [0.1.0](https://github.com/immanent-tech/foragd/compare/v0.0.4...v0.1.0) (2025-12-18)
 
 
