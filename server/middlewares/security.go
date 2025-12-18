@@ -26,12 +26,12 @@ func Security(next http.Handler) http.Handler {
 		// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#referrer-policy
 		res.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 
-		// Do not share browsing context.
-		//
-		// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-opener-policy-coop
-		res.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-
 		if !strings.Contains(req.URL.Path, "view/article") {
+			// Do not share browsing context.
+			//
+			// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-opener-policy-coop
+			res.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+
 			// Prevent loading of cross-origin resources not explicitly granted.
 			//
 			// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-embedder-policy-coep
