@@ -321,18 +321,14 @@ func parseFilters(next http.Handler) http.Handler {
 		ctx := req.Context()
 		switch {
 		case err != nil:
-			if errors.Is(err, forms.ErrNoFormData) {
-				restored, err := session.Restore[models.ListDisplayFilters](ctx, "filters_"+req.URL.Path)
-				if err != nil {
-					restored = models.NewListDisplayFilters()
-				}
-				filters = &restored
-				ctx = models.PageFiltersToCtx(ctx, req.URL.Path, filters)
-			} else {
-				newFilters := models.NewListDisplayFilters()
-				session.Save(ctx, "filters_"+req.URL.Path, newFilters)
-				ctx = models.PageFiltersToCtx(ctx, req.URL.Path, filters)
+			// Try to restore filters from session.
+			restored, err := session.Restore[models.ListDisplayFilters](ctx, "filters_"+req.URL.Path)
+			if err != nil {
+				// Use new filters if unable to restore from session or form data.
+				restored = models.NewListDisplayFilters()
 			}
+			filters = &restored
+			ctx = models.PageFiltersToCtx(ctx, req.URL.Path, filters)
 		case !valid:
 			newFilters := models.NewListDisplayFilters()
 			session.Save(ctx, "filters_"+req.URL.Path, newFilters)

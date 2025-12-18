@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -16,6 +17,11 @@ import (
 
 func init() {
 	gob.Register(ListDisplayFilters{})
+}
+
+var ErrNoFilters = &APIError{
+	InternalError: errors.New("not filters found"),
+	StatusCode:    http.StatusNotFound,
 }
 
 const (
@@ -78,7 +84,7 @@ func (f *ListDisplayFilters) GetSubscriptions() []SubscriptionID {
 // Sanitise performs sanitisation of the filter values to ensure correctness.
 func (f *ListDisplayFilters) Sanitise() error {
 	if f == nil {
-		return nil
+		return ErrNoFilters
 	}
 	// Set required filters to valid values as necessary.
 	f.Sort = setValidSort(f.Sort)
@@ -91,7 +97,7 @@ func (f *ListDisplayFilters) Sanitise() error {
 // non-nil error with details if not.
 func (f *ListDisplayFilters) Valid() error {
 	if f == nil {
-		return errors.New("no filters")
+		return ErrNoFilters
 	}
 	if err := validation.Validate.Struct(f); err != nil {
 		return fmt.Errorf("filters are invalid: %w", err)
