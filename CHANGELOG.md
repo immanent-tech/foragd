@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.0](https://github.com/immanent-tech/foragd/compare/v0.0.4...v0.1.0) (2025-12-18)
+
+
+### Features
+
+* :sparkles: allow user to upload new avatar image ([bff8019](https://github.com/immanent-tech/foragd/commit/bff80195d1f898b9c2417a0242883317e95d9092))
+
+
+### Bug Fixes
+
+* **middlewares:** :lock: relax CORP on view article pages to allow remote image loading ([f14592b](https://github.com/immanent-tech/foragd/commit/f14592bf7702f2c97bc46f62e5e9efc4f38f1be6))
+* **templates:** :bug: fix positioning of back to top button on tablet sized screens ([b019533](https://github.com/immanent-tech/foragd/commit/b019533e5075271abe7524cae8d7e9d544fbec5b))
+
 ## [0.0.4](https://github.com/immanent-tech/foragd/compare/v0.0.3...v0.0.4) (2025-12-17)
 
 
