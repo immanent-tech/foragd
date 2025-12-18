@@ -10,130 +10,6 @@ import (
 	"os"
 )
 
-templ planSelection(action, method, selectedID, selectedText string) {
-	<div class="join join-vertical sm:join-horizontal w-full justify-center items-center">
-		<div class="card w-96 bg-base-100 shadow-sm join-item">
-			<div class="card-body">
-				if selectedID == "Gatherer-85297d6" {
-					<span class="badge badge-xs badge-primary">{ selectedText }</span>
-				}
-				<div class="flex justify-between">
-					<h2 class="text-3xl font-bold">Gatherer</h2>
-					<span class="text-xl">USD $6/mo</span>
-				</div>
-				<p class="mt-4 text-sm/6">Perfect for keeping up with the latest news feeds.</p>
-				<ul class="mt-6 flex flex-col gap-2 text-xs">
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>Last week article history</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>15 subscriptions</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>Personal use only</span>
-					</li>
-				</ul>
-				<div class="mt-6">
-					<form action={ action } method={ method }>
-						@UpdateCSRFToken()
-						<input type="hidden" name={ models.ParamPlanID } value="Gatherer-85297d6"/>
-						<button id="checkout-gatherer" type="submit" class="btn btn-accent btn-block">Subscribe</button>
-					</form>
-				</div>
-			</div>
-		</div>
-		<div class="card w-96 bg-base-100 shadow-sm join-item">
-			<div class="card-body">
-				if selectedID == "Collector-07ad4d0" {
-					<span class="badge badge-xs badge-primary">{ selectedText }</span>
-				}
-				<div class="flex justify-between">
-					<h2 class="text-3xl font-bold">Collector</h2>
-					<span class="text-xl">USD $8/mo</span>
-				</div>
-				<p class="mt-4 text-sm/6">Great for following the news and your favorite blogs/content sites.</p>
-				<ul class="mt-6 flex flex-col gap-2 text-xs">
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>Last six months article history</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>150 subscriptions</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>Subscription/Article favorites</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-warning"})
-						<span>Selected new features as they are released</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>Personal use only</span>
-					</li>
-				</ul>
-				<div class="mt-6">
-					<form action={ action } method={ method }>
-						@UpdateCSRFToken()
-						<input type="hidden" name={ models.ParamPlanID } value="Collector-07ad4d0"/>
-						<button id="checkout-collector" type="submit" class="btn btn-accent btn-block">Subscribe</button>
-					</form>
-				</div>
-			</div>
-		</div>
-		<div class="card w-96 bg-base-100 shadow-sm join-item">
-			<div class="card-body">
-				if selectedID == "Curator-2c67637" {
-					<span class="badge badge-xs badge-primary">{ selectedText }</span>
-				}
-				<div class="flex justify-between">
-					<h2 class="text-3xl font-bold">Curator</h2>
-					<span class="text-xl">USD $18/mo</span>
-				</div>
-				<p class="mt-4 text-sm/6">Extensive article history and all current and new features.</p>
-				<ul class="mt-6 flex flex-col gap-2 text-xs">
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>Last two years article history</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>Unlimited subscriptions</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>Group subscriptions</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>Search subscriptions</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>Subscription/Article favorites</span>
-					</li>
-					<li>
-						@tabler.Check(i.Props{Class: "size-4 me-2 inline-block text-success"})
-						<span>All new features as they are released</span>
-					</li>
-				</ul>
-				<div class="mt-6">
-					<form action={ action } method={ method }>
-						@UpdateCSRFToken()
-						<input type="hidden" name={ models.ParamPlanID } value="Curator-2c67637"/>
-						<button id="checkout-curator" type="submit" class="btn btn-accent btn-block">Subscribe</button>
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
 // UserChooseSubscriptionPlanPage renders a full page for the user to choose their subscription plan, with any
 // previously selected option highlighted. This is displayed after a user account has been created (in Auth0) and
 // redirects the user to Stripe for payment.
@@ -165,7 +41,7 @@ templ UserChooseSubscriptionPlan(user *models.User, planID string) {
 				<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">You'll be taken to Stripe to finalise your account.</p>
 				<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">Entering payment details is optional. You can start a trial today and pay later.</p>
 			</div>
-			@planSelection(models.RouteCheckout, "post", planID, "Selected")
+			@pricingGrid(models.RouteCheckout, "post", planID, "Selected")
 		}
 	}
 }
