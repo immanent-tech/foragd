@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"image"
 	"mime/multipart"
-	"net/textproto"
 	"time"
 
 	externalRef0 "github.com/immanent-tech/go-syndication/types"
@@ -430,13 +429,7 @@ type FileUpload struct {
 	Data multipart.File `json:"data" validate:"required"`
 
 	// Header is the mime header information of the file.
-	Header textproto.MIMEHeader `json:"header" validate:"required"`
-
-	// Name is the file name.
-	Name string `json:"name" validate:"required"`
-
-	// Size is the size of the file.
-	Size int `json:"size" validate:"required,gte=0"`
+	Header *multipart.FileHeader `json:"header" validate:"required"`
 }
 
 // GroupSubscription represents a subscription that combines other subscriptions.

@@ -12,7 +12,6 @@ import (
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/types"
 
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -21,7 +20,7 @@ var ErrInvalidMimeType = errors.New("invalid mime type")
 
 // OPMLFile is an opml file used for importing/exporting subscriptions.
 type OPMLFile struct {
-	*forms.FileUpload
+	*FileUpload
 }
 
 // Valid returns a boolean indicating if the OPML file is valid. If not valid, a non-nil error is also returned which

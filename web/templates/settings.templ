@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/go-syndication/types"
 	"os"
 	"strings"
 	"time"
@@ -96,8 +97,8 @@ templ AccountSettings(user *models.User) {
 		</div>
 		if !strings.HasPrefix(user.GetExternalID(),"auth0|") {
 			<div class="col-span-full">
-				<h2 class="form-section-title">Edit Account</h2>
-				<p class="form-section-description">
+				<h2 class="text-base/7 font-semibold">Edit Account</h2>
+				<p class="mt-1 text-sm/6 text-neutral">
 					Your account is provided by an external service provider such as Google or Facebook, please log in to your account on the external service to make changes to your nickname, email, avatar or password.
 				</p>
 			</div>
@@ -111,20 +112,56 @@ templ AccountSettings(user *models.User) {
 				hx-post="/user/settings/account"
 				hx-swap="none"
 				hx-include="[name='csrf_token']"
+				hx-encoding="multipart/form-data"
 				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2"
 			>
 				<div class="sm:col-span-full">
 					<label for="nickname" class="block text-sm/6 font-medium">Nickname</label>
 					<div class="mt-2">
-						<input id="nickname" type="text" class="input input-primary validator invalid:input-error bg-base-content/10" placeholder="Nickname" name="nickname" required value={ user.GetNickname() }/>
+						<input
+							id="nickname"
+							type="text"
+							class="input input-primary validator invalid:input-error bg-base-content/10"
+							placeholder="Nickname"
+							name="nickname"
+							required
+							value={ user.GetNickname() }
+						/>
 						<p class="validator-hint">Nickname is required</p>
 					</div>
 				</div>
 				<div class="sm:col-span-full">
 					<label for="nickname" class="block text-sm/6 font-medium">Email</label>
 					<div class="mt-2">
-						<input id="nickname" type="email" class="input input-primary invalid:input-error validator bg-base-content/10" placeholder="Email" name="email" required value={ user.GetEmail() }/>
+						<input
+							id="nickname"
+							type="email"
+							class="input input-primary invalid:input-error validator bg-base-content/10"
+							placeholder="Email"
+							name="email"
+							required
+							value={ user.GetEmail() }
+						/>
 						<p class="validator-hint">Must be a valid email address</p>
+					</div>
+				</div>
+				<div class="sm:col-span-full">
+					<label for="avatar" class="block text-sm/6 font-medium">Avatar</label>
+					<p class="text-sm/6 text-base-content/80">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
+					<div class="mt-2 flex items-center space-x-2">
+						@NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "Avatar for user " + user.GetNickname()},
+							"rs:auto:48:48/sh:0.5/ext:webp",
+							WithClasses("flex rounded-full outline -outline-offset-1 outline-base-content/10"),
+							WithCustomAttribute("width", "48"),
+							WithCustomAttribute("height", "48"),
+						)
+						<input
+							id="avatar"
+							type="file"
+							class="flex file-input file-input-primary bg-base-content/10"
+							name="avatar"
+							accept=".jpg,.png,.webp"
+						/>
 					</div>
 				</div>
 				<input type="hidden" name="avatar_url" value={ user.GetAvatar() }/>
@@ -253,7 +290,9 @@ templ DisplaySettings(user *models.User) {
 					/>
 					<div class="flex-1 text-sm/6">
 						<label for="setting-show-subscription-stats" class="font-medium">Show Subscription Stats</label>
-						<p id="setting-show-subscription-stats-description" class="text-base-content/80">Controls whether to show various stats (e.g., unread counts, articles per day) on subscriptions.</p>
+						<p id="setting-show-subscription-stats-description" class="text-base-content/80">
+							Controls whether to show various stats (e.g., unread counts, articles per day) on subscriptions.
+						</p>
 					</div>
 				</div>
 				<div class="flex items-center gap-x-4">
@@ -269,7 +308,9 @@ templ DisplaySettings(user *models.User) {
 					/>
 					<div class="flex-1 text-sm/6">
 						<label for="setting-mark-article-read-on-view" class="font-medium">Mark Article Read on View</label>
-						<p id="setting-mark-article-read-on-view-description" class="text-base-content/80">When viewing an article, mark it as read automatically when viewed.</p>
+						<p id="setting-mark-article-read-on-view-description" class="text-base-content/80">
+							When viewing an article, mark it as read automatically when viewed.
+						</p>
 					</div>
 				</div>
 				<div class="col-span-full place-self-end">

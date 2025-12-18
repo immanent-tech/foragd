@@ -13,7 +13,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -127,21 +126,6 @@ func (i *IssueRequest) Valid() error {
 
 func (i *IssueRequest) Sanitise() error {
 	i.Details = validation.SanitizeString(i.Details)
-	return nil
-}
-
-type Screenshot struct {
-	*forms.FileUpload
-}
-
-func (s *Screenshot) Valid() error {
-	mimeType, err := s.ParseMimetype()
-	if err != nil {
-		return fmt.Errorf("screenshot invalid: %w", err)
-	}
-	if !slices.Contains([]string{"image/jpeg", "image/png"}, mimeType) {
-		return fmt.Errorf("screenshot invalid: %w", mimeType)
-	}
 	return nil
 }
 

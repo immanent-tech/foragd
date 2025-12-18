@@ -5,12 +5,12 @@ package models
 
 import (
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
 
-	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -91,7 +91,7 @@ func (f *ListDisplayFilters) Sanitise() error {
 // non-nil error with details if not.
 func (f *ListDisplayFilters) Valid() error {
 	if f == nil {
-		return forms.ErrNoFormData
+		return errors.New("no filters")
 	}
 	if err := validation.Validate.Struct(f); err != nil {
 		return fmt.Errorf("filters are invalid: %w", err)

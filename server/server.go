@@ -172,10 +172,10 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	// Policy documents (i.e., terms of service, privacy).
 	router.Get("/policies/*", handlers.PolicyDocsHandler())
 	// Image proxy.
-	router.Get(
-		"/img-proxy/*",
-		handlers.ImageProxy(cfg.ImgProxy.BaseURL),
-	)
+	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgProxy.BaseURL))
+	// Avatars
+	router.Get("/img/avatar/*", handlers.Avatar())
+
 	// Front page.
 	router.Get("/", handlers.Landing())
 	// Sign-up/Login.

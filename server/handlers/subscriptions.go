@@ -759,7 +759,7 @@ func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 		// POST: process import.
 		case http.MethodPost:
 			// Extract OPML file.
-			opmlFileUpload, err := forms.DecodeMultipartFile(req, "source")
+			opmlData, err := forms.DecodeMultipartFile(req, "source")
 			if err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("decode opml: %w", err),
@@ -770,9 +770,7 @@ func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 					),
 				}
 			}
-			opmlFile := &models.OPMLFile{
-				FileUpload: opmlFileUpload,
-			}
+			opmlFile := &models.OPMLFile{FileUpload: opmlData}
 			// Generate subscription requests from OPML file contents.
 			requests, err := opmlFile.GenerateRequests()
 			if err != nil {

@@ -24,8 +24,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/google/gcs"
 )
 
-var imgCache objectCache
-
 func ImageProxy(proxyURLBase string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Load the http client used for making requests to the image proxy.
@@ -153,12 +151,52 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 	}
 }
 
+func Avatar() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Load the image cache.
+		if err := loadImageCache(); err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Load avatar cache failed.",
+				slog.Any("error", err),
+			)
+			return
+		}
+
+		key := chi.URLParam(req, "*")
+
+		imgBufPtr := imgBufPool.Get().(*[]byte)
+		imgBuf := *imgBufPtr
+		defer imgBufPool.Put(imgBufPtr)
+		var found bool
+
+		// Try to fetch the image from the cache. If found, return the cached image.
+		imgBuf, found = avatarCache.Get(req.Context(), key)
+		if found {
+			// Write the image to the response.
+			if _, err := res.Write(imgBuf); err != nil {
+				res.WriteHeader(http.StatusInternalServerError)
+				slogctx.FromCtx(req.Context()).Error("Write image data.",
+					slog.Any("error", err),
+				)
+				return
+			}
+			// Return success.
+			res.WriteHeader(http.StatusOK)
+			return
+		} else {
+			http.NotFound(res, req)
+		}
+	}
+}
+
 var imgBufPool = sync.Pool{
 	New: func() any {
 		buf := make([]byte, 8388608) // TODO: fetch from IMGPROXY_MAX_SRC_FILE_SIZE env var.
 		return &buf
 	},
 }
+
+var imgCache objectCache
 
 var loadImageCache = sync.OnceValue(func() error {
 	switch config.Environment {
@@ -171,7 +209,29 @@ var loadImageCache = sync.OnceValue(func() error {
 		}
 	default:
 		var err error
-		imgCache, err = newDirCache()
+		imgCache, err = newDirCache("imgproxy")
+		if err != nil {
+			return fmt.Errorf("create dir cache: %w", err)
+		}
+	}
+
+	return nil
+})
+
+var avatarCache objectCache
+
+var loadAvatarCache = sync.OnceValue(func() error {
+	switch config.Environment {
+	case "production":
+		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
+		var err error
+		avatarCache, err = gcs.Connect(context.Background(), bucketName, "avatars")
+		if err != nil {
+			return fmt.Errorf("connect to gcs: %w", err)
+		}
+	default:
+		var err error
+		avatarCache, err = newDirCache("avatars")
 		if err != nil {
 			return fmt.Errorf("create dir cache: %w", err)
 		}

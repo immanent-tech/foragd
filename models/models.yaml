@@ -1347,23 +1347,10 @@ components:
           x-go-type: multipart.File
           x-oapi-codegen-extra-tags:
             validate: 'required'
-        name:
-          description: >
-            is the file name.
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required'
         header:
           description: >
             is the mime header information of the file.
-          x-go-type: textproto.MIMEHeader
+          x-go-type: '*multipart.FileHeader'
           x-oapi-codegen-extra-tags:
             validate: 'required'
-        size:
-          description: >
-            is the size of the file.
-          type: integer
-          x-oapi-codegen-extra-tags:
-            validate: 'required,gte=0'
-
 

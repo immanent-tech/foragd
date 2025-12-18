@@ -8,13 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"mime"
 	"mime/multipart"
 	"net/http"
-	"net/textproto"
 	"net/url"
 
 	"github.com/go-playground/form/v4"
+
+	"github.com/immanent-tech/foragd/models"
 )
 
 var (
@@ -42,30 +42,6 @@ const defaultMaxSize = 32 << 20
 type FormInput interface {
 	Valid() error
 	Sanitise() error
-}
-
-// FileUpload represents a file upload by a user.
-type FileUpload struct {
-	// Data is the file data/content.
-	Data multipart.File `json:"data" validate:"required"`
-
-	// Header is the mime header information of the file.
-	Header textproto.MIMEHeader `json:"header" validate:"required"`
-
-	// Name is the file name.
-	Name string `json:"name" validate:"required"`
-
-	// Size is the size of the file.
-	Size int64 `json:"size" validate:"required,gte=0"`
-}
-
-// ParseMimetype attempts to parse and return the mimetype of the file from its mime header.
-func (f *FileUpload) ParseMimetype() (string, error) {
-	mediaType, _, err := mime.ParseMediaType(f.Header.Get("Content-Type"))
-	if err != nil {
-		return "unknown", fmt.Errorf("cannot parse mime type of file %s: %w", f.Name, err)
-	}
-	return mediaType, nil
 }
 
 // DecodeForm will decode submitted form contents into the passed in type. It
@@ -127,11 +103,16 @@ func DecodeCustom[T FormInput](req *http.Request, decoderFunc func(params url.Va
 	return obj, true, nil
 }
 
+// FileUpload represents file data uploaded through a mutlipart form.
+type FileUpload interface {
+	Set(hdr *multipart.FileHeader, data multipart.File)
+}
+
 // DecodeMultipartFile will the file represented by the given field in a multipart form
 // submission. It will perform validation of the file and will return the file
 // object and a boolean true if it is valid. If decoding fails, a non-nill error
 // is returned.
-func DecodeMultipartFile(req *http.Request, field string) (*FileUpload, error) {
+func DecodeMultipartFile(req *http.Request, field string) (*models.FileUpload, error) {
 	// Parse form values in request.
 	if err := req.ParseMultipartForm(defaultMaxSize); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrDecode, err)
@@ -141,12 +122,11 @@ func DecodeMultipartFile(req *http.Request, field string) (*FileUpload, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
-	return &FileUpload{
-		Data:   data,
-		Name:   hdr.Filename,
-		Header: hdr.Header,
-		Size:   hdr.Size,
-	}, nil
+	return &models.FileUpload{
+			Data:   data,
+			Header: hdr,
+		},
+		nil
 }
 
 // DecodeMultipartValue will the file represented by the given field in a multipart form

@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"log/slog"
 	"os"
+	"path/filepath"
 
 	slogctx "github.com/veqryn/slog-context"
 )
@@ -26,8 +27,8 @@ type dirCache struct {
 	*os.Root
 }
 
-func newDirCache() (*dirCache, error) {
-	root, err := os.OpenRoot("deployments/imgproxy")
+func newDirCache(prefix string) (*dirCache, error) {
+	root, err := os.OpenRoot(filepath.Join("deployments", prefix))
 	if err != nil {
 		return nil, fmt.Errorf("unable to open dircache: %w", err)
 	}

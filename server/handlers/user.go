@@ -5,16 +5,21 @@ package handlers
 
 import (
 	"embed"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/spaolacci/murmur3"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-syndication/opml"
@@ -135,10 +140,32 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
-					"This might be a temporary error, please try again.",
+					"One or more of the inputs is invalid. Please check and try again.",
 				),
 			}
 		}
+		avatar, err := forms.DecodeMultipartFile(req, "avatar")
+		if err != nil && !errors.Is(err, http.ErrMissingFile) {
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode avatar: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to save settings",
+					"Unable to read uploaded avatar data. Please check the file and try again.",
+				),
+			}
+		}
+		if avatar.GetSize() > 1000000 {
+			return &models.APIError{
+				InternalError: models.ErrFileTooLarge,
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to save settings",
+					"Uploaded avatar image is too large (> 1MB).",
+				),
+			}
+		}
+
 		// Get user object
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -151,6 +178,39 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 				),
 			}
 		}
+
+		// If the user uploaded a new avatar, process it.
+		if avatar != nil {
+			if err := loadAvatarCache(); err != nil {
+				return &models.APIError{
+					InternalError: fmt.Errorf("load server cache: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save settings",
+						"This might be a temporary error, please try again.",
+					),
+				}
+			}
+			// Generate a unique ID for the avatar image in the cache using the user ID.
+			avatarFileID := strconv.FormatUint(murmur3.Sum64([]byte(user.GetID()+"avatar")), 10)
+			// Read the uploaded data and store in the cache.
+			avatarData, err := io.ReadAll(avatar.Data)
+			if err != nil {
+				return &models.APIError{
+					InternalError: fmt.Errorf("read avatar: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save settings",
+						"This might be a temporary error, please try again.",
+					),
+				}
+			}
+			avatarCache.Set(req.Context(), avatarFileID, avatarData)
+			// Construct a new full URL to the uploaded avatar on the local server.
+			baseURL := os.Getenv("FORAGD_BASEURL")
+			request.AvatarURL = baseURL + "/img/avatar/" + avatarFileID
+		}
+
 		// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
 		updates := make(map[string]any)
 		// Overwrite local avatar with remote avatar if different
