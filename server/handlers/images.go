@@ -154,7 +154,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 func Avatar() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Load the image cache.
-		if err := loadImageCache(); err != nil {
+		if err := loadAvatarCache(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			slogctx.FromCtx(req.Context()).Error("Load avatar cache failed.",
 				slog.Any("error", err),
