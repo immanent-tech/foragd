@@ -15,7 +15,10 @@ templ Landing() {
 		<main class="isolate bg-base-100">
 			<div class="relative pt-14">
 				<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
-					<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20"></div>
+					<div
+						style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"
+						class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20"
+					></div>
 				</div>
 				<div class="lg:pb-40">
 					<div class="mx-auto max-w-7xl px-6 lg:px-8">
@@ -36,21 +39,37 @@ templ Landing() {
 					</div>
 				</div>
 				<div aria-hidden="true" class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
-					<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20"></div>
+					<div
+						style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"
+						class="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20"
+					></div>
 				</div>
 			</div>
 			// Features.
 			<div id="features" class="mt-32 sm:mt-56">
 				<div class="mx-auto max-w-7xl px-6 lg:px-8">
 					<div class="mx-auto max-w-4xl sm:text-center">
-						<h2 id="features" class="text-base/7 font-semibold text-primary">Collect, collate and consume.</h2>
-						<p class="mt-2 text-4xl font-semibold tracking-tight text-pretty sm:text-5xl sm:text-balance">A beautiful, cloud-based feed reader.</p>
-						<p class="mt-6 text-lg/8 text-base-content/80">Keep your content subscriptions in one place. Stay up to date with new and old content, across all your devices.</p>
+						<h2 id="features" class="text-base/7 font-semibold text-primary">
+							Collect, collate and consume.
+						</h2>
+						<p class="mt-2 text-4xl font-semibold tracking-tight text-pretty sm:text-5xl sm:text-balance">
+							A beautiful, web based feed reader.
+						</p>
+						<p class="mt-6 text-lg/8 text-base-content/80">
+							Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news,
+							blogs and other online sources, across your mobile, tablet, desktop and laptop.
+						</p>
 					</div>
 				</div>
 				<div class="relative overflow-hidden pt-16">
 					<div class="mx-auto max-w-7xl px-6 lg:px-8 w-full flex flex-col sm:flex-row">
-						<img width="1664" height="928" src="/content/screenshots/screenshot-home.webp" alt="Foragd Homepage Screenshot" class="rounded-xl shadow-2xl"/>
+						<img
+							width="1664"
+							height="928"
+							src="/content/screenshots/screenshot-home.webp"
+							alt="Foragd Homepage Screenshot"
+							class="rounded-xl shadow-2xl"
+						/>
 					</div>
 				</div>
 				<div class="mx-auto mt-16 max-w-7xl px-6 sm:mt-20 md:mt-24 lg:px-8">
@@ -60,56 +79,81 @@ templ Landing() {
 								@tabler.InputSearch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Functional search.&nbsp;
 							</dt>
-							<dd class="inline">Full-text search across subscriptions and articles. Quickly access subscriptions and perform actions from search bar.</dd>
+							<dd class="inline">
+								Full-text search across subscriptions and articles. Quickly access subscriptions and
+								perform actions from search bar.
+							</dd>
 						</div>
 						<div class="relative pl-9">
 							<dt class="inline font-semibold">
 								@tabler.Filter(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Article filtering.&nbsp;
 							</dt>
-							<dd class="inline">Define subscription-level filters on article titles/content, authors or categories to control exactly what is shown. Filter to the content you are really interested in, without all the noise.</dd>
+							<dd class="inline">
+								Define subscription-level filters on article titles/content, authors or categories to
+								control exactly what is shown. Filter to the content you are really interested in,
+								without all the noise.
+							</dd>
 						</div>
 						<div class="relative pl-9">
 							<dt class="inline font-semibold">
 								@tabler.Pencil(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Subscription customisation.&nbsp;
 							</dt>
-							<dd class="inline">Set a nickname for your subscriptions. Add your own categories to easily group and find similar content.</dd>
+							<dd class="inline">
+								Set a nickname for your subscriptions. Add your own categories to easily group and find
+								similar content.
+							</dd>
 						</div>
 						<div class="relative pl-9">
 							<dt class="inline font-semibold">
 								@tabler.Heart(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Subscription and article favorites.&nbsp;
 							</dt>
-							<dd class="inline">Mark subscriptions and articles as favorites, to quickly access them later.</dd>
+							<dd class="inline">
+								Mark subscriptions and articles as favorites, to quickly access them later.
+							</dd>
 						</div>
 						<div class="relative pl-9">
 							<dt class="inline font-semibold">
 								@tabler.CategoryPlus(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Group subscriptions.&nbsp;
 							</dt>
-							<dd class="inline">Combine multiple subscriptions to present a unified view of articles from any of them. Make it easy to keep up with similar posts across different sources.</dd>
+							<dd class="inline">
+								Combine multiple subscriptions to present a unified view of
+								articles from any of them. Make it easy to keep up with similar posts across different
+								sources.
+							</dd>
 						</div>
 						<div class="relative pl-9">
 							<dt class="inline font-semibold">
 								@tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Search subscriptions.&nbsp;
 							</dt>
-							<dd class="inline">Use the powerful search to find what you need. Save the search terms as a search subscription to always find new articles that match. Great for keeping track of news or topics across multiple subscriptions.</dd>
+							<dd class="inline">
+								Use the powerful search to find what you need. Save the search terms as a search
+								subscription to always find new articles that match. Great for keeping track of news or
+								topics across multiple subscriptions.
+							</dd>
 						</div>
 						<div class="relative pl-9">
 							<dt class="inline font-semibold">
 								@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Get remote article content.&nbsp;
 							</dt>
-							<dd class="inline">Fetch the remote article content where the feed only shows a summary.</dd>
+							<dd class="inline">
+								Fetch the remote article content where the feed only shows a summary.
+							</dd>
 						</div>
 						<div class="relative pl-9">
 							<dt class="inline font-semibold">
 								@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 								Cloud sync.&nbsp;
 							</dt>
-							<dd class="inline">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</dd>
+							<dd class="inline">
+								All your preferences and state is synced to the cloud, so you are always up to date with
+								your read/unread content.
+							</dd>
 						</div>
 						<div class="relative pl-9">
 							<dt class="inline font-semibold">
@@ -133,10 +177,16 @@ templ Landing() {
 				<div class="mx-auto max-w-7xl px-6 lg:px-8">
 					<div class="mx-auto max-w-4xl text-center">
 						<h2 id="pricing" class="text-base/7 font-semibold text-primary">Subscriptions and Pricing.</h2>
-						<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">Keep up to date without breaking the bank</p>
+						<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+							Keep up to date without breaking the bank
+						</p>
 					</div>
-					<p class="mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">Choose an affordable plan with the features you need.</p>
-					<p class="mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">All subscription plans come with a 14-day free trial.</p>
+					<p class="mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">
+						Choose an affordable plan with the features you need.
+					</p>
+					<p class="mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">
+						All subscription plans come with a 14-day free trial.
+					</p>
 					@planSelection(models.RouteSignup, "get", "Collector-07ad4d0", "Recommended")
 				</div>
 			</div>
@@ -145,27 +195,48 @@ templ Landing() {
 				<h2 class="text-4xl font-semibold tracking-tightsm:text-5xl">Frequently asked questions</h2>
 				<dl class="mt-20 divide-y divide-accent">
 					<div class="py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8">
-						<dt class="text-base/7 font-semibold lg:col-span-5">Do you offer a trial period?</dt>
+						<dt class="text-base/7 font-semibold lg:col-span-5">
+							Do you offer a trial period?
+						</dt>
 						<dd class="mt-4 lg:col-span-7 lg:mt-0">
-							<p class="text-base/7">Yes! All plans come with a 14-day trial. You can sign up without payment details, then add them before the trial ends to keep your plan active if you like it.</p>
+							<p class="text-base/7">
+								Yes! All plans come with a 14-day trial. You can sign up without
+								payment details, then add them before the trial ends to keep your plan active if you like
+								it.
+							</p>
 						</dd>
 					</div>
 					<div class="py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8">
-						<dt class="text-base/7 font-semibold lg:col-span-5">Can I change plans?</dt>
+						<dt class="text-base/7 font-semibold lg:col-span-5">
+							Can I change plans?
+						</dt>
 						<dd class="mt-4 lg:col-span-7 lg:mt-0">
-							<p class="text-base/7">Yes! You can change your plan any time.</p>
+							<p class="text-base/7">
+								Yes! You can change your plan any time.
+							</p>
 						</dd>
 					</div>
 					<div class="py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8">
-						<dt class="text-base/7 font-semibold lg:col-span-5">Can I import or export my subscriptions from elsewhere?</dt>
+						<dt class="text-base/7 font-semibold lg:col-span-5">
+							Can I import or export my subscriptions from elsewhere?
+						</dt>
 						<dd class="mt-4 lg:col-span-7 lg:mt-0">
-							<p class="text-base/7">Definitely. Foragd supports importing and exporting as OPML, which is the de facto standard for sharing a list of subscriptions. Most good feed readers will supporting OPML.</p>
+							<p class="text-base/7">
+								Definitely. Foragd supports importing and exporting as OPML, which
+								is the de facto standard for sharing a list of subscriptions. Most good feed readers will
+								supporting OPML.
+							</p>
 						</dd>
 					</div>
 					<div class="py-8 first:pt-0 last:pb-0 lg:grid lg:grid-cols-12 lg:gap-8">
-						<dt class="text-base/7 font-semibold lg:col-span-5">Do you offer support?</dt>
+						<dt class="text-base/7 font-semibold lg:col-span-5">
+							Do you offer support?
+						</dt>
 						<dd class="mt-4 lg:col-span-7 lg:mt-0">
-							<p class="text-base/7">Yes. You can email or log issues through the website when logged in and we will get back to you as soon as we can.</p>
+							<p class="text-base/7">
+								Yes. You can email or log issues through the website when logged in and we will get back
+								to you as soon as we can.
+							</p>
 						</dd>
 					</div>
 				</dl>
@@ -173,17 +244,25 @@ templ Landing() {
 			// CTA.
 			<div class="relative -z-10 mt-32 px-6 lg:px-8">
 				<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
-					<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20"></div>
+					<div
+						style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"
+						class="relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20"
+					></div>
 				</div>
 				<div class="mx-auto max-w-2xl text-center">
-					<h2 class="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">Rediscover the web. Start using Foragd today.</h2>
+					<h2 class="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+						Rediscover the web. Start using Foragd today.
+					</h2>
 					// <p class="mx-auto mt-6 max-w-xl text-lg/8 text-pretty text-gray-600 dark:text-gray-300">.</p>
 					<div class="mt-10 flex items-center justify-center gap-x-6">
 						<a href="#pricing" role="button" class="btn btn-primary">Sign-up</a>
 					</div>
 				</div>
 				<div aria-hidden="true" class="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
-					<div style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" class="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20"></div>
+					<div
+						style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"
+						class="relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20"
+					></div>
 				</div>
 			</div>
 		</main>
@@ -204,8 +283,12 @@ templ Landing() {
 						Privacy Policy
 					</a>
 				</div>
-				<p class="mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0">Built for humans by a human. Built for a love of the indie web.</p>
-				<p class="mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0">&copy; 2025 <a class="link link-hover" href="https://immanent.tech">Immanent Tech.</a> All rights reserved.</p>
+				<p class="mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0">
+					Built for humans by a human. Built for a love of the indie web.
+				</p>
+				<p class="mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0">
+					&copy; 2025 <a class="link link-hover" href="https://immanent.tech">Immanent Tech.</a> All rights reserved.
+				</p>
 			</div>
 		</footer>
 	</div>

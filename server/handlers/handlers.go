@@ -49,6 +49,11 @@ var defaultHandlerChain = alice.New(
 	storePath,
 )
 
+// Landing handles displaying the landing page.
+func Landing() http.HandlerFunc {
+	return renderPage(templates.Landing()).ServeHTTP
+}
+
 // NotFound handles showing a page for a 404 response.
 func NotFound() http.HandlerFunc {
 	return alice.New().Then(renderPage(templates.NotFound())).ServeHTTP
