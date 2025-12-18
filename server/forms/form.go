@@ -122,11 +122,16 @@ func DecodeMultipartFile(req *http.Request, field string) (*models.FileUpload, e
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
-	return &models.FileUpload{
-			Data:   data,
-			Header: hdr,
-		},
-		nil
+	// Create a models.FileUpload object.
+	upload := &models.FileUpload{
+		Data:   data,
+		Header: hdr,
+	}
+	// Validate file upload.
+	if err := upload.Valid(); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrValidation, err)
+	}
+	return upload, nil
 }
 
 // DecodeMultipartValue will the file represented by the given field in a multipart form
