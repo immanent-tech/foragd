@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/immanent-tech/foragd/compare/v0.3.0...v0.3.1) (2025-12-19)
+
+
+### Bug Fixes
+
+* **templates:** :bug: fix cloudflare asset caching issues ([d4ecf43](https://github.com/immanent-tech/foragd/commit/d4ecf43c26a08254bc5d3e3cb32ad1b56969b2e6))
+
 ## [0.3.0](https://github.com/immanent-tech/foragd/compare/v0.2.0...v0.3.0) (2025-12-19)
 
 
