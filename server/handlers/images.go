@@ -119,7 +119,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			return
 		}
 
-		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
+		res.Header().Set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable")
 
 		var wg errgroup.Group
 		// Write the image to the response.

@@ -101,7 +101,28 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 			http.NotFound(res, req)
 			return
 		}
-		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
+		switch {
+		case strings.HasSuffix(req.URL.Path, "js"):
+			// JS files are cached for 1 week.
+			res.Header().Set("Cache-Control", "public, max-age=604800")
+		case strings.HasSuffix(req.URL.Path, "css"):
+			// CSS files are cached for 1 week.
+			res.Header().Set("Cache-Control", "public, max-age=604800")
+		case strings.HasSuffix(req.URL.Path, "woff2"):
+			// Fonts are cached for 1 year.
+			res.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		case strings.HasSuffix(req.URL.Path, "png"):
+			fallthrough
+		case strings.HasSuffix(req.URL.Path, "jpg"):
+			fallthrough
+		case strings.HasSuffix(req.URL.Path, "webp"):
+			fallthrough
+		case strings.HasSuffix(req.URL.Path, "svg"):
+			res.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		default:
+			// Default is to cache for 1 week.
+			res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
+		}
 		// File is found, return to standard http.FileServer.
 		http.FileServer(fs).ServeHTTP(res, req)
 	})
