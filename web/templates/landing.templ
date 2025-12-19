@@ -47,17 +47,19 @@ templ Landing() {
 			</div>
 			// Features.
 			<div id="features" class="mt-32 sm:mt-56">
-				<div class="mx-auto max-w-2xl px-6 lg:max-w-7xl lg:px-8">
-					<h2 id="features" class="text-center text-base/7 font-semibold text-primary">
-						Collect, collate and consume.
-					</h2>
-					<p class="mx-auto max-w-lg text-center mt-2 text-4xl font-semibold tracking-tight text-pretty sm:text-5xl sm:text-balance">
-						A beautiful, web based feed reader.
-					</p>
-					<p class="mx-auto max-w-lg text-center mt-6 text-lg/8 text-base-content/80">
-						Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news,
-						blogs and other online sources, across your mobile, tablet, desktop and laptop.
-					</p>
+				<div class="mx-auto max-w-7xl px-6 lg:px-8">
+					<div class="mx-auto max-w-4xl text-center">
+						<h2 id="features" class="text-base/7 font-semibold text-primary">
+							Collect, collate and consume.
+						</h2>
+						<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+							A beautiful, web based feed reader.
+						</p>
+						<p class="mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">
+							Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news,
+							blogs and other online sources, across your mobile, tablet, desktop and laptop.
+						</p>
+					</div>
 					<div class="mt-10 grid gap-4 sm:mt-16 lg:grid-cols-3 lg:grid-rows-2">
 						<div class="relative lg:row-span-2">
 							<div class="absolute inset-px rounded-lg bg-base-200 lg:rounded-l-4xl"></div>
@@ -239,7 +241,9 @@ templ Landing() {
 			<div class="py-24 sm:pt-48">
 				<div class="mx-auto max-w-7xl px-6 lg:px-8">
 					<div class="mx-auto max-w-4xl text-center">
-						<h2 id="pricing" class="text-base/7 font-semibold text-primary">Subscriptions and Pricing.</h2>
+						<h2 id="pricing" class="text-base/7 font-semibold text-primary">
+							Subscriptions and Pricing.
+						</h2>
 						<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
 							Keep up to date without breaking the bank
 						</p>
@@ -252,6 +256,14 @@ templ Landing() {
 					</p>
 					<div class="mt-4">
 						@pricingGrid(models.RouteSignup, "get", "Collector-07ad4d0", "Recommended")
+					</div>
+					<div class="mx-auto max-w-4xl text-center">
+						<p class="mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">
+							Got questions about pricing?
+							<a href="mailto:hello@immanent.tech&subject=Pricing" class="link text-base-content/80">
+								Email Us.
+							</a>
+						</p>
 					</div>
 				</div>
 			</div>
