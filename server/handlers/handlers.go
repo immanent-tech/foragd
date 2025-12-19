@@ -51,7 +51,10 @@ var defaultHandlerChain = alice.New(
 
 // Landing handles displaying the landing page.
 func Landing() http.HandlerFunc {
-	return renderPage(templates.Landing()).ServeHTTP
+	return func(res http.ResponseWriter, req *http.Request) {
+		ctx := templates.PageTitleToCtx(req.Context(), "A beautiful, web based, online feed reader")
+		renderPage(templates.Landing()).ServeHTTP(res, req.WithContext(ctx))
+	}
 }
 
 // NotFound handles showing a page for a 404 response.

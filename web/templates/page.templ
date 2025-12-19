@@ -5,6 +5,7 @@ package templates
 
 import (
 	"context"
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 )
@@ -62,6 +63,14 @@ templ Head() {
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual"/>
 		<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
 		<meta http-equiv="Accept-CH" content="DPR, Viewport-Width, Width"/>
+		<meta property="og:title" content={ PageTitleFromCtx(ctx) }/>
+		<meta property="og:url" content="https://foragd.app"/>
+		<meta
+			property="og:description"
+			content="A beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop."
+		/>
+		<meta property="og:image" content="https://foragd.app/content/logo-color.webp"/>
+		<link rel="canonical" href="https://foragd.app"/>
 		<link rel="manifest" href="/content/manifest.json"/>
 		<link rel="apple-touch-icon" href="/content/apple-touch-icon.png"/>
 		<link rel="icon" href="/content/favicon.svg" type="image/svg+xml"/>
@@ -118,5 +127,6 @@ templ Body(content templ.Component) {
 }
 
 templ PageTitle() {
+	{{ godump.Dump(ctx) }}
 	<title>{ PageTitleFromCtx(ctx) }</title>
 }
