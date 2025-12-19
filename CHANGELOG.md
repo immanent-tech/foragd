@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.2](https://github.com/immanent-tech/foragd/compare/v0.3.1...v0.3.2) (2025-12-19)
+
+
+### Bug Fixes
+
+* **handlers:** :bug: fix missing response header when marking an article ([4497c28](https://github.com/immanent-tech/foragd/commit/4497c281e193b20866b9388c028c6e4f59c3a800))
+* **handlers:** :bug: only use feed in title on listing articles when there are articles to show ([4be2dff](https://github.com/immanent-tech/foragd/commit/4be2dfffecb9cf5087f156878993f0f2d6ca5c71))
+* **templates:** :bug: fix link to all subscription articles on article card ([6b4ee10](https://github.com/immanent-tech/foragd/commit/6b4ee10c41e4a5cdd14ae61f296ce5d3fb4070b4))
+
+
+### Performance Improvements
+
+* **handlers:** :zap: adjust caching of assets ([f86986c](https://github.com/immanent-tech/foragd/commit/f86986cb78fa71c52e38607de4b9ea95f3caea2d))
+* **handlers:** :zap: always set a Cache-Control header on dynamic user content ([d2dc8b3](https://github.com/immanent-tech/foragd/commit/d2dc8b3566080afdf46ab27707d118c78fad87f3))
+* **handlers:** :zap: force browser to re-validate to avoid outdated content ([b606dbe](https://github.com/immanent-tech/foragd/commit/b606dbeae7ba7eeb21a4e9eb7692afb910187a47))
+* **handlers:** :zap: force browser to revalidate page on history restore requests ([e64c10a](https://github.com/immanent-tech/foragd/commit/e64c10af6c7bb786dd4100c397e3dfa1f9a3c7ee))
+
 ## [0.3.1](https://github.com/immanent-tech/foragd/compare/v0.3.0...v0.3.1) (2025-12-19)
 
 
