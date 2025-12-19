@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0](https://github.com/immanent-tech/foragd/compare/v0.2.0...v0.3.0) (2025-12-19)
+
+
+### Features
+
+* **templates:** :sparkles: add opengraph meta tags ([0c1d25f](https://github.com/immanent-tech/foragd/commit/0c1d25f37668e428368c8a9611105e4ec253289c))
+
+
+### Bug Fixes
+
+* :lock: fix usage of Cross Origin security headers ([2c5c91c](https://github.com/immanent-tech/foragd/commit/2c5c91c82642b3885f6a9dcc71c660f95462f8ec))
+* **templates:** :bug: fix feature bento layout issues on mobile ([ec61d34](https://github.com/immanent-tech/foragd/commit/ec61d3476ffe4fc89a9fdd3b6f1539391e4f0f37))
+* **templates:** :bug: landing page fixes ([0d1cb37](https://github.com/immanent-tech/foragd/commit/0d1cb37fecec940b1f282988d269198e8bc6d56d))
+* **templates:** :bug: remove personal use note on Curator plan pricing features list ([0aa7a3c](https://github.com/immanent-tech/foragd/commit/0aa7a3c8db0ab51aa6d18b3f1aac64003fc7308c))
+
 ## [0.2.0](https://github.com/immanent-tech/foragd/compare/v0.1.1...v0.2.0) (2025-12-19)
 
 
