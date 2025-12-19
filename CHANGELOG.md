@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/immanent-tech/foragd/compare/v0.1.1...v0.2.0) (2025-12-19)
+
+
+### Features
+
+* **templates:** :lipstick: reworked landing page ([d5dded2](https://github.com/immanent-tech/foragd/commit/d5dded26305aca3b13d644a4a415a8f7f83a66ce))
+
+
+### Bug Fixes
+
+* **models:** :bug: simplify handling of page filter restoration on list pages ([ec59b8e](https://github.com/immanent-tech/foragd/commit/ec59b8e03774f78762266b47d461d3b3f929fccc))
+
 ## [0.1.1](https://github.com/immanent-tech/foragd/compare/v0.1.0...v0.1.1) (2025-12-18)
 
 
