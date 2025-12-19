@@ -181,6 +181,7 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 				renderPartial(templates.UpdateViewArticleMark(itemID, true)).ServeHTTP(res, req)
 			}
 		}
+		res.WriteHeader(http.StatusOK)
 		return nil
 	})).ServeHTTP
 }
