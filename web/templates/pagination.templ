@@ -20,6 +20,7 @@ templ PaginationControl(ctx context.Context, route, target string, pagination mo
 		hx-target="#grid-objects"
 		hx-swap="beforeend"
 		hx-indicator="#content-loading"
+		hx-push-url="false"
 		preload
 		preload-images="true"
 		_="on htmx:afterRequest remove me"
