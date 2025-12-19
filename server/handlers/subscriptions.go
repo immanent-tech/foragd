@@ -34,7 +34,7 @@ import (
 // request method is GET (i.e. initial page load), the subscriptions are shown in a grid layout. When the request method
 // is POST (i.e. pagination request), the subscriptions are shown as a list.
 func ListSubscriptions(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters, setCacheControl).
+	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			list := func(res http.ResponseWriter, req *http.Request) error {
 				filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)

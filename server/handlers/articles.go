@@ -24,7 +24,7 @@ import (
 
 // ListArticles handles fetching articles based on the given page filters and displaying them.
 func ListArticles(api *elastic.API) http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters, setCacheControl).
+	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			list := func(res http.ResponseWriter, req *http.Request) error {
 				filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)

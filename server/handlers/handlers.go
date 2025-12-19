@@ -47,6 +47,7 @@ var robotsTxt []byte
 
 var defaultHandlerChain = alice.New(
 	storePath,
+	setCacheControl,
 )
 
 // Landing handles displaying the landing page.
