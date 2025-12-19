@@ -56,7 +56,7 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 				subscriptionID := req.FormValue(models.ParamSubscriptionID)
 				// If the list of articles is from a single subscription, update the page tile to include the subscription
 				// name.
-				if subscriptionID != "" {
+				if len(articles) > 0 && subscriptionID != "" {
 					ctx = templates.PageTitleToCtx(ctx, articles[0].GetFeedTitle()+" | Articles")
 				}
 				template = templates.ArticlesGrid(subscriptionID, articles, pagination)
