@@ -157,7 +157,6 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 		middlewares.ContentSecurityPolicy,
 		middlewares.GeneralSecurity,
 		middlewares.SaveCSRFToken,
-		middlewares.Etag,
 		middlewares.RateLimit(rateLimiter),
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
 		middleware.Compress(defaultCompressionLevel, compressMimetypes...),
@@ -180,7 +179,11 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	router.Get("/", handlers.Landing())
 	// Sign-up/Login.
 	router.Group(func(r chi.Router) {
-		r.Use(session.LoadAndSave)
+		r.Use(
+			middlewares.Etag,
+			middlewares.CrossOriginProtection,
+			session.LoadAndSave,
+		)
 		if !cfg.BlockSignup {
 			r.Get("/signup", handlers.Login())
 		} else {
@@ -201,6 +204,7 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {
 		r.Use(
+			middlewares.Etag,
 			middlewares.CrossOriginProtection,
 			middlewares.SetupHTMX,
 			session.LoadAndSave,
