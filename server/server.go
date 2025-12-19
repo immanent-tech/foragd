@@ -154,6 +154,7 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 		middleware.Recoverer,
 		middlewares.Logger(),
 		middlewares.SetupCORS(),
+		middlewares.CrossOriginProtection,
 		middlewares.ContentSecurityPolicy,
 		middlewares.GeneralSecurity,
 		middlewares.SaveCSRFToken,
@@ -181,7 +182,6 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	router.Group(func(r chi.Router) {
 		r.Use(
 			middlewares.Etag,
-			middlewares.CrossOriginProtection,
 			session.LoadAndSave,
 		)
 		if !cfg.BlockSignup {
