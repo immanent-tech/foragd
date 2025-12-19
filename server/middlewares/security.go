@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-// Security middleware enhances security of requests.
-func Security(next http.Handler) http.Handler {
+// GeneralSecurity middleware adds a few response headers to harden against some threats.
+func GeneralSecurity(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Do not allow embedding.
 		//
@@ -26,23 +26,29 @@ func Security(next http.Handler) http.Handler {
 		// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#referrer-policy
 		res.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 
+		next.ServeHTTP(res, req)
+	})
+}
+
+// CrossOriginProtection middleware adds Cross Origin related security headers.
+func CrossOriginProtection(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if !strings.Contains(req.URL.Path, "view/article") {
-			// Do not share browsing context.
+			// Explicitly allow loading from any domain.
 			//
-			// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-opener-policy-coop
-			res.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+			// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-resource-policy-corp
+			res.Header().Set("Cross-Origin-Resource-Policy", "same-site")
 
 			// Prevent loading of cross-origin resources not explicitly granted.
 			//
 			// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-embedder-policy-coep
 			res.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
 
-			// Restrict resource loading to site and sub-domains.
+			// Do not share browsing context.
 			//
-			// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-resource-policy-corp
-			res.Header().Set("Cross-Origin-Resource-Policy", "same-site")
+			// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-opener-policy-coop
+			res.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
 		}
-
 		next.ServeHTTP(res, req)
 	})
 }

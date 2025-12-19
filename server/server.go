@@ -155,7 +155,7 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 		middlewares.Logger(),
 		middlewares.SetupCORS(),
 		middlewares.ContentSecurityPolicy,
-		middlewares.Security,
+		middlewares.GeneralSecurity,
 		middlewares.SaveCSRFToken,
 		middlewares.Etag,
 		middlewares.RateLimit(rateLimiter),
@@ -201,6 +201,7 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {
 		r.Use(
+			middlewares.CrossOriginProtection,
 			middlewares.SetupHTMX,
 			session.LoadAndSave,
 			middlewares.RequireUserAuth(apis.elastic),
