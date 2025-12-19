@@ -97,16 +97,7 @@ templ ArticleCard(article *models.Article) {
 					</p>
 				}
 				<p class="inline-block text-xs/4 truncate">
-					@NewLink(
-						WithHXMethod(http.MethodGet, "/list/articles"),
-						WithHXTarget(ContentID.Target()),
-						WithHXPushURL(true),
-						WithHXVals(map[string]any{
-							models.ParamSubscriptions:    article.GetSubscriptionID(),
-							models.ParamSubscriptionName: article.GetFeedTitle(),
-						}),
-						WithClasses("link-hover", "truncate"),
-					) {
+					@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
 						{ article.GetFeedTitle() }
 					}
 				</p>
