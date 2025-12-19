@@ -40,12 +40,11 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 				pagination := req.FormValue(models.ParamPagination)
 				// Redirect to include query parameters in address bar.
-				if len(req.URL.Query()) == 0 {
-					if htmx.IsHTMX(req) {
-						res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
-					} else {
-						http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
-					}
+				switch {
+				case htmx.IsHTMX(req):
+					res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+filters.QueryString())
+				case len(req.URL.Query()) == 0:
+					http.Redirect(res, req, req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
 				}
 				var (
 					subscriptions models.Subscriptions
