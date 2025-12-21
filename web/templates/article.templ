@@ -122,12 +122,7 @@ templ ArticleCard(article *models.Article) {
 							popover
 						>
 							// View original article action.
-							@NewLink(
-								WithCustomAttribute("href", article.GetLink()),
-								WithCustomAttribute("target", "_blank"),
-								WithCustomAttribute("rel", "noopener"),
-								WithClasses("link-hover", "group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
-							) {
+							@goToArticleLink(article, "link-hover") {
 								@tabler.ExternalLink(i.Props{Class: "size-4"})
 								Go To Article
 							}
@@ -167,27 +162,16 @@ templ ArticleCard(article *models.Article) {
 								}
 							</form>
 							// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-							<form>
-								<input type="hidden" name="display" value="card"/>
-								<div id={ "favorite_" + article.GetID() }>
-									@ToggleFavorite(article.GetID(), string(article.GetObjectType()), article.IsFavorite())
-								</div>
-							</form>
+							@favoriteArticleLink(article) {
+								@ToggleFavorite(article.GetID(), string(article.GetObjectType()), article.IsFavorite())
+							}
 							// Share action.
-							@NewLink(
-								WithClasses("link-hover"),
-								WithCustomAttribute("_", "on click if navigator.share then "+shareAPIDialog(article.GetTitle(), article.GetLink())+" else call document.getElementById('share-"+article.GetID()+"').show() "),
-							) {
+							@shareArticleLink(article, "link-hover") {
 								@tabler.Share(i.Props{Class: "size-4"})
 								Share
 							}
 							// Report issue action.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
-								WithHXTarget(ContentID.Target()),
-								WithHXReplaceURL(true),
-								WithClasses("link-hover"),
-							) {
+							@reportArticleIssueLink(article, "link-hover") {
 								@tabler.FlagFilled(i.Props{Class: "size-4"})
 								Report an issue
 							}
@@ -257,6 +241,7 @@ templ ArticleContent(article *models.Article) {
 							@tabler.DotsVertical(i.Props{Class: "size-6"})
 						</button>
 						<el-menu id="article-content-menu" anchor="bottom end" popover>
+							// Mark action.
 							<form>
 								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 								<div id={ "mark_" + article.GetID() }>
@@ -264,19 +249,13 @@ templ ArticleContent(article *models.Article) {
 								</div>
 							</form>
 							// Favorite action.
-							<form>
-								<input type="hidden" name="display" value="content"/>
-								<div id={ "favorite_" + article.GetID() }>
-									@UpdateViewArticleFavorite(article.GetID(), article.IsFavorite())
-								</div>
-							</form>
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
-								WithHXTarget(ContentID.Target()),
-								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
-							) {
+							@favoriteArticleLink(article) {
+								@UpdateViewArticleFavorite(article.GetID(), article.IsFavorite())
+							}
+							// Report article issue action.
+							@reportArticleIssueLink(article, "link-hover") {
 								@tabler.FlagFilled(i.Props{Class: "size-4"})
-								Report An Issue
+								Report an issue
 							}
 						</el-menu>
 					</el-dropdown>
@@ -309,12 +288,13 @@ templ ArticleContent(article *models.Article) {
 				}
 				|
 				// View original article action.
-				@NewLink(
-					WithCustomAttribute("href", article.GetLink()),
-					WithCustomAttribute("target", "_blank"),
-					WithCustomAttribute("rel", "noopener"),
-				) {
+				@goToArticleLink(article) {
 					Go to article
+				}
+				|
+				// Share article action.
+				@shareArticleLink(article) {
+					Share
 				}
 			</div>
 			// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
@@ -523,4 +503,51 @@ templ articleImage(img *types.ImageInfo, altTitle string, classes ...string) {
 		WithCustomAttribute("width", "300"),
 		WithCustomAttribute("height", "200"),
 	)
+}
+
+// shareArticleLink renders a link that opens the share dialog. This will be either the native navigator.share API
+// dialog or a custom modal, depending on browser support.
+templ shareArticleLink(article *models.Article, classes ...string) {
+	@NewLink(
+		WithClasses(classes...),
+		WithCustomAttribute("_",
+			"on click if navigator.share then "+shareAPIDialog(article.GetTitle(), article.GetLink())+" else call document.getElementById('share-"+article.GetID()+"').show() ",
+		),
+	) {
+		{ children... }
+	}
+}
+
+// goToArticleLink renders a link that directs to the remote article.
+templ goToArticleLink(article *models.Article, classes ...string) {
+	@NewLink(
+		WithCustomAttribute("href", article.GetLink()),
+		WithCustomAttribute("target", "_blank"),
+		WithCustomAttribute("rel", "noopener"),
+		WithClasses(classes...),
+	) {
+		{ children... }
+	}
+}
+
+// reportArticleIssueLink renders a link that opens the form to report an issue with the article.
+templ reportArticleIssueLink(article *models.Article, classes ...string) {
+	@NewLink(
+		WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
+		WithHXTarget(ContentID.Target()),
+		WithHXReplaceURL(true),
+		WithClasses(classes...),
+	) {
+		{ children... }
+	}
+}
+
+// favoriteArticleLink renders a link for toggling an article favorite.
+templ favoriteArticleLink(article *models.Article) {
+	<form>
+		<input type="hidden" name="display" value="card"/>
+		<div id={ "favorite_" + article.GetID() }>
+			{ children... }
+		</div>
+	</form>
 }
