@@ -267,6 +267,145 @@ templ Landing() {
 					</div>
 				</div>
 			</div>
+			<div id="faq" class="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40">
+				<div class="mx-auto max-w-4xl">
+					<h2 class="text-4xl font-semibold tracking-tight sm:text-5xl">Frequently asked questions</h2>
+					<dl class="mt-16 divide-y divide-accent">
+						<div class="py-6 first:pt-0 last:pb-0">
+							<dt>
+								<button type="button" command="--toggle" commandfor="faq-0" class="flex w-full items-start justify-between text-left">
+									<span class="text-base/7 font-semibold">Do you have an app?</span>
+									<span class="ml-6 flex h-7 items-center">
+										@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
+										@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
+									</span>
+								</button>
+							</dt>
+							<el-disclosure id="faq-0" class="contents">
+								<dd class="mt-2 pr-12">
+									<p class="text-base/7">
+										No, because you don't need an app to use Foragd! Foragd is a
+										web based, online feed reader/viewer. It works on any browser (Chrome, Safari,
+										Firefox), on any operating system (Windows, Mac, Linux). It has a responsive design
+										to support all screen sizes from desktops down to mobiles.
+									</p>
+								</dd>
+							</el-disclosure>
+						</div>
+						<div class="py-6 first:pt-0 last:pb-0">
+							<dt>
+								<button type="button" command="--toggle" commandfor="faq-1" class="flex w-full items-start justify-between text-left">
+									<span class="text-base/7 font-semibold">Can I import my subscriptions from elsewhere?</span>
+									<span class="ml-6 flex h-7 items-center">
+										@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
+										@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
+									</span>
+								</button>
+							</dt>
+							<el-disclosure id="faq-1" hidden class="contents">
+								<dd class="mt-2 pr-12">
+									<p class="text-base/7">
+										Yes, Foragd supports importing (and exporting) with the OPML
+										file format, which all good feed readers support.
+									</p>
+								</dd>
+							</el-disclosure>
+						</div>
+						<div class="py-6 first:pt-0 last:pb-0">
+							<dt>
+								<button type="button" command="--toggle" commandfor="faq-2" class="flex w-full items-start justify-between text-left">
+									<span class="text-base/7 font-semibold">Can I make changes to my subscription after purchase?</span>
+									<span class="ml-6 flex h-7 items-center">
+										@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
+										@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
+									</span>
+								</button>
+							</dt>
+							<el-disclosure id="faq-2" hidden class="contents">
+								<dd class="mt-2 pr-12">
+									<p class="text-base/7">
+										Yes, you can make changes to your subscription, including
+										changing the plan level or cancelling at any time from within the app. Cancellation
+										takes effect at your next billing cycle. Until then, you can continue using Foragd
+										(and you can stop the cancellation if you change your mind).
+									</p>
+								</dd>
+							</el-disclosure>
+						</div>
+						<div class="py-6 first:pt-0 last:pb-0">
+							<dt>
+								<button type="button" command="--toggle" commandfor="faq-3" class="flex w-full items-start justify-between text-left">
+									<span class="text-base/7 font-semibold">Are my subscriptions private?</span>
+									<span class="ml-6 flex h-7 items-center">
+										@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
+										@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
+									</span>
+								</button>
+							</dt>
+							<el-disclosure id="faq-3" hidden class="contents">
+								<dd class="mt-2 pr-12">
+									<p class="text-base/7">
+										Foragd does not have any social features, so your subscriptions are private to
+										you. We collect the minimal legally required personal information to provide the
+										service (see our
+										<a href="/policies/privacy" class="link link-hover">
+											privacy
+											policy
+										</a>). We don't pass the data on to marketing third-parties and we don't inject
+										ads or show sponsored content in your subscriptions.
+									</p>
+								</dd>
+							</el-disclosure>
+						</div>
+						<div class="py-6 first:pt-0 last:pb-0">
+							<dt>
+								<button type="button" command="--toggle" commandfor="faq-4" class="flex w-full items-start justify-between text-left">
+									<span class="text-base/7 font-semibold">Can I use Foragd offline?</span>
+									<span class="ml-6 flex h-7 items-center">
+										@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
+										@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
+									</span>
+								</button>
+							</dt>
+							<el-disclosure id="faq-4" hidden class="contents">
+								<dd class="mt-2 pr-12">
+									<p class="text-base/7">
+										Foragd is a web based online feed aggregator. It does not have any offline
+										capabilities. If you need an app that can download and cache articles from your
+										subscriptions to read offline later, there are lots of good alternatives out
+										there.
+									</p>
+								</dd>
+							</el-disclosure>
+						</div>
+						// <div class="py-6 first:pt-0 last:pb-0">
+						// 	<dt>
+						// 		<button type="button" command="--toggle" commandfor="faq-5" class="flex w-full items-start justify-between text-left">
+						// 			<span class="text-base/7 font-semibold">Is Foragd open source?</span>
+						// 			<span class="ml-6 flex h-7 items-center">
+						// 				@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
+						// 				@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
+						// 			</span>
+						// 		</button>
+						// 	</dt>
+						// 	<el-disclosure id="faq-5" hidden class="contents">
+						// 		<dd class="mt-2 pr-12">
+						// 			<p class="text-base/7">
+						// 				Yes! Foragd is open source. You can find the source code
+						// 				<a
+						// 					class="link link-hover"
+						// 					href="https://github.com/immanent-tech/foragd"
+						// 				>
+						// 					on
+						// 					GitHub
+						// 				</a>.
+						// 			</p>
+						// 		</dd>
+						// 	</el-disclosure>
+						// </div>
+					</dl>
+				</div>
+			</div>
 			// CTA.
 			<div class="relative -z-10 mt-32 px-6 lg:px-8">
 				<div aria-hidden="true" class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">

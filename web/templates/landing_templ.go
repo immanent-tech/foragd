@@ -104,7 +104,67 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Got questions about pricing? <a href=\"mailto:hello@immanent.tech&subject=Pricing\" class=\"link text-base-content/80\">Email Us.</a></p></div></div></div><div class=\"relative -z-10 mt-32 px-6 lg:px-8\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20\"></div></div><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"#pricing\" role=\"button\" class=\"btn btn-primary\">Start a free trial</a></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20\"></div></div></div></main><footer class=\"mx-auto max-w-7xl px-6 lg:px-8 mt-32\"><div class=\"border-t border-base-content/10 py-12 md:flex md:items-center md:justify-between\"><div class=\"flex justify-center gap-x-6 md:order-2 items-center\"><a href=\"mailto:support@immanent.tech\" class=\"link link-hover text-base-content/80\">Support</a> <a href=\"/policies/tos\" class=\"link link-hover text-base-content/80\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover text-base-content/80\">Acceptable Use</a> <a href=\"/policies/privacy\" class=\"link link-hover text-base-content/80\">Privacy Policy</a></div><p class=\"mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0\">Built for humans by a human. Built for a love of the indie web.</p><p class=\"mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0\">&copy; 2025 <a class=\"link link-hover\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></div></footer></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Got questions about pricing? <a href=\"mailto:hello@immanent.tech&subject=Pricing\" class=\"link text-base-content/80\">Email Us.</a></p></div></div></div><div id=\"faq\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-4xl\"><h2 class=\"text-4xl font-semibold tracking-tight sm:text-5xl\">Frequently asked questions</h2><dl class=\"mt-16 divide-y divide-accent\"><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-0\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Do you have an app?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span></button></dt><el-disclosure id=\"faq-0\" class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">No, because you don't need an app to use Foragd! Foragd is a web based, online feed reader/viewer. It works on any browser (Chrome, Safari, Firefox), on any operating system (Windows, Mac, Linux). It has a responsive design to support all screen sizes from desktops down to mobiles.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-1\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Can I import my subscriptions from elsewhere?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span></button></dt><el-disclosure id=\"faq-1\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Yes, Foragd supports importing (and exporting) with the OPML file format, which all good feed readers support.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-2\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Can I make changes to my subscription after purchase?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span></button></dt><el-disclosure id=\"faq-2\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Yes, you can make changes to your subscription, including changing the plan level or cancelling at any time from within the app. Cancellation takes effect at your next billing cycle. Until then, you can continue using Foragd (and you can stop the cancellation if you change your mind).</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-3\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Are my subscriptions private?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></button></dt><el-disclosure id=\"faq-3\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Foragd does not have any social features, so your subscriptions are private to you. We collect the minimal legally required personal information to provide the service (see our <a href=\"/policies/privacy\" class=\"link link-hover\">privacy policy</a>). We don't pass the data on to marketing third-parties and we don't inject ads or show sponsored content in your subscriptions.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-4\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Can I use Foragd offline?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span></button></dt><el-disclosure id=\"faq-4\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Foragd is a web based online feed aggregator. It does not have any offline capabilities. If you need an app that can download and cache articles from your subscriptions to read offline later, there are lots of good alternatives out there.</p></dd></el-disclosure></div></dl></div></div><div class=\"relative -z-10 mt-32 px-6 lg:px-8\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20\"></div></div><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"#pricing\" role=\"button\" class=\"btn btn-primary\">Start a free trial</a></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20\"></div></div></div></main><footer class=\"mx-auto max-w-7xl px-6 lg:px-8 mt-32\"><div class=\"border-t border-base-content/10 py-12 md:flex md:items-center md:justify-between\"><div class=\"flex justify-center gap-x-6 md:order-2 items-center\"><a href=\"mailto:support@immanent.tech\" class=\"link link-hover text-base-content/80\">Support</a> <a href=\"/policies/tos\" class=\"link link-hover text-base-content/80\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover text-base-content/80\">Acceptable Use</a> <a href=\"/policies/privacy\" class=\"link link-hover text-base-content/80\">Privacy Policy</a></div><p class=\"mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0\">Built for humans by a human. Built for a love of the indie web.</p><p class=\"mt-8 text-center text-sm/6 text-base-content/80 md:order-1 md:mt-0\">&copy; 2025 <a class=\"link link-hover\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></div></footer></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
