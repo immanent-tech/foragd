@@ -4,16 +4,25 @@
 package middlewares
 
 import (
+	"fmt"
+	"log/slog"
 	"net/http"
+	"sync"
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/rs/cors"
+	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/foragd/config"
 )
 
-const (
-	// CORSMaxAge sets the maximum value not ignored by any of major browsers.
-	CORSMaxAge = 300
-)
+// CORS contains values for various CORS settings derived from the environment.
+type CORS struct {
+	AllowedOrigins  []string `koanf:"allowedorigins"`
+	MaxAge          int      `koanf:"maxage"`
+	RequestHeaders  []string `koanf:"requestheaders"`
+	ResponseHeaders []string `koanf:"responseheaders"`
+}
 
 // HTMXRequestHeaders contains all valid HTMX request headers.
 //
@@ -46,11 +55,17 @@ var HTMXResponseHeaders = []string{
 	htmx.HeaderTrigger,
 }
 
-// SetupCORS handles adding the appropriate headers for CORS to the request.
-func SetupCORS() func(next http.Handler) http.Handler {
-	return cors.New(cors.Options{
+var corsOptions cors.Options
+
+var loadCORS = sync.OnceValue(func() error {
+	corsSettings, err := config.Load[CORS](config.ConfigEnvPrefix + "CORS_")
+	if err != nil {
+		return fmt.Errorf("load cors config: %w", err)
+	}
+
+	corsOptions = cors.Options{
 		AllowCredentials:    true,
-		MaxAge:              CORSMaxAge,
+		MaxAge:              corsSettings.MaxAge,
 		AllowPrivateNetwork: true,
 		OptionsPassthrough:  true,
 		AllowedHeaders: append(
@@ -62,6 +77,21 @@ func SetupCORS() func(next http.Handler) http.Handler {
 			HTMXResponseHeaders...,
 		),
 		AllowedMethods: []string{http.MethodGet, http.MethodHead, http.MethodPost, http.MethodOptions},
-		AllowedOrigins: []string{"https://auth.foragd.app"},
-	}).Handler
+		AllowedOrigins: corsSettings.AllowedOrigins,
+	}
+
+	return nil
+})
+
+// SetupCORS handles adding the appropriate headers for CORS to the request.
+func SetupCORS(next http.Handler) http.Handler {
+	if err := loadCORS(); err != nil {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			slogctx.FromCtx(req.Context()).Error("Cannot load CORS config.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusInternalServerError)
+		})
+	}
+	return cors.New(corsOptions).Handler(next)
 }

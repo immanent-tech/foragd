@@ -153,7 +153,7 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 		middleware.RequestID,
 		middleware.Recoverer,
 		middlewares.Logger(),
-		middlewares.SetupCORS(),
+		middlewares.SetupCORS,
 		middlewares.CrossOriginProtection,
 		middlewares.ContentSecurityPolicy,
 		middlewares.GeneralSecurity,
