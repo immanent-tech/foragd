@@ -96,6 +96,8 @@ func New(options Options) *slog.Logger {
 	logger := slog.New(slogctx.NewHandler(slogmulti.Fanout(handlers...), nil))
 	slog.SetDefault(logger)
 
+	logger.Info("Logger initialised.")
+
 	return logger
 }
 
