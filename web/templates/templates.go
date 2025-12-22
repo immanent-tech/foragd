@@ -6,7 +6,6 @@ package templates
 import (
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 )
 
@@ -53,14 +52,12 @@ func (a ID) String() string {
 type Template struct {
 	IsHTMX               bool
 	IsHTMXHistoryRestore bool
-	Component            templ.Component
 }
 
 // NewTemplate creates a new Template object from an HTTP Request and templ component.
-func NewTemplate(req *http.Request, component templ.Component) Template {
+func NewTemplate(req *http.Request) Template {
 	return Template{
 		IsHTMX:               htmx.IsHTMX(req),
 		IsHTMXHistoryRestore: htmx.IsHistoryRestoreRequest(req),
-		Component:            component,
 	}
 }

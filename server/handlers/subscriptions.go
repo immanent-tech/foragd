@@ -87,7 +87,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				}
 
 				// Choose rendering method based on method (get = page, post = partial).
-				template = templates.SubscriptionsGrid(counts, pagination, subscriptions...)
+				template = templates.ListSubscriptions(counts, pagination, subscriptions...)
 				ctx := templates.PageTitleToCtx(req.Context(), "Subscriptions")
 				switch req.Method {
 				case http.MethodGet:
@@ -130,7 +130,7 @@ func PaginateSubscriptions(api *elastic.API) http.HandlerFunc {
 			}
 			// Render appropriate content.
 			if len(subscriptions) > 0 {
-				renderPartial(templates.Subscriptions(pagination, subscriptions...)).ServeHTTP(res, req)
+				renderPartial(templates.PaginateSubscriptions(pagination, subscriptions...)).ServeHTTP(res, req)
 			} else {
 				res.WriteHeader(http.StatusNoContent)
 				return nil

@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-templ FilterControls(path string, categories models.CategoryCounts, filters *models.ListDisplayFilters, actions templ.Component) {
+templ FilterControls(path string, categories models.CategoryCounts, filters *models.ListDisplayFilters) {
 	// Mobile filters dialog slides in from the right.
 	<el-dialog>
 		<dialog id="mobile-filters-menu" class="overflow-hidden sm:hidden">
@@ -22,7 +22,12 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 				<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl">
 					<div class="flex items-center justify-between px-4">
 						<h2 class="text-lg font-medium">Filters</h2>
-						<button type="button" command="close" commandfor="mobile-filters-menu" class="relative -mr-2 flex size-10 items-center justify-center rounded-md  p-2">
+						<button
+							type="button"
+							command="close"
+							commandfor="mobile-filters-menu"
+							class="relative -mr-2 flex size-10 items-center justify-center rounded-md  p-2"
+						>
 							<span class="absolute -inset-0.5"></span>
 							<span class="sr-only">Close menu</span>
 							@tabler.X(i.Props{Class: "size-6"})
@@ -32,7 +37,12 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 					if len(categories.GetTopCategories(10)) > 0 {
 						<div class="border-t border-base-content/10 px-4 py-6">
 							<h3 class="-mx-2 -my-3 flow-root">
-								<button type="button" command="--toggle" commandfor="filter-section-category" class="flex w-full items-center justify-between px-2 py-3 text-sm">
+								<button
+									type="button"
+									command="--toggle"
+									commandfor="filter-section-category"
+									class="flex w-full items-center justify-between px-2 py-3 text-sm"
+								>
 									<span class="font-medium">Category</span>
 									<span class="ml-6 flex items-center">
 										@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
@@ -57,7 +67,12 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 					// View Filters (mobile).
 					<div class="mt-4 border-t border-base-content/10 px-4 py-6">
 						<h3 class="-mx-2 -my-3 flow-root">
-							<button type="button" command="--toggle" commandfor="filter-section-view" class="flex w-full items-center justify-between px-2 py-3 text-sm">
+							<button
+								type="button"
+								command="--toggle"
+								commandfor="filter-section-view"
+								class="flex w-full items-center justify-between px-2 py-3 text-sm"
+							>
 								<span class="font-medium">View</span>
 								<span class="ml-6 flex items-center">
 									@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
@@ -78,7 +93,12 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 					// Sorting (mobile).
 					<div class="mt-4 border-t border-base-content/10 px-4 py-6">
 						<h3 class="-mx-2 -my-3 flow-root">
-							<button type="button" command="--toggle" commandfor="filter-section-sort" class="flex w-full items-center justify-between px-2 py-3 text-sm">
+							<button
+								type="button"
+								command="--toggle"
+								commandfor="filter-section-sort"
+								class="flex w-full items-center justify-between px-2 py-3 text-sm"
+							>
 								<span class="font-medium">Sort</span>
 								<span class="ml-6 flex items-center">
 									@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
@@ -104,7 +124,7 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 		<h2 id="filter-heading" class="sr-only">Filters</h2>
 		<div class="border-b border-base-content/40 py-4">
 			<div class="mx-auto flex max-w-7xl items-center justify-between">
-				@actions
+				{ children... }
 				<button
 					type="button"
 					command="show-modal"
@@ -119,7 +139,7 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 									Category
 									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 								</button>
-								<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/15 rounded-md bg-base-300 shadow-lg outline-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+								<el-menu anchor="bottom end" popover>
 									<div class="py-1">
 										// Top 10 categories only.
 										for idx, category := range categories.GetTopCategories(10) {
@@ -140,7 +160,7 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 								View
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
-							<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/15 rounded-md bg-base-300 shadow-lg outline-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+							<el-menu anchor="bottom end" popover>
 								<div class="py-1">
 									@viewFilter(path, "filter-view-unread-desktop", models.ViewUnread, filters)
 									@viewFilter(path, "filter-view-read-desktop", models.ViewRead, filters)
@@ -159,7 +179,7 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 								Sort
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
-							<el-menu anchor="bottom end" popover class="origin-top-right divide-y divide-base-content/15 rounded-md bg-base-300 shadow-lg outline-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+							<el-menu anchor="bottom end" popover>
 								<div class="py-1">
 									@sortOption(path, models.SortNewestFirst, filters)
 									@sortOption(path, models.SortOldestFirst, filters)

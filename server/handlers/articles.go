@@ -60,7 +60,7 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 				if len(articles) > 0 && subscriptionID != "" {
 					ctx = templates.PageTitleToCtx(ctx, articles[0].GetFeedTitle()+" | Articles")
 				}
-				template = templates.ArticlesGrid(subscriptionID, articles, pagination)
+				template = templates.ListArticles(subscriptionID, articles, filters, pagination)
 				// Choose rendering method based on method (get = page, post = partial).
 				switch req.Method {
 				case http.MethodGet:
@@ -107,7 +107,7 @@ func PaginateArticles(api *elastic.API) http.HandlerFunc {
 
 			// If there are articles to show, render the articles. Else, return StatusNoContent.
 			if len(articles) > 0 {
-				renderPartial(templates.Articles(articles, pagination)).ServeHTTP(res, req)
+				renderPartial(templates.PaginateArticles(articles, pagination)).ServeHTTP(res, req)
 			} else {
 				res.WriteHeader(http.StatusNoContent)
 				return nil
