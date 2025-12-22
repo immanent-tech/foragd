@@ -77,13 +77,17 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 				slog.Any("error", err),
 			)
 			renderPage(
-				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
+				templates.ExternalError(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			).ServeHTTP(res, req.WithContext(ctx))
 		}
 		if req.FormValue("state") != state {
 			slogctx.FromCtx(req.Context()).Error("Invalid state.")
 			renderPage(
-				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid state parameter")),
+				templates.ExternalError(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			).ServeHTTP(res, req.WithContext(ctx))
 		}
 
@@ -94,7 +98,9 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 				slog.Any("error", err),
 			)
 			renderPage(
-				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
+				templates.ExternalError(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			).ServeHTTP(res, req.WithContext(ctx))
 		}
 
@@ -104,7 +110,9 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 				slog.Any("error", err),
 			)
 			renderPage(
-				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
+				templates.ExternalError(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			).ServeHTTP(res, req.WithContext(ctx))
 		}
 
@@ -115,7 +123,9 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 				slog.Any("error", err),
 			)
 			renderPage(
-				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid authorization data")),
+				templates.ExternalError(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			).ServeHTTP(res, req.WithContext(ctx))
 		}
 
@@ -136,10 +146,13 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 			}
 		case err != nil: // Backend error.
 			slogctx.FromCtx(req.Context()).Error("Unable to find a local user match.",
+				slog.String("external_user_id", profile.GetID()),
 				slog.Any("error", err),
 			)
 			renderPage(
-				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Authorization backend error")),
+				templates.ExternalError(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			).ServeHTTP(res, req.WithContext(ctx))
 		default: // Existing user.
 			// Sync user data from the backend.
@@ -155,6 +168,7 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		if err := user.Metadata.Valid(); err != nil {
 			// User metadata is invalid, redirect user to page indicating they need to contact support to resolve the issue.
 			slogctx.FromCtx(req.Context()).Error("User data is invalid.",
+				slog.String("user_id", user.GetID()),
 				slog.Any("error", err),
 			)
 			http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
@@ -162,6 +176,7 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		}
 		if !user.Active() {
 			slogctx.FromCtx(req.Context()).Error("User is not active.",
+				slog.String("user_id", user.GetID()),
 				slog.Any("error", err),
 			)
 			// Account issues; redirect user to page indicating they need to contact support to resolve an issue with their account.
@@ -170,6 +185,7 @@ func LoginCallback(api *elastic.API) http.HandlerFunc {
 		}
 		if cancelled, endAt := user.Cancelled(); cancelled && endAt.Before(time.Now().UTC()) {
 			slogctx.FromCtx(req.Context()).Error("User has cancelled plan.",
+				slog.String("user_id", user.GetID()),
 				slog.Any("error", err),
 			)
 			// Account has been cancelled and past cancellation date; redirect to home page.
@@ -210,6 +226,7 @@ func syncLocalUser(ctx context.Context, api *elastic.API, user *models.User, pro
 	if len(updates) > 0 {
 		if err := api.UpdateUser(ctx, user.GetID(), updates); err != nil {
 			slogctx.FromCtx(ctx).Error("Could not sync user data.",
+				slog.String("user_id", user.GetID()),
 				slog.Any("error", err))
 			return
 		}

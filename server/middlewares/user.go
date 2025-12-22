@@ -26,6 +26,7 @@ func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler 
 			switch {
 			case err != nil: // Invalid session profile data.
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
+					slog.String("external_user_id", profile.GetID()),
 					slog.Any("error", err))
 				if htmx.IsHTMX(req) {
 					res.Header().Set(htmx.HeaderRedirect, "/")
@@ -35,6 +36,7 @@ func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler 
 				return
 			case profile.Blocked: // Account is blocked.
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
+					slog.String("external_user_id", profile.GetID()),
 					slog.String("error", "account is blocked"))
 				if htmx.IsHTMX(req) {
 					res.Header().Set(htmx.HeaderRedirect, models.RouteUserAccountIssue)
@@ -47,6 +49,7 @@ func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler 
 			user, err := dataAPI.FindUserByExternalID(ctx, profile.GetID())
 			if err != nil {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
+					slog.String("external_user_id", profile.GetID()),
 					slog.Any("error", err))
 				if htmx.IsHTMX(req) {
 					res.Header().Set(htmx.HeaderRedirect, "/")
