@@ -5,7 +5,6 @@ package models
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -14,8 +13,6 @@ import (
 
 	"github.com/immanent-tech/foragd/validation"
 )
-
-var ErrInvalidSearchID = errors.New("id is invalid")
 
 // NewSearchRequest creates a new SearchRequest object with default values.
 func NewSearchRequest() *SearchRequest {
@@ -67,18 +64,6 @@ func (r *SearchRequest) Sanitise() error {
 	}
 	return nil
 }
-
-// // ID generates an ID (hash) from the search data.
-// func (r *SearchRequest) ID() (string, error) {
-// 	if reflect.ValueOf(r).IsZero() {
-// 		return "", fmt.Errorf("%w: empty search request", ErrInvalidSearchID)
-// 	}
-// 	hash, err := hashstructure.Hash(r, nil)
-// 	if err != nil {
-// 		return "", fmt.Errorf("%w: %w", ErrInvalidSearchID, err)
-// 	}
-// 	return strconv.FormatUint(hash, 10), nil
-// }
 
 // Query returns a string that represents the search as query parameters.
 func (r *SearchRequest) Query() string {
