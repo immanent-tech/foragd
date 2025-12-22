@@ -14,7 +14,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e
 	github.com/go-playground/form/v4 v4.3.0
-	github.com/go-playground/validator/v10 v10.29.0
+	github.com/go-playground/validator/v10 v10.30.0
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/knadh/koanf/v2 v2.3.0
 	github.com/lmittmann/tint v1.1.2
@@ -139,7 +139,7 @@ require (
 	github.com/elastic/go-elasticsearch/v9 v9.2.1
 	github.com/fatih/color v1.18.0
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.11 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/getkin/kin-openapi v0.132.0 // indirect
 	github.com/go-http-utils/etag v0.0.0-20161124023236-513ea8f21eb1
 	github.com/go-logr/logr v1.4.3 // indirect
