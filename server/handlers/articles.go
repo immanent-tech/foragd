@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"codeberg.org/readeck/go-readability/v2"
 	"github.com/a-h/templ"
@@ -277,6 +278,13 @@ func markArticles(
 	return nil
 }
 
+var articleBufPool = sync.Pool{
+	New: func() any {
+		var buf bytes.Buffer
+		return &buf
+	},
+}
+
 // ExtractArticleFromURL fetches the text content of the given URL and attempts to extract the main article content from
 // it.
 func extractArticleFromURL(url string) (string, error) {
@@ -284,10 +292,17 @@ func extractArticleFromURL(url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("extract article from url %s: %w", url, err)
 	}
-	var article bytes.Buffer
-	if err := remote.RenderHTML(&article); err != nil {
+
+	articleBufPtr := articleBufPool.Get().(*bytes.Buffer)
+	articleBuf := *articleBufPtr
+	defer func() {
+		articleBufPtr.Reset()
+		imgBufPool.Put(articleBufPtr)
+	}()
+
+	if err := remote.RenderHTML(&articleBuf); err != nil {
 		return "", fmt.Errorf("render article html: %w", err)
 	}
-	content := validation.SanitizeString(article.String())
+	content := validation.SanitizeString(articleBuf.String())
 	return content, nil
 }
