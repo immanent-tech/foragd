@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/immanent-tech/foragd/compare/v0.4.0...v0.5.0) (2025-12-22)
+
+
+### Features
+
+* **middlewares:** :sparkles: better CORS middleware ([c16b704](https://github.com/immanent-tech/foragd/commit/c16b70461f9f9fcffc6336de4e0a2b5177f63561))
+
 ## [0.4.0](https://github.com/immanent-tech/foragd/compare/v0.3.2...v0.4.0) (2025-12-22)
 
 
