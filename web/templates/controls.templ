@@ -175,58 +175,60 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 			</div>
 		</div>
 		// Active Filters.
-		<div>
-			<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
-				<h3 class="text-sm font-medium">
-					Filtered By
-				</h3>
-				<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>
-				<div class="mt-2 sm:mt-0 sm:ml-4">
-					<div class="-m-1 flex flex-wrap items-center">
-						// Show view filter badge indicator.
-						<div class="badge badge-secondary m-1 capitalize">
-							{ filters.GetView() }
-						</div>
-						// Show sort filter badge indicator.
-						<div class="badge badge-secondary m-1 capitalize">
-							{ filters.GetSort().String() }
-						</div>
-						// Add favorites filter badge if listing subscriptions and favorites filter is active.
-						if path == "/list/subscriptions" && filters.OnlyFavorites {
-							<div class="badge badge-secondary m-1">
-								<form id="filter-clear-only-favorites" class="flex items-center">
-									<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-									<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-									<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-									for subscription := range slices.Values(filters.GetSubscriptions()) {
-										<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-									}
-									for category := range slices.Values(filters.GetCategories()) {
-										<input type="hidden" name={ models.ParamCategories } value={ category }/>
-									}
-									Favorites
-									<button
-										hx-get={ models.PathFromCtx(ctx) }
-										hx-replace-url="true"
-										hx-target={ ContentID.Target() }
-										hx-vals={ `{"only_favorites": "false"}` }
-										hx-swap="innerHTML transition:true"
-									>
-										@tabler.X(i.Props{Class: "size-4"})
-									</button>
-								</form>
-							</div>
-						}
-						// Add filter badges for any active category filters.
-						for category := range slices.Values(categories.GetTopCategories(10)) {
-							if slices.Contains(filters.GetCategories(),category.Category) {
-								@activeCategoryFilterBadge(path, category.Category, filters)
+		if (path == "/list/subscriptions" && filters.OnlyFavorites) || len(filters.GetCategories()) > 0 {
+			<div>
+				<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
+					<h3 class="text-sm font-medium">
+						Filtered By
+					</h3>
+					<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>
+					<div class="mt-2 sm:mt-0 sm:ml-4">
+						<div class="-m-1 flex flex-wrap items-center">
+							// // Show view filter badge indicator.
+							// <div class="badge badge-secondary m-1 capitalize">
+							// 	{ filters.GetView() }
+							// </div>
+							// // Show sort filter badge indicator.
+							// <div class="badge badge-secondary m-1 capitalize">
+							// 	{ filters.GetSort().String() }
+							// </div>
+							// Add favorites filter badge if listing subscriptions and favorites filter is active.
+							if path == "/list/subscriptions" && filters.OnlyFavorites {
+								<div class="badge badge-secondary m-1">
+									<form id="filter-clear-only-favorites" class="flex items-center">
+										<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+										<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+										<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+										for subscription := range slices.Values(filters.GetSubscriptions()) {
+											<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+										}
+										for category := range slices.Values(filters.GetCategories()) {
+											<input type="hidden" name={ models.ParamCategories } value={ category }/>
+										}
+										Favorites
+										<button
+											hx-get={ models.PathFromCtx(ctx) }
+											hx-replace-url="true"
+											hx-target={ ContentID.Target() }
+											hx-vals={ `{"only_favorites": "false"}` }
+											hx-swap="innerHTML transition:true"
+										>
+											@tabler.X(i.Props{Class: "size-4"})
+										</button>
+									</form>
+								</div>
 							}
-						}
+							// Add filter badges for any active category filters.
+							for category := range slices.Values(categories.GetTopCategories(10)) {
+								if slices.Contains(filters.GetCategories(),category.Category) {
+									@activeCategoryFilterBadge(path, category.Category, filters)
+								}
+							}
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+		}
 	</section>
 }
 
