@@ -3,7 +3,7 @@
 
 # Alpine base.
 # https://hub.docker.com/_/alpine/
-FROM --platform=$BUILDPLATFORM docker.io/alpine:3.23.0@sha256:51183f2cfa6320055da30872f211093f9ff1d3cf06f39a0bdb212314c5dc7375 AS builder
+FROM --platform=$BUILDPLATFORM docker.io/alpine:3.23.2@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62 AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -13,10 +13,10 @@ WORKDIR /build
 
 # Copy go from official image.
 # https://hub.docker.com/_/golang
-COPY --from=docker.io/golang:1.25.3-alpine@sha256:26111811bc967321e7b6f852e914d14bede324cd1accb7f81811929a6a57fea9 /usr/local/go/ /usr/local/go/
+COPY --from=docker.io/golang:1.25.5-alpine@sha256:ac09a5f469f307e5da71e766b0bd59c9c49ea460a528cc3e6686513d64a6f1fb /usr/local/go/ /usr/local/go/
 # Copy bun from official image
 # https://hub.docker.com/r/oven/bun
-COPY --from=docker.io/oven/bun:1.3.1-alpine@sha256:a224d0713378ca9e51f0959f6edbf97a1c23cfb82e3884544cafced03af1df58 /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=docker.io/oven/bun:1.3.5-alpine@sha256:245ea34e0fe836d0fa113065d2a2da7bbc77f6b5a3240df8b1f64e6c19f8dabc /usr/local/bin/bun /usr/local/bin/bun
 # Update $PATH.
 ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
 
@@ -47,7 +47,7 @@ RUN go build -ldflags="-s -w -X github.com/immanent-tech/foragd/config.Version=$
 # compress binary with upx
 RUN upx --best --lzma foragd
 
-FROM docker.io/alpine:3.23.0@sha256:51183f2cfa6320055da30872f211093f9ff1d3cf06f39a0bdb212314c5dc7375 AS server
+FROM docker.io/alpine:3.23.2@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62 AS server
 
 ENV FORAGD_CONTAINER=1
 
