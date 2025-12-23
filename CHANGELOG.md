@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/immanent-tech/foragd/compare/v0.5.0...v0.5.1) (2025-12-23)
+
+
+### Bug Fixes
+
+* **templates:** :bug: mention pricing is indicative during beta ([05eb33c](https://github.com/immanent-tech/foragd/commit/05eb33cb64c4cdf26c229063f4b41c892f6257ea))
+
 ## [0.5.0](https://github.com/immanent-tech/foragd/compare/v0.4.0...v0.5.0) (2025-12-22)
 
 
