@@ -470,7 +470,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 									<p>| signifies OR operation (i.e., food OR beverages)</p>
 									<p>- negates a the word (i.e., NOT alcoholic)</p>
 									<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
-									<p>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</p>
+									<p>* at thez end of indicates a prefix match (i.e., match bird, birding and birds)</p>
 								</div>
 							}
 						</div>
@@ -479,19 +479,43 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 						<div class="sm:col-span-full mt-2">
 							<div class="input input-primary bg-base-content/10 w-full">
 								<label for="article_text_filters" class="block text-xs font-medium">Text:</label>
-								<input id="article_text_filters" type="text" name="article_filters.text" value={ request.ArticleFilters.Text } placeholder="Text..." class="block w-full"/>
+								<input
+									id="article_text_filters"
+									type="text"
+									name="article_filters.text"
+									value={ request.ArticleFilters.Text }
+									placeholder="Text..."
+									class="block w-full"
+									spellcheck="false"
+								/>
 							</div>
 						</div>
 						<div class="sm:col-span-full mt-2">
 							<div class="input input-primary bg-base-content/10 w-full">
 								<label for="article_category_filters" class="block text-xs font-medium">Categories:</label>
-								<input id="article_category_filters" type="text" name="article_filters.categories" value={ request.ArticleFilters.Categories } placeholder="Categories..." class="block w-full"/>
+								<input
+									id="article_category_filters"
+									type="text"
+									name="article_filters.categories"
+									value={ request.ArticleFilters.Categories }
+									placeholder="Categories..."
+									class="block w-full"
+									spellcheck="false"
+								/>
 							</div>
 						</div>
 						<div class="sm:col-span-full mt-2">
 							<div class="input input-primary bg-base-content/10 w-full">
 								<label for="article_author_filters" class="block text-xs font-medium">Authors:</label>
-								<input id="article_author_filters" type="text" name="article_filters.authors" value={ request.ArticleFilters.Authors } placeholder="Authors..." class="block w-full"/>
+								<input
+									id="article_author_filters"
+									type="text"
+									name="article_filters.authors"
+									value={ request.ArticleFilters.Authors }
+									placeholder="Authors..."
+									class="block w-full"
+									spellcheck="false"
+								/>
 							</div>
 						</div>
 					</div>
