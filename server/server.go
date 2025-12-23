@@ -220,6 +220,7 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 		})
 		r.Get("/home", handlers.Home(apis.elastic))
 		r.Get("/home/updates", handlers.WatchHome(apis.elastic))
+		// Searching.
 		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.GetSearchSuggestions(apis.elastic))
 		r.With(middlewares.RequireHTMX).Post("/search", handlers.GetSearchResults(apis.elastic))
 		r.With(middlewares.RequireHTMX).Post("/search/paginate", handlers.GetSearchResults(apis.elastic))
@@ -228,10 +229,7 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/search/subscription", handlers.AddSubscriptionFilter())
 		r.Get("/search", handlers.GetSearchResults(apis.elastic))
 		r.Get("/search/updates", handlers.WatchSearchResults(apis.elastic))
-
-		// Objects.
-		r.Get("/view/{object}/{id}", handlers.ViewObject(apis.elastic))
-		// r.With(middlewares.RequireHTMX).Get("/view/{object}/{id}/share", handlers.ShareObject(apis.elastic))
+		// Issues.
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues())
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues())
 		// Subscription specific.
@@ -263,6 +261,7 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 			r.Get("/updates", handlers.WatchList(apis.elastic))
 		})
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}/{mark}", handlers.MarkArticle(apis.elastic))
+		r.Get("/view/article/{item_id}", handlers.ViewArticle(apis.elastic))
 		r.Get("/view/article/{item_id}/similar", handlers.FindSimilarArticles(apis.elastic))
 		// General.
 		r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues())
