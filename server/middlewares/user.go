@@ -58,9 +58,12 @@ func RequireUserAuth(dataAPI *elastic.API) func(next http.Handler) http.Handler 
 				}
 				return
 			}
-			// Else load the user into the context and pass the new context
-			// to the next request.
-			next.ServeHTTP(res, req.WithContext(models.UserToCtx(ctx, user)))
+			// Add context values.
+			ctx = models.UserToCtx(ctx, user)
+			ctx = slogctx.With(ctx, slog.String("user_id", user.GetID()))
+
+			// Pass to next request.
+			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }

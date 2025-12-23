@@ -151,8 +151,8 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	// Standard middleware stack.
 	router.Use(
 		middleware.RequestID,
+		middlewares.Logger,
 		middleware.Recoverer,
-		middlewares.Logger(),
 		middlewares.SetupCORS,
 		middlewares.CrossOriginProtection,
 		middlewares.ContentSecurityPolicy,

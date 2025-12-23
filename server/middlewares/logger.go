@@ -6,13 +6,15 @@ package middlewares
 import (
 	"log/slog"
 	"net/http"
+	"sync"
 
 	slogchi "github.com/samber/slog-chi"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/logging"
 )
 
-func Logger() func(http.Handler) http.Handler {
+var configureLogging = sync.OnceValue(func() slogchi.Config {
 	cfg := slogchi.Config{
 		ClientErrorLevel: slog.LevelWarn,
 		ServerErrorLevel: slog.LevelError,
@@ -21,12 +23,20 @@ func Logger() func(http.Handler) http.Handler {
 			slogchi.IgnorePathContains("/content", "/favicon"),
 		},
 	}
-	switch logging.Level { //nolint:gocritic // leaving for future expansion.
+	switch logging.Level {
 	case logging.LevelTrace:
 		cfg.WithRequestBody = true
 		cfg.WithResponseBody = true
 		cfg.WithRequestHeader = true
 		cfg.WithResponseHeader = true
 	}
-	return slogchi.NewWithConfig(slog.Default(), cfg)
+	return cfg
+})
+
+func Logger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		cfg := configureLogging()
+
+		slogchi.NewWithConfig(slogctx.FromCtx(req.Context()), cfg)(next).ServeHTTP(res, req)
+	})
 }
