@@ -566,12 +566,20 @@ templ AddSearchSubscriptionFilter(id, name, input string) {
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
 	@main() {
+		// Show a page header.
+		<div class="md:flex md:items-center md:justify-between">
+			<div class="min-w-0 flex-1">
+				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Similar Articles</h2>
+			</div>
+		</div>
 		// Show results.
-		@grid() {
-			for article := range slices.Values(articles) {
-				@ArticleCard(article)
+		<section class="mt-4">
+			@grid() {
+				for article := range slices.Values(articles) {
+					@ArticleCard(article)
+				}
 			}
-		}
+		</section>
 	}
 }
 

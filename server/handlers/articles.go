@@ -117,6 +117,45 @@ func PaginateArticles(api *elastic.API) http.HandlerFunc {
 		ServeHTTP
 }
 
+// FindSimilarArticles handles finding articles similar to the given article and showing the results.
+func FindSimilarArticles(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+		// Extract request parameters.
+		itemID := chi.URLParam(req, models.ParamItemID)
+		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode request: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to find similar",
+					"There was a problem with the request. Please try again.",
+				),
+			}
+		}
+		articles, err := api.FindSimilarArticles(req.Context(), itemID)
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("find similar articles: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to find similar",
+					"There was a problem with the request. Please try again.",
+				),
+			}
+		}
+		// Show results.
+		var template templ.Component
+		if len(articles) > 0 {
+			template = templates.SimilarArticles(articles)
+		} else {
+			template = templates.NoSearchResults()
+		}
+		ctx := templates.PageTitleToCtx(req.Context(), "Similar Articles")
+		renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
+		return nil
+	})).ServeHTTP
+}
+
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
 func MarkArticle(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
