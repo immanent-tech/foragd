@@ -5,7 +5,6 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/go-syndication/types"
 	"os"
 	"strings"
 	"time"
@@ -149,12 +148,7 @@ templ AccountSettings(user *models.User) {
 					<label for="avatar" class="block text-sm/6 font-medium">Avatar</label>
 					<p class="text-sm/6 text-base-content/80">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
 					<div class="mt-2 flex items-center space-x-2">
-						@NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "Avatar for user " + user.GetNickname()},
-							"rs:auto:48:48/sh:0.5/ext:webp",
-							WithClasses("flex rounded-full outline -outline-offset-1 outline-base-content/10"),
-							WithCustomAttribute("width", "48"),
-							WithCustomAttribute("height", "48"),
-						)
+						@userAvatar(user)
 						<input
 							id="avatar"
 							type="file"

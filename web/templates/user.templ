@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"os"
@@ -110,4 +111,13 @@ templ DeactivateAccountModal() {
 			>Yes</button>
 		</div>
 	}
+}
+
+templ userAvatar(user *models.User) {
+	@NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "Avatar for user " + user.GetNickname()},
+		"rs:auto:48:48/sh:0.5/ext:webp",
+		WithClasses("flex rounded-full outline -outline-offset-1 outline-base-content/10"),
+		WithCustomAttribute("width", "48"),
+		WithCustomAttribute("height", "48"),
+	)
 }

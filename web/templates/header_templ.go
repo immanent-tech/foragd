@@ -14,7 +14,6 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
@@ -85,11 +84,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "User avatar"}, "rs:auto:32:32/sh:0.5/ext:webp",
-				WithClasses("size-8 rounded-full outline -outline-offset-1 outline-base-content/10"),
-				WithCustomAttribute("width", "32"),
-				WithCustomAttribute("height", "32"),
-			).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = userAvatar(user).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
