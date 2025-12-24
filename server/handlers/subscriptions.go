@@ -38,6 +38,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			list := func(res http.ResponseWriter, req *http.Request) error {
+				// Generate request object.
 				request := &models.ListRequest{
 					Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
 					Pagination: req.FormValue(models.ParamPagination),
@@ -45,9 +46,10 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				if err := request.Valid(); err != nil {
 					return &models.APIError{
 						InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-						StatusCode:    http.StatusInternalServerError,
+						StatusCode:    http.StatusUnprocessableEntity,
 					}
 				}
+
 				// Redirect to include query parameters in address bar.
 				switch {
 				case htmx.IsHTMX(req):
@@ -61,14 +63,14 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 					err           error
 					template      templ.Component
 				)
+
 				// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
 				if htmx.IsHistoryRestoreRequest(req) {
 					request.Filters.Subscriptions = nil
 				}
 
-				var wg errgroup.Group
-
 				// Get subscriptions matching filters.
+				var wg errgroup.Group
 				wg.Go(func() error {
 					subscriptions, request.Pagination, err = api.FilterSubscriptions(req.Context(), request)
 					if err != nil && !errors.Is(err, elastic.ErrNotFound) {
@@ -126,6 +128,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 func PaginateSubscriptions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+			// Generate request object.
 			request := &models.ListRequest{
 				Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
 				Pagination: req.FormValue(models.ParamPagination),
@@ -133,19 +136,19 @@ func PaginateSubscriptions(api *elastic.API) http.HandlerFunc {
 			if err := validation.Validate.Struct(request); err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-					StatusCode:    http.StatusInternalServerError,
+					StatusCode:    http.StatusUnprocessableEntity,
 					UserMessage: models.NewErrorMessage(
 						"Could not list more subscriptions",
 						"This might be temporary, please try again.",
 					),
 				}
 			}
+
+			// Get subscriptions matching filters.
 			var (
 				subscriptions models.Subscriptions
 				err           error
 			)
-
-			// Get subscriptions matching filters.
 			subscriptions, request.Pagination, err = api.FilterSubscriptions(req.Context(), request)
 			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 				return &models.APIError{
