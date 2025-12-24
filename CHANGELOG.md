@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/immanent-tech/foragd/compare/v0.5.1...v0.6.0) (2025-12-24)
+
+
+### Features
+
+* **templates:** :lipstick: major layout improvements ([2c7b2d5](https://github.com/immanent-tech/foragd/commit/2c7b2d520647e8d809a3021b9af5b1cf5b84ce4d))
+* **templates:** :sparkles: add find similar articles action to context menu of article view ([69e327c](https://github.com/immanent-tech/foragd/commit/69e327c12e47af42a6ff9bd57366130752d1b7e2))
+
 ## [0.5.1](https://github.com/immanent-tech/foragd/compare/v0.5.0...v0.5.1) (2025-12-23)
 
 
