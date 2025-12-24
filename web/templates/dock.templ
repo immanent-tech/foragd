@@ -11,7 +11,7 @@ import (
 )
 
 templ Dock(attributes templ.Attributes) {
-	<div id="page-dock" class="dock bg-base-200 border-t border-base-content/10 lg:hidden text-primary" { attributes... }>
+	<footer id="page-dock" class="dock bg-base-200 border-t border-base-content/10 lg:hidden text-primary" { attributes... }>
 		<button
 			hx-get="/home"
 			hx-trigger="click,globalShortcutHome"
@@ -69,5 +69,5 @@ templ Dock(attributes templ.Attributes) {
 			<span class="sr-only">Go to Favorites</span>
 			<span class="dock-label">Favorites</span>
 		</button>
-	</div>
+	</footer>
 }

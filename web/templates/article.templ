@@ -180,21 +180,21 @@ templ ArticleCard(article *models.Article) {
 templ ArticleContent(article *models.Article) {
 	// Add the subscription ID as a hidden input that htmx can use for actions.
 	<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
-	@main() {
-		<div id={ article.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
+	@container() {
+		<article id={ article.GetID() } class="w-full sm:max-w-prose sm:mx-auto prose prose-md sm:prose-lg prose-custom">
 			// Article title.
-			<div class="flex flex-1 pb-2">
+			<div class="not-prose flex flex-1 pb-2">
 				@NewLink(
 					WithCustomAttribute("href", article.GetLink()),
 					WithCustomAttribute("target", "_blank"),
 					WithCustomAttribute("rel", "noopener"),
 					WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 				) {
-					<h2 class="page-title tracking-tight">{ article.GetTitle() }</h2>
+					<h2 class="page-title">{ article.GetTitle() }</h2>
 				}
 			</div>
 			// Subscription link.
-			<div class="flex flex-1 pb-4">
+			<div class="not-prose flex flex-1 pb-4">
 				<form>
 					{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 					<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
@@ -213,7 +213,7 @@ templ ArticleContent(article *models.Article) {
 					}
 				</form>
 			</div>
-			<div class="flex items-center">
+			<div class="not-prose flex items-center">
 				<div class="flex-1 inline-grid">
 					// Author(s) and Published Time.
 					if len(article.GetAuthors()) > 0 {
@@ -257,56 +257,55 @@ templ ArticleContent(article *models.Article) {
 			</div>
 			// Content.
 			if article.GetContent() != "" || article.GetDescription() != "" {
-				<article class="mt-8 prose prose-md sm:prose-lg dark:prose-invert prose-image:responsive-img prose-video:responsive-video prose-custom">
+				<div class="mt-8">
 					switch  {
 						case article.GetContent() != "":
 							@templ.Raw(article.GetContent())
 						case article.GetDescription() != "":
 							@templ.Raw(article.GetDescription())
 					}
-				</article>
+				</div>
 			}
-			<div class="flex items-center justify-center gap-x-4 text-sm mt-8">
-				// Toggle view full content action.
-				@NewLink(
-					WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-					WithHXTarget(ContentID.Target()),
-					WithHXInclude("[name='csrf_token']"),
-					WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
-				) {
-					if article.IsRemoteContent() {
-						Load feed content
-					} else {
-						Load external content
-					}
-				}
-				|
-				// View original article action.
-				@goToArticleLink(article) {
-					Go to article
-				}
-				|
-				// Share article action.
-				@shareArticleLink(article) {
-					Share
-				}
-			</div>
-			// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
-			// read and mark it so (when the user has set this option).
-			if article.IsUnread() && article.MarkArticleReadOnView {
-				<input type="hidden" name="view" value={ models.ViewAll }/>
-				<div
-					hx-post={ "/mark/article/" + article.GetID() + "/read" }
-					hx-target={ "#mark_" + article.GetID() }
-					hx-include="[name='csrf_token'],[name='view']"
-					hx-vals={ models.GenerateHXVals(map[string]any{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
-					hx-swap="innerHTML"
-					hx-trigger="intersect once,load delay:10s"
-					hx-push-url="false"
-					_="on htmx:afterRequest remove me"
-				></div>
+		</article>
+	}
+	<nav class="my-16 flex items-center justify-center gap-x-4 text-sm">
+		// Toggle view full content action.
+		@NewLink(
+			WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+			WithHXTarget(ContentID.Target()),
+			WithHXInclude("[name='csrf_token']"),
+			WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
+		) {
+			if article.IsRemoteContent() {
+				Load feed content
+			} else {
+				Load external content
 			}
-		</div>
+		}
+		// View original article action.
+		@goToArticleLink(article) {
+			Go to article
+		}
+		// Share article action.
+		@shareArticleLink(article) {
+			Share
+		}
+	</nav>
+	// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
+	// read and mark it so (when the user has set this option).
+	if article.IsUnread() && article.MarkArticleReadOnView {
+		<input type="hidden" name="view" value={ models.ViewAll }/>
+		<div
+			aria-hidden="true"
+			hx-post={ "/mark/article/" + article.GetID() + "/read" }
+			hx-target={ "#mark_" + article.GetID() }
+			hx-include="[name='csrf_token'],[name='view']"
+			hx-vals={ models.GenerateHXVals(map[string]any{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
+			hx-swap="innerHTML"
+			hx-trigger="intersect once,load delay:10s"
+			hx-push-url="false"
+			_="on htmx:afterRequest remove me"
+		></div>
 	}
 }
 
@@ -365,14 +364,14 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ListArticles(response *models.ListArticlesResponse) {
-	@main() {
+	@container() {
 		@generateFilters(&response.Filters)
 		// Watch for updates.
 		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + response.Filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
 		// Show a page header.
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
-				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">
+				<h2 class="page-title">
 					if response.SubscriptionID != "" {
 						{ response.Articles[0].GetFeedTitle() }
 					} else {

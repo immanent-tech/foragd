@@ -15,7 +15,7 @@ import (
 // previously selected option highlighted. This is displayed after a user account has been created (in Auth0) and
 // redirects the user to Stripe for payment.
 templ UserChooseSubscriptionPlan(user *models.User, planID string) {
-	@main() {
+	@container() {
 		if user != nil && user.Active() {
 			// User has an active plan, show them an action to manage it.
 			<div class="mx-auto max-w-4xl text-center mb-16">
@@ -51,7 +51,7 @@ templ UserChooseSubscriptionPlan(user *models.User, planID string) {
 // needs support to resolve. Usually, this will be displayed when a subscription plan payment has failed and requires
 // manual intervention.
 templ UserAccountIssue() {
-	@main() {
+	@container() {
 		<div class="mx-auto max-w-4xl text-center mb-16">
 			<h1 class="text-lg sm:text-xl/8 font-semibold text-primary mb-16">There is a problem with your account.</h1>
 			<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">We cannot log you in as there is a problem with your account details.</p>

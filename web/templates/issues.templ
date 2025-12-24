@@ -7,7 +7,7 @@ import "github.com/immanent-tech/foragd/models"
 
 // ReportPageIssue renders a form for reporting issues with the app.
 templ ReportPageIssue(details *models.IssueRequest) {
-	@main() {
+	@container() {
 		<div class="mx-auto max-w-3xl">
 			<div class="md:flex md:items-center md:justify-between">
 				<div class="min-w-0 flex-1">
@@ -81,7 +81,7 @@ templ ReportPageIssue(details *models.IssueRequest) {
 }
 
 templ ReportObjectIssues(objectType, id string, details *models.ObjectIssueRequest) {
-	@main() {
+	@container() {
 		<div class="mx-auto max-w-3xl">
 			<div class="md:flex md:items-center md:justify-between">
 				<div class="min-w-0 flex-1">
@@ -215,7 +215,7 @@ templ ReportObjectIssues(objectType, id string, details *models.ObjectIssueReque
 
 // IssueReportedConfirmation will show feedback to a user that the issue they reported has been recorded.
 templ IssueReportedConfirmation(msg *models.UserMessage) {
-	@main() {
+	@container() {
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
 				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">{ msg.Summary }</h2>

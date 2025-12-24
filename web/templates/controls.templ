@@ -15,7 +15,7 @@ import (
 
 templ FilterControls(path string, categories models.CategoryCounts, filters *models.ListFilters) {
 	// Mobile filters dialog slides in from the right.
-	<el-dialog>
+	<el-dialog id="content-filters-mobile">
 		<dialog id="mobile-filters-menu" class="overflow-hidden sm:hidden">
 			<el-dialog-backdrop></el-dialog-backdrop>
 			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
@@ -120,7 +120,7 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 			</div>
 		</dialog>
 	</el-dialog>
-	<section aria-labelledby="filter-heading">
+	<nav id="content-filters-desktop" aria-labelledby="filter-heading">
 		<h2 id="filter-heading" class="sr-only">Filters</h2>
 		<div class="border-b border-base-content/40 py-4">
 			<div class="mx-auto flex max-w-7xl items-center justify-between">
@@ -249,7 +249,7 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 				</div>
 			</div>
 		}
-	</section>
+	</nav>
 }
 
 // viewFilter renders a checkbox for a view filter.

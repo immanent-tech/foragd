@@ -3,12 +3,13 @@
 
 package templates
 
-// main can be used as a container for the main content of the page. It restricts content to a max width and adds
-// padding.
-templ main() {
-	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-24 sm:pb-8">
+import "github.com/immanent-tech/foragd/models"
+
+// container restricts content to a max width and adds padding.
+templ container() {
+	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
 		{ children... }
-	</main>
+	</div>
 }
 
 // grid can be used as a container for defining a responsive grid layout for children elements.
@@ -26,10 +27,27 @@ templ grid() {
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
 templ Document(data []byte) {
-	@main() {
+	@container() {
 		<div class="prose sm:prose-lg prose-img:shadow-md my-4">
 			@templ.Raw(string(data))
 		</div>
 		@btnBackToTop()
 	}
+}
+
+// Content renders the given template wrapped with appropriate header/footer navigation. Used for most user content
+// pages.
+templ Content(user *models.User, content templ.Component) {
+	@header(user)
+	@SideBar(nil)
+	<main class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8">
+		<div id={ ContentID.String() } hx-indicator="#content-loading">
+			@content
+		</div>
+		<div id="content-loading" class="flex mx-auto justify-center items-center space-x-2 htmx-indicator">
+			<span class="loading loading-bars loading-xl text-accent"></span>
+			<p class="text-lg/loose font-semibold text-accent">Loading content...</p>
+		</div>
+	</main>
+	@Dock(nil)
 }

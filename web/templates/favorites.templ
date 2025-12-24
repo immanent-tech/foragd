@@ -11,7 +11,7 @@ import (
 
 // FavoritesGrid renders subscription and article favorites in a grid layout.
 templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles) {
-	@main() {
+	@container() {
 		<div id="top" class="flex items-center justify-between mt-4">
 			<div class="min-w-0 flex-1">
 				<h2 class="page-title">
