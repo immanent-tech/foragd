@@ -34,8 +34,8 @@ const (
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Decode request.
-		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
+		// Decode search.
+		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			slogctx.FromCtx(req.Context()).Debug("Get search suggestions failed.",
 				slog.Any("error", err))
@@ -43,7 +43,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 			return
 		}
 		// Ignore empty text string.
-		if request.Text == "" {
+		if search.Text == "" {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
@@ -58,7 +58,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 		fetchJobs.Go(func() error {
 			subscriptions, err = api.GetSubscriptionSuggestions(
 				jobCtx,
-				request.Text,
+				search.Text,
 				defaultSubscriptionSuggestionsCount,
 				elastic.GetSubscriptionsDynamicInfo(true),
 			)
@@ -84,12 +84,12 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 				query.Must(
 					query.Bool(
 						query.Should(
-							query.SearchAsYouType(request.Text, "title"),
-							query.SearchAsYouType(request.Text, "description"),
-							query.SearchAsYouType(request.Text, "content"),
-							query.Term(request.Text, "categories"),
-							query.Term(request.Text, "authors"),
-							query.Term(request.Text, "contributors"),
+							query.SearchAsYouType(search.Text, "title"),
+							query.SearchAsYouType(search.Text, "description"),
+							query.SearchAsYouType(search.Text, "content"),
+							query.Term(search.Text, "categories"),
+							query.Term(search.Text, "authors"),
+							query.Term(search.Text, "contributors"),
 						),
 					),
 				),
@@ -118,7 +118,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 		}
 
-		renderPartial(templates.SearchSuggestions(request, subscriptions, articles)).ServeHTTP(res, req)
+		renderPartial(templates.SearchSuggestions(search, subscriptions, articles)).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
