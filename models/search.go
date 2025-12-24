@@ -100,3 +100,33 @@ func (r *SearchRequest) params() url.Values {
 	}
 	return params
 }
+
+// Valid returns a boolean indicating whether the add subscription search filter data is valid.
+func (r *AddSubscriptionSearchFilterRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("subscription search filer is invalid: %w", err)
+	}
+	return nil
+}
+
+// Sanitise will sanitise the add subscription search filter request.
+func (r *AddSubscriptionSearchFilterRequest) Sanitise() error {
+	r.InputName = sanitization.SanitizeString(r.InputName)
+	r.SubscriptionName = sanitization.SanitizeString(r.SubscriptionName)
+	r.SubscriptionID = sanitization.SanitizeString(r.SubscriptionID)
+	return nil
+}
+
+// Valid returns a boolean indicating whether the add subscription search filter data is valid.
+func (r *GetSubscriptionsSuggestionRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("subscription suggestion is invalid: %w", err)
+	}
+	return nil
+}
+
+// Sanitise will sanitise the add subscription search filter request.
+func (r *GetSubscriptionsSuggestionRequest) Sanitise() error {
+	r.Text = sanitization.SanitizeString(r.Text)
+	return nil
+}

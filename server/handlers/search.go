@@ -21,6 +21,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -124,8 +125,8 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 // GetSearchResults performs a search with the user input and renders a page with the search results.
 func GetSearchResults(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
-		// Extract the search request.
-		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
+		// Extract the search search.
+		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			return &models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
@@ -136,18 +137,14 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 				),
 			}
 		}
-		// Extract any subscription ID for the search and add to the request object.
-		if subscriptionID := req.FormValue(models.ParamSubscriptionID); subscriptionID != "" {
-			request.ID = subscriptionID
-		}
 
 		// Embed the request in the context.
-		ctx := models.SearchRequestToCtx(req.Context(), *request)
+		ctx := models.SearchRequestToCtx(req.Context(), *search)
 		// If the search request has subscription filters, get subscription details.
-		if len(request.Subscriptions) > 0 {
+		if len(search.Subscriptions) > 0 {
 			var subscriptions models.Subscriptions
 			subscriptions, err = api.GetSubscriptions(req.Context(),
-				elastic.GetSubscriptionsByIDs(request.Subscriptions...),
+				elastic.GetSubscriptionsByIDs(search.Subscriptions...),
 				elastic.GetSubscriptionsDynamicInfo(true),
 			)
 			if err != nil {
@@ -168,21 +165,29 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			}
 		}
 
+		// Retrieve pagination.
+		pagination := req.FormValue(models.ParamPagination)
+		if err := validation.Validate.Var(pagination, "omitempty,url_encoded"); err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("get pagination: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+			}
+		}
+
 		// Find articles that match search request.
 		var articles models.Articles
-		query, err := api.BuildSearchResultsQuery(ctx, user, request)
+		query, err := api.BuildSearchResultsQuery(ctx, user, search)
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("build search query: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 			}
 		}
-		pagination := req.FormValue(models.ParamPagination)
 		itemResults, pagination, err := api.SearchItems(
 			ctx,
 			query,
 			defaultArticleResultsCount,
-			&request.Sort,
+			&search.Sort,
 			&pagination,
 		)
 		if err != nil {
@@ -212,14 +217,14 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		var template templ.Component
 		if len(articles) > 0 {
 			// Pagination request, just display next set of results.
-			template = templates.SearchResultsGrid(request, articles, pagination)
+			template = templates.SearchResultsGrid(search, articles, pagination)
 		} else {
 			template = templates.NoSearchResults()
 		}
 		if htmx.IsHTMX(req) {
 			template = templ.Join(template, templates.SearchFilters(templ.Attributes{"hx-swap-oob": "true"}))
 		}
-		res.Header().Add(htmx.HeaderPushURL, "/search?"+request.Query())
+		res.Header().Add(htmx.HeaderPushURL, "/search?"+search.Query())
 		ctx = templates.PageTitleToCtx(ctx, "Search results")
 		renderPage(
 			wrapContent(req.WithContext(ctx), template),
@@ -268,20 +273,18 @@ func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 // AddSubscriptionFilter handles adding a subscription as a search filter.
 func AddSubscriptionFilter() http.HandlerFunc {
 	return alice.New().ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-		id := req.FormValue("subscription_id")
-		name := req.FormValue("subscription_name")
-		input := req.FormValue("subscriptions-input-name")
-		if id == "" || name == "" || input == "" {
+		subscription, valid, err := forms.DecodeForm[*models.AddSubscriptionSearchFilterRequest](req)
+		if err != nil || !valid {
 			return &models.APIError{
-				InternalError: fmt.Errorf("add subscription filter: %w", ErrInvalidRequestParams),
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
-					"Unable to add subscription filter",
-					"There was a problem with the request, please try again",
+					"Invalid search request",
+					"Please check the search request data and try again",
 				),
 			}
 		}
-		renderPartial(templates.AddSearchSubscriptionFilter(id, name, input)).ServeHTTP(res, req)
+		renderPartial(templates.AddSearchSubscriptionFilter(subscription)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -289,13 +292,20 @@ func AddSubscriptionFilter() http.HandlerFunc {
 // GetSubscriptionFilterSuggestions handles showing a list of subscriptions as suggestions when building a search query.
 func GetSubscriptionFilterSuggestions(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		text := req.FormValue("subscription-text")
-		if text == "" {
+		defaultSuggestionCount := 10
+		suggestion, valid, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
+		if err != nil || !valid {
+			slogctx.FromCtx(req.Context()).Error("Invalid subscription suggestion input.",
+				slog.Any("error", err),
+			)
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		subscriptions, err := api.GetSubscriptionSuggestions(req.Context(), text, 10)
+		subscriptions, err := api.GetSubscriptionSuggestions(req.Context(), suggestion.Text, defaultSuggestionCount)
 		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+			slogctx.FromCtx(req.Context()).Error("Unable to get subscription suggestions.",
+				slog.Any("error", err),
+			)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}

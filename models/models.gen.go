@@ -163,6 +163,18 @@ type AddFeedsetRequest struct {
 	Feedset []string `form:"feedset,unique" json:"feedset,omitempty,omitzero"`
 }
 
+// AddSubscriptionSearchFilterRequest contains the data for adding a new subscription filter to a search request.
+type AddSubscriptionSearchFilterRequest struct {
+	// InputName is the name of the input in the form into which this filter should be added.
+	InputName string `form:"subscriptions-input-name" json:"input_name,omitempty,omitzero"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// SubscriptionName is the nickname of the subscription.
+	SubscriptionName string `form:"subscription_name" json:"subscription_name,omitempty,omitzero"`
+}
+
 // Article defines model for Article.
 type Article struct {
 	// Content contains the full article content, when it has been fetched from the origin link.
@@ -415,6 +427,12 @@ type FileUpload struct {
 
 	// Header is the mime header information of the file.
 	Header *multipart.FileHeader `json:"header" validate:"required"`
+}
+
+// GetSubscriptionsSuggestionRequest contains the data for finding matching subscriptions as suggestion results.
+type GetSubscriptionsSuggestionRequest struct {
+	// Text is a string that should match a subscription.
+	Text string `form:"subscription-text" json:"text,omitempty,omitzero"`
 }
 
 // GroupSubscription represents a subscription that combines other subscriptions.

@@ -820,7 +820,11 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 							>
 								for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
-									@AddSearchSubscriptionFilter(subscription.GetID(), subscription.GetTitle(), "search.subscriptions")
+									@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
+										InputName:        "search.subscriptions",
+										SubscriptionID:   subscription.GetID(),
+										SubscriptionName: subscription.GetTitle(),
+									})
 								}
 							</div>
 						</div>
@@ -1036,7 +1040,11 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 							>
 								for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
-									@AddSearchSubscriptionFilter(subscription.GetID(), subscription.GetTitle(), "subscriptions")
+									@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
+										InputName:        "subscriptions",
+										SubscriptionID:   subscription.GetID(),
+										SubscriptionName: subscription.GetTitle(),
+									})
 								}
 							</div>
 						</div>

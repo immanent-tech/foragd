@@ -1105,6 +1105,36 @@ components:
             validate: 'required,timezone'
       x-oapi-codegen-extra-tags:
         validate: 'required'
+    AddSubscriptionSearchFilterRequest:
+      description: >
+        contains the data for adding a new subscription filter to a search request.
+      type: object
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        subscription_name:
+          description: >
+            is the nickname of the subscription.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'subscription_name'
+        input_name:
+          description: >
+            is the name of the input in the form into which this filter should be added.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'subscriptions-input-name'
+    GetSubscriptionsSuggestionRequest:
+      description: >
+        contains the data for finding matching subscriptions as suggestion results.
+      type: object
+      properties:
+        text:
+          description: >
+            is a string that should match a subscription.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'subscription-text'
     AddFeedsetRequest:
       description: >
         is a request from a user to add one or more feed sets as subscriptions.
