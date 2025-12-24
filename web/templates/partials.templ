@@ -167,7 +167,7 @@ templ Modal(id string) {
 	</el-dialog>
 }
 
-templ generateFilters(filters *models.ListDisplayFilters) {
+templ generateFilters(filters *models.ListFilters) {
 	<div id="content-filters" class="hidden">
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>

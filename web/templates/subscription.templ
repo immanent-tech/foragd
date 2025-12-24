@@ -320,7 +320,7 @@ templ ListSubscriptions(counts models.CategoryCounts, pagination models.Paginati
 
 // subscriptionsActionsButton creates a button containing a menu of actions to apply to a list of subscriptions, or
 // actions related to subscriptions.
-templ subscriptionsActionsButton(filters *models.ListDisplayFilters) {
+templ subscriptionsActionsButton(filters *models.ListFilters) {
 	// Subscriptions actions menu.
 	<el-dropdown class="inline-block flex-none">
 		<button

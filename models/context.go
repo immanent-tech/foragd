@@ -59,8 +59,8 @@ func PageFiltersToCtx(ctx context.Context, path string, filters Filters) context
 }
 
 // PageFiltersFromCtx retrieves the current page display filters from the context.
-func PageFiltersFromCtx(ctx context.Context, path string) *ListDisplayFilters {
-	filters, found := ctx.Value(filtersCtxKey + contextKey(path)).(*ListDisplayFilters)
+func PageFiltersFromCtx(ctx context.Context, path string) *ListFilters {
+	filters, found := ctx.Value(filtersCtxKey + contextKey(path)).(*ListFilters)
 	if !found {
 		newFilters := NewListDisplayFilters()
 		return &newFilters

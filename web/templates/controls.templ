@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-templ FilterControls(path string, categories models.CategoryCounts, filters *models.ListDisplayFilters) {
+templ FilterControls(path string, categories models.CategoryCounts, filters *models.ListFilters) {
 	// Mobile filters dialog slides in from the right.
 	<el-dialog>
 		<dialog id="mobile-filters-menu" class="overflow-hidden sm:hidden">
@@ -253,7 +253,7 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 }
 
 // viewFilter renders a checkbox for a view filter.
-templ viewFilter(path, id string, view models.View, filters *models.ListDisplayFilters) {
+templ viewFilter(path, id string, view models.View, filters *models.ListFilters) {
 	{{ var class string }}
 	if view == filters.GetView() {
 		{{ class = "text-primary font-semibold" }}
@@ -281,7 +281,7 @@ templ viewFilter(path, id string, view models.View, filters *models.ListDisplayF
 	</form>
 }
 
-templ viewFilterOnlyFavorites(path, id string, filters *models.ListDisplayFilters) {
+templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
 	{{ var onlyFavoritesActiveClass string }}
 	{{ overrides := make(map[string]any) }}
 	if filters.OnlyFavorites {
@@ -313,7 +313,7 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListDisplayFilter
 }
 
 // categoryFilter renders a checkbox for a category filter.
-templ categoryFilter(path, id string, category models.CategoryCount, filters *models.ListDisplayFilters) {
+templ categoryFilter(path, id string, category models.CategoryCount, filters *models.ListFilters) {
 	{{ var class string }}
 	if filters.GetCategories().HasCategory(category.Category) {
 		{{ class = "text-primary font-semibold" }}
@@ -340,7 +340,7 @@ templ categoryFilter(path, id string, category models.CategoryCount, filters *mo
 	</form>
 }
 
-templ clearCategoryFilters(path, id string, filters *models.ListDisplayFilters) {
+templ clearCategoryFilters(path, id string, filters *models.ListFilters) {
 	<form id={ id }>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
@@ -362,7 +362,7 @@ templ clearCategoryFilters(path, id string, filters *models.ListDisplayFilters) 
 	</form>
 }
 
-templ activeCategoryFilterBadge(path string, category models.Category, filters *models.ListDisplayFilters) {
+templ activeCategoryFilterBadge(path string, category models.Category, filters *models.ListFilters) {
 	<div class="badge badge-secondary m-1">
 		{ category }
 		<form id={ "clear-filter-category-" + strings.ToLower(strings.ReplaceAll(category, " ", "_")) }>
@@ -386,7 +386,7 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 	</div>
 }
 
-templ sortOption(path string, sort models.Sort, filters *models.ListDisplayFilters) {
+templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
 	{{ var class string }}
 	if sort == filters.GetSort() {
 		{{ class = "text-primary font-semibold" }}

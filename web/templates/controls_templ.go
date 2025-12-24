@@ -22,7 +22,7 @@ import (
 	"strings"
 )
 
-func FilterControls(path string, categories models.CategoryCounts, filters *models.ListDisplayFilters) templ.Component {
+func FilterControls(path string, categories models.CategoryCounts, filters *models.ListFilters) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -517,7 +517,7 @@ func FilterControls(path string, categories models.CategoryCounts, filters *mode
 }
 
 // viewFilter renders a checkbox for a view filter.
-func viewFilter(path, id string, view models.View, filters *models.ListDisplayFilters) templ.Component {
+func viewFilter(path, id string, view models.View, filters *models.ListFilters) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -743,7 +743,7 @@ func viewFilter(path, id string, view models.View, filters *models.ListDisplayFi
 	})
 }
 
-func viewFilterOnlyFavorites(path, id string, filters *models.ListDisplayFilters) templ.Component {
+func viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -968,7 +968,7 @@ func viewFilterOnlyFavorites(path, id string, filters *models.ListDisplayFilters
 }
 
 // categoryFilter renders a checkbox for a category filter.
-func categoryFilter(path, id string, category models.CategoryCount, filters *models.ListDisplayFilters) templ.Component {
+func categoryFilter(path, id string, category models.CategoryCount, filters *models.ListFilters) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1189,7 +1189,7 @@ func categoryFilter(path, id string, category models.CategoryCount, filters *mod
 	})
 }
 
-func clearCategoryFilters(path, id string, filters *models.ListDisplayFilters) templ.Component {
+func clearCategoryFilters(path, id string, filters *models.ListFilters) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1378,7 +1378,7 @@ func clearCategoryFilters(path, id string, filters *models.ListDisplayFilters) t
 	})
 }
 
-func activeCategoryFilterBadge(path string, category models.Category, filters *models.ListDisplayFilters) templ.Component {
+func activeCategoryFilterBadge(path string, category models.Category, filters *models.ListFilters) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1576,7 +1576,7 @@ func activeCategoryFilterBadge(path string, category models.Category, filters *m
 	})
 }
 
-func sortOption(path string, sort models.Sort, filters *models.ListDisplayFilters) templ.Component {
+func sortOption(path string, sort models.Sort, filters *models.ListFilters) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

@@ -370,7 +370,7 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 }
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
-templ ListArticles(subscriptionID models.SubscriptionID, articles models.Articles, filters *models.ListDisplayFilters, pagination models.Pagination) {
+templ ListArticles(subscriptionID models.SubscriptionID, articles models.Articles, filters *models.ListFilters, pagination models.Pagination) {
 	@main() {
 		@generateFilters(filters)
 		// Watch for updates.

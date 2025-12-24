@@ -1116,7 +1116,7 @@ components:
             type: string
           x-oapi-codegen-extra-tags:
             form: 'feedset,unique'
-    CommonDisplayFilters:
+    ListFilters:
       description: >
         contains filters for altering the display of objects.
       type: object
@@ -1132,10 +1132,6 @@ components:
           $ref: '#/components/schemas/View'
         sort:
           $ref: '#/components/schemas/Sort'
-        # sort_by:
-        #   $ref: '#/components/schemas/SortBy'
-        # sort_order:
-        #   $ref: '#/components/schemas/SortOrder'
         categories:
           description: is a list of categories.
           type: array
@@ -1146,33 +1142,25 @@ components:
             form: 'categories'
             validate: 'omitnil,unique,dive,url_encoded'
           x-go-type-skip-optional-pointer: true
-    ListDisplayFilters:
-      description: >
-        contains filter parameters that apply to subscriptions.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/CommonDisplayFilters'
-        - type: object
-          properties:
-            subscriptions:
-              description: >
-                is a list of subscription IDs.
-              type: array
-              items:
-                $ref: '#/components/schemas/SubscriptionID'
-              x-oapi-codegen-extra-tags:
-                json: 'subscriptions'
-                form: 'subscriptions'
-                validate: 'omitnil,unique,dive,startswith=sub_'
-              x-go-type-skip-optional-pointer: true
-            onlyFavorites:
-              description: >
-                indicates whether to filter by favorites only.
-              type: boolean
-              x-oapi-codegen-extra-tags:
-                json: 'only_favorites'
-                form: 'only_favorites'
-                validate: 'omitempty,boolean'
+        subscriptions:
+          description: >
+            is a list of subscription IDs.
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionID'
+          x-oapi-codegen-extra-tags:
+            json: 'subscriptions'
+            form: 'subscriptions'
+            validate: 'omitnil,unique,dive,startswith=sub_'
+          x-go-type-skip-optional-pointer: true
+        onlyFavorites:
+          description: >
+            indicates whether to filter by favorites only.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: 'only_favorites'
+            form: 'only_favorites'
+            validate: 'omitempty,boolean'
     ObjectParams:
       description: >
         contains the parameters for viewing an object.

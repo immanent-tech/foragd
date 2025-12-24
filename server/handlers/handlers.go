@@ -347,12 +347,12 @@ func wrapContent(req *http.Request, template templ.Component) templ.Component {
 
 func parseFilters(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		filters, valid, err := forms.DecodeForm[*models.ListDisplayFilters](req)
+		filters, valid, err := forms.DecodeForm[*models.ListFilters](req)
 		ctx := req.Context()
 		switch {
 		case err != nil:
 			// Try to restore filters from session.
-			restored, err := session.Restore[models.ListDisplayFilters](ctx, "filters_"+req.URL.Path)
+			restored, err := session.Restore[models.ListFilters](ctx, "filters_"+req.URL.Path)
 			if err != nil {
 				// Use new filters if unable to restore from session or form data.
 				restored = models.NewListDisplayFilters()

@@ -481,7 +481,7 @@ func (a *API) GetSubscriptions(
 // Dynamic information for subscriptions will also be added.
 func (a *API) FilterSubscriptions(
 	ctx context.Context,
-	filters *models.ListDisplayFilters,
+	filters *models.ListFilters,
 	pagination models.Pagination,
 ) (models.Subscriptions, models.Pagination, error) {
 	// Get subscriptions by ID.
@@ -1317,7 +1317,7 @@ func (a *API) GetArticles(ctx context.Context, itemIDs ...models.ItemID) (models
 // FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.
 func (a *API) FilterArticles(
 	ctx context.Context,
-	filters *models.ListDisplayFilters,
+	filters *models.ListFilters,
 	pagination models.Pagination,
 ) (models.Articles, models.Pagination, error) {
 	user, err := models.UserFromCtx(ctx)

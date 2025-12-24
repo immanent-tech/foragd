@@ -1013,7 +1013,7 @@ func ListSubscriptions(counts models.CategoryCounts, pagination models.Paginatio
 
 // subscriptionsActionsButton creates a button containing a menu of actions to apply to a list of subscriptions, or
 // actions related to subscriptions.
-func subscriptionsActionsButton(filters *models.ListDisplayFilters) templ.Component {
+func subscriptionsActionsButton(filters *models.ListFilters) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

@@ -292,21 +292,6 @@ type ChangePasswordRequest struct {
 	NewPassword string `form:"new_password" json:"new_password" validate:"required,eqfield=ConfirmNewPassword"`
 }
 
-// CommonDisplayFilters contains filters for altering the display of objects.
-type CommonDisplayFilters struct {
-	// Categories is a list of categories.
-	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
-
-	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
-
-	// Sort is how a list of objects is sorted.
-	Sort Sort `form:"sort" json:"sort,omitempty,omitzero" validate:"oneof=newest_first oldest_first most_unread least_unread most_relevant"`
-
-	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"oneof=read unread all"`
-}
-
 // Count is the count of items to retrieve with a request.
 type Count = string
 
@@ -526,8 +511,8 @@ type JobState struct {
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
-// ListDisplayFilters defines model for ListDisplayFilters.
-type ListDisplayFilters struct {
+// ListFilters contains filters for altering the display of objects.
+type ListFilters struct {
 	// Categories is a list of categories.
 	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
 

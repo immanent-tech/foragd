@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	gob.Register(ListDisplayFilters{})
+	gob.Register(ListFilters{})
 }
 
 var ErrNoFilters = &APIError{
@@ -68,8 +68,8 @@ type Filters interface {
 }
 
 // NewListDisplayFilters creates a new set of display filters with sensible defaults.
-func NewListDisplayFilters() ListDisplayFilters {
-	return ListDisplayFilters{
+func NewListDisplayFilters() ListFilters {
+	return ListFilters{
 		Sort:  SortNewestFirst,
 		Count: defaultCount,
 		View:  defaultView,
@@ -77,12 +77,12 @@ func NewListDisplayFilters() ListDisplayFilters {
 }
 
 // GetSubscriptions retrieves any subscription filters.
-func (f *ListDisplayFilters) GetSubscriptions() []SubscriptionID {
+func (f *ListFilters) GetSubscriptions() []SubscriptionID {
 	return f.Subscriptions
 }
 
 // Sanitise performs sanitisation of the filter values to ensure correctness.
-func (f *ListDisplayFilters) Sanitise() error {
+func (f *ListFilters) Sanitise() error {
 	if f == nil {
 		return ErrNoFilters
 	}
@@ -95,7 +95,7 @@ func (f *ListDisplayFilters) Sanitise() error {
 
 // Valid will return a boolean indicating whether the filters are valid and a
 // non-nil error with details if not.
-func (f *ListDisplayFilters) Valid() error {
+func (f *ListFilters) Valid() error {
 	if f == nil {
 		return ErrNoFilters
 	}
@@ -106,12 +106,12 @@ func (f *ListDisplayFilters) Valid() error {
 }
 
 // GetSort returns the Sort object for the Filters.
-func (f *ListDisplayFilters) GetSort() Sort {
+func (f *ListFilters) GetSort() Sort {
 	return f.Sort
 }
 
 // GetCount returns the count value (encoded as a string in the filters) as an int.
-func (f *ListDisplayFilters) GetCount() int {
+func (f *ListFilters) GetCount() int {
 	value, err := strconv.Atoi(f.Count)
 	if err != nil {
 		return defaultCountInt
@@ -120,17 +120,17 @@ func (f *ListDisplayFilters) GetCount() int {
 }
 
 // GetView returns the view filter.
-func (f *ListDisplayFilters) GetView() View {
+func (f *ListFilters) GetView() View {
 	return f.View
 }
 
 // GetCategories returns any category filters.
-func (f *ListDisplayFilters) GetCategories() Categories {
+func (f *ListFilters) GetCategories() Categories {
 	return f.Categories
 }
 
 // QueryParams converts the filters into query parameters.
-func (f *ListDisplayFilters) QueryParams() url.Values {
+func (f *ListFilters) QueryParams() url.Values {
 	params := make(url.Values)
 	if len(f.Subscriptions) > 0 {
 		params.Set(ParamSubscriptions, strings.Join(f.Subscriptions, ","))
@@ -145,13 +145,13 @@ func (f *ListDisplayFilters) QueryParams() url.Values {
 }
 
 // QueryString converts the filters into a string that can be appended to a URL to represent the filters.
-func (f *ListDisplayFilters) QueryString() string {
+func (f *ListFilters) QueryString() string {
 	return f.QueryParams().Encode()
 }
 
 // Values converts the filters into a map[string]string object, that can be further manipulated before being (most
 // likely) used as the value of hx-vals in a HTMX request.
-func (f *ListDisplayFilters) Values() map[string]any {
+func (f *ListFilters) Values() map[string]any {
 	params := make(map[string]any)
 	if len(f.Subscriptions) > 0 {
 		params[ParamSubscriptions] = f.Subscriptions
