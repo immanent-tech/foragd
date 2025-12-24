@@ -145,11 +145,11 @@ components:
     Count:
       description: >
         is the count of items to retrieve with a request.
-      type: string
+      type: integer
       default: '10'
       x-oapi-codegen-extra-tags:
         form: 'count'
-        validate: 'numeric,gt=0,lt=20'
+        validate: 'gt=0,lt=20'
     View:
       description: >
         The state of objects to view.
@@ -1161,6 +1161,8 @@ components:
             json: 'only_favorites'
             form: 'only_favorites'
             validate: 'omitempty,boolean'
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
     ObjectParams:
       description: >
         contains the parameters for viewing an object.
@@ -1185,6 +1187,63 @@ components:
           properties:
             mark:
               $ref: '#/components/schemas/Mark'
+    ListRequest:
+      description: >
+        contains the parameters needed for listing subscriptions or articles.
+      type: object
+      properties:
+        filters:
+          $ref: '#/components/schemas/ListFilters'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    ListSubscriptionsResponse:
+      description: >
+        contains the data retrieved and relevant for listing subscriptions.
+      type: object
+      required:
+        - subscriptions
+        - category_counts
+        - filters
+        - pagination
+      properties:
+        subscriptions:
+          x-go-type: Subscriptions
+          # description: >
+          #   is a list of subscriptions.
+          # type: array
+          # items:
+          #   $ref: '#/components/schemas/Subscription'
+          # x-go-type-skip-optional-pointer: true
+        category_counts:
+          x-go-type: CategoryCounts
+        filters:
+          $ref: '#/components/schemas/ListFilters'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    ListArticlesResponse:
+      description: >
+        contains the data retrieved and relevant for listing articles.
+      type: object
+      required:
+        - articles
+        - category_counts
+        - filters
+        - pagination
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        articles:
+          x-go-type: Articles
+          # description: >
+          #   is a list of subscriptions.
+          # type: array
+          # items:
+          #   $ref: '#/components/schemas/Subscription'
+          # x-go-type-skip-optional-pointer: true
+        filters:
+          $ref: '#/components/schemas/ListFilters'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
     MarkSubscriptionsRequest:
       description: >
         contains the parameters for marking a list of subscriptions.

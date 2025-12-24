@@ -29,15 +29,23 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			list := func(res http.ResponseWriter, req *http.Request) error {
-				filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-				pagination := req.FormValue(models.ParamPagination)
+				request := &models.ListRequest{
+					Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
+					Pagination: req.FormValue(models.ParamPagination),
+				}
+				if err := request.Valid(); err != nil {
+					return &models.APIError{
+						InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+					}
+				}
 				ctx := templates.PageTitleToCtx(req.Context(), "Articles")
 				// Redirect to include query parameters in address bar.
 				if len(req.URL.Query()) == 0 {
 					if htmx.IsHTMX(req) {
-						res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+filters.QueryString())
+						res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+request.Filters.QueryString())
 					} else {
-						http.Redirect(res, req.WithContext(ctx), req.URL.Path+"?"+filters.QueryString(), http.StatusSeeOther)
+						http.Redirect(res, req.WithContext(ctx), req.URL.Path+"?"+request.Filters.QueryString(), http.StatusSeeOther)
 					}
 				}
 				var (
@@ -47,21 +55,29 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 				)
 
 				// Get articles matching filters.
-				articles, pagination, err = api.FilterArticles(ctx, filters, pagination)
+				articles, request.Pagination, err = api.FilterArticles(ctx, request)
 				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 					return &models.APIError{
 						InternalError: fmt.Errorf("unable to list articles: %w", err),
 						StatusCode:    http.StatusInternalServerError,
 					}
 				}
+
+				// Generate response object.
+				response := &models.ListArticlesResponse{
+					SubscriptionID: req.FormValue(models.ParamSubscriptionID),
+					Articles:       articles,
+					Filters:        request.Filters,
+					Pagination:     request.Pagination,
+				}
+
 				// Render appropriate content.
-				subscriptionID := req.FormValue(models.ParamSubscriptionID)
 				// If the list of articles is from a single subscription, update the page tile to include the subscription
 				// name.
-				if len(articles) > 0 && subscriptionID != "" {
+				if len(articles) > 0 && response.SubscriptionID != "" {
 					ctx = templates.PageTitleToCtx(ctx, articles[0].GetFeedTitle()+" | Articles")
 				}
-				template = templates.ListArticles(subscriptionID, articles, filters, pagination)
+				template = templates.ListArticles(response)
 				// Choose rendering method based on method (get = page, post = partial).
 				switch req.Method {
 				case http.MethodGet:
@@ -86,15 +102,28 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 func PaginateArticles(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-			filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-			pagination := req.FormValue(models.ParamPagination)
+			request := &models.ListRequest{
+				Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
+				Pagination: req.FormValue(models.ParamPagination),
+			}
+			if err := request.Valid(); err != nil {
+				return &models.APIError{
+					InternalError: fmt.Errorf("unable to list articles: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Could not list more articles",
+						"This might be temporary, please try again.",
+					),
+				}
+			}
+
 			var (
 				articles models.Articles
 				err      error
 			)
 
 			// Get articles matching filters.
-			articles, pagination, err = api.FilterArticles(req.Context(), filters, pagination)
+			articles, request.Pagination, err = api.FilterArticles(req.Context(), request)
 			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 				return &models.APIError{
 					InternalError: fmt.Errorf("unable to list articles: %w", err),
@@ -106,9 +135,16 @@ func PaginateArticles(api *elastic.API) http.HandlerFunc {
 				}
 			}
 
+			// Generate response object.
+			response := &models.ListArticlesResponse{
+				Articles:   articles,
+				Filters:    request.Filters,
+				Pagination: request.Pagination,
+			}
+
 			// If there are articles to show, render the articles. Else, return StatusNoContent.
-			if len(articles) > 0 {
-				renderPartial(templates.PaginateArticles(articles, pagination)).ServeHTTP(res, req)
+			if len(response.Articles) > 0 {
+				renderPartial(templates.PaginateArticles(response)).ServeHTTP(res, req)
 			} else {
 				res.WriteHeader(http.StatusNoContent)
 				return nil

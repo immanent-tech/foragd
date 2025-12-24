@@ -370,17 +370,17 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 }
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
-templ ListArticles(subscriptionID models.SubscriptionID, articles models.Articles, filters *models.ListFilters, pagination models.Pagination) {
+templ ListArticles(response *models.ListArticlesResponse) {
 	@main() {
-		@generateFilters(filters)
+		@generateFilters(&response.Filters)
 		// Watch for updates.
-		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
+		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + response.Filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
 		// Show a page header.
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
 				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">
-					if subscriptionID != "" {
-						{ articles[0].GetFeedTitle() }
+					if response.SubscriptionID != "" {
+						{ response.Articles[0].GetFeedTitle() }
 					} else {
 						Articles
 					}
@@ -388,14 +388,14 @@ templ ListArticles(subscriptionID models.SubscriptionID, articles models.Article
 			</div>
 			<div class="mt-4 flex md:mt-0 md:ml-4 space-x-4">
 				<p class="text-sm font-semibold capitalize">
-					{ filters.GetView() }
+					{ response.Filters.GetView() }
 				</p>
 				<p class="text-sm font-semibold capitalize">
-					{ filters.GetSort().String() }
+					{ response.Filters.GetSort().String() }
 				</p>
 			</div>
 		</div>
-		@FilterControls("/list/articles", articles.GetCategoryCounts(), filters) {
+		@FilterControls("/list/articles", response.Articles.GetCategoryCounts(), &response.Filters) {
 			<el-dropdown class="inline-block flex-none">
 				<button id="articles-actions-button" class="inline-flex btn btn-wide">
 					Actions
@@ -408,13 +408,13 @@ templ ListArticles(subscriptionID models.SubscriptionID, articles models.Article
 					_="on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"
 				>
 					<div class="py-1">
-						if subscriptionID == "" {
+						if response.SubscriptionID == "" {
 							// Mark all articles action.
 							<form>
-								<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+								<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
 								<a
 									class="link link-hover"
-									if filters.GetView() == models.ViewUnread {
+									if response.Filters.GetView() == models.ViewUnread {
 										hx-post="/list/articles/mark/read"
 									} else {
 										hx-post="/list/articles/mark/unread"
@@ -422,7 +422,7 @@ templ ListArticles(subscriptionID models.SubscriptionID, articles models.Article
 									hx-target={ ContentID.Target() }
 									hx-include="#grid-objects,[name='csrf_token']"
 								>
-									if filters.GetView() == models.ViewUnread {
+									if response.Filters.GetView() == models.ViewUnread {
 										@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 										<span class="sr-only">Mark All Read</span>
 										Mark Articles Read
@@ -437,17 +437,17 @@ templ ListArticles(subscriptionID models.SubscriptionID, articles models.Article
 							</form>
 						} else {
 							// Mark subscription action.
-							<form id={ "mark-" + subscriptionID }>
+							<form id={ "mark-" + response.SubscriptionID }>
 								// MarkURL returns the app URL for marking the subscription.
 								{{ var markURL string }}
 								{{ var markText string }}
 								{{ var markIcon templ.Component }}
-								if filters.GetView() == models.ViewUnread {
-									{{ markURL = "/mark/subscription/" + subscriptionID + "/read" }}
+								if response.Filters.GetView() == models.ViewUnread {
+									{{ markURL = "/mark/subscription/" + response.SubscriptionID + "/read" }}
 									{{ markText = "Mark Subscription Read" }}
 									{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
 								} else {
-									{{ markURL = "/mark/subscription/" + subscriptionID + "/unread" }}
+									{{ markURL = "/mark/subscription/" + response.SubscriptionID + "/unread" }}
 									{{ markText = "Mark Subscription Unread" }}
 									{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
 								}
@@ -462,7 +462,7 @@ templ ListArticles(subscriptionID models.SubscriptionID, articles models.Article
 							</form>
 							// Edit subscription action.
 							@NewLink(
-								WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
+								WithHXMethod(http.MethodGet, "/edit/subscription/"+response.SubscriptionID),
 								WithHXTarget(ContentID.Target()),
 								WithHXPushURL(true),
 								WithClasses("link-hover"),
@@ -476,12 +476,12 @@ templ ListArticles(subscriptionID models.SubscriptionID, articles models.Article
 			</el-dropdown>
 		}
 		<section class="mt-4">
-			if len(articles) > 0 {
+			if len(response.Articles) > 0 {
 				@grid() {
-					@PaginateArticles(articles, pagination)
+					@PaginateArticles(response)
 				}
 			} else {
-				{{ filters.Subscriptions = nil }}
+				{{ response.Filters.Subscriptions = nil }}
 				@EmptyContent()
 			}
 		</section>
@@ -489,16 +489,15 @@ templ ListArticles(subscriptionID models.SubscriptionID, articles models.Article
 }
 
 // PaginateArticles renders the given list of articles as cards with an optional element to trigger pagination to load more.
-templ PaginateArticles(articles models.Articles, pagination models.Pagination) {
-	{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
-	for article := range slices.Values(articles) {
+templ PaginateArticles(response *models.ListArticlesResponse) {
+	for article := range slices.Values(response.Articles) {
 		<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
 		@ArticleCard(article)
 	}
 	// Add pagination element if pagination is required.
-	if pagination != "" && len(articles) == filters.GetCount() {
+	if response.Pagination != "" && len(response.Articles) == response.Filters.GetCount() {
 		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/list/articles/paginate", "#content-filters,[name='csrf_token']", pagination)
+		@PaginationControl(ctx, "/list/articles/paginate", "#content-filters,[name='csrf_token']", response.Pagination)
 	}
 }
 

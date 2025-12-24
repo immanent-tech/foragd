@@ -293,7 +293,7 @@ type ChangePasswordRequest struct {
 }
 
 // Count is the count of items to retrieve with a request.
-type Count = string
+type Count = int
 
 // CreatedAt records when the object was created in the database.
 type CreatedAt = time.Time
@@ -511,13 +511,27 @@ type JobState struct {
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
+// ListArticlesResponse contains the data retrieved and relevant for listing articles.
+type ListArticlesResponse struct {
+	Articles Articles `json:"articles"`
+
+	// Filters contains filters for altering the display of objects.
+	Filters ListFilters `json:"filters" validate:"required"`
+
+	// Pagination contains data for paginating through results.
+	Pagination Pagination `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
 // ListFilters contains filters for altering the display of objects.
 type ListFilters struct {
 	// Categories is a list of categories.
 	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
 
 	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
+	Count Count `form:"count" json:"count" validate:"gt=0,lt=20"`
 
 	// OnlyFavorites indicates whether to filter by favorites only.
 	OnlyFavorites bool `form:"only_favorites" json:"only_favorites" validate:"omitempty,boolean"`
@@ -530,6 +544,27 @@ type ListFilters struct {
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`
+}
+
+// ListRequest contains the parameters needed for listing subscriptions or articles.
+type ListRequest struct {
+	// Filters contains filters for altering the display of objects.
+	Filters ListFilters `json:"filters,omitempty,omitzero" validate:"required"`
+
+	// Pagination contains data for paginating through results.
+	Pagination Pagination `form:"pagination" json:"pagination,omitempty,omitzero" validate:"omitempty,url_encoded"`
+}
+
+// ListSubscriptionsResponse contains the data retrieved and relevant for listing subscriptions.
+type ListSubscriptionsResponse struct {
+	CategoryCounts CategoryCounts `json:"category_counts"`
+
+	// Filters contains filters for altering the display of objects.
+	Filters ListFilters `json:"filters" validate:"required"`
+
+	// Pagination contains data for paginating through results.
+	Pagination    Pagination    `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
+	Subscriptions Subscriptions `json:"subscriptions"`
 }
 
 // Mark applies the given mark action to objects.

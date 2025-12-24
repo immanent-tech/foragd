@@ -30,8 +30,7 @@ const (
 	// minUserCount is the mininum number of results a user can retrieve at a single time.
 	minUserCount = 1
 	// defaultCount is to show 10 objects.
-	defaultCount    = "15"
-	defaultCountInt = 15
+	defaultCount = 15
 	// defaultView is to show unread objects.
 	defaultView = ViewUnread
 )
@@ -112,11 +111,7 @@ func (f *ListFilters) GetSort() Sort {
 
 // GetCount returns the count value (encoded as a string in the filters) as an int.
 func (f *ListFilters) GetCount() int {
-	value, err := strconv.Atoi(f.Count)
-	if err != nil {
-		return defaultCountInt
-	}
-	return value
+	return f.Count
 }
 
 // GetView returns the view filter.
@@ -140,7 +135,7 @@ func (f *ListFilters) QueryParams() url.Values {
 	}
 	params.Set(ParamSort, string(f.Sort))
 	params.Set(ParamView, string(f.View))
-	params.Set(ParamCount, f.Count)
+	params.Set(ParamCount, strconv.Itoa(f.Count))
 	return params
 }
 
@@ -181,11 +176,7 @@ func setValidSort(value Sort) Sort {
 // represents. If the value is not a valid Count, the default Count is
 // returned.
 func setValidCount(value Count) Count {
-	numeric, err := strconv.Atoi(value)
-	if err != nil {
-		return defaultCount
-	}
-	if numeric < minUserCount || numeric > maxUserCount {
+	if value < minUserCount || value > maxUserCount {
 		return defaultCount
 	}
 	return value

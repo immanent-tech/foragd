@@ -1482,7 +1482,7 @@ func UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) templ.Componen
 }
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
-func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles, filters *models.ListFilters, pagination models.Pagination) templ.Component {
+func ListArticles(response *models.ListArticlesResponse) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1515,7 +1515,7 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = generateFilters(filters).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = generateFilters(&response.Filters).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1524,9 +1524,9 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var69 string
-			templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs("/list/articles/updates?" + filters.QueryString())
+			templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.JoinStringErrs("/list/articles/updates?" + response.Filters.QueryString())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 377, Col: 96}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 377, Col: 105}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var69))
 			if templ_7745c5c3_Err != nil {
@@ -1536,11 +1536,11 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if subscriptionID != "" {
+			if response.SubscriptionID != "" {
 				var templ_7745c5c3_Var70 string
-				templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.JoinStringErrs(articles[0].GetFeedTitle())
+				templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.JoinStringErrs(response.Articles[0].GetFeedTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 383, Col: 34}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 383, Col: 43}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var70))
 				if templ_7745c5c3_Err != nil {
@@ -1557,9 +1557,9 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var71 string
-			templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.JoinStringErrs(filters.GetView())
+			templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.JoinStringErrs(response.Filters.GetView())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 391, Col: 24}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 391, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var71))
 			if templ_7745c5c3_Err != nil {
@@ -1570,9 +1570,9 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var72 string
-			templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(filters.GetSort().String())
+			templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(response.Filters.GetSort().String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 394, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 394, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
 			if templ_7745c5c3_Err != nil {
@@ -1606,7 +1606,7 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if subscriptionID == "" {
+				if response.SubscriptionID == "" {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, " <form><input type=\"hidden\" name=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -1625,9 +1625,9 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var75 string
-					templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs(filters.GetView())
+					templ_7745c5c3_Var75, templ_7745c5c3_Err = templ.JoinStringErrs(response.Filters.GetView())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 414, Col: 80}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 414, Col: 89}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var75))
 					if templ_7745c5c3_Err != nil {
@@ -1637,7 +1637,7 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					if filters.GetView() == models.ViewUnread {
+					if response.Filters.GetView() == models.ViewUnread {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, " hx-post=\"/list/articles/mark/read\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
@@ -1665,7 +1665,7 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					if filters.GetView() == models.ViewUnread {
+					if response.Filters.GetView() == models.ViewUnread {
 						templ_7745c5c3_Err = tabler.MailOpenedFilled(i.Props{Class: "size-4"}).Render(ctx, templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
@@ -1746,9 +1746,9 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var81 string
-					templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs("mark-" + subscriptionID)
+					templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs("mark-" + response.SubscriptionID)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 440, Col: 42}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 440, Col: 51}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var81))
 					if templ_7745c5c3_Err != nil {
@@ -1761,12 +1761,12 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 					var markURL string
 					var markText string
 					var markIcon templ.Component
-					if filters.GetView() == models.ViewUnread {
-						markURL = "/mark/subscription/" + subscriptionID + "/read"
+					if response.Filters.GetView() == models.ViewUnread {
+						markURL = "/mark/subscription/" + response.SubscriptionID + "/read"
 						markText = "Mark Subscription Read"
 						markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 					} else {
-						markURL = "/mark/subscription/" + subscriptionID + "/unread"
+						markURL = "/mark/subscription/" + response.SubscriptionID + "/unread"
 						markText = "Mark Subscription Unread"
 						markIcon = tabler.MailFilled(i.Props{Class: "size-4"})
 					}
@@ -1836,7 +1836,7 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 						return nil
 					})
 					templ_7745c5c3_Err = NewLink(
-						WithHXMethod(http.MethodGet, "/edit/subscription/"+subscriptionID),
+						WithHXMethod(http.MethodGet, "/edit/subscription/"+response.SubscriptionID),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(true),
 						WithClasses("link-hover"),
@@ -1851,7 +1851,7 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = FilterControls("/list/articles", articles.GetCategoryCounts(), filters).Render(templ.WithChildren(ctx, templ_7745c5c3_Var73), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = FilterControls("/list/articles", response.Articles.GetCategoryCounts(), &response.Filters).Render(templ.WithChildren(ctx, templ_7745c5c3_Var73), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1859,7 +1859,7 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if len(articles) > 0 {
+			if len(response.Articles) > 0 {
 				templ_7745c5c3_Var85 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -1872,7 +1872,7 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = PaginateArticles(articles, pagination).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = PaginateArticles(response).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -1883,7 +1883,7 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 					return templ_7745c5c3_Err
 				}
 			} else {
-				filters.Subscriptions = nil
+				response.Filters.Subscriptions = nil
 				templ_7745c5c3_Err = EmptyContent().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -1904,7 +1904,7 @@ func ListArticles(subscriptionID models.SubscriptionID, articles models.Articles
 }
 
 // PaginateArticles renders the given list of articles as cards with an optional element to trigger pagination to load more.
-func PaginateArticles(articles models.Articles, pagination models.Pagination) templ.Component {
+func PaginateArticles(response *models.ListArticlesResponse) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -1925,8 +1925,7 @@ func PaginateArticles(articles models.Articles, pagination models.Pagination) te
 			templ_7745c5c3_Var86 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		filters := models.PageFiltersFromCtx(ctx, "/list/articles")
-		for article := range slices.Values(articles) {
+		for article := range slices.Values(response.Articles) {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 128, "<input type=\"hidden\" name=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -1934,7 +1933,7 @@ func PaginateArticles(articles models.Articles, pagination models.Pagination) te
 			var templ_7745c5c3_Var87 string
 			templ_7745c5c3_Var87, templ_7745c5c3_Err = templ.JoinStringErrs("metadata[" + article.GetSubscriptionID() + "]")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 495, Col: 77}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 494, Col: 77}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var87))
 			if templ_7745c5c3_Err != nil {
@@ -1947,7 +1946,7 @@ func PaginateArticles(articles models.Articles, pagination models.Pagination) te
 			var templ_7745c5c3_Var88 string
 			templ_7745c5c3_Var88, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 495, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 494, Col: 103}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var88))
 			if templ_7745c5c3_Err != nil {
@@ -1962,12 +1961,12 @@ func PaginateArticles(articles models.Articles, pagination models.Pagination) te
 				return templ_7745c5c3_Err
 			}
 		}
-		if pagination != "" && len(articles) == filters.GetCount() {
+		if response.Pagination != "" && len(response.Articles) == response.Filters.GetCount() {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 131, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = PaginationControl(ctx, "/list/articles/paginate", "#content-filters,[name='csrf_token']", pagination).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = PaginationControl(ctx, "/list/articles/paginate", "#content-filters,[name='csrf_token']", response.Pagination).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -2202,7 +2201,7 @@ func favoriteArticleLink(article *models.Article) templ.Component {
 		var templ_7745c5c3_Var97 string
 		templ_7745c5c3_Var97, templ_7745c5c3_Err = templ.JoinStringErrs("favorite_" + article.GetID())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 565, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 564, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var97))
 		if templ_7745c5c3_Err != nil {

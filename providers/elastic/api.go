@@ -481,8 +481,7 @@ func (a *API) GetSubscriptions(
 // Dynamic information for subscriptions will also be added.
 func (a *API) FilterSubscriptions(
 	ctx context.Context,
-	filters *models.ListFilters,
-	pagination models.Pagination,
+	request *models.ListRequest,
 ) (models.Subscriptions, models.Pagination, error) {
 	// Get subscriptions by ID.
 	user, err := models.UserFromCtx(ctx)
@@ -492,9 +491,9 @@ func (a *API) FilterSubscriptions(
 	subscriptionQuery := query.Bool(
 		query.Filter(
 			query.Term("user_id", user.GetID()),
-			query.Terms("subscription_id", filters.Subscriptions...),
+			query.Terms("subscription_id", request.Filters.Subscriptions...),
 			// query.Term("favorite", filters.OnlyFavorites),
-			query.Terms("customisation.categories.raw", filters.GetCategories()...),
+			query.Terms("customisation.categories.raw", request.Filters.GetCategories()...),
 		),
 	)
 	subscriptions, err := a.getAllSubscriptionsByQuery(ctx, subscriptionQuery)
@@ -510,11 +509,12 @@ func (a *API) FilterSubscriptions(
 		return nil, "", fmt.Errorf("add dynamic info: %w", err)
 	}
 	// Sort and paginate.
+	var pagination models.Pagination
 	subscriptions, pagination = subscriptions.
-		FilterByView(filters.GetView()).
-		FilterByFavorites(filters.OnlyFavorites).
-		Sort(filters.Sort).
-		Paginate(pagination, filters.GetCount())
+		FilterByView(request.Filters.GetView()).
+		FilterByFavorites(request.Filters.OnlyFavorites).
+		Sort(request.Filters.Sort).
+		Paginate(request.Pagination, request.Filters.GetCount())
 
 	return subscriptions, pagination, nil
 }
@@ -1317,8 +1317,7 @@ func (a *API) GetArticles(ctx context.Context, itemIDs ...models.ItemID) (models
 // FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.
 func (a *API) FilterArticles(
 	ctx context.Context,
-	filters *models.ListFilters,
-	pagination models.Pagination,
+	request *models.ListRequest,
 ) (models.Articles, models.Pagination, error) {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
@@ -1326,7 +1325,7 @@ func (a *API) FilterArticles(
 	}
 
 	subscriptions, err := a.GetSubscriptions(ctx,
-		GetSubscriptionsByIDs(filters.GetSubscriptions()...),
+		GetSubscriptionsByIDs(request.Filters.GetSubscriptions()...),
 	)
 	if err != nil {
 		return nil, "", fmt.Errorf("filter articles: get subscriptions: %w", err)
@@ -1340,17 +1339,17 @@ func (a *API) FilterArticles(
 	articleQuery := query.Bool(
 		query.Filter(
 			// Must match any of the given categories.
-			query.Terms("categories.raw", filters.GetCategories()...),
+			query.Terms("categories.raw", request.Filters.GetCategories()...),
 			query.Bool(
-				query.Should(a.BuildSubscriptionQueries(user, filters.GetView(), subscriptions)...),
+				query.Should(a.BuildSubscriptionQueries(user, request.Filters.GetView(), subscriptions)...),
 			),
 		),
 	)
 
-	sort := filters.GetSort()
+	sort := request.Filters.GetSort()
 
 	// Find items matching filters.
-	items, pagination, err := a.SearchItems(ctx, articleQuery, filters.GetCount(), &sort, &pagination)
+	items, pagination, err := a.SearchItems(ctx, articleQuery, request.Filters.GetCount(), &sort, &request.Pagination)
 	if err != nil {
 		return nil, "", fmt.Errorf("could not retrieve filtered items: %w", err)
 	}
