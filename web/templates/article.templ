@@ -127,15 +127,7 @@ templ ArticleCard(article *models.Article) {
 								Go To Article
 							}
 							// Find similar action.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
-								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(true),
-								WithClasses("link-hover"),
-							) {
-								@tabler.FileSearch(i.Props{Class: "size-4"})
-								Find similar...
-							}
+							@findSimilarArticlesLink(article)
 							// Mark action.
 							<form id={ "mark-" + article.GetID() }>
 								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
@@ -241,6 +233,8 @@ templ ArticleContent(article *models.Article) {
 							@tabler.DotsVertical(i.Props{Class: "size-6"})
 						</button>
 						<el-menu id="article-content-menu" anchor="bottom end" popover>
+							// Find similar action.
+							@findSimilarArticlesLink(article)
 							// Mark action.
 							<form>
 								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
@@ -565,4 +559,16 @@ templ favoriteArticleLink(article *models.Article) {
 			{ children... }
 		</div>
 	</form>
+}
+
+templ findSimilarArticlesLink(article *models.Article) {
+	@NewLink(
+		WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
+		WithHXTarget(ContentID.Target()),
+		WithHXPushURL(true),
+		WithClasses("link-hover"),
+	) {
+		@tabler.FileSearch(i.Props{Class: "size-4"})
+		Find similar...
+	}
 }
