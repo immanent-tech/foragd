@@ -190,8 +190,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 			Mark:          models.Mark(chi.URLParam(req, models.ParamMark)),
 			View:          models.View(req.FormValue(models.ParamView)),
 		}
-		err := request.Valid()
-		if err != nil {
+		if err := request.Valid(); err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusUnprocessableEntity,
@@ -203,8 +202,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 		}
 
 		// Mark subscription.
-		err = api.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...)
-		if err != nil {
+		if err := api.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...); err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("mark subscriptions: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -218,11 +216,10 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 		// Determine the URL the request came from.
 		currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
-			err = SetRedirect(res, HXLocationRequest{
+			if err := SetRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
-			})
-			if err != nil {
+			}); err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("set redirect: %w", err),
 					StatusCode:    http.StatusInternalServerError,
@@ -235,12 +232,11 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 		}
 		if strings.Contains(currentURL, "/list/articles") {
 			// If the current URL is /list/articles, return to /list/subscriptions.
-			err = SetRedirect(res, HXLocationRequest{
+			if err := SetRedirect(res, HXLocationRequest{
 				Path:   "/list/subscriptions",
 				Target: templates.ContentID.Target(),
 				Values: models.PageFiltersFromCtx(req.Context(), "/list/subscriptions").Values(),
-			})
-			if err != nil {
+			}); err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("set redirect: %w", err),
 					StatusCode:    http.StatusInternalServerError,

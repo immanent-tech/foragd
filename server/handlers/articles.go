@@ -272,8 +272,7 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 			Mark:     models.Mark(chi.URLParam(req, models.ParamMark)),
 			View:     models.View(req.FormValue(models.ParamView)),
 		}
-		err := request.Valid()
-		if err != nil {
+		if err := request.Valid(); err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusUnprocessableEntity,
@@ -286,8 +285,7 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 
 		// Mark articles.
 		for subscriptionID, itemIDs := range request.Metadata {
-			err = markArticles(req.Context(), api, request.Mark, subscriptionID, itemIDs...)
-			if err != nil {
+			if err := markArticles(req.Context(), api, request.Mark, subscriptionID, itemIDs...); err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("unable to update user: %w", err),
 					StatusCode:    http.StatusInternalServerError,
