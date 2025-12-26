@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/immanent-tech/foragd/compare/v0.6.0...v0.7.0) (2025-12-26)
+
+
+### Features
+
+* **elastic:** :sparkles: add query names for most query clauses for easier debugging of queries ([b9606d6](https://github.com/immanent-tech/foragd/commit/b9606d64c4a2cb350b4f9c4f340c49a3a3d1fa38))
+
+
+### Bug Fixes
+
+* **elastic:** :bug: pass search options correctly when executing paginated items search ([07d3869](https://github.com/immanent-tech/foragd/commit/07d3869ad195f58cbba169c70e36889a781a5b31))
+
 ## [0.6.0](https://github.com/immanent-tech/foragd/compare/v0.5.1...v0.6.0) (2025-12-24)
 
 
