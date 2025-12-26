@@ -17,7 +17,7 @@ templ SideBar(attributes templ.Attributes) {
 				@LogoSmall("flex size-16")
 				<p class="font-bold">Foragd</p>
 			</div>
-			<nav aria-label="Sidebar" class="flex flex-1 flex-col place-items-center">
+			<div aria-label="Sidebar Navigation" class="flex flex-1 flex-col place-items-center">
 				<ul role="list" class="flex flex-1 flex-col my-64 justify-between">
 					<li>
 						@NewLink(
@@ -82,7 +82,7 @@ templ SideBar(attributes templ.Attributes) {
 						}
 					</li>
 				</ul>
-			</nav>
+			</div>
 		</div>
 	</nav>
 }

@@ -186,7 +186,7 @@ func Content(user *models.User, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<main class=\"lg:pl-36 scroll-mt-16 pb-20 sm:pb-8\"><div id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<main aria-label=\"Main Content\" class=\"lg:pl-36 scroll-mt-16 pb-20 sm:pb-8\"><div id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

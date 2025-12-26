@@ -40,7 +40,7 @@ templ Document(data []byte) {
 templ Content(user *models.User, content templ.Component) {
 	@header(user)
 	@SideBar(nil)
-	<main class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8">
+	<main aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8">
 		<div id={ ContentID.String() } hx-indicator="#content-loading">
 			@content
 		</div>

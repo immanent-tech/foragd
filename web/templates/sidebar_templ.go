@@ -56,7 +56,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"font-bold\">Foragd</p></div><nav aria-label=\"Sidebar\" class=\"flex flex-1 flex-col place-items-center\"><ul role=\"list\" class=\"flex flex-1 flex-col my-64 justify-between\"><li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"font-bold\">Foragd</p></div><div aria-label=\"Sidebar Navigation\" class=\"flex flex-1 flex-col place-items-center\"><ul role=\"list\" class=\"flex flex-1 flex-col my-64 justify-between\"><li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -314,7 +314,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</li></ul></nav></div></nav>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</li></ul></div></div></nav>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
