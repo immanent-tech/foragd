@@ -16,7 +16,7 @@ import (
 // GetSession retrieves session data with the given token.
 func (a *API) GetSession(ctx context.Context, token string) (*models.UserSession, error) {
 	index := schema.SessionsSchemaPrefix + schema.IndexReadSuffix
-	session, err := GetDoc[string, models.UserSession](ctx, a.GetAPI(), index, token)
+	session, err := GetDoc[string, models.UserSession](ctx, a, index, token)
 	if err != nil {
 		return nil, fmt.Errorf("get session: %w", err)
 	}
@@ -26,7 +26,7 @@ func (a *API) GetSession(ctx context.Context, token string) (*models.UserSession
 // DeleteSession removes the session data for the given token.
 func (a *API) DeleteSession(ctx context.Context, token string) error {
 	index := schema.SessionsSchemaPrefix + schema.IndexWriteSuffix
-	if err := DeleteDoc(ctx, a.GetAPI(), index, token); err != nil {
+	if err := DeleteDoc(ctx, a, index, token); err != nil {
 		return fmt.Errorf("delete session: %w", err)
 	}
 	return nil
@@ -35,7 +35,7 @@ func (a *API) DeleteSession(ctx context.Context, token string) error {
 // UpdateSession updates the session data.
 func (a *API) UpdateSession(ctx context.Context, token string, data map[string]any) error {
 	index := schema.SessionsSchemaPrefix + schema.IndexWriteSuffix
-	if err := UpdateDoc(ctx, a.GetAPI(), index,
+	if err := UpdateDoc(ctx, a, index,
 		token,
 		data,
 		UpdateDocAsUpsert(),
@@ -50,7 +50,7 @@ func (a *API) FindAllSessions(ctx context.Context) ([]models.UserSession, error)
 	index := schema.SessionsSchemaPrefix + schema.IndexReadSuffix
 	sessions, err := SearchAll[models.UserSession](
 		ctx,
-		a.GetAPI(),
+		a,
 		index,
 		query.Since("expiry", time.Now().UTC()),
 		defaultPaginationSize,

@@ -18,7 +18,7 @@ import (
 // GetFeed retrieves a single feed with the given ID.
 func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 	index := schema.FeedsIndexPrefix + schema.IndexReadSuffix
-	feed, err := GetDoc[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, id)
+	feed, err := GetDoc[models.FeedID, *models.Feed](ctx, a, index, id)
 	if err != nil {
 		return nil, fmt.Errorf("get feed: %w", err)
 	}
@@ -28,7 +28,7 @@ func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, erro
 // GetFeeds retrieves the feeds with the given IDs.
 func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
 	index := schema.FeedsIndexPrefix + schema.IndexReadSuffix
-	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, ids...)
+	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, a, index, ids...)
 	if err != nil {
 		return nil, fmt.Errorf("get feeds: %w", err)
 	}
@@ -38,7 +38,7 @@ func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds,
 // CreateFeed creates a new feed doc in Elasticsearch.
 func (a *API) CreateFeed(ctx context.Context, feed *models.Feed) error {
 	index := schema.FeedsIndexPrefix + schema.IndexWriteSuffix
-	if err := CreateDoc(ctx, a.GetAPI(), index, feed.GetID(), feed); err != nil {
+	if err := CreateDoc(ctx, a, index, feed.GetID(), feed); err != nil {
 		return fmt.Errorf("create feed: %w", err)
 	}
 	return nil
@@ -47,7 +47,7 @@ func (a *API) CreateFeed(ctx context.Context, feed *models.Feed) error {
 // DeleteFeed deletes a feed doc with the given ID from Elasticsearch.
 func (a *API) DeleteFeed(ctx context.Context, id models.FeedID) error {
 	index := schema.FeedsIndexPrefix + schema.IndexWriteSuffix
-	if err := DeleteDoc(ctx, a.GetAPI(), index, id); err != nil {
+	if err := DeleteDoc(ctx, a, index, id); err != nil {
 		return fmt.Errorf("delete feed: %w", err)
 	}
 	return nil
@@ -70,7 +70,7 @@ func (a *API) SearchFeeds(
 	}
 
 	// Perform search.
-	feeds, newSearchAfter, err := Search[*models.Feed](ctx, a.GetAPI(), index, query, count,
+	feeds, newSearchAfter, err := Search[*models.Feed](ctx, a, index, query, count,
 		WithSortOptions[*search.Search, SearchRequest](newFeedSortOptions(sort)...),
 		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 	)
@@ -102,7 +102,7 @@ func (a *API) GetNewFeeds(ctx context.Context) (models.Feeds, error) {
 	// don't have a job scheduled for updating their items.
 	feeds, err = SearchAll[*models.Feed](
 		ctx,
-		a.GetAPI(),
+		a,
 		index,
 		query.Term("last_fetched", models.UnixEpoch),
 		defaultPaginationSize,
@@ -121,7 +121,7 @@ func (a *API) UpdateFeedLastFetched(ctx context.Context, id models.FeedID, times
 		"last_fetched": timestamp,
 	}
 
-	if err := UpdateDoc(ctx, a.GetAPI(), index, id, updates); err != nil {
+	if err := UpdateDoc(ctx, a, index, id, updates); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
 	return nil

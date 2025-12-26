@@ -82,11 +82,6 @@ type Object[T ~string] interface {
 // Option is a generic type for functional options.
 type Option[T any] func(T)
 
-// GetAPI returns the raw API object.
-func (a *API) GetAPI() *elasticsearch.TypedClient {
-	return a.TypedClient
-}
-
 // GetSubscription returns the subscription that matches the given ID.
 //
 // Accepts the GetSubscriptionsDynamicInfo request option to generate dynamic info (i.e. stats) for the subscription.
@@ -271,7 +266,7 @@ func (a *API) RemoveSubscriptions(ctx context.Context, ids ...models.Subscriptio
 		return fmt.Errorf("get user data: %w", err)
 	}
 	index := schema.SubscriptionsSchemaPrefix + schema.IndexWriteSuffix
-	if err := DeleteDocs(ctx, a.GetAPI(), index,
+	if err := DeleteDocs(ctx, a, index,
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
@@ -699,7 +694,7 @@ func (a *API) searchSubscriptions(
 	// Perform search.
 	subscriptions, newSearchAfter, err := Search[*models.Subscription](
 		ctx,
-		a.GetAPI(),
+		a,
 		index,
 		query,
 		req.count,
@@ -748,7 +743,7 @@ func (a *API) GetAllSubscriptionCategories(ctx context.Context) (models.Category
 		},
 	}
 
-	resp, err := NewSearchRequest(a.GetAPI(),
+	resp, err := NewSearchRequest(a.TypedClient,
 		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
 		WithIndex[*search.Search, SearchRequest](schema.SubscriptionsSchemaPrefix+schema.IndexReadSuffix),
 		WithQueryOptions[*search.Search, SearchRequest](query),
@@ -1102,7 +1097,7 @@ func (a *API) getFeedLastUpdates(ctx context.Context, ids ...models.FeedID) (map
 
 	items, _, err := Search[*models.Item](
 		ctx,
-		a.GetAPI(),
+		a,
 		index,
 		query.Terms("feed_id", ids...),
 		len(ids),
@@ -1165,7 +1160,7 @@ func (a *API) getAllSubscriptionsByQuery(ctx context.Context, query query.Option
 		subscriptions models.Subscriptions
 		err           error
 	)
-	subscriptions, err = SearchAll[*models.Subscription](ctx, a.GetAPI(), index, query, defaultPaginationSize)
+	subscriptions, err = SearchAll[*models.Subscription](ctx, a, index, query, defaultPaginationSize)
 	if err != nil {
 		return nil, fmt.Errorf("get all subscriptions by query: %w", err)
 	}
@@ -1452,60 +1447,6 @@ func (a *API) GenerateArticles(ctx context.Context, items models.Items) (models.
 	return articles, nil
 }
 
-// UpdateFavoriteArticle changes the favorite status of an article. For adding a favorite article, the content is stored
-// in a separate and the user object is updated with a link to the content. For removing a favorite, the stored content
-// is removed and user object updated appropriately.
-func (a *API) UpdateFavoriteArticle(ctx context.Context, user *models.User, id models.ItemID, favorite bool) error {
-	switch favorite {
-	case true:
-		// Don't do anything if article is already a favorite.
-		if slices.Contains(user.ItemFavorites, id) {
-			return models.ErrUserAlreadyFavorited
-		}
-		// Get the article details.
-		articles, err := a.GetArticles(ctx, id)
-		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
-		}
-		if len(articles) != 1 {
-			return ErrInvalidAPIResult
-		}
-		article := articles[0]
-		// Archive the article.
-		archive, err := models.NewArchivedArticle(user.GetID(), article.GetSubscriptionID(), &article.Item)
-		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
-		}
-		err = a.ArchiveArticle(ctx, archive)
-		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
-		}
-		// Update the list of favorites items in the user object
-		user.ItemFavorites = append(user.ItemFavorites, id)
-		err = a.UpdateUser(ctx, user.GetID(), map[string]any{
-			"item_favorites": user.ItemFavorites,
-		})
-		if err != nil {
-			return fmt.Errorf("unable to add favorite article: %w", err)
-		}
-	case false:
-		err := a.UnarchiveArticle(ctx, user.GetID(), id)
-		if err != nil {
-			return fmt.Errorf("unable to remove favorite article: %w", err)
-		}
-		newFavorites := slices.DeleteFunc(user.ItemFavorites, func(e models.ItemID) bool {
-			return e == id
-		})
-		err = a.UpdateUser(ctx, user.GetID(), map[string]any{
-			"item_favorites": newFavorites,
-		})
-		if err != nil {
-			return fmt.Errorf("unable to remove favorite article: %w", err)
-		}
-	}
-	return nil
-}
-
 // BuildItemsQuery generates a query to fetch the Items that match the given Filters from the given Subscriptions.
 func (a *API) BuildItemsQuery(
 	ctx context.Context,
@@ -1653,10 +1594,6 @@ func SearchSuggestionsClause(search *models.SearchRequest) query.BoolOption {
 	)
 }
 
-// func (e *API) MultiSearchFeeds(ctx context.Context, queries ...*models.MultiSearchQuery) (results.MSearchResults, error) {
-// 	return MultiSearch(ctx, e.GetAPI(), queries...)
-// }
-
 // SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
 // optional.
 func (a *API) SearchItems(
@@ -1673,7 +1610,7 @@ func (a *API) SearchItems(
 		return nil, "", ErrInvalidParams
 	}
 	// Perform search.
-	items, newSearchAfter, err := Search[*models.Item](ctx, a.GetAPI(), index, query, count,
+	items, newSearchAfter, err := Search[*models.Item](ctx, a, index, query, count,
 		WithSortOptions[*search.Search, SearchRequest](newItemSortOptions(sort)...),
 		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 	)
@@ -1698,7 +1635,7 @@ func (a *API) ItemsAggregation(
 ) (*search.Response, error) {
 	index := schema.ItemsSchemaPrefix + schema.IndexReadSuffix
 
-	req := NewSearchRequest(a.GetAPI(),
+	req := NewSearchRequest(a.TypedClient,
 		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
 		WithIndex[*search.Search, SearchRequest](index),
 		WithQueryOptions[*search.Search, SearchRequest](query),
@@ -1718,7 +1655,7 @@ func (a *API) ItemsAggregation(
 func (a *API) CountItems(ctx context.Context, query query.Option) (int64, error) {
 	index := schema.ItemsSchemaPrefix + schema.IndexReadSuffix
 
-	count, err := Count(ctx, a.GetAPI(), index, query)
+	count, err := Count(ctx, a, index, query)
 	if err != nil {
 		return 0, fmt.Errorf("count items: %w", err)
 	}
@@ -1732,31 +1669,6 @@ func (a *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 	return BulkUpdate(ctx, a, index, items...)
 }
 
-// ArchiveArticle will index the given article content to the article archive for permanent storage.
-func (a *API) ArchiveArticle(ctx context.Context, article *models.ArticleArchive) error {
-	index := schema.FavoriteItemsSchemaPrefix + schema.IndexWriteSuffix
-	if err := CreateDoc(ctx, a.GetAPI(), index, article.ItemID, article); err != nil {
-		return fmt.Errorf("archive article: %w", err)
-	}
-	return nil
-}
-
-// UnarchiveArticle will delete an article from the archive.
-func (a *API) UnarchiveArticle(ctx context.Context, userID models.UserID, itemID models.ItemID) error {
-	index := schema.FavoriteItemsSchemaPrefix + schema.IndexWriteSuffix
-	// Set up the query to match the user's favorited article.
-	query := query.Bool(
-		query.Filter(
-			query.Term("user_id", userID),
-			query.Term("item_id", itemID),
-		),
-	)
-	if err := DeleteDocs(ctx, a.GetAPI(), index, query); err != nil {
-		return fmt.Errorf("unarchive article: %w", err)
-	}
-	return nil
-}
-
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
 func BulkAdd[T ~string, O Object[T]](
@@ -1765,7 +1677,7 @@ func BulkAdd[T ~string, O Object[T]](
 	index string,
 	objects ...O,
 ) (map[T]*bulk.OperationResponse, error) {
-	bulkOps, respCh := bulk.NewRequest(ctx, api)
+	bulkOps, respCh := bulk.NewRequest(ctx, api.TypedClient)
 
 	go func() {
 		defer close(bulkOps)
@@ -1808,7 +1720,7 @@ func BulkUpdate[T ~string, O Object[T]](
 	index string,
 	objects ...O,
 ) (map[T]*bulk.OperationResponse, error) {
-	bulkOps, respCh := bulk.NewRequest(ctx, api)
+	bulkOps, respCh := bulk.NewRequest(ctx, api.TypedClient)
 
 	go func() {
 		defer close(bulkOps)
@@ -1857,8 +1769,8 @@ func exists[T ~string](ctx context.Context, api *elasticsearch.TypedClient, inde
 }
 
 // Count will return the number of docs matching the given queries in the given index.
-func Count(ctx context.Context, api *elasticsearch.TypedClient, index string, queries ...query.Option) (int64, error) {
-	resp, err := NewCountRequest(api,
+func Count(ctx context.Context, api *API, index string, queries ...query.Option) (int64, error) {
+	resp, err := NewCountRequest(api.TypedClient,
 		WithRequestID[*count.Count, CountRequest](middleware.GetReqID(ctx)),
 		WithIndex[*count.Count, CountRequest](index),
 		WithQueryOptions[*count.Count, CountRequest](queries...),
@@ -1874,7 +1786,7 @@ func Count(ctx context.Context, api *elasticsearch.TypedClient, index string, qu
 // is returned on a failure.
 func GetDocs[T ~string, O any](
 	ctx context.Context,
-	api *elasticsearch.TypedClient,
+	api *API,
 	index string,
 	ids ...T,
 ) ([]O, error) {
@@ -1882,7 +1794,7 @@ func GetDocs[T ~string, O any](
 	for id := range slices.Values(ids) {
 		docIDs = append(docIDs, string(id))
 	}
-	resp, err := NewMGetRequest(api,
+	resp, err := NewMGetRequest(api.TypedClient,
 		WithRequestID[*mget.Mget, MgetRequest](middleware.GetReqID(ctx)),
 		WithIndex[*mget.Mget, MgetRequest](index),
 		WithIDs[*mget.Mget, MgetRequest](docIDs...),
@@ -1899,16 +1811,16 @@ func GetDocs[T ~string, O any](
 }
 
 // GetDoc retrieves the doc with the given id from the given index. A non-nil error is returned on a failure.
-func GetDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClient, index string, id T) (O, error) {
+func GetDoc[T ~string, O any](ctx context.Context, api *API, index string, id T) (O, error) {
 	var doc O
-	resp, err := NewGetRequest(api, index, string(id),
+	resp, err := NewGetRequest(api.TypedClient, index, string(id),
 		WithRequestID[*get.Get, RequestCommon[*get.Get]](middleware.GetReqID(ctx)),
 	).Do(ctx)
 	if err != nil {
 		return doc, toAPIError("get doc", err)
 	}
 	if !resp.Found {
-		return doc, ErrNotFound //nolint:wrapcheck
+		return doc, ErrNotFound
 	}
 	doc, err = results.ExtractSource[O](resp.Source_)
 	if err != nil {
@@ -1918,7 +1830,7 @@ func GetDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClien
 }
 
 // CreateDoc will create the given document, with given id, in the given index.
-func CreateDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClient, index string, id T, doc O) error {
+func CreateDoc[T ~string, O any](ctx context.Context, api *API, index string, id T, doc O) error {
 	resp, err := api.Create(index, string(id)).
 		Document(doc).
 		Header(ReqIDHeader, middleware.GetReqID(ctx)).
@@ -1940,13 +1852,13 @@ func CreateDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedCl
 // returned on a failure.
 func UpdateDoc[T ~string](
 	ctx context.Context,
-	api *elasticsearch.TypedClient,
+	api *API,
 	index string,
 	id T,
 	updates map[string]any,
 	options ...Option[UpdateDocRequest],
 ) error {
-	resp, err := NewUpdateDocRequest(api, index, string(id), updates, options...).Do(ctx)
+	resp, err := NewUpdateDocRequest(api.TypedClient, index, string(id), updates, options...).Do(ctx)
 	if err != nil {
 		return toAPIError("update doc", err)
 	}
@@ -1961,7 +1873,7 @@ func UpdateDoc[T ~string](
 }
 
 // DeleteDoc deletes the document with the given id from the given index.
-func DeleteDoc[T ~string](ctx context.Context, api *elasticsearch.TypedClient, index string, id T) error {
+func DeleteDoc[T ~string](ctx context.Context, api *API, index string, id T) error {
 	resp, err := api.Delete(index, string(id)).
 		Header(ReqIDHeader, middleware.GetReqID(ctx)).
 		Refresh(refresh.True).
@@ -1979,9 +1891,9 @@ func DeleteDoc[T ~string](ctx context.Context, api *elasticsearch.TypedClient, i
 }
 
 // DeleteDocs performs a delete by query request on the given index to delete documents matching the given queries.
-func DeleteDocs(ctx context.Context, api *elasticsearch.TypedClient, index string, queries ...query.Option) error {
+func DeleteDocs(ctx context.Context, api *API, index string, queries ...query.Option) error {
 	resp, err := NewDeleteByQueryRequest(
-		api,
+		api.TypedClient,
 		index,
 		WithRequestID[*deletebyquery.DeleteByQuery, RequestCommon[*deletebyquery.DeleteByQuery]](
 			middleware.GetReqID(ctx),
@@ -2002,7 +1914,7 @@ func DeleteDocs(ctx context.Context, api *elasticsearch.TypedClient, index strin
 // Search performs a _search request to find documents matching the given query.
 func Search[O any](
 	ctx context.Context,
-	api *elasticsearch.TypedClient,
+	api *API,
 	index string,
 	query query.Option,
 	count int,
@@ -2015,7 +1927,7 @@ func Search[O any](
 		WithSize[*search.Search, SearchRequest](count),
 	}
 	defaultOptions = append(defaultOptions, options...)
-	req := NewSearchRequest(api, defaultOptions...)
+	req := NewSearchRequest(api.TypedClient, defaultOptions...)
 
 	resp, err := req.Do(ctx)
 	if err != nil {
@@ -2038,7 +1950,7 @@ func Search[O any](
 // does not stop when the request hits count is reached.
 func SearchAll[O any](
 	ctx context.Context,
-	api *elasticsearch.TypedClient,
+	api *API,
 	index string,
 	query query.Option,
 	paginationSize int,

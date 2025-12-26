@@ -19,7 +19,7 @@ import (
 // CreateUser creates a new user doc in Elasticsearch.
 func (a *API) CreateUser(ctx context.Context, user *models.User) error {
 	index := schema.UsersSchemaPrefix + schema.IndexWriteSuffix
-	if err := CreateDoc(ctx, a.GetAPI(), index, user.GetID(), user); err != nil {
+	if err := CreateDoc(ctx, a, index, user.GetID(), user); err != nil {
 		return fmt.Errorf("create user: %w", err)
 	}
 	return nil
@@ -28,7 +28,7 @@ func (a *API) CreateUser(ctx context.Context, user *models.User) error {
 // GetUser retrieves the user doc with the given id.
 func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
 	index := schema.UsersSchemaPrefix + schema.IndexReadSuffix
-	user, err := GetDoc[models.UserID, *models.User](ctx, a.GetAPI(), index, id)
+	user, err := GetDoc[models.UserID, *models.User](ctx, a, index, id)
 	if err != nil {
 		return nil, fmt.Errorf("get user: %w", err)
 	}
@@ -38,7 +38,7 @@ func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, erro
 // DeleteUser removes the user doc with the given ID.
 func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
 	index := schema.UsersSchemaPrefix + schema.IndexWriteSuffix
-	if err := DeleteDoc(ctx, a.GetAPI(), index, id); err != nil {
+	if err := DeleteDoc(ctx, a, index, id); err != nil {
 		return fmt.Errorf("delete user: %w", err)
 	}
 	return nil
@@ -48,7 +48,7 @@ func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
 func (a *API) UpdateUser(ctx context.Context, userID models.UserID, updates map[string]any) error {
 	index := schema.UsersSchemaPrefix + schema.IndexWriteSuffix
 	updates["updated_at"] = time.Now().UTC()
-	if err := UpdateDoc(ctx, a.GetAPI(), index, userID, updates,
+	if err := UpdateDoc(ctx, a, index, userID, updates,
 		WithRefresh("true"),
 		WithRetryOnConflict(defaultRetries),
 	); err != nil {
@@ -61,7 +61,7 @@ func (a *API) UpdateUser(ctx context.Context, userID models.UserID, updates map[
 func (a *API) FindUserByExternalID(ctx context.Context, externalID string) (*models.User, error) {
 	index := schema.UsersSchemaPrefix + schema.IndexReadSuffix
 	// Get the user.
-	users, _, err := Search[*models.User](ctx, a.GetAPI(), index, query.Term("external_user_id", externalID), 1,
+	users, _, err := Search[*models.User](ctx, a, index, query.Term("external_user_id", externalID), 1,
 		WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
 		WithTrackTotalHits(false),
 	)

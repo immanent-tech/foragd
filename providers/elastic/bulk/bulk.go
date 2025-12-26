@@ -39,11 +39,6 @@ const (
 	BulkUpdate
 )
 
-// Client represents an elasticsearch client connection.
-type Client interface {
-	GetAPI() *elasticsearch.TypedClient
-}
-
 // OpType represents the type of bulk operation to perform.
 type OpType int
 
@@ -230,9 +225,13 @@ func NewOperation(doc any, options ...OperationOption) Operation {
 
 // NewRequest creates a new bulk requesst object with the given options.
 // After creation, document operations can be added with the AddOperations method.
-func NewRequest(ctx context.Context, client Client, options ...Option) (chan Operation, chan Response) {
+func NewRequest(
+	ctx context.Context,
+	client *elasticsearch.TypedClient,
+	options ...Option,
+) (chan Operation, chan Response) {
 	req := &Request{
-		Bulk: client.GetAPI().Bulk(),
+		Bulk: client.Bulk(),
 	}
 
 	for _, option := range options {

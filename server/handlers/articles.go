@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"sync"
 
@@ -19,6 +20,8 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -261,6 +264,119 @@ func ViewArticle(api *elastic.API) http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// AddFavoriteArticle handles adding a new favorite article for a user.
+func AddFavoriteArticle(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+		id := chi.URLParam(req, models.ParamItemID)
+		if err := validation.Validate.Var(id, "required,startswith=item_"); err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode article: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			}
+		}
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			}
+		}
+		if err := updateFavoriteArticle(req.Context(), api, user, id, true); err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("update favorite article: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			}
+		}
+		// Get the display type.
+		display := req.FormValue("display")
+		// Update the content as appropriate.
+		var template templ.Component
+		switch display {
+		case "card":
+			template = templates.ToggleFavorite(id, string(models.ObjectTypeArticle), true)
+		case "content":
+			template = templates.UpdateViewArticleFavorite(id, true)
+		}
+		template = templ.Join(
+			template,
+			templates.Notification(
+				models.NewSuccessMessage("Added Favorite", ""),
+				templates.DefaultNotificationTimeout,
+			),
+		)
+		renderPartial(template).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+// RemoveFavoriteArticle handles removing a favorite article for a user.
+func RemoveFavoriteArticle(api *elastic.API) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+		id := chi.URLParam(req, models.ParamItemID)
+		if err := validation.Validate.Var(id, "required,startswith=item_"); err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode article: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to remove favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			}
+		}
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to remove favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			}
+		}
+		if err := updateFavoriteArticle(req.Context(), api, user, id, false); err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("update favorite article: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to remove favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			}
+		}
+
+		// Update the content as appropriate.
+		var template templ.Component
+		switch req.FormValue("display") {
+		case "card":
+			template = templates.ToggleFavorite(id, string(models.ObjectTypeArticle), false)
+		case "content":
+			template = templates.UpdateViewArticleFavorite(id, false)
+		}
+		template = templ.Join(
+			template,
+			templates.Notification(
+				models.NewSuccessMessage("Removed Favorite", ""),
+				templates.DefaultNotificationTimeout,
+			),
+		)
+		renderPartial(template).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
 func MarkArticle(api *elastic.API) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
@@ -447,4 +563,89 @@ func extractArticleFromURL(url string) (string, error) {
 	}
 	content := validation.SanitizeString(articleBuf.String())
 	return content, nil
+}
+
+// archiveArticle will index the given article content to the article archive for permanent storage.
+func archiveArticle(ctx context.Context, api *elastic.API, article *models.ArticleArchive) error {
+	index := schema.FavoriteItemsSchemaPrefix + schema.IndexWriteSuffix
+	if err := elastic.CreateDoc(ctx, api, index, article.ItemID, article); err != nil {
+		return fmt.Errorf("archive article: %w", err)
+	}
+	return nil
+}
+
+// unarchiveArticle will delete an article from the archive.
+func unarchiveArticle(ctx context.Context, api *elastic.API, userID models.UserID, itemID models.ItemID) error {
+	index := schema.FavoriteItemsSchemaPrefix + schema.IndexWriteSuffix
+	// Set up the query to match the user's favorited article.
+	query := query.Bool(
+		query.Filter(
+			query.Term("user_id", userID),
+			query.Term("item_id", itemID),
+		),
+	)
+	if err := elastic.DeleteDocs(ctx, api, index, query); err != nil {
+		return fmt.Errorf("unarchive article: %w", err)
+	}
+	return nil
+}
+
+// updateFavoriteArticle changes the favorite status of an article. For adding a favorite article, the content is stored
+// in a separate and the user object is updated with a link to the content. For removing a favorite, the stored content
+// is removed and user object updated appropriately.
+func updateFavoriteArticle(
+	ctx context.Context,
+	api *elastic.API,
+	user *models.User,
+	id models.ItemID,
+	favorite bool,
+) error {
+	switch favorite {
+	case true:
+		// Don't do anything if article is already a favorite.
+		if slices.Contains(user.ItemFavorites, id) {
+			return models.ErrUserAlreadyFavorited
+		}
+		// Get the article details.
+		articles, err := api.GetArticles(ctx, id)
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+		if len(articles) != 1 {
+			return elastic.ErrInvalidAPIResult
+		}
+		article := articles[0]
+		// Archive the article.
+		archive, err := models.NewArchivedArticle(user.GetID(), article.GetSubscriptionID(), &article.Item)
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+		err = archiveArticle(ctx, api, archive)
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+		// Update the list of favorites items in the user object
+		user.ItemFavorites = append(user.ItemFavorites, id)
+		err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+			"item_favorites": user.ItemFavorites,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to add favorite article: %w", err)
+		}
+	case false:
+		err := unarchiveArticle(ctx, api, user.GetID(), id)
+		if err != nil {
+			return fmt.Errorf("unable to remove favorite article: %w", err)
+		}
+		newFavorites := slices.DeleteFunc(user.ItemFavorites, func(e models.ItemID) bool {
+			return e == id
+		})
+		err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+			"item_favorites": newFavorites,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to remove favorite article: %w", err)
+		}
+	}
+	return nil
 }

@@ -20,7 +20,7 @@ import (
 func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
 	index := schema.SchedulerIndexPrefix + schema.IndexReadSuffix
 
-	state, err := GetDoc[string, *models.JobState](ctx, a.GetAPI(), index, id)
+	state, err := GetDoc[string, *models.JobState](ctx, a, index, id)
 	if err != nil {
 		return nil, fmt.Errorf("get job state: %w", err)
 	}
@@ -32,7 +32,7 @@ func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]
 	index := schema.SchedulerIndexPrefix + schema.IndexWriteSuffix
 
 	updates["updated_at"] = time.Now().UTC()
-	if err := UpdateDoc(ctx, a.GetAPI(), index, id, updates,
+	if err := UpdateDoc(ctx, a, index, id, updates,
 		UpdateDocAsUpsert(),
 		WithRefresh("true"),
 	); err != nil {
@@ -45,7 +45,7 @@ func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]
 func (a *API) ScheduleJob(ctx context.Context, id string, _ quartz.ScheduledJob, data *jobs.ScheduledJob) error {
 	index := schema.SchedulerIndexPrefix + schema.IndexWriteSuffix
 
-	if err := UpdateDoc(ctx, a.GetAPI(), index, id, map[string]any{
+	if err := UpdateDoc(ctx, a, index, id, map[string]any{
 		"job_next_run":     data.JobNextRun,
 		"job_data":         data.JobData,
 		"job_trigger_type": data.JobTriggerType,
@@ -68,7 +68,7 @@ func (a *API) GetNextScheduledJob(ctx context.Context) (*jobs.ScheduledJob, erro
 
 	jobs, _, err := Search[*jobs.ScheduledJob](
 		ctx,
-		a.GetAPI(),
+		a,
 		index,
 		query.Exists("job_type"),
 		1,
@@ -86,7 +86,7 @@ func (a *API) GetNextScheduledJob(ctx context.Context) (*jobs.ScheduledJob, erro
 func (a *API) GetScheduledJob(ctx context.Context, id string) (*jobs.ScheduledJob, error) {
 	index := schema.SchedulerIndexPrefix + schema.IndexReadSuffix
 
-	job, err := GetDoc[string, *jobs.ScheduledJob](ctx, a.GetAPI(), index, id)
+	job, err := GetDoc[string, *jobs.ScheduledJob](ctx, a, index, id)
 	if err != nil {
 		return nil, fmt.Errorf("get scheduled job: %w", err)
 	}
@@ -100,7 +100,7 @@ func (a *API) GetAllScheduledJobs(ctx context.Context) ([]jobs.ScheduledJob, err
 
 	jobs, err := SearchAll[jobs.ScheduledJob](
 		ctx,
-		a.GetAPI(),
+		a,
 		index,
 		query.Exists("job_type"),
 		defaultPaginationSize,
@@ -120,7 +120,7 @@ func (a *API) GetAllScheduledJobs(ctx context.Context) ([]jobs.ScheduledJob, err
 func (a *API) CountJobs(ctx context.Context) (int64, error) {
 	index := schema.SchedulerIndexPrefix + schema.IndexReadSuffix
 
-	count, err := Count(ctx, a.GetAPI(), index, query.Exists("job_type"))
+	count, err := Count(ctx, a, index, query.Exists("job_type"))
 	if err != nil {
 		return 0, fmt.Errorf("count jobs: %w", err)
 	}
@@ -132,7 +132,7 @@ func (a *API) CountJobs(ctx context.Context) (int64, error) {
 func (a *API) RemoveAllJobs(ctx context.Context) error {
 	index := schema.SchedulerIndexPrefix + schema.IndexWriteSuffix
 
-	if err := DeleteDocs(ctx, a.GetAPI(), index, query.Exists("job_type")); err != nil {
+	if err := DeleteDocs(ctx, a, index, query.Exists("job_type")); err != nil {
 		return fmt.Errorf("remove all jobs: %w", err)
 	}
 
@@ -143,7 +143,7 @@ func (a *API) RemoveAllJobs(ctx context.Context) error {
 func (a *API) RemoveJob(ctx context.Context, id string) error {
 	index := schema.SchedulerIndexPrefix + schema.IndexWriteSuffix
 
-	if err := DeleteDoc(ctx, a.GetAPI(), index, id); err != nil {
+	if err := DeleteDoc(ctx, a, index, id); err != nil {
 		return fmt.Errorf("remove job: %w", err)
 	}
 
