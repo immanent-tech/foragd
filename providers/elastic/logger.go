@@ -4,14 +4,10 @@
 package elastic
 
 import (
-	"bufio"
 	"bytes"
-	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -19,13 +15,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/logging"
-)
-
-var (
-	// logRequestBodyMaxSize is the maximum size of the request body to write to the log.
-	logRequestBodyMaxSize = 256 * 1024
-	// logResponseBodyMaxSize is the maximum size of the response body to write to the log.
-	logResponseBodyMaxSize = 256 * 1024
 )
 
 // Logger is a custom elastictransport.Logger.
@@ -98,24 +87,21 @@ func (l *Logger) LogRoundTrip(
 		} else {
 			buf.ReadFrom(req.Body) //nolint:errcheck
 		}
-		var body strings.Builder
-		logBodyAsText(&body, &buf)
-		requestAttributes = append(requestAttributes,
-			slog.Int("length", int(res.ContentLength)),
-			slog.String("body", body.String()))
+
+		requestAttributes = append(requestAttributes, slog.String("body", buf.String()))
 	}
 	// Set response attributes.
 	responseAttributes := []slog.Attr{
 		slog.Int("status", status),
 	}
-	// if (logging.Level == logging.LevelTrace || l.ResponseBodyEnabled()) && res != nil && res.Body != nil && res.Body != http.NoBody {
+	// if (logging.Level == logging.LevelTrace || l.ResponseBodyEnabled()) && res != nil && res.Body != nil &&
+	// 	res.Body != http.NoBody {
 	// 	defer res.Body.Close()
 	// 	var buf bytes.Buffer
 	// 	buf.ReadFrom(res.Body)
+	// 	res.Body = io.NopCloser(bytes.NewBuffer(buf.Bytes()))
 	// 	var body strings.Builder
-	// 	logBodyAsText(&body, &buf)
 	// 	responseAttributes = append(responseAttributes,
-	// 		slog.Int("length", int(res.ContentLength)),
 	// 		slog.String("body", body.String()))
 	// }
 	// Define log attributes structure.
@@ -147,30 +133,3 @@ func (l *Logger) RequestBodyEnabled() bool {
 func (l *Logger) ResponseBodyEnabled() bool {
 	return l.EnableResponseBody
 }
-
-func logBodyAsText(dst io.Writer, body io.Reader) {
-	scanner := bufio.NewScanner(body)
-	for scanner.Scan() {
-		s := scanner.Text()
-		if s != "" {
-			fmt.Fprintf(dst, "%s\n", s)
-		}
-	}
-}
-
-// func logBodyAsText(body *bytes.Buffer) string {
-// 	// formatted, err := json.MarshalIndent(body.Bytes(), "", "  ")
-// 	// if err != nil {
-// 	// 	spew.Dump(err)
-// 	// 	return ""
-// 	// }
-// 	return string(pretty.Color(body.Bytes(), nil))
-// 	// scanner := bufio.NewScanner(body)
-// 	// for scanner.Scan() {
-// 	// 	s := scanner.Text()
-// 	// 	if s != "" {
-// 	// 		return s
-// 	// 	}
-// 	// }
-// 	// return ""
-// }
