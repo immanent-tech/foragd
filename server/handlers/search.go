@@ -19,7 +19,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -69,33 +68,35 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 			return nil
 		})
 
+		// Retrieve the user object.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", err))
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		// Generate article suggestions.
 		fetchJobs.Go(func() error {
-			var allSubscriptions models.Subscriptions
-			allSubscriptions, err = api.GetSubscriptions(jobCtx)
+			searchOption, err := api.BuildSearchResultsQuery(
+				req.Context(),
+				user,
+				search,
+				elastic.SearchSuggestionsClause(search),
+			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get all subscriptions.",
 					slog.Any("error", err))
 			}
-			itemsQuery := query.Bool(
-				query.Filter(
-					query.Terms("feed_id", allSubscriptions.GetFeedIDs()...),
-				),
-				query.Must(
-					query.Bool(
-						query.Should(
-							query.SearchAsYouType(search.Text, "title"),
-							query.SearchAsYouType(search.Text, "description"),
-							query.SearchAsYouType(search.Text, "content"),
-							query.Term(search.Text, "categories"),
-							query.Term(search.Text, "authors"),
-							query.Term(search.Text, "contributors"),
-						),
-					),
-				),
-			)
 			var itemResults models.Items
-			itemResults, _, err = api.SearchItems(jobCtx, itemsQuery, defaultArticleSuggestionsCount, &sort, nil)
+			itemResults, _, err = api.SearchItems(
+				jobCtx,
+				searchOption,
+				defaultArticleSuggestionsCount,
+				&sort,
+				nil,
+			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get article suggestions.",
 					slog.Any("error", err))
@@ -176,7 +177,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 
 		// Find articles that match search request.
 		var articles models.Articles
-		query, err := api.BuildSearchResultsQuery(ctx, user, search)
+		query, err := api.BuildSearchResultsQuery(ctx, user, search, elastic.SearchResultsClause(search))
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("build search query: %w", err),
@@ -256,7 +257,7 @@ func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 			}
 		}
 		// Build query.
-		query, err := api.BuildSearchResultsQuery(req.Context(), user, request)
+		query, err := api.BuildSearchResultsQuery(req.Context(), user, request, elastic.SearchResultsClause(request))
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("build search query: %w", err),

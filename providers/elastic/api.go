@@ -839,9 +839,9 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 	// For search subscriptions, run queries directly to add unread count and last update.
 	fetchJobs.Go(func() error {
 		for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeSearch)) {
-			search := subscription.SearchData.Search
+			request := subscription.SearchData.Search
 			// Build query to get unread count.
-			query, err := a.BuildSearchResultsQuery(ctx, user, &search)
+			query, err := a.BuildSearchResultsQuery(ctx, user, &request, SearchResultsClause(&request))
 			if err != nil {
 				return fmt.Errorf(
 					"add subscription dynamic info: build search subscription %s query: %w",
@@ -859,9 +859,9 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 				)
 			}
 			// Update query for getting last updated item (view: all, sort: newest first).
-			search.View = models.ViewAll
+			request.View = models.ViewAll
 			sort := models.SortNewestFirst
-			query, err = a.BuildSearchResultsQuery(ctx, user, &search)
+			query, err = a.BuildSearchResultsQuery(ctx, user, &request, SearchResultsClause(&request))
 			if err != nil {
 				return fmt.Errorf(
 					"add subscription dynamic info: build search subscription %s query: %w",
@@ -1550,6 +1550,7 @@ func (a *API) BuildSearchResultsQuery(
 	ctx context.Context,
 	user *models.User,
 	request *models.SearchRequest,
+	clause query.BoolOption,
 ) (query.Option, error) {
 	// var err error
 	var loc *time.Location
@@ -1618,18 +1619,38 @@ func (a *API) BuildSearchResultsQuery(
 			query.Distance("published", pivot, "now"),
 			query.Distance("updated", pivot, "now"),
 		),
-		// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
-		// search suggestion).
-		query.Must(
-			// Search across title, description and content fields, with preference for match in that order (via field
-			// boosting).
-			query.SimpleQueryString(request.Text, "", "title^6", "description^3", "content"),
-			// Search in categories.
-			query.SimpleQueryString(request.Categories, "", "categories"),
-			// Search in authors, contributors.
-			query.SimpleQueryString(request.Authors, "", "authors", "contributors"),
-		),
+		clause,
 	), nil
+}
+
+func SearchResultsClause(search *models.SearchRequest) query.BoolOption {
+	// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
+	// search suggestion).
+	return query.Must(
+		// Search across title, description and content fields, with preference for match in that order (via field
+		// boosting).
+		query.SimpleQueryString(search.Text, "", "title^6", "description^3", "content"),
+		// Search in categories.
+		query.SimpleQueryString(search.Categories, "", "categories"),
+		// Search in authors, contributors.
+		query.SimpleQueryString(search.Authors, "", "authors", "contributors"),
+	)
+}
+
+func SearchSuggestionsClause(search *models.SearchRequest) query.BoolOption {
+	// Must match at least one of in title, description, content.
+	return query.Must(
+		query.Bool(
+			query.Should(
+				query.SearchAsYouType(search.Text, "title"),
+				query.SearchAsYouType(search.Text, "description"),
+				query.SearchAsYouType(search.Text, "content"),
+				query.Term(search.Text, "categories"),
+				query.Term(search.Text, "authors"),
+				query.Term(search.Text, "contributors"),
+			),
+		),
+	)
 }
 
 // func (e *API) MultiSearchFeeds(ctx context.Context, queries ...*models.MultiSearchQuery) (results.MSearchResults, error) {
