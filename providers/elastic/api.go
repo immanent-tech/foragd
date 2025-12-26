@@ -955,7 +955,7 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 func (a *API) getFeedAverageDailyUpdates(ctx context.Context, ids ...models.FeedID) (map[models.FeedID]float64, error) {
 	// Build query.
 	query := query.Bool(
-		query.BoolQueryName("feed_stats_query"),
+		query.WithBoolQueryName("feed_stats_query"),
 		query.Filter(
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", ids...),
@@ -1207,7 +1207,7 @@ func queryReadItems(user *models.User, subscription *models.Subscription) query.
 		return nil
 	}
 	return query.Bool(
-		query.BoolQueryName(subscription.FeedData.FeedID+"_read_items"),
+		query.WithBoolQueryName(subscription.FeedData.FeedID+"_read_items"),
 		query.Filter(
 			// Must match this feed.
 			query.Term("feed_id", subscription.FeedData.FeedID),
@@ -1239,7 +1239,7 @@ func queryUnreadItems(user *models.User, subscription *models.Subscription) quer
 		return nil
 	}
 	return query.Bool(
-		query.BoolQueryName(subscription.FeedData.GetFeedID()+"_unread_items"),
+		query.WithBoolQueryName(subscription.FeedData.GetFeedID()+"_unread_items"),
 		query.Filter(
 			// Must match this feed.
 			query.Term("feed_id", subscription.FeedData.GetFeedID()),
@@ -1271,7 +1271,7 @@ func queryAllItems(user *models.User, subscription *models.Subscription) query.O
 	}
 	maxHistory := user.GetMaxHistory()
 	return query.Bool(
-		query.BoolQueryName(subscription.FeedData.GetFeedID()+"_all_items"),
+		query.WithBoolQueryName(subscription.FeedData.GetFeedID()+"_all_items"),
 		query.Filter(
 			// Must match this feed.
 			query.Term("feed_id", subscription.FeedData.GetFeedID()),
@@ -1530,7 +1530,7 @@ func (a *API) BuildItemsQuery(
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
 	return query.Bool(
-		query.BoolQueryName("get_items"),
+		query.WithBoolQueryName("get_items"),
 		query.Filter(
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
@@ -1599,6 +1599,7 @@ func (a *API) BuildSearchResultsQuery(
 	}
 
 	return query.Bool(
+		query.WithBoolQueryName("search-results"),
 		query.Filter(
 			// Must be in the given user subscriptions.
 			query.Bool(

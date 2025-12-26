@@ -7,6 +7,7 @@ package query
 import (
 	"reflect"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -33,8 +34,10 @@ func MatchAll() Option {
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-exists-query
 func Exists(field string) Option {
 	return func(q *types.Query) {
+		name := "exists-" + field
 		q.Exists = types.NewExistsQuery()
 		q.Exists.Field = field
+		q.Exists.QueryName_ = &name
 	}
 }
 
@@ -44,8 +47,9 @@ func Exists(field string) Option {
 func Match(field string, value string) Option {
 	return func(query *types.Query) {
 		if value != "" {
+			name := "match-" + field
 			query.Match = map[string]types.MatchQuery{
-				field: {Query: value},
+				field: {Query: value, QueryName_: &name},
 			}
 		}
 	}
@@ -57,9 +61,11 @@ func Match(field string, value string) Option {
 func MultiMatch(value string, fields ...string) Option {
 	return func(query *types.Query) {
 		if value != "" {
+			name := "multi-match-" + strings.Join(fields, "+")
 			query.MultiMatch = &types.MultiMatchQuery{
-				Fields: fields,
-				Query:  value,
+				Fields:     fields,
+				Query:      value,
+				QueryName_: &name,
 			}
 		}
 	}
@@ -70,10 +76,12 @@ func MultiMatch(value string, fields ...string) Option {
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-distance-feature-query
 func Distance(field, pivot, origin string) Option {
 	return func(query *types.Query) {
+		name := "distance-" + field
 		query.DistanceFeature = &types.DateDistanceFeatureQuery{
-			Field:  field,
-			Pivot:  pivot,
-			Origin: origin,
+			Field:      field,
+			Pivot:      pivot,
+			Origin:     origin,
+			QueryName_: &name,
 		}
 	}
 }
@@ -116,16 +124,17 @@ func (mlt *MoreLikeThisQuery) ToQueryOption() Option {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
 func Term(field string, value any) Option {
 	return func(query *types.Query) {
+		name := "term-" + field
 		switch v := value.(type) {
 		case string:
 			if v != "" {
 				query.Term = map[string]types.TermQuery{
-					field: {Value: value},
+					field: {Value: value, QueryName_: &name},
 				}
 			}
 		default:
 			query.Term = map[string]types.TermQuery{
-				field: {Value: value},
+				field: {Value: value, QueryName_: &name},
 			}
 		}
 	}
@@ -162,9 +171,12 @@ func Since(field string, since time.Time) Option {
 			sinceStr = since.UTC().Format(time.RFC3339Nano)
 		}
 
+		name := "since-" + field
+
 		query.Range = map[string]types.RangeQuery{
 			field: types.DateRangeQuery{
-				Gte: &sinceStr,
+				Gte:        &sinceStr,
+				QueryName_: &name,
 			},
 		}
 	}
@@ -178,10 +190,12 @@ func Between(field string, from time.Time, to time.Time) Option {
 		if !from.IsZero() && !to.IsZero() {
 			fromStr := from.UTC().Format(time.RFC3339Nano)
 			toStr := to.UTC().Format(time.RFC3339Nano)
+			name := "between-" + field
 			query.Range = map[string]types.RangeQuery{
 				field: types.DateRangeQuery{
-					Gte: &fromStr,
-					Lte: &toStr,
+					Gte:        &fromStr,
+					Lte:        &toStr,
+					QueryName_: &name,
 				},
 			}
 		}
@@ -222,9 +236,11 @@ func SimpleQueryString(text, flags string, fields ...string) Option {
 		if text == "" {
 			return
 		}
+		name := "simple-query-string-" + strings.Join(fields, "+")
 		query.SimpleQueryString = types.NewSimpleQueryStringQuery()
 		query.SimpleQueryString.Fields = fields
 		query.SimpleQueryString.Query = text
+		query.SimpleQueryString.QueryName_ = &name
 		if flags != "" {
 			query.SimpleQueryString.Flags = flags
 		}
@@ -236,6 +252,7 @@ func SimpleQueryString(text, flags string, fields ...string) Option {
 // https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/search-as-you-type
 func SearchAsYouType(text string, field string) Option {
 	return func(query *types.Query) {
+		name := "search-as-you-type-" + field
 		mmq := types.NewMultiMatchQuery()
 		mmq.Query = text
 		mmq.Type = &textquerytype.Boolprefix
@@ -244,6 +261,7 @@ func SearchAsYouType(text string, field string) Option {
 			field + ".search._2gram",
 			field + ".search._3gram",
 		}
+		mmq.QueryName_ = &name
 		query.MultiMatch = mmq
 	}
 }
@@ -370,15 +388,25 @@ func Should(queryOptions ...Option) BoolOption {
 	}
 }
 
-// BoolQueryName assigns the given string as the name of the query, which allows
+// WithBoolQueryName option assigns the given string as the name of the query, which allows
 // tracking when this bool clause matches documents.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html#named-queries
-func BoolQueryName(name string) BoolOption {
+func WithBoolQueryName(name string) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		if name != "" {
 			boolQueryClause.QueryName_ = &name
 		}
+	}
+}
+
+// WithBoolQueryBoost option adds the given boost to the bool query.
+// tracking when this bool clause matches documents.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html#named-queries
+func WithBoolQueryBoost(boost float32) BoolOption {
+	return func(boolQueryClause *types.BoolQuery) {
+		boolQueryClause.Boost = &boost
 	}
 }
 

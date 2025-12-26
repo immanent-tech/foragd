@@ -103,7 +103,7 @@ func getHomePageData(ctx context.Context, api *elastic.API) (*templates.Home, er
 	data.SubscriptionsCount = len(subscriptions)
 	// Query definition for fetching unread items for all subscriptions.
 	articlesQuery := query.Bool(
-		query.BoolQueryName("item_filters"),
+		query.WithBoolQueryName("item_filters"),
 		query.Filter(
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
