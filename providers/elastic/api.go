@@ -1994,6 +1994,7 @@ func Search[O any](
 	}
 	defaultOptions = append(defaultOptions, options...)
 	req := NewSearchRequest(api, defaultOptions...)
+
 	resp, err := req.Do(ctx)
 	if err != nil {
 		return nil, nil, toAPIError("search", err)
@@ -2030,11 +2031,16 @@ func SearchAll[O any](
 	// Loop until we've paginated through all results.
 	var loops int
 	for {
-		resultsPage, nextSearchAfter, err := Search[O](ctx, api, index, query, paginationSize,
+		searchOpts := []Option[SearchRequest]{
+			WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
+			WithIndex[*search.Search, SearchRequest](index),
+			WithQueryOptions[*search.Search, SearchRequest](query),
 			WithSortOptions[*search.Search, SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
 			WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 			WithTrackTotalHits(false),
-		)
+		}
+		searchOpts = append(searchOpts, options...)
+		resultsPage, nextSearchAfter, err := Search[O](ctx, api, index, query, paginationSize, searchOpts...)
 		if err != nil {
 			return nil, toAPIError("search all", err)
 		}
