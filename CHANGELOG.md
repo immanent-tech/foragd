@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/immanent-tech/foragd/compare/v0.7.0...v0.8.0) (2025-12-27)
+
+
+### Features
+
+* **templates:** :lipstick: new homepage layout ([8855233](https://github.com/immanent-tech/foragd/commit/88552339e627fa9b24867037c56e76da25d90d23))
+
+
+### Bug Fixes
+
+* :bug: avoid nil pointer references when importing subscriptions ([b7adee5](https://github.com/immanent-tech/foragd/commit/b7adee574145483b635ed1a791be4b8ef0ad1fa6))
+* :bug: return consistent results or suggestions for searches ([c6f9e04](https://github.com/immanent-tech/foragd/commit/c6f9e0493805defb29529767368efe58f8d1ef27))
+
 ## [0.7.0](https://github.com/immanent-tech/foragd/compare/v0.6.0...v0.7.0) (2025-12-26)
 
 
