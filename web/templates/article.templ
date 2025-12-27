@@ -14,46 +14,6 @@ import (
 	"strings"
 )
 
-templ articleSummary(article *models.Article) {
-	<div class={ "sm:flex items-center", templ.KV("opacity-50",!article.IsUnread()) }>
-		// Article image.
-		if img := article.GetImage(); img != nil {
-			<div class="mb-4 shrink-0 sm:mr-4 sm:mb-0">
-				@articleImage(img, article.GetTitle(), "h-48", "sm:w-48")
-			</div>
-		}
-		<div class="gap-y-2">
-			// Article title.
-			@NewLink(
-				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-				WithHXTarget(ContentID.Target()),
-				WithHXSwap("innerHTML show:window:top transition:true"),
-				WithHXPushURL(true),
-				WithClasses("link-hover"),
-			) {
-				<h4 class="text-lg/5 font-bold line-clamp-3 tracking-tight">{ article.GetTitle() }</h4>
-			}
-			// Timestamp, Subscription.
-			<div class="grid grid-flow-row justify-between mt-2">
-				<p class="flex text-xs/tight">
-					Updated&nbsp;
-					@showTimestamp(article.GetUpdatedDate())
-				</p>
-				<p class="flex text-xs/tight truncate">
-					@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
-						{ article.GetFeedTitle() }
-					}
-				</p>
-			</div>
-			// Article content summary.
-			<article class="prose-summary">
-				@templ.Raw(article.GetContent())
-			</article>
-			// }
-		</div>
-	</div>
-}
-
 // Card renders an article as a card, for displaying in a list.
 templ ArticleCard(article *models.Article) {
 	<div
@@ -75,21 +35,7 @@ templ ArticleCard(article *models.Article) {
 			}
 		}
 		<div class="card-body">
-			@NewLink(
-				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(true),
-				WithHXSwap("innerHTML show:window:top"),
-				WithClasses("link-hover"),
-			) {
-				<h2 class="card-title text-pretty line-clamp-3 tracking-tight">
-					if article.GetTitle() != "" {
-						{ article.GetTitle() }
-					} else {
-						(no title)
-					}
-				</h2>
-			}
+			@articleCardTitle(article)
 			<div class="grid grid-cols-1 grid-flow-row mb-4">
 				if len(article.GetAuthors()) > 0 {
 					<p class="inline-block text-xs/4 italic truncate">
@@ -174,6 +120,24 @@ templ ArticleCard(article *models.Article) {
 		</div>
 		@ShareObjectModal(article.GetID(), "Sharing "+article.GetTitle(), article.GetLink())
 	</div>
+}
+
+templ articleCardTitle(article *models.Article) {
+	@NewLink(
+		WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+		WithHXTarget(ContentID.Target()),
+		WithHXPushURL(true),
+		WithHXSwap("innerHTML show:window:top"),
+		WithClasses("link-hover"),
+	) {
+		<h2 class="card-title text-pretty line-clamp-3 tracking-tight">
+			if article.GetTitle() != "" {
+				{ article.GetTitle() }
+			} else {
+				(no title)
+			}
+		</h2>
+	}
 }
 
 // ArticleContent renders the complete content of an article.

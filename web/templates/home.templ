@@ -33,24 +33,54 @@ templ (page *Home) Template() {
 		} else {
 			<div class="w-full grow lg:flex space-x-4">
 				// Left column.
-				<div class="xl:flex xl:flex-col xl:w-1/2">
+				<section class="xl:flex xl:flex-col">
 					// Latest articles.
 					<div class="border-b border-base-content/80 pb-5">
 						<h3 class="text-base font-semibold">Latest Articles</h3>
 					</div>
 					if len(page.LatestArticles) > 0 {
-						<ul role="list" class="grid grid-cols-1 justify-center space-y-4 sm:space-y-8">
+						<ul role="list" class="grid grid-cols-1 justify-center">
 							for article := range slices.Values(page.LatestArticles) {
-								<li class="py-4 sm:px-4 w-full max-h-96 sm:max-h-64 overflow-hidden">
-									@articleSummary(article)
+								<li class="py-4 w-full max-h-128 overflow-hidden">
+									<div
+										id={ article.GetID() }
+										class={ "card lg:card-side card-border h-full bg-base-100 shadow-sm", templ.KV("opacity-50",!article.IsUnread()) }
+									>
+										// Article image.
+										if img := article.GetImage(); img != nil {
+											<figure>
+												@articleImage(img, article.GetTitle(), "h-full w-full sm:w-lg")
+											</figure>
+										}
+										<div class="card-body">
+											// Article title.
+											@articleCardTitle(article)
+											// Timestamp, Subscription.
+											<div class="grid grid-flow-row justify-between mt-2">
+												<p class="flex text-xs/tight">
+													Updated&nbsp;
+													@showTimestamp(article.GetUpdatedDate())
+												</p>
+												<p class="flex text-xs/tight truncate">
+													@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
+														{ article.GetFeedTitle() }
+													}
+												</p>
+											</div>
+											// Article content summary.
+											<article class="prose-summary">
+												@templ.Raw(article.GetContent())
+											</article>
+											// }
+										</div>
+									</div>
 								</li>
 							}
 						</ul>
 					}
-				</div>
+				</section>
 				// Right column.
-				<div class="xl:flex xl:flex-col xl:w-1/2">
-					// Show top categories (if found).
+				<aside class="xl:flex xl:flex-col xl:w-96">
 					if len(page.TopCategories) > 0 {
 						<div class="border-b border-base-content/80 pb-5">
 							<h3 class="text-base font-semibold">Most Common Categories</h3>
@@ -82,10 +112,10 @@ templ (page *Home) Template() {
 						<div class="border-b border-base-content/80 pb-5 mt-8">
 							<h3 class="text-base font-semibold">Article Picks</h3>
 						</div>
-						<ul role="list" class="grid grid-cols-1 justify-center space-y-4 sm:space-y-8">
+						<ul role="list" class="grid grid-cols-1 justify-center">
 							for article := range slices.Values(page.TopArticles) {
-								<li class="py-4 sm:px-4 w-full max-h-96 sm:max-h-64 overflow-hidden">
-									@articleSummary(article)
+								<li class="py-4 w-full max-h-96 overflow-hidden">
+									@articleCardTitle(article)
 								</li>
 							}
 						</ul>
@@ -122,7 +152,7 @@ templ (page *Home) Template() {
 							</div>
 						}
 					}
-				</div>
+				</aside>
 			</div>
 			@btnBackToTop()
 			<div id="update-notifications" sse-connect="/home/updates" sse-swap="message" class="toast toast-center z-50"></div>
