@@ -44,8 +44,8 @@ templ Content(user *models.User, content templ.Component) {
 		<div id={ ContentID.String() } hx-indicator="#content-loading">
 			@content
 		</div>
-		<div id="content-loading" class="flex mx-auto justify-center items-center space-x-2 htmx-indicator">
-			<span class="loading loading-bars loading-xl text-accent"></span>
+		<div id="content-loading" class="mt-8 flex mx-auto justify-center items-center space-x-2 htmx-indicator">
+			<span class="loading loading-bars loading-xl"></span>
 			<p class="text-lg/loose font-semibold text-accent">Loading content...</p>
 		</div>
 	</main>
