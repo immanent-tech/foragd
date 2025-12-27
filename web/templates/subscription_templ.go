@@ -2907,19 +2907,19 @@ func ImportResults(results []*models.AddFeedSubscriptionResult) templ.Component 
 
 func filterSuccessfulResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
 	return slices.Collect(models.FilterSlice(results, func(result *models.AddFeedSubscriptionResult) bool {
-		return result.Message.Status == models.UserMessageStatusSuccess
+		return result.Message != nil && result.Message.Status == models.UserMessageStatusSuccess
 	}))
 }
 
 func filterWarningResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
 	return slices.Collect(models.FilterSlice(results, func(result *models.AddFeedSubscriptionResult) bool {
-		return result.Message.Status == models.UserMessageStatusWarning
+		return result.Message != nil && result.Message.Status == models.UserMessageStatusWarning
 	}))
 }
 
 func filterUnsuccessfulResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
 	return slices.Collect(models.FilterSlice(results, func(result *models.AddFeedSubscriptionResult) bool {
-		return result.Message.Status == models.UserMessageStatusError
+		return result.Message != nil && result.Message.Status == models.UserMessageStatusError
 	}))
 }
 

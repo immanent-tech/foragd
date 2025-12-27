@@ -836,7 +836,7 @@ func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 			// Create the subscriptions for any results that don't already indicate an error.
 			err = api.CreateFeedSubscriptions(req.Context(), slices.Collect(models.FilterSlice(results,
 				func(r *models.AddFeedSubscriptionResult) bool {
-					if r.Message.Status != models.UserMessageStatusError &&
+					if r.Message != nil && r.Message.Status != models.UserMessageStatusError &&
 						r.Message.Status != models.UserMessageStatusWarning {
 						return true
 					}
