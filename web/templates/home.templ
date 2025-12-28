@@ -35,46 +35,44 @@ templ (page *Home) Template() {
 				// Left column.
 				<section class="xl:flex xl:flex-col">
 					// Latest articles.
-					<div class="border-b border-base-content/80 pb-5">
+					<div class="border-b border-base-content/80 mb-5">
 						<h3 class="text-base font-semibold">Latest Articles</h3>
 					</div>
 					if len(page.LatestArticles) > 0 {
-						<ul role="list" class="grid grid-cols-1 justify-center">
+						<div class="grid grid-cols-1 justify-center gap-y-8">
 							for article := range slices.Values(page.LatestArticles) {
-								<li class="py-4 w-full max-h-128 overflow-hidden">
-									<div id={ article.GetID() } class="card lg:card-side h-full bg-base-100 shadow-md">
-										// Article image.
-										if img := article.GetImage(); img != nil {
-											<figure>
-												@articleImage(img, article.GetTitle(), "sm:h-full sm:object-cover")
-											</figure>
-										}
-										<div class="card-body">
-											// Article title.
-											@articleCardTitle(article)
-											<div class="grid grid-flow-row justify-between mt-2">
-												// Timestamp.
-												<p class="flex text-xs/tight">
-													Updated&nbsp;
-													@showTimestamp(article.GetUpdatedDate())
-												</p>
-												// Subscription.
-												<p class="flex text-xs/tight truncate">
-													@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
-														{ article.GetFeedTitle() }
-													}
-												</p>
-											</div>
-											// Content summary.
-											<article class="prose-summary">
-												@templ.Raw(article.GetContent())
-											</article>
-											// }
+								<div id={ article.GetID() } class="card lg:card-side w-full h-full max-h-128 overflow-hidden bg-base-100 shadow-md">
+									// Article image.
+									if img := article.GetImage(); img != nil {
+										<figure>
+											@articleImage(img, article.GetTitle(), "sm:h-full sm:object-cover")
+										</figure>
+									}
+									<div class="card-body">
+										// Article title.
+										@articleCardTitle(article)
+										<div class="grid grid-flow-row justify-between mt-2">
+											// Timestamp.
+											<p class="flex text-xs/tight">
+												Updated&nbsp;
+												@showTimestamp(article.GetUpdatedDate())
+											</p>
+											// Subscription.
+											<p class="flex text-xs/tight truncate">
+												@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
+													{ article.GetFeedTitle() }
+												}
+											</p>
 										</div>
+										// Content summary.
+										<article class="prose-summary">
+											@templ.Raw(article.GetContent())
+										</article>
+										// }
 									</div>
-								</li>
+								</div>
 							}
-						</ul>
+						</div>
 					}
 				</section>
 				// Right column.
