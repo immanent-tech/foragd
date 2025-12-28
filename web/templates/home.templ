@@ -49,7 +49,7 @@ templ (page *Home) Template() {
 										// Article image.
 										if img := article.GetImage(); img != nil {
 											<figure>
-												@articleImage(img, article.GetTitle(), "h-full w-full sm:w-lg")
+												@articleImage(img, article.GetTitle(), "sm:h-full sm:object-cover")
 											</figure>
 										}
 										<div class="card-body">

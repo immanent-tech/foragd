@@ -133,7 +133,7 @@ func (page *Home) Template() templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = articleImage(img, article.GetTitle(), "h-full w-full sm:w-lg").Render(ctx, templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = articleImage(img, article.GetTitle(), "sm:h-full sm:object-cover").Render(ctx, templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}

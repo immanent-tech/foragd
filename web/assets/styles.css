@@ -131,7 +131,7 @@
 }
 
 @utility prose-custom {
-  @apply text-base-content dark:prose-invert prose-headings:tracking-tight prose-img:responsive-img prose-video:responsive-video;
+  @apply prose sm:prose-lg text-base-content dark:prose-invert prose-headings:tracking-tight prose-img:responsive-img prose-img:object-scale-down prose-video:responsive-video max-w-none;
 }
 
 @utility prose-summary {
@@ -147,11 +147,16 @@
   }
 }
 
+@utility forced-width {
+  * {
+    @apply w-full sm:max-w-prose;
+  }
+}
+
 @utility responsive-img {
   width: 100%;
   height: auto;
   aspect-ratio: var(--aspect-ratio);
-  object-fit: cover;
   /* Prevent haptic touch previews */
   -webkit-touch-callout: none;
   -webkit-user-drag: none;

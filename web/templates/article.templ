@@ -145,9 +145,9 @@ templ ArticleContent(article *models.Article) {
 	// Add the subscription ID as a hidden input that htmx can use for actions.
 	<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 	@container() {
-		<article id={ article.GetID() } class="w-full sm:max-w-prose sm:mx-auto prose prose-md sm:prose-lg prose-custom">
+		<article id={ article.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
 			// Article title.
-			<div class="not-prose flex flex-1 pb-2">
+			<div class="flex flex-1 pb-2">
 				@NewLink(
 					WithCustomAttribute("href", article.GetLink()),
 					WithCustomAttribute("target", "_blank"),
@@ -158,7 +158,7 @@ templ ArticleContent(article *models.Article) {
 				}
 			</div>
 			// Subscription link.
-			<div class="not-prose flex flex-1 pb-4">
+			<div class="flex flex-1 pb-4">
 				<form>
 					{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
 					<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
@@ -177,7 +177,7 @@ templ ArticleContent(article *models.Article) {
 					}
 				</form>
 			</div>
-			<div class="not-prose flex items-center">
+			<div class="flex items-center">
 				<div class="flex-1 inline-grid">
 					// Author(s) and Published Time.
 					if len(article.GetAuthors()) > 0 {
@@ -221,7 +221,7 @@ templ ArticleContent(article *models.Article) {
 			</div>
 			// Content.
 			if article.GetContent() != "" || article.GetDescription() != "" {
-				<div class="mt-8">
+				<div class="prose-custom forced-width">
 					switch  {
 						case article.GetContent() != "":
 							@templ.Raw(article.GetContent())
@@ -462,7 +462,7 @@ templ articleImage(img *types.ImageInfo, altTitle string, classes ...string) {
 	if img.GetTitle() == "" {
 		{{ img.Title = altTitle }}
 	}
-	{{ classes = append(classes, "rounded-box responsive-img border border-base-content/15") }}
+	{{ classes = append(classes, "responsive-img") }}
 	// rs:auto:300:200 - resize to 300x200 https://docs.imgproxy.net/usage/processing#resize
 	// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
 	// el:1 - enlarge if smaller https://docs.imgproxy.net/usage/processing#enlarge
