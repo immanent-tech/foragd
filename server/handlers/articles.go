@@ -62,6 +62,7 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 					template     templ.Component
 				)
 				wg, jobCtx := errgroup.WithContext(ctx)
+				defer jobCtx.Done()
 
 				// Get articles matching filters.
 				wg.Go(func() error {

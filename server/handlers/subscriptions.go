@@ -70,9 +70,10 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				}
 
 				// Get subscriptions matching filters.
-				var wg errgroup.Group
+				wg, jobCtx := errgroup.WithContext(req.Context())
+				defer jobCtx.Done()
 				wg.Go(func() error {
-					subscriptions, request.Pagination, err = api.FilterSubscriptions(req.Context(), request)
+					subscriptions, request.Pagination, err = api.FilterSubscriptions(jobCtx, request)
 					if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 						return fmt.Errorf("filter subscriptions: %w", err)
 					}
@@ -80,9 +81,9 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				})
 				// Get all subscription categories.
 				wg.Go(func() error {
-					counts, err = api.GetAllSubscriptionCategories(req.Context())
+					counts, err = api.GetAllSubscriptionCategories(jobCtx)
 					if err != nil {
-						slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
+						slogctx.FromCtx(jobCtx).Warn("Could not get all subscription categories.",
 							slog.Any("error", err),
 						)
 					}

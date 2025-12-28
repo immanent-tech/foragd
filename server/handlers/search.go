@@ -48,6 +48,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 		}
 
 		fetchJobs, jobCtx := errgroup.WithContext(req.Context())
+		defer jobCtx.Done()
 
 		var subscriptions models.Subscriptions
 		var articles models.Articles

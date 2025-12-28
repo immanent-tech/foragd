@@ -818,13 +818,14 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 		subscriptions = append(subscriptions, extraSubscriptions...)
 	}
 
-	fetchJobs, ctx := errgroup.WithContext(ctx)
+	fetchJobs, jobCtx := errgroup.WithContext(ctx)
+	defer jobCtx.Done()
 
 	// Get unread count per feed.
 	var unreadCounts map[models.FeedID]int64
 	fetchJobs.Go(func() error {
 		var err error
-		unreadCounts, err = a.getFeedUnreadCounts(ctx, subscriptions)
+		unreadCounts, err = a.getFeedUnreadCounts(jobCtx, subscriptions)
 		if err != nil {
 			return fmt.Errorf("get unread counts: %w", err)
 		}
@@ -836,7 +837,7 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 		for subscription := range slices.Values(subscriptions.FilterByType(models.SubscriptionTypeSearch)) {
 			request := subscription.SearchData.Search
 			// Build query to get unread count.
-			query, err := a.BuildSearchResultsQuery(ctx, user, &request, SearchResultsClause(&request))
+			query, err := a.BuildSearchResultsQuery(jobCtx, user, &request, SearchResultsClause(&request))
 			if err != nil {
 				return fmt.Errorf(
 					"add subscription dynamic info: build search subscription %s query: %w",
@@ -844,11 +845,11 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 					err,
 				)
 			}
-			count, err := a.CountItems(ctx, query)
+			count, err := a.CountItems(jobCtx, query)
 			if err == nil {
 				subscription.Stats.UnreadCount = int(count)
 			} else {
-				slogctx.FromCtx(ctx).Warn("Add subscription dynamic info, could not get unread count for search subscription.",
+				slogctx.FromCtx(jobCtx).Warn("Add subscription dynamic info, could not get unread count for search subscription.",
 					slog.String("subscription_id", subscription.GetID()),
 					slog.Any("error", err),
 				)
@@ -856,7 +857,7 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 			// Update query for getting last updated item (view: all, sort: newest first).
 			request.View = models.ViewAll
 			sort := models.SortNewestFirst
-			query, err = a.BuildSearchResultsQuery(ctx, user, &request, SearchResultsClause(&request))
+			query, err = a.BuildSearchResultsQuery(jobCtx, user, &request, SearchResultsClause(&request))
 			if err != nil {
 				return fmt.Errorf(
 					"add subscription dynamic info: build search subscription %s query: %w",
@@ -864,10 +865,10 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 					err,
 				)
 			}
-			if items, _, err := a.SearchItems(ctx, query, 1, &sort, nil); err == nil && len(items) > 0 {
+			if items, _, err := a.SearchItems(jobCtx, query, 1, &sort, nil); err == nil && len(items) > 0 {
 				subscription.Stats.LastUpdate = items[0].GetTimestamp()
 			} else {
-				slogctx.FromCtx(ctx).Warn("Add subscription dynamic info, could not get last update for search subscription.",
+				slogctx.FromCtx(jobCtx).Warn("Add subscription dynamic info, could not get last update for search subscription.",
 					slog.String("subscription_id", subscription.GetID()),
 					slog.Any("error", err),
 				)
@@ -880,7 +881,7 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 	var lastUpdate map[models.FeedID]time.Time
 	fetchJobs.Go(func() error {
 		var err error
-		lastUpdate, err = a.getFeedLastUpdates(ctx, subscriptions.GetFeedIDs()...)
+		lastUpdate, err = a.getFeedLastUpdates(jobCtx, subscriptions.GetFeedIDs()...)
 		if err != nil {
 			return fmt.Errorf("get last update: %w", err)
 		}
@@ -892,7 +893,7 @@ func (a *API) addSubscriptionDynamicInfo(ctx context.Context, subscriptions mode
 		// Get average daily updates per feed
 		fetchJobs.Go(func() error {
 			var err error
-			avgDailyUpdates, err = a.getFeedAverageDailyUpdates(ctx, subscriptions.GetFeedIDs()...)
+			avgDailyUpdates, err = a.getFeedAverageDailyUpdates(jobCtx, subscriptions.GetFeedIDs()...)
 			if err != nil {
 				return fmt.Errorf("get average daily updates: %w", err)
 			}

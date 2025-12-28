@@ -121,7 +121,8 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			return
 		}
 
-		var wg errgroup.Group
+		wg, jobCtx := errgroup.WithContext(req.Context())
+		defer jobCtx.Done()
 		// Write the image to the response.
 		wg.Go(func() error {
 			_, err = res.Write(imgBuf)
@@ -135,7 +136,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		// Save to the cache if not saved already.
 		wg.Go(func() error {
 			if !found {
-				imgCache.Set(req.Context(), imgHash, imgBuf)
+				imgCache.Set(jobCtx, imgHash, imgBuf)
 			}
 			return nil
 		})

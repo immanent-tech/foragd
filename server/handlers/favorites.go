@@ -26,8 +26,6 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 				err           error
 			)
 
-			wg := new(errgroup.Group)
-
 			ctx := templates.PageTitleToCtx(req.Context(), "Favorites")
 
 			user, err := models.UserFromCtx(ctx)
@@ -42,11 +40,14 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 				}
 			}
 
+			wg, jobCtx := errgroup.WithContext(req.Context())
+			defer jobCtx.Done()
+
 			// Get favorite articles.
 			wg.Go(func() error {
 				if len(user.ItemFavorites) > 0 {
 					var err error
-					articles, err = api.GetArticles(ctx, user.ItemFavorites...)
+					articles, err = api.GetArticles(jobCtx, user.ItemFavorites...)
 					if err != nil {
 						return fmt.Errorf("list favorites: get favorite articles: %w", err)
 					}
@@ -57,7 +58,7 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 			// Get favorite subscriptions.
 			wg.Go(func() error {
 				var err error
-				subscriptions, err = api.GetSubscriptions(ctx,
+				subscriptions, err = api.GetSubscriptions(jobCtx,
 					elastic.GetSubscriptionsByFavorite(true),
 					elastic.GetSubscriptionsDynamicInfo(true),
 				)
