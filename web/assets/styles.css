@@ -135,7 +135,7 @@
 }
 
 @utility prose-summary {
-  @apply prose-custom prose-sm sm:prose prose-img:hidden prose-figure:hidden prose-video:hidden line-clamp-3;
+  @apply prose-custom prose-sm sm:prose prose-img:hidden prose-figure:hidden prose-video:hidden prose-table:hidden line-clamp-3;
   img {
     @apply hidden;
   }
