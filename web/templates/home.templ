@@ -42,10 +42,7 @@ templ (page *Home) Template() {
 						<ul role="list" class="grid grid-cols-1 justify-center">
 							for article := range slices.Values(page.LatestArticles) {
 								<li class="py-4 w-full max-h-128 overflow-hidden">
-									<div
-										id={ article.GetID() }
-										class={ "card lg:card-side card-border h-full bg-base-100 shadow-sm", templ.KV("opacity-50",!article.IsUnread()) }
-									>
+									<div id={ article.GetID() } class="card lg:card-side h-full bg-base-100 shadow-md">
 										// Article image.
 										if img := article.GetImage(); img != nil {
 											<figure>
@@ -55,19 +52,20 @@ templ (page *Home) Template() {
 										<div class="card-body">
 											// Article title.
 											@articleCardTitle(article)
-											// Timestamp, Subscription.
 											<div class="grid grid-flow-row justify-between mt-2">
+												// Timestamp.
 												<p class="flex text-xs/tight">
 													Updated&nbsp;
 													@showTimestamp(article.GetUpdatedDate())
 												</p>
+												// Subscription.
 												<p class="flex text-xs/tight truncate">
 													@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
 														{ article.GetFeedTitle() }
 													}
 												</p>
 											</div>
-											// Article content summary.
+											// Content summary.
 											<article class="prose-summary">
 												@templ.Raw(article.GetContent())
 											</article>

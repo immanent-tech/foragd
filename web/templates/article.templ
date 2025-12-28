@@ -18,7 +18,7 @@ import (
 templ ArticleCard(article *models.Article) {
 	<div
 		id={ article.GetID() }
-		class={ "card card-border h-full bg-base-100 shadow-sm",
+		class={ "card h-full bg-base-200 shadow-md",
 		templ.KV("row-span-1",article.GetImage() == nil),
 		templ.KV("row-span-2",article.GetImage() != nil),
 		templ.KV("opacity-50",!article.IsUnread()) }
@@ -31,7 +31,9 @@ templ ArticleCard(article *models.Article) {
 				WithHXSwap("innerHTML show:window:top"),
 				WithClasses("link-hover"),
 			) {
-				@articleImage(img, article.GetTitle())
+				<figure>
+					@articleImage(img, article.GetTitle(), "sm:h-full sm:object-cover")
+				</figure>
 			}
 		}
 		<div class="card-body">
@@ -255,6 +257,7 @@ templ ArticleContent(article *models.Article) {
 			Share
 		}
 	</nav>
+	@btnBackToTop()
 	// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 	// read and mark it so (when the user has set this option).
 	if article.IsUnread() && article.MarkArticleReadOnView {
