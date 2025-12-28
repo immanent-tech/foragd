@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/immanent-tech/foragd/compare/v0.8.0...v0.8.1) (2025-12-28)
+
+
+### Bug Fixes
+
+* **templates:** :bug: correct back to top button location on tablet displays ([202785e](https://github.com/immanent-tech/foragd/commit/202785e98e5fff42cc355495d7a50ca7b880fd84))
+
 ## [0.8.0](https://github.com/immanent-tech/foragd/compare/v0.7.0...v0.8.0) (2025-12-27)
 
 
