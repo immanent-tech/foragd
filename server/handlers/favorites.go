@@ -23,9 +23,10 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 				articles      models.Articles
 				subscriptions models.Subscriptions
 				template      templ.Component
-				wg            errgroup.Group
 				err           error
 			)
+
+			wg := new(errgroup.Group)
 
 			ctx := templates.PageTitleToCtx(req.Context(), "Favorites")
 

@@ -336,8 +336,8 @@ templ ListArticles(response *models.ListArticlesResponse) {
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
 				<h2 class="page-title">
-					if response.SubscriptionID != "" {
-						{ response.Articles[0].GetFeedTitle() }
+					if response.Subscription != nil {
+						{ response.Subscription.GetTitle() }
 					} else {
 						Articles
 					}
@@ -365,7 +365,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					_="on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"
 				>
 					<div class="py-1">
-						if response.SubscriptionID == "" {
+						if response.Subscription == nil {
 							// Mark all articles action.
 							<form>
 								<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
@@ -394,17 +394,17 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							</form>
 						} else {
 							// Mark subscription action.
-							<form id={ "mark-" + response.SubscriptionID }>
+							<form id={ "mark-" + response.Subscription.GetID() }>
 								// MarkURL returns the app URL for marking the subscription.
 								{{ var markURL string }}
 								{{ var markText string }}
 								{{ var markIcon templ.Component }}
 								if response.Filters.GetView() == models.ViewUnread {
-									{{ markURL = "/mark/subscription/" + response.SubscriptionID + "/read" }}
+									{{ markURL = "/mark/subscription/" + response.Subscription.GetID() + "/read" }}
 									{{ markText = "Mark Subscription Read" }}
 									{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
 								} else {
-									{{ markURL = "/mark/subscription/" + response.SubscriptionID + "/unread" }}
+									{{ markURL = "/mark/subscription/" + response.Subscription.GetID() + "/unread" }}
 									{{ markText = "Mark Subscription Unread" }}
 									{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
 								}
@@ -419,7 +419,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							</form>
 							// Edit subscription action.
 							@NewLink(
-								WithHXMethod(http.MethodGet, "/edit/subscription/"+response.SubscriptionID),
+								WithHXMethod(http.MethodGet, "/edit/subscription/"+response.Subscription.GetID()),
 								WithHXTarget(ContentID.Target()),
 								WithHXPushURL(true),
 								WithClasses("link-hover"),

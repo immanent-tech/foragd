@@ -537,10 +537,8 @@ type ListArticlesResponse struct {
 	Filters ListFilters `json:"filters" validate:"required"`
 
 	// Pagination contains data for paginating through results.
-	Pagination Pagination `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+	Pagination   Pagination    `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
+	Subscription *Subscription `json:"subscription,omitempty"`
 }
 
 // ListFilters contains filters for altering the display of objects.

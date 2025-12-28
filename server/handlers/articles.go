@@ -17,6 +17,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -54,14 +55,38 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 					}
 				}
 
-				// Get articles matching filters.
 				var (
-					articles models.Articles
-					err      error
-					template templ.Component
+					articles     models.Articles
+					subscription *models.Subscription
+					err          error
+					template     templ.Component
 				)
-				articles, request.Pagination, err = api.FilterArticles(ctx, request)
-				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+				wg, jobCtx := errgroup.WithContext(ctx)
+
+				// Get articles matching filters.
+				wg.Go(func() error {
+					articles, request.Pagination, err = api.FilterArticles(jobCtx, request)
+					if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+						return fmt.Errorf("get articles: %w", err)
+					}
+					return nil
+				})
+				// Get the subscription details if the list is for a specific subscription.
+				if subscriptionID := req.FormValue(models.ParamSubscriptionID); subscriptionID != "" {
+					wg.Go(func() error {
+						subscription, err = api.GetSubscription(
+							jobCtx,
+							subscriptionID,
+							elastic.GetSubscriptionsDynamicInfo(true),
+						)
+						if err != nil {
+							return fmt.Errorf("get subscription: %w", err)
+						}
+						return nil
+					})
+				}
+
+				if err := wg.Wait(); err != nil {
 					return &models.APIError{
 						InternalError: fmt.Errorf("unable to list articles: %w", err),
 						StatusCode:    http.StatusInternalServerError,
@@ -70,17 +95,17 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 
 				// Generate response object.
 				response := &models.ListArticlesResponse{
-					SubscriptionID: req.FormValue(models.ParamSubscriptionID),
-					Articles:       articles,
-					Filters:        request.Filters,
-					Pagination:     request.Pagination,
+					Subscription: subscription,
+					Articles:     articles,
+					Filters:      request.Filters,
+					Pagination:   request.Pagination,
 				}
 
 				// Render appropriate content.
 				// If the list of articles is from a single subscription, update the page tile to include the subscription
 				// name.
-				if len(articles) > 0 && response.SubscriptionID != "" {
-					ctx = templates.PageTitleToCtx(ctx, articles[0].GetFeedTitle()+" | Articles")
+				if len(articles) > 0 && response.Subscription != nil {
+					ctx = templates.PageTitleToCtx(ctx, subscription.GetTitle()+" | Articles")
 				}
 				template = templates.ListArticles(response)
 				// Choose rendering method based on method (get = page, post = partial).

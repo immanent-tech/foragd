@@ -43,6 +43,11 @@ const (
 	IndexReadSuffix = "_ro"
 )
 
+const (
+	UsersIndexRO = UsersSchemaPrefix + IndexReadSuffix
+	UsersIndexRW = UsersSchemaPrefix + IndexWriteSuffix
+)
+
 var (
 	EnglishExactAnalyzerName = "english_exact"
 	// FeedItemCommonMappings are the mappings that are common across both feed and item objects.

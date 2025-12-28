@@ -1260,8 +1260,10 @@ components:
         - filters
         - pagination
       properties:
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
+        subscription:
+          allOf:
+            - $ref: '#/components/schemas/Subscription'
+          x-go-type-skip-optional-pointer: false
         articles:
           x-go-type: Articles
           # description: >

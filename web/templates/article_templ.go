@@ -1381,11 +1381,11 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if response.SubscriptionID != "" {
+			if response.Subscription != nil {
 				var templ_7745c5c3_Var63 string
-				templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(response.Articles[0].GetFeedTitle())
+				templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(response.Subscription.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 340, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 340, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 				if templ_7745c5c3_Err != nil {
@@ -1451,7 +1451,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				if response.SubscriptionID == "" {
+				if response.Subscription == nil {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, " <form><input type=\"hidden\" name=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -1591,9 +1591,9 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var74 string
-					templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs("mark-" + response.SubscriptionID)
+					templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs("mark-" + response.Subscription.GetID())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 397, Col: 51}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 397, Col: 57}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
 					if templ_7745c5c3_Err != nil {
@@ -1607,11 +1607,11 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 					var markText string
 					var markIcon templ.Component
 					if response.Filters.GetView() == models.ViewUnread {
-						markURL = "/mark/subscription/" + response.SubscriptionID + "/read"
+						markURL = "/mark/subscription/" + response.Subscription.GetID() + "/read"
 						markText = "Mark Subscription Read"
 						markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 					} else {
-						markURL = "/mark/subscription/" + response.SubscriptionID + "/unread"
+						markURL = "/mark/subscription/" + response.Subscription.GetID() + "/unread"
 						markText = "Mark Subscription Unread"
 						markIcon = tabler.MailFilled(i.Props{Class: "size-4"})
 					}
@@ -1681,7 +1681,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 						return nil
 					})
 					templ_7745c5c3_Err = NewLink(
-						WithHXMethod(http.MethodGet, "/edit/subscription/"+response.SubscriptionID),
+						WithHXMethod(http.MethodGet, "/edit/subscription/"+response.Subscription.GetID()),
 						WithHXTarget(ContentID.Target()),
 						WithHXPushURL(true),
 						WithClasses("link-hover"),
