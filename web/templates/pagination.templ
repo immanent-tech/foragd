@@ -18,7 +18,7 @@ templ PaginationControl(ctx context.Context, route, target string, pagination mo
 		hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
 		hx-trigger="intersect once"
 		hx-target="#grid-objects"
-		hx-swap="beforeend"
+		hx-swap="beforeend transition:false"
 		hx-indicator="#content-loading"
 		hx-push-url="false"
 		preload

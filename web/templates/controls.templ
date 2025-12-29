@@ -231,7 +231,6 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 											hx-replace-url="true"
 											hx-target={ ContentID.Target() }
 											hx-vals={ `{"only_favorites": "false"}` }
-											hx-swap="innerHTML transition:true"
 										>
 											@tabler.X(i.Props{Class: "size-4"})
 										</button>

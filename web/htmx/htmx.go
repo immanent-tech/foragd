@@ -43,6 +43,8 @@ type Config struct {
 	// “HX-Request” by returning this response header. This should always be disabled when using HX-Request header to
 	// optionally return partial responses
 	HistoryRestoreAsHxRequest bool `json:"historyRestoreAsHxRequest"`
+	// GlobalViewTransitions configures whether htmx will use the View Transition API when swapping in new content.
+	GlobalViewTransitions bool `json:"globalViewTransitions"`
 	// ResponseHandling configures how to handle various HTTP response codes.
 	ResponseHandling []*ResponseHandling `json:"responseHandling,omitzero"`
 }

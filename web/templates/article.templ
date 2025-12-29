@@ -268,7 +268,6 @@ templ ArticleContent(article *models.Article) {
 			hx-target={ "#mark_" + article.GetID() }
 			hx-include="[name='csrf_token'],[name='view']"
 			hx-vals={ templ.JSONString(map[string]any{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
-			hx-swap="innerHTML"
 			hx-trigger="intersect once,load delay:10s"
 			hx-push-url="false"
 			_="on htmx:afterRequest remove me"
