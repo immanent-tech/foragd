@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.0](https://github.com/immanent-tech/foragd/compare/v0.8.1...v0.9.0) (2025-12-29)
+
+
+### Features
+
+* :sparkles: allow user customisation of subscription thumbnail/image ([5986ace](https://github.com/immanent-tech/foragd/commit/5986ace03b0483b0ccd3578f74b6e0f4fdcb16d9))
+
+
+### Bug Fixes
+
+* :bug: fetch subscription details when listing articles for a single subscription and pass to template ([9b2d569](https://github.com/immanent-tech/foragd/commit/9b2d569f1134f2b9edb892e2764c7741a92a1ecc))
+* **handlers:** :bug: make sure background jobs are started and cleaned-up properly ([d9967c4](https://github.com/immanent-tech/foragd/commit/d9967c4ce9f2d3f51f157dba1d493a074afafd6b))
+* **handlers:** :bug: protect against potential nil pointer references ([463215b](https://github.com/immanent-tech/foragd/commit/463215b27064472ee9b619937f1284289f66ebe3))
+* **templates:** :lipstick: fix article content styling ([03fb2c4](https://github.com/immanent-tech/foragd/commit/03fb2c475e9c79e4242da1032f5a50ebddda3e27))
+
 ## [0.8.1](https://github.com/immanent-tech/foragd/compare/v0.8.0...v0.8.1) (2025-12-28)
 
 
