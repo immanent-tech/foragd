@@ -39,6 +39,10 @@ type Config struct {
 	InlineScriptNonce string `json:"inlineScriptNonce,omitempty"`
 	// IncludeIndicatorStyles configures whether htmx will dynamically add indicator styles inline for requests.
 	IncludeIndicatorStyles bool `json:"includeIndicatorStyles"`
+	// HistoryRestoreAsHxRequest configures whether to treat history cache miss full page reload requests as a
+	// “HX-Request” by returning this response header. This should always be disabled when using HX-Request header to
+	// optionally return partial responses
+	HistoryRestoreAsHxRequest bool `json:"historyRestoreAsHxRequest"`
 	// ResponseHandling configures how to handle various HTTP response codes.
 	ResponseHandling []*ResponseHandling `json:"responseHandling,omitzero"`
 }

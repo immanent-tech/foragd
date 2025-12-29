@@ -12,7 +12,6 @@ import (
 	"sync"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 
 	"github.com/immanent-tech/foragd/config"
 )
@@ -173,22 +172,22 @@ func ContentSecurityPolicy(next http.Handler) http.Handler {
 			return
 		}
 		ctx := req.Context()
-		if !htmx.IsHTMX(req) {
-			// Add nonces.
-			currentNonce, err = generateNonce()
-			if err != nil {
-				http.Error(
-					res,
-					fmt.Sprintf("failed to generate nonce for style-src: %v", err),
-					http.StatusInternalServerError,
-				)
-				return
-			}
-			csp.StyleSrc = append(csp.StyleSrc, "'nonce-"+currentNonce+"'")
-			csp.ScriptSrc = append(csp.ScriptSrc, "'nonce-"+currentNonce+"'")
-			// Write header.
-			res.Header().Add("Content-Security-Policy", csp.String())
+		// if !htmx.IsHTMX(req) {
+		// Add nonces.
+		currentNonce, err = generateNonce()
+		if err != nil {
+			http.Error(
+				res,
+				fmt.Sprintf("failed to generate nonce for style-src: %v", err),
+				http.StatusInternalServerError,
+			)
+			return
 		}
+		// csp.StyleSrc = append(csp.StyleSrc, "'nonce-"+currentNonce+"'")
+		csp.ScriptSrc = append(csp.ScriptSrc, "'nonce-"+currentNonce+"'")
+		// Write header.
+		res.Header().Add("Content-Security-Policy", csp.String())
+		// }
 		ctx = templ.WithNonce(ctx, "nonce-"+currentNonce)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})

@@ -87,6 +87,7 @@ templ Head() {
 		// }
 		<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module" crossorigin="anonymous"></script>
 		<script src={ "/content/scripts.js?v=" + config.Version }></script>
+		<script src={ "/content/safe-nonce.js?v=" + config.Version }></script>
 		<link href={ "/content/styles.css?v=" + config.Version } rel="stylesheet"/>
 		// Site-wide htmx config.
 		<meta
@@ -103,6 +104,7 @@ templ Head() {
 				InlineStyleNonce: templ.GetNonce(ctx),
 				InlineScriptNonce: templ.GetNonce(ctx),
 				IncludeIndicatorStyles: true,
+				HistoryRestoreAsHxRequest: false,
 			}) }
 		/>
 		@PageTitle()
@@ -113,7 +115,7 @@ templ Head() {
 templ Body(content templ.Component) {
 	<body
 		class="h-full"
-		hx-ext="response-targets,preload,sse"
+		hx-ext="response-targets,preload,sse,safe-nonce"
 		_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
 		hx-target-404={ ContentID.Target() }
 	>
