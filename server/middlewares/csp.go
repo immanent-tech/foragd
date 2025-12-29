@@ -18,6 +18,8 @@ type CSP struct {
 	DefaultSrc []string `koanf:"defaultsrc"`
 	// ScriptSrc defines valid sources of JavaScript.
 	ScriptSrc []string `koanf:"scriptsrc"`
+	// ScriptSrc defines valid sources of JavaScript.
+	ScriptSrcAttr []string `koanf:"scriptsrcattr"`
 	// StyleSrc defines valid sources of CSS.
 	StyleSrc []string `koanf:"stylesrc"`
 	// StyleSrc defines valid sources of images.
@@ -133,6 +135,9 @@ var loadCSP = sync.OnceValue(func() error {
 	}
 	if len(csp.ScriptSrc) > 0 {
 		policy.WriteString("script-src " + strings.Join(csp.ScriptSrc, " ") + "; ")
+	}
+	if len(csp.ScriptSrcAttr) > 0 {
+		policy.WriteString("script-src-attr " + strings.Join(csp.ScriptSrcAttr, " ") + "; ")
 	}
 	if len(csp.StyleSrc) > 0 {
 		policy.WriteString("style-src " + strings.Join(csp.StyleSrc, " ") + "; ")
