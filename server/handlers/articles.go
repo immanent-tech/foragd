@@ -166,15 +166,14 @@ func PaginateArticles(api *elastic.API) http.HandlerFunc {
 				}
 			}
 
-			// Generate response object.
-			response := &models.ListArticlesResponse{
-				Articles:   articles,
-				Filters:    request.Filters,
-				Pagination: request.Pagination,
-			}
-
 			// If there are articles to show, render the articles. Else, return StatusNoContent.
-			if len(response.Articles) > 0 {
+			if len(articles) > 0 {
+				// Generate response object.
+				response := &models.ListArticlesResponse{
+					Articles:   articles,
+					Filters:    request.Filters,
+					Pagination: request.Pagination,
+				}
 				renderPartial(templates.PaginateArticles(response)).ServeHTTP(res, req)
 			} else {
 				res.WriteHeader(http.StatusNoContent)
@@ -253,8 +252,8 @@ func ViewArticle(api *elastic.API) http.HandlerFunc {
 		article := articles[0]
 		ctx := templates.PageTitleToCtx(req.Context(), article.GetTitle()+" | "+article.GetFeedTitle()+" | ")
 		// Get the "show_full_content" value and override the article value.
-		fullContent, err := strconv.ParseBool(req.FormValue(models.ParamFullArticleContent))
-		if err != nil || !fullContent {
+		if fullContent, err := strconv.ParseBool(req.FormValue(models.ParamFullArticleContent)); err != nil ||
+			!fullContent {
 			article.ShowFullContent = false
 		} else if fullContent {
 			article.ShowFullContent = fullContent
@@ -511,8 +510,7 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 			}
 		}
 
-		currentURL, found := htmx.GetCurrentURL(req)
-		if !found {
+		if currentURL, found := htmx.GetCurrentURL(req); !found {
 			err = SetRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
@@ -577,7 +575,10 @@ func extractArticleFromURL(url string) (string, error) {
 		return "", fmt.Errorf("extract article from url %s: %w", url, err)
 	}
 
-	articleBufPtr := articleBufPool.Get().(*bytes.Buffer)
+	articleBufPtr, ok := articleBufPool.Get().(*bytes.Buffer)
+	if !ok {
+		return "", errors.New("unable to allocate article content buffer")
+	}
 	articleBuf := *articleBufPtr
 	defer func() {
 		articleBufPtr.Reset()

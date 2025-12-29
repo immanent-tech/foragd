@@ -441,8 +441,8 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 			return
 		}
 
-		updateInterval := user.GetUpdatesFrequency()
 		for {
+			updateInterval := user.GetUpdatesFrequency()
 			select {
 			case <-req.Context().Done():
 				res.Header().Set("Connection", "close")
