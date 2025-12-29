@@ -33,9 +33,13 @@ func GeneratePageTitle(title string) string {
 	return title + " | " + config.AppName
 }
 
+var csrfHandle = templ.NewOnceHandle()
+
 // UpdateCSRFToken renders an input with the csrf token taken from the context.
 templ UpdateCSRFToken() {
-	<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+	@csrfHandle.Once() {
+		<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+	}
 }
 
 // Page renders a full HTML page with the given body content and title.
