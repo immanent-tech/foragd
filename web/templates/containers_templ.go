@@ -207,7 +207,7 @@ func Content(user *models.User, content templ.Component) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div id=\"content-loading\" class=\"mt-8 flex mx-auto justify-center items-center space-x-2 htmx-indicator\"><span class=\"loading loading-bars loading-xl\"></span><p class=\"text-lg/loose font-semibold text-accent\">Loading content...</p></div></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div><div id=\"content-loading\" class=\"mt-8 flex mx-auto justify-center items-center space-x-2 htmx-indicator\"><span class=\"loading loading-bars loading-xl\"></span><p class=\"text-lg/loose font-semibold\">Loading content...</p></div></main>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
