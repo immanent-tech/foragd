@@ -96,6 +96,7 @@ linters:
     - recvcheck # checks for receiver type consistency
     - revive # fast, configurable, extensible, flexible, and beautiful linter for Go, drop-in replacement of golint
     - rowserrcheck # checks whether Err of rows is checked successfully
+    - scopeguard
     - sloglint # ensure consistent code style when using log/slog
     - spancheck # checks for mistakes with OpenTelemetry/Census spans
     - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
@@ -154,6 +155,17 @@ linters:
 
   # All settings can be found here https://github.com/golangci/golangci-lint/blob/HEAD/.golangci.reference.yml
   settings:
+    custom:
+      scopeguard:
+        type: module
+        description: >-
+          scopeguard identifies variables with unnecessarily wide scope and suggests moving them to tighter scopes.
+        original-url: https://fillmore-labs.com/scopeguard
+        settings:
+          scope: conservative
+          shadow: full
+          max-lines: 10
+
     cyclop:
       # The maximal code complexity to report.
       # Default: 10
