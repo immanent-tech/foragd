@@ -355,86 +355,92 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				</p>
 			</div>
 		</div>
-		@FilterControls("/list/articles", response.Articles.GetCategoryCounts(), &response.Filters) {
-			<el-dropdown class="inline-block flex-none">
-				<button id="articles-actions-button" class="inline-flex btn btn-wide">
-					Actions
-					@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
-				</button>
-				<el-menu
-					id="articles-actions-menu"
-					anchor="bottom end"
-					popover
-					_="on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"
-				>
-					<div class="py-1">
-						if response.Subscription == nil {
-							// Mark all articles action.
-							<form>
-								<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
-								<a
-									class="link link-hover"
+		<div
+			if response.Subscription != nil {
+				hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }
+			}
+		>
+			@FilterControls("/list/articles", response.Articles.GetCategoryCounts(), &response.Filters) {
+				<el-dropdown class="inline-block flex-none">
+					<button id="articles-actions-button" class="inline-flex btn btn-wide">
+						Actions
+						@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+					</button>
+					<el-menu
+						id="articles-actions-menu"
+						anchor="bottom end"
+						popover
+						_="on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"
+					>
+						<div class="py-1">
+							if response.Subscription == nil {
+								// Mark all articles action.
+								<form>
+									<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
+									<a
+										class="link link-hover"
+										if response.Filters.GetView() == models.ViewUnread {
+											hx-post="/list/articles/mark/read"
+										} else {
+											hx-post="/list/articles/mark/unread"
+										}
+										hx-target={ ContentID.Target() }
+										hx-include="#grid-objects,[name='csrf_token']"
+									>
+										if response.Filters.GetView() == models.ViewUnread {
+											@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+											<span class="sr-only">Mark All Read</span>
+											Mark Articles Read
+											<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+										} else {
+											@tabler.MailFilled(i.Props{Class: "size-4"})
+											<span class="sr-only">Mark All Unread</span>
+											Mark Articles Unread
+											<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+										}
+									</a>
+								</form>
+							} else {
+								// Mark subscription action.
+								<form id={ "mark-" + response.Subscription.GetID() }>
+									// MarkURL returns the app URL for marking the subscription.
+									{{ var markURL string }}
+									{{ var markText string }}
+									{{ var markIcon templ.Component }}
 									if response.Filters.GetView() == models.ViewUnread {
-										hx-post="/list/articles/mark/read"
+										{{ markURL = "/mark/subscription/" + response.Subscription.GetID() + "/read" }}
+										{{ markText = "Mark Subscription Read" }}
+										{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
 									} else {
-										hx-post="/list/articles/mark/unread"
+										{{ markURL = "/mark/subscription/" + response.Subscription.GetID() + "/unread" }}
+										{{ markText = "Mark Subscription Unread" }}
+										{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
 									}
-									hx-target={ ContentID.Target() }
-									hx-include="#grid-objects,[name='csrf_token']"
-								>
-									if response.Filters.GetView() == models.ViewUnread {
-										@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-										<span class="sr-only">Mark All Read</span>
-										Mark Articles Read
-										<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-									} else {
-										@tabler.MailFilled(i.Props{Class: "size-4"})
-										<span class="sr-only">Mark All Unread</span>
-										Mark Articles Unread
-										<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+									@NewLink(
+										WithHXMethod(http.MethodPost, markURL),
+										WithHXInclude("[name='csrf_token'],[name='view']"),
+										WithClasses("link-hover"),
+									) {
+										@markIcon
+										{ markText }
 									}
-								</a>
-							</form>
-						} else {
-							// Mark subscription action.
-							<form id={ "mark-" + response.Subscription.GetID() }>
-								// MarkURL returns the app URL for marking the subscription.
-								{{ var markURL string }}
-								{{ var markText string }}
-								{{ var markIcon templ.Component }}
-								if response.Filters.GetView() == models.ViewUnread {
-									{{ markURL = "/mark/subscription/" + response.Subscription.GetID() + "/read" }}
-									{{ markText = "Mark Subscription Read" }}
-									{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
-								} else {
-									{{ markURL = "/mark/subscription/" + response.Subscription.GetID() + "/unread" }}
-									{{ markText = "Mark Subscription Unread" }}
-									{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
-								}
+								</form>
+								// Edit subscription action.
 								@NewLink(
-									WithHXMethod(http.MethodPost, markURL),
-									WithHXInclude("[name='csrf_token'],[name='view']"),
+									WithHXMethod(http.MethodGet, "/edit/subscription/"+response.Subscription.GetID()),
+									WithHXTarget(ContentID.Target()),
+									WithHXPushURL(true),
 									WithClasses("link-hover"),
 								) {
-									@markIcon
-									{ markText }
+									@tabler.Edit(i.Props{Class: "size-4"})
+									Edit Subscription
 								}
-							</form>
-							// Edit subscription action.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/edit/subscription/"+response.Subscription.GetID()),
-								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(true),
-								WithClasses("link-hover"),
-							) {
-								@tabler.Edit(i.Props{Class: "size-4"})
-								Edit Subscription
 							}
-						}
-					</div>
-				</el-menu>
-			</el-dropdown>
-		}
+						</div>
+					</el-menu>
+				</el-dropdown>
+			}
+		</div>
 		<section class="mt-4">
 			if len(response.Articles) > 0 {
 				@grid() {
