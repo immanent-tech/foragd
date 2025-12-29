@@ -190,6 +190,44 @@ func Avatar() http.HandlerFunc {
 	}
 }
 
+func SubscriptionImage() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Load the image cache.
+		if err := loadSubscriptionImgCache(); err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
+				slog.Any("error", err),
+			)
+			return
+		}
+
+		key := chi.URLParam(req, "*")
+
+		imgBufPtr := imgBufPool.Get().(*[]byte)
+		imgBuf := *imgBufPtr
+		defer imgBufPool.Put(imgBufPtr)
+		var found bool
+
+		// Try to fetch the image from the cache. If found, return the cached image.
+		imgBuf, found = avatarCache.Get(req.Context(), key)
+		if found {
+			// Write the image to the response.
+			if _, err := res.Write(imgBuf); err != nil {
+				res.WriteHeader(http.StatusInternalServerError)
+				slogctx.FromCtx(req.Context()).Error("Write image data.",
+					slog.Any("error", err),
+				)
+				return
+			}
+			// Return success.
+			res.WriteHeader(http.StatusOK)
+			return
+		} else {
+			http.NotFound(res, req)
+		}
+	}
+}
+
 var imgBufPool = sync.Pool{
 	New: func() any {
 		buf := make([]byte, 8388608) // TODO: fetch from IMGPROXY_MAX_SRC_FILE_SIZE env var.
@@ -233,6 +271,28 @@ var loadAvatarCache = sync.OnceValue(func() error {
 	default:
 		var err error
 		avatarCache, err = newDirCache("avatars")
+		if err != nil {
+			return fmt.Errorf("create dir cache: %w", err)
+		}
+	}
+
+	return nil
+})
+
+var subscriptionImgCache objectCache
+
+var loadSubscriptionImgCache = sync.OnceValue(func() error {
+	switch config.Environment {
+	case "production":
+		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
+		var err error
+		avatarCache, err = gcs.Connect(context.Background(), bucketName, "subscription_images")
+		if err != nil {
+			return fmt.Errorf("connect to gcs: %w", err)
+		}
+	default:
+		var err error
+		avatarCache, err = newDirCache("subscription_images")
 		if err != nil {
 			return fmt.Errorf("create dir cache: %w", err)
 		}

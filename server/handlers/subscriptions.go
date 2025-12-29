@@ -8,9 +8,12 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -20,6 +23,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
+	"github.com/spaolacci/murmur3"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -415,8 +419,9 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 			// Convert metadata into edit request data.
 			request := &models.EditSubscriptionRequest{
 				SubscriptionID:         id,
-				Nickname:               subscription.Customisation.Nickname,
+				Nickname:               subscription.GetTitle(),
 				Categories:             subscription.Customisation.Categories,
+				ImageURL:               subscription.GetImage(),
 				ShowFullArticleContent: subscription.Settings.ShowFullArticleContent,
 				ArticleFilters:         subscription.FeedData.ArticleFilters,
 			}
@@ -504,6 +509,8 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 				),
 			}
 		}
+
+		// Generate the appropriate subscription edit request.
 		switch models.SubscriptionType(req.FormValue("subscription_type")) {
 		case models.SubscriptionTypeFeed:
 			request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
@@ -553,6 +560,60 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 			subscription.Customisation = request.Customisation
 			subscription.Settings = request.Settings
 			subscription.GroupData.Subscriptions = request.Subscriptions
+		}
+
+		// Get any uploaded image.
+		image, err := forms.DecodeMultipartFile(req, "image")
+		if err != nil && !errors.Is(err, http.ErrMissingFile) {
+			return &models.APIError{
+				InternalError: fmt.Errorf("decode image: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to save subscription",
+					"Unable to read uploaded avatar data. Please check the file and try again.",
+				),
+			}
+		}
+		if image.GetSize() > 1000000 {
+			return &models.APIError{
+				InternalError: models.ErrFileTooLarge,
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to save subscription",
+					"Uploaded image is too large (> 1MB).",
+				),
+			}
+		}
+		// If the user uploaded a new avatar, process it.
+		if image != nil {
+			if err := loadSubscriptionImgCache(); err != nil {
+				return &models.APIError{
+					InternalError: fmt.Errorf("load server cache: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save subscription",
+						"This might be a temporary error, please try again.",
+					),
+				}
+			}
+			// Generate a unique ID for the avatar image in the cache using the user ID.
+			imageFileID := strconv.FormatUint(murmur3.Sum64([]byte(subscription.GetID()+"image")), 10)
+			// Read the uploaded data and store in the cache.
+			imageData, err := io.ReadAll(image.Data)
+			if err != nil {
+				return &models.APIError{
+					InternalError: fmt.Errorf("read avatar: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save settings",
+						"This might be a temporary error, please try again.",
+					),
+				}
+			}
+			avatarCache.Set(req.Context(), imageFileID, imageData)
+			// Construct a new full URL to the uploaded avatar on the local server.
+			baseURL := os.Getenv("FORAGD_BASEURL")
+			subscription.Customisation.ImageURL = baseURL + "/img/subscription/" + imageFileID
 		}
 
 		_, err = api.UpdateSubscriptions(req.Context(), subscription)

@@ -175,6 +175,8 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgProxy.BaseURL))
 	// Avatars
 	router.Get("/img/avatar/*", handlers.Avatar())
+	// User custom subscription images
+	router.Get("/img/subscription/*", handlers.SubscriptionImage())
 
 	// Front page.
 	router.Get("/", handlers.Landing())

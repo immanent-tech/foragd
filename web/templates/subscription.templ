@@ -55,7 +55,7 @@ templ SubscriptionCard(s *models.Subscription) {
 						) {
 							<div class="flex flex-1 items-center">
 								<div class="mr-4 shrink-0 self-center">
-									@subscriptionThumbnail(s)
+									@subscriptionThumbnail(s.GetImage(), s.GetTitle())
 								</div>
 								<div>
 									<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
@@ -76,7 +76,7 @@ templ SubscriptionCard(s *models.Subscription) {
 							) {
 								<div class="flex flex-1 items-center">
 									<div class="mr-4 shrink-0 self-center">
-										@subscriptionThumbnail(s)
+										@subscriptionThumbnail(s.GetImage(), s.GetTitle())
 									</div>
 									<div>
 										<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
@@ -103,7 +103,7 @@ templ SubscriptionCard(s *models.Subscription) {
 						) {
 							<div class="flex items-center">
 								<div class="mr-4 shrink-0 self-center">
-									@subscriptionThumbnail(s)
+									@subscriptionThumbnail(s.GetImage(), s.GetTitle())
 								</div>
 								<div>
 									<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
@@ -440,6 +440,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				hx-include="#current-categories,[name='csrf_token']"
 				hx-swap="none"
 				hx-indicator="#processing"
+				hx-encoding="multipart/form-data"
 			>
 				<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
 				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
@@ -451,7 +452,33 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 						<div class="col-span-full mt-2">
-							<input id="nickname" required type="text" name="nickname" value={ request.GetNickname() } placeholder="My Subscription" class="input input-primary bg-base-content/10"/>
+							<input
+								id="nickname"
+								required
+								type="text"
+								name="nickname"
+								value={ request.GetNickname() }
+								placeholder="My Subscription"
+								class="input input-primary bg-base-content/10"
+							/>
+						</div>
+					</div>
+				</div>
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<label for="image" class="text-base/7 font-semibold">Image</label>
+						<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2 flex items-center gap-x-2">
+							@subscriptionThumbnail(request.ImageURL, request.Nickname)
+							<input
+								id="image"
+								type="file"
+								class="flex file-input file-input-primary bg-base-content/10"
+								name="image"
+								accept=".jpg,.png,.webp"
+							/>
 						</div>
 					</div>
 				</div>
@@ -730,6 +757,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				hx-params="not subscription-text"
 				hx-vals="js:{'search.timezone': Intl.DateTimeFormat().resolvedOptions().timeZone}"
 				hx-indicator="#processing"
+				hx-encoding="multipart/form-data"
 			>
 				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeSearch) }/>
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
@@ -948,6 +976,25 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					</div>
 				</div>
 			</div>
+			// Image.
+			<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+				<div>
+					<label for="image" class="text-base/7 font-semibold">Image</label>
+					<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
+				</div>
+				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+					<div class="col-span-full mt-2 flex items-center gap-x-2">
+						@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
+						<input
+							id="image"
+							type="file"
+							class="flex file-input file-input-primary bg-base-content/10"
+							name="image"
+							accept=".jpg,.png,.webp"
+						/>
+					</div>
+				</div>
+			</div>
 			// Categories
 			{{ categoryMgmtPath := "/user/subscription/category" }}
 			@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
@@ -1003,6 +1050,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 				hx-include="[name='customisation.categories'],[name='csrf_token']"
 				hx-params="not subscription-text"
 				hx-indicator="#processing"
+				hx-encoding="multipart/form-data"
 			>
 				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
 				// Subscriptions.
@@ -1072,6 +1120,25 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 					</div>
 				</div>
 			</form>
+			// Image.
+			<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+				<div>
+					<label for="image" class="text-base/7 font-semibold">Image</label>
+					<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
+				</div>
+				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+					<div class="col-span-full mt-2 flex items-center gap-x-2">
+						@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
+						<input
+							id="image"
+							type="file"
+							class="flex file-input file-input-primary bg-base-content/10"
+							name="image"
+							accept=".jpg,.png,.webp"
+						/>
+					</div>
+				</div>
+			</div>
 			// Categories
 			{{ categoryMgmtPath := "/user/subscription/category" }}
 			@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
@@ -1323,8 +1390,8 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 	}
 }
 
-templ subscriptionThumbnail(subscription *models.Subscription) {
-	if img := subscription.GetImage(); img != "" {
+templ subscriptionThumbnail(url, title string) {
+	if url != "" {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar">
 			<div class="rounded-box size-12 border border-base-content">
@@ -1334,7 +1401,7 @@ templ subscriptionThumbnail(subscription *models.Subscription) {
 				// sm:1 - strip metadata
 				// kcr:1 - keep copyright
 				// scp:1 - convert color profile to sRGB
-				@NewProxiedImage(&types.ImageInfo{Title: subscription.GetTitle(), URL: img}, "rs:auto:48:48/sh:0.5/q:80/sm:1/kcr:1/scp:1",
+				@NewProxiedImage(&types.ImageInfo{Title: title, URL: url}, "rs:auto:48:48/sh:0.5/q:80/sm:1/kcr:1/scp:1",
 					WithCustomAttribute("width", "48"),
 					WithCustomAttribute("height", "48"),
 				)
@@ -1344,7 +1411,7 @@ templ subscriptionThumbnail(subscription *models.Subscription) {
 		// Otherwise, take the first letter of the title and create a placeholder avatar.
 		<div class="avatar avatar-placeholder">
 			<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
-				<span class="text-3xl capitalize">{ subscription.GetTitle()[0:1] }</span>
+				<span class="text-3xl capitalize">{ title[0:1] }</span>
 			</div>
 		</div>
 	}

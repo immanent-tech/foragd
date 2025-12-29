@@ -28,7 +28,10 @@ func (f *FileUpload) Valid() error {
 
 // GetSize returns the file size.
 func (f *FileUpload) GetSize() int64 {
-	return f.Header.Size
+	if f != nil {
+		return f.Header.Size
+	}
+	return 0
 }
 
 // ParseMimetype attempts to parse and return the mimetype of the file from its mime header.
