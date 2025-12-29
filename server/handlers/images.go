@@ -55,7 +55,12 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			10,
 		)
 
-		imgBufPtr := imgBufPool.Get().(*[]byte)
+		imgBufPtr, ok := imgBufPool.Get().(*[]byte)
+		if !ok {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
+			return
+		}
 		imgBuf := *imgBufPtr
 		defer imgBufPool.Put(imgBufPtr)
 		var found bool
@@ -152,6 +157,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 	}
 }
 
+// Avatar handles fetching and displaying custom avatars for users.
 func Avatar() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Load the image cache.
@@ -165,7 +171,12 @@ func Avatar() http.HandlerFunc {
 
 		key := chi.URLParam(req, "*")
 
-		imgBufPtr := imgBufPool.Get().(*[]byte)
+		imgBufPtr, ok := imgBufPool.Get().(*[]byte)
+		if !ok {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
+			return
+		}
 		imgBuf := *imgBufPtr
 		defer imgBufPool.Put(imgBufPtr)
 		var found bool
@@ -190,6 +201,7 @@ func Avatar() http.HandlerFunc {
 	}
 }
 
+// SubscriptionImage handles fetching and displaying a custom subscription image thumbnail for users.
 func SubscriptionImage() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Load the image cache.
@@ -203,7 +215,12 @@ func SubscriptionImage() http.HandlerFunc {
 
 		key := chi.URLParam(req, "*")
 
-		imgBufPtr := imgBufPool.Get().(*[]byte)
+		imgBufPtr, ok := imgBufPool.Get().(*[]byte)
+		if !ok {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
+			return
+		}
 		imgBuf := *imgBufPtr
 		defer imgBufPool.Put(imgBufPtr)
 		var found bool
@@ -286,13 +303,13 @@ var loadSubscriptionImgCache = sync.OnceValue(func() error {
 	case "production":
 		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
 		var err error
-		avatarCache, err = gcs.Connect(context.Background(), bucketName, "subscription_images")
+		subscriptionImgCache, err = gcs.Connect(context.Background(), bucketName, "subscription_images")
 		if err != nil {
 			return fmt.Errorf("connect to gcs: %w", err)
 		}
 	default:
 		var err error
-		avatarCache, err = newDirCache("subscription_images")
+		subscriptionImgCache, err = newDirCache("subscription_images")
 		if err != nil {
 			return fmt.Errorf("create dir cache: %w", err)
 		}
