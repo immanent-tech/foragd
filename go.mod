@@ -14,7 +14,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e
 	github.com/go-playground/form/v4 v4.3.0
-	github.com/go-playground/validator/v10 v10.30.0
+	github.com/go-playground/validator/v10 v10.30.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/knadh/koanf/v2 v2.3.0
 	github.com/lmittmann/tint v1.1.2
@@ -58,7 +58,6 @@ require (
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/go-pkgz/expirable-cache/v3 v3.0.0 // indirect
 	github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c // indirect
-	github.com/goforj/godump v1.8.0 // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/golang/dep v0.5.4 // indirect
