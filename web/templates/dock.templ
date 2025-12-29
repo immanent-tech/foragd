@@ -29,7 +29,7 @@ templ Dock(attributes templ.Attributes) {
 		<button
 			hx-get="/list/subscriptions"
 			hx-target={ ContentID.Target() }
-			hx-vals={ models.GenerateHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
+			hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
 			hx-params={ "not " + models.ParamSubscriptions }
 			hx-push-url="true"
 			if models.PathFromCtx(ctx) == "/list/subscriptions" {
@@ -44,7 +44,7 @@ templ Dock(attributes templ.Attributes) {
 		<button
 			hx-get="/list/articles"
 			hx-target={ ContentID.Target() }
-			hx-vals={ models.GenerateHXVals(filters.Values()) }
+			hx-vals={ templ.JSONString(filters.Values()) }
 			hx-push-url="true"
 			if models.PathFromCtx(ctx) == "/list/articles" {
 				class="dock-active"

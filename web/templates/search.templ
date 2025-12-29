@@ -373,7 +373,7 @@ templ SearchFilters(attributes templ.Attributes) {
 							class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 							id="search-subscriptions-options"
 							hx-target="#search-subscriptions"
-							hx-vals={ models.GenerateHXVals(map[string]any{"subscriptions-input-name": "subscriptions"}) }
+							hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
 							_="on htmx:afterRequest set #search-subscriptions-suggest.value to ''"
 						></div>
 						<div

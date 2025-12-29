@@ -844,7 +844,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 								id="subscription-filter-subscriptions-options"
 								hx-target="#subscription-filter-subscriptions"
-								hx-vals={ models.GenerateHXVals(map[string]any{"subscriptions-input-name": "search.subscriptions"}) }
+								hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "search.subscriptions"}) }
 								_="on htmx:afterRequest set #subscription-filter-subscriptions-search.value to ''"
 							></div>
 							<div
@@ -1084,7 +1084,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 								id="subscription-filter-subscriptions-options"
 								hx-target="#subscription-filter-subscriptions"
-								hx-vals={ models.GenerateHXVals(map[string]any{"subscriptions-input-name": "subscriptions"}) }
+								hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
 								_="on htmx:afterRequest set #subscription-filter-subscriptions-search.value to ''"
 							></div>
 							<div

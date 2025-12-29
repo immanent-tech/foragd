@@ -5,7 +5,6 @@
 package models
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"iter"
@@ -62,16 +61,6 @@ func FilterMap[K comparable, V any](m map[K]V, fn func(K, V) bool) iter.Seq2[K, 
 // FilterMapValues will filter map values by the given function.
 func FilterMapValues[K comparable, V any](s map[K]V, fn func(V) bool) iter.Seq[V] {
 	return FilterSlice(slices.Collect(maps.Values(s)), fn)
-}
-
-// GenerateHXVals generates a JSON-formatted object containing the given key-value pairs suitable for use as a hx-vals attribute.
-// See also: https://htmx.org/attributes/hx-vals/
-func GenerateHXVals(values map[string]any) string {
-	data, err := json.Marshal(values)
-	if err != nil {
-		return ""
-	}
-	return string(data)
 }
 
 func (p *ObjectParams) Valid() error {

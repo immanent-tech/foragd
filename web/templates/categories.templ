@@ -47,7 +47,7 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 					hx-post={ path }
 					hx-on::after-request="if(event.detail.successful) this.reset()"
 					hx-include="[name='csrf_token'],[name='categories']"
-					hx-vals={ models.GenerateHXVals(map[string]any{"inputName": inputName}) }
+					hx-vals={ templ.JSONString(map[string]any{"inputName": inputName}) }
 					hx-push-url="false"
 					hx-target="#current-categories"
 					hx-swap="beforeend"
