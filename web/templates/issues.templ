@@ -64,16 +64,10 @@ templ ReportPageIssue(details *models.IssueRequest) {
 						Processing...
 						<span class="loading loading-spinner loading-md"></span>
 					</div>
-					<button
-						type="button"
-						hx-get={ details.PageUrl }
-						hx-target={ ContentID.Target() }
-						class="btn btn-secondary"
-					>Back</button>
-					<button
-						type="submit"
-						class="btn btn-primary"
-					>Submit</button>
+					@btnBack()
+					@btnSubmit(nil) {
+						Submit
+					}
 				</div>
 			</form>
 		</div>
@@ -202,11 +196,10 @@ templ ReportObjectIssues(objectType, id string, details *models.ObjectIssueReque
 						Processing...
 						<span class="loading loading-spinner loading-md"></span>
 					</div>
-					<button type="button" hx-get="#" class="btn btn-secondary">Back</button>
-					<button
-						type="submit"
-						class="btn btn-primary"
-					>Submit</button>
+					@btnBack()
+					@btnSubmit(nil) {
+						Submit
+					}
 				</div>
 			</form>
 		</div>

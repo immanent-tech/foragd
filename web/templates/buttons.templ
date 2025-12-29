@@ -22,3 +22,19 @@ templ btnBackToTop() {
 		@tabler.ArrowUp()
 	</button>
 }
+
+templ btnBack() {
+	<button type="button" class="btn btn-secondary hover:btn-error" _="on click call history.back()">
+		Back
+	</button>
+}
+
+templ btnSubmit(attrs templ.Attributes) {
+	<button
+		type="submit"
+		class="btn btn-primary"
+		{ attrs... }
+	>
+		{ children... }
+	</button>
+}
