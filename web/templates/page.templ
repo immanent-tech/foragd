@@ -7,6 +7,7 @@ import (
 	"context"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/htmx"
 )
 
 const (
@@ -90,17 +91,19 @@ templ Head() {
 		// Site-wide htmx config.
 		<meta
 			name="htmx-config"
-			content='{
-				"selfRequestsOnly":true,
-				"allowNestedOobSwaps":true,
-				"responseHandling":[
-            		{"code":"204", "swap": false},
-            		{"code":"[23]..", "swap": true},
-            		{"code":"422", "swap": true},
-            		{"code":"[45]..", "swap": true, "error":true},
-            		{"code":"...", "swap": false}
-        		]
-			}'
+			content={ templ.JSONString(htmx.Config{
+				AllowNestedOOBSwaps: false,
+				ResponseHandling: []*htmx.ResponseHandling{
+					{Code: "204",Swap: false},
+					{Code:"[23]..",Swap: true},
+					{Code:"422",Swap: true},
+					{Code: "[45]..",Swap: true,Error: true},
+					{Code:"...",Swap: false},
+				},
+				InlineStyleNonce: templ.GetNonce(ctx),
+				InlineScriptNonce: templ.GetNonce(ctx),
+				IncludeIndicatorStyles: true,
+			}) }
 		/>
 		@PageTitle()
 	</head>

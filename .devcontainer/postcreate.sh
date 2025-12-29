@@ -18,6 +18,7 @@ bun update || exit -1
 go mod tidy
 go install github.com/air-verse/air@latest
 go install github.com/a-h/templ/cmd/templ@latest
+go install golang.org/x/tools/gopls@latest
 
 # Install Stripe CLI.
 cd /tmp \

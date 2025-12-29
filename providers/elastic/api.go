@@ -716,7 +716,7 @@ func (a *API) searchSubscriptions(
 	return subscriptions, "", nil
 }
 
-// getAllSubscriptionCategories retrieves a map of categories from user subscriptions by count.
+// GetAllSubscriptionCategories retrieves a map of categories from user subscriptions by count.
 func (a *API) GetAllSubscriptionCategories(ctx context.Context) (models.CategoryCounts, error) {
 	// Retrieve user object.
 	user, err := models.UserFromCtx(ctx)

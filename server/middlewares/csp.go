@@ -4,10 +4,15 @@
 package middlewares
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 
 	"github.com/immanent-tech/foragd/config"
 )
@@ -22,6 +27,8 @@ type CSP struct {
 	ScriptSrcAttr []string `koanf:"scriptsrcattr"`
 	// StyleSrc defines valid sources of CSS.
 	StyleSrc []string `koanf:"stylesrc"`
+	// StyleSrc defines valid sources of CSS.
+	StyleSrcAttr []string `koanf:"stylesrcattr"`
 	// StyleSrc defines valid sources of images.
 	ImgSrc []string `koanf:"imgsrc"`
 	// ConnectSrc applies to XMLHttpRequest (AJAX), WebSocket, fetch(), <a ping> or EventSource. If not allowed the
@@ -71,15 +78,7 @@ type CSP struct {
 	PrefetchSrc []string `koanf:"prefetchsrc"`
 }
 
-var cspHeader string
-
-// LoadConfigOnce loads the auth0 configuration and ensures this is only done
-// one time, no matter how many times it is called.
-var loadCSP = sync.OnceValue(func() error {
-	csp, err := config.Load[CSP](config.ConfigEnvPrefix + "CSP_")
-	if err != nil {
-		return fmt.Errorf("load csp config: %w", err)
-	}
+func (csp *CSP) String() string {
 	var policy strings.Builder
 
 	if len(csp.BaseURI) > 0 {
@@ -142,23 +141,64 @@ var loadCSP = sync.OnceValue(func() error {
 	if len(csp.StyleSrc) > 0 {
 		policy.WriteString("style-src " + strings.Join(csp.StyleSrc, " ") + "; ")
 	}
+	if len(csp.StyleSrcAttr) > 0 {
+		policy.WriteString("style-src-attr " + strings.Join(csp.StyleSrcAttr, " ") + "; ")
+	}
 	if len(csp.WorkerSrc) > 0 {
 		policy.WriteString("worker-src " + strings.Join(csp.WorkerSrc, " ") + "; ")
 	}
 
-	cspHeader = strings.TrimSpace(policy.String())
+	return strings.TrimSpace(policy.String())
+}
 
-	return nil
+// LoadConfigOnce loads the auth0 configuration and ensures this is only done
+// one time, no matter how many times it is called.
+var loadCSP = sync.OnceValues(func() (CSP, error) {
+	csp, err := config.Load[CSP](config.ConfigEnvPrefix + "CSP_")
+	if err != nil {
+		return csp, fmt.Errorf("load csp config: %w", err)
+	}
+	return csp, nil
 })
+
+var currentNonce string
 
 // ContentSecurityPolicy middleware injects a Content-Security-Policy header into requests.
 func ContentSecurityPolicy(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if err := loadCSP(); err != nil {
+		var err error
+		csp, err := loadCSP()
+		if err != nil {
 			http.Error(res, fmt.Sprintf("failed to load CSP: %v", err), http.StatusInternalServerError)
 			return
 		}
-		res.Header().Add("Content-Security-Policy", cspHeader)
-		next.ServeHTTP(res, req)
+		ctx := req.Context()
+		if !htmx.IsHTMX(req) {
+			// Add nonces.
+			currentNonce, err = generateNonce()
+			if err != nil {
+				http.Error(
+					res,
+					fmt.Sprintf("failed to generate nonce for style-src: %v", err),
+					http.StatusInternalServerError,
+				)
+				return
+			}
+			csp.StyleSrc = append(csp.StyleSrc, "'nonce-"+currentNonce+"'")
+			csp.ScriptSrc = append(csp.ScriptSrc, "'nonce-"+currentNonce+"'")
+			// Write header.
+			res.Header().Add("Content-Security-Policy", csp.String())
+		}
+		ctx = templ.WithNonce(ctx, "nonce-"+currentNonce)
+		next.ServeHTTP(res, req.WithContext(ctx))
 	})
+}
+
+func generateNonce() (string, error) {
+	byt := make([]byte, 16)
+	_, err := rand.Read(byt)
+	if err != nil {
+		return "", fmt.Errorf("read random: %w", err)
+	}
+	return base64.URLEncoding.EncodeToString(byt), nil
 }
