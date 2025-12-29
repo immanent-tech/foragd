@@ -1324,15 +1324,8 @@ templ ExportSubscriptions() {
 		</p>
 		<div class="mt-10 space-y-8">
 			<div class="mt-6 flex items-center justify-end gap-x-6">
-				<button type="button" onclick="history.back()" class="btn btn-secondary hover:btn-error">
-					Back
-				</button>
-				<a
-					role="button"
-					class="btn btn-primary"
-					href="/user/export/opml"
-					download
-				>
+				@btnBack()
+				<a role="button" class="btn btn-primary" href="/user/export/opml" download>
 					Export
 				</a>
 			</div>
