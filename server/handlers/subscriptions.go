@@ -1013,7 +1013,7 @@ func processThumbnail(req *http.Request, objectID string) (string, error) {
 	const maxThumbnailSize = 1000000 // Max thumbnail size is 1 MB.
 
 	// Get any uploaded image.
-	image, err := forms.DecodeMultipartFile(req, "image")
+	image, err := forms.DecodeMultipartFile(req, models.ParamThumbnail)
 	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		return "", fmt.Errorf("parse thumbnail data: %w", err)
 	}
