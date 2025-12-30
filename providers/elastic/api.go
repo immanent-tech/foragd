@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
@@ -36,7 +35,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
 	"github.com/immanent-tech/foragd/providers/elastic/schema"
-	"github.com/immanent-tech/foragd/server/session/store"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -64,15 +62,8 @@ var (
 )
 
 var (
-	_ store.Datastore = (*API)(nil)
-
 	_ types.FieldValueVariant = (*paginationValue[types.FieldValue])(nil)
 )
-
-// API is an object that provides access to the Elasticsearch API.
-type API struct {
-	*elasticsearch.TypedClient
-}
 
 // Object represents any kind of object that has an ID. Effectively the object can be indexed in Elasticsearch.
 type Object[T ~string] interface {
@@ -266,7 +257,7 @@ func (a *API) RemoveSubscriptions(ctx context.Context, ids ...models.Subscriptio
 		return fmt.Errorf("get user data: %w", err)
 	}
 	index := schema.SubscriptionsSchemaPrefix + schema.IndexWriteSuffix
-	if err := DeleteDocs(ctx, a, index,
+	if err := DeleteDocs(ctx, index,
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
@@ -285,7 +276,7 @@ func (a *API) UpdateSubscriptions(
 	subscriptions ...*models.Subscription,
 ) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
 	index := schema.SubscriptionsSchemaPrefix + schema.IndexWriteSuffix
-	resp, err := BulkUpdate(ctx, a, index, subscriptions...)
+	resp, err := BulkUpdate(ctx, index, subscriptions...)
 	if err != nil {
 		return nil, fmt.Errorf("bulk update: %w", err)
 	}
@@ -694,7 +685,6 @@ func (a *API) searchSubscriptions(
 	// Perform search.
 	subscriptions, newSearchAfter, err := Search[*models.Subscription](
 		ctx,
-		a,
 		index,
 		query,
 		req.count,
@@ -1098,7 +1088,6 @@ func (a *API) getFeedLastUpdates(ctx context.Context, ids ...models.FeedID) (map
 
 	items, _, err := Search[*models.Item](
 		ctx,
-		a,
 		index,
 		query.Terms("feed_id", ids...),
 		len(ids),
@@ -1161,7 +1150,7 @@ func (a *API) getAllSubscriptionsByQuery(ctx context.Context, query query.Option
 		subscriptions models.Subscriptions
 		err           error
 	)
-	subscriptions, err = SearchAll[*models.Subscription](ctx, a, index, query, defaultPaginationSize)
+	subscriptions, err = SearchAll[*models.Subscription](ctx, index, query, defaultPaginationSize)
 	if err != nil {
 		return nil, fmt.Errorf("get all subscriptions by query: %w", err)
 	}
@@ -1608,7 +1597,7 @@ func (a *API) SearchItems(
 		return nil, "", ErrInvalidParams
 	}
 	// Perform search.
-	items, newSearchAfter, err := Search[*models.Item](ctx, a, index, query, count,
+	items, newSearchAfter, err := Search[*models.Item](ctx, index, query, count,
 		WithSortOptions[*search.Search, SearchRequest](newItemSortOptions(sort)...),
 		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
 	)
@@ -1653,7 +1642,7 @@ func (a *API) ItemsAggregation(
 func (a *API) CountItems(ctx context.Context, query query.Option) (int64, error) {
 	index := schema.ItemsSchemaPrefix + schema.IndexReadSuffix
 
-	count, err := Count(ctx, a, index, query)
+	count, err := Count(ctx, index, query)
 	if err != nil {
 		return 0, fmt.Errorf("count items: %w", err)
 	}
@@ -1664,17 +1653,21 @@ func (a *API) CountItems(ctx context.Context, query query.Option) (int64, error)
 // AddItems will bulk index the given items.
 func (a *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.ItemID]*bulk.OperationResponse, error) {
 	index := schema.ItemsSchemaPrefix + schema.IndexWriteSuffix
-	return BulkUpdate(ctx, a, index, items...)
+	return BulkUpdate(ctx, index, items...)
 }
 
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
 func BulkAdd[T ~string, O Object[T]](
 	ctx context.Context,
-	api *API,
 	index string,
 	objects ...O,
 ) (map[T]*bulk.OperationResponse, error) {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return nil, fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	bulkOps, respCh := bulk.NewRequest(ctx, api.TypedClient)
 
 	go func() {
@@ -1714,10 +1707,14 @@ func BulkAdd[T ~string, O Object[T]](
 // If the request itself fails, a non-nil error is returned.
 func BulkUpdate[T ~string, O Object[T]](
 	ctx context.Context,
-	api *API,
 	index string,
 	objects ...O,
 ) (map[T]*bulk.OperationResponse, error) {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return nil, fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	bulkOps, respCh := bulk.NewRequest(ctx, api.TypedClient)
 
 	go func() {
@@ -1755,19 +1752,13 @@ func BulkUpdate[T ~string, O Object[T]](
 	return responses, nil
 }
 
-// exists checks if the document with the given id exists in the given index.
-func exists[T ~string](ctx context.Context, api *elasticsearch.TypedClient, index string, id T) (bool, error) {
-	found, err := api.Exists(index, string(id)).
-		Header(ReqIDHeader, middleware.GetReqID(ctx)).
-		Do(ctx)
-	if err != nil {
-		return false, toAPIError("exists", err)
-	}
-	return found, nil
-}
-
 // Count will return the number of docs matching the given queries in the given index.
-func Count(ctx context.Context, api *API, index string, queries ...query.Option) (int64, error) {
+func Count(ctx context.Context, index string, queries ...query.Option) (int64, error) {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return 0, fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	resp, err := NewCountRequest(api.TypedClient,
 		WithRequestID[*count.Count, CountRequest](middleware.GetReqID(ctx)),
 		WithIndex[*count.Count, CountRequest](index),
@@ -1784,10 +1775,14 @@ func Count(ctx context.Context, api *API, index string, queries ...query.Option)
 // is returned on a failure.
 func GetDocs[T ~string, O any](
 	ctx context.Context,
-	api *API,
 	index string,
 	ids ...T,
 ) ([]O, error) {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return nil, fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	docIDs := make([]string, 0, len(ids))
 	for id := range slices.Values(ids) {
 		docIDs = append(docIDs, string(id))
@@ -1809,8 +1804,14 @@ func GetDocs[T ~string, O any](
 }
 
 // GetDoc retrieves the doc with the given id from the given index. A non-nil error is returned on a failure.
-func GetDoc[T ~string, O any](ctx context.Context, api *API, index string, id T) (O, error) {
+func GetDoc[T ~string, O any](ctx context.Context, index string, id T) (O, error) {
 	var doc O
+
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return doc, fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	resp, err := NewGetRequest(api.TypedClient, index, string(id),
 		WithRequestID[*get.Get, RequestCommon[*get.Get]](middleware.GetReqID(ctx)),
 	).Do(ctx)
@@ -1828,7 +1829,12 @@ func GetDoc[T ~string, O any](ctx context.Context, api *API, index string, id T)
 }
 
 // CreateDoc will create the given document, with given id, in the given index.
-func CreateDoc[T ~string, O any](ctx context.Context, api *API, index string, id T, doc O) error {
+func CreateDoc[T ~string, O any](ctx context.Context, index string, id T, doc O) error {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	resp, err := api.Create(index, string(id)).
 		Document(doc).
 		Header(ReqIDHeader, middleware.GetReqID(ctx)).
@@ -1850,12 +1856,16 @@ func CreateDoc[T ~string, O any](ctx context.Context, api *API, index string, id
 // returned on a failure.
 func UpdateDoc[T ~string](
 	ctx context.Context,
-	api *API,
 	index string,
 	id T,
 	updates map[string]any,
 	options ...Option[UpdateDocRequest],
 ) error {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	resp, err := NewUpdateDocRequest(api.TypedClient, index, string(id), updates, options...).Do(ctx)
 	if err != nil {
 		return toAPIError("update doc", err)
@@ -1871,7 +1881,12 @@ func UpdateDoc[T ~string](
 }
 
 // DeleteDoc deletes the document with the given id from the given index.
-func DeleteDoc[T ~string](ctx context.Context, api *API, index string, id T) error {
+func DeleteDoc[T ~string](ctx context.Context, index string, id T) error {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	resp, err := api.Delete(index, string(id)).
 		Header(ReqIDHeader, middleware.GetReqID(ctx)).
 		Refresh(refresh.True).
@@ -1889,7 +1904,12 @@ func DeleteDoc[T ~string](ctx context.Context, api *API, index string, id T) err
 }
 
 // DeleteDocs performs a delete by query request on the given index to delete documents matching the given queries.
-func DeleteDocs(ctx context.Context, api *API, index string, queries ...query.Option) error {
+func DeleteDocs(ctx context.Context, index string, queries ...query.Option) error {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	resp, err := NewDeleteByQueryRequest(
 		api.TypedClient,
 		index,
@@ -1912,12 +1932,16 @@ func DeleteDocs(ctx context.Context, api *API, index string, queries ...query.Op
 // Search performs a _search request to find documents matching the given query.
 func Search[O any](
 	ctx context.Context,
-	api *API,
 	index string,
 	query query.Option,
 	count int,
 	options ...Option[SearchRequest],
 ) ([]O, []types.FieldValue, error) {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return nil, nil, fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	defaultOptions := []Option[SearchRequest]{
 		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
 		WithIndex[*search.Search, SearchRequest](index),
@@ -1948,12 +1972,16 @@ func Search[O any](
 // does not stop when the request hits count is reached.
 func SearchAll[O any](
 	ctx context.Context,
-	api *API,
 	index string,
 	query query.Option,
 	paginationSize int,
 	options ...Option[SearchRequest],
 ) ([]O, error) {
+	// Connect to elasticsearch (if not already connected).
+	if err := Connect(); err != nil {
+		return nil, fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+
 	if paginationSize == 0 {
 		paginationSize = 1000
 	}
@@ -1972,7 +2000,7 @@ func SearchAll[O any](
 			WithTrackTotalHits(false),
 		}
 		searchOpts = append(searchOpts, options...)
-		resultsPage, nextSearchAfter, err := Search[O](ctx, api, index, query, paginationSize, searchOpts...)
+		resultsPage, nextSearchAfter, err := Search[O](ctx, index, query, paginationSize, searchOpts...)
 		if err != nil {
 			return nil, toAPIError("search all", err)
 		}

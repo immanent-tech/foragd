@@ -595,7 +595,7 @@ func extractArticleFromURL(url string) (string, error) {
 // archiveArticle will index the given article content to the article archive for permanent storage.
 func archiveArticle(ctx context.Context, api *elastic.API, article *models.ArticleArchive) error {
 	index := schema.FavoriteItemsSchemaPrefix + schema.IndexWriteSuffix
-	if err := elastic.CreateDoc(ctx, api, index, article.ItemID, article); err != nil {
+	if err := elastic.CreateDoc(ctx, index, article.ItemID, article); err != nil {
 		return fmt.Errorf("archive article: %w", err)
 	}
 	return nil
@@ -611,7 +611,7 @@ func unarchiveArticle(ctx context.Context, api *elastic.API, userID models.UserI
 			query.Term("item_id", itemID),
 		),
 	)
-	if err := elastic.DeleteDocs(ctx, api, index, query); err != nil {
+	if err := elastic.DeleteDocs(ctx, index, query); err != nil {
 		return fmt.Errorf("unarchive article: %w", err)
 	}
 	return nil
