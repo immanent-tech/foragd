@@ -41,13 +41,23 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
+
 		// Ignore empty text string.
 		if search.Text == "" {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		fetchJobs, jobCtx := errgroup.WithContext(req.Context())
+		// Retrieve the user object.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
+				slog.Any("error", err))
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		searchJobs, jobCtx := errgroup.WithContext(req.Context())
 		defer jobCtx.Done()
 
 		var subscriptions models.Subscriptions
@@ -55,7 +65,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 		sort := models.SortMostRelevant
 
 		// Generate subscription suggestions.
-		fetchJobs.Go(func() error {
+		searchJobs.Go(func() error {
 			subscriptions, err = api.GetSubscriptionSuggestions(
 				jobCtx,
 				search.Text,
@@ -69,17 +79,8 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 			return nil
 		})
 
-		// Retrieve the user object.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-				slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
 		// Generate article suggestions.
-		fetchJobs.Go(func() error {
+		searchJobs.Go(func() error {
 			searchOption, err := api.BuildSearchResultsQuery(
 				req.Context(),
 				user,
@@ -112,7 +113,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 			return nil
 		})
 
-		err = fetchJobs.Wait()
+		err = searchJobs.Wait()
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Get search suggestions: run background jobs failed.",
 				slog.Any("error", err),

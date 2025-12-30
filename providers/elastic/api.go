@@ -1587,9 +1587,6 @@ func SearchSuggestionsClause(search *models.SearchRequest) query.BoolOption {
 				query.SearchAsYouType(search.Text, "title"),
 				query.SearchAsYouType(search.Text, "description"),
 				query.SearchAsYouType(search.Text, "content"),
-				query.Term(search.Text, "categories"),
-				query.Term(search.Text, "authors"),
-				query.Term(search.Text, "contributors"),
 			),
 		),
 	)

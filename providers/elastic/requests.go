@@ -132,6 +132,18 @@ func WithSortOptions[T any, V RequestWithSort[T]](options ...types.SortCombinati
 	}
 }
 
+// RequestWithFields represents any Elasticsearch request that can retrieve specific fields.
+type RequestWithFields[T any] interface {
+	Fields(fields ...types.FieldAndFormatVariant) T
+}
+
+// WithFields option specifies the request should return the given fields.
+func WithFields[T any, V RequestWithFields[T]](options ...types.FieldAndFormatVariant) Option[V] {
+	return func(req V) {
+		req.Fields(options...)
+	}
+}
+
 // CountOption is a functional option to apply to a count request.
 type CountOption Option[*count.Count]
 
@@ -144,6 +156,7 @@ type SearchRequest interface {
 	RequestWithSize[*search.Search]
 	RequestWithSearchAfter[*search.Search]
 	RequestWithSort[*search.Search]
+	RequestWithFields[*search.Search]
 	TrackTotalHits(trackhits types.TrackHitsVariant) *search.Search
 	Collapse(collapse types.FieldCollapseVariant) *search.Search
 }
