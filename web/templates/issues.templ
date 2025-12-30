@@ -45,7 +45,7 @@ templ ReportPageIssue(details *models.ReportIssueRequest) {
 					</div>
 				</fieldset>
 				<fieldset class="fieldset p-4">
-					<p class="mt-1 text-sm/6 text-base-content/80">Add a screenshot.</p>
+					<p class="mt-1 text-sm/6 text-base-content/80">Add a screenshot. Can be an jpg or png. Max size 10 MB.</p>
 					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 						<div class="mt-2 sm:col-span-2 sm:mt-0">
 							<input
@@ -187,7 +187,7 @@ templ ReportObjectIssues(objectType, id string, details *models.ReportObjectIssu
 						</div>
 					</div>
 				</fieldset>
-				<p class="mt-1 text-sm/6 text-base-content/80">Add a screenshot.</p>
+				<p class="mt-1 text-sm/6 text-base-content/80">Add a screenshot. Can be an jpg or png. Max size 10 MB.</p>
 				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 					<div class="mt-2 sm:col-span-2 sm:mt-0">
 						<input id="source" type="file" name="screenshot" accept="image/png, image/jpeg" class="file-input file-input-primary bg-base-content/10"/>
