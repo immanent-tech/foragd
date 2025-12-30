@@ -223,7 +223,7 @@ templ ArticleContent(article *models.Article) {
 			</div>
 			// Content.
 			if article.GetContent() != "" || article.GetDescription() != "" {
-				<div class="prose-custom forced-width">
+				<div data-disable-scripting class="prose-custom forced-width">
 					switch  {
 						case article.GetContent() != "":
 							@templ.Raw(article.GetContent())

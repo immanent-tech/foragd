@@ -65,7 +65,7 @@ templ (page *Home) Template() {
 											</p>
 										</div>
 										// Content summary.
-										<article class="prose-summary">
+										<article data-disable-scripting class="prose-summary">
 											@templ.Raw(article.GetContent())
 										</article>
 										// }
