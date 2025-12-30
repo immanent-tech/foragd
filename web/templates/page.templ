@@ -82,12 +82,11 @@ templ Head() {
 		<link rel="icon" href="/content/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>
 		<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon"/>
 		<link href={ "/content/fonts/inter/inter.css?v=" + config.Version } rel="stylesheet"/>
-		// if config.Environment == "production" {
-		<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>
-		// }
+		if config.Environment == "production" {
+			<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>
+		}
 		<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module" crossorigin="anonymous"></script>
 		<script src={ "/content/scripts.js?v=" + config.Version }></script>
-		<script src={ "/content/safe-nonce.js?v=" + config.Version }></script>
 		<link href={ "/content/styles.css?v=" + config.Version } rel="stylesheet"/>
 		// Site-wide htmx config.
 		<meta
@@ -116,12 +115,13 @@ templ Head() {
 templ Body(content templ.Component) {
 	<body
 		class="h-full"
-		hx-ext="response-targets,preload,sse,safe-nonce"
+		hx-ext="response-targets,preload,sse"
 		_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
 		hx-target-404={ ContentID.Target() }
 	>
 		<input id="page-theme" type="checkbox" value={ models.GetUserTheme(ctx) } class="toggle theme-controller hidden" checked="checked"/>
 		<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+		<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>
 		<div id={ ModalContainerID.String() } hx-target-error="#modal-errors"></div>
 		if content != nil {
 			@content

@@ -55,7 +55,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-include=\"[name='csrf_token'],#search-filters\" hx-vals=\"js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}\" hx-push-url=\"true\" hx-trigger=\"click, keydown['Enter']\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\"><input type=\"hidden\" name=\"text\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-include=\"[name='csrf_token'],#search-filters,[id='timezone']\" hx-vals=\"js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}\" hx-push-url=\"true\" hx-trigger=\"click, keydown['Enter']\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\"><input type=\"hidden\" name=\"text\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -183,20 +183,20 @@ func ContentSecurityPolicy(next http.Handler) http.Handler {
 			)
 			return
 		}
-		// csp.StyleSrc = append(csp.StyleSrc, "'nonce-"+currentNonce+"'")
+		csp.StyleSrc = append(csp.StyleSrc, "'nonce-"+currentNonce+"'")
 		csp.ScriptSrc = append(csp.ScriptSrc, "'nonce-"+currentNonce+"'")
 		// Write header.
 		res.Header().Add("Content-Security-Policy", csp.String())
 		// }
-		ctx = templ.WithNonce(ctx, "nonce-"+currentNonce)
+		ctx = templ.WithNonce(ctx, currentNonce)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 
 func generateNonce() (string, error) {
-	byt := make([]byte, 16)
-	_, err := rand.Read(byt)
-	if err != nil {
+	const nonceSize = 16 // Size of nonce.
+	byt := make([]byte, nonceSize)
+	if _, err := rand.Read(byt); err != nil {
 		return "", fmt.Errorf("read random: %w", err)
 	}
 	return base64.URLEncoding.EncodeToString(byt), nil

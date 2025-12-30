@@ -11,7 +11,10 @@ import (
 )
 
 templ header(user *models.User) {
-	<header aria-label="Header" class="sticky w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30 lg:pl-36">
+	<header
+		aria-label="Header"
+		class="sticky w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30 lg:pl-36"
+	>
 		<div class="flex flex-1 mx-auto items-center">
 			// Show small logo on mobile.
 			<div class="flex flex-col lg:hidden h-16 shrink-0 mt-8 items-center text-primary mx-2">
@@ -21,13 +24,15 @@ templ header(user *models.User) {
 			<div class="flex flex-1 justify-center">
 				<el-command-palette class="grid w-full sm:max-w-3xl">
 					<search>
-						<label for="global-search" class="w-full sm:max-w-3xl input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10">
+						<label
+							for="global-search"
+							class="w-full sm:max-w-3xl input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10"
+						>
 							@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
 							<input
 								hx-post="/search/suggestions"
 								hx-target="#global-search-suggestions"
-								hx-include="[name='csrf_token'],#search-filters"
-								hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
+								hx-include="[name='csrf_token'],#search-filters,[id='timezone']"
 								hx-trigger="keyup changed delay:300ms"
 								id="global-search"
 								type="search"
@@ -35,6 +40,7 @@ templ header(user *models.User) {
 								hx-push-url="false"
 								placeholder="Search..."
 								spellcheck="false"
+								autocomplete="off"
 								_="on keydown from body if the event's key is 'k' and event.altKey then focus() me"
 							/>
 							// Filters button opens advanced search dialog.
@@ -119,9 +125,11 @@ templ header(user *models.User) {
 		</div>
 		// Advanced search dialog.
 		<el-dialog>
-			<dialog id="search-filters-dialog" class="mt-16 mb-auto mx-auto p-4 sm:p-6 w-full sm:max-w-3xl max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+			<dialog
+				id="search-filters-dialog"
+				class="mt-16 mb-auto mx-auto p-4 sm:p-6 w-full sm:max-w-3xl max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15"
+			>
 				<el-dialog-panel>
-					// or focusout from body
 					@SearchFilters(nil)
 				</el-dialog-panel>
 			</dialog>

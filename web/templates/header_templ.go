@@ -56,7 +56,7 @@ func header(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<input hx-post=\"/search/suggestions\" hx-target=\"#global-search-suggestions\" hx-include=\"[name='csrf_token'],#search-filters\" hx-vals=\"js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}\" hx-trigger=\"keyup changed delay:300ms\" id=\"global-search\" type=\"search\" name=\"text\" hx-push-url=\"false\" placeholder=\"Search...\" spellcheck=\"false\" _=\"on keydown from body if the event's key is 'k' and event.altKey then focus() me\"><button type=\"button\" command=\"show-modal\" commandfor=\"search-filters-dialog\" tabindex=\"0\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<input hx-post=\"/search/suggestions\" hx-target=\"#global-search-suggestions\" hx-include=\"[name='csrf_token'],#search-filters,[id='timezone']\" hx-trigger=\"keyup changed delay:300ms\" id=\"global-search\" type=\"search\" name=\"text\" hx-push-url=\"false\" placeholder=\"Search...\" spellcheck=\"false\" autocomplete=\"off\" _=\"on keydown from body if the event's key is 'k' and event.altKey then focus() me\"><button type=\"button\" command=\"show-modal\" commandfor=\"search-filters-dialog\" tabindex=\"0\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

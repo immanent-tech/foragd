@@ -17,7 +17,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 		<form
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
-			hx-include="[name='csrf_token'],#search-filters"
+			hx-include="[name='csrf_token'],#search-filters,[id='timezone']"
 			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
 			hx-push-url="true"
 			hx-trigger="click, keydown['Enter']"
