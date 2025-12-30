@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.10.0](https://github.com/immanent-tech/foragd/compare/v0.9.0...v0.10.0) (2025-12-30)
+
+
+### Features
+
+* :lock: use a nonces for CSP/templ/htmx ([9c53c58](https://github.com/immanent-tech/foragd/commit/9c53c58cd4647bc6475dc68781ace3b1d7ef70d7))
+* :sparkles: allow uploading a screenshot when reporting issues ([bbd338e](https://github.com/immanent-tech/foragd/commit/bbd338e84ff09a9fc3154d3a335bfd346a76cc5e))
+* **middlewares:** :sparkles: add ability to set script-src-attr CSP ([bf8acca](https://github.com/immanent-tech/foragd/commit/bf8accad29176f24ba4c9cae491b2b6ba40f738d))
+* **templates:** :lipstick: default to using view transitions API for htmx swaps ([35253a8](https://github.com/immanent-tech/foragd/commit/35253a8eb7dadf53e39048fabed9c346b13306e5))
+
+
+### Bug Fixes
+
+* :bug: ensure consistent parameter name for uploaded thumbnail data is used ([4df0075](https://github.com/immanent-tech/foragd/commit/4df00753dde3082f11de21cca0518b32479e1b0c))
+* **templates:** :bug: pass subscription id as appropriate to filters on list articles page ([bb99ada](https://github.com/immanent-tech/foragd/commit/bb99ada7cb07edddb08c1f463723f7b3bab6da17))
+* **templates:** :lipstick: fix color of loading element ([76c6aa2](https://github.com/immanent-tech/foragd/commit/76c6aa2050343919d45b282819eb074d2a635d0c))
+* **templates:** :lock: ensure csrf token is only updated once per render context ([ddc1cae](https://github.com/immanent-tech/foragd/commit/ddc1cae389d45166ebbf98756eeb7a4c5928010a))
+
 ## [0.9.0](https://github.com/immanent-tech/foragd/compare/v0.8.1...v0.9.0) (2025-12-29)
 
 
