@@ -177,6 +177,8 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	router.Get("/img/avatar/*", handlers.Avatar())
 	// User custom subscription images
 	router.Get("/img/subscription/*", handlers.SubscriptionImage())
+	// User uploaded screenshots
+	router.Get("/img/screenshots/*", handlers.Screenshots())
 
 	// Front page.
 	router.Get("/", handlers.Landing())

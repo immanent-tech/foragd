@@ -229,6 +229,8 @@ func SubmitObjectIssues() http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// processScreenshots handles processing an uploaded screenshot file, storing in the server cache and generating a
+// unique URL to reference the cached file.
 func processScreenshots(req *http.Request) (string, error) {
 	const maxScreenshotSize = 10000000 // Max screenshot size is 10 MB.
 

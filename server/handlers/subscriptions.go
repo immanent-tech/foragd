@@ -562,60 +562,23 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 			subscription.GroupData.Subscriptions = request.Subscriptions
 		}
 
-		// Get any uploaded image.
-		image, err := forms.DecodeMultipartFile(req, "image")
-		if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		// Process any uploaded thumbnail image.
+		thumbnail, err := processThumbnail(req, subscription.GetID())
+		if err != nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("decode image: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
+				InternalError: fmt.Errorf("update subscription: %w", err),
+				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save subscription",
-					"Unable to read uploaded avatar data. Please check the file and try again.",
+					"This might be a temporary issue, please try again.",
 				),
 			}
 		}
-		if image.GetSize() > 1000000 {
-			return &models.APIError{
-				InternalError: models.ErrFileTooLarge,
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to save subscription",
-					"Uploaded image is too large (> 1MB).",
-				),
-			}
-		}
-		// If the user uploaded a new avatar, process it.
-		if image != nil {
-			if err := loadSubscriptionImgCache(); err != nil {
-				return &models.APIError{
-					InternalError: fmt.Errorf("load server cache: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save subscription",
-						"This might be a temporary error, please try again.",
-					),
-				}
-			}
-			// Generate a unique ID for the avatar image in the cache using the user ID.
-			imageFileID := strconv.FormatUint(murmur3.Sum64([]byte(subscription.GetID()+"image")), 10)
-			// Read the uploaded data and store in the cache.
-			imageData, err := io.ReadAll(image.Data)
-			if err != nil {
-				return &models.APIError{
-					InternalError: fmt.Errorf("read avatar: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Unable to save settings",
-						"This might be a temporary error, please try again.",
-					),
-				}
-			}
-			subscriptionImgCache.Set(req.Context(), imageFileID, imageData)
-			// Construct a new full URL to the uploaded avatar on the local server.
-			baseURL := os.Getenv("FORAGD_BASEURL")
-			subscription.Customisation.ImageURL = baseURL + "/img/subscription/" + imageFileID
+		if thumbnail != "" {
+			subscription.Customisation.ImageURL = thumbnail
 		}
 
+		// Update the subscription object.
 		_, err = api.UpdateSubscriptions(req.Context(), subscription)
 		if err != nil {
 			return &models.APIError{
@@ -1044,4 +1007,38 @@ func AdjustSubscriptionCategories() http.HandlerFunc {
 		}
 		return nil
 	})).ServeHTTP
+}
+
+func processThumbnail(req *http.Request, objectID string) (string, error) {
+	const maxThumbnailSize = 1000000 // Max thumbnail size is 1 MB.
+
+	// Get any uploaded image.
+	image, err := forms.DecodeMultipartFile(req, "image")
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		return "", fmt.Errorf("parse thumbnail data: %w", err)
+	}
+	if image.GetSize() > maxThumbnailSize {
+		return "", fmt.Errorf("parse thumbnail data: %w", models.ErrFileTooLarge)
+	}
+
+	// If the user uploaded a new avatar, process it.
+	if image != nil {
+		thumbnailCache, err := loadThumbnailCache()
+		if err != nil {
+			return "", fmt.Errorf("load thumbnail cache: %w", err)
+		}
+		// Generate a unique ID for the avatar image in the cache using the user ID.
+		imageFileID := strconv.FormatUint(murmur3.Sum64([]byte(objectID+"thumbnail")), 10)
+		// Read the uploaded data and store in the cache.
+		imageData, err := io.ReadAll(image.Data)
+		if err != nil {
+			return "", fmt.Errorf("read thumbnail data: %w", err)
+		}
+		thumbnailCache.Set(req.Context(), imageFileID, imageData)
+		// Construct a new full URL to the uploaded avatar on the local server.
+		baseURL := os.Getenv("FORAGD_BASEURL")
+		return baseURL + "/img/subscription/" + imageFileID, nil
+	}
+
+	return "", nil
 }

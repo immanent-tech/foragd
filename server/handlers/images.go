@@ -205,7 +205,8 @@ func Avatar() http.HandlerFunc {
 func SubscriptionImage() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Load the image cache.
-		if err := loadSubscriptionImgCache(); err != nil {
+		thumbnailCache, err := loadThumbnailCache()
+		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
 				slog.Any("error", err),
@@ -226,7 +227,52 @@ func SubscriptionImage() http.HandlerFunc {
 		var found bool
 
 		// Try to fetch the image from the cache. If found, return the cached image.
-		imgBuf, found = avatarCache.Get(req.Context(), key)
+		imgBuf, found = thumbnailCache.Get(req.Context(), key)
+		if found {
+			// Write the image to the response.
+			if _, err := res.Write(imgBuf); err != nil {
+				res.WriteHeader(http.StatusInternalServerError)
+				slogctx.FromCtx(req.Context()).Error("Write image data.",
+					slog.Any("error", err),
+				)
+				return
+			}
+			// Return success.
+			res.WriteHeader(http.StatusOK)
+			return
+		} else {
+			http.NotFound(res, req)
+		}
+	}
+}
+
+// Screenshots handles fetching and displaying a uploaded screenshots.
+func Screenshots() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Load the image cache.
+		screenshotCache, err := loadScreenshotCache()
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
+				slog.Any("error", err),
+			)
+			return
+		}
+
+		key := chi.URLParam(req, "*")
+
+		imgBufPtr, ok := imgBufPool.Get().(*[]byte)
+		if !ok {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
+			return
+		}
+		imgBuf := *imgBufPtr
+		defer imgBufPool.Put(imgBufPtr)
+		var found bool
+
+		// Try to fetch the image from the cache. If found, return the cached image.
+		imgBuf, found = screenshotCache.Get(req.Context(), key)
 		if found {
 			// Write the image to the response.
 			if _, err := res.Write(imgBuf); err != nil {
@@ -296,26 +342,25 @@ var loadAvatarCache = sync.OnceValue(func() error {
 	return nil
 })
 
-var subscriptionImgCache objectCache
-
-var loadSubscriptionImgCache = sync.OnceValue(func() error {
+var loadThumbnailCache = sync.OnceValues(func() (objectCache, error) {
+	var thumbnailCache objectCache
 	switch config.Environment {
 	case "production":
 		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
 		var err error
-		subscriptionImgCache, err = gcs.Connect(context.Background(), bucketName, "subscription_images")
+		thumbnailCache, err = gcs.Connect(context.Background(), bucketName, "subscription_images")
 		if err != nil {
-			return fmt.Errorf("connect to gcs: %w", err)
+			return nil, fmt.Errorf("connect to gcs: %w", err)
 		}
 	default:
 		var err error
-		subscriptionImgCache, err = newDirCache("subscription_images")
+		thumbnailCache, err = newDirCache("subscription_images")
 		if err != nil {
-			return fmt.Errorf("create dir cache: %w", err)
+			return nil, fmt.Errorf("create dir cache: %w", err)
 		}
 	}
 
-	return nil
+	return thumbnailCache, nil
 })
 
 var loadScreenshotCache = sync.OnceValues(func() (objectCache, error) {
