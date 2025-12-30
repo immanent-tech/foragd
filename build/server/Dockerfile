@@ -36,7 +36,7 @@ COPY . .
 # install and build/bundle frontend assets
 RUN <<EOF
 bun install
-bun x esbuild ./web/assets/scripts.js --bundle --splitting --format=esm --minify --outdir=./web/content/
+bun build ./web/assets/scripts.js --outdir=./web/content/ --target browser --splitting --minify
 bun x tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify
 EOF
 

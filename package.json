@@ -6,7 +6,7 @@
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "type": "module",
   "scripts": {
-    "build:js": "bunx esbuild ./web/assets/scripts.js --bundle --sourcemap --outdir=./web/content/",
+    "build:js": "bun build ./web/assets/scripts.js --outdir=./web/content/ --target browser --splitting --sourcemap=linked",
     "build:css": "bunx tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
   },
   "dependencies": {
@@ -18,7 +18,6 @@
     "htmx-ext-sse": "^2.2.4",
     "htmx.org": "^2.0.8",
     "hyperscript.org": "^0.9.14",
-    "idiomorph": "^0.7.4",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
@@ -28,10 +27,8 @@
     "@tailwindcss/cli": "^4.1.18",
     "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
     "@tailwindcss/typography": "^0.5.19",
-    "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
-    "globals": "^16.5.0",
     "prettier": "^3.7.4",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",

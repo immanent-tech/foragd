@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
-    "noUnusedLocals": false,
-    "noUnusedParameters": false
-  }
+    "module": "CommonJS",
+    "target": "ES6"
+  },
+  "include": [
+    "web/assets/*",
+  ]
 }
