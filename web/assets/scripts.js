@@ -15,14 +15,3 @@ _hyperscript.browserInit()
 
 // custom element for timestamps
 import './timestamps'
-
-htmx.logger = function (elt, event, data) {
-  if (console) {
-    console.log(event, elt, data)
-  }
-}
-
-// Log all events.
-//
-// https://v1.htmx.org/docs/#debugging
-htmx.logAll()
