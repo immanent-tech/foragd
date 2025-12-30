@@ -453,18 +453,6 @@ type GroupSubscriptionRequest struct {
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
 }
 
-// IssueRequest contains details about an issue with the service.
-type IssueRequest struct {
-	// Details is the user-submitted text about the issue.
-	Details string `form:"details" json:"details,omitempty,omitzero"`
-
-	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"required,url"`
-
-	// UserEmail is the email address the user has entered for getting in touch about the issue.
-	UserEmail string `form:"user_email" json:"user_email,omitempty,omitzero" validate:"required,email"`
-}
-
 // Item defines model for Item.
 type Item struct {
 	// Timestamp is when the document was created.
@@ -666,33 +654,6 @@ type ObjectCommonSourceType string
 // ObjectID represents an ID of any user-facing object.
 type ObjectID = string
 
-// ObjectIssueRequest defines model for ObjectIssueRequest.
-type ObjectIssueRequest struct {
-	// Details is the user-submitted text about the issue.
-	Details string `form:"details" json:"details,omitempty,omitzero"`
-
-	// Duplicate indicates that the object has a duplicate.
-	Duplicate bool `form:"duplicate" json:"duplicate,omitempty,omitzero"`
-
-	// ObjectID represents an ID of any user-facing object.
-	ObjectID ObjectID `form:"id" json:"id" validate:"required,startswith=sub_|startswith=item_"`
-
-	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
-	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
-
-	// MissingImage indicates the object is expected to have an image, but it is missing.
-	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
-
-	// Object represents the type of any user-facing object.
-	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
-
-	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"required,url"`
-
-	// UserEmail is the email address the user has entered for getting in touch about the issue.
-	UserEmail string `form:"user_email" json:"user_email,omitempty,omitzero" validate:"required,email"`
-}
-
 // ObjectParams contains the parameters for viewing an object.
 type ObjectParams struct {
 	// ObjectID represents an ID of any user-facing object.
@@ -714,6 +675,51 @@ type RemoveSubscriptionRequest struct {
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
+// ReportIssueRequest contains details about an issue with the service.
+type ReportIssueRequest struct {
+	// Details is the user-submitted text about the issue.
+	Details string `form:"details" json:"details,omitempty,omitzero"`
+
+	// PageUrl is the URL of the page on which the user selected the report issue action.
+	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"required,url"`
+
+	// ScreenshotURL is a URL to a screenshot the user has uploaded that is related to or showing the problem.
+	ScreenshotURL string `form:"-" json:"screenshot_url,omitempty,omitzero" validate:"omitempty,url"`
+
+	// UserEmail is the email address the user has entered for getting in touch about the issue.
+	UserEmail string `form:"user_email" json:"user_email,omitempty,omitzero" validate:"required,email"`
+}
+
+// ReportObjectIssueRequest defines model for ReportObjectIssueRequest.
+type ReportObjectIssueRequest struct {
+	// Details is the user-submitted text about the issue.
+	Details string `form:"details" json:"details,omitempty,omitzero"`
+
+	// Duplicate indicates that the object has a duplicate.
+	Duplicate bool `form:"duplicate" json:"duplicate,omitempty,omitzero"`
+
+	// ObjectID represents an ID of any user-facing object.
+	ObjectID ObjectID `form:"id" json:"id" validate:"required,startswith=sub_|startswith=item_"`
+
+	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
+	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
+
+	// MissingImage indicates the object is expected to have an image, but it is missing.
+	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
+
+	// Object represents the type of any user-facing object.
+	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
+
+	// PageUrl is the URL of the page on which the user selected the report issue action.
+	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"required,url"`
+
+	// ScreenshotURL is a URL to a screenshot the user has uploaded that is related to or showing the problem.
+	ScreenshotURL string `form:"-" json:"screenshot_url,omitempty,omitzero" validate:"omitempty,url"`
+
+	// UserEmail is the email address the user has entered for getting in touch about the issue.
+	UserEmail string `form:"user_email" json:"user_email,omitempty,omitzero" validate:"required,email"`
 }
 
 // SearchRequest represents a search request by the user.

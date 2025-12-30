@@ -317,3 +317,24 @@ var loadSubscriptionImgCache = sync.OnceValue(func() error {
 
 	return nil
 })
+
+var loadScreenshotCache = sync.OnceValues(func() (objectCache, error) {
+	var screenshotCache objectCache
+	switch config.Environment {
+	case "production":
+		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
+		var err error
+		screenshotCache, err = gcs.Connect(context.Background(), bucketName, "screenshots")
+		if err != nil {
+			return nil, fmt.Errorf("connect to gcs: %w", err)
+		}
+	default:
+		var err error
+		screenshotCache, err = newDirCache("screenshots")
+		if err != nil {
+			return nil, fmt.Errorf("create dir cache: %w", err)
+		}
+	}
+
+	return screenshotCache, nil
+})

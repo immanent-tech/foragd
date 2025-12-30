@@ -15,8 +15,6 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
-//go:generate go tool oapi-codegen -config models-cfg.yaml models.yaml
-
 // DefaultHTTPRequestTimeout is the maximum time allowed for a background HTTP request to execute.
 var DefaultHTTPRequestTimeout = 30 * time.Second
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
@@ -82,39 +80,6 @@ func (m *MarkObjectParams) Valid() error {
 }
 
 func (m *MarkObjectParams) Sanitise() error {
-	return nil
-}
-
-func NewObjectIssue(obj *ObjectParams, email, url string) *ObjectIssueRequest {
-	return &ObjectIssueRequest{
-		UserEmail: email,
-		PageUrl:   url,
-		ObjectID:  obj.ObjectID,
-		Object:    obj.Object,
-	}
-}
-
-func (i *ObjectIssueRequest) Valid() error {
-	if err := validation.Validate.Struct(i); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (i *ObjectIssueRequest) Sanitise() error {
-	i.Details = validation.SanitizeString(i.Details)
-	return nil
-}
-
-func (i *IssueRequest) Valid() error {
-	if err := validation.Validate.Struct(i); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (i *IssueRequest) Sanitise() error {
-	i.Details = validation.SanitizeString(i.Details)
 	return nil
 }
 

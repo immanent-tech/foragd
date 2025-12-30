@@ -4,11 +4,16 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/spaolacci/murmur3"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -38,7 +43,9 @@ func GetPageIssues() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Warn("No HX-Current-URL header found.")
 		}
 		// Display the report issue form.
-		template := templates.ReportPageIssue(&models.IssueRequest{PageUrl: currentURL, UserEmail: user.GetEmail()})
+		template := templates.ReportPageIssue(
+			&models.ReportIssueRequest{PageUrl: currentURL, UserEmail: user.GetEmail()},
+		)
 		ctx := templates.PageTitleToCtx(req.Context(), "Report Page Issue")
 		renderPage(wrapContent(req, template)).ServeHTTP(res, req.WithContext(ctx))
 		return nil
@@ -49,7 +56,7 @@ func GetPageIssues() http.HandlerFunc {
 func SubmitPageIssues() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Validate the subscription issue request.
-		request, valid, err := forms.DecodeForm[*models.IssueRequest](req)
+		request, valid, err := forms.DecodeForm[*models.ReportIssueRequest](req)
 		if err != nil || !valid {
 			return &models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
@@ -57,6 +64,23 @@ func SubmitPageIssues() http.HandlerFunc {
 				UserMessage:   models.NewErrorMessage("Unable to submit issue", "Data is invalid."),
 			}
 		}
+
+		// Process any uploaded screenshot.
+		screenshotURL, err := processScreenshots(req)
+		if err != nil {
+			return &models.APIError{
+				InternalError: err,
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to submit issue",
+					"This might be a temporary issue, please try again.",
+				),
+			}
+		}
+		if screenshotURL != "" {
+			request.ScreenshotURL = screenshotURL
+		}
+
 		// Create the issue in Github.
 		err = github.Connect(req.Context())
 		if err != nil {
@@ -141,7 +165,7 @@ func GetObjectIssues() http.HandlerFunc {
 func SubmitObjectIssues() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract the issue request details.
-		request, valid, err := forms.DecodeForm[*models.ObjectIssueRequest](req)
+		request, valid, err := forms.DecodeForm[*models.ReportObjectIssueRequest](req)
 		if err != nil || !valid {
 			return &models.APIError{
 				InternalError: fmt.Errorf("decode object: %w", err),
@@ -152,22 +176,22 @@ func SubmitObjectIssues() http.HandlerFunc {
 				),
 			}
 		}
-		// // Extract any attached screenshot.
-		// screenshot, err := forms.DecodeMultipartFile2(req, "screenshot")
-		// // Validate the screenshot is an image file.
-		// mimeType, err := screenshot.ParseMimetype()
-		// if err != nil {
-		// 	renderPartial(templates.ServerErrorNotification(
-		// 		models.NewErrorMessage("Invalid request data", "This might be temporary, please try again."),
-		// 	)).ServeHTTP(res, req)
-		// 	return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
-		// }
-		// if !slices.Contains([]string{"image/jpeg", "image/png"}, mimeType) {
-		// 	renderPartial(templates.ServerErrorNotification(
-		// 		models.NewErrorMessage("Invalid request data", "This might be temporary, please try again."),
-		// 	)).ServeHTTP(res, req)
-		// 	return models.NewAPIError(fmt.Errorf("%w: %w", ErrInvalidRequestParams, err), http.StatusUnprocessableEntity)
-		// }
+
+		// Process any uploaded screenshot.
+		screenshotURL, err := processScreenshots(req)
+		if err != nil {
+			return &models.APIError{
+				InternalError: err,
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to submit issue",
+					"This might be a temporary issue, please try again.",
+				),
+			}
+		}
+		if screenshotURL != "" {
+			request.ScreenshotURL = screenshotURL
+		}
 
 		err = github.Connect(req.Context())
 		if err != nil {
@@ -203,4 +227,36 @@ func SubmitObjectIssues() http.HandlerFunc {
 		).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
+}
+
+func processScreenshots(req *http.Request) (string, error) {
+	const maxScreenshotSize = 10000000 // Max screenshot size is 10 MB.
+
+	// Get any uploaded screenshot.
+	image, err := forms.DecodeMultipartFile(req, "screenshot")
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		return "", fmt.Errorf("decode screenshot upload: %w", err)
+	}
+	if image.GetSize() > maxScreenshotSize {
+		return "", fmt.Errorf("decode screenshot upload: %w", models.ErrFileTooLarge)
+	}
+	// If the user uploaded a new avatar, process it.
+	if image != nil {
+		screenshotCache, err := loadScreenshotCache()
+		if err != nil {
+			return "", fmt.Errorf("load screenshot cache: %w", err)
+		}
+		// Generate a unique ID for the avatar image in the cache using the user ID.
+		imageFileID := strconv.FormatUint(murmur3.Sum64([]byte(image.Header.Filename)), 10)
+		// Read the uploaded data and store in the cache.
+		imageData, err := io.ReadAll(image.Data)
+		if err != nil {
+			return "", fmt.Errorf("read image: %w", err)
+		}
+		screenshotCache.Set(req.Context(), imageFileID, imageData)
+		// Construct a new full URL to the uploaded avatar on the local server.
+		baseURL := os.Getenv("FORAGD_BASEURL")
+		return baseURL + "/img/screenshot/" + imageFileID, nil
+	}
+	return "", nil
 }

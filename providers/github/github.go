@@ -59,7 +59,7 @@ func Connect(ctx context.Context) error {
 }
 
 // CreateObjectIssue creates a new issue in Github about problems with a particular object reported by a user.
-func CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) error {
+func CreateObjectIssue(ctx context.Context, details *models.ReportObjectIssueRequest) error {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("get user data: %w", err)
@@ -124,7 +124,7 @@ func CreateObjectIssue(ctx context.Context, details *models.ObjectIssueRequest) 
 }
 
 // CreateIssue creates a new issue in Github about problems with the app reported by a user.
-func CreateIssue(ctx context.Context, details *models.IssueRequest) error {
+func CreateIssue(ctx context.Context, details *models.ReportIssueRequest) error {
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
 		return fmt.Errorf("get user data: %w", err)
@@ -144,6 +144,10 @@ func CreateIssue(ctx context.Context, details *models.IssueRequest) error {
 		bodyBuilder.WriteString("Details:")
 		bodyBuilder.WriteRune('\n')
 		bodyBuilder.WriteString(details.Details)
+		bodyBuilder.WriteRune('\n')
+	}
+	if details.ScreenshotURL != "" {
+		bodyBuilder.WriteString("![](" + details.ScreenshotURL + ")")
 		bodyBuilder.WriteRune('\n')
 	}
 

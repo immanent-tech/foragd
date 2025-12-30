@@ -610,7 +610,7 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 					),
 				}
 			}
-			avatarCache.Set(req.Context(), imageFileID, imageData)
+			subscriptionImgCache.Set(req.Context(), imageFileID, imageData)
 			// Construct a new full URL to the uploaded avatar on the local server.
 			baseURL := os.Getenv("FORAGD_BASEURL")
 			subscription.Customisation.ImageURL = baseURL + "/img/subscription/" + imageFileID

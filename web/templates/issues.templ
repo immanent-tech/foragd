@@ -6,7 +6,7 @@ package templates
 import "github.com/immanent-tech/foragd/models"
 
 // ReportPageIssue renders a form for reporting issues with the app.
-templ ReportPageIssue(details *models.IssueRequest) {
+templ ReportPageIssue(details *models.ReportIssueRequest) {
 	@container() {
 		<div class="mx-auto max-w-3xl">
 			<div class="md:flex md:items-center md:justify-between">
@@ -18,7 +18,7 @@ templ ReportPageIssue(details *models.IssueRequest) {
 				Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.
 			</p>
 			<p class="mt-2 max-w-4xl text-sm text-base-content/80">
-				If you need to attach a screenshot, or cannot use this form, you can <a class="link" href="mailto:feedback@immanent.tech&subject=Foragd Feedback">email us</a> instead.
+				Alternatively, you can <a class="link" href="mailto:feedback@immanent.tech&subject=Foragd Feedback">email us</a> instead.
 			</p>
 			<form
 				id="report-app-issue"
@@ -27,6 +27,7 @@ templ ReportPageIssue(details *models.IssueRequest) {
 				hx-target-error={ ContentID.Target() }
 				hx-indicator="#processing"
 				hx-include="[name='csrf_token']"
+				hx-encoding="multipart/form-data"
 			>
 				<input type="hidden" name="page_url" value={ details.PageUrl }/>
 				<fieldset class="fieldset p-4">
@@ -37,8 +38,22 @@ templ ReportPageIssue(details *models.IssueRequest) {
 								type="email"
 								name="user_email"
 								value={ details.UserEmail }
-								class="input"
+								class="input input-primary"
 								required
+							/>
+						</div>
+					</div>
+				</fieldset>
+				<fieldset class="fieldset p-4">
+					<p class="mt-1 text-sm/6 text-base-content/80">Add a screenshot.</p>
+					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+						<div class="mt-2 sm:col-span-2 sm:mt-0">
+							<input
+								id="source"
+								type="file"
+								name="screenshot"
+								accept="image/png, image/jpeg"
+								class="file-input file-input-primary bg-base-content/10"
 							/>
 						</div>
 					</div>
@@ -50,7 +65,7 @@ templ ReportPageIssue(details *models.IssueRequest) {
 							<textarea
 								id="details"
 								name="details"
-								class="textarea w-full"
+								class="textarea textarea-primary w-full"
 								placeholder="What was expected, what is missing, etc."
 								if details.Details != "" {
 									value={ details.Details }
@@ -74,7 +89,7 @@ templ ReportPageIssue(details *models.IssueRequest) {
 	}
 }
 
-templ ReportObjectIssues(objectType, id string, details *models.ObjectIssueRequest) {
+templ ReportObjectIssues(objectType, id string, details *models.ReportObjectIssueRequest) {
 	@container() {
 		<div class="mx-auto max-w-3xl">
 			<div class="md:flex md:items-center md:justify-between">
@@ -86,7 +101,7 @@ templ ReportObjectIssues(objectType, id string, details *models.ObjectIssueReque
 				Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.
 			</p>
 			<p class="mt-2 max-w-4xl text-sm text-base-content/80">
-				If you need to attach a screenshot, or cannot use this form, you can <a class="link" href="mailto:feedback@immanent.tech&subject=Foragd Feedback">email us</a> instead.
+				Alternatively, you can <a class="link" href="mailto:feedback@immanent.tech&subject=Foragd Feedback">email us</a> instead.
 			</p>
 			<form
 				id="report-subscription-issue"
@@ -96,6 +111,7 @@ templ ReportObjectIssues(objectType, id string, details *models.ObjectIssueReque
 				hx-target-error={ ContentID.Target() }
 				hx-indicator="#processing"
 				hx-include="[name='csrf_token']"
+				hx-encoding="multipart/form-data"
 			>
 				<input type="hidden" name="id" value={ details.ObjectID }/>
 				<input type="hidden" name="object" value={ details.Object }/>
@@ -171,12 +187,12 @@ templ ReportObjectIssues(objectType, id string, details *models.ObjectIssueReque
 						</div>
 					</div>
 				</fieldset>
-				// <p class="mt-1 text-sm/6 text-base-content/80">Add a screenshot.</p>
-				// <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-				// 	<div class="mt-2 sm:col-span-2 sm:mt-0">
-				// 		<input id="source" type="file" name="screenshot" accept="image/png, image/jpeg" class="file-input file-input-primary bg-base-content/10"/>
-				// 	</div>
-				// </div>
+				<p class="mt-1 text-sm/6 text-base-content/80">Add a screenshot.</p>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+					<div class="mt-2 sm:col-span-2 sm:mt-0">
+						<input id="source" type="file" name="screenshot" accept="image/png, image/jpeg" class="file-input file-input-primary bg-base-content/10"/>
+					</div>
+				</div>
 				<p class="mt-1 text-sm/6 text-base-content/80">Add any other details you think are relevant.</p>
 				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
 					<div class="flex items-center col-span-full">

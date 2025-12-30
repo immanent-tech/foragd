@@ -1332,11 +1332,11 @@ components:
           x-oapi-codegen-extra-tags:
             form: nickname
             validate: required
-    ObjectIssueRequest:
+    ReportObjectIssueRequest:
       description: >
         contains details about issues with an object.
       allOf:
-        - $ref: "#/components/schemas/IssueRequest"
+        - $ref: "#/components/schemas/ReportIssueRequest"
         - $ref: "#/components/schemas/ObjectParams"
         - type: object
           properties:
@@ -1358,7 +1358,7 @@ components:
               type: boolean
               x-oapi-codegen-extra-tags:
                 form: 'duplicate'
-    IssueRequest:
+    ReportIssueRequest:
       description: >
         contains details about an issue with the service.
       type: object
@@ -1377,6 +1377,14 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'page_url'
             validate: 'required,url'
+        screenshot_url:
+          description: >
+            is a URL to a screenshot the user has uploaded that is related to or showing the problem.
+          type: string
+          x-go-name: ScreenshotURL
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            validate: 'omitempty,url'
         details:
           description: >
             is the user-submitted text about the issue.
