@@ -14,7 +14,6 @@ import (
 	"github.com/alexedwards/scs/v2"
 
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/session/store"
 )
 
@@ -25,9 +24,9 @@ const (
 var manager *scs.SessionManager
 
 // NewSessionManager creates a new session manager.
-func NewSessionManager(api *elastic.API) error {
+func NewSessionManager() error {
 	// Load the session store.
-	sessionStore, err := store.NewSessionStore(api)
+	sessionStore, err := store.NewSessionStore()
 	if err != nil {
 		return fmt.Errorf("failed to start session manager: %w", err)
 	}

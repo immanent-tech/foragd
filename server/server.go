@@ -59,7 +59,7 @@ func NewServer(ctx context.Context) (Server, error) {
 		return svr, fmt.Errorf("unable to set up elastic api: %w", err)
 	}
 	// Set up the session manager.
-	err = session.NewSessionManager(apis.elastic)
+	err = session.NewSessionManager()
 	if err != nil {
 		return svr, fmt.Errorf("unable to set up session api: %w", err)
 	}

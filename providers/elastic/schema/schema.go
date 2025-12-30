@@ -44,8 +44,10 @@ const (
 )
 
 const (
-	UsersIndexRO = UsersSchemaPrefix + IndexReadSuffix
-	UsersIndexRW = UsersSchemaPrefix + IndexWriteSuffix
+	UsersIndexRO    = UsersSchemaPrefix + IndexReadSuffix
+	UsersIndexRW    = UsersSchemaPrefix + IndexWriteSuffix
+	SessionsIndexRO = SessionsSchemaPrefix + IndexReadSuffix
+	SessionsIndexRW = SessionsSchemaPrefix + IndexWriteSuffix
 )
 
 var (
