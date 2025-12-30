@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/immanent-tech/foragd/compare/v0.10.0...v0.11.0) (2025-12-30)
+
+
+### Features
+
+* **elastic:** :sparkles: add default auto fuzziness value for match and multi_match queries ([0250f2e](https://github.com/immanent-tech/foragd/commit/0250f2ed6ce4691af2997710f03a741f4fa597e6))
+
 ## [0.10.0](https://github.com/immanent-tech/foragd/compare/v0.9.0...v0.10.0) (2025-12-30)
 
 
