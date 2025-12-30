@@ -42,7 +42,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<el-command-group hidden class=\"block p-2 text-sm text-base-content\" aria-labelledby=\"search-group-label\"><form hx-post=\"/search\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<el-command-group hidden class=\"block text-sm text-base-content\" aria-labelledby=\"search-group-label\"><form hx-post=\"/search\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -89,7 +89,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Search...</span></a></form></el-command-group><el-command-group hidden class=\"block p-2 text-sm text-base-content\" aria-labelledby=\"pages-group-label\"><div id=\"pages-group-label\" class=\"text-base-content/80 px-3 py-2\">Actions</div><a href=\"/home\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span> <span aria-hidden=\"true\" class=\"ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline\">Search...</span></a></form></el-command-group><el-command-group hidden class=\"block text-sm text-base-content\" aria-labelledby=\"pages-group-label\"><div id=\"pages-group-label\" class=\"text-base-content/80 px-3\">Actions</div><a href=\"/home\" hidden class=\"group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -197,7 +197,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 			return templ_7745c5c3_Err
 		}
 		if len(subscriptions) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, " <el-command-group hidden class=\"block p-2 text-sm text-base-content\" aria-labelledby=\"subscriptions-group-label\"><div id=\"subscriptions-group-label\" class=\"text-base-content/80 px-3 py-2\">Subscriptions</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, " <el-command-group hidden class=\"block text-sm text-base-content\" aria-labelledby=\"subscriptions-group-label\"><div id=\"subscriptions-group-label\" class=\"text-base-content/80 px-3 py-2\">Subscriptions</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -339,7 +339,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 			}
 		}
 		if len(articles) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " <el-command-group hidden class=\"block p-2 text-sm text-base-content\" aria-labelledby=\"articles-group-label\"><div id=\"articles-group-label\" class=\"text-base-content/80 px-3 py-2\">Articles</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " <el-command-group hidden class=\"block text-sm text-base-content\" aria-labelledby=\"articles-group-label\"><div id=\"articles-group-label\" class=\"text-base-content/80 px-3 py-2\">Articles</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

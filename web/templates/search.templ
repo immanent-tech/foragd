@@ -13,7 +13,7 @@ import (
 // SearchSuggestions will render suggestions for a given search.
 templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subscriptions, articles models.Articles) {
 	// Always generate a suggestion to execute a full search.
-	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="search-group-label">
+	<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="search-group-label">
 		<form
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
@@ -36,8 +36,8 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 		</form>
 	</el-command-group>
 	// Page suggestions.
-	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="pages-group-label">
-		<div id="pages-group-label" class="text-base-content/80 px-3 py-2">Actions</div>
+	<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="pages-group-label">
+		<div id="pages-group-label" class="text-base-content/80 px-3">Actions</div>
 		<a
 			href="/home"
 			hidden
@@ -131,7 +131,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 	</el-command-group>
 	if len(subscriptions) > 0 {
 		// Subscription suggestions.
-		<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="subscriptions-group-label">
+		<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="subscriptions-group-label">
 			<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
 			for subscription := range slices.Values(subscriptions) {
 				switch subscription.GetSubscriptionType() {
@@ -170,7 +170,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 	}
 	if len(articles) > 0 {
 		// Article suggestions.
-		<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="articles-group-label">
+		<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="articles-group-label">
 			<div id="articles-group-label" class="text-base-content/80 px-3 py-2">Articles</div>
 			for article := range slices.Values(articles) {
 				<a
