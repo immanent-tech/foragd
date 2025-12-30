@@ -14,6 +14,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/textquerytype"
 )
 
+const FuzzinessAuto = "AUTO"
+
 // Option is a functional option for queries.
 type Option func(*types.Query)
 
@@ -49,7 +51,7 @@ func Match(field string, value string) Option {
 		if value != "" {
 			name := "match-" + field
 			query.Match = map[string]types.MatchQuery{
-				field: {Query: value, QueryName_: &name},
+				field: {Query: value, QueryName_: &name, Fuzziness: FuzzinessAuto},
 			}
 		}
 	}
@@ -66,6 +68,7 @@ func MultiMatch(value string, fields ...string) Option {
 				Fields:     fields,
 				Query:      value,
 				QueryName_: &name,
+				Fuzziness:  FuzzinessAuto,
 			}
 		}
 	}
