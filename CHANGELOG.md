@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.11.1](https://github.com/immanent-tech/foragd/compare/v0.11.0...v0.11.1) (2025-12-31)
+
+
+### Bug Fixes
+
+* **assets:** :bug: make sure htmx global variable gets set correctly ([4b02fc6](https://github.com/immanent-tech/foragd/commit/4b02fc6b213c53f423dc17ab1a6ca7141f42d3d0))
+* **assets:** :fire: remove debugging ([a4dc9d6](https://github.com/immanent-tech/foragd/commit/a4dc9d61e3aa6be686d362ad451559c1e7e555af))
+* **config:** :bug: correct naming of environments ([3d80c93](https://github.com/immanent-tech/foragd/commit/3d80c935f7e14732d35eeba8c676e8b6c9c142ed))
+
 ## [0.11.0](https://github.com/immanent-tech/foragd/compare/v0.10.0...v0.11.0) (2025-12-30)
 
 
