@@ -30,8 +30,8 @@ const (
 )
 
 const (
-	EnvDevelopment Environment = "Development"
-	EnvProduction  Environment = "Production"
+	EnvDevelopment Environment = "development"
+	EnvProduction  Environment = "production"
 )
 
 type Environment string
