@@ -19,6 +19,7 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/elastic/ilm"
+	"github.com/immanent-tech/foragd/providers/elastic/templates"
 )
 
 const (
@@ -70,7 +71,7 @@ const (
 var (
 	EnglishExactAnalyzerName = "english_exact"
 	// FeedItemCommonMappings are the mappings that are common across both feed and item objects.
-	FeedItemCommonMappings = NewProperties()
+	FeedItemCommonMappings = templates.NewProperties()
 	// defaultMetadata defines default metadata.
 	defaultMetadata = types.Metadata{
 		"version":    json.RawMessage(fmt.Sprintf("%q", config.Version)),
@@ -98,14 +99,14 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 	// Migrate Feed/Items common mappings component template.
 	if err := migrateIndexTemplates(ctx, api,
 		withComponentTemplatesMigration(
-			NewComponentTemplate(
+			templates.NewComponentTemplate(
 				"feed_items_common",
-				NewTemplate(
-					WithTemplateMapping(
-						WithProperties(
-							WithDatetimeMapping("published"),
-							WithDatetimeMapping("updated"),
-							WithTextMapping("title", &types.TextProperty{
+				templates.NewTemplate(
+					templates.WithTemplateMapping(
+						templates.WithProperties(
+							templates.WithDatetimeMapping("published"),
+							templates.WithDatetimeMapping("updated"),
+							templates.WithTextMapping("title", &types.TextProperty{
 								Type: "text",
 								Fields: map[string]types.Property{
 									"raw": types.NewKeywordProperty(),
@@ -115,9 +116,9 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 									"search": types.NewSearchAsYouTypeProperty(),
 								},
 							}),
-							WithTextMapping("description", nil),
-							WithTextMapping("content", nil),
-							WithTextMapping("authors", &types.TextProperty{
+							templates.WithTextMapping("description", nil),
+							templates.WithTextMapping("content", nil),
+							templates.WithTextMapping("authors", &types.TextProperty{
 								Type: "text",
 								Fields: map[string]types.Property{
 									"raw": types.NewKeywordProperty(),
@@ -127,7 +128,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 									"search": types.NewSearchAsYouTypeProperty(),
 								},
 							}),
-							WithTextMapping("contributors", &types.TextProperty{
+							templates.WithTextMapping("contributors", &types.TextProperty{
 								Type: "text",
 								Fields: map[string]types.Property{
 									"raw": types.NewKeywordProperty(),
@@ -137,7 +138,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 									"search": types.NewSearchAsYouTypeProperty(),
 								},
 							}),
-							WithTextMapping("categories", &types.TextProperty{
+							templates.WithTextMapping("categories", &types.TextProperty{
 								Type: "text",
 								Fields: map[string]types.Property{
 									"raw": types.NewKeywordProperty(),
@@ -147,18 +148,18 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 									"search": types.NewSearchAsYouTypeProperty(),
 								},
 							}),
-							WithKeywordMapping("language"),
-							WithTextMapping("copyright", nil),
-							WithKeywordMapping("source_type"),
-							WithKeywordMapping("url"),
-							WithObjectMapping("image",
-								WithKeywordMapping("url"),
-								WithTextMapping("title", nil),
+							templates.WithKeywordMapping("language"),
+							templates.WithTextMapping("copyright", nil),
+							templates.WithKeywordMapping("source_type"),
+							templates.WithKeywordMapping("url"),
+							templates.WithObjectMapping("image",
+								templates.WithKeywordMapping("url"),
+								templates.WithTextMapping("title", nil),
 							)),
-						WithDynamicProperties(false),
+						templates.WithDynamicProperties(false),
 					),
-					WithTemplateSettings(
-						WithAnalysis(types.IndexSettingsAnalysis{
+					templates.WithTemplateSettings(
+						templates.WithAnalysis(types.IndexSettingsAnalysis{
 							Analyzer: map[string]types.Analyzer{
 								EnglishExactAnalyzerName: types.CustomAnalyzer{
 									Tokenizer: "standard",
@@ -168,7 +169,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 						}),
 					),
 				),
-				WithComponentTemplateMetadata(defaultMetadata),
+				templates.WithComponentTemplateMetadata(defaultMetadata),
 			),
 		),
 	); err != nil {
@@ -188,16 +189,16 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			if err := migrateIndexTemplates(ctx, api,
 				// Items specific mappings component template.
 				withComponentTemplatesMigration(
-					NewComponentTemplate(
+					templates.NewComponentTemplate(
 						componentTemplateName,
-						NewTemplate(
-							WithTemplateMapping(
-								WithProperties(
-									WithDatetimeMapping("@timestamp"),
-									WithDatetimeMapping("created"),
-									WithKeywordMapping("feed_id"),
-									WithKeywordMapping("item_id"),
-									WithTextMapping("feed_title", &types.TextProperty{
+						templates.NewTemplate(
+							templates.WithTemplateMapping(
+								templates.WithProperties(
+									templates.WithDatetimeMapping("@timestamp"),
+									templates.WithDatetimeMapping("created"),
+									templates.WithKeywordMapping("feed_id"),
+									templates.WithKeywordMapping("item_id"),
+									templates.WithTextMapping("feed_title", &types.TextProperty{
 										Type: "text",
 										Fields: map[string]types.Property{
 											"raw": types.NewKeywordProperty(),
@@ -208,10 +209,10 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 										},
 									}),
 								),
-								WithDynamicProperties(false),
+								templates.WithDynamicProperties(false),
 							),
-							WithTemplateSettings(
-								WithAnalysis(types.IndexSettingsAnalysis{
+							templates.WithTemplateSettings(
+								templates.WithAnalysis(types.IndexSettingsAnalysis{
 									Analyzer: map[string]types.Analyzer{
 										EnglishExactAnalyzerName: types.CustomAnalyzer{
 											Tokenizer: "standard",
@@ -219,18 +220,18 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 										},
 									},
 								}),
-								WithLifecycle(ilmPolicy, writeAlias),
+								templates.WithLifecycle(ilmPolicy, writeAlias),
 							),
 						),
 					),
 				),
 				// Items index template.
 				withIndexTemplateMigration(
-					NewIndexTemplate(
+					templates.NewIndexTemplate(
 						indexTemplateName,
-						WithComponentTemplates("feed_items_common", componentTemplateName),
-						WithIndexPatterns(indexPattern),
-						WithIndexTemplateMetadata(defaultMetadata),
+						templates.WithComponentTemplates("feed_items_common", componentTemplateName),
+						templates.WithIndexPatterns(indexPattern),
+						templates.WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
 				// Items ILM Policy.
@@ -269,22 +270,22 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			if err := migrateIndexTemplates(ctx, api,
 				// Feeds specific mappings component template.
 				withComponentTemplatesMigration(
-					NewComponentTemplate(
+					templates.NewComponentTemplate(
 						componentTemplateName,
-						NewTemplate(
-							WithTemplateMapping(
-								WithProperties(
-									WithDatetimeMapping("@timestamp"),
-									WithDatetimeMapping("created"),
-									WithKeywordMapping("feed_id"),
-									WithKeywordMapping("item_id"),
-									WithKeywordMapping("user_id"),
-									WithKeywordMapping("subscription_id"),
+						templates.NewTemplate(
+							templates.WithTemplateMapping(
+								templates.WithProperties(
+									templates.WithDatetimeMapping("@timestamp"),
+									templates.WithDatetimeMapping("created"),
+									templates.WithKeywordMapping("feed_id"),
+									templates.WithKeywordMapping("item_id"),
+									templates.WithKeywordMapping("user_id"),
+									templates.WithKeywordMapping("subscription_id"),
 								),
-								WithDynamicProperties(false),
+								templates.WithDynamicProperties(false),
 							),
-							WithTemplateSettings(
-								WithAnalysis(types.IndexSettingsAnalysis{
+							templates.WithTemplateSettings(
+								templates.WithAnalysis(types.IndexSettingsAnalysis{
 									Analyzer: map[string]types.Analyzer{
 										EnglishExactAnalyzerName: types.CustomAnalyzer{
 											Tokenizer: "standard",
@@ -294,16 +295,16 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 								}),
 							),
 						),
-						WithComponentTemplateMetadata(defaultMetadata),
+						templates.WithComponentTemplateMetadata(defaultMetadata),
 					),
 				),
 				// Feeds index template.
 				withIndexTemplateMigration(
-					NewIndexTemplate(
+					templates.NewIndexTemplate(
 						indexTemplateName,
-						WithComponentTemplates("feed_items_common", componentTemplateName),
-						WithIndexPatterns(indexPattern),
-						WithIndexTemplateMetadata(defaultMetadata),
+						templates.WithComponentTemplates("feed_items_common", componentTemplateName),
+						templates.WithIndexPatterns(indexPattern),
+						templates.WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
 			); err != nil {
@@ -323,20 +324,20 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			if err := migrateIndexTemplates(ctx, api,
 				// Feeds specific mappings component template.
 				withComponentTemplatesMigration(
-					NewComponentTemplate(
+					templates.NewComponentTemplate(
 						componentTemplateName,
-						NewTemplate(
-							WithTemplateMapping(
-								WithProperties(
-									WithKeywordMapping("feed_id"),
-									WithDatetimeMapping("created_at"),
-									WithDatetimeMapping("last_fetched"),
-									WithKeywordMapping("source_urls"),
+						templates.NewTemplate(
+							templates.WithTemplateMapping(
+								templates.WithProperties(
+									templates.WithKeywordMapping("feed_id"),
+									templates.WithDatetimeMapping("created_at"),
+									templates.WithDatetimeMapping("last_fetched"),
+									templates.WithKeywordMapping("source_urls"),
 								),
-								WithDynamicProperties(false),
+								templates.WithDynamicProperties(false),
 							),
-							WithTemplateSettings(
-								WithAnalysis(types.IndexSettingsAnalysis{
+							templates.WithTemplateSettings(
+								templates.WithAnalysis(types.IndexSettingsAnalysis{
 									Analyzer: map[string]types.Analyzer{
 										EnglishExactAnalyzerName: types.CustomAnalyzer{
 											Tokenizer: "standard",
@@ -346,16 +347,16 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 								}),
 							),
 						),
-						WithComponentTemplateMetadata(defaultMetadata),
+						templates.WithComponentTemplateMetadata(defaultMetadata),
 					),
 				),
 				// Feeds index template.
 				withIndexTemplateMigration(
-					NewIndexTemplate(
+					templates.NewIndexTemplate(
 						indexTemplateName,
-						WithComponentTemplates("feed_items_common", componentTemplateName),
-						WithIndexPatterns(indexPattern),
-						WithIndexTemplateMetadata(defaultMetadata),
+						templates.WithComponentTemplates("feed_items_common", componentTemplateName),
+						templates.WithIndexPatterns(indexPattern),
+						templates.WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
 			); err != nil {
@@ -375,37 +376,37 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			if err := migrateIndexTemplates(ctx, api,
 				// User specific mappings component template.
 				withComponentTemplatesMigration(
-					NewComponentTemplate(
+					templates.NewComponentTemplate(
 						componentTemplateName,
-						NewTemplate(
-							WithTemplateMapping(
-								WithProperties(
-									WithKeywordMapping("user_id"),
-									WithKeywordMapping("nickname"),
-									WithKeywordMapping("avatar_url"),
-									WithKeywordMapping("external_user_id"),
-									WithKeywordMapping("email"),
-									WithKeywordMapping("provider"),
-									WithKeywordMapping("level"),
-									WithDatetimeMapping("created_at"),
-									WithDatetimeMapping("updated_at"),
-									WithKeywordMapping("max_history"),
-									WithFlattenedMapping("settings"),
-									WithFlattenedMapping("metadata"),
-									WithKeywordMapping("item_favorites"),
+						templates.NewTemplate(
+							templates.WithTemplateMapping(
+								templates.WithProperties(
+									templates.WithKeywordMapping("user_id"),
+									templates.WithKeywordMapping("nickname"),
+									templates.WithKeywordMapping("avatar_url"),
+									templates.WithKeywordMapping("external_user_id"),
+									templates.WithKeywordMapping("email"),
+									templates.WithKeywordMapping("provider"),
+									templates.WithKeywordMapping("level"),
+									templates.WithDatetimeMapping("created_at"),
+									templates.WithDatetimeMapping("updated_at"),
+									templates.WithKeywordMapping("max_history"),
+									templates.WithFlattenedMapping("settings"),
+									templates.WithFlattenedMapping("metadata"),
+									templates.WithKeywordMapping("item_favorites"),
 								),
-								WithDynamicProperties(false),
+								templates.WithDynamicProperties(false),
 							),
 						),
 					),
 				),
 				// User index template.
 				withIndexTemplateMigration(
-					NewIndexTemplate(
+					templates.NewIndexTemplate(
 						indexTemplateName,
-						WithComponentTemplates(componentTemplateName),
-						WithIndexPatterns(indexPattern),
-						WithIndexTemplateMetadata(defaultMetadata),
+						templates.WithComponentTemplates(componentTemplateName),
+						templates.WithIndexPatterns(indexPattern),
+						templates.WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
 			); err != nil {
@@ -425,20 +426,20 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			if err := migrateIndexTemplates(ctx, api,
 				// User specific mappings component template.
 				withComponentTemplatesMigration(
-					NewComponentTemplate(
+					templates.NewComponentTemplate(
 						componentTemplateName,
-						NewTemplate(
-							WithTemplateMapping(
-								WithProperties(
-									WithKeywordMapping("subscription_id"),
-									WithKeywordMapping("user_id"),
-									WithKeywordMapping("type"),
-									WithBooleanMapping("favorite"),
-									WithDatetimeMapping("created_at"),
-									WithDatetimeMapping("updated_at"),
-									WithDatetimeMapping("marked_read_at"),
-									WithObjectMapping("customisation",
-										WithTextMapping("nickname", &types.TextProperty{
+						templates.NewTemplate(
+							templates.WithTemplateMapping(
+								templates.WithProperties(
+									templates.WithKeywordMapping("subscription_id"),
+									templates.WithKeywordMapping("user_id"),
+									templates.WithKeywordMapping("type"),
+									templates.WithBooleanMapping("favorite"),
+									templates.WithDatetimeMapping("created_at"),
+									templates.WithDatetimeMapping("updated_at"),
+									templates.WithDatetimeMapping("marked_read_at"),
+									templates.WithObjectMapping("customisation",
+										templates.WithTextMapping("nickname", &types.TextProperty{
 											Type: "text",
 											Fields: map[string]types.Property{
 												"raw": types.NewKeywordProperty(),
@@ -448,7 +449,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 												"search": types.NewSearchAsYouTypeProperty(),
 											},
 										}),
-										WithTextMapping("categories", &types.TextProperty{
+										templates.WithTextMapping("categories", &types.TextProperty{
 											Type: "text",
 											Fields: map[string]types.Property{
 												"raw": types.NewKeywordProperty(),
@@ -458,24 +459,24 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 												"search": types.NewSearchAsYouTypeProperty(),
 											},
 										}),
-										WithKeywordMapping("image_url"),
+										templates.WithKeywordMapping("image_url"),
 									),
-									WithFlattenedMapping("settings"),
-									WithObjectMapping("feed_data",
-										WithKeywordMapping("feed_id"),
-										WithKeywordMapping("url"),
-										WithFlattenedMapping("article_states"),
-										WithFlattenedMapping("article_filters"),
+									templates.WithFlattenedMapping("settings"),
+									templates.WithObjectMapping("feed_data",
+										templates.WithKeywordMapping("feed_id"),
+										templates.WithKeywordMapping("url"),
+										templates.WithFlattenedMapping("article_states"),
+										templates.WithFlattenedMapping("article_filters"),
 									),
-									WithObjectMapping("group_data",
-										WithKeywordMapping("subscriptions"),
+									templates.WithObjectMapping("group_data",
+										templates.WithKeywordMapping("subscriptions"),
 									),
-									WithFlattenedMapping("search_data"),
+									templates.WithFlattenedMapping("search_data"),
 								),
-								WithDynamicProperties(false),
+								templates.WithDynamicProperties(false),
 							),
-							WithTemplateSettings(
-								WithAnalysis(types.IndexSettingsAnalysis{
+							templates.WithTemplateSettings(
+								templates.WithAnalysis(types.IndexSettingsAnalysis{
 									Analyzer: map[string]types.Analyzer{
 										EnglishExactAnalyzerName: types.CustomAnalyzer{
 											Tokenizer: "standard",
@@ -489,11 +490,11 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 				),
 				// User index template.
 				withIndexTemplateMigration(
-					NewIndexTemplate(
+					templates.NewIndexTemplate(
 						indexTemplateName,
-						WithComponentTemplates(componentTemplateName),
-						WithIndexPatterns(indexPattern),
-						WithIndexTemplateMetadata(defaultMetadata),
+						templates.WithComponentTemplates(componentTemplateName),
+						templates.WithIndexPatterns(indexPattern),
+						templates.WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
 			); err != nil {
@@ -510,32 +511,32 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			if err := migrateIndexTemplates(ctx, api,
 				// User specific mappings component template.
 				withComponentTemplatesMigration(
-					NewComponentTemplate(
+					templates.NewComponentTemplate(
 						componentTemplateName,
-						NewTemplate(
-							WithTemplateMapping(
-								WithProperties(
-									WithDatetimeMapping("updated_at"),
-									WithFlattenedMapping("job_options"),
-									WithFlattenedMapping("job_data"),
-									WithKeywordMapping("job_type"),
-									WithKeywordMapping("job_description"),
-									WithKeywordMapping("job_trigger_type"),
-									WithFlattenedMapping("job_trigger"),
-									WithDatetimeMapping("job_next_run"),
+						templates.NewTemplate(
+							templates.WithTemplateMapping(
+								templates.WithProperties(
+									templates.WithDatetimeMapping("updated_at"),
+									templates.WithFlattenedMapping("job_options"),
+									templates.WithFlattenedMapping("job_data"),
+									templates.WithKeywordMapping("job_type"),
+									templates.WithKeywordMapping("job_description"),
+									templates.WithKeywordMapping("job_trigger_type"),
+									templates.WithFlattenedMapping("job_trigger"),
+									templates.WithDatetimeMapping("job_next_run"),
 								),
-								WithDynamicProperties(false),
+								templates.WithDynamicProperties(false),
 							),
 						),
 					),
 				),
 				// User index template.
 				withIndexTemplateMigration(
-					NewIndexTemplate(
+					templates.NewIndexTemplate(
 						indexTemplateName,
-						WithComponentTemplates(componentTemplateName),
-						WithIndexPatterns(indexPattern),
-						WithIndexTemplateMetadata(defaultMetadata),
+						templates.WithComponentTemplates(componentTemplateName),
+						templates.WithIndexPatterns(indexPattern),
+						templates.WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
 			); err != nil {
@@ -557,30 +558,30 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			if err := migrateIndexTemplates(ctx, api,
 				// Sessions specific mappings component template.
 				withComponentTemplatesMigration(
-					NewComponentTemplate(
+					templates.NewComponentTemplate(
 						componentTemplateName,
-						NewTemplate(
-							WithTemplateMapping(
-								WithProperties(
-									WithDatetimeMapping("expiry"),
-									WithKeywordMapping("token"),
-									WithBinaryMapping("data"),
+						templates.NewTemplate(
+							templates.WithTemplateMapping(
+								templates.WithProperties(
+									templates.WithDatetimeMapping("expiry"),
+									templates.WithKeywordMapping("token"),
+									templates.WithBinaryMapping("data"),
 								),
-								WithDynamicProperties(false),
+								templates.WithDynamicProperties(false),
 							),
-							// WithTemplateSettings(
-							// 	WithLifecycle(ilmPolicy, writeAlias),
+							// templates.WithTemplateSettings(
+							// 	templates.WithLifecycle(ilmPolicy, writeAlias),
 							// ),
 						),
 					),
 				),
 				// Sessions index template.
 				withIndexTemplateMigration(
-					NewIndexTemplate(
+					templates.NewIndexTemplate(
 						indexTemplateName,
-						WithComponentTemplates(componentTemplateName),
-						WithIndexPatterns(indexPattern),
-						WithIndexTemplateMetadata(defaultMetadata),
+						templates.WithComponentTemplates(componentTemplateName),
+						templates.WithIndexPatterns(indexPattern),
+						templates.WithIndexTemplateMetadata(defaultMetadata),
 					),
 				),
 				// // Sessions ILM Policy.
@@ -610,20 +611,20 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 }
 
 type templatesMigration struct {
-	componentTemplates []*ComponentTemplate
-	indexTemplate      *IndexTemplate
+	componentTemplates []*templates.ComponentTemplate
+	indexTemplate      *templates.IndexTemplate
 	ilmPolicy          *ilm.ILMPolicy
 }
 
 type templateMigrationOption Option[*templatesMigration]
 
-func withComponentTemplatesMigration(templates ...*ComponentTemplate) templateMigrationOption {
+func withComponentTemplatesMigration(templates ...*templates.ComponentTemplate) templateMigrationOption {
 	return func(m *templatesMigration) {
 		m.componentTemplates = templates
 	}
 }
 
-func withIndexTemplateMigration(template *IndexTemplate) templateMigrationOption {
+func withIndexTemplateMigration(template *templates.IndexTemplate) templateMigrationOption {
 	return func(m *templatesMigration) {
 		m.indexTemplate = template
 	}
@@ -650,18 +651,18 @@ func migrateIndexTemplates(
 	if len(migration.componentTemplates) > 0 {
 		for template := range slices.Values(migration.componentTemplates) {
 			slogctx.FromCtx(ctx).Info("Migrating component template...",
-				slog.String("name", template.name))
+				slog.String("name", template.Name))
 			if err := template.Put(ctx, api); err != nil {
-				return fmt.Errorf("could not migrate component template %s: %w", template.name, err)
+				return fmt.Errorf("could not migrate component template %s: %w", template.Name, err)
 			}
 		}
 	}
 	// Migrate index template.
 	if migration.indexTemplate != nil {
 		slogctx.FromCtx(ctx).Info("Migrating index template...",
-			slog.String("name", migration.indexTemplate.name))
+			slog.String("name", migration.indexTemplate.Name))
 		if err := migration.indexTemplate.Put(ctx, api); err != nil {
-			return fmt.Errorf("could not migrate index template %s: %w", migration.indexTemplate.name, err)
+			return fmt.Errorf("could not migrate index template %s: %w", migration.indexTemplate.Name, err)
 		}
 	}
 	// Migrate ILM policy.

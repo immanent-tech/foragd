@@ -1,7 +1,8 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package schema
+// Package templates contains wrappers for helping with creating index and component templates.
+package templates
 
 import (
 	"context"
@@ -14,6 +15,9 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/dynamicmapping"
 )
+
+// Option is a reusable generic function for applying options to a type.
+type Option[T any] func(T)
 
 // Template represents an index or component template with settings, mappings, aliases, etc.
 type Template struct {
@@ -221,7 +225,7 @@ func WithObjectMapping(fieldname string, options ...PropertiesOption) Properties
 type ComponentTemplate struct {
 	*putcomponenttemplate.Request
 
-	name string
+	Name string
 }
 
 // ComponentTemplateOption is a functional option to apply to a component template.
@@ -234,7 +238,7 @@ func NewComponentTemplate(
 	options ...ComponentTemplateOption,
 ) *ComponentTemplate {
 	template := &ComponentTemplate{
-		name: name,
+		Name: name,
 		Request: &putcomponenttemplate.Request{
 			Template: templateSettings.IndexState,
 		},
@@ -254,7 +258,7 @@ func WithComponentTemplateMetadata(metadata types.Metadata) ComponentTemplateOpt
 
 // Put will send a request to create the component template in the cluster.
 func (t *ComponentTemplate) Put(ctx context.Context, api *elasticsearch.TypedClient) error {
-	if _, err := api.Cluster.PutComponentTemplate(t.name).Request(t.Request).Do(ctx); err != nil {
+	if _, err := api.Cluster.PutComponentTemplate(t.Name).Request(t.Request).Do(ctx); err != nil {
 		return fmt.Errorf("put component template: %w", err)
 	}
 
@@ -265,7 +269,7 @@ func (t *ComponentTemplate) Put(ctx context.Context, api *elasticsearch.TypedCli
 type IndexTemplate struct {
 	*putindextemplate.Request
 
-	name string
+	Name string
 }
 
 // IndexTemplateOption is a functional option to apply to an index template.
@@ -274,7 +278,7 @@ type IndexTemplateOption Option[*IndexTemplate]
 // NewIndexTemplate creates an index template with the given name and template options.
 func NewIndexTemplate(name string, options ...IndexTemplateOption) *IndexTemplate {
 	template := &IndexTemplate{
-		name:    name,
+		Name:    name,
 		Request: putindextemplate.NewRequest(),
 	}
 	for option := range slices.Values(options) {
@@ -322,7 +326,7 @@ func WithPriority(pri int64) IndexTemplateOption {
 
 // Put will send a request to create the index template in the cluster.
 func (t *IndexTemplate) Put(ctx context.Context, api *elasticsearch.TypedClient) error {
-	if _, err := api.Indices.PutIndexTemplate(t.name).Request(t.Request).Do(ctx); err != nil {
+	if _, err := api.Indices.PutIndexTemplate(t.Name).Request(t.Request).Do(ctx); err != nil {
 		return fmt.Errorf("put index template: %w", err)
 	}
 
