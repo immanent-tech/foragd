@@ -34,7 +34,6 @@ const (
 )
 
 var (
-	ErrUserNotSubscribed    = errors.New("not subscribed")
 	ErrUserAlreadyFavorited = errors.New("already a favorite")
 )
 

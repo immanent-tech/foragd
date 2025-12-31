@@ -95,7 +95,7 @@ func FilterArticles(
 
 // FindSimilarArticles performs a "more like this" search to find other Articles that are similar to the Items with the
 // given IDs.
-func FindSimilarArticles(ctx context.Context, itemIDs ...ItemID) (Articles, error) {
+func FindSimilarArticles(ctx context.Context, count int, itemIDs ...ItemID) (Articles, error) {
 	user, err := UserFromCtx(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("find similar articles: get user data: %w", err)
@@ -131,7 +131,7 @@ func FindSimilarArticles(ctx context.Context, itemIDs ...ItemID) (Articles, erro
 	)
 	// Query for similar articles.
 	sort := SortMostRelevant
-	items, _, err := SearchItems(ctx, similarQuery, 15, &sort, "")
+	items, _, err := SearchItems(ctx, similarQuery, count, &sort, "")
 	if err != nil {
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}

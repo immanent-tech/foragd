@@ -5,7 +5,6 @@ package models
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -26,9 +25,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
-
-// ErrNewFeed is returned when there was a problem creating a new Feed.
-var ErrNewFeed = errors.New("could not create new feed")
 
 func getFeedUnreadCounts(
 	ctx context.Context,

@@ -186,6 +186,8 @@ func PaginateArticles() http.HandlerFunc {
 // FindSimilarArticles handles finding articles similar to the given article and showing the results.
 func FindSimilarArticles() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+		// TODO: wrap id and count in a request object.
+		const similarArticlesCount = 15
 		// Extract request parameters.
 		itemID := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
@@ -198,7 +200,7 @@ func FindSimilarArticles() http.HandlerFunc {
 				),
 			}
 		}
-		articles, err := models.FindSimilarArticles(req.Context(), itemID)
+		articles, err := models.FindSimilarArticles(req.Context(), similarArticlesCount, itemID)
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("find similar articles: %w", err),

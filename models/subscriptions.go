@@ -31,8 +31,6 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
-var ErrInvalidSubscriptionData = errors.New("invalid subscription data")
-
 type subscriptionsRequest struct {
 	filterFavorites  bool
 	filterIDs        []SubscriptionID
@@ -1732,7 +1730,7 @@ func newSubscription(
 		subscription.GroupData = *typeData
 		subscription.Favorite = true
 	default:
-		return nil, fmt.Errorf("new subscription: %w", ErrInvalidSubscriptionData)
+		return nil, fmt.Errorf("new subscription: %w", ErrInvalidAPIResult)
 	}
 
 	return subscription, nil
