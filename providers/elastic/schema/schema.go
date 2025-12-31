@@ -18,6 +18,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/providers/elastic/ilm"
 )
 
 const (
@@ -234,20 +235,20 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 				),
 				// Items ILM Policy.
 				withILMPolicyMigration(
-					NewILMPolicy(
+					ilm.NewILMPolicy(
 						ilmPolicy,
-						WithPhase("hot",
-							WithActions(WithRolloverMaxSize("50gb")),
+						ilm.WithPhase("hot",
+							ilm.WithActions(ilm.WithRolloverMaxSize("50gb")),
 						),
-						WithPhase("warm",
-							WithActions(
-								WithShrinkToShards(1),
-								WithForceMergeSegments(1),
+						ilm.WithPhase("warm",
+							ilm.WithActions(
+								ilm.WithShrinkToShards(1),
+								ilm.WithForceMergeSegments(1),
 							),
 						),
-						WithPhase("delete",
-							WithMinAge("735d"),
-							WithActions(WithDelete()),
+						ilm.WithPhase("delete",
+							ilm.WithMinAge("735d"),
+							ilm.WithActions(ilm.WithDelete()),
 						),
 					),
 				),
@@ -611,7 +612,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 type templatesMigration struct {
 	componentTemplates []*ComponentTemplate
 	indexTemplate      *IndexTemplate
-	ilmPolicy          *ILMPolicy
+	ilmPolicy          *ilm.ILMPolicy
 }
 
 type templateMigrationOption Option[*templatesMigration]
@@ -628,7 +629,7 @@ func withIndexTemplateMigration(template *IndexTemplate) templateMigrationOption
 	}
 }
 
-func withILMPolicyMigration(policy *ILMPolicy) templateMigrationOption {
+func withILMPolicyMigration(policy *ilm.ILMPolicy) templateMigrationOption {
 	return func(m *templatesMigration) {
 		m.ilmPolicy = policy
 	}
@@ -666,9 +667,9 @@ func migrateIndexTemplates(
 	// Migrate ILM policy.
 	if migration.ilmPolicy != nil {
 		slogctx.FromCtx(ctx).Info("Migrating ILM policy...",
-			slog.String("name", migration.ilmPolicy.name))
+			slog.String("name", migration.ilmPolicy.Name))
 		if err := migration.ilmPolicy.Put(ctx, api); err != nil {
-			return fmt.Errorf("could not migrate ilm policy %s: %w", migration.ilmPolicy.name, err)
+			return fmt.Errorf("could not migrate ilm policy %s: %w", migration.ilmPolicy.Name, err)
 		}
 	}
 	return nil

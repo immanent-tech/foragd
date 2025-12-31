@@ -1,7 +1,8 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package schema
+// Package ilm contains wrappers that help with creating ILM policies.
+package ilm
 
 import (
 	"context"
@@ -11,6 +12,9 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/ilm/putlifecycle"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 )
+
+// Option is a reusable generic function for applying options to a type.
+type Option[T any] func(T)
 
 // WithDelete will add a delete action to the phase.
 func WithDelete() Option[*types.IlmActions] {
@@ -122,13 +126,13 @@ func WithPhase(name string, options ...Option[*types.Phase]) Option[*types.IlmPo
 type ILMPolicy struct {
 	*putlifecycle.Request
 
-	name string
+	Name string
 }
 
 // NewILMPolicy creates a new ILM policy with the given options and encapsulates it in an appropriate request object.
 func NewILMPolicy(name string, options ...Option[*types.IlmPolicy]) *ILMPolicy {
 	policy := &ILMPolicy{
-		name: name,
+		Name: name,
 		Request: &putlifecycle.Request{
 			Policy: types.NewIlmPolicy(),
 		},
@@ -141,7 +145,7 @@ func NewILMPolicy(name string, options ...Option[*types.IlmPolicy]) *ILMPolicy {
 
 // Put will send a request to create the index template in the cluster.
 func (p *ILMPolicy) Put(ctx context.Context, api *elasticsearch.TypedClient) error {
-	if _, err := api.Ilm.PutLifecycle(p.name).Request(p.Request).Do(ctx); err != nil {
+	if _, err := api.Ilm.PutLifecycle(p.Name).Request(p.Request).Do(ctx); err != nil {
 		return fmt.Errorf("unable to put ILM policy: %w", err)
 	}
 	return nil
