@@ -169,9 +169,28 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 	// Create articles from the items.
 	articles := make(Articles, 0, len(items))
 	for item := range slices.Values(items) {
-		var article *Article
-		article, err = GenerateArticle(user, item, subscriptions.GetByFeedID(item.GetFeedID()))
-		if err != nil {
+		subscription := subscriptions.GetByFeedID(item.GetFeedID())
+		article := &Article{
+			Item:           *item,
+			SubscriptionID: subscription.GetID(),
+			State:          *subscription.FeedData.GetItemState(item.GetID()),
+		}
+		// If there is favorite data, mark article as a favorite.
+		if slices.Contains(user.ItemFavorites, item.GetID()) {
+			article.Favorite = true
+		}
+		// Add any appropriate feed customisation data.
+		article.Item.FeedTitle = subscription.GetTitle()
+		// 	Update read status.
+		if item.GetTimestamp().Before(subscription.MarkedReadAt) {
+			article.State.MarkRead(subscription.MarkedReadAt)
+		}
+		// Toggle showing remote article content.
+		article.ShowFullContent = subscription.Settings.ShowFullArticleContent
+		// Toggle marking read on view.
+		article.MarkArticleReadOnView = user.GetSettings().MarkArticleReadOnView
+		// Validate the article.
+		if err := article.Valid(); err != nil {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not generate article from data.",
 				slog.Any("error", err),
 				slog.String("item_id", item.GetID()),
@@ -274,36 +293,6 @@ func (a Articles) GetCategoryCounts() CategoryCounts {
 	}
 
 	return counts
-}
-
-// GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
-// and state is required.
-func GenerateArticle(user *User, item *Item, subscription *Subscription) (*Article, error) {
-	article := &Article{
-		Item:           *item,
-		SubscriptionID: subscription.GetID(),
-		State:          *subscription.FeedData.GetItemState(item.GetID()),
-	}
-	// If there is favorite data, mark article as a favorite.
-	if slices.Contains(user.ItemFavorites, item.GetID()) {
-		article.Favorite = true
-	}
-	// Add any appropriate feed customisation data.
-	article.Item.FeedTitle = subscription.GetTitle()
-	// 	Update read status.
-	if item.GetTimestamp().Before(subscription.MarkedReadAt) {
-		article.State.MarkRead(subscription.MarkedReadAt)
-	}
-	// Toggle showing remote article content.
-	article.ShowFullContent = subscription.Settings.ShowFullArticleContent
-	// Toggle marking read on view.
-	article.MarkArticleReadOnView = user.GetSettings().MarkArticleReadOnView
-	// Validate the article.
-	if err := article.Valid(); err != nil {
-		return nil, fmt.Errorf("could not generate article: %w", err)
-	}
-
-	return article, nil
 }
 
 // Valid returns a boolean indicating if the article contains valid data (true). If it contains invalid data
