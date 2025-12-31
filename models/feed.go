@@ -25,7 +25,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 // ErrNewFeed is returned when there was a problem creating a new Feed.
@@ -104,7 +103,7 @@ func getFeedLastUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]time.Tim
 	sort := SortNewestFirst
 	items, _, err := elastic.Search[*Item](
 		ctx,
-		schema.ItemsIndexRO,
+		ItemsIndexRO,
 		query.Terms("feed_id", ids...),
 		len(ids),
 		elastic.WithCollapseField("feed_id"),

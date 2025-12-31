@@ -20,7 +20,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
 )
@@ -118,7 +117,7 @@ func Run(ctx context.Context) error {
 
 // GetJobState returns the job state of the job with the given id.
 func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
-	state, err := elastic.GetDoc[string, *models.JobState](ctx, schema.SchedulerIndexRO, id)
+	state, err := elastic.GetDoc[string, *models.JobState](ctx, models.SchedulerIndexRO, id)
 	if err != nil {
 		return nil, fmt.Errorf("scheduler: get job state: %w", err)
 	}
@@ -128,7 +127,7 @@ func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState,
 // UpdateJobState will update the job state for the job with the given id.
 func (m *manager) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
 	updates["updated_at"] = time.Now().UTC()
-	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW, id, updates,
+	if err := elastic.UpdateDoc(ctx, models.SchedulerIndexRW, id, updates,
 		elastic.UpdateDocAsUpsert(),
 		elastic.WithRefresh("true"),
 	); err != nil {

@@ -24,12 +24,11 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 // CountItems returns a count of items that match the given query.
 func CountItems(ctx context.Context, query query.Option) (int64, error) {
-	count, err := elastic.Count(ctx, schema.ItemsIndexRO, query)
+	count, err := elastic.Count(ctx, ItemsIndexRO, query)
 	if err != nil {
 		return 0, fmt.Errorf("count items: %w", err)
 	}
@@ -51,7 +50,7 @@ func SearchItems(
 		return nil, "", ErrInvalidParams
 	}
 	// Perform search.
-	items, newSearchAfter, err := elastic.Search[*Item](ctx, schema.ItemsIndexRO, query, count,
+	items, newSearchAfter, err := elastic.Search[*Item](ctx, ItemsIndexRO, query, count,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](newItemSortOptions(sort)...),
 		elastic.WithSearchAfter[*search.Search, elastic.SearchRequest](searchAfter...),
 	)
@@ -114,7 +113,7 @@ func ItemsAggregation(
 ) (*search.Response, error) {
 	req := elastic.NewSearchRequest(
 		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.ItemsIndexRO),
+		elastic.WithIndex[*search.Search, elastic.SearchRequest](ItemsIndexRO),
 		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](query),
 		elastic.WithSize[*search.Search, elastic.SearchRequest](size),
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](

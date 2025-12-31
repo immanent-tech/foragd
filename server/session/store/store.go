@@ -13,7 +13,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 const (
@@ -41,7 +40,7 @@ func NewSessionStore() (*Store, error) {
 // session store. If the token does not exist then Delete should be a no-op
 // and return nil (not an error).
 func (s *Store) DeleteCtx(ctx context.Context, token string) error {
-	index := schema.SessionsIndexRW
+	index := models.SessionsIndexRW
 	if err := elastic.DeleteDoc(ctx, index, token); err != nil {
 		return fmt.Errorf("could not delete session: %w", err)
 	}
@@ -61,7 +60,7 @@ func (s *Store) Delete(token string) error {
 // or malformed tokens should result in a found return value of false and a
 // nil err value. The err return value should be used for system errors only.
 func (s *Store) FindCtx(ctx context.Context, token string) ([]byte, bool, error) {
-	index := schema.SessionsIndexRO
+	index := models.SessionsIndexRO
 	session, err := elastic.GetDoc[string, models.UserSession](ctx, index, token)
 	if err != nil {
 		return nil, false, fmt.Errorf("could not find a valid session: %w", err)
@@ -85,7 +84,7 @@ func (s *Store) Find(token string) ([]byte, bool, error) {
 // expiry time. If the session token already exists, then the data and
 // expiry time should be overwritten.
 func (s *Store) CommitCtx(ctx context.Context, token string, data []byte, expiry time.Time) error {
-	index := schema.SessionsIndexRW
+	index := models.SessionsIndexRW
 	if err := elastic.UpdateDoc(ctx, index,
 		token,
 		map[string]any{
@@ -113,7 +112,7 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 // token and the map value should be the session data. If no active
 // sessions exist this should return an empty (not nil) map.
 func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
-	index := schema.SessionsIndexRO
+	index := models.SessionsIndexRO
 	sessions, err := elastic.SearchAll[models.UserSession](
 		ctx,
 		index,

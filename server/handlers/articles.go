@@ -22,7 +22,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -593,7 +592,7 @@ func extractArticleFromURL(url string) (string, error) {
 
 // archiveArticle will index the given article content to the article archive for permanent storage.
 func archiveArticle(ctx context.Context, article *models.ArticleArchive) error {
-	if err := elastic.CreateDoc(ctx, schema.FavoriteArticlesIndexRW, article.ItemID, article); err != nil {
+	if err := elastic.CreateDoc(ctx, models.FavoriteArticlesIndexRW, article.ItemID, article); err != nil {
 		return fmt.Errorf("archive article: %w", err)
 	}
 	return nil
@@ -608,7 +607,7 @@ func unarchiveArticle(ctx context.Context, userID models.UserID, itemID models.I
 			query.Term("item_id", itemID),
 		),
 	)
-	if err := elastic.DeleteDocs(ctx, schema.FavoriteArticlesIndexRW, query); err != nil {
+	if err := elastic.DeleteDocs(ctx, models.FavoriteArticlesIndexRW, query); err != nil {
 		return fmt.Errorf("unarchive article: %w", err)
 	}
 	return nil

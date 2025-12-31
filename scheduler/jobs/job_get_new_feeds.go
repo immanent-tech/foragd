@@ -20,7 +20,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 // GetNewFeedsJobData contains the data required by the GetNewFeeds job.
@@ -100,7 +99,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	)
 	feeds, err = elastic.SearchAll[*models.Feed](
 		ctx,
-		schema.FeedsIndexRO,
+		models.FeedsIndexRO,
 		query.Term("last_fetched", models.UnixEpoch),
 		defaultPaginationSize,
 	)

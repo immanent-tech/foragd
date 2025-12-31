@@ -28,7 +28,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -354,7 +353,7 @@ func SearchSubscriptions(
 	// Perform search.
 	subscriptions, newSearchAfter, err := elastic.Search[*Subscription](
 		ctx,
-		schema.SubscriptionsIndexRO,
+		SubscriptionsIndexRO,
 		query,
 		req.count,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](newSubscriptionSortOptions(req.sort)...),
@@ -433,7 +432,7 @@ func ProcessSubscriptionRequest(
 	// Try to match request URL to an existing feed
 	var feed *Feed
 	feeds, _, err := elastic.Search[*Feed](ctx,
-		schema.FeedsIndexRO,
+		FeedsIndexRO,
 		query.Term("source_urls", request.GetURL()),
 		1,
 	)
@@ -480,7 +479,7 @@ func ProcessSubscriptionRequest(
 			resultsCh <- result
 			return
 		}
-		if err := elastic.CreateDoc(ctx, schema.FeedsIndexRW, newFeed.GetID(), newFeed); err != nil {
+		if err := elastic.CreateDoc(ctx, FeedsIndexRW, newFeed.GetID(), newFeed); err != nil {
 			result.Error = err
 			result.Message = NewErrorMessage(
 				"Unable to create new feed for subscription",
@@ -557,7 +556,7 @@ func RemoveSubscriptions(ctx context.Context, ids ...SubscriptionID) error {
 	if err != nil {
 		return fmt.Errorf("get user data: %w", err)
 	}
-	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW,
+	if err := elastic.DeleteDocs(ctx, SubscriptionsIndexRW,
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
@@ -575,7 +574,7 @@ func UpdateSubscriptions(
 	ctx context.Context,
 	subscriptions ...*Subscription,
 ) (map[SubscriptionID]*bulk.OperationResponse, error) {
-	resp, err := elastic.BulkUpdate(ctx, schema.SubscriptionsIndexRW, subscriptions...)
+	resp, err := elastic.BulkUpdate(ctx, SubscriptionsIndexRW, subscriptions...)
 	if err != nil {
 		return nil, es2APIError("update subscriptions failed", err)
 	}
@@ -872,7 +871,7 @@ func getAllSubscriptionsByQuery(ctx context.Context, query query.Option) (Subscr
 	)
 	subscriptions, err = elastic.SearchAll[*Subscription](
 		ctx,
-		schema.SubscriptionsIndexRO,
+		SubscriptionsIndexRO,
 		query,
 		DefaultPaginationSize,
 	)
@@ -911,7 +910,7 @@ func GetAllSubscriptionCategories(ctx context.Context) (CategoryCounts, error) {
 
 	resp, err := elastic.NewSearchRequest(
 		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.SubscriptionsIndexRO),
+		elastic.WithIndex[*search.Search, elastic.SearchRequest](SubscriptionsIndexRO),
 		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](query),
 		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),

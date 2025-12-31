@@ -16,7 +16,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
-	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 type UpdateFeedJobData struct {
@@ -71,7 +70,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	defer cancel()
 
 	// Retrieve the feed details.
-	details, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, schema.FeedsIndexRO, jobData.FeedID)
+	details, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, models.FeedsIndexRO, jobData.FeedID)
 	if err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
@@ -94,7 +93,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		// Add any new items.
 		if _, err := elastic.BulkUpdate(
 			ctx,
-			schema.ItemsIndexRW,
+			models.ItemsIndexRW,
 			items.FilterSince(details.LastFetched)...); err != nil {
 			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}
@@ -104,7 +103,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		)
 		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 		// newer articles where a feed lags behind real-time.
-		if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, map[string]any{
+		if err := elastic.UpdateDoc(ctx, models.FeedsIndexRW, jobData.FeedID, map[string]any{
 			"last_fetched": items.SortByTimestamp()[0].GetTimestamp(),
 		}); err != nil {
 			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
