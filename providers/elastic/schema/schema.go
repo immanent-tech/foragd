@@ -21,8 +21,7 @@ import (
 )
 
 const (
-	// FeedsIndexPrefix is a prefix used for feed related index/mapping/settings.
-	FeedsIndexPrefix = "feeds"
+	feedsIndexPrefix = "feeds"
 	// ItemsSchemaPrefix is a prefix used for item related index/mapping/settings.
 	ItemsSchemaPrefix = "items"
 	// FavoriteItemsSchemaPrefix is a prefix used for item archive related index/mapping/settings.
@@ -43,13 +42,13 @@ const (
 
 const (
 	// FeedsIndexRO is the index alias for read-only access to feeds.
-	FeedsIndexRO = FeedsIndexPrefix + IndexReadSuffix
+	FeedsIndexRO = feedsIndexPrefix + IndexReadSuffix
 	// FeedsIndexRW is the index alias for read-write access to feeds.
-	FeedsIndexRW = FeedsIndexPrefix + IndexWriteSuffix
+	FeedsIndexRW = feedsIndexPrefix + IndexWriteSuffix
 	// ItemsIndexRO is the index alias for read-only access to items.
-	ItemsIndexRO = FeedsIndexPrefix + IndexReadSuffix
+	ItemsIndexRO = feedsIndexPrefix + IndexReadSuffix
 	// ItemsIndexRW is the index alias for read-write access to items.
-	ItemsIndexRW = FeedsIndexPrefix + IndexWriteSuffix
+	ItemsIndexRW = feedsIndexPrefix + IndexWriteSuffix
 	UsersIndexRO = UsersSchemaPrefix + IndexReadSuffix
 	UsersIndexRW = UsersSchemaPrefix + IndexWriteSuffix
 	// SessionsIndexRO is the index alias for read-only access to session data.

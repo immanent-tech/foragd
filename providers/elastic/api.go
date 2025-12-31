@@ -509,8 +509,6 @@ func (a *API) FilterSubscriptions(
 // added to a user. It handles finding a existing matching feed or creating a new one, checking the user isn't already
 // subscribed and generating an appropriate subscription object. It returns an object that includes the request and new
 // subscription data, or the request and an error if subscription data could not be generated.
-//
-//nolint:funlen
 func (a *API) ProcessSubscriptionRequest(
 	ctx context.Context,
 	request *models.AddFeedSubscriptionRequest,
@@ -519,9 +517,14 @@ func (a *API) ProcessSubscriptionRequest(
 	result := models.AddFeedSubscriptionResult{
 		Request: *request,
 	}
+
 	// Try to match request URL to an existing feed
 	var feed *models.Feed
-	feeds, _, err := a.SearchFeeds(ctx, query.Term("source_urls", request.GetURL()), 1, nil, nil)
+	feeds, _, err := Search[*models.Feed](ctx,
+		schema.FeedsIndexRO,
+		query.Term("source_urls", request.GetURL()),
+		1,
+	)
 	if err != nil {
 		result.Error = err
 		result.Message = models.NewErrorMessage(
@@ -565,8 +568,7 @@ func (a *API) ProcessSubscriptionRequest(
 			resultsCh <- result
 			return
 		}
-		err = a.CreateFeed(ctx, newFeed)
-		if err != nil {
+		if err := CreateDoc(ctx, schema.FeedsIndexRW, newFeed.GetID(), newFeed); err != nil {
 			result.Error = err
 			result.Message = models.NewErrorMessage(
 				"Unable to create new feed for subscription",

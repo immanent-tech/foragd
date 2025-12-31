@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 // DataCmd defines the `data` command, which contains commands for manipulating data.
@@ -27,14 +28,9 @@ func (c *DeleteCmd) Run(opts *DeleteCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
-	// Load the Elastic backend
-	client, err := elastic.NewConnection()
-	if err != nil {
-		return fmt.Errorf("failed to connect to backend: %w", err)
-	}
 	switch {
 	case strings.HasPrefix(opts.ObjectID, "feed_"):
-		if err := client.DeleteFeed(ctx, opts.ObjectID); err != nil {
+		if err := elastic.DeleteDoc(ctx, schema.FeedsIndexRW, opts.ObjectID); err != nil {
 			return fmt.Errorf("unable to delete feed %s: %w", opts.ObjectID, err)
 		}
 	}
