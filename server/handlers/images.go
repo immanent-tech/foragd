@@ -195,9 +195,9 @@ func Avatar() http.HandlerFunc {
 			// Return success.
 			res.WriteHeader(http.StatusOK)
 			return
-		} else {
-			http.NotFound(res, req)
 		}
+
+		http.NotFound(res, req)
 	}
 }
 
@@ -301,8 +301,8 @@ var imgBufPool = sync.Pool{
 var imgCache objectCache
 
 var loadImageCache = sync.OnceValue(func() error {
-	switch config.Environment {
-	case "production":
+	switch config.CurrentEnvironment {
+	case config.EnvProduction:
 		bucketName := os.Getenv("FORAGD_IMAGEPROXY_BUCKET")
 		var err error
 		imgCache, err = gcs.Connect(context.Background(), bucketName, "")
@@ -323,8 +323,8 @@ var loadImageCache = sync.OnceValue(func() error {
 var avatarCache objectCache
 
 var loadAvatarCache = sync.OnceValue(func() error {
-	switch config.Environment {
-	case "production":
+	switch config.CurrentEnvironment {
+	case config.EnvProduction:
 		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
 		var err error
 		avatarCache, err = gcs.Connect(context.Background(), bucketName, "avatars")
@@ -344,8 +344,8 @@ var loadAvatarCache = sync.OnceValue(func() error {
 
 var loadThumbnailCache = sync.OnceValues(func() (objectCache, error) {
 	var thumbnailCache objectCache
-	switch config.Environment {
-	case "production":
+	switch config.CurrentEnvironment {
+	case config.EnvProduction:
 		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
 		var err error
 		thumbnailCache, err = gcs.Connect(context.Background(), bucketName, "subscription_images")
@@ -365,8 +365,8 @@ var loadThumbnailCache = sync.OnceValues(func() (objectCache, error) {
 
 var loadScreenshotCache = sync.OnceValues(func() (objectCache, error) {
 	var screenshotCache objectCache
-	switch config.Environment {
-	case "production":
+	switch config.CurrentEnvironment {
+	case config.EnvProduction:
 		bucketName := os.Getenv("FORAGD_SERVER_BUCKET")
 		var err error
 		screenshotCache, err = gcs.Connect(context.Background(), bucketName, "screenshots")

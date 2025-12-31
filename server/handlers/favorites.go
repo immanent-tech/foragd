@@ -11,12 +11,11 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // ListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.
-func ListFavorites(api *elastic.API) http.HandlerFunc {
+func ListFavorites() http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters, setCacheControl).
 		ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 			var (
@@ -47,7 +46,7 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 			wg.Go(func() error {
 				if len(user.ItemFavorites) > 0 {
 					var err error
-					articles, err = api.GetArticles(jobCtx, user.ItemFavorites...)
+					articles, err = models.GetArticles(jobCtx, user.ItemFavorites...)
 					if err != nil {
 						return fmt.Errorf("list favorites: get favorite articles: %w", err)
 					}
@@ -58,9 +57,9 @@ func ListFavorites(api *elastic.API) http.HandlerFunc {
 			// Get favorite subscriptions.
 			wg.Go(func() error {
 				var err error
-				subscriptions, err = api.GetSubscriptions(jobCtx,
-					elastic.GetSubscriptionsByFavorite(true),
-					elastic.GetSubscriptionsDynamicInfo(true),
+				subscriptions, err = models.GetSubscriptions(jobCtx,
+					models.GetSubscriptionsByFavorite(true),
+					models.GetSubscriptionsDynamicInfo(true),
 				)
 				if err != nil && models.HTTPStatus(err) != http.StatusNotFound {
 					return fmt.Errorf("list favorites: get favorite subscriptions: %w", err)

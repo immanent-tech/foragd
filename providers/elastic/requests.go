@@ -162,7 +162,7 @@ type SearchRequest interface {
 }
 
 // NewSearchRequest creates a new search request with the given options.
-func NewSearchRequest(api *elasticsearch.TypedClient, options ...Option[SearchRequest]) *search.Search {
+func NewSearchRequest(options ...Option[SearchRequest]) *search.Search {
 	req := api.Search()
 	for _, option := range options {
 		option(req)

@@ -38,7 +38,7 @@ import (
 // ListSubscriptions handles fetching subscriptions based on the given page filters and displaying them. When the
 // request method is GET (i.e. initial page load), the subscriptions are shown in a grid layout. When the request method
 // is POST (i.e. pagination request), the subscriptions are shown as a list.
-func ListSubscriptions(api *elastic.API) http.HandlerFunc {
+func ListSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			list := func(res http.ResponseWriter, req *http.Request) error {
@@ -77,7 +77,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				wg, jobCtx := errgroup.WithContext(req.Context())
 				defer jobCtx.Done()
 				wg.Go(func() error {
-					subscriptions, request.Pagination, err = api.FilterSubscriptions(jobCtx, request)
+					subscriptions, request.Pagination, err = models.FilterSubscriptions(jobCtx, request)
 					if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 						return fmt.Errorf("filter subscriptions: %w", err)
 					}
@@ -85,7 +85,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 				})
 				// Get all subscription categories.
 				wg.Go(func() error {
-					counts, err = api.GetAllSubscriptionCategories(jobCtx)
+					counts, err = models.GetAllSubscriptionCategories(jobCtx)
 					if err != nil {
 						slogctx.FromCtx(jobCtx).Warn("Could not get all subscription categories.",
 							slog.Any("error", err),
@@ -130,7 +130,7 @@ func ListSubscriptions(api *elastic.API) http.HandlerFunc {
 		}).ServeHTTP
 }
 
-func PaginateSubscriptions(api *elastic.API) http.HandlerFunc {
+func PaginateSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 			// Generate request object.
@@ -154,7 +154,7 @@ func PaginateSubscriptions(api *elastic.API) http.HandlerFunc {
 				subscriptions models.Subscriptions
 				err           error
 			)
-			subscriptions, request.Pagination, err = api.FilterSubscriptions(req.Context(), request)
+			subscriptions, request.Pagination, err = models.FilterSubscriptions(req.Context(), request)
 			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 				return &models.APIError{
 					InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
@@ -186,7 +186,7 @@ func PaginateSubscriptions(api *elastic.API) http.HandlerFunc {
 }
 
 // MarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
-func MarkSubscription(api *elastic.API) http.HandlerFunc {
+func MarkSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request values.
 		subscriptionID := chi.URLParam(req, models.ParamSubscriptionID)
@@ -207,7 +207,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 		}
 
 		// Mark subscription.
-		if err := api.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...); err != nil {
+		if err := models.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...); err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("mark subscriptions: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -259,7 +259,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 				res.Header().Set(htmx.HeaderReswap, "delete transition:true")
 				res.WriteHeader(http.StatusOK)
 			case models.ViewAll:
-				subscription, err := api.GetSubscription(req.Context(), request.Subscriptions[0], elastic.GetSubscriptionsDynamicInfo(true))
+				subscription, err := models.GetSubscription(req.Context(), request.Subscriptions[0], models.GetSubscriptionsDynamicInfo(true))
 				if err != nil {
 					return &models.APIError{
 						InternalError: fmt.Errorf("get subscription: %w", err),
@@ -279,7 +279,7 @@ func MarkSubscription(api *elastic.API) http.HandlerFunc {
 }
 
 // MarkSubscriptions handles marking a list of subscriptions.
-func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
+func MarkSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Decode request parameters.
 		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
@@ -335,7 +335,7 @@ func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
 		}
 
 		// Mark subscriptions.
-		err = api.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...)
+		err = models.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...)
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("mark subscriptions: %w", err),
@@ -352,7 +352,7 @@ func MarkSubscriptions(api *elastic.API) http.HandlerFunc {
 }
 
 // RemoveSubscription handles removing (unsubscribing) from a subscription.
-func RemoveSubscription(api *elastic.API) http.HandlerFunc {
+func RemoveSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		request := &models.RemoveSubscriptionRequest{
 			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
@@ -372,7 +372,7 @@ func RemoveSubscription(api *elastic.API) http.HandlerFunc {
 		case "false":
 			renderPartial(templates.RemoveSubscriptionModal(request)).ServeHTTP(res, req)
 		case "true":
-			if err := api.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
+			if err := models.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("remove subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
@@ -395,12 +395,12 @@ func RemoveSubscription(api *elastic.API) http.HandlerFunc {
 }
 
 // EditSubscription handles presenting the user with a form for editing a subscription.
-func EditSubscription(api *elastic.API) http.HandlerFunc {
+func EditSubscription() http.HandlerFunc {
 	return alice.New().ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Get the subscription.
-		subscription, err := api.GetSubscription(req.Context(), id)
+		subscription, err := models.GetSubscription(req.Context(), id)
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("get subscription: %w", err),
@@ -427,7 +427,7 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 			}
 			// Get top categories across items in subscription feed and add as suggested categories for the
 			// subscription.
-			if categories, resp := api.GetArticleTopCategories(ctx, subscription.FeedData.GetFeedID()); resp == nil {
+			if categories, resp := models.GetArticleTopCategories(ctx, subscription.FeedData.GetFeedID()); resp == nil {
 				request.SuggestedCategories = categories
 			}
 			// Generate page template.
@@ -443,8 +443,8 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 			request.Search.ID = subscription.GetID()
 			// Get any extra subscription info for subscription filters.
 			if len(request.Search.Subscriptions) > 0 {
-				subscriptions, err := api.GetSubscriptions(ctx,
-					elastic.GetSubscriptionsByIDs(request.Search.Subscriptions...),
+				subscriptions, err := models.GetSubscriptions(ctx,
+					models.GetSubscriptionsByIDs(request.Search.Subscriptions...),
 				)
 				if err != nil {
 					return &models.APIError{
@@ -469,8 +469,8 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 				Subscriptions:  subscription.GroupData.Subscriptions,
 				SubscriptionID: subscription.GetID(),
 			}
-			subscriptions, err := api.GetSubscriptions(ctx,
-				elastic.GetSubscriptionsByIDs(request.Subscriptions...),
+			subscriptions, err := models.GetSubscriptions(ctx,
+				models.GetSubscriptionsByIDs(request.Subscriptions...),
 			)
 			if err != nil {
 				return &models.APIError{
@@ -494,11 +494,11 @@ func EditSubscription(api *elastic.API) http.HandlerFunc {
 }
 
 // SaveSubscription handles saving the edits made by a user to a subscription.
-func SaveSubscription(api *elastic.API) http.HandlerFunc {
+func SaveSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Get the subscription.
-		subscription, err := api.GetSubscription(req.Context(), id)
+		subscription, err := models.GetSubscription(req.Context(), id)
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("get subscription: %w", err),
@@ -579,7 +579,7 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 		}
 
 		// Update the subscription object.
-		_, err = api.UpdateSubscriptions(req.Context(), subscription)
+		_, err = models.UpdateSubscriptions(req.Context(), subscription)
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("update subscription: %w", err),
@@ -597,7 +597,7 @@ func SaveSubscription(api *elastic.API) http.HandlerFunc {
 }
 
 // AddFeedSubscription handles adding a new subscription to a feed.
-func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
+func AddFeedSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		ctx := templates.PageTitleToCtx(req.Context(), "Add subscription")
 		switch req.Method {
@@ -621,7 +621,7 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 			resultsCh := make(chan models.AddFeedSubscriptionResult)
 			var wg sync.WaitGroup
 			wg.Go(func() {
-				api.ProcessSubscriptionRequest(ctx, request, resultsCh)
+				models.ProcessSubscriptionRequest(ctx, request, resultsCh)
 			})
 			// Wait for all request processing to complete.
 			go func() {
@@ -646,7 +646,7 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 					)
 				}
 			} else {
-				err = api.CreateFeedSubscriptions(ctx, &result)
+				err = models.CreateFeedSubscriptions(ctx, &result)
 				if err != nil {
 					return &models.APIError{
 						InternalError: fmt.Errorf("add subscription: %w", err),
@@ -666,7 +666,7 @@ func AddFeedSubscription(api *elastic.API) http.HandlerFunc {
 }
 
 // AddSearchSubscription handles adding a new search subscription.
-func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
+func AddSearchSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		case http.MethodGet:
@@ -684,8 +684,8 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 			// If the search request has subscription filters, get subscription details.
 			ctx := req.Context()
 			if len(request.Subscriptions) > 0 {
-				subscriptions, err := api.GetSubscriptions(req.Context(),
-					elastic.GetSubscriptionsByIDs(request.Subscriptions...),
+				subscriptions, err := models.GetSubscriptions(req.Context(),
+					models.GetSubscriptionsByIDs(request.Subscriptions...),
 				)
 				if err != nil {
 					return &models.APIError{
@@ -716,7 +716,7 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 					),
 				}
 			}
-			err = api.CreateSearchSubscriptions(req.Context(), request)
+			err = models.CreateSearchSubscriptions(req.Context(), request)
 			if err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("create search subscription: %w", err),
@@ -736,7 +736,7 @@ func AddSearchSubscription(api *elastic.API) http.HandlerFunc {
 }
 
 // AddGroupSubscription handles adding a new group subscription.
-func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
+func AddGroupSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		case http.MethodGet:
@@ -782,7 +782,7 @@ func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
 				}
 			}
 			// Add subscriptions
-			if err := api.AddSubscriptions(req.Context(), subscription); err != nil {
+			if err := models.AddSubscriptions(req.Context(), subscription); err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("add subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
@@ -802,7 +802,7 @@ func AddGroupSubscription(api *elastic.API) http.HandlerFunc {
 }
 
 // ImportSubscriptions handles assisting the user with importing subscriptions from an external source.
-func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
+func ImportSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		// GET: show import modal.
@@ -845,7 +845,7 @@ func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 			var wg sync.WaitGroup
 			for request := range slices.Values(requests) {
 				wg.Go(func() {
-					api.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
+					models.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
 				})
 			}
 			// Wait for all request processing to complete.
@@ -859,7 +859,7 @@ func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 				results = append(results, &result)
 			}
 			// Create the subscriptions for any results that don't already indicate an error.
-			err = api.CreateFeedSubscriptions(req.Context(), slices.Collect(models.FilterSlice(results,
+			err = models.CreateFeedSubscriptions(req.Context(), slices.Collect(models.FilterSlice(results,
 				func(r *models.AddFeedSubscriptionResult) bool {
 					if r.Message != nil && r.Message.Status != models.UserMessageStatusError &&
 						r.Message.Status != models.UserMessageStatusWarning {
@@ -894,7 +894,7 @@ func ImportSubscriptions(api *elastic.API) http.HandlerFunc {
 }
 
 // ExportSubscriptions handles configuring and performing an export of user subscriptions.
-func ExportSubscriptions(api *elastic.API) http.HandlerFunc {
+func ExportSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
 		ctx := templates.PageTitleToCtx(req.Context(), "Export subscriptions")
@@ -920,7 +920,7 @@ func ExportSubscriptions(api *elastic.API) http.HandlerFunc {
 			request := &models.ListRequest{
 				Filters: models.NewListDisplayFilters(),
 			}
-			subscriptions, _, err := api.FilterSubscriptions(ctx, request)
+			subscriptions, _, err := models.FilterSubscriptions(ctx, request)
 			if err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("filter subscriptions: %w", err),

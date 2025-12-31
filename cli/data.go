@@ -33,6 +33,10 @@ func (c *DeleteCmd) Run(opts *DeleteCmd) error {
 		if err := elastic.DeleteDoc(ctx, schema.FeedsIndexRW, opts.ObjectID); err != nil {
 			return fmt.Errorf("unable to delete feed %s: %w", opts.ObjectID, err)
 		}
+	case strings.HasPrefix(opts.ObjectID, "user_"):
+		if err := elastic.DeleteDoc(ctx, schema.UsersIndexRW, opts.ObjectID); err != nil {
+			return fmt.Errorf("unable to delete user %s: %w", opts.ObjectID, err)
+		}
 	}
 
 	return nil

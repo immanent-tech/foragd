@@ -94,7 +94,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		// Add any new items.
 		if _, err := elastic.BulkUpdate(
 			ctx,
-			schema.ItemsSchemaPrefix+schema.IndexWriteSuffix,
+			schema.ItemsIndexRW,
 			items.FilterSince(details.LastFetched)...); err != nil {
 			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}

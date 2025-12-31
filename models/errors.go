@@ -6,9 +6,29 @@ package models
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
+)
+
+var (
+	// ErrNotFound indicates the backend API returned no results.
+	ErrNotFound = &APIError{
+		InternalError: errors.New("not found"),
+		StatusCode:    http.StatusNotFound,
+	}
+	// ErrInvalidAPIResult indicates that the backend API returned unexpected, invalid or an otherwise incorrect response.
+	ErrInvalidAPIResult = &APIError{
+		InternalError: errors.New("invalid backend API result"),
+		StatusCode:    http.StatusInternalServerError,
+	}
+	// ErrInvalidParams indicates that invalid parameters were received or generated.
+	ErrInvalidParams = &APIError{
+		InternalError: errors.New("invalid parameters"),
+		StatusCode:    http.StatusUnprocessableEntity,
+	}
 )
 
 func (e *APIError) Error() string { return e.InternalError.Error() }
@@ -64,4 +84,19 @@ func HTTPStatus(err error) int {
 		return apiErr.HTTPStatus()
 	}
 	return http.StatusInternalServerError
+}
+
+// es2APIError converts an Elastic package error into a APIError.
+func es2APIError(msg string, err error) error {
+	var esErr *types.ElasticsearchError
+	if errors.As(err, &esErr) {
+		return &APIError{
+			InternalError: fmt.Errorf("%s: %s: %s", msg, esErr.ErrorCause.Type, *esErr.ErrorCause.Reason),
+			StatusCode:    esErr.Status,
+		}
+	}
+	return &APIError{
+		InternalError: fmt.Errorf("%s: %w", msg, err),
+		StatusCode:    http.StatusInternalServerError,
+	}
 }

@@ -82,7 +82,7 @@ templ Head() {
 		<link rel="icon" href="/content/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>
 		<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon"/>
 		<link href={ "/content/fonts/inter/inter.css?v=" + config.Version } rel="stylesheet"/>
-		if config.Environment == "production" {
+		if config.CurrentEnvironment == config.EnvProduction {
 			<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>
 		}
 		<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module" crossorigin="anonymous"></script>

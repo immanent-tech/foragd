@@ -26,7 +26,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
@@ -83,7 +82,7 @@ func ShowAccountSettings() http.HandlerFunc {
 }
 
 // SaveDisplaySettings handles saving user settings after user submitted changes.
-func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
+func SaveDisplaySettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Decode request.
 		request, valid, err := forms.DecodeForm[*models.UserSettings](req)
@@ -110,7 +109,7 @@ func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
 			}
 		}
 		// Update local user object.
-		err = api.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": request})
+		err = models.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": request})
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("update data: %w", err),
@@ -130,7 +129,7 @@ func SaveDisplaySettings(api *elastic.API) http.HandlerFunc {
 }
 
 // SaveAccountSettings handles processing and saving new account settings.
-func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
+func SaveAccountSettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Decode request.
 		request, valid, err := forms.DecodeForm[*models.EditUserRequest](req)
@@ -243,7 +242,7 @@ func SaveAccountSettings(api *elastic.API) http.HandlerFunc {
 			}
 		}
 		// Update local user object.
-		err = api.UpdateUser(req.Context(), user.GetID(), updates)
+		err = models.UpdateUser(req.Context(), user.GetID(), updates)
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("update local user: %w", err),
@@ -297,7 +296,7 @@ func ChangePassword() http.HandlerFunc {
 }
 
 // SetTheme handles setting a theme selected by the user.
-func SetTheme(api *elastic.API) http.HandlerFunc {
+func SetTheme() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		theme := chi.URLParam(req, "theme")
 		user, err := models.UserFromCtx(req.Context())
@@ -313,7 +312,7 @@ func SetTheme(api *elastic.API) http.HandlerFunc {
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
-		if err := api.UpdateUser(req.Context(), user.GetID(), map[string]any{
+		if err := models.UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"settings": settings,
 		}); err != nil {
 			return &models.APIError{
@@ -331,7 +330,7 @@ func SetTheme(api *elastic.API) http.HandlerFunc {
 }
 
 // AddFavoriteSubscription handles adding a new favorite subscription for a user.
-func AddFavoriteSubscription(api *elastic.API) http.HandlerFunc {
+func AddFavoriteSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		if err := validation.Validate.Var(id, "required,startswith=sub_"); err != nil {
@@ -345,7 +344,7 @@ func AddFavoriteSubscription(api *elastic.API) http.HandlerFunc {
 			}
 		}
 		// Get the subscription state.
-		if err := api.UpdateFavoriteSubscription(req.Context(), id, true); err != nil {
+		if err := models.UpdateFavoriteSubscription(req.Context(), id, true); err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("update favorite subscription: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -369,7 +368,7 @@ func AddFavoriteSubscription(api *elastic.API) http.HandlerFunc {
 }
 
 // RemoveFavoriteSubscription handles removing a favorite subscription for a user.
-func RemoveFavoriteSubscription(api *elastic.API) http.HandlerFunc {
+func RemoveFavoriteSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		if err := validation.Validate.Var(id, "required,startswith=sub_"); err != nil {
@@ -382,7 +381,7 @@ func RemoveFavoriteSubscription(api *elastic.API) http.HandlerFunc {
 				),
 			}
 		}
-		if err := api.UpdateFavoriteSubscription(req.Context(), id, false); err != nil {
+		if err := models.UpdateFavoriteSubscription(req.Context(), id, false); err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("remove favorite subscription: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -498,7 +497,7 @@ func UserCancelDeactivation() http.HandlerFunc {
 }
 
 // AddFeedset handles adding a feedset as subscriptions.
-func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
+func AddFeedset(static embed.FS) http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Ignore submission without any feedset selected.
 		if req.FormValue("feedset") == "" {
@@ -559,7 +558,7 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 		var wg sync.WaitGroup
 		for request := range slices.Values(subscriptionRequests) {
 			wg.Go(func() {
-				api.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
+				models.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
 			})
 		}
 		// Wait for all request processing to complete.
@@ -585,7 +584,7 @@ func AddFeedset(api *elastic.API, static embed.FS) http.HandlerFunc {
 					)
 				}
 			} else {
-				err = api.CreateFeedSubscriptions(req.Context(), &result)
+				err = models.CreateFeedSubscriptions(req.Context(), &result)
 				if err != nil {
 					return &models.APIError{
 						InternalError: fmt.Errorf("create subscription: %w", err),

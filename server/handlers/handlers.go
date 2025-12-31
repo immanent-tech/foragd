@@ -27,7 +27,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
@@ -391,10 +390,10 @@ func setCacheControl(next http.Handler) http.Handler {
 }
 
 // WatchList handles watching a list of object for any updates and rendering a notification to the user to refresh the page.
-func WatchList(api *elastic.API) http.HandlerFunc {
+func WatchList() http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		query, err := api.BuildItemsQuery(req.Context(), filters)
+		query, err := models.BuildItemsQuery(req.Context(), filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
 				slog.Any("error", err))
@@ -402,12 +401,12 @@ func WatchList(api *elastic.API) http.HandlerFunc {
 			return
 		}
 		// Watch list for updates.
-		watchForUpdates(api, query).ServeHTTP(res, req)
+		watchForUpdates(query).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
 //nolint:gocognit
-func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
+func watchForUpdates(watch query.Option) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
@@ -433,7 +432,7 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 			currentCount int64
 			prevCount    int64
 		)
-		prevCount, err = api.CountItems(req.Context(), watch)
+		prevCount, err = models.CountItems(req.Context(), watch)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
 				slog.Any("error", err))
@@ -449,7 +448,7 @@ func watchForUpdates(api *elastic.API, watch query.Option) http.Handler {
 				res.WriteHeader(http.StatusRequestTimeout)
 				return
 			default:
-				currentCount, err = api.CountItems(req.Context(), watch)
+				currentCount, err = models.CountItems(req.Context(), watch)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
 						slog.Any("error", err))

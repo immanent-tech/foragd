@@ -24,7 +24,7 @@ import (
 )
 
 // Home handles displaying the user's home page.
-func Home(api *elastic.API) http.HandlerFunc {
+func Home() http.HandlerFunc {
 	return defaultHandlerChain.Append(setCacheControl).
 		ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 			ctx := templates.PageTitleToCtx(req.Context(), "Home")
@@ -46,7 +46,7 @@ func Home(api *elastic.API) http.HandlerFunc {
 				return nil
 			}
 
-			data, err := getHomePageData(ctx, api)
+			data, err := getHomePageData(ctx)
 			if err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("run data collection: %w", err),
@@ -64,10 +64,10 @@ func Home(api *elastic.API) http.HandlerFunc {
 }
 
 // WatchHome handles watching the home page content (namely, latest articles) for updates.
-func WatchHome(api *elastic.API) http.HandlerFunc {
+func WatchHome() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		query, err := api.BuildItemsQuery(req.Context(), filters)
+		query, err := models.BuildItemsQuery(req.Context(), filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
 				slog.Any("error", err))
@@ -75,14 +75,14 @@ func WatchHome(api *elastic.API) http.HandlerFunc {
 			return
 		}
 		// Watch for updates to home page articles.
-		watchForUpdates(api, query).ServeHTTP(res, req)
+		watchForUpdates(query).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
 // getHomePageData retrieves the data required to construct the homepage content.
 //
 //nolint:funlen,gocognit,nestif // mostly aggregation definitions.
-func getHomePageData(ctx context.Context, api *elastic.API) (*templates.Home, error) {
+func getHomePageData(ctx context.Context) (*templates.Home, error) {
 	data := &templates.Home{}
 	// Retrieve user object.
 	user, err := models.UserFromCtx(ctx)
@@ -91,7 +91,7 @@ func getHomePageData(ctx context.Context, api *elastic.API) (*templates.Home, er
 	}
 	data.User = user
 
-	subscriptions, err := api.GetSubscriptions(ctx)
+	subscriptions, err := models.GetSubscriptions(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("filter articles: get subscriptions: %w", err)
 	}
@@ -108,7 +108,7 @@ func getHomePageData(ctx context.Context, api *elastic.API) (*templates.Home, er
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
 			query.Bool(
-				query.Should(api.BuildSubscriptionQueries(user, models.ViewUnread, subscriptions)...),
+				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, subscriptions)...),
 			),
 		),
 	)
@@ -116,11 +116,11 @@ func getHomePageData(ctx context.Context, api *elastic.API) (*templates.Home, er
 	// Fetch latest articles.
 	sort := models.SortNewestFirst
 	maxLatestItemsCount := 12
-	latestItems, _, err := api.SearchItems(ctx, articlesQuery, maxLatestItemsCount, &sort, nil)
+	latestItems, _, err := models.SearchItems(ctx, articlesQuery, maxLatestItemsCount, &sort, "")
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
 	}
-	data.LatestArticles, err = api.GenerateArticles(ctx, latestItems)
+	data.LatestArticles, err = models.GenerateArticles(ctx, latestItems)
 	if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 		return nil, fmt.Errorf("unable to generate articles: %w", err)
 	}
@@ -184,7 +184,7 @@ func getHomePageData(ctx context.Context, api *elastic.API) (*templates.Home, er
 	}
 
 	// Perform the request.
-	queryResult, err := api.ItemsAggregation(ctx, articlesQuery, 0, aggs)
+	queryResult, err := models.ItemsAggregation(ctx, articlesQuery, 0, aggs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to calculate aggregations: %w", err)
 	}
@@ -221,7 +221,7 @@ func getHomePageData(ctx context.Context, api *elastic.API) (*templates.Home, er
 						continue
 					}
 					var articles models.Articles
-					if articles, err = api.GenerateArticles(ctx, items); err != nil {
+					if articles, err = models.GenerateArticles(ctx, items); err != nil {
 						continue
 					}
 					data.TopArticles = append(data.TopArticles, articles...)

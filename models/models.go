@@ -15,9 +15,17 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
-// DefaultHTTPRequestTimeout is the maximum time allowed for a background HTTP request to execute.
-var DefaultHTTPRequestTimeout = 30 * time.Second
+const (
+	// DefaultHTTPRequestTimeout is the maximum time allowed for a background HTTP request to execute.
+	DefaultHTTPRequestTimeout = 30 * time.Second
+	// DefaultRequestRetries is the default number of retries for API requests.
+	DefaultRequestRetries = 3
+	// DefaultPaginationSize is the default number of docs to fetch when paginating through results from elasticsearch.
+	DefaultPaginationSize = 5000
+)
+
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
+
 var UnixEpoch = time.Unix(0, 0)
 
 // SliceToMap generates a map from slice content by mapping key-value pairs from the slice with the given map function.

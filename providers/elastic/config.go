@@ -83,15 +83,15 @@ type ConfigProduction struct {
 // one-time only, no matter how many times it is called.
 var loadConfigOnce = sync.OnceValues(func() (*elasticsearch.Config, error) {
 	var err error
-	switch config.Environment {
-	case "development":
+	switch config.CurrentEnvironment {
+	case config.EnvDevelopment:
 		var c ConfigDevelopment
 		c, err = config.Load[ConfigDevelopment](elasticConfigEnvPrefix)
 		if err != nil {
 			return nil, fmt.Errorf("unable to load development config: %w", err)
 		}
 		cfg.Development = c
-	case "production":
+	case config.EnvProduction:
 		var c ConfigProduction
 		c, err = config.Load[ConfigProduction](elasticConfigEnvPrefix)
 		if err != nil {
@@ -99,14 +99,14 @@ var loadConfigOnce = sync.OnceValues(func() (*elasticsearch.Config, error) {
 		}
 		cfg.Production = c
 	}
-	clientConfig, err := genConfig(config.Environment)
+	clientConfig, err := genConfig(config.CurrentEnvironment)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate config: %w", err)
 	}
-	switch config.Environment {
-	case "development":
+	switch config.CurrentEnvironment {
+	case config.EnvDevelopment:
 		err = validation.Validate.Struct(cfg.Development)
-	case "production":
+	case config.EnvProduction:
 		err = validation.Validate.Struct(cfg.Production)
 	}
 	if err != nil {
@@ -118,11 +118,11 @@ var loadConfigOnce = sync.OnceValues(func() (*elasticsearch.Config, error) {
 
 // genConfig will generate an Elasticsearch client config, required by the
 // underlying package for connecting to an Elasticsearch cluster.
-func genConfig(environment string) (*elasticsearch.Config, error) {
+func genConfig(environment config.Environment) (*elasticsearch.Config, error) {
 	var generated *elasticsearch.Config
 
 	switch environment {
-	case "development":
+	case config.EnvDevelopment:
 		generated = &elasticsearch.Config{
 			Addresses: cfg.Development.URLs,
 			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
@@ -138,7 +138,7 @@ func genConfig(environment string) (*elasticsearch.Config, error) {
 			}
 			generated.CACert = caFileData
 		}
-	case "production":
+	case config.EnvProduction:
 		generated = &elasticsearch.Config{
 			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
 			CloudID:   cfg.Production.CloudID,

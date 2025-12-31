@@ -36,7 +36,6 @@ var Connect = sync.OnceValue(func() error {
 
 	api = API{TypedClient: esclient}
 
-
 	slog.Info("Elasticsearch connection created.")
 
 	return nil

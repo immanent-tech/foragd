@@ -31,7 +31,7 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 		var err error
 		switch index {
 		case "users":
-			err = migrateIndexData(ctx, api, UsersSchemaPrefix, nil) // ingest.NewIngestPipeline(
+			err = migrateIndexData(ctx, api, usersSchemaPrefix, nil) // ingest.NewIngestPipeline(
 			// 	ingest.WithProcessor(types.ProcessorContainer{
 			// 		Rename: &types.RenameProcessor{
 			// 			Field:       "settings.max_history",
@@ -62,8 +62,8 @@ func migrateIndexData(
 	pipeline *putpipeline.Request,
 ) error {
 	index := strings.Join([]string{prefix, config.Version, time.Now().Format("20060102150405")}, "-")
-	writeAlias := prefix + IndexWriteSuffix
-	readAlias := prefix + IndexReadSuffix
+	writeAlias := prefix + indexWriteSuffix
+	readAlias := prefix + indexReadSuffix
 
 	// If a pipeline is specified, create it.
 	var pipelineName string

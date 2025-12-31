@@ -11,9 +11,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/spaolacci/murmur3"
 	"github.com/stripe/stripe-go/v83"
 
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 	"github.com/immanent-tech/foragd/validation"
 )
 
@@ -34,8 +39,8 @@ var (
 	ErrUserAlreadyFavorited = errors.New("already a favorite")
 )
 
-// NewUser creates a new user from the external provider details.
-func NewUser(externalID, email string) *User {
+// CreateUser creates a new user from the external provider details.
+func CreateUser(ctx context.Context, externalID, email string) (*User, error) {
 	ts := time.Now().UTC()
 	user := &User{
 		CreatedAt:      ts,
@@ -52,7 +57,49 @@ func NewUser(externalID, email string) *User {
 		},
 	}
 
-	return user
+	if err := elastic.CreateDoc(ctx, schema.UsersIndexRW, user.GetID(), user); err != nil {
+		return nil, fmt.Errorf("create user: %w", err)
+	}
+
+	return user, nil
+}
+
+// GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
+func GetUserByExternalID(ctx context.Context, externalID string) (*User, error) {
+	// Get the user.
+	users, _, err := elastic.Search[*User](ctx, schema.UsersIndexRO, query.Term("external_user_id", externalID), 1,
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
+		elastic.WithTrackTotalHits(false),
+	)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("find user by external id: %w", err)
+	case len(users) == 0:
+		return nil, fmt.Errorf("find user by external id: %w", ErrNotFound)
+	default:
+		return users[0], nil
+	}
+}
+
+// GetUser retrieves the user doc with the given id.
+func GetUser(ctx context.Context, id UserID) (*User, error) {
+	user, err := elastic.GetDoc[UserID, *User](ctx, schema.UsersIndexRO, id)
+	if err != nil {
+		return nil, fmt.Errorf("get user: %w", err)
+	}
+	return user, nil
+}
+
+// UpdateUser will apply the given updates to the user.
+func UpdateUser(ctx context.Context, userID UserID, updates map[string]any) error {
+	updates["updated_at"] = time.Now().UTC()
+	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW, userID, updates,
+		elastic.WithRefresh("true"),
+		elastic.WithRetryOnConflict(DefaultRequestRetries),
+	); err != nil {
+		return fmt.Errorf("update user: %w", err)
+	}
+	return nil
 }
 
 // Valid returns a boolean indicating whether the user data is valid. If not valid, it will also return a non-nil error

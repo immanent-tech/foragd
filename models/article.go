@@ -4,16 +4,230 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"maps"
 	"slices"
 	"time"
 
+	slogctx "github.com/veqryn/slog-context"
+
 	"github.com/immanent-tech/go-syndication/types"
 
+	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
+
+	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
 )
+
+// GetArticles generates Article objects from the Items with the given IDs.
+func GetArticles(ctx context.Context, itemIDs ...ItemID) (Articles, error) {
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	query := query.Bool(
+		query.Filter(
+			// Must match any of the given item IDs,
+			query.Terms("item_id", itemIDs...),
+		),
+	)
+	items, _, err := SearchItems(ctx, query, len(itemIDs), nil, "")
+	if err != nil {
+		return nil, fmt.Errorf("get articles failed: %w", err)
+	}
+	articles, err := GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, fmt.Errorf("get articles failed: %w", err)
+	}
+
+	return articles, nil
+}
+
+// FilterArticles returns Articles filtered by the given filters and paginated by the given pagination.
+func FilterArticles(
+	ctx context.Context,
+	request *ListRequest,
+) (Articles, Pagination, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, "", fmt.Errorf("filter articles: get user data: %w", err)
+	}
+
+	subscriptions, err := GetSubscriptions(ctx,
+		GetSubscriptionsByIDs(request.Filters.GetSubscriptions()...),
+	)
+	if err != nil {
+		return nil, "", fmt.Errorf("filter articles: get subscriptions: %w", err)
+	}
+	// Return early if there the user has no subscriptions (i.e., new user).
+	if len(subscriptions) == 0 {
+		return nil, "", fmt.Errorf("filter articles: %w", ErrNotFound)
+	}
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	articleQuery := query.Bool(
+		query.Filter(
+			// Must match any of the given categories.
+			query.Terms("categories.raw", request.Filters.GetCategories()...),
+			query.Bool(
+				query.Should(BuildSubscriptionQueries(user, request.Filters.GetView(), subscriptions)...),
+			),
+		),
+	)
+
+	sort := request.Filters.GetSort()
+
+	// Find items matching filters.
+	items, pagination, err := SearchItems(ctx, articleQuery, request.Filters.GetCount(), &sort, request.Pagination)
+	if err != nil {
+		return nil, "", fmt.Errorf("could not retrieve filtered items: %w", err)
+	}
+	// Generate articles.
+	articles, err := GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, "", fmt.Errorf("could not generate articles from items: %w", err)
+	}
+
+	return articles, pagination, nil
+}
+
+// FindSimilarArticles performs a "more like this" search to find other Articles that are similar to the Items with the
+// given IDs.
+func FindSimilarArticles(ctx context.Context, itemIDs ...ItemID) (Articles, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("find similar articles: get user data: %w", err)
+	}
+	subscriptions, err := GetSubscriptions(ctx)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("find similar articles: get subscriptions: %w", err)
+	case len(subscriptions) == 0:
+		return nil, fmt.Errorf("find similar articles: get subscriptions: %w", ErrNotFound)
+	}
+	// Build the More Like This query.
+	// TODO: tweak values and fields for optimum results matching...
+	var (
+		minTermFreq   = 1
+		maxQueryTerms = 12
+	)
+	mlt := query.NewMoreLikeThisQuery("similar_articles")
+	mlt.LikeDocs(itemIDs...)
+	mlt.Fields = []string{"title", "categories.raw", "author"}
+	mlt.MinTermFreq = &minTermFreq
+	mlt.MaxQueryTerms = &maxQueryTerms
+	// Build query
+	similarQuery := query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(BuildSubscriptionQueries(user, ViewUnread, subscriptions)...),
+			),
+		),
+		query.Must(
+			mlt.ToQueryOption(),
+		),
+	)
+	// Query for similar articles.
+	sort := SortMostRelevant
+	items, _, err := SearchItems(ctx, similarQuery, 15, &sort, "")
+	if err != nil {
+		return nil, fmt.Errorf("unable to find similar articles: %w", err)
+	}
+	// Generate article data.
+	articles, err := GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, fmt.Errorf("unable to find similar articles: %w", err)
+	}
+	return articles, nil
+}
+
+// GenerateArticles takes a slice of items and creates articles from them, grabbing the necessary data from the user
+// object.
+func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("generate articles: get user data: %w", err)
+	}
+	subscriptions, _, err := SearchSubscriptions(ctx,
+		query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+				query.Terms("type", SubscriptionTypeFeed),
+				query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
+			),
+		),
+		searchSubscriptionsMaxResults(len(items.GetFeedIDs())),
+	)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("generate articles: get subscriptions: %w", err)
+	case len(subscriptions) == 0:
+		return nil, fmt.Errorf("generate articles: get subscriptions: %w", ErrNotFound)
+	}
+	// Create articles from the items.
+	articles := make(Articles, 0, len(items))
+	for item := range slices.Values(items) {
+		var article *Article
+		article, err = GenerateArticle(user, item, subscriptions.GetByFeedID(item.GetFeedID()))
+		if err != nil {
+			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not generate article from data.",
+				slog.Any("error", err),
+				slog.String("item_id", item.GetID()),
+			)
+			continue
+		}
+		articles = append(articles, article)
+	}
+	return articles, nil
+}
+
+// GetArticleTopCategories performs an aggregation to return the top Item categories across the given Feeds.
+func GetArticleTopCategories(ctx context.Context, feeds ...FeedID) ([]Category, error) {
+	// Build query.
+	query := query.Bool(
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", feeds...),
+		),
+	)
+	// Build aggregations.
+	termsField := "categories.raw"
+	termsCount := 10
+	aggs := aggregations.Aggs{
+		"TopCategories": estypes.Aggregations{
+			Terms: &estypes.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+		},
+	}
+	// Perform aggregation.
+	results, err := ItemsAggregation(ctx, query, 0, aggs)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get top categories: %w", err)
+	}
+
+	topCategoriesAgg, ok := results.Aggregations["TopCategories"].(*estypes.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf("unable to get top categories: aggregations invalid: %w", ErrInvalidAPIResult)
+	}
+	topCategoriesBuckets, ok := topCategoriesAgg.Buckets.([]estypes.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf("unable to get top categories: aggregations invalid: %w", ErrInvalidAPIResult)
+	}
+
+	topCategories := make([]Category, 0)
+
+	for bucket := range slices.Values(topCategoriesBuckets) {
+		if category, ok := bucket.Key.(Category); ok {
+			topCategories = append(topCategories, category)
+		}
+	}
+
+	return topCategories, nil
+}
 
 // Articles is a slices of Article objects.
 type Articles []*Article

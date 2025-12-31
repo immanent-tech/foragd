@@ -29,7 +29,7 @@ import (
 )
 
 // ListArticles handles fetching articles based on the given page filters and displaying them.
-func ListArticles(api *elastic.API) http.HandlerFunc {
+func ListArticles() http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			list := func(res http.ResponseWriter, req *http.Request) error {
@@ -66,7 +66,7 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 
 				// Get articles matching filters.
 				wg.Go(func() error {
-					articles, request.Pagination, err = api.FilterArticles(jobCtx, request)
+					articles, request.Pagination, err = models.FilterArticles(jobCtx, request)
 					if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 						return fmt.Errorf("get articles: %w", err)
 					}
@@ -75,10 +75,10 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 				// Get the subscription details if the list is for a specific subscription.
 				if subscriptionID := req.FormValue(models.ParamSubscriptionID); subscriptionID != "" {
 					wg.Go(func() error {
-						subscription, err = api.GetSubscription(
+						subscription, err = models.GetSubscription(
 							jobCtx,
 							subscriptionID,
-							elastic.GetSubscriptionsDynamicInfo(true),
+							models.GetSubscriptionsDynamicInfo(true),
 						)
 						if err != nil {
 							return fmt.Errorf("get subscription: %w", err)
@@ -130,7 +130,7 @@ func ListArticles(api *elastic.API) http.HandlerFunc {
 }
 
 // PaginateArticles handles a request to list more articles.
-func PaginateArticles(api *elastic.API) http.HandlerFunc {
+func PaginateArticles() http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 			// Build request object.
@@ -154,7 +154,7 @@ func PaginateArticles(api *elastic.API) http.HandlerFunc {
 				articles models.Articles
 				err      error
 			)
-			articles, request.Pagination, err = api.FilterArticles(req.Context(), request)
+			articles, request.Pagination, err = models.FilterArticles(req.Context(), request)
 			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 				return &models.APIError{
 					InternalError: fmt.Errorf("unable to list articles: %w", err),
@@ -185,7 +185,7 @@ func PaginateArticles(api *elastic.API) http.HandlerFunc {
 }
 
 // FindSimilarArticles handles finding articles similar to the given article and showing the results.
-func FindSimilarArticles(api *elastic.API) http.HandlerFunc {
+func FindSimilarArticles() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
 		itemID := chi.URLParam(req, models.ParamItemID)
@@ -199,7 +199,7 @@ func FindSimilarArticles(api *elastic.API) http.HandlerFunc {
 				),
 			}
 		}
-		articles, err := api.FindSimilarArticles(req.Context(), itemID)
+		articles, err := models.FindSimilarArticles(req.Context(), itemID)
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("find similar articles: %w", err),
@@ -224,7 +224,7 @@ func FindSimilarArticles(api *elastic.API) http.HandlerFunc {
 }
 
 // ViewArticle handles showing an article's content.
-func ViewArticle(api *elastic.API) http.HandlerFunc {
+func ViewArticle() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request parameters.
 		itemID := chi.URLParam(req, models.ParamItemID)
@@ -238,7 +238,7 @@ func ViewArticle(api *elastic.API) http.HandlerFunc {
 				),
 			}
 		}
-		articles, err := api.GetArticles(req.Context(), itemID)
+		articles, err := models.GetArticles(req.Context(), itemID)
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("get article content: %w", err),
@@ -290,7 +290,7 @@ func ViewArticle(api *elastic.API) http.HandlerFunc {
 }
 
 // AddFavoriteArticle handles adding a new favorite article for a user.
-func AddFavoriteArticle(api *elastic.API) http.HandlerFunc {
+func AddFavoriteArticle() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(id, "required,startswith=item_"); err != nil {
@@ -314,7 +314,7 @@ func AddFavoriteArticle(api *elastic.API) http.HandlerFunc {
 				),
 			}
 		}
-		if err := updateFavoriteArticle(req.Context(), api, user, id, true); err != nil {
+		if err := updateFavoriteArticle(req.Context(), user, id, true); err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("update favorite article: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -347,7 +347,7 @@ func AddFavoriteArticle(api *elastic.API) http.HandlerFunc {
 }
 
 // RemoveFavoriteArticle handles removing a favorite article for a user.
-func RemoveFavoriteArticle(api *elastic.API) http.HandlerFunc {
+func RemoveFavoriteArticle() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		id := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(id, "required,startswith=item_"); err != nil {
@@ -371,7 +371,7 @@ func RemoveFavoriteArticle(api *elastic.API) http.HandlerFunc {
 				),
 			}
 		}
-		if err := updateFavoriteArticle(req.Context(), api, user, id, false); err != nil {
+		if err := updateFavoriteArticle(req.Context(), user, id, false); err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("update favorite article: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -403,7 +403,7 @@ func RemoveFavoriteArticle(api *elastic.API) http.HandlerFunc {
 }
 
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
-func MarkArticle(api *elastic.API) http.HandlerFunc {
+func MarkArticle() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract request values.
 		subscriptionID := req.FormValue(models.ParamSubscriptionID)
@@ -426,7 +426,7 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 
 		// Mark articles.
 		for subscriptionID, itemIDs := range request.Metadata {
-			if err := markArticles(req.Context(), api, request.Mark, subscriptionID, itemIDs...); err != nil {
+			if err := markArticles(req.Context(), request.Mark, subscriptionID, itemIDs...); err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("unable to update user: %w", err),
 					StatusCode:    http.StatusInternalServerError,
@@ -447,7 +447,7 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 			} else {
 				res.Header().Add(htmx.HeaderReswap, "outerHTML transition:true")
 				// Get updated article.
-				articles, err := api.GetArticles(req.Context(), itemID)
+				articles, err := models.GetArticles(req.Context(), itemID)
 				if err != nil || len(articles) == 0 || len(articles) > 1 {
 					return &models.APIError{
 						InternalError: fmt.Errorf("could not retrieve updated articles: %w", err),
@@ -471,7 +471,7 @@ func MarkArticle(api *elastic.API) http.HandlerFunc {
 }
 
 // MarkArticles handles marking multiple articles as read/unread and updating the UI appropriately.
-func MarkArticles(api *elastic.API) http.HandlerFunc {
+func MarkArticles() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Decode request parameters.
 		request, valid, err := forms.DecodeForm[*models.MarkArticlesRequest](req)
@@ -498,7 +498,7 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 
 		// Mark Articles.
 		for subscriptionID, itemIDs := range request.Metadata {
-			if err = markArticles(req.Context(), api, request.Mark, subscriptionID, itemIDs...); err != nil {
+			if err = markArticles(req.Context(), request.Mark, subscriptionID, itemIDs...); err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("mark subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
@@ -541,18 +541,17 @@ func MarkArticles(api *elastic.API) http.HandlerFunc {
 
 func markArticles(
 	ctx context.Context,
-	api *elastic.API,
 	mark models.Mark,
 	subscriptionID models.SubscriptionID,
 	itemIDs ...models.ItemID,
 ) error {
-	subscription, err := api.GetSubscription(ctx, subscriptionID)
+	subscription, err := models.GetSubscription(ctx, subscriptionID)
 	if err != nil {
 		return fmt.Errorf("get subscriptions: %w", err)
 	}
 	subscription.MarkItems(mark, itemIDs...)
 
-	_, err = api.UpdateSubscriptions(ctx, subscription)
+	_, err = models.UpdateSubscriptions(ctx, subscription)
 	if err != nil {
 		return fmt.Errorf("update subscription data: %w", err)
 	}
@@ -593,17 +592,15 @@ func extractArticleFromURL(url string) (string, error) {
 }
 
 // archiveArticle will index the given article content to the article archive for permanent storage.
-func archiveArticle(ctx context.Context, api *elastic.API, article *models.ArticleArchive) error {
-	index := schema.FavoriteItemsSchemaPrefix + schema.IndexWriteSuffix
-	if err := elastic.CreateDoc(ctx, index, article.ItemID, article); err != nil {
+func archiveArticle(ctx context.Context, article *models.ArticleArchive) error {
+	if err := elastic.CreateDoc(ctx, schema.FavoriteArticlesIndexRW, article.ItemID, article); err != nil {
 		return fmt.Errorf("archive article: %w", err)
 	}
 	return nil
 }
 
 // unarchiveArticle will delete an article from the archive.
-func unarchiveArticle(ctx context.Context, api *elastic.API, userID models.UserID, itemID models.ItemID) error {
-	index := schema.FavoriteItemsSchemaPrefix + schema.IndexWriteSuffix
+func unarchiveArticle(ctx context.Context, userID models.UserID, itemID models.ItemID) error {
 	// Set up the query to match the user's favorited article.
 	query := query.Bool(
 		query.Filter(
@@ -611,7 +608,7 @@ func unarchiveArticle(ctx context.Context, api *elastic.API, userID models.UserI
 			query.Term("item_id", itemID),
 		),
 	)
-	if err := elastic.DeleteDocs(ctx, index, query); err != nil {
+	if err := elastic.DeleteDocs(ctx, schema.FavoriteArticlesIndexRW, query); err != nil {
 		return fmt.Errorf("unarchive article: %w", err)
 	}
 	return nil
@@ -622,7 +619,6 @@ func unarchiveArticle(ctx context.Context, api *elastic.API, userID models.UserI
 // is removed and user object updated appropriately.
 func updateFavoriteArticle(
 	ctx context.Context,
-	api *elastic.API,
 	user *models.User,
 	id models.ItemID,
 	favorite bool,
@@ -634,12 +630,12 @@ func updateFavoriteArticle(
 			return models.ErrUserAlreadyFavorited
 		}
 		// Get the article details.
-		articles, err := api.GetArticles(ctx, id)
+		articles, err := models.GetArticles(ctx, id)
 		if err != nil {
 			return fmt.Errorf("unable to add favorite article: %w", err)
 		}
 		if len(articles) != 1 {
-			return elastic.ErrInvalidAPIResult
+			return models.ErrInvalidAPIResult
 		}
 		article := articles[0]
 		// Archive the article.
@@ -647,27 +643,27 @@ func updateFavoriteArticle(
 		if err != nil {
 			return fmt.Errorf("unable to add favorite article: %w", err)
 		}
-		err = archiveArticle(ctx, api, archive)
+		err = archiveArticle(ctx, archive)
 		if err != nil {
 			return fmt.Errorf("unable to add favorite article: %w", err)
 		}
 		// Update the list of favorites items in the user object
 		user.ItemFavorites = append(user.ItemFavorites, id)
-		err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+		err = models.UpdateUser(ctx, user.GetID(), map[string]any{
 			"item_favorites": user.ItemFavorites,
 		})
 		if err != nil {
 			return fmt.Errorf("unable to add favorite article: %w", err)
 		}
 	case false:
-		err := unarchiveArticle(ctx, api, user.GetID(), id)
+		err := unarchiveArticle(ctx, user.GetID(), id)
 		if err != nil {
 			return fmt.Errorf("unable to remove favorite article: %w", err)
 		}
 		newFavorites := slices.DeleteFunc(user.ItemFavorites, func(e models.ItemID) bool {
 			return e == id
 		})
-		err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+		err = models.UpdateUser(ctx, user.GetID(), map[string]any{
 			"item_favorites": newFavorites,
 		})
 		if err != nil {

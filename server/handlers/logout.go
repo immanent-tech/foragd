@@ -11,20 +11,18 @@ import (
 )
 
 // Logout handles logout requests.
-func Logout() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Delete the session cookie.
-		if err := session.Clear(req.Context()); err != nil {
-			http.Error(res, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		// Generate logout URL.
-		logoutURL, err := auth0.GenerateLogoutURL(req)
-		if err != nil {
-			http.Error(res, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		// Redirect user to logout URL.
-		http.Redirect(res, req, logoutURL.String(), http.StatusTemporaryRedirect)
+func Logout(res http.ResponseWriter, req *http.Request) {
+	// Delete the session cookie.
+	if err := session.Clear(req.Context()); err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
 	}
+	// Generate logout URL.
+	logoutURL, err := auth0.GenerateLogoutURL(req)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Redirect user to logout URL.
+	http.Redirect(res, req, logoutURL.String(), http.StatusTemporaryRedirect)
 }

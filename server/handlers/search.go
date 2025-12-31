@@ -18,7 +18,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -31,7 +30,7 @@ const (
 )
 
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
-func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
+func GetSearchSuggestions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode search.
 		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
@@ -66,11 +65,11 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 
 		// Generate subscription suggestions.
 		searchJobs.Go(func() error {
-			subscriptions, err = api.GetSubscriptionSuggestions(
+			subscriptions, err = models.GetSubscriptionSuggestions(
 				jobCtx,
 				search.Text,
 				defaultSubscriptionSuggestionsCount,
-				elastic.GetSubscriptionsDynamicInfo(true),
+				models.GetSubscriptionsDynamicInfo(true),
 			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get subscription suggestions.",
@@ -81,30 +80,30 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 
 		// Generate article suggestions.
 		searchJobs.Go(func() error {
-			searchOption, err := api.BuildSearchResultsQuery(
+			searchOption, err := models.BuildSearchResultsQuery(
 				req.Context(),
 				user,
 				search,
-				elastic.SearchSuggestionsClause(search),
+				models.SearchSuggestionsClause(search),
 			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get all subscriptions.",
 					slog.Any("error", err))
 			}
 			var itemResults models.Items
-			itemResults, _, err = api.SearchItems(
+			itemResults, _, err = models.SearchItems(
 				jobCtx,
 				searchOption,
 				defaultArticleSuggestionsCount,
 				&sort,
-				nil,
+				"",
 			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get article suggestions.",
 					slog.Any("error", err))
 			}
 			if len(itemResults) > 0 {
-				articles, err = api.GenerateArticles(jobCtx, itemResults)
+				articles, err = models.GenerateArticles(jobCtx, itemResults)
 				if err != nil {
 					slogctx.FromCtx(jobCtx).Debug("Get search suggestions: unable to get article suggestions.",
 						slog.Any("error", err))
@@ -126,7 +125,7 @@ func GetSearchSuggestions(api *elastic.API) http.HandlerFunc {
 }
 
 // GetSearchResults performs a search with the user input and renders a page with the search results.
-func GetSearchResults(api *elastic.API) http.HandlerFunc {
+func GetSearchResults() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract the search search.
 		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
@@ -146,9 +145,9 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 		// If the search request has subscription filters, get subscription details.
 		if len(search.Subscriptions) > 0 {
 			var subscriptions models.Subscriptions
-			subscriptions, err = api.GetSubscriptions(req.Context(),
-				elastic.GetSubscriptionsByIDs(search.Subscriptions...),
-				elastic.GetSubscriptionsDynamicInfo(true),
+			subscriptions, err = models.GetSubscriptions(req.Context(),
+				models.GetSubscriptionsByIDs(search.Subscriptions...),
+				models.GetSubscriptionsDynamicInfo(true),
 			)
 			if err != nil {
 				return &models.APIError{
@@ -179,19 +178,19 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 
 		// Find articles that match search request.
 		var articles models.Articles
-		query, err := api.BuildSearchResultsQuery(ctx, user, search, elastic.SearchResultsClause(search))
+		query, err := models.BuildSearchResultsQuery(ctx, user, search, models.SearchResultsClause(search))
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("build search query: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 			}
 		}
-		itemResults, pagination, err := api.SearchItems(
+		itemResults, pagination, err := models.SearchItems(
 			ctx,
 			query,
 			defaultArticleResultsCount,
 			&search.Sort,
-			&pagination,
+			pagination,
 		)
 		if err != nil {
 			return &models.APIError{
@@ -200,7 +199,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 			}
 		}
 		if len(itemResults) > 0 {
-			articles, err = api.GenerateArticles(ctx, itemResults)
+			articles, err = models.GenerateArticles(ctx, itemResults)
 			if err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("generate articles: %w", err),
@@ -238,7 +237,7 @@ func GetSearchResults(api *elastic.API) http.HandlerFunc {
 }
 
 // WatchSearchResults handles watching the search results for any updates and rendering a notification to the user to refresh the page.
-func WatchSearchResults(api *elastic.API) http.HandlerFunc {
+func WatchSearchResults() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user data.
 		user, err := models.UserFromCtx(req.Context())
@@ -259,7 +258,7 @@ func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 			}
 		}
 		// Build query.
-		query, err := api.BuildSearchResultsQuery(req.Context(), user, request, elastic.SearchResultsClause(request))
+		query, err := models.BuildSearchResultsQuery(req.Context(), user, request, models.SearchResultsClause(request))
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("build search query: %w", err),
@@ -268,7 +267,7 @@ func WatchSearchResults(api *elastic.API) http.HandlerFunc {
 			}
 		}
 		// Watch for updates to search results.
-		watchForUpdates(api, query).ServeHTTP(res, req)
+		watchForUpdates(query).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -293,7 +292,7 @@ func AddSubscriptionFilter() http.HandlerFunc {
 }
 
 // GetSubscriptionFilterSuggestions handles showing a list of subscriptions as suggestions when building a search query.
-func GetSubscriptionFilterSuggestions(api *elastic.API) http.HandlerFunc {
+func GetSubscriptionFilterSuggestions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 10
 		suggestion, valid, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
@@ -304,15 +303,15 @@ func GetSubscriptionFilterSuggestions(api *elastic.API) http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		subscriptions, err := api.GetSubscriptionSuggestions(req.Context(), suggestion.Text, defaultSuggestionCount)
-		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+		subscriptions, err := models.GetSubscriptionSuggestions(req.Context(), suggestion.Text, defaultSuggestionCount)
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			slogctx.FromCtx(req.Context()).Error("Unable to get subscription suggestions.",
 				slog.Any("error", err),
 			)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if errors.Is(err, elastic.ErrNotFound) {
+		if errors.Is(err, models.ErrNotFound) {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}

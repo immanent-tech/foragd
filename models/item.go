@@ -4,16 +4,131 @@
 package models
 
 import (
+	"context"
+	"fmt"
 	"maps"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
 
+	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
+
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
+	"github.com/go-chi/chi/v5/middleware"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/spaolacci/murmur3"
+
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
+
+// CountItems returns a count of items that match the given query.
+func CountItems(ctx context.Context, query query.Option) (int64, error) {
+	count, err := elastic.Count(ctx, schema.ItemsIndexRO, query)
+	if err != nil {
+		return 0, fmt.Errorf("count items: %w", err)
+	}
+
+	return count, nil
+}
+
+// SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
+// optional.
+func SearchItems(
+	ctx context.Context,
+	query query.Option,
+	count int,
+	sort *Sort,
+	pagination Pagination,
+) (Items, Pagination, error) {
+	searchAfter, err := elastic.DecodePagination(pagination)
+	if err != nil {
+		return nil, "", ErrInvalidParams
+	}
+	// Perform search.
+	items, newSearchAfter, err := elastic.Search[*Item](ctx, schema.ItemsIndexRO, query, count,
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](newItemSortOptions(sort)...),
+		elastic.WithSearchAfter[*search.Search, elastic.SearchRequest](searchAfter...),
+	)
+	if err != nil {
+		return nil, "", fmt.Errorf("search items: %w", err)
+	}
+	// Parse last search after value into pagination.
+	newPagination, err := elastic.EncodePagination[Pagination](newSearchAfter)
+	if err != nil {
+		return nil, "", ErrInvalidParams
+	}
+	return items, newPagination, nil
+}
+
+// BuildItemsQuery generates a query to fetch the Items that match the given Filters from the given Subscriptions.
+func BuildItemsQuery(
+	ctx context.Context,
+	filters Filters,
+	subscriptionIDs ...SubscriptionID,
+) (query.Option, error) {
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build items query: %w", err)
+	}
+
+	subscriptions, err := GetSubscriptions(ctx,
+		GetSubscriptionsByIDs(subscriptionIDs...),
+	)
+	switch {
+	case err != nil:
+		return nil, fmt.Errorf("get suggestions: get subscriptions: %w", err)
+	case len(subscriptions) == 0:
+		return nil, fmt.Errorf("get suggestions: get subscriptions: %w", ErrNotFound)
+	}
+
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	return query.Bool(
+		query.WithBoolQueryName("get_items"),
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+			// Must match any of the given categories.
+			query.Terms("categories.raw", filters.GetCategories()...),
+			// And should match one feed clause.
+			query.Bool(
+				query.Should(BuildSubscriptionQueries(user, filters.GetView(), subscriptions)...),
+			),
+		),
+	), nil
+}
+
+// ItemsAggregation performs an aggregation-only (i.e., search request with no hits returned) using the given query as
+// the set of documents and performing the given aggregations across the documents.
+func ItemsAggregation(
+	ctx context.Context,
+	query query.Option,
+	size int,
+	aggregations aggregations.Aggs,
+) (*search.Response, error) {
+	req := elastic.NewSearchRequest(
+		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
+		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.ItemsIndexRO),
+		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](query),
+		elastic.WithSize[*search.Search, elastic.SearchRequest](size),
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
+			&estypes.SortOptions{Doc_: estypes.NewScoreSort()},
+		),
+		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggregations),
+	)
+	resp, err := req.Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("items aggregation: %w", err)
+	}
+
+	return resp, nil
+}
 
 // Items is a slice of items.
 type Items []*Item
@@ -195,4 +310,92 @@ func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 	}
 
 	return item
+}
+
+// ItemSorting contains the sort options for sorting item search results.
+type ItemSorting struct {
+	Updated   string `json:"updated"`
+	Published string `json:"published"`
+	ItemID    string `json:"item_id"`
+}
+
+// SortCombinationsCaster is required to allow ItemSorting to be used as Elasticsearch sort values.
+func (s *ItemSorting) SortCombinationsCaster() *estypes.SortCombinations {
+	c := estypes.SortCombinations(s)
+	return &c
+}
+
+func newItemSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
+	if sort == nil {
+		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
+	}
+	var opts []estypes.SortCombinationsVariant
+	switch *sort {
+	case SortNewestFirst:
+		opts = append(opts, &ItemSorting{
+			Updated:   "desc",
+			Published: "desc",
+			ItemID:    "desc",
+		})
+	case SortOldestFirst:
+		opts = append(opts, &ItemSorting{
+			Updated:   "asc",
+			Published: "asc",
+			ItemID:    "asc",
+		})
+	case SortMostRelevant:
+		opts = append(opts, &estypes.SortOptions{
+			Score_: &estypes.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&ItemSorting{
+				Updated:   "asc",
+				Published: "asc",
+				ItemID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &estypes.SortOptions{
+			Doc_: &estypes.ScoreSort{},
+		})
+	}
+	return opts
+}
+
+func newItemSortCombinations(sort *Sort) []estypes.SortCombinations {
+	var opts []estypes.SortCombinations
+	switch *sort {
+	case SortNewestFirst:
+		opts = append(opts, &ItemSorting{
+			Updated:   "desc",
+			Published: "desc",
+			ItemID:    "desc",
+		})
+	case SortOldestFirst:
+		opts = append(opts, &ItemSorting{
+			Updated:   "asc",
+			Published: "asc",
+			ItemID:    "asc",
+		})
+	case SortMostRelevant:
+		opts = append(opts, &estypes.SortOptions{
+			Score_: &estypes.ScoreSort{
+				Order: &sortorder.Desc,
+			},
+		})
+		opts = append(opts,
+			&ItemSorting{
+				Updated:   "asc",
+				Published: "asc",
+				ItemID:    "asc",
+			},
+		)
+	default:
+		opts = append(opts, &estypes.SortOptions{
+			Doc_: estypes.NewScoreSort(),
+		})
+	}
+	return opts
 }

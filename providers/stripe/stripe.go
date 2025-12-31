@@ -24,7 +24,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
 const (
@@ -166,131 +165,127 @@ func StopPendingCancellation(user *models.User) error {
 
 // HandleWebhook will handle incoming webhook requests from Stripe, that are sent in response to events related to a
 // user's subscription (like plan changes, trial expiry, payment events).
-func HandleWebhook(api *elastic.API) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		const maxBodyBytes = int64(65536)
-		bodyReader := http.MaxBytesReader(res, req.Body, maxBodyBytes)
-		payload, err := io.ReadAll(bodyReader)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Error reading webhook request body.",
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
-
-		endpointSecret := cfg.WebHookSecret
-
-		// Verify recieved webhook was sent by Stripe.
-		signatureHeader := req.Header.Get("Stripe-Signature")
-		event, err := webhook.ConstructEvent(payload, signatureHeader, endpointSecret)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("⚠️  Webhook signature verification failed.",
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
-			return
-		}
-
-		// Unmarshal the event data into an appropriate struct depending on its Type
-		switch event.Type {
-		case "customer.subscription.deleted":
-			var subscription stripe.Subscription
-			err := json.Unmarshal(event.Data.Raw, &subscription)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
-					slog.Any("error", err),
-				)
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			err = handleSubscriptionDeleted(req.Context(), api, subscription)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).
-					Error("Handle Webhook: error occurred processing subscription deletion.",
-						slog.Any("error", err),
-					)
-				res.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		case "customer.subscription.updated":
-			var subscription stripe.Subscription
-			err := json.Unmarshal(event.Data.Raw, &subscription)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
-					slog.Any("error", err),
-				)
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			err = handleSubscriptionUpdated(req.Context(), api, subscription)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).
-					Error("Handle Webhook: error occurred processing subscription deletion.",
-						slog.Any("error", err),
-					)
-				res.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		case "customer.subscription.created":
-			var subscription stripe.Subscription
-			err := json.Unmarshal(event.Data.Raw, &subscription)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
-					slog.Any("error", err),
-				)
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			slogctx.FromCtx(req.Context()).Debug("New user subscription.")
-			// Then define and call a func to handle the successful attachment of a PaymentMethod.
-			err = handleSubscriptionCreated(req.Context(), api, subscription)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
-					slog.Any("error", err),
-				)
-				res.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		case "customer.subscription.trial_will_end":
-			var subscription stripe.Subscription
-			err := json.Unmarshal(event.Data.Raw, &subscription)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
-					slog.Any("error", err),
-				)
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			log.Printf("Subscription trial will end for %d.", subscription.ID)
-			// Then define and call a func to handle the successful attachment of a PaymentMethod.
-			// handleSubscriptionTrialWillEnd(subscription)
-		case "entitlements.active_entitlement_summary.updated":
-			var subscription stripe.Subscription
-			err := json.Unmarshal(event.Data.Raw, &subscription)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
-					slog.Any("error", err),
-				)
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			log.Printf("Active entitlement summary updated for %d.", subscription.ID)
-			// Then define and call a func to handle active entitlement summary updated.
-			// handleEntitlementUpdated(subscription)
-		default:
-			slogctx.FromCtx(req.Context()).Warn("Unhandled webhook event.",
-				slog.String("type", event.Type),
-			)
-		}
-		res.WriteHeader(http.StatusOK)
+func HandleWebhook(res http.ResponseWriter, req *http.Request) {
+	const maxBodyBytes = int64(65536)
+	bodyReader := http.MaxBytesReader(res, req.Body, maxBodyBytes)
+	payload, err := io.ReadAll(bodyReader)
+	if err != nil {
+		slogctx.FromCtx(req.Context()).Error("Error reading webhook request body.",
+			slog.Any("error", err),
+		)
+		res.WriteHeader(http.StatusServiceUnavailable)
+		return
 	}
+
+	endpointSecret := cfg.WebHookSecret
+
+	// Verify recieved webhook was sent by Stripe.
+	signatureHeader := req.Header.Get("Stripe-Signature")
+	event, err := webhook.ConstructEvent(payload, signatureHeader, endpointSecret)
+	if err != nil {
+		slogctx.FromCtx(req.Context()).Error("⚠️  Webhook signature verification failed.",
+			slog.Any("error", err),
+		)
+		res.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
+		return
+	}
+
+	// Unmarshal the event data into an appropriate struct depending on its Type
+	switch event.Type {
+	case "customer.subscription.deleted":
+		var subscription stripe.Subscription
+		err := json.Unmarshal(event.Data.Raw, &subscription)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		err = handleSubscriptionDeleted(req.Context(), subscription)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).
+				Error("Handle Webhook: error occurred processing subscription deletion.",
+					slog.Any("error", err),
+				)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	case "customer.subscription.updated":
+		var subscription stripe.Subscription
+		err := json.Unmarshal(event.Data.Raw, &subscription)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		err = handleSubscriptionUpdated(req.Context(), subscription)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).
+				Error("Handle Webhook: error occurred processing subscription deletion.",
+					slog.Any("error", err),
+				)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	case "customer.subscription.created":
+		var subscription stripe.Subscription
+		err := json.Unmarshal(event.Data.Raw, &subscription)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		slogctx.FromCtx(req.Context()).Debug("New user subscription.")
+		// Then define and call a func to handle the successful attachment of a PaymentMethod.
+		err = handleSubscriptionCreated(req.Context(), subscription)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	case "customer.subscription.trial_will_end":
+		var subscription stripe.Subscription
+		if err := json.Unmarshal(event.Data.Raw, &subscription); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		log.Printf("Subscription trial will end for %s.", subscription.ID)
+		// Then define and call a func to handle the successful attachment of a PaymentMethod.
+		// handleSubscriptionTrialWillEnd(subscription)
+	case "entitlements.active_entitlement_summary.updated":
+		var subscription stripe.Subscription
+		if err := json.Unmarshal(event.Data.Raw, &subscription); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Error parsing webhook JSON.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		log.Printf("Active entitlement summary updated for %s.", subscription.ID)
+		// Then define and call a func to handle active entitlement summary updated.
+		// handleEntitlementUpdated(subscription)
+	default:
+		slogctx.FromCtx(req.Context()).Warn("Unhandled webhook event.",
+			slog.String("type", event.Type),
+		)
+	}
+	res.WriteHeader(http.StatusOK)
 }
 
 // handleSubscriptionDeleted will update the user metadata with the new subscription status (i.e., cancelled) and set
 // the cancelAt timestamp.
-func handleSubscriptionDeleted(ctx context.Context, api *elastic.API, subscription stripe.Subscription) error {
-	user, err := api.GetUser(ctx, subscription.Metadata[metadataUserID])
+func handleSubscriptionDeleted(ctx context.Context, subscription stripe.Subscription) error {
+	user, err := models.GetUser(ctx, subscription.Metadata[metadataUserID])
 	if err != nil {
 		return fmt.Errorf("subscription deleted: %w", err)
 	}
@@ -301,7 +296,7 @@ func handleSubscriptionDeleted(ctx context.Context, api *elastic.API, subscripti
 	metadata.CancelAt = time.Unix(subscription.CancelAt, 0)
 
 	// Update the user object with the new metadata.
-	err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
 		"metadata": metadata,
 	})
 	if err != nil {
@@ -312,14 +307,14 @@ func handleSubscriptionDeleted(ctx context.Context, api *elastic.API, subscripti
 
 // handleSubscriptionUpdated will update the user metadata with any changed subscription plan, update the plan status
 // and adjust the max history and updates frequency, if required.
-func handleSubscriptionUpdated(ctx context.Context, api *elastic.API, subscription stripe.Subscription) error {
+func handleSubscriptionUpdated(ctx context.Context, subscription stripe.Subscription) error {
 	// Retrieve the product details
 	prod, err := product.Get(subscription.Items.Data[0].Price.Product.ID, &stripe.ProductParams{})
 	if err != nil {
 		return fmt.Errorf("get product details: %w", err)
 	}
 
-	user, err := api.GetUser(ctx, subscription.Metadata[metadataUserID])
+	user, err := models.GetUser(ctx, subscription.Metadata[metadataUserID])
 	if err != nil {
 		return fmt.Errorf("get user details: %w", err)
 	}
@@ -346,7 +341,7 @@ func handleSubscriptionUpdated(ctx context.Context, api *elastic.API, subscripti
 	}
 
 	// Update the user object with the new metadata.
-	err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
 		"metadata": metadata,
 	})
 	if err != nil {
@@ -358,14 +353,14 @@ func handleSubscriptionUpdated(ctx context.Context, api *elastic.API, subscripti
 
 // handleSubscriptionCreate will add all details about the new subscription to the user metadata and set appropriate
 // values for the max history and updates frequency.
-func handleSubscriptionCreated(ctx context.Context, api *elastic.API, subscription stripe.Subscription) error {
+func handleSubscriptionCreated(ctx context.Context, subscription stripe.Subscription) error {
 	// Retrieve the product details
 	prod, err := product.Get(subscription.Items.Data[0].Price.Product.ID, &stripe.ProductParams{})
 	if err != nil {
 		return fmt.Errorf("get product details: %w", err)
 	}
 
-	user, err := api.GetUser(ctx, subscription.Metadata[metadataUserID])
+	user, err := models.GetUser(ctx, subscription.Metadata[metadataUserID])
 	if err != nil {
 		return fmt.Errorf("get user details: %w", err)
 	}
@@ -393,7 +388,7 @@ func handleSubscriptionCreated(ctx context.Context, api *elastic.API, subscripti
 	}
 
 	// Update the user object with the new metadata.
-	err = api.UpdateUser(ctx, user.GetID(), map[string]any{
+	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
 		"metadata": metadata,
 	})
 	if err != nil {

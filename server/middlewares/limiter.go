@@ -49,7 +49,7 @@ func RateLimit(ratelimiter RateLimiter) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Ignore rate-limiting in development environment or for health probes in GCP.
-			if config.Environment == "development" || slices.Contains([]string{"/livenessProbe"}, req.URL.Path) {
+			if config.CurrentEnvironment == "development" || slices.Contains([]string{"/livenessProbe"}, req.URL.Path) {
 				next.ServeHTTP(res, req)
 				return
 			}

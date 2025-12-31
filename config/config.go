@@ -29,6 +29,13 @@ const (
 	ConfigEnvPrefix = "FORAGD_"
 )
 
+const (
+	EnvDevelopment Environment = "Development"
+	EnvProduction  Environment = "Production"
+)
+
+type Environment string
+
 var (
 	ErrLoadConfig    = errors.New("error loading config")
 	ErrInvalidConfig = errors.New("invalid config")
@@ -37,8 +44,8 @@ var (
 // Version is the application/stack version.
 var Version = "_UNKNOWN_"
 
-// Environment is the environment in which the app is running (i.e., production, development).
-var Environment string
+// CurrentEnvironment is the environment in which the app is running (i.e., production, development).
+var CurrentEnvironment Environment
 
 // Init ensures the application will have appropriate Version and Envrionment vars set.
 var Init = sync.OnceValue(func() error {
@@ -48,7 +55,7 @@ var Init = sync.OnceValue(func() error {
 	}
 
 	// Set the environment.
-	Environment = os.Getenv("FORAGD_ENVIRONMENT")
+	CurrentEnvironment = Environment(os.Getenv("FORAGD_ENVIRONMENT"))
 
 	return nil
 })

@@ -21,44 +21,49 @@ import (
 )
 
 const (
-	feedsIndexPrefix = "feeds"
-	// ItemsSchemaPrefix is a prefix used for item related index/mapping/settings.
-	ItemsSchemaPrefix = "items"
-	// FavoriteItemsSchemaPrefix is a prefix used for item archive related index/mapping/settings.
-	FavoriteItemsSchemaPrefix = "favorite-items"
-	// UsersSchemaPrefix is a prefix used for user related index/mapping/settings.
-	UsersSchemaPrefix = "users"
-	// SubscriptionsSchemaPrefix is a prefix used for subscription related index/mapping/settings.
-	SubscriptionsSchemaPrefix = "subscriptions"
+	feedsIndexPrefix          = "feeds"
+	itemsSchemaPrefix         = "items"
+	favoriteItemsSchemaPrefix = "favorite-items"
+	usersSchemaPrefix         = "users"
+	subscriptionsSchemaPrefix = "subscriptions"
 	schedulerIndexPrefix      = "scheduler"
 	sessionsSchemaPrefix      = "sessions"
-	// LogsSchemaPrefix is a prefix used for application logs related index/mapping/settings.
-	LogsSchemaPrefix = "application_logs"
-	// IndexWriteSuffix is the suffix appended to indicies that are used for write (indexing) operations.
-	IndexWriteSuffix = "_rw"
-	// IndexReadSuffix is the suffix appended to indicies that are used for read (search, get) operations.
-	IndexReadSuffix = "_ro"
+
+	// indexWriteSuffix is the suffix appended to indicies that are used for write (indexing) operations.
+	indexWriteSuffix = "_rw"
+	// indexReadSuffix is the suffix appended to indicies that are used for read (search, get) operations.
+	indexReadSuffix = "_ro"
 )
 
 const (
 	// FeedsIndexRO is the index alias for read-only access to feeds.
-	FeedsIndexRO = feedsIndexPrefix + IndexReadSuffix
+	FeedsIndexRO = feedsIndexPrefix + indexReadSuffix
 	// FeedsIndexRW is the index alias for read-write access to feeds.
-	FeedsIndexRW = feedsIndexPrefix + IndexWriteSuffix
+	FeedsIndexRW = feedsIndexPrefix + indexWriteSuffix
 	// ItemsIndexRO is the index alias for read-only access to items.
-	ItemsIndexRO = feedsIndexPrefix + IndexReadSuffix
+	ItemsIndexRO = itemsSchemaPrefix + indexReadSuffix
 	// ItemsIndexRW is the index alias for read-write access to items.
-	ItemsIndexRW = feedsIndexPrefix + IndexWriteSuffix
-	UsersIndexRO = UsersSchemaPrefix + IndexReadSuffix
-	UsersIndexRW = UsersSchemaPrefix + IndexWriteSuffix
+	ItemsIndexRW = itemsSchemaPrefix + indexWriteSuffix
+	// SubscriptionsIndexRO is the index alias for read-only access to subscriptions.
+	SubscriptionsIndexRO = subscriptionsSchemaPrefix + indexReadSuffix
+	// SubscriptionsIndexRW is the index alias for read-write access to subscriptions.
+	SubscriptionsIndexRW = subscriptionsSchemaPrefix + indexWriteSuffix
+	// FavoriteArticlesIndexRO is the index alias for read-only access to subscriptions.
+	FavoriteArticlesIndexRO = favoriteItemsSchemaPrefix + indexReadSuffix
+	// FavoriteArticlesIndexRW is the index alias for read-only access to subscriptions.
+	FavoriteArticlesIndexRW = favoriteItemsSchemaPrefix + indexWriteSuffix
+	// UsersIndexRO is the index alias for read-only access to users.
+	UsersIndexRO = usersSchemaPrefix + indexReadSuffix
+	// UsersIndexRW is the index alias for read-write access to users.
+	UsersIndexRW = usersSchemaPrefix + indexWriteSuffix
 	// SessionsIndexRO is the index alias for read-only access to session data.
-	SessionsIndexRO = sessionsSchemaPrefix + IndexReadSuffix
+	SessionsIndexRO = sessionsSchemaPrefix + indexReadSuffix
 	// SessionsIndexRW is the index alias for read-write access to session data.
-	SessionsIndexRW = sessionsSchemaPrefix + IndexWriteSuffix
+	SessionsIndexRW = sessionsSchemaPrefix + indexWriteSuffix
 	// SchedulerIndexRO is the index alias for read-only access to scheduler data.
-	SchedulerIndexRO = schedulerIndexPrefix + IndexReadSuffix
+	SchedulerIndexRO = schedulerIndexPrefix + indexReadSuffix
 	// SchedulerIndexRW is the index alias for read-write access to scheduler data.
-	SchedulerIndexRW = schedulerIndexPrefix + IndexWriteSuffix
+	SchedulerIndexRW = schedulerIndexPrefix + indexWriteSuffix
 )
 
 var (
@@ -177,7 +182,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			indexPattern := "items-*"
 			ilmPolicy := "items_ilm_policy"
 			// indexName := ItemsSchemaPrefix + "-" + config.Version + "-" + time.Now().Format("20060102")
-			writeAlias := ItemsSchemaPrefix + IndexWriteSuffix
+			writeAlias := itemsSchemaPrefix + indexWriteSuffix
 			// readAlias := ItemsSchemaPrefix + IndexReadSuffix
 			if err := migrateIndexTemplates(ctx, api,
 				// Items specific mappings component template.
