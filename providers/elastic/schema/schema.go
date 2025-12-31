@@ -31,10 +31,8 @@ const (
 	UsersSchemaPrefix = "users"
 	// SubscriptionsSchemaPrefix is a prefix used for subscription related index/mapping/settings.
 	SubscriptionsSchemaPrefix = "subscriptions"
-	// SchedulerIndexPrefix is a prefix used for scheduler related index/mapping/settings.
-	SchedulerIndexPrefix = "scheduler"
-	// SessionsSchemaPrefix is a prefix used for sessions related index/mapping/settings.
-	SessionsSchemaPrefix = "sessions"
+	schedulerIndexPrefix      = "scheduler"
+	sessionsSchemaPrefix      = "sessions"
 	// LogsSchemaPrefix is a prefix used for application logs related index/mapping/settings.
 	LogsSchemaPrefix = "application_logs"
 	// IndexWriteSuffix is the suffix appended to indicies that are used for write (indexing) operations.
@@ -44,10 +42,24 @@ const (
 )
 
 const (
-	UsersIndexRO    = UsersSchemaPrefix + IndexReadSuffix
-	UsersIndexRW    = UsersSchemaPrefix + IndexWriteSuffix
-	SessionsIndexRO = SessionsSchemaPrefix + IndexReadSuffix
-	SessionsIndexRW = SessionsSchemaPrefix + IndexWriteSuffix
+	// FeedsIndexRO is the index alias for read-only access to feeds.
+	FeedsIndexRO = FeedsIndexPrefix + IndexReadSuffix
+	// FeedsIndexRW is the index alias for read-write access to feeds.
+	FeedsIndexRW = FeedsIndexPrefix + IndexWriteSuffix
+	// ItemsIndexRO is the index alias for read-only access to items.
+	ItemsIndexRO = FeedsIndexPrefix + IndexReadSuffix
+	// ItemsIndexRW is the index alias for read-write access to items.
+	ItemsIndexRW = FeedsIndexPrefix + IndexWriteSuffix
+	UsersIndexRO = UsersSchemaPrefix + IndexReadSuffix
+	UsersIndexRW = UsersSchemaPrefix + IndexWriteSuffix
+	// SessionsIndexRO is the index alias for read-only access to session data.
+	SessionsIndexRO = sessionsSchemaPrefix + IndexReadSuffix
+	// SessionsIndexRW is the index alias for read-write access to session data.
+	SessionsIndexRW = sessionsSchemaPrefix + IndexWriteSuffix
+	// SchedulerIndexRO is the index alias for read-only access to scheduler data.
+	SchedulerIndexRO = schedulerIndexPrefix + IndexReadSuffix
+	// SchedulerIndexRW is the index alias for read-write access to scheduler data.
+	SchedulerIndexRW = schedulerIndexPrefix + IndexWriteSuffix
 )
 
 var (

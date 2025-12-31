@@ -15,7 +15,6 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic/bulk"
 )
 
 var (
@@ -40,28 +39,19 @@ const (
 	jobTriggerTypeCron = "cron"
 	jobTriggerTypePoll = "poll"
 
-	dataAPICtxKey      contextKey = "data_api"
 	schedulerAPICtxKey contextKey = "scheduler_api"
+
+	// defaultPaginationSize is the default number of docs to fetch when paginating through results from elasticsearch.
+	defaultPaginationSize = 5000
 )
 
 type contextKey string
 
-type DataAPI interface {
-	GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error)
-	AddItems(ctx context.Context, items ...*models.Item) (map[models.ItemID]*bulk.OperationResponse, error)
-	UpdateFeedLastFetched(ctx context.Context, id models.FeedID, timestamp time.Time) error
-	GetJobState(ctx context.Context, id string) (*models.JobState, error)
-	UpdateJobState(ctx context.Context, id string, updates map[string]any) error
-	GetNewFeeds(ctx context.Context) (models.Feeds, error)
-}
-
-func DataAPIToCtx(ctx context.Context, dataAPI DataAPI) context.Context {
-	return context.WithValue(ctx, dataAPICtxKey, dataAPI)
-}
-
 type SchedulerAPI interface {
 	GetScheduledJob(jobKey *quartz.JobKey) (quartz.ScheduledJob, error)
 	ScheduleJob(jobDetail *quartz.JobDetail, trigger quartz.Trigger) error
+	GetJobState(ctx context.Context, id string) (*models.JobState, error)
+	UpdateJobState(ctx context.Context, id string, updates map[string]any) error
 }
 
 func SchedulerAPIToCtx(ctx context.Context, schedulerAPI SchedulerAPI) context.Context {

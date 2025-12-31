@@ -5,6 +5,7 @@ package elastic
 
 import (
 	"fmt"
+	"log/slog"
 	"sync"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
@@ -34,6 +35,9 @@ var Connect = sync.OnceValue(func() error {
 	}
 
 	api = API{TypedClient: esclient}
+
+
+	slog.Info("Elasticsearch connection created.")
 
 	return nil
 })

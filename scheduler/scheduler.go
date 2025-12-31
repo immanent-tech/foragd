@@ -20,6 +20,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
 )
@@ -34,7 +35,6 @@ var ErrScheduler = errors.New("scheduler encountered an error")
 type manager struct {
 	quartz.Scheduler
 
-	api   *elastic.API
 	queue quartz.JobQueue
 }
 
@@ -42,15 +42,8 @@ var Manager *manager
 
 // Run starts the scheduler manager.
 func Run(ctx context.Context) error {
-	// Connect to elastic and setup context.
-	elasticAPI, err := elastic.NewConnection()
-	if err != nil {
-		return fmt.Errorf("new elastic connection: %w", err)
-	}
-	ctx = jobs.DataAPIToCtx(ctx, elasticAPI)
-
 	// Create distributed queue instance.
-	jobQueue, err := queue.NewJobQueue(ctx, elasticAPI)
+	jobQueue, err := queue.NewJobQueue(ctx)
 	if err != nil {
 		return fmt.Errorf("new job queue: %w", err)
 	}
@@ -68,7 +61,6 @@ func Run(ctx context.Context) error {
 
 	Manager = &manager{
 		Scheduler: scheduler,
-		api:       elasticAPI,
 		queue:     jobQueue,
 	}
 
@@ -126,7 +118,7 @@ func Run(ctx context.Context) error {
 
 // GetJobState returns the job state of the job with the given id.
 func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
-	state, err := m.api.GetJobState(ctx, id)
+	state, err := elastic.GetDoc[string, *models.JobState](ctx, schema.SchedulerIndexRO, id)
 	if err != nil {
 		return nil, fmt.Errorf("scheduler: get job state: %w", err)
 	}
@@ -135,7 +127,11 @@ func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState,
 
 // UpdateJobState will update the job state for the job with the given id.
 func (m *manager) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
-	if err := m.api.UpdateJobState(ctx, id, updates); err != nil {
+	updates["updated_at"] = time.Now().UTC()
+	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW, id, updates,
+		elastic.UpdateDocAsUpsert(),
+		elastic.WithRefresh("true"),
+	); err != nil {
 		return fmt.Errorf("scheduled: update job state: %w", err)
 	}
 	return nil

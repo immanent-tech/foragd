@@ -46,7 +46,7 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 			// 	}),
 			// ),
 		case "scheduler":
-			err = migrateIndexData(ctx, api, SchedulerIndexPrefix, nil) // ingest.NewIngestPipeline(
+			err = migrateIndexData(ctx, api, schedulerIndexPrefix, nil) // ingest.NewIngestPipeline(
 		}
 		if err != nil {
 			return fmt.Errorf("could not migrate users: %w", err)

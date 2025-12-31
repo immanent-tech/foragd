@@ -18,6 +18,9 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 // GetNewFeedsJobData contains the data required by the GetNewFeeds job.
@@ -68,18 +71,13 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	jobStateID := "get_new_feeds_state"
 
-	dataAPI, ok := ctx.Value(dataAPICtxKey).(DataAPI)
-	if !ok || dataAPI == nil {
-		return fmt.Errorf("%w: unable to get data api from context", ErrExecuteJobFailed)
-	}
-
 	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
 	if !ok || schedulerAPI == nil {
 		return fmt.Errorf("%w: unable to get scheduler api from context", ErrExecuteJobFailed)
 	}
 
 	state := &GetNewFeedsJobState{}
-	if lastState, err := dataAPI.GetJobState(ctx, jobStateID); err != nil {
+	if lastState, err := schedulerAPI.GetJobState(ctx, jobStateID); err != nil {
 		if models.HTTPStatus(err) != http.StatusNotFound {
 			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}
@@ -93,7 +91,19 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Looking for new feeds.",
 		slog.Time("since", state.Checkpoint),
 	)
-	feeds, err := dataAPI.GetNewFeeds(ctx)
+
+	// Find new feeds. We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
+	// don't have a job scheduled for updating their items.
+	var (
+		feeds models.Feeds
+		err   error
+	)
+	feeds, err = elastic.SearchAll[*models.Feed](
+		ctx,
+		schema.FeedsIndexRO,
+		query.Term("last_fetched", models.UnixEpoch),
+		defaultPaginationSize,
+	)
 	if err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
@@ -105,7 +115,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	}
 	// Update the checkpoint.
 	state.Checkpoint = time.Now().UTC()
-	err = dataAPI.UpdateJobState(ctx, jobStateID, map[string]any{
+	err = schedulerAPI.UpdateJobState(ctx, jobStateID, map[string]any{
 		"job_data": state,
 	})
 	if err != nil {
@@ -164,14 +174,14 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 						slog.Any("error", err),
 					)
 				}
-			} else {
-				slogctx.FromCtx(ctx).Error("Existing update feed job.",
-					slog.String("feed_id", feed.GetID()),
-					slog.String("job_id", existingJob.JobDetail().JobKey().String()),
-					slog.String("job_schedule", existingJob.Trigger().Description()),
-					slog.Any("error", err),
-				)
+				return
 			}
+			slogctx.FromCtx(ctx).Error("Existing update feed job.",
+				slog.String("feed_id", feed.GetID()),
+				slog.String("job_id", existingJob.JobDetail().JobKey().String()),
+				slog.String("job_schedule", existingJob.Trigger().Description()),
+				slog.Any("error", err),
+			)
 		})
 	}
 

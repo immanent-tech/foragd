@@ -46,15 +46,15 @@ func (t *pollTrigger) Description() string {
 // cannot be parsed, a default polling trigger will be returned.
 func parseTrigger(trigger quartz.Trigger) any {
 	desc := trigger.Description()
-	triggerOpts := strings.Split(desc, quartz.Sep)
 	switch {
 	case strings.HasPrefix(desc, pollTriggerID):
+		triggerOpts := strings.Split(desc, quartz.Sep)
 		if len(triggerOpts) != 3 { //nolint:mnd // this is a very specific check.
 			return newPollTrigger(defaultPollInterval, defaultPollJitter)
 		}
 		return newPollTrigger(triggerOpts[1], triggerOpts[2])
 	case strings.HasPrefix(desc, cronTriggerID):
-		return &cronTrigger{Schedule: triggerOpts[1]}
+		return &cronTrigger{Schedule: strings.Split(desc, quartz.Sep)[1]}
 	}
 	return newPollTrigger(defaultPollInterval, defaultPollJitter)
 }

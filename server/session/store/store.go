@@ -113,7 +113,7 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 // token and the map value should be the session data. If no active
 // sessions exist this should return an empty (not nil) map.
 func (s *Store) AllCtx(ctx context.Context) (map[string][]byte, error) {
-	index := schema.SessionsSchemaPrefix + schema.IndexReadSuffix
+	index := schema.SessionsIndexRO
 	sessions, err := elastic.SearchAll[models.UserSession](
 		ctx,
 		index,

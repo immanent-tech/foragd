@@ -6,7 +6,6 @@ package jobs
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -16,6 +15,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/schema"
 )
 
 type UpdateFeedJobData struct {
@@ -63,11 +64,6 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
 
-	dataAPI, ok := ctx.Value(dataAPICtxKey).(DataAPI)
-	if !ok {
-		return fmt.Errorf("%w: unable to get data api from context", ErrExecuteJobFailed)
-	}
-
 	// Add feed id as slog attribute for log tracking.
 	ctx = slogctx.With(ctx, "feed_id", jobData.FeedID)
 
@@ -75,8 +71,8 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	defer cancel()
 
 	// Retrieve the feed details.
-	details, err := dataAPI.GetFeed(jobCtx, jobData.FeedID)
-	if err != nil && !errors.Is(err, ErrNoJob) {
+	details, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, schema.FeedsIndexRO, jobData.FeedID)
+	if err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
 	// Get new items since the last fetch.
@@ -96,8 +92,10 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	// Add any new items since the last feed update.
 	if len(items.FilterSince(details.LastFetched)) > 0 {
 		// Add any new items.
-		_, err = dataAPI.AddItems(jobCtx, items.FilterSince(details.LastFetched)...)
-		if err != nil {
+		if _, err := elastic.BulkUpdate(
+			ctx,
+			schema.ItemsSchemaPrefix+schema.IndexWriteSuffix,
+			items.FilterSince(details.LastFetched)...); err != nil {
 			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}
 		slogctx.FromCtx(ctx).Debug("Added new items.",
@@ -106,8 +104,9 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		)
 		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 		// newer articles where a feed lags behind real-time.
-		err = dataAPI.UpdateFeedLastFetched(jobCtx, jobData.FeedID, items.SortByTimestamp()[0].GetTimestamp())
-		if err != nil {
+		if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, map[string]any{
+			"last_fetched": items.SortByTimestamp()[0].GetTimestamp(),
+		}); err != nil {
 			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}
 	}
