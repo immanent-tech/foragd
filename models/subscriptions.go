@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+//nolint:revive
 package models
 
 import (
@@ -39,38 +40,38 @@ type subscriptionsRequest struct {
 	addDynamicInfo   bool
 }
 
-type SubscriptionsRequestOption func(*subscriptionsRequest)
+type subscriptionsRequestOption func(*subscriptionsRequest)
 
 // GetSubscriptionsByFavorite option adds a filter to the query to get favorite subscriptions only.
-func GetSubscriptionsByFavorite(value bool) SubscriptionsRequestOption {
+func GetSubscriptionsByFavorite(value bool) subscriptionsRequestOption {
 	return func(sr *subscriptionsRequest) {
 		sr.filterFavorites = value
 	}
 }
 
 // GetSubscriptionsByIDs option adds a filter to the query to get subscriptions by their ids.
-func GetSubscriptionsByIDs(ids ...SubscriptionID) SubscriptionsRequestOption {
+func GetSubscriptionsByIDs(ids ...SubscriptionID) subscriptionsRequestOption {
 	return func(sr *subscriptionsRequest) {
 		sr.filterIDs = ids
 	}
 }
 
 // GetSubscriptionsByFeedIDs option adds a filter to the query to get subscriptions by their feed ids.
-func GetSubscriptionsByFeedIDs(ids ...FeedID) SubscriptionsRequestOption {
+func GetSubscriptionsByFeedIDs(ids ...FeedID) subscriptionsRequestOption {
 	return func(sr *subscriptionsRequest) {
 		sr.filterFeedIDs = ids
 	}
 }
 
 // GetSubscriptionsByCategories option adds a filter to the query to get subscriptions by category.
-func GetSubscriptionsByCategories(categories ...Category) SubscriptionsRequestOption {
+func GetSubscriptionsByCategories(categories ...Category) subscriptionsRequestOption {
 	return func(sr *subscriptionsRequest) {
 		sr.filterCategories = categories
 	}
 }
 
 // GetSubscriptionsDynamicInfo option will fill in the dynamic info (i.e., stats) after fetching.
-func GetSubscriptionsDynamicInfo(value bool) SubscriptionsRequestOption {
+func GetSubscriptionsDynamicInfo(value bool) subscriptionsRequestOption {
 	return func(sr *subscriptionsRequest) {
 		sr.addDynamicInfo = value
 	}
@@ -125,7 +126,7 @@ func searchSubscriptionsAddDynamicInfo(value bool) searchSubscriptionsOption {
 func GetSubscription(
 	ctx context.Context,
 	id SubscriptionID,
-	options ...SubscriptionsRequestOption,
+	options ...subscriptionsRequestOption,
 ) (*Subscription, error) {
 	// Parse and apply options.
 	req := &subscriptionsRequest{}
@@ -173,7 +174,7 @@ func GetSubscription(
 // results.
 func GetSubscriptions(
 	ctx context.Context,
-	options ...SubscriptionsRequestOption,
+	options ...subscriptionsRequestOption,
 ) (Subscriptions, error) {
 	req := &subscriptionsRequest{}
 	for option := range slices.Values(options) {
@@ -227,7 +228,7 @@ func GetSubscriptions(
 func GetSubscriptionByFeedID(
 	ctx context.Context,
 	id FeedID,
-	options ...SubscriptionsRequestOption,
+	options ...subscriptionsRequestOption,
 ) (*Subscription, error) {
 	// Parse and apply options.
 	req := &subscriptionsRequest{}
@@ -277,7 +278,7 @@ func GetSubscriptionSuggestions(
 	ctx context.Context,
 	text string,
 	count int,
-	options ...SubscriptionsRequestOption,
+	options ...subscriptionsRequestOption,
 ) (Subscriptions, error) {
 	// Parse and apply options.
 	req := &subscriptionsRequest{}
