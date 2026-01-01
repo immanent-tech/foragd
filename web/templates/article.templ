@@ -168,9 +168,11 @@ templ ArticleContent(article *models.Article) {
 					<input type="hidden" name={ models.ParamSort } value={ filters.GetSort() }/>
 					<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
 					<input type="hidden" name={ models.ParamSubscriptionName } value={ article.GetFeedTitle() }/>
+					<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 					@NewLink(
-						WithHXMethod(http.MethodGet, "/list/articles"),
+						WithHXMethod(http.MethodPost, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
+						WithHXInclude("[name='csrf_token']"),
 						WithHXPushURL(true),
 						WithHXSwap("innerHTML show:window:top transition:true"),
 						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
