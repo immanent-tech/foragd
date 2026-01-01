@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
@@ -123,7 +124,7 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 		models.SchedulerIndexRO,
 		query.Exists("job_type"),
 		1,
-		// elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&jobSorting{JobNextRun: "desc"}),
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&jobSorting{JobNextRun: "asc"}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("head: %w", err)
