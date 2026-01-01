@@ -28,8 +28,6 @@ import (
 
 func ImageProxy(proxyURLBase string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable")
-
 		// Load the http client used for making requests to the image proxy.
 		if err := loadHTTPClient(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
@@ -155,89 +153,87 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			return
 		}
 
+		res.Header().Set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable")
 		res.WriteHeader(http.StatusOK)
 	}
 }
 
-// LoadCacheImage handles fetching and displaying an image from one of the image caches.
-func LoadCachedImage(cache string) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		key := chi.URLParam(req, "*")
+// LoadCachedImage handles fetching and displaying an image from one of the image caches.
+func LoadCachedImage(res http.ResponseWriter, req *http.Request) {
+	key := chi.URLParam(req, "*")
 
-		imgBuf, ok := imgBufPool.Get().(*bytes.Buffer)
-		if !ok {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
-			return
-		}
-		imgBuf.Reset()
-		defer imgBufPool.Put(imgBuf)
-
-		var err error
-		switch cache {
-		case "avatar":
-			// Load the image cache.
-			if err := loadAvatarCache(); err != nil {
-				res.WriteHeader(http.StatusInternalServerError)
-				slogctx.FromCtx(req.Context()).Error("Load avatar cache failed.",
-					slog.Any("error", err),
-				)
-				return
-			}
-			err = avatarCache.Copy(req.Context(), key, imgBuf)
-		case "subscription_thumbnail":
-			// Load the image cache.
-			thumbnailCache, err := loadThumbnailCache()
-			if err != nil {
-				res.WriteHeader(http.StatusInternalServerError)
-				slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
-					slog.Any("error", err),
-				)
-				return
-			}
-			err = thumbnailCache.Copy(req.Context(), key, imgBuf)
-		case "screenshot":
-			// Load the image cache.
-			screenshotCache, err := loadScreenshotCache()
-			if err != nil {
-				res.WriteHeader(http.StatusInternalServerError)
-				slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
-					slog.Any("error", err),
-				)
-				return
-			}
-			err = screenshotCache.Copy(req.Context(), key, imgBuf)
-		default:
-			res.WriteHeader(http.StatusUnprocessableEntity)
-			slogctx.FromCtx(req.Context()).Error("Invalid image cache.",
-				slog.Any("error", err),
-			)
-			return
-		}
-
-		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				http.NotFound(res, req)
-				return
-			}
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Write image data.",
-				slog.Any("error", err),
-			)
-			return
-		}
-		_, err = res.Write(imgBuf.Bytes())
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Write image data.",
-				slog.Any("error", err),
-			)
-			return
-		}
-
-		// Return success.
-		res.WriteHeader(http.StatusOK)
+	imgBuf, ok := imgBufPool.Get().(*bytes.Buffer)
+	if !ok {
+		res.WriteHeader(http.StatusInternalServerError)
+		slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
+		return
 	}
+	imgBuf.Reset()
+	defer imgBufPool.Put(imgBuf)
+
+	var err error
+	switch {
+	case strings.HasPrefix(req.URL.Path, "/img/avatar"):
+		// Load the image cache.
+		if err := loadAvatarCache(); err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Load avatar cache failed.",
+				slog.Any("error", err),
+			)
+			return
+		}
+		err = avatarCache.Copy(req.Context(), key, imgBuf)
+	case strings.HasPrefix(req.URL.Path, "/img/subscription"):
+		// Load the image cache.
+		thumbnailCache, err := loadThumbnailCache()
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
+				slog.Any("error", err),
+			)
+			return
+		}
+		err = thumbnailCache.Copy(req.Context(), key, imgBuf)
+	case strings.HasPrefix(req.URL.Path, "/img/screenshot"):
+		// Load the image cache.
+		screenshotCache, err := loadScreenshotCache()
+		if err != nil {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
+				slog.Any("error", err),
+			)
+			return
+		}
+		err = screenshotCache.Copy(req.Context(), key, imgBuf)
+	default:
+		res.WriteHeader(http.StatusUnprocessableEntity)
+		slogctx.FromCtx(req.Context()).Error("Invalid image cache.")
+		return
+	}
+
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			http.NotFound(res, req)
+			return
+		}
+		res.WriteHeader(http.StatusInternalServerError)
+		slogctx.FromCtx(req.Context()).Error("Write image data.",
+			slog.Any("error", err),
+		)
+		return
+	}
+	_, err = res.Write(imgBuf.Bytes())
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		slogctx.FromCtx(req.Context()).Error("Write image data.",
+			slog.Any("error", err),
+		)
+		return
+	}
+
+	// Return success.
+	res.Header().Set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable")
+	res.WriteHeader(http.StatusOK)
 }
 
 var imgBufPool = sync.Pool{
