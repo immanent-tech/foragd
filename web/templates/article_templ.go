@@ -992,12 +992,12 @@ func ArticleContent(article *models.Article) templ.Component {
 			}
 			ctx = templ.InitializeContext(ctx)
 			if article.IsRemoteContent() {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "Load feed content")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 67, "Feed content")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "Load external content")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, "Original content")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

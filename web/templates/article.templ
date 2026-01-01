@@ -243,9 +243,9 @@ templ ArticleContent(article *models.Article) {
 			WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
 		) {
 			if article.IsRemoteContent() {
-				Load feed content
+				Feed content
 			} else {
-				Load external content
+				Original content
 			}
 		}
 		// View original article action.
