@@ -8,8 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
-	"net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -116,32 +114,15 @@ func Run(ctx context.Context) error {
 
 	scheduler.Start(ctx)
 
-	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler started.")
+	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler starting.")
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	// Listen for shutdown events and process them.
-	go func() {
-		wg.Done()
-		stop := make(chan os.Signal, 1)
-		signal.Notify(stop, os.Interrupt)
-		<-stop
-		// Can't do much here except for logging any errors
-		if err != nil {
-			slog.Error("Error occurred when trying to shut down server.",
-				slog.Any("error", err),
-			)
-		}
-	}()
-	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
-		wg.Wait()
-	} else if err != nil {
-		return fmt.Errorf("error shutting down server: %w", err)
-	}
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	<-stop
 
-	<-ctx.Done()
+	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler stopping.")
 	scheduler.Stop()
-	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler stopped.")
+
 	return nil
 }
 
