@@ -13,7 +13,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -28,6 +27,10 @@ import (
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web"
+)
+
+const (
+	gracefulShutdownTimeout = 5 * time.Second
 )
 
 // Server represents the application server.
@@ -78,48 +81,42 @@ func NewServer(ctx context.Context) (Server, error) {
 // Start will start the server. It runs a background goroutine to safely shutdown the server when its context is
 // cancelled.
 func (s *Server) Start(ctx context.Context) error {
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-	// Listen for shutdown events and process them.
-	go func() {
-		wg.Done()
-
-		stop := make(chan os.Signal, 1)
-
-		signal.Notify(stop, os.Interrupt)
-		<-stop
-
-		if err := s.Shutdown(context.Background()); err != nil {
-			// Can't do much here except for logging any errors
-			slogctx.FromCtx(context.Background()).Error("Error occurred when trying to shut down server.",
-				slog.Any("error", err),
-			)
-		}
-	}()
-
 	slogctx.FromCtx(ctx).Info("Starting server...",
 		slog.String("address", s.Addr),
 		slog.Time("start_time", time.Now()),
 	)
 
 	// And we serve HTTP until the world ends.
-	var err error
-	if cfg.CertFile != "" && cfg.KeyFile != "" {
-		slogctx.FromCtx(ctx).Info("Using https.",
-			slog.String("certificate file", cfg.CertFile),
-			slog.String("key file", cfg.KeyFile),
+	go func() {
+		var err error
+		if cfg.CertFile != "" && cfg.KeyFile != "" {
+			slogctx.FromCtx(ctx).Info("Using https.",
+				slog.String("certificate file", cfg.CertFile),
+				slog.String("key file", cfg.KeyFile),
+			)
+			err = s.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile)
+		} else {
+			slogctx.FromCtx(ctx).Info("Using http.")
+			err = s.ListenAndServe()
+		}
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slogctx.FromCtx(ctx).Error("Could not listen.",
+				slog.Any("error", err),
+			)
+		}
+	}()
+
+	// Shutdown gracefully.
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	<-stop
+	slogctx.FromCtx(ctx).Info("Stopping server...")
+	ctx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+	defer cancel()
+	if err := s.Shutdown(ctx); err != nil {
+		slog.Error("Server forced to shutdown", //nolint:sloglint // this is fine.
+			slog.Any("error", err),
 		)
-		err = s.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile)
-	} else {
-		slogctx.FromCtx(ctx).Info("Using http.")
-		err = s.ListenAndServe()
-	}
-	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
-		slogctx.FromCtx(ctx).Info("commencing server shutdown...")
-		wg.Wait()
-	} else if err != nil {
-		return fmt.Errorf("error shutting down server: %w", err)
 	}
 
 	return nil
