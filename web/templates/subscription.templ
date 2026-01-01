@@ -1352,13 +1352,14 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 				</div>
 			</div>
 		</div>
-		<div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-x-2">
+		<div class="flex flex-row-reverse mt-5 sm:mt-4 gap-x-2 justify-center items-center">
 			<form
 				hx-post={ "/remove/subscription/" + string(request.SubscriptionID) }
 				hx-target={ "#" + request.SubscriptionID }
 				hx-include="[name='csrf_token']"
 				hx-swap="delete transition:true"
 				_="on htmx:afterRequest(successful) if successful remove #unsubscribe-modal"
+				class="flex"
 			>
 				<input type="hidden" name="nickname" value={ request.Nickname }/>
 				<input type="hidden" name="confirmed" value="true"/>
