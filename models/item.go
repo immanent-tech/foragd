@@ -9,9 +9,9 @@ import (
 	"maps"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -19,7 +19,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
-	"github.com/spaolacci/murmur3"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
@@ -273,12 +272,9 @@ func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
 	var itemID ItemID
 	if sourceID := source.GetID(); sourceID != "" {
-		itemID = strings.Join(
-			[]string{"item_", strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+sourceID)), 10)},
-			"_",
-		)
+		itemID = "item_" + strconv.FormatUint(xxhash.Sum64String(feed.GetID()+sourceID), 10)
 	} else {
-		itemID = strings.Join([]string{"item_", strconv.FormatUint(murmur3.Sum64([]byte(feed.GetID()+"-"+source.GetLink())), 10)}, "_")
+		itemID = "item_" + strconv.FormatUint(xxhash.Sum64String(feed.GetID()+source.GetLink()), 10)
 	}
 	item := &Item{
 		ItemID:       itemID,

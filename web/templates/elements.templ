@@ -11,8 +11,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/immanent-tech/go-syndication/types"
-	"github.com/knadh/koanf/maps"
 	"html"
+	"maps"
 	"net/http"
 	"slices"
 	"strconv"
@@ -58,7 +58,7 @@ func (e *HTMLElement) SetAttribute(key string, value any) {
 func (e *HTMLElement) MergeAttributes(attributes templ.Attributes) {
 	e.Lock()
 	defer e.Unlock()
-	maps.Merge(attributes, e.attributes)
+	maps.Copy(attributes, e.attributes)
 }
 
 func (e *HTMLElement) HasAttribute(key string) bool {

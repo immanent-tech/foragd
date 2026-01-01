@@ -17,11 +17,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/spaolacci/murmur3"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -1709,17 +1709,14 @@ func newSubscription(
 	}
 	ts := time.Now().UTC()
 	subscription := &Subscription{
-		SubscriptionID: strings.Join(
-			[]string{"sub_", strconv.FormatUint(murmur3.Sum64([]byte(user.GetID()+customisation.Nickname)), 10)},
-			"_",
-		),
-		UserID:        user.GetID(),
-		UpdatedAt:     ts,
-		CreatedAt:     ts,
-		MarkedReadAt:  user.GetMaxHistory(),
-		Customisation: customisation,
-		Settings:      settings,
-		Favorite:      false,
+		SubscriptionID: "sub_" + strconv.FormatUint(xxhash.Sum64String(user.GetID()+customisation.Nickname), 10),
+		UserID:         user.GetID(),
+		UpdatedAt:      ts,
+		CreatedAt:      ts,
+		MarkedReadAt:   user.GetMaxHistory(),
+		Customisation:  customisation,
+		Settings:       settings,
+		Favorite:       false,
 	}
 
 	switch typeData := data.(type) {

@@ -20,10 +20,10 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
-	"github.com/spaolacci/murmur3"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -1028,7 +1028,7 @@ func processThumbnail(req *http.Request, objectID string) (string, error) {
 			return "", fmt.Errorf("load thumbnail cache: %w", err)
 		}
 		// Generate a unique ID for the avatar image in the cache using the user ID.
-		imageFileID := strconv.FormatUint(murmur3.Sum64([]byte(objectID+"thumbnail")), 10)
+		imageFileID := strconv.FormatUint(xxhash.Sum64String(objectID+"thumbnail"), 10)
 		// Read the uploaded data and store in the cache.
 		imageData, err := io.ReadAll(image.Data)
 		if err != nil {

@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/spaolacci/murmur3"
 	"github.com/stripe/stripe-go/v83"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -46,7 +46,7 @@ func CreateUser(ctx context.Context, externalID, email string) (*User, error) {
 		ExternalUserID: externalID,
 		Provider:       strings.Split(externalID, "|")[0],
 		Email:          email,
-		UserID:         strings.Join([]string{"user_", strconv.FormatUint(murmur3.Sum64([]byte(externalID)), 10)}, "_"),
+		UserID:         "user_" + strconv.FormatUint(xxhash.Sum64String(externalID), 10),
 		Settings: UserSettings{
 			Theme:                 DefaultUserTheme,
 			ShowOnboarding:        true,

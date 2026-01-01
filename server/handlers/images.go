@@ -15,8 +15,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
-	"github.com/spaolacci/murmur3"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -51,7 +51,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 
 		// Generate a unique hash for the image and processing options.
 		imgHash := strconv.FormatUint(
-			murmur3.Sum64([]byte(strings.Join(params[1:len(params)-1], "|")+params[len(params)-1])),
+			xxhash.Sum64String(strings.Join(params[1:len(params)-1], "|")+params[len(params)-1]),
 			10,
 		)
 

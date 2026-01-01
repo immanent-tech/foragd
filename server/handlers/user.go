@@ -18,8 +18,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
-	"github.com/spaolacci/murmur3"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-syndication/opml"
@@ -191,7 +191,7 @@ func SaveAccountSettings() http.HandlerFunc {
 				}
 			}
 			// Generate a unique ID for the avatar image in the cache using the user ID.
-			avatarFileID := strconv.FormatUint(murmur3.Sum64([]byte(user.GetID()+"avatar")), 10)
+			avatarFileID := strconv.FormatUint(xxhash.Sum64String(user.GetID()+"avatar"), 10)
 			// Read the uploaded data and store in the cache.
 			avatarData, err := io.ReadAll(avatar.Data)
 			if err != nil {

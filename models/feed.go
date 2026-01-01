@@ -9,16 +9,15 @@ import (
 	"log/slog"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
-	"github.com/spaolacci/murmur3"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -318,11 +317,7 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 
 // NewFeedFromSource converts the raw types.FeedSource into a Feed object.
 func NewFeedFromSource(url string, source *feeds.Feed) *Feed {
-	// Generate an ID using a murmur hash of the feed's website URL.
-	id := strings.Join(
-		[]string{"feed_", strconv.FormatUint(murmur3.Sum64([]byte(source.GetLink())), 10)},
-		"_",
-	)
+	id := "feed_" + strconv.FormatUint(xxhash.Sum64String(source.GetLink()), 10)
 	feed := &Feed{
 		FeedID:       id,
 		CreatedAt:    time.Now().UTC(),

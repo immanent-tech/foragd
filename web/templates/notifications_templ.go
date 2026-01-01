@@ -14,10 +14,11 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"context"
+	"github.com/cespare/xxhash/v2"
 	"github.com/immanent-tech/foragd/models"
-	nanoid "github.com/matoous/go-nanoid/v2"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"strconv"
 	"time"
 )
 
@@ -51,8 +52,7 @@ func Notification(msg *models.UserMessage, timeout time.Duration) templ.Componen
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		id, _ := nanoid.New()
-		id = "notification-" + id
+		id := "notification-" + strconv.FormatUint(xxhash.Sum64String(msg.Summary), 10)
 		ctx = context.WithValue(ctx, notificationIDCtxKey, id)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"")
 		if templ_7745c5c3_Err != nil {
