@@ -20,7 +20,7 @@
     {
       "label": "run: scheduler",
       "type": "shell",
-      "command": "bunx dotenv-cli -e .env.development -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file scheduler run",
+      "command": "bunx dotenv-cli -e .env.development -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file --profile='heapprofile=deployments/scheduler-heap.prof;cpuprofile=deployments/scheduler-cpu.prof;webui=true' scheduler run",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -33,7 +33,9 @@
       "options": {
         "shell": {
           "executable": "/bin/bash",
-          "args": ["-c"]
+          "args": [
+            "-c"
+          ]
         }
       }
     },
@@ -53,7 +55,9 @@
       "options": {
         "shell": {
           "executable": "/bin/bash",
-          "args": ["-c"]
+          "args": [
+            "-c"
+          ]
         }
       }
     },
@@ -73,7 +77,9 @@
       "options": {
         "shell": {
           "executable": "/bin/bash",
-          "args": ["-c"]
+          "args": [
+            "-c"
+          ]
         }
       }
     },
@@ -93,7 +99,9 @@
       "options": {
         "shell": {
           "executable": "/bin/bash",
-          "args": ["-c"]
+          "args": [
+            "-c"
+          ]
         }
       }
     }
@@ -108,7 +116,10 @@
       "type": "pickString",
       "id": "environment",
       "description": "choose envrionment",
-      "options": ["production", "development"],
+      "options": [
+        "production",
+        "development"
+      ],
       "default": "development"
     }
   ]

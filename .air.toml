@@ -4,7 +4,7 @@ tmp_dir = "tmp"
 [build]
 args_bin = [
   "--no-log-file",
-  "--profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true'",
+  "--profile='heapprofile=deployments/server-heap.prof;cpuprofile=deployments/server-cpu.prof;webui=true'",
   "serve",
 ]
 cmd = 'go build -ldflags="-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)" -o ./tmp/foragd .'
