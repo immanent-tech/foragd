@@ -190,7 +190,7 @@ func (page *Home) Template() templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if len(page.TopCategories) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"border-b border-base-content/80 pb-5\"><h3 class=\"text-base font-semibold\">Most Common Categories</h3></div><div class=\"flex justify-center gap-2 p-2 m-2\"><div id=\"top-categories\" class=\"flex flex-row flex-wrap place-content-center p-2 gap-2\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"border-b border-base-content/80 pb-5 mt-8\"><h3 class=\"text-base font-semibold\">Most Common Categories</h3></div><div class=\"flex justify-center gap-2 p-2 m-2\"><div id=\"top-categories\" class=\"flex flex-row flex-wrap place-content-center p-2 gap-2\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
