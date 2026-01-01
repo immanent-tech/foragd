@@ -24,6 +24,8 @@ services:
     hostname: devcontainer
     ports:
       - $FORAGD_SERVER_PORT:$FORAGD_SERVER_PORT
+      - 6060:6060
+      - 6061:6061
     ulimits:
       nofile:
         soft: 65535
