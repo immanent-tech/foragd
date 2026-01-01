@@ -7,7 +7,7 @@ replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 replace github.com/immanent-tech/slog-elasticsearch v0.0.0 => ./pkg/slog-elasticsearch
 
 require (
-	github.com/a-h/templ v0.3.960
+	github.com/a-h/templ v0.3.977
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.32.1
@@ -151,6 +151,7 @@ require (
 	github.com/go-resty/resty/v2 v2.17.1
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
+	github.com/goforj/godump v1.9.0
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
