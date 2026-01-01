@@ -22,8 +22,9 @@ import (
 
 type UpdateFeedJobData struct {
 	// FeedID is the unique ID of a feed.
-	FeedID models.FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-	URLs   []models.URL  `               json:"URLs"    validate:"required,dive,url"`
+	FeedID  models.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	URLs    []models.URL  `json:"URLs"    validate:"required,dive,url"`
+	Deleted bool          `json:"deleted"`
 }
 
 // NewUpdateFeedJob creates a job that can be scheduled from the given feed data.
@@ -78,6 +79,14 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	// Retrieve the feed details.
 	details, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, models.FeedsIndexRO, jobData.FeedID)
 	if err != nil {
+		// If the returned error indicates there is no feed with the given ID, mark the job to be deleted.
+		if errors.Is(err, elastic.ErrNotFound) {
+			if err := elastic.UpdateDoc(ctx, models.SchedulerIndexRW, jobData.FeedID, map[string]any{
+				"job_data.deleted": true,
+			}); err != nil {
+				return fmt.Errorf("mark job for deletion: %w", err)
+			}
+		}
 		return fmt.Errorf("get feed doc: %w", err)
 	}
 	// Get new items since the last fetch.

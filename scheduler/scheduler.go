@@ -18,6 +18,7 @@ import (
 	"github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -66,22 +67,50 @@ func Run(ctx context.Context) error {
 
 	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
 
-	// Setup get new feeds job.
-	job, err := jobs.NewGetNewFeedsJob()
-	if err != nil {
-		return fmt.Errorf("failed to start scheduler: %w", err)
-	}
-	_, err = Manager.GetScheduledJob(job.JobDetail().JobKey())
-	if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
-		err = Manager.ScheduleJob(job.JobDetail(), job.Trigger())
-		if err != nil {
-			return fmt.Errorf("failed to start scheduler: %w", err)
-		}
-	}
+	startupTasks, tasksCtx := errgroup.WithContext(ctx)
+	defer tasksCtx.Done()
 
-	// Check for new feeds on startup.
-	err = job.JobDetail().Job().Execute(ctx)
-	if err != nil {
+	startupTasks.Go(func() error {
+		// Setup get new feeds getNewFeedsJob.
+		getNewFeedsJob, err := jobs.NewGetNewFeedsJob()
+		if err != nil {
+			return fmt.Errorf("create get new feeds job: %w", err)
+		}
+		_, err = Manager.GetScheduledJob(getNewFeedsJob.JobDetail().JobKey())
+		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
+			err = Manager.ScheduleJob(getNewFeedsJob.JobDetail(), getNewFeedsJob.Trigger())
+			if err != nil {
+				return fmt.Errorf("check get new feeds job: %w", err)
+			}
+		}
+		// Check for new feeds on startup.
+		if err := getNewFeedsJob.JobDetail().Job().Execute(ctx); err != nil {
+			return fmt.Errorf("schedule get new feeds job: %w", err)
+		}
+		return nil
+	})
+
+	startupTasks.Go(func() error {
+		// Setup clear deleted feeds job.
+		clearDeletedFeedsJob, err := jobs.NewClearDeletedFeedsJob()
+		if err != nil {
+			return fmt.Errorf("create clear deleted feeds job: %w", err)
+		}
+		_, err = Manager.GetScheduledJob(clearDeletedFeedsJob.JobDetail().JobKey())
+		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
+			err = Manager.ScheduleJob(clearDeletedFeedsJob.JobDetail(), clearDeletedFeedsJob.Trigger())
+			if err != nil {
+				return fmt.Errorf("check clear deleted feeds job: %w", err)
+			}
+		}
+		// Check for new feeds on startup.
+		if err = clearDeletedFeedsJob.JobDetail().Job().Execute(ctx); err != nil {
+			return fmt.Errorf("schedule clear deleted feeds job: %w", err)
+		}
+		return nil
+	})
+
+	if err := startupTasks.Wait(); err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
 

@@ -33,8 +33,9 @@ var (
 const (
 	defaultJobTimeout = 60 * time.Second
 
-	jobTypeUpdateFeed  = "update_feed"
-	jobTypeGetNewFeeds = "get_new_feeds"
+	jobTypeUpdateFeed        = "update_feed"
+	jobTypeGetNewFeeds       = "get_new_feeds"
+	jobTypeClearDeletedFeeds = "clear_deleted_feeds"
 
 	jobTriggerTypeCron = "cron"
 	jobTriggerTypePoll = "poll"
@@ -50,6 +51,7 @@ type contextKey string
 type SchedulerAPI interface {
 	GetScheduledJob(jobKey *quartz.JobKey) (quartz.ScheduledJob, error)
 	ScheduleJob(jobDetail *quartz.JobDetail, trigger quartz.Trigger) error
+	DeleteJob(jobKey *quartz.JobKey) error
 	GetJobState(ctx context.Context, id string) (*models.JobState, error)
 	UpdateJobState(ctx context.Context, id string, updates map[string]any) error
 }
@@ -102,6 +104,8 @@ func (job *ScheduledJob) Execute(ctx context.Context) error {
 		err = executeGetNewFeedsJob(ctx, job)
 	case jobTypeUpdateFeed:
 		err = executeUpdateFeedJob(ctx, job)
+	case jobTypeClearDeletedFeeds:
+		err = executeClearDeletedFeeds(ctx, job)
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
@@ -130,6 +134,8 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 			return quartz.NewJobDetailWithOptions(job, job.generateJobKey(data.FeedID, job.JobType), job.JobOptions)
 		}
 		return quartz.NewJobDetail(job, job.generateJobKey(data.FeedID, job.JobType))
+	case jobTypeClearDeletedFeeds:
+		return quartz.NewJobDetail(job, job.generateJobKey("clear_delete_feeds", ""))
 	}
 	return nil
 }

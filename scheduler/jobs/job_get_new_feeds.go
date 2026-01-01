@@ -77,7 +77,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 
 	state := &GetNewFeedsJobState{}
 	if lastState, err := schedulerAPI.GetJobState(ctx, jobStateID); err != nil {
-		if models.HTTPStatus(err) != http.StatusNotFound {
+		if !errors.Is(err, elastic.ErrNotFound) {
 			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 		}
 		state.Checkpoint = time.Time{}
