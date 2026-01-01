@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -52,7 +53,7 @@ func Run(ctx context.Context) error {
 	scheduler, err := quartz.NewStdScheduler(
 		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
-		// quartz.WithLogger(logger),
+		quartz.WithLogger(logger.NewSlogLogger(ctx, slogctx.FromCtx(ctx))),
 	)
 	if err != nil {
 		return fmt.Errorf("new scheduler: %w", err)
