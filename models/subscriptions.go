@@ -1514,6 +1514,10 @@ func (r *AddFeedSubscriptionRequest) Valid() error {
 // Sanitise will sanitise the input values of the SubscriptionRequest.
 func (r *AddFeedSubscriptionRequest) Sanitise() error {
 	r.URL = validation.SanitizeString(r.URL)
+	// Add a https:// scheme to the start of the URL if it is missing.
+	if !strings.HasPrefix(r.URL, "https://") || !strings.HasPrefix(r.URL, "http://") {
+		r.URL = "https://" + r.URL
+	}
 	if r.Nickname != "" {
 		sanitizedNickname := validation.SanitizeString(r.Nickname)
 		r.Nickname = sanitizedNickname
