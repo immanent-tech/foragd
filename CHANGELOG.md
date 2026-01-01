@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.12.0](https://github.com/immanent-tech/foragd/compare/v0.11.1...v0.12.0) (2026-01-01)
+
+
+### Features
+
+* **scheduler:** :sparkles: add job to clear deleted feeds from scheduler queue ([4757d75](https://github.com/immanent-tech/foragd/commit/4757d75d2bb20c2a4444ef516cf0e39e9e487db6))
+* **scheduler:** :sparkles: update feed job improvements ([bf7420b](https://github.com/immanent-tech/foragd/commit/bf7420bab6bf34112f93419f97696022dbeb944f))
+* **scheduler:** :sparkles: use the logger from context for the scheduler logger ([c720e19](https://github.com/immanent-tech/foragd/commit/c720e198467d6cf30762269c5725b9054af8b3ba))
+
+
+### Bug Fixes
+
+* **scheduler:** :bug: make sure fetching next scheduled job actually finds next scheduled job ([20f6a7e](https://github.com/immanent-tech/foragd/commit/20f6a7edcdc1d8db7e0741ef7d2d27e9a7280c0b))
+
 ## [0.11.1](https://github.com/immanent-tech/foragd/compare/v0.11.0...v0.11.1) (2025-12-31)
 
 
