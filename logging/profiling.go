@@ -47,6 +47,8 @@ func StartProfiling(logger *slog.Logger, flags ProfileFlags) error {
 		}
 	}
 
+	logger.Debug("Profiling started.")
+
 	return nil
 }
 
@@ -79,6 +81,8 @@ func StopProfiling(logger *slog.Logger, flags ProfileFlags) error {
 			trace.Stop()
 		}
 	}
+
+	logger.Debug("Profiling stopped.")
 
 	return nil
 }

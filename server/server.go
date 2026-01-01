@@ -5,7 +5,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -13,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -30,59 +30,57 @@ import (
 )
 
 const (
-	gracefulShutdownTimeout = 5 * time.Second
+	gracefulShutdownTimeout = 15 * time.Second
+	forcedShutdownTimeout   = 3 * time.Second
+	readinessDrainDelay     = 5 * time.Second
 )
 
-// Server represents the application server.
-type Server struct {
-	*http.Server
-}
+// Start will start the server.
+func Start(logger *slog.Logger) error {
+	rootCtx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
 
-// NewServer sets up a new server.
-func NewServer(ctx context.Context) (Server, error) {
-	svr := Server{}
+	rootCtx = slogctx.NewCtx(rootCtx, logger)
+
 	// Load the server config.
 	if err := loadConfigOnce(); err != nil {
-		return svr, fmt.Errorf("unable to load server config: %w", err)
+		return fmt.Errorf("unable to load server config: %w", err)
 	}
 
 	var err error
 
 	// Set up the session manager.
-	err = session.NewSessionManager()
-	if err != nil {
-		return svr, fmt.Errorf("unable to set up session api: %w", err)
+	if err := session.NewSessionManager(); err != nil {
+		return fmt.Errorf("unable to set up session api: %w", err)
 	}
 
 	// Set up routes.
-	router := svr.setupRoutes(ctx)
-
+	router := setupRoutes(rootCtx)
 	csrfRouter := nosurf.New(router)
 	csrfRouter.SetFailureHandler(handlers.CSRFError())
 	csrfRouter.ExemptPath("/checkout/webhooks")
 
+	ongoingCtx, stopOngoingGracefully := context.WithCancel(context.Background())
 	h2s := &http2.Server{}
-	svr.Server = &http.Server{
+	svr := &http.Server{
 		Handler:     h2c.NewHandler(csrfRouter, h2s),
 		Addr:        net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
 		ReadTimeout: cfg.ReadTimeout.Duration(),
 		// WriteTimeout: ServerConfig.WriteTimeout,
 		IdleTimeout: cfg.IdleTimeout.Duration(),
+		BaseContext: func(_ net.Listener) context.Context {
+			return ongoingCtx
+		},
 	}
 
-	err = http2.ConfigureServer(svr.Server, h2s)
+	err = http2.ConfigureServer(svr, h2s)
 	if err != nil {
-		return svr, fmt.Errorf("unable to configure server for H2C: %w", err)
+		stopOngoingGracefully()
+		return fmt.Errorf("unable to configure server for H2C: %w", err)
 	}
 
-	return svr, nil
-}
-
-// Start will start the server. It runs a background goroutine to safely shutdown the server when its context is
-// cancelled.
-func (s *Server) Start(ctx context.Context) error {
-	slogctx.FromCtx(ctx).Info("Starting server...",
-		slog.String("address", s.Addr),
+	logger.Info("Starting server...",
+		slog.String("address", svr.Addr),
 		slog.Time("start_time", time.Now()),
 	)
 
@@ -90,40 +88,42 @@ func (s *Server) Start(ctx context.Context) error {
 	go func() {
 		var err error
 		if cfg.CertFile != "" && cfg.KeyFile != "" {
-			slogctx.FromCtx(ctx).Info("Using https.",
+			logger.Info("Using https.",
 				slog.String("certificate file", cfg.CertFile),
 				slog.String("key file", cfg.KeyFile),
 			)
-			err = s.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile)
+			err = svr.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile)
 		} else {
-			slogctx.FromCtx(ctx).Info("Using http.")
-			err = s.ListenAndServe()
+			logger.Info("Using http.")
+			err = svr.ListenAndServe()
 		}
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slogctx.FromCtx(ctx).Error("Could not listen.",
+		if err != nil && err != http.ErrServerClosed {
+			logger.Error("Could not listen.",
 				slog.Any("error", err),
 			)
 		}
 	}()
 
-	// Shutdown gracefully.
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
-	<-stop
-	slogctx.FromCtx(ctx).Info("Stopping server...")
-	ctx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+	<-rootCtx.Done()
+	cancelFunc()
+	logger.Info("Shutting down server...")
+	time.Sleep(readinessDrainDelay)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
 	defer cancel()
-	if err := s.Shutdown(ctx); err != nil {
-		slog.Error("Server forced to shutdown", //nolint:sloglint // this is fine.
-			slog.Any("error", err),
-		)
+	err = svr.Shutdown(shutdownCtx)
+	stopOngoingGracefully()
+	if err != nil {
+		logger.Error("Failed to wait for ongoing requests to finish, waiting for forced cancellation.")
+		time.Sleep(forcedShutdownTimeout)
 	}
+
+	logger.Info("Server shutdown gracefully")
 
 	return nil
 }
 
 //nolint:funlen
-func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
+func setupRoutes(ctx context.Context) *chi.Mux {
 	rateLimiter := middlewares.NewRateLimiter()
 
 	// Set up a new chi router.
@@ -243,6 +243,7 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 		// Article specific.
 		r.Route("/list/articles", func(r chi.Router) {
 			r.Get("/", handlers.ListArticles())
+			r.Post("/", handlers.ListArticles())
 			r.With(middlewares.RequireHTMX).Post("/", handlers.ListArticles())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())

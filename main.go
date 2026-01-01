@@ -1,6 +1,7 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+//nolint:sloglint
 package main
 
 import (
@@ -29,8 +30,7 @@ var CLI struct {
 
 func init() {
 	// Following is copied from https://git.kernel.org/pub/scm/libs/libcap/libcap.git/tree/goapps/web/web.go
-	// ensureNotEUID aborts the program if it is running setuid something,
-	// or being invoked by root.
+	// ensureNotEUID aborts the program if it is running setuid something, or being invoked by root.
 	euid := syscall.Geteuid()
 	uid := syscall.Getuid()
 	egid := syscall.Getegid()
@@ -46,7 +46,7 @@ func main() {
 	kong.Name(config.AppName)
 	kong.Description(config.AppDescription)
 
-	ctx := kong.Parse(&CLI, kong.Bind())
+	cmd := kong.Parse(&CLI, kong.Bind())
 
 	if err := config.Init(); err != nil {
 		slog.Error("Could not initialize config.",
@@ -54,15 +54,6 @@ func main() {
 		os.Exit(-1)
 	}
 
-	// // Load the Elastic backend
-	// esapi, err := elastic.RawConnection(context.Background(), CLI.Environment)
-	// if err != nil {
-	// 	slog.Error("Could not initialize config.",
-	// 		slog.Any("error", err))
-	// 	os.Exit(-1)
-	// }
-	// esLogHandler := slogelasticsearch.Option{Level: slog.LevelDebug, Conn: esapi, Index: schema.LogsSchemaPrefix}.NewElasticsearchHandler(context.Background())
-	// logger := logging.New(logging.Options{LogLevel: CLI.LogLevel, NoLogFile: CLI.NoLogFile, Handlers: []slog.Handler{esLogHandler}})
 	logger := logging.New(logging.Options{LogLevel: CLI.LogLevel, NoLogFile: CLI.NoLogFile})
 
 	// Enable profiling if requested.
@@ -73,12 +64,12 @@ func main() {
 		}
 	}
 	// Run the requested command with the provided options.
-	if err := ctx.Run(cli.AddArguments(
+	if err := cmd.Run(cli.AddArguments(
 		cli.WithLogger(logger),
 		cli.WithEnvironment(CLI.Environment),
 	)); err != nil {
 		logger.Error("Command failed.",
-			slog.String("command", ctx.Command()),
+			slog.String("command", cmd.Command()),
 			slog.Any("error", err))
 	}
 	// If profiling was enabled, clean up.
