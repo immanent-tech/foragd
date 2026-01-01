@@ -198,7 +198,7 @@ func ShareObjectModal(id, title, link string) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("href", fmt.Sprintf("mailto:?subject=%q&body=%s", html.EscapeString(title), link)),
+				WithAttribute("href", fmt.Sprintf("mailto:?subject=%q&body=%s", html.EscapeString(title), link)),
 				WithClasses("btn", "col-span-1", "col-start-2"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -244,7 +244,7 @@ func ShareObjectModal(id, title, link string) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewButton(
-				WithCustomAttribute("_",
+				WithAttribute("_",
 					"on click set currentValue to (my innerHTML) then writeText('"+link+"') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me",
 				),
 				WithClasses("join-item"),

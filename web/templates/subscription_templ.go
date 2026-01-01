@@ -564,9 +564,9 @@ func subscriptionContextMenu(s *models.Subscription) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("href", s.GetLink()),
-				WithCustomAttribute("rel", "noopener"),
-				WithCustomAttribute("target", "_blank"),
+				WithAttribute("href", s.GetLink()),
+				WithAttribute("rel", "noopener"),
+				WithAttribute("target", "_blank"),
 				WithClasses("link-hover"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var21), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -747,7 +747,7 @@ func subscriptionContextMenu(s *models.Subscription) templ.Component {
 			WithHXMethod(http.MethodPost, "/remove/subscription/"+s.GetID()),
 			WithHXTarget(ModalContainerID.Target()),
 			WithHXInclude("[name='csrf_token']"),
-			WithCustomAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"),
+			WithAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"),
 			WithClasses("link-hover"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var27), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -3312,8 +3312,8 @@ func subscriptionThumbnail(url, title string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = NewProxiedImage(&types.ImageInfo{Title: title, URL: url}, "rs:auto:48:48/sh:0.5/q:80/sm:1/kcr:1/scp:1",
-				WithCustomAttribute("width", "48"),
-				WithCustomAttribute("height", "48"),
+				WithAttribute("width", "48"),
+				WithAttribute("height", "48"),
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

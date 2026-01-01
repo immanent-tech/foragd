@@ -115,7 +115,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 			WithHXSwap("innerHTML show:window:top transition:true"),
 			WithHXPushURL(true),
 			WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-			WithCustomAttribute("_", "on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"),
+			WithAttribute("_", "on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -180,7 +180,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 			WithHXPushURL(true),
 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
 			WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-			WithCustomAttribute("_", "on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions"),
+			WithAttribute("_", "on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -245,7 +245,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 			WithHXPushURL(true),
 			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
 			WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-			WithCustomAttribute("_", "on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles"),
+			WithAttribute("_", "on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -309,7 +309,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 			WithHXSwap("innerHTML show:window:top transition:true"),
 			WithHXPushURL(true),
 			WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-			WithCustomAttribute("_", "on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites"),
+			WithAttribute("_", "on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var11), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

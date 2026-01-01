@@ -73,14 +73,14 @@ templ ShareObjectModal(id, title, link string) {
 		</div>
 		<div class="grid grid-flow-row grid-cols-3 mt-5 items-center justify-center sm:mt-4 gap-y-2 gap-x-2">
 			// @NewLink(
-			// 	WithCustomAttribute("href", fmt.Sprintf("https://twitter.com/intent/tweet?text=%s&url%s", html.EscapeString(obj.GetTitle()), html.EscapeString(obj.GetLink()))),
+			// 	WithAttribute("href", fmt.Sprintf("https://twitter.com/intent/tweet?text=%s&url%s", html.EscapeString(obj.GetTitle()), html.EscapeString(obj.GetLink()))),
 			// 	WithClasses("btn", "col-span-1", "twitter-share-button"),
 			// ) {
 			// 	@tabler.Mail(i.Props{Class: "size-4"})
 			// 	Email
 			// }
 			@NewLink(
-				WithCustomAttribute("href", fmt.Sprintf("mailto:?subject=%q&body=%s", html.EscapeString(title), link)),
+				WithAttribute("href", fmt.Sprintf("mailto:?subject=%q&body=%s", html.EscapeString(title), link)),
 				WithClasses("btn", "col-span-1", "col-start-2"),
 			) {
 				@tabler.Mail(i.Props{Class: "size-4"})
@@ -93,7 +93,7 @@ templ ShareObjectModal(id, title, link string) {
 					</label>
 				</div>
 				@NewButton(
-					WithCustomAttribute("_",
+					WithAttribute("_",
 						"on click set currentValue to (my innerHTML) then writeText('"+link+"') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me",
 					),
 					WithClasses("join-item"),

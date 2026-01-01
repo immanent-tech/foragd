@@ -63,7 +63,7 @@ templ AccountSettings(user *models.User) {
 						"support@immanent.tech",
 						WithMailtoSubject("Foragd Subscription Question"),
 						WithLinkOptions(
-							WithCustomAttribute("role", "button"),
+							WithAttribute("role", "button"),
 							WithClasses("btn", "btn-primary"),
 						),
 					) {
@@ -148,7 +148,7 @@ templ AccountSettings(user *models.User) {
 					<label for="avatar" class="block text-sm/6 font-medium">Avatar</label>
 					<p class="text-sm/6 text-base-content/80">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
 					<div class="mt-2 flex items-center space-x-2">
-						@userAvatar(user)
+						@UserAvatar(user, nil)
 						<input
 							id="avatar"
 							type="file"

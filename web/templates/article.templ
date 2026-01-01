@@ -151,9 +151,9 @@ templ ArticleContent(article *models.Article) {
 			// Article title.
 			<div class="flex flex-1 pb-2">
 				@NewLink(
-					WithCustomAttribute("href", article.GetLink()),
-					WithCustomAttribute("target", "_blank"),
-					WithCustomAttribute("rel", "noopener"),
+					WithAttribute("href", article.GetLink()),
+					WithAttribute("target", "_blank"),
+					WithAttribute("rel", "noopener"),
 					WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 				) {
 					<h2 class="page-title">{ article.GetTitle() }</h2>
@@ -480,8 +480,8 @@ templ articleImage(img *types.ImageInfo, altTitle string, classes ...string) {
 	// scp:1 - convert color profile to sRGB
 	@NewProxiedImage(img, "rs:auto:300:200/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
 		WithClasses(classes...),
-		WithCustomAttribute("width", "300"),
-		WithCustomAttribute("height", "200"),
+		WithAttribute("width", "300"),
+		WithAttribute("height", "200"),
 	)
 }
 
@@ -490,7 +490,7 @@ templ articleImage(img *types.ImageInfo, altTitle string, classes ...string) {
 templ shareArticleLink(article *models.Article, classes ...string) {
 	@NewLink(
 		WithClasses(classes...),
-		WithCustomAttribute("_",
+		WithAttribute("_",
 			"on click if navigator.share then "+shareAPIDialog(article.GetTitle(), article.GetLink())+" else call document.getElementById('share-"+article.GetID()+"').show() ",
 		),
 	) {
@@ -501,9 +501,9 @@ templ shareArticleLink(article *models.Article, classes ...string) {
 // goToArticleLink renders a link that directs to the remote article.
 templ goToArticleLink(article *models.Article, classes ...string) {
 	@NewLink(
-		WithCustomAttribute("href", article.GetLink()),
-		WithCustomAttribute("target", "_blank"),
-		WithCustomAttribute("rel", "noopener"),
+		WithAttribute("href", article.GetLink()),
+		WithAttribute("target", "_blank"),
+		WithAttribute("rel", "noopener"),
 		WithClasses(classes...),
 	) {
 		{ children... }

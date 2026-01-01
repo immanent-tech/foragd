@@ -254,8 +254,12 @@ func SaveAccountSettings() http.HandlerFunc {
 			}
 		}
 		// Report success.
-		msg := models.NewSuccessMessage("Account edits saved!", "")
-		template := templates.Notification(msg, 0)
+		template := templ.Join(
+			templates.Notification(
+				models.NewSuccessMessage("Account edits saved!", ""), templates.DefaultNotificationTimeout,
+			),
+			templates.UserAvatar(user, templ.Attributes{"hx-swap-oob": "true"}),
+		)
 		renderPartial(template).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP

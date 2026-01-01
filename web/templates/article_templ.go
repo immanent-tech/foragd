@@ -605,9 +605,9 @@ func ArticleContent(article *models.Article) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("href", article.GetLink()),
-				WithCustomAttribute("target", "_blank"),
-				WithCustomAttribute("rel", "noopener"),
+				WithAttribute("href", article.GetLink()),
+				WithAttribute("target", "_blank"),
+				WithAttribute("rel", "noopener"),
 				WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var25), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -1882,8 +1882,8 @@ func articleImage(img *types.ImageInfo, altTitle string, classes ...string) temp
 		classes = append(classes, "responsive-img")
 		templ_7745c5c3_Err = NewProxiedImage(img, "rs:auto:300:200/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
 			WithClasses(classes...),
-			WithCustomAttribute("width", "300"),
-			WithCustomAttribute("height", "200"),
+			WithAttribute("width", "300"),
+			WithAttribute("height", "200"),
 		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1935,7 +1935,7 @@ func shareArticleLink(article *models.Article, classes ...string) templ.Componen
 		})
 		templ_7745c5c3_Err = NewLink(
 			WithClasses(classes...),
-			WithCustomAttribute("_",
+			WithAttribute("_",
 				"on click if navigator.share then "+shareAPIDialog(article.GetTitle(), article.GetLink())+" else call document.getElementById('share-"+article.GetID()+"').show() ",
 			),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var85), templ_7745c5c3_Buffer)
@@ -1987,9 +1987,9 @@ func goToArticleLink(article *models.Article, classes ...string) templ.Component
 			return nil
 		})
 		templ_7745c5c3_Err = NewLink(
-			WithCustomAttribute("href", article.GetLink()),
-			WithCustomAttribute("target", "_blank"),
-			WithCustomAttribute("rel", "noopener"),
+			WithAttribute("href", article.GetLink()),
+			WithAttribute("target", "_blank"),
+			WithAttribute("rel", "noopener"),
 			WithClasses(classes...),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var87), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

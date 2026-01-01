@@ -27,7 +27,7 @@ templ SideBar(attributes templ.Attributes) {
 							WithHXSwap("innerHTML show:window:top transition:true"),
 							WithHXPushURL(true),
 							WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithCustomAttribute("_", "on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"),
+							WithAttribute("_", "on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"),
 						) {
 							<span class="sr-only">Go to Home Page</span>
 							@tabler.HomeFilled(i.Props{Class: "size-10 shrink-0 text-primary"})
@@ -43,7 +43,7 @@ templ SideBar(attributes templ.Attributes) {
 							WithHXPushURL(true),
 							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
 							WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithCustomAttribute("_", "on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions"),
+							WithAttribute("_", "on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions"),
 						) {
 							<span class="sr-only">Go to Subscriptions</span>
 							@tabler.Rss(i.Props{Class: "size-10 shrink-0 text-primary"})
@@ -59,7 +59,7 @@ templ SideBar(attributes templ.Attributes) {
 							WithHXPushURL(true),
 							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
 							WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithCustomAttribute("_", "on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles"),
+							WithAttribute("_", "on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles"),
 						) {
 							<span class="sr-only">Go to Articles</span>
 							@tabler.FileRssFilled(i.Props{Class: "size-10 shrink-0 text-primary"})
@@ -74,7 +74,7 @@ templ SideBar(attributes templ.Attributes) {
 							WithHXSwap("innerHTML show:window:top transition:true"),
 							WithHXPushURL(true),
 							WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithCustomAttribute("_", "on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites"),
+							WithAttribute("_", "on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites"),
 						) {
 							<span class="sr-only">Go to Favorites</span>
 							@tabler.HeartFilled(i.Props{Class: "size-10 shrink-0 text-primary"})

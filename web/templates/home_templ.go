@@ -314,7 +314,7 @@ func (page *Home) Template() templ.Component {
 								WithHXSwap("innerHTML show:window:top transition:true"),
 								WithHXVals(params),
 								WithHXPushURL(true),
-								WithCustomAttribute("tabindex", "0"),
+								WithAttribute("tabindex", "0"),
 							).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err

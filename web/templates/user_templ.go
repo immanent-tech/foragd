@@ -102,7 +102,7 @@ func UserChooseSubscriptionPlan(user *models.User, planID string) templ.Componen
 						"support@immanent.tech",
 						WithMailtoSubject("Foragd Subscription Question"),
 						WithLinkOptions(
-							WithCustomAttribute("role", "button"),
+							WithAttribute("role", "button"),
 							WithClasses("btn", "btn-primary"),
 						),
 					).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
@@ -193,8 +193,8 @@ func UserAccountIssue() templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "/"),
+				WithAttribute("role", "button"),
+				WithAttribute("href", "/"),
 				WithClasses("btn", "btn-primary"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var7), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -222,7 +222,7 @@ func UserAccountIssue() templ.Component {
 				"support@immanent.tech",
 				WithMailtoSubject("Foragd Account Issue"),
 				WithLinkOptions(
-					WithCustomAttribute("role", "button"),
+					WithAttribute("role", "button"),
 					WithClasses("btn", "btn-ghost"),
 				),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
@@ -351,7 +351,7 @@ func DeactivateAccountModal() templ.Component {
 	})
 }
 
-func userAvatar(user *models.User) templ.Component {
+func UserAvatar(user *models.User, attributes templ.Attributes) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -375,8 +375,10 @@ func userAvatar(user *models.User) templ.Component {
 		templ_7745c5c3_Err = NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "Avatar for user " + user.GetNickname()},
 			"rs:auto:48:48/sh:0.5/ext:webp",
 			WithClasses("flex rounded-full outline -outline-offset-1 outline-base-content/10"),
-			WithCustomAttribute("width", "48"),
-			WithCustomAttribute("height", "48"),
+			WithAttribute("width", "48"),
+			WithAttribute("height", "48"),
+			WithID("user-avatar"),
+			WithAttributes(attributes),
 		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

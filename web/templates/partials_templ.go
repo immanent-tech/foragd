@@ -77,8 +77,8 @@ func NotFound() templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "/home"),
+				WithAttribute("role", "button"),
+				WithAttribute("href", "/home"),
 				WithClasses("btn", "btn-primary"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -103,8 +103,8 @@ func NotFound() templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
+				WithAttribute("role", "button"),
+				WithAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
 				WithClasses("btn", "btn-ghost"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -217,8 +217,8 @@ func ExternalError(msg *models.UserMessage) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "/"),
+				WithAttribute("role", "button"),
+				WithAttribute("href", "/"),
 				WithClasses("btn", "btn-primary"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var9), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -243,8 +243,8 @@ func ExternalError(msg *models.UserMessage) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
+				WithAttribute("role", "button"),
+				WithAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
 				WithClasses("btn", "btn-ghost"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -356,8 +356,8 @@ func ErrorPage(msg *models.UserMessage) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "/home"),
+				WithAttribute("role", "button"),
+				WithAttribute("href", "/home"),
 				WithClasses("btn", "btn-primary"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -382,8 +382,8 @@ func ErrorPage(msg *models.UserMessage) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
+				WithAttribute("role", "button"),
+				WithAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
 				WithClasses("btn", "btn-ghost"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

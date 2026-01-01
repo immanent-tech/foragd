@@ -20,6 +20,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/immanent-tech/go-syndication/types"
+	"github.com/knadh/koanf/maps"
 	"html"
 	"net/http"
 	"slices"
@@ -63,6 +64,12 @@ func (e *HTMLElement) SetAttribute(key string, value any) {
 	e.attributes[key] = value
 }
 
+func (e *HTMLElement) MergeAttributes(attributes templ.Attributes) {
+	e.Lock()
+	defer e.Unlock()
+	maps.Merge(attributes, e.attributes)
+}
+
 func (e *HTMLElement) HasAttribute(key string) bool {
 	e.Lock()
 	defer e.Unlock()
@@ -85,6 +92,7 @@ type element interface {
 	GetID() string
 	GetTarget() string
 	SetAttribute(key string, value any)
+	MergeAttributes(attributes templ.Attributes)
 	AddClasses(classes ...string)
 	GetClasses() []string
 }
@@ -176,9 +184,17 @@ func WithClasses(classes ...string) Option[element] {
 	}
 }
 
-func WithCustomAttribute(key string, value any) Option[element] {
+func WithAttribute(key string, value any) Option[element] {
 	return func(e element) {
 		e.SetAttribute(key, value)
+	}
+}
+
+func WithAttributes(attributes templ.Attributes) Option[element] {
+	return func(e element) {
+		if attributes != nil {
+			e.MergeAttributes(attributes)
+		}
 	}
 }
 
@@ -225,7 +241,7 @@ func NewLink(options ...Option[element]) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(link.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 192, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 208, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -328,7 +344,7 @@ func NewMailtoLink(to string, options ...MailtoOption) templ.Component {
 			builder.WriteString("?")
 			builder.WriteString(strings.Join(mailto.parts, "&"))
 		}
-		WithCustomAttribute("href", builder.String())(mailto.link)
+		WithAttribute("href", builder.String())(mailto.link)
 		for linkOption := range slices.Values(mailto.linkOptions) {
 			linkOption(mailto.link)
 		}
@@ -345,7 +361,7 @@ func NewMailtoLink(to string, options ...MailtoOption) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(mailto.link.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 260, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 276, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -423,7 +439,7 @@ func NewButton(options ...Option[element]) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(btn.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 282, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 298, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -499,7 +515,7 @@ func NewDiv(options ...Option[element]) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(div.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 302, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 318, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -574,7 +590,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[eleme
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(elem.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 324, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 340, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -592,7 +608,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[eleme
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(generateImageProxyURL(ctx, img.GetURL(), props))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 326, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 342, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -605,7 +621,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[eleme
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 327, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 343, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {

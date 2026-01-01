@@ -167,7 +167,7 @@ func AccountSettings(user *models.User) templ.Component {
 				"support@immanent.tech",
 				WithMailtoSubject("Foragd Subscription Question"),
 				WithLinkOptions(
-					WithCustomAttribute("role", "button"),
+					WithAttribute("role", "button"),
 					WithClasses("btn", "btn-primary"),
 				),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
@@ -241,7 +241,7 @@ func AccountSettings(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = userAvatar(user).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = UserAvatar(user, nil).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

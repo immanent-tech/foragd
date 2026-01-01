@@ -84,7 +84,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = userAvatar(user).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = UserAvatar(user, nil).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -131,7 +131,7 @@ func header(user *models.User) templ.Component {
 			WithHXMethod(http.MethodGet, "/user/settings"),
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(true),
-			WithCustomAttribute("_", "on click remove @open from #header-menu"),
+			WithAttribute("_", "on click remove @open from #header-menu"),
 			WithClasses("link-hover"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -164,8 +164,8 @@ func header(user *models.User) templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = NewLink(
-			WithCustomAttribute("href", "/help/index"),
-			WithCustomAttribute("_", "on click remove @open from #header-menu"),
+			WithAttribute("href", "/help/index"),
+			WithAttribute("_", "on click remove @open from #header-menu"),
 			WithClasses("link-hover"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var4), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -233,7 +233,7 @@ func header(user *models.User) templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = NewLink(
-			WithCustomAttribute("href", "/logout"),
+			WithAttribute("href", "/logout"),
 			WithClasses("link-hover"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {

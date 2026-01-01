@@ -70,7 +70,7 @@ templ header(user *models.User) {
 						WithClasses("btn-ghost btn-square"),
 					) {
 						<span class="sr-only">Open settings menu</span>
-						@userAvatar(user)
+						@UserAvatar(user, nil)
 					}
 					<el-menu id="header-menu" anchor="bottom end" popover>
 						// Open settings menu.
@@ -78,7 +78,7 @@ templ header(user *models.User) {
 							WithHXMethod(http.MethodGet, "/user/settings"),
 							WithHXTarget(ContentID.Target()),
 							WithHXPushURL(true),
-							WithCustomAttribute("_", "on click remove @open from #header-menu"),
+							WithAttribute("_", "on click remove @open from #header-menu"),
 							WithClasses("link-hover"),
 						) {
 							<div class="flex flex-1 items-center gap-x-2">
@@ -88,8 +88,8 @@ templ header(user *models.User) {
 						}
 						// Help documentation.
 						@NewLink(
-							WithCustomAttribute("href", "/help/index"),
-							WithCustomAttribute("_", "on click remove @open from #header-menu"),
+							WithAttribute("href", "/help/index"),
+							WithAttribute("_", "on click remove @open from #header-menu"),
 							WithClasses("link-hover"),
 						) {
 							<div class="flex flex-1 items-center gap-x-2">
@@ -111,7 +111,7 @@ templ header(user *models.User) {
 						}
 						// Logout
 						@NewLink(
-							WithCustomAttribute("href", "/logout"),
+							WithAttribute("href", "/logout"),
 							WithClasses("link-hover"),
 						) {
 							<div class="flex flex-1 items-center gap-x-2">

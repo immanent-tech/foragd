@@ -240,8 +240,8 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 						return nil
 					})
 					templ_7745c5c3_Err = viewFeedSubscriptionLink(subscription.GetID(), subscription.GetTitle(), models.ViewUnread,
-						WithCustomAttribute("href", "#"),
-						WithCustomAttribute("_", "on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"),
+						WithAttribute("href", "#"),
+						WithAttribute("_", "on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"),
 						WithClasses("group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"),
 					).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
@@ -314,7 +314,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 						return nil
 					})
 					templ_7745c5c3_Err = NewLink(
-						WithCustomAttribute("href", "#"),
+						WithAttribute("href", "#"),
 						WithHXMethod(http.MethodPost, "/search"),
 						WithHXInclude("[name='csrf_token']"),
 						WithHXValsJS(subscription.SearchData.Search.HXVals()),
@@ -322,7 +322,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 						WithHXPushURL(true),
 						WithHXSwap("innerHTML show:#search-results:top transition:true"),
 						WithClasses("group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"),
-						WithCustomAttribute("_", "on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"),
+						WithAttribute("_", "on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"),
 					).Render(templ.WithChildren(ctx, templ_7745c5c3_Var12), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -1197,7 +1197,7 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 				WithHXParams("subscription_id,subscription_name,csrf_token,subscriptions-input-name"),
 				WithHXPushURL(false),
 				WithClasses("btn-sm hover:btn-success"),
-				WithCustomAttribute("_", "on htmx:afterRequest(successful) remove me"),
+				WithAttribute("_", "on htmx:afterRequest(successful) remove me"),
 				// then set the previous #subscriptions-filter-select value to ''
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var47), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -1287,8 +1287,8 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 			return nil
 		})
 		templ_7745c5c3_Err = NewButton(
-			WithCustomAttribute("type", "button"),
-			WithCustomAttribute("_", "on click remove me then halt"),
+			WithAttribute("type", "button"),
+			WithAttribute("_", "on click remove me then halt"),
 			WithClasses("btn-sm hover:btn-error"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var50), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -1431,8 +1431,8 @@ func NoSearchResults() templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "/home"),
+				WithAttribute("role", "button"),
+				WithAttribute("href", "/home"),
 				WithClasses("btn", "btn-primary"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var59), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

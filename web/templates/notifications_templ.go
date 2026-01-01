@@ -305,8 +305,8 @@ func ServerErrorNotification(msg *models.UserMessage) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithCustomAttribute("role", "button"),
-				WithCustomAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
+				WithAttribute("role", "button"),
+				WithAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
 				WithClasses("btn"),
 			).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
