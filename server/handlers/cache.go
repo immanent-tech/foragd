@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -19,6 +20,7 @@ type objectCache interface {
 	Get(ctx context.Context, key string) ([]byte, bool)
 	Set(ctx context.Context, key string, value []byte)
 	Delete(ctx context.Context, key string)
+	Copy(ctx context.Context, key string, buf io.Writer) error
 }
 
 // dirCache is a really simple object cache using a directory on the local filesystem. It is used in development
@@ -47,6 +49,21 @@ func (d *dirCache) Get(ctx context.Context, key string) ([]byte, bool) {
 	}
 	return data, true
 }
+
+func (d *dirCache) Copy(_ context.Context, key string, buf io.Writer) error {
+	data, err := d.Open(key)
+	if err != nil {
+		return fmt.Errorf("open file: %w", err)
+	}
+
+	_, err = io.Copy(buf, data)
+	if err != nil {
+		return fmt.Errorf("copy file: %w", err)
+	}
+
+	return nil
+}
+
 func (d *dirCache) Set(ctx context.Context, key string, value []byte) {
 	const defaultFilePerms = 0666
 	if err := d.WriteFile(key, value, defaultFilePerms); err != nil {

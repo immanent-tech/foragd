@@ -47,6 +47,21 @@ func (b *Bucket) Get(ctx context.Context, key string) ([]byte, bool) {
 	return value, true
 }
 
+func (b *Bucket) Copy(ctx context.Context, key string, buf io.Writer) error {
+	r, err := b.object(key).NewReader(ctx)
+	if err != nil {
+		return fmt.Errorf("create object reader: %w", err)
+	}
+	defer r.Close()
+
+	_, err = io.Copy(buf, r)
+	if err != nil {
+		return fmt.Errorf("copy object: %w", err)
+	}
+
+	return nil
+}
+
 func (b *Bucket) Set(ctx context.Context, key string, value []byte) {
 	objWriter := b.object(key).NewWriter(ctx)
 	if _, err := objWriter.Write(value); err != nil {

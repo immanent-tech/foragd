@@ -158,11 +158,11 @@ func (s *Server) setupRoutes(ctx context.Context) *chi.Mux {
 	// Image proxy.
 	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgProxy.BaseURL))
 	// Avatars
-	router.Get("/img/avatar/*", handlers.Avatar())
+	router.Get("/img/avatar/*", handlers.LoadCachedImage("avatar"))
 	// User custom subscription images
-	router.Get("/img/subscription/*", handlers.SubscriptionImage())
+	router.Get("/img/subscription/*", handlers.LoadCachedImage("subscription_thumbnail"))
 	// User uploaded screenshots
-	router.Get("/img/screenshots/*", handlers.Screenshots())
+	router.Get("/img/screenshots/*", handlers.LoadCachedImage("screenshot"))
 
 	// Front page.
 	router.Get("/", handlers.Landing())

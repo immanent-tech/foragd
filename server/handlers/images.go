@@ -4,8 +4,10 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -55,21 +57,21 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			10,
 		)
 
-		imgBufPtr, ok := imgBufPool.Get().(*[]byte)
+		imgBuf, ok := imgBufPool.Get().(*bytes.Buffer)
 		if !ok {
 			res.WriteHeader(http.StatusInternalServerError)
 			slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
 			return
 		}
-		imgBuf := *imgBufPtr
-		defer imgBufPool.Put(imgBufPtr)
-		var found bool
+		imgBuf.Reset()
+		defer imgBufPool.Put(imgBuf)
 
+		var found bool
 		// Try to fetch the image from the cache. If found, return the cached image.
-		imgBuf, found = imgCache.Get(req.Context(), imgHash)
-		if found {
+		if err := imgCache.Copy(req.Context(), imgHash, imgBuf); err == nil {
+			found = true
 			// Write the image to the response.
-			if _, err := res.Write(imgBuf); err != nil {
+			if _, err := res.Write(imgBuf.Bytes()); err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
 				slogctx.FromCtx(req.Context()).Error("Write image data.",
 					slog.Any("error", err),
@@ -117,7 +119,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			return
 		}
 
-		imgBuf, err = io.ReadAll(resp.RawBody())
+		_, err = io.Copy(imgBuf, resp.RawBody())
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			slogctx.FromCtx(req.Context()).Error("Read image proxy response failed.",
@@ -130,7 +132,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		defer jobCtx.Done()
 		// Write the image to the response.
 		wg.Go(func() error {
-			_, err = res.Write(imgBuf)
+			_, err = res.Write(imgBuf.Bytes())
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
 				return fmt.Errorf("write image: %w", err)
@@ -141,7 +143,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		// Save to the cache if not saved already.
 		wg.Go(func() error {
 			if !found {
-				imgCache.Set(jobCtx, imgHash, imgBuf)
+				imgCache.Set(jobCtx, imgHash, imgBuf.Bytes())
 			}
 			return nil
 		})
@@ -157,144 +159,90 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 	}
 }
 
-// Avatar handles fetching and displaying custom avatars for users.
-func Avatar() http.HandlerFunc {
+// LoadCacheImage handles fetching and displaying an image from one of the image caches.
+func LoadCachedImage(cache string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Load the image cache.
-		if err := loadAvatarCache(); err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Load avatar cache failed.",
-				slog.Any("error", err),
-			)
-			return
-		}
-
 		key := chi.URLParam(req, "*")
 
-		imgBufPtr, ok := imgBufPool.Get().(*[]byte)
+		imgBuf, ok := imgBufPool.Get().(*bytes.Buffer)
 		if !ok {
 			res.WriteHeader(http.StatusInternalServerError)
 			slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
 			return
 		}
-		imgBuf := *imgBufPtr
-		defer imgBufPool.Put(imgBufPtr)
-		var found bool
+		imgBuf.Reset()
+		defer imgBufPool.Put(imgBuf)
 
-		// Try to fetch the image from the cache. If found, return the cached image.
-		imgBuf, found = avatarCache.Get(req.Context(), key)
-		if found {
-			// Write the image to the response.
-			if _, err := res.Write(imgBuf); err != nil {
+		var err error
+		switch cache {
+		case "avatar":
+			// Load the image cache.
+			if err := loadAvatarCache(); err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
-				slogctx.FromCtx(req.Context()).Error("Write image data.",
+				slogctx.FromCtx(req.Context()).Error("Load avatar cache failed.",
 					slog.Any("error", err),
 				)
 				return
 			}
-			// Return success.
-			res.WriteHeader(http.StatusOK)
+			err = avatarCache.Copy(req.Context(), key, imgBuf)
+		case "subscription_thumbnail":
+			// Load the image cache.
+			thumbnailCache, err := loadThumbnailCache()
+			if err != nil {
+				res.WriteHeader(http.StatusInternalServerError)
+				slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
+					slog.Any("error", err),
+				)
+				return
+			}
+			err = thumbnailCache.Copy(req.Context(), key, imgBuf)
+		case "screenshot":
+			// Load the image cache.
+			screenshotCache, err := loadScreenshotCache()
+			if err != nil {
+				res.WriteHeader(http.StatusInternalServerError)
+				slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
+					slog.Any("error", err),
+				)
+				return
+			}
+			err = screenshotCache.Copy(req.Context(), key, imgBuf)
+		default:
+			res.WriteHeader(http.StatusUnprocessableEntity)
+			slogctx.FromCtx(req.Context()).Error("Invalid image cache.",
+				slog.Any("error", err),
+			)
 			return
 		}
 
-		http.NotFound(res, req)
-	}
-}
-
-// SubscriptionImage handles fetching and displaying a custom subscription image thumbnail for users.
-func SubscriptionImage() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Load the image cache.
-		thumbnailCache, err := loadThumbnailCache()
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				http.NotFound(res, req)
+				return
+			}
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Write image data.",
+				slog.Any("error", err),
+			)
+			return
+		}
+		_, err = res.Write(imgBuf.Bytes())
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
+			slogctx.FromCtx(req.Context()).Error("Write image data.",
 				slog.Any("error", err),
 			)
 			return
 		}
 
-		key := chi.URLParam(req, "*")
-
-		imgBufPtr, ok := imgBufPool.Get().(*[]byte)
-		if !ok {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
-			return
-		}
-		imgBuf := *imgBufPtr
-		defer imgBufPool.Put(imgBufPtr)
-		var found bool
-
-		// Try to fetch the image from the cache. If found, return the cached image.
-		imgBuf, found = thumbnailCache.Get(req.Context(), key)
-		if found {
-			// Write the image to the response.
-			if _, err := res.Write(imgBuf); err != nil {
-				res.WriteHeader(http.StatusInternalServerError)
-				slogctx.FromCtx(req.Context()).Error("Write image data.",
-					slog.Any("error", err),
-				)
-				return
-			}
-			// Return success.
-			res.WriteHeader(http.StatusOK)
-			return
-		} else {
-			http.NotFound(res, req)
-		}
-	}
-}
-
-// Screenshots handles fetching and displaying a uploaded screenshots.
-func Screenshots() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Load the image cache.
-		screenshotCache, err := loadScreenshotCache()
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
-				slog.Any("error", err),
-			)
-			return
-		}
-
-		key := chi.URLParam(req, "*")
-
-		imgBufPtr, ok := imgBufPool.Get().(*[]byte)
-		if !ok {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
-			return
-		}
-		imgBuf := *imgBufPtr
-		defer imgBufPool.Put(imgBufPtr)
-		var found bool
-
-		// Try to fetch the image from the cache. If found, return the cached image.
-		imgBuf, found = screenshotCache.Get(req.Context(), key)
-		if found {
-			// Write the image to the response.
-			if _, err := res.Write(imgBuf); err != nil {
-				res.WriteHeader(http.StatusInternalServerError)
-				slogctx.FromCtx(req.Context()).Error("Write image data.",
-					slog.Any("error", err),
-				)
-				return
-			}
-			// Return success.
-			res.WriteHeader(http.StatusOK)
-			return
-		} else {
-			http.NotFound(res, req)
-		}
+		// Return success.
+		res.WriteHeader(http.StatusOK)
 	}
 }
 
 var imgBufPool = sync.Pool{
 	New: func() any {
-		buf := make([]byte, 8388608) // TODO: fetch from IMGPROXY_MAX_SRC_FILE_SIZE env var.
-		return &buf
+		return new(bytes.Buffer)
 	},
 }
 
