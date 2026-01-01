@@ -6,9 +6,11 @@ package jobs
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
+	"sync"
 	"time"
 
 	feeds "github.com/immanent-tech/go-syndication"
@@ -58,9 +60,13 @@ func NewUpdateFeedJob(id models.FeedID, urls []models.URL, trigger *pollTrigger)
 // executeUpdateFeedJob will execute a job that attempts to find new items for a feed and index them into the data
 // backend.
 func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
-	var jobData UpdateFeedJobData
-	if err := json.Unmarshal(job.JobData, &jobData); err != nil {
-		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
+	jobData, ok := updateFeedBufPool.Get().(*UpdateFeedJobData)
+	defer updateFeedBufPool.Put(jobData)
+	if !ok {
+		return errors.New("unable to allocate job data buffer")
+	}
+	if err := json.Unmarshal(job.JobData, jobData); err != nil {
+		return fmt.Errorf("unmarshal job data: %w", err)
 	}
 
 	// Add feed id as slog attribute for log tracking.
@@ -72,14 +78,14 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	// Retrieve the feed details.
 	details, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, models.FeedsIndexRO, jobData.FeedID)
 	if err != nil {
-		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
+		return fmt.Errorf("get feed doc: %w", err)
 	}
 	// Get new items since the last fetch.
 	feed, err := feeds.NewFeedFromURL(jobCtx, jobData.URLs[0])
 	if err != nil {
-		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
+		return fmt.Errorf("fetch feed: %w", err)
 	}
-	items := make(models.Items, 0)
+	items := make(models.Items, 0, len(feed.GetItems()))
 	for i := range slices.Values(feed.GetItems()) {
 		items = append(items, models.NewItemFromSource(&i, details))
 	}
@@ -95,7 +101,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			ctx,
 			models.ItemsIndexRW,
 			items.FilterSince(details.LastFetched)...); err != nil {
-			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
+			return fmt.Errorf("update items: %w", err)
 		}
 		slogctx.FromCtx(ctx).Debug("Added new items.",
 			slog.String("feed", details.GetTitle()),
@@ -106,8 +112,14 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		if err := elastic.UpdateDoc(ctx, models.FeedsIndexRW, jobData.FeedID, map[string]any{
 			"last_fetched": items.SortByTimestamp()[0].GetTimestamp(),
 		}); err != nil {
-			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
+			return fmt.Errorf("update feed last fetched: %w", err)
 		}
 	}
 	return nil
+}
+
+var updateFeedBufPool = sync.Pool{
+	New: func() any {
+		return &UpdateFeedJobData{}
+	},
 }
