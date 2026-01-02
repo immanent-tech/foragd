@@ -184,8 +184,9 @@ func LoadCachedImage(res http.ResponseWriter, req *http.Request) {
 		}
 		err = avatarCache.Copy(req.Context(), key, imgBuf)
 	case strings.HasPrefix(req.URL.Path, "/img/subscription"):
+		var thumbnailCache objectCache
 		// Load the image cache.
-		thumbnailCache, err := loadThumbnailCache()
+		thumbnailCache, err = loadThumbnailCache()
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
@@ -195,8 +196,9 @@ func LoadCachedImage(res http.ResponseWriter, req *http.Request) {
 		}
 		err = thumbnailCache.Copy(req.Context(), key, imgBuf)
 	case strings.HasPrefix(req.URL.Path, "/img/screenshot"):
+		var screenshotCache objectCache
 		// Load the image cache.
-		screenshotCache, err := loadScreenshotCache()
+		screenshotCache, err = loadScreenshotCache()
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
 			slogctx.FromCtx(req.Context()).Error("Load subscription image cache failed.",
