@@ -29,13 +29,8 @@ import (
 func ImageProxy(proxyURLBase string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Load the http client used for making requests to the image proxy.
-		if err := loadHTTPClient(); err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Load http client failed.",
-				slog.Any("error", err),
-			)
-			return
-		}
+		httpClient := loadHTTPClient()
+
 		// Load the image cache.
 		if err := loadImageCache(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)

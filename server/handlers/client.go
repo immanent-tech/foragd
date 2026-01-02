@@ -11,9 +11,6 @@ import (
 	"github.com/immanent-tech/foragd/config"
 )
 
-var httpClient *resty.Client
-
-var loadHTTPClient = sync.OnceValue(func() error {
-	httpClient = resty.New().SetHeader("User-Agent", config.AppName+"/"+config.Version)
-	return nil
+var loadHTTPClient = sync.OnceValue(func() *resty.Client {
+	return resty.New().SetHeader("User-Agent", config.AppName+"/"+config.Version)
 })
