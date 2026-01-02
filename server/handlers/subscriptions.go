@@ -32,6 +32,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
+	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -221,7 +222,7 @@ func MarkSubscription() http.HandlerFunc {
 		// Determine the URL the request came from.
 		currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
-			if err := setRedirect(res, HXLocationRequest{
+			if err := setRedirect(res, htmxext.HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			}); err != nil {
@@ -237,7 +238,7 @@ func MarkSubscription() http.HandlerFunc {
 		}
 		if strings.Contains(currentURL, "/list/articles") {
 			// If the current URL is /list/articles, return to /list/subscriptions.
-			if err := setRedirect(res, HXLocationRequest{
+			if err := setRedirect(res, htmxext.HXLocationRequest{
 				Path:   "/list/subscriptions",
 				Target: templates.ContentID.Target(),
 				Values: models.PageFiltersFromCtx(req.Context(), "/list/subscriptions").Values(),
@@ -307,17 +308,17 @@ func MarkSubscriptions() http.HandlerFunc {
 		// Determine what mark to apply from view and where to redirect.
 		switch request.View {
 		case models.ViewUnread:
-			err = setRedirect(res, HXLocationRequest{
+			err = setRedirect(res, htmxext.HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			})
 		case models.ViewRead:
-			err = setRedirect(res, HXLocationRequest{
+			err = setRedirect(res, htmxext.HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			})
 		default:
-			err = setRedirect(res, HXLocationRequest{
+			err = setRedirect(res, htmxext.HXLocationRequest{
 				Path:   "/list/subscriptions",
 				Target: templates.ContentID.Target(),
 				Values: models.PageFiltersFromCtx(req.Context(), req.URL.Path).Values(),

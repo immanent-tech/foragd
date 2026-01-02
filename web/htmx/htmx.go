@@ -48,3 +48,31 @@ type Config struct {
 	// ResponseHandling configures how to handle various HTTP response codes.
 	ResponseHandling []*ResponseHandling `json:"responseHandling,omitzero"`
 }
+
+// HXLocationRequest defines the value of the HX-Location header.
+//
+// https://htmx.org/headers/hx-location/
+type HXLocationRequest struct {
+	// The URL path.
+	Path string `json:"path"`
+	//  The source element of the request.
+	Source string `json:"source,omitzero"`
+	// An event that “triggered” the request.
+	Event string `json:"event,omitzero"`
+	// A JS callback that will handle the response HTML.
+	Handler string `json:"handler,omitzero"`
+	// The target to swap the response into.
+	Target string `json:"target,omitzero"`
+	// How the response will be swapped in relative to the target.
+	Swap string `json:"swap,omitzero"`
+	// Values to submit with the request.
+	Values map[string]any `json:"values,omitzero"`
+	// Headers to submit with the request.
+	Headers map[string]string `json:"headers,omitzero"`
+	// Allows you to select the content you want swapped from a response.
+	Select string `json:"select,omitzero"`
+	// Set to 'false' or a path string to prevent or override the URL pushed to browser location history
+	Push string `json:"push,omitzero"`
+	// A path string to replace the URL in the browser location history
+	Replace string `json:"replace,omitzero"`
+}

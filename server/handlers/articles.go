@@ -24,6 +24,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/validation"
+	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -512,13 +513,13 @@ func MarkArticles() http.HandlerFunc {
 		}
 
 		if currentURL, found := htmx.GetCurrentURL(req); !found {
-			err = setRedirect(res, HXLocationRequest{
+			err = setRedirect(res, htmxext.HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 				Swap:   "innerHTML show:window:top transition:true",
 			})
 		} else {
-			err = setRedirect(res, HXLocationRequest{
+			err = setRedirect(res, htmxext.HXLocationRequest{
 				Path:   currentURL,
 				Target: templates.ContentID.Target(),
 				Swap:   "innerHTML show:window:top transition:true",
