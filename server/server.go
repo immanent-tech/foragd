@@ -63,11 +63,11 @@ func Start(logger *slog.Logger) error {
 	ongoingCtx, stopOngoingGracefully := context.WithCancel(context.Background())
 	h2s := &http2.Server{}
 	svr := &http.Server{
-		Handler:     h2c.NewHandler(csrfRouter, h2s),
-		Addr:        net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
-		ReadTimeout: cfg.ReadTimeout.Duration(),
-		// WriteTimeout: ServerConfig.WriteTimeout,
-		IdleTimeout: cfg.IdleTimeout.Duration(),
+		Handler:      h2c.NewHandler(csrfRouter, h2s),
+		Addr:         net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
+		ReadTimeout:  cfg.ReadTimeout.Duration(),
+		WriteTimeout: cfg.WriteTimeout.Duration(),
+		IdleTimeout:  cfg.IdleTimeout.Duration(),
 		BaseContext: func(_ net.Listener) context.Context {
 			return ongoingCtx
 		},
