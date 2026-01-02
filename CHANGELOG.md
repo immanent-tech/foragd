@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.13.0](https://github.com/immanent-tech/foragd/compare/v0.12.0...v0.13.0) (2026-01-01)
+
+
+### Features
+
+* **server:** :sparkles: cleaner server startup and shutdown ([b4c3db5](https://github.com/immanent-tech/foragd/commit/b4c3db53cbe54c52a684c56a68c6a2ff5fddf3b2))
+* **templates:** :sparkles: if the user updates their avatar, show the new avatar immediately ([c8c7290](https://github.com/immanent-tech/foragd/commit/c8c7290617d4f83e2200f5b31d0ad5fa727f426c))
+
+
+### Bug Fixes
+
+* **scheduler:** :bug: clean up scheduler shutdown ([8e80fca](https://github.com/immanent-tech/foragd/commit/8e80fcadafd90e9ee855142bd0ca43920951f79b))
+* **templates:** :bug: add missing top margin to header on home page ([d4d6563](https://github.com/immanent-tech/foragd/commit/d4d6563e4a654662b98253144b7c2376a59711dc))
+* **templates:** :bug: align buttons on unsubscribe modal ([a2b3887](https://github.com/immanent-tech/foragd/commit/a2b388749a90c1031dd3c98c17c69510c6e9d7af))
+* **templates:** :bug: correct clicking subscription link when viewing article content ([afdabb1](https://github.com/immanent-tech/foragd/commit/afdabb16f77c0e764d88b220bf76e6e8de64a1fd))
+
 ## [0.12.0](https://github.com/immanent-tech/foragd/compare/v0.11.1...v0.12.0) (2026-01-01)
 
 
