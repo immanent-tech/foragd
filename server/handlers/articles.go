@@ -512,13 +512,13 @@ func MarkArticles() http.HandlerFunc {
 		}
 
 		if currentURL, found := htmx.GetCurrentURL(req); !found {
-			err = SetRedirect(res, HXLocationRequest{
+			err = setRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 				Swap:   "innerHTML show:window:top transition:true",
 			})
 		} else {
-			err = SetRedirect(res, HXLocationRequest{
+			err = setRedirect(res, HXLocationRequest{
 				Path:   currentURL,
 				Target: templates.ContentID.Target(),
 				Swap:   "innerHTML show:window:top transition:true",

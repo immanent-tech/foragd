@@ -26,6 +26,7 @@ import (
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
@@ -46,6 +47,7 @@ var robotsTxt []byte
 var defaultHandlerChain = alice.New(
 	storePath,
 	setCacheControl,
+	pushCriticalAssets,
 )
 
 // Landing handles displaying the landing page.
@@ -274,11 +276,11 @@ type HXLocationRequest struct {
 	Replace string `json:"replace,omitzero"`
 }
 
-// SetRedirect adds the HX-Location header with the given values to the response, which triggers a client side
+// setRedirect adds the HX-Location header with the given values to the response, which triggers a client side
 // redirection without reloading the whole page.
 //
 // https://htmx.org/headers/hx-location/
-func SetRedirect(res http.ResponseWriter, request HXLocationRequest) error {
+func setRedirect(res http.ResponseWriter, request HXLocationRequest) error {
 	requestJSON, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("set redirect: marshal request: %w", err)
@@ -376,6 +378,8 @@ func storePath(next http.Handler) http.Handler {
 	})
 }
 
+// setCacheControl sets an appropriate Cache-Control header for user content based on the user's subscription plan
+// update frequency.
 func setCacheControl(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// user, err := models.UserFromCtx(req.Context())
@@ -385,6 +389,31 @@ func setCacheControl(next http.Handler) http.Handler {
 		// updateFreq := strconv.FormatFloat(user.GetUpdatesFrequency().Seconds(), 'f', 0, 64)
 		// res.Header().Set("Cache-Control", "private, max-age="+updateFreq+", must-revalidate")
 		res.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
+		next.ServeHTTP(res, req)
+	})
+}
+
+// pushCriticalAssets will optimistically send our custom script/css bundles to a client before it asks for them, which
+// hopefully will speed up first page load.
+func pushCriticalAssets(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if pusher, ok := res.(http.Pusher); ok {
+			if err := pusher.Push("/content/scripts.js?v="+config.Version, nil); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Push scripts failed.",
+					slog.Any("error", err),
+				)
+			}
+			if err := pusher.Push("/content/styles.css?v="+config.Version, nil); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Push styles failed.",
+					slog.Any("error", err),
+				)
+			}
+			if err := pusher.Push("/content/inter.css?v="+config.Version, nil); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Push styles failed.",
+					slog.Any("error", err),
+				)
+			}
+		}
 		next.ServeHTTP(res, req)
 	})
 }

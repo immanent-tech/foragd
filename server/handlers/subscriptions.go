@@ -221,7 +221,7 @@ func MarkSubscription() http.HandlerFunc {
 		// Determine the URL the request came from.
 		currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
-			if err := SetRedirect(res, HXLocationRequest{
+			if err := setRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			}); err != nil {
@@ -237,7 +237,7 @@ func MarkSubscription() http.HandlerFunc {
 		}
 		if strings.Contains(currentURL, "/list/articles") {
 			// If the current URL is /list/articles, return to /list/subscriptions.
-			if err := SetRedirect(res, HXLocationRequest{
+			if err := setRedirect(res, HXLocationRequest{
 				Path:   "/list/subscriptions",
 				Target: templates.ContentID.Target(),
 				Values: models.PageFiltersFromCtx(req.Context(), "/list/subscriptions").Values(),
@@ -307,17 +307,17 @@ func MarkSubscriptions() http.HandlerFunc {
 		// Determine what mark to apply from view and where to redirect.
 		switch request.View {
 		case models.ViewUnread:
-			err = SetRedirect(res, HXLocationRequest{
+			err = setRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			})
 		case models.ViewRead:
-			err = SetRedirect(res, HXLocationRequest{
+			err = setRedirect(res, HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
 			})
 		default:
-			err = SetRedirect(res, HXLocationRequest{
+			err = setRedirect(res, HXLocationRequest{
 				Path:   "/list/subscriptions",
 				Target: templates.ContentID.Target(),
 				Values: models.PageFiltersFromCtx(req.Context(), req.URL.Path).Values(),
