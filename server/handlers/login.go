@@ -195,6 +195,19 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 	http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)
 }
 
+// LoginError handles login errors, including invalid login callback URL, missing parameters, expired password reset
+// links.
+func LoginError(res http.ResponseWriter, req *http.Request) {
+	slogctx.FromCtx(req.Context()).Error("Auth0 reported a login error.",
+		slog.String("client_id", req.URL.Query().Get("client_id")),
+		slog.String("error_code", req.URL.Query().Get("error")),
+		slog.String("error_description", req.URL.Query().Get("error_description")),
+	)
+	renderPage(
+		templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Auth backend reported an error")),
+	).ServeHTTP(res, req)
+}
+
 // syncLocalUser tries to sync relevant user data from the auth backend to the local data.
 func syncLocalUser(ctx context.Context, user *models.User, profile auth0.UserProfile) {
 	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.

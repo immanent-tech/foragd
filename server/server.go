@@ -180,6 +180,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		if !cfg.BlockLogin {
 			r.Get("/login", handlers.Login)
 			r.Get("/login/callback", handlers.LoginCallback)
+			r.Get("/login/error", handlers.LoginError)
 		} else {
 			slogctx.FromCtx(ctx).Warn("Logins have been BLOCKED by configuration.")
 		}
