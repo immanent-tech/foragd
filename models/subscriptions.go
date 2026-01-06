@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"net/url"
 	"slices"
 	"strconv"
 	"strings"
@@ -1514,9 +1515,13 @@ func (r *AddFeedSubscriptionRequest) Valid() error {
 // Sanitise will sanitise the input values of the SubscriptionRequest.
 func (r *AddFeedSubscriptionRequest) Sanitise() error {
 	r.URL = validation.SanitizeString(r.URL)
-	// Add a https:// scheme to the start of the URL if it is missing.
-	if !strings.HasPrefix(r.URL, "https://") || !strings.HasPrefix(r.URL, "http://") {
-		r.URL = "https://" + r.URL
+	rssURL, err := url.Parse(r.URL)
+	if err != nil {
+		return fmt.Errorf("unable to parse url: %w", err)
+	}
+	if rssURL.Scheme != "https" && rssURL.Scheme != "http" {
+		rssURL.Scheme = "https"
+		r.URL = rssURL.String()
 	}
 	if r.Nickname != "" {
 		sanitizedNickname := validation.SanitizeString(r.Nickname)
