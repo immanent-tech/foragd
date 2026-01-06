@@ -5,8 +5,10 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io"
 	"iter"
 	"maps"
 	"slices"
@@ -101,4 +103,13 @@ func validateDatetime(dt time.Time) (bool, error) {
 	default:
 		return true, nil
 	}
+}
+
+func (r *ViewComponent) Render(ctx context.Context, w io.Writer) error {
+	if r.Component != nil {
+		if err := r.Component.Render(ctx, w); err != nil {
+			return fmt.Errorf("render template data component: %w", err)
+		}
+	}
+	return nil
 }

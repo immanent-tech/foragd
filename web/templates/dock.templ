@@ -10,14 +10,14 @@ import (
 	"strings"
 )
 
-templ Dock(attributes templ.Attributes) {
+templ Dock(pageURL string, attributes templ.Attributes) {
 	<footer aria-label="Footer Navigation" id="page-dock" class="dock bg-base-200 border-t border-base-content/10 lg:hidden text-primary" { attributes... }>
 		<button
 			hx-get="/home"
 			hx-trigger="click,globalShortcutHome"
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
-			if models.PathFromCtx(ctx) == "/home" {
+			if strings.HasPrefix(pageURL,"/home") {
 				class="dock-active"
 			}
 			_="on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"
@@ -32,7 +32,7 @@ templ Dock(attributes templ.Attributes) {
 			hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
 			hx-params={ "not " + models.ParamSubscriptions }
 			hx-push-url="true"
-			if models.PathFromCtx(ctx) == "/list/subscriptions" {
+			if strings.HasPrefix(pageURL, "/list/subscriptions") {
 				class="dock-active"
 			}
 		>
@@ -46,10 +46,10 @@ templ Dock(attributes templ.Attributes) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(filters.Values()) }
 			hx-push-url="true"
-			if models.PathFromCtx(ctx) == "/list/articles" {
+			if strings.HasPrefix(pageURL, "/list/articles") {
 				class="dock-active"
 			}
-			if strings.HasPrefix(models.PathFromCtx(ctx), "/view/article") {
+			if strings.HasPrefix(pageURL, "/view/article") {
 				hx-include="[name='subscriptions']"
 			}
 		>
@@ -61,7 +61,7 @@ templ Dock(attributes templ.Attributes) {
 			hx-get="/list/favorites"
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
-			if models.PathFromCtx(ctx) == "/list/favorites" {
+			if strings.HasPrefix(pageURL, "/list/favorites") {
 				class="dock-active"
 			}
 		>

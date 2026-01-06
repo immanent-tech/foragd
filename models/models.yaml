@@ -1440,4 +1440,19 @@ components:
           x-go-type: '*multipart.FileHeader'
           x-oapi-codegen-extra-tags:
             validate: 'required'
-
+    ViewComponent:
+      description: >
+        contains data related to a particular view.
+      type: object
+      properties:
+        url:
+          description: >
+            is the URL where the view component is used.
+          x-go-type: '*url.URL'
+          x-go-name: URL
+        user:
+          $ref: '#/components/schemas/User'
+        component:
+          description: >
+            is the template that will be rendered in the view.
+          x-go-type: 'templ.Component'
