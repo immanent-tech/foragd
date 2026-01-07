@@ -60,6 +60,7 @@ func Start(logger *slog.Logger) error {
 	csrfRouter := nosurf.New(router)
 	csrfRouter.SetFailureHandler(handlers.CSRFError())
 	csrfRouter.ExemptPath("/checkout/webhooks")
+	csrfRouter.ExemptPath("/mail/webhooks")
 
 	ongoingCtx, stopOngoingGracefully := context.WithCancel(context.Background())
 	h2s := &http2.Server{}

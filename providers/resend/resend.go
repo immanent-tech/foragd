@@ -23,7 +23,7 @@ var loadClient = sync.OnceValues(func() (*resend.Client, error) {
 	return client, nil
 })
 
-// HandleWebhook will handle incoming webhook requests from Resend,
+// HandleWebhook will handle incoming webhook requests from Resend.
 func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 	const maxBodyBytes = int64(65536)
 	bodyReader := http.MaxBytesReader(res, req.Body, maxBodyBytes)
