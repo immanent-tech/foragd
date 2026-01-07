@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.15.0](https://github.com/immanent-tech/foragd/compare/v0.14.0...v0.15.0) (2026-01-07)
+
+
+### Features
+
+* **github:** :wrench: support configuring issues repo through envrionment variables ([61cd9b8](https://github.com/immanent-tech/foragd/commit/61cd9b8e13592f07835a4b39d0f31aee1137aff4))
+* **resend:** :sparkles: add resend integration ([4b638a0](https://github.com/immanent-tech/foragd/commit/4b638a07251446847b86033be2b7f0dd11265164))
+
+
+### Bug Fixes
+
+* **resend:** :bug: ignore csrf checks for resend webhooks ([98fdb5a](https://github.com/immanent-tech/foragd/commit/98fdb5a1308baa4ce18736875f744a256b843197))
+
 ## [0.14.0](https://github.com/immanent-tech/foragd/compare/v0.13.0...v0.14.0) (2026-01-07)
 
 
