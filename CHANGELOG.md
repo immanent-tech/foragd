@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.14.0](https://github.com/immanent-tech/foragd/compare/v0.13.0...v0.14.0) (2026-01-07)
+
+
+### Features
+
+* **assets:** :lipstick: nicer notification transitions ([4e311bc](https://github.com/immanent-tech/foragd/commit/4e311bc129fc6705c13989d302dcba9c3f8589da))
+* **handlers:** :sparkles: add handler for generic auth0 backend errors ([391f1f7](https://github.com/immanent-tech/foragd/commit/391f1f77bb4a635850ebd184378ba30b3d9713c9))
+* **handlers:** :zap: use server push to load critical assets before being requested ([54392b9](https://github.com/immanent-tech/foragd/commit/54392b99690a7d297beec736c3cf12ed23b92d4d))
+* **server:** :zap: add a write timeout ([b7a920a](https://github.com/immanent-tech/foragd/commit/b7a920aa611d1e03bfc3cb305807fb22f5659168))
+* **templates:** :sparkles: implement a common base view struct ([c8dbbe0](https://github.com/immanent-tech/foragd/commit/c8dbbe0ce2fde2eb79094026e391872913d89a28))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: fix error scope ([263ae83](https://github.com/immanent-tech/foragd/commit/263ae83c1c59448e8649ba072a6f44ffa8400466))
+* **models:** :bug: fix logic for detecting urls without a scheme ([03ef589](https://github.com/immanent-tech/foragd/commit/03ef5891aa5337aac9aaac18ca514bd8f21247c1))
+
 ## [0.13.0](https://github.com/immanent-tech/foragd/compare/v0.12.0...v0.13.0) (2026-01-01)
 
 
