@@ -133,7 +133,13 @@
 }
 
 @utility prose-custom {
-  @apply prose sm:prose-lg text-base-content dark:prose-invert prose-headings:tracking-tight prose-img:responsive-img prose-img:object-scale-down prose-video:responsive-video max-w-none;
+  @apply prose sm:prose-lg text-base-content dark:prose-invert prose-headings:tracking-tight prose-img:responsive-img prose-video:responsive-video max-w-none;
+  pre {
+    overflow-x: auto;
+  }
+  .scrollable {
+    overflow-x: auto;
+  }
 }
 
 @utility prose-summary {
