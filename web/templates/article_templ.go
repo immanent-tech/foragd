@@ -99,7 +99,7 @@ func ArticleCard(article *models.Article) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = showArticleImage(article, 300, 200, "sm:h-full sm:object-cover").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = showArticleImage(article, 400, 266, "sm:h-full sm:object-cover").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
