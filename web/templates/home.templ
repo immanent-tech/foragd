@@ -45,7 +45,21 @@ templ (page *Home) Template() {
 									// Article image.
 									if img := article.GetImage(); img != nil {
 										<figure>
-											@articleImage(img, article.GetTitle(), "sm:h-full sm:object-cover")
+											<img
+												src={ article.GetImage().GetURL() }
+												alt={ article.GetImage().GetTitle() }
+												srcset={ generateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + generateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
+												sizes="(max-width: 480px) 100vw, 600px"
+											/>
+											// <img
+											// 	if elem.GetID() != "" {
+											// 		id={ elem.GetID() }
+											// 	}
+											// 	src={ generateImageProxyURL(ctx, img.GetURL(), props) }
+											// 	alt={ img.GetTitle() }
+											// 	{ elem.attributes... }
+											// />
+											// @showArticleImage(article, 300, 200, "sm:h-full sm:object-cover")
 										</figure>
 									}
 									<div class="card-body">

@@ -5,7 +5,6 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
@@ -32,7 +31,7 @@ templ ArticleCard(article *models.Article) {
 				WithClasses("link-hover"),
 			) {
 				<figure>
-					@articleImage(img, article.GetTitle(), "sm:h-full sm:object-cover")
+					@showArticleImage(article, 300, 200, "sm:h-full sm:object-cover")
 				</figure>
 			}
 		}
@@ -468,9 +467,10 @@ templ PaginateArticles(response *models.ListArticlesResponse) {
 	}
 }
 
-templ articleImage(img *types.ImageInfo, altTitle string, classes ...string) {
+templ showArticleImage(article *models.Article, width, height int, classes ...string) {
+	{{ img := article.GetImage() }}
 	if img.GetTitle() == "" {
-		{{ img.Title = altTitle }}
+		{{ img.Title = article.GetTitle() }}
 	}
 	{{ classes = append(classes, "responsive-img") }}
 	// rs:auto:300:200 - resize to 300x200 https://docs.imgproxy.net/usage/processing#resize
@@ -480,10 +480,10 @@ templ articleImage(img *types.ImageInfo, altTitle string, classes ...string) {
 	// sm:1 - strip metadata
 	// kcr:1 - keep copyright
 	// scp:1 - convert color profile to sRGB
-	@NewProxiedImage(img, "rs:auto:300:200/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
+	@NewProxiedImage(img, "rs:auto:"+strconv.Itoa(width)+":"+strconv.Itoa(height)+"/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
 		WithClasses(classes...),
-		WithAttribute("width", "300"),
-		WithAttribute("height", "200"),
+		WithAttribute("width", strconv.Itoa(width)),
+		WithAttribute("height", strconv.Itoa(height)),
 	)
 }
 
