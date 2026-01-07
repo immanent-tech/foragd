@@ -27,8 +27,8 @@ var client *github.Client
 // call multiple times, with subsequent calls being no-ops.
 func Connect(ctx context.Context) error {
 	return sync.OnceValue(func() error {
-		err := loadConfigOnce()
-		if err != nil {
+		// Load config.
+		if err := loadConfigOnce(); err != nil {
 			return fmt.Errorf("load config: %w", err)
 		}
 
@@ -105,7 +105,8 @@ func CreateObjectIssue(ctx context.Context, details *models.ReportObjectIssueReq
 		Labels: &labels,
 	}
 	ctx = context.WithValue(ctx, github.BypassRateLimitCheck, true)
-	_, _, err = client.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
+	repo := strings.Split(cfg.IssuesRepo, "/")
+	_, _, err = client.Issues.Create(ctx, repo[0], repo[1], &issueDetails)
 	var priRateErr *github.RateLimitError
 	if errors.As(err, &priRateErr) {
 		slogctx.FromCtx(ctx).Warn("Hit primary rate limit.",
@@ -158,7 +159,8 @@ func CreateIssue(ctx context.Context, details *models.ReportIssueRequest) error 
 		Labels: &labels,
 	}
 	ctx = context.WithValue(ctx, github.BypassRateLimitCheck, true)
-	_, _, err = client.Issues.Create(ctx, "immanent-tech", "foragd", &issueDetails)
+	repo := strings.Split(cfg.IssuesRepo, "/")
+	_, _, err = client.Issues.Create(ctx, repo[0], repo[1], &issueDetails)
 	var priRateErr *github.RateLimitError
 	if errors.As(err, &priRateErr) {
 		slogctx.FromCtx(ctx).Warn("Hit primary rate limit.",

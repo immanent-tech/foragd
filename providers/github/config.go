@@ -23,6 +23,7 @@ type Config struct {
 	Key            string `koanf:"privatekey"     validate:"required"`
 	ClientID       string `koanf:"clientid"       validate:"required"`
 	InstallationID int    `koanf:"installationid"`
+	IssuesRepo     string `koanf:"issuesrepo"     validate:"required"`
 }
 
 // loadConfigOnce loads the Auth0 configuration and ensures this is only done
