@@ -77,20 +77,6 @@
     transition: opacity 1s ease-out;
   }
 
-  .toast {
-    & > .alert {
-      transition:
-        opacity 1s,
-        translate 1s;
-      opacity: 1;
-      translate: 0 0;
-      @starting-style {
-        opacity: 0;
-        translate: 0 10px;
-      }
-    }
-  }
-
   .logo-landing {
     @apply fill-base-content stroke-base-content;
     .leaf-left {
@@ -128,6 +114,46 @@
     }
     circle {
       @apply stroke-accent;
+    }
+  }
+
+  .toast {
+    & > .alert {
+      transition:
+        opacity 1s,
+        translate 1s;
+      opacity: 1;
+      translate: 0 0;
+      @starting-style {
+        opacity: 0;
+        translate: 0 10px;
+      }
+    }
+  }
+
+  & > .alert {
+    view-transition-name: notification;
+  }
+
+  ::view-transition-old(notification) {
+    animation-name: slide-out-to-left;
+    animation-duration: 1s;
+  }
+  ::view-transition-new(notification) {
+    animation-name: slide-in-from-right;
+    animation-duration: 1s;
+  }
+
+  @keyframes slide-out-to-left {
+    to {
+      translate: -150px 0;
+      opacity: 0;
+      scale: 0.5;
+    }
+  }
+  @keyframes slide-in-from-right {
+    from {
+      translate: 100vi 0;
     }
   }
 }
