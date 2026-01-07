@@ -22,6 +22,7 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
@@ -189,6 +190,9 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 
 	// Handle incoming webhook requests from Stripe.
 	router.Post("/checkout/webhooks", stripe.HandleWebhook)
+
+	// Handle incoming webhook requests from Resend
+	router.Post("/mail/webhooks", resend.HandleWebhook)
 
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {

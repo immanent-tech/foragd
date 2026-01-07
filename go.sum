@@ -542,6 +542,8 @@ github.com/realclientip/realclientip-go v1.0.0 h1:+yPxeC0mEaJzq1BfCt2h4BxlyrvIIB
 github.com/realclientip/realclientip-go v1.0.0/go.mod h1:CXnUdVwFRcXFJIRb/dTYqbT7ud48+Pi2pFm80bxDmcI=
 github.com/recoilme/pudge v1.0.3 h1:h/9dEv5fRqtzM4lnO69kUoN+k7ukxxrW9NGb9ug0grM=
 github.com/recoilme/pudge v1.0.3/go.mod h1:VMvxBLVkrSStldckzCsETBXox3pfovfrnEchafXk8qA=
+github.com/resend/resend-go/v3 v3.0.0 h1:RCZgLuAFMUYH4ZByu+rncNvlOf69DCJwBdOH6q/aZCs=
+github.com/resend/resend-go/v3 v3.0.0/go.mod h1:iI7VA0NoGjWvsNii5iNC5Dy0llsI3HncXPejhniYzwE=
 github.com/reugn/go-quartz v0.15.2 h1:IQUnwTtNURVtdcwH4CJhFH3dXAUwP2fXZaNjPp+sJAY=
 github.com/reugn/go-quartz v0.15.2/go.mod h1:00DVnBKq2Fxag/HlR9mGXjmHNlMFQ1n/LNM+Fn0jUaE=
 github.com/rhysd/go-github-selfupdate v1.2.3 h1:iaa+J202f+Nc+A8zi75uccC8Wg3omaM7HDeimXA22Ag=
