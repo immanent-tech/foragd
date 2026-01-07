@@ -89,6 +89,11 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		}
 		return fmt.Errorf("get feed doc: %w", err)
 	}
+
+	// Add additional feed details to logs.
+	ctx = slogctx.With(ctx, "feed_url", jobData.URLs[0])
+	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
+
 	// Get new items since the last fetch.
 	feed, err := feeds.NewFeedFromURL(jobCtx, jobData.URLs[0])
 	if err != nil {
@@ -99,7 +104,6 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		items = append(items, models.NewItemFromSource(&i, details))
 	}
 	slogctx.FromCtx(ctx).Debug("Checking for new items.",
-		slog.String("feed", details.GetTitle()),
 		slog.Time("since", details.LastFetched),
 		slog.Int("total_items", len(items)),
 	)
@@ -113,7 +117,6 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			return fmt.Errorf("update items: %w", err)
 		}
 		slogctx.FromCtx(ctx).Debug("Added new items.",
-			slog.String("feed", details.GetTitle()),
 			slog.Int("count", len(items.FilterSince(details.LastFetched))),
 		)
 		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
