@@ -55,7 +55,7 @@ func SearchSuggestions(request *models.SearchRequest, subscriptions models.Subsc
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-include=\"[name='csrf_token'],#search-filters,[id='timezone']\" hx-vals=\"js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}\" hx-push-url=\"true\" hx-trigger=\"click, keydown['Enter']\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''\"><input type=\"hidden\" name=\"text\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-include=\"[name='csrf_token'],#search-filters,[id='timezone']\" hx-push-url=\"true\" hx-trigger=\"click, keydown['Enter']\" _=\"on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions\"><input type=\"hidden\" name=\"text\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -843,7 +843,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\" hx-push-url=\"true\" hx-include=\"[name='csrf_token']\" hx-vals=\"js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}\"><div class=\"grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full\"><label for=\"text\" class=\"block text-sm/6 font-medium\">Includes the words</label><div class=\"mt-2\"><input id=\"search-text\" type=\"text\" name=\"text\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\" hx-push-url=\"true\" hx-include=\"[name='csrf_token'],[id='timezone']\"><div class=\"grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"col-span-full\"><label for=\"text\" class=\"block text-sm/6 font-medium\">Includes the words</label><div class=\"mt-2\"><input id=\"search-text\" type=\"text\" name=\"text\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -855,7 +855,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 			var templ_7745c5c3_Var38 string
 			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(request.Text)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 315, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 314, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 			if templ_7745c5c3_Err != nil {
@@ -878,7 +878,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 			var templ_7745c5c3_Var39 string
 			templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(request.Categories)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 332, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 331, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 			if templ_7745c5c3_Err != nil {
@@ -901,7 +901,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 			var templ_7745c5c3_Var40 string
 			templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(request.Authors)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 347, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 346, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 			if templ_7745c5c3_Err != nil {
@@ -927,7 +927,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var41 string
 		templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 376, Col: 94}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 375, Col: 94}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 		if templ_7745c5c3_Err != nil {
@@ -1044,7 +1044,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var42 string
 		templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(string(models.SortMostRelevant))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 487, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 486, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 		if templ_7745c5c3_Err != nil {
@@ -1067,7 +1067,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var43 string
 		templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(string(models.SortNewestFirst))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 495, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 494, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 		if templ_7745c5c3_Err != nil {
@@ -1090,7 +1090,7 @@ func SearchFilters(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var44 string
 		templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(string(models.SortOldestFirst))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 501, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 500, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 		if templ_7745c5c3_Err != nil {
@@ -1177,7 +1177,7 @@ func SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) tem
 				var templ_7745c5c3_Var48 string
 				templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 552, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 551, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 				if templ_7745c5c3_Err != nil {
@@ -1248,7 +1248,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 			var templ_7745c5c3_Var51 string
 			templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(filter.InputName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 564, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 563, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 			if templ_7745c5c3_Err != nil {
@@ -1261,7 +1261,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 			var templ_7745c5c3_Var52 string
 			templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(filter.SubscriptionID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 564, Col: 78}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 563, Col: 78}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 			if templ_7745c5c3_Err != nil {
@@ -1274,7 +1274,7 @@ func AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterReque
 			var templ_7745c5c3_Var53 string
 			templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(filter.SubscriptionName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 565, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/search.templ`, Line: 564, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 			if templ_7745c5c3_Err != nil {

@@ -18,11 +18,11 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
 			hx-include="[name='csrf_token'],#search-filters,[id='timezone']"
-			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
 			hx-push-url="true"
 			hx-trigger="click, keydown['Enter']"
-			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
+			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions"
 		>
+			//  then set #global-search.value to ''
 			<input type="hidden" name="text" value={ request.Text }/>
 			<a
 				href="#"
@@ -299,8 +299,7 @@ templ SearchFilters(attributes templ.Attributes) {
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
-			hx-include="[name='csrf_token']"
-			hx-vals="js:{timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
+			hx-include="[name='csrf_token'],[id='timezone']"
 		>
 			<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
 				// Full text search filter.
