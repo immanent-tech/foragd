@@ -18,7 +18,14 @@ templ header(user *models.User) {
 		<div class="flex flex-1 mx-auto items-center">
 			// Show small logo on mobile.
 			<div class="flex flex-col lg:hidden h-16 shrink-0 mt-8 items-center text-primary mx-2">
-				@LogoSmall("size-8")
+				@NewLink(
+					WithHXMethod(http.MethodGet, "/home"),
+					WithHXTarget(ContentID.Target()),
+					WithHXPushURL(true),
+					WithHXSwap("innerHTML show:window:top"),
+				) {
+					@LogoSmall("size-8")
+				}
 			</div>
 			// Global search bar.
 			<div class="flex flex-1 justify-center">
