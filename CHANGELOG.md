@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.0](https://github.com/immanent-tech/foragd/compare/v0.16.0...v0.17.0) (2026-01-08)
+
+
+### Features
+
+* :memo: add license and update readme ([b6e2b0f](https://github.com/immanent-tech/foragd/commit/b6e2b0fd92b2748cac5961b56d46d9c13625524b))
+
+
+### Bug Fixes
+
+* :memo: remove extra element ([ea2ee4f](https://github.com/immanent-tech/foragd/commit/ea2ee4f5ceadcd7c058fb92ea6105abaaee7a7be))
+
 ## [0.16.0](https://github.com/immanent-tech/foragd/compare/v0.15.0...v0.16.0) (2026-01-08)
 
 
