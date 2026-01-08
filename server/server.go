@@ -291,7 +291,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.Get("/import", handlers.ImportSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/import", handlers.ImportSubscriptions())
 			r.Get("/export", handlers.ExportSubscriptions())
-			r.Get("/export/opml", handlers.ExportSubscriptions())
+			r.Post("/export", handlers.ExportSubscriptions())
 			// Favorites.
 			r.Route("/favorite", func(r chi.Router) {
 				r.Post("/add/subscription/{subscription_id}", handlers.AddFavoriteSubscription())

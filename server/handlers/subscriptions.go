@@ -910,18 +910,15 @@ func ExportSubscriptions() http.HandlerFunc {
 				),
 			}
 		}
-		switch {
+		switch req.Method {
 		// GET: show import modal.
-		case chi.RouteContext(ctx).RoutePattern() == "/user/export":
+		case http.MethodGet:
 			renderPage(
 				wrapContent(req.WithContext(ctx), templates.ExportSubscriptions()),
 			).ServeHTTP(res, req.WithContext(ctx))
-		case chi.RouteContext(ctx).RoutePattern() == "/user/export/opml":
+		case http.MethodPost:
 			// Get all subscriptions.
-			request := &models.ListRequest{
-				Filters: models.NewListDisplayFilters(),
-			}
-			subscriptions, _, err := models.FilterSubscriptions(ctx, request)
+			subscriptions, err := models.GetSubscriptions(req.Context())
 			if err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("filter subscriptions: %w", err),

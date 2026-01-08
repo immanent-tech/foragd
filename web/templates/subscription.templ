@@ -1325,9 +1325,10 @@ templ ExportSubscriptions() {
 		<div class="mt-10 space-y-8">
 			<div class="mt-6 flex items-center justify-end gap-x-6">
 				@btnBack()
-				<a role="button" class="btn btn-primary" href="/user/export/opml" download>
-					Export
-				</a>
+				<form method="post">
+					<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+					<button type="submit" class="btn btn-primary">Export</button>
+				</form>
 			</div>
 		</div>
 		<center id="processing" class="htmx-indicator">
