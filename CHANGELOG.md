@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.16.0](https://github.com/immanent-tech/foragd/compare/v0.15.0...v0.16.0) (2026-01-08)
+
+
+### Features
+
+* **assets:** :sparkles: add techzine.eu to informed feedset ([432b239](https://github.com/immanent-tech/foragd/commit/432b239554702af4dc80c0ff49692c0c72a26d31))
+
+
+### Bug Fixes
+
+* :bug: fix filtering new subscriptions required ([52ac582](https://github.com/immanent-tech/foragd/commit/52ac582c3c413b1acfe39c7100766be1e4ce0aa9))
+* **handlers:** :bug: fetch all user feed subscriptions when exporting ([1fa16d3](https://github.com/immanent-tech/foragd/commit/1fa16d39c45491c92dea374434342650bf7e088f))
+* **models:** :bug: improved new feed subscription handling ([60688a4](https://github.com/immanent-tech/foragd/commit/60688a40b3c34478c621444a8250031698c0dae7))
+* **templates:** :bug: make sure csrf token is included in plan selection requests ([bed1ef9](https://github.com/immanent-tech/foragd/commit/bed1ef99f5c35dead9f098ca4fd38234497901f7))
+* **templates:** :bug: remove inline js browser timezone fetching ([9aed599](https://github.com/immanent-tech/foragd/commit/9aed5993e63facd20f91654e6411301ccbd436a9))
+
 ## [0.15.0](https://github.com/immanent-tech/foragd/compare/v0.14.0...v0.15.0) (2026-01-07)
 
 
