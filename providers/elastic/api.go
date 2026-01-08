@@ -256,7 +256,7 @@ func UpdateDoc[T ~string](
 	}
 	if resp != nil {
 		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Updated document.",
-			slog.String("id", resp.Id_),
+			slog.String("doc_id", resp.Id_),
 			slog.String("result", resp.Result.String()),
 		)
 	}

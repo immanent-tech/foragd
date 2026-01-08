@@ -429,11 +429,43 @@ func ProcessSubscriptionRequest(
 		Request: *request,
 	}
 
-	// Try to match request URL to an existing feed
-	var feed *Feed
+	var (
+		newFeed *Feed
+		err     error
+	)
+
+	// Fetch the new feed information.
+	slogctx.FromCtx(ctx).Debug("Parsing url", slog.String("url", request.GetURL()))
+	newFeed, err = NewFeedFromURL(ctx, request.GetURL())
+	if err != nil {
+		result.Error = err
+		result.Message = NewErrorMessage(
+			"Unable to create subscription",
+			fmt.Sprintf(
+				"The feed URL %q cannot be parsed as a feed source or is not a valid URL.",
+				request.GetURL(),
+			),
+		)
+		resultsCh <- result
+		return
+	}
+
+	// Create terms queries to match the new feed to an existing feed.
+	var terms []query.Option
+	for url := range slices.Values(newFeed.SourceURLs) {
+		terms = append(terms, query.Term("source_urls", url))
+	}
+	terms = append(terms, query.Term("url", newFeed.URL))
+	// Find any existing feed.
 	feeds, _, err := elastic.Search[*Feed](ctx,
 		FeedsIndexRO,
-		query.Term("source_urls", request.GetURL()),
+		query.Bool(
+			query.Filter(
+				query.Bool(
+					query.Should(terms...),
+				),
+			),
+		),
 		1,
 	)
 	if err != nil {
@@ -446,26 +478,10 @@ func ProcessSubscriptionRequest(
 		return
 	}
 	if len(feeds) == 1 {
-		feed = feeds[0]
-	}
-
-	// If no existing feed, create a new one.
-	if feed == nil {
-		slogctx.FromCtx(ctx).Debug("Parsing url", slog.String("url", request.GetURL()))
-		var newFeed *Feed
-		newFeed, err = NewFeedFromURL(ctx, request.GetURL())
-		if err != nil {
-			result.Error = err
-			result.Message = NewErrorMessage(
-				"Unable to create subscription",
-				fmt.Sprintf(
-					"The feed URL %q cannot be parsed as a feed source or is not a valid URL.",
-					request.GetURL(),
-				),
-			)
-			resultsCh <- result
-			return
-		}
+		// If an existing feed is found, use that feed.
+		result.Feed = *feeds[0]
+	} else {
+		// Otherwise create a new feed.
 		err = validation.Validate.Struct(newFeed)
 		if err != nil {
 			result.Error = err
@@ -492,39 +508,32 @@ func ProcessSubscriptionRequest(
 			slog.String("name", newFeed.GetTitle()),
 			slog.String("urls", strings.Join(newFeed.GetSourceURLs(), ",")),
 		)
-		feed = newFeed
+		result.Feed = *newFeed
 	}
 
-	// _, err := UserFromCtx(ctx)
-	// if err != nil {
-	// 	result.Error = err
-	// 	result.Message = *NewErrorMessage("Unable to check for existing subscription for "+request.GetURL(), "The backend produced an error. This might be temporary, please try again.")
-	// 	resultsCh <- result
-	// 	return
-	// }
-	subscription, err := GetSubscriptionByFeedID(ctx, feed.GetID())
+	// Check for an existing subscription.
+	subscription, err := GetSubscriptionByFeedID(ctx, result.Feed.GetID())
 	if err != nil && HTTPStatus(err) != http.StatusNotFound {
 		result.Error = err
 		result.Message = NewErrorMessage(
-			"Unable to check for existing subscription for "+request.GetURL(),
+			"Unable to check for existing subscription for "+result.Feed.GetTitle(),
 			"The backend produced an error. This might be temporary, please try again.",
 		)
 		resultsCh <- result
 		return
 	}
 	if subscription != nil {
+		// Existing subscription to feed found, ignore new feed.
 		result.Error = &APIError{
 			InternalError: errors.New("already subscribed"),
 			StatusCode:    http.StatusConflict,
 		}
-		result.Message = NewWarningMessage("Already subscribed to feed", feed.GetTitle()+" ("+request.URL+")")
+		result.Message = NewWarningMessage("Already subscribed to feed", result.Feed.GetTitle())
 		resultsCh <- result
 		return
 	}
 
-	// Add the feed details to the result.
-	result.Feed = *feed
-	// Send the result back through the channel.
+	// New subscription required.
 	resultsCh <- result
 }
 
@@ -1514,11 +1523,13 @@ func (r *AddFeedSubscriptionRequest) Valid() error {
 
 // Sanitise will sanitise the input values of the SubscriptionRequest.
 func (r *AddFeedSubscriptionRequest) Sanitise() error {
-	r.URL = validation.SanitizeString(r.URL)
+	r.URL = validation.SanitizeString(r.URL) // sanitise string.
+	r.URL = strings.TrimPrefix(r.URL, "/")   // remove trailing slash.
 	rssURL, err := url.Parse(r.URL)
 	if err != nil {
 		return fmt.Errorf("unable to parse url: %w", err)
 	}
+	// Ensure scheme is set.
 	if rssURL.Scheme != "https" && rssURL.Scheme != "http" {
 		rssURL.Scheme = "https"
 		r.URL = rssURL.String()
