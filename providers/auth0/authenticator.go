@@ -14,8 +14,6 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-
-	"github.com/immanent-tech/foragd/config"
 )
 
 var ErrNoIDToken = errors.New("no id_token field in oauth2 token")
@@ -89,12 +87,8 @@ func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate logout url: %w", err)
 	}
-	scheme := "http"
-	if config.CurrentEnvironment == config.EnvProduction {
-		scheme = "https"
-	}
 
-	returnTo, err := url.Parse(scheme + "://" + req.Host)
+	returnTo, err := url.Parse("https://" + req.Host)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate logout URL: %w", err)
 	}

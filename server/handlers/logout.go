@@ -6,6 +6,8 @@ package handlers
 import (
 	"net/http"
 
+	slogctx "github.com/veqryn/slog-context"
+
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/server/session"
 )
@@ -24,5 +26,6 @@ func Logout(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Redirect user to logout URL.
+	slogctx.FromCtx(req.Context()).Info("User logged out.")
 	http.Redirect(res, req, logoutURL.String(), http.StatusTemporaryRedirect)
 }

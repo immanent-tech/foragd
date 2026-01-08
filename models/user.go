@@ -15,6 +15,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/stripe/stripe-go/v83"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -97,6 +98,7 @@ func UpdateUser(ctx context.Context, userID UserID, updates map[string]any) erro
 	); err != nil {
 		return fmt.Errorf("update user: %w", err)
 	}
+	slogctx.FromCtx(ctx).Info("User object updated.")
 	return nil
 }
 

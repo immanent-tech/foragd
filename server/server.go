@@ -186,7 +186,6 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		} else {
 			slogctx.FromCtx(ctx).Warn("Logins have been BLOCKED by configuration.")
 		}
-		r.Get("/logout", handlers.Logout)
 	})
 
 	// Handle incoming webhook requests from Stripe.
@@ -319,6 +318,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Post("/deactivate", handlers.UserDeactivateAccount())
 			r.With(middlewares.RequireHTMX).Post("/deactivate/cancel", handlers.UserCancelDeactivation())
 		})
+		r.Get("/logout", handlers.Logout)
 	})
 
 	return router

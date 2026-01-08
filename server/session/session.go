@@ -51,7 +51,7 @@ func Save[T any](ctx context.Context, key string, obj T) {
 func Restore[T any](ctx context.Context, key string) (T, error) {
 	value, ok := manager.Get(ctx, key).(T)
 	if !ok {
-		return value, fmt.Errorf("unable to restore session data as %T", value)
+		return value, fmt.Errorf("unable to restore session data as %T (data %v)", value, value)
 	}
 	return value, nil
 }

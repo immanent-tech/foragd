@@ -192,6 +192,9 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Active user; redirect to home page.
+	slogctx.FromCtx(ctx).Info("User logged in.",
+		slog.String("user_id", user.GetID()),
+	)
 	http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)
 }
 
@@ -232,6 +235,7 @@ func syncLocalUser(ctx context.Context, user *models.User, profile auth0.UserPro
 				slog.Any("error", err))
 			return
 		}
+		slogctx.FromCtx(ctx).Info("User data updated.")
 	}
 }
 

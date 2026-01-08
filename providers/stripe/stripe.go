@@ -302,6 +302,11 @@ func handleSubscriptionDeleted(ctx context.Context, subscription stripe.Subscrip
 	if err != nil {
 		return fmt.Errorf("subscription deleted: %w", err)
 	}
+
+	slogctx.FromCtx(ctx).Info("Deleted user subscription.",
+		slog.String("user_id", user.GetID()),
+	)
+
 	return nil
 }
 
@@ -347,6 +352,10 @@ func handleSubscriptionUpdated(ctx context.Context, subscription stripe.Subscrip
 	if err != nil {
 		return fmt.Errorf("update user: %w", err)
 	}
+
+	slogctx.FromCtx(ctx).Info("Updated user subscription.",
+		slog.String("user_id", user.GetID()),
+	)
 
 	return nil
 }
@@ -394,6 +403,10 @@ func handleSubscriptionCreated(ctx context.Context, subscription stripe.Subscrip
 	if err != nil {
 		return fmt.Errorf("update user: %w", err)
 	}
+
+	slogctx.FromCtx(ctx).Info("Created user subscription.",
+		slog.String("user_id", user.GetID()),
+	)
 
 	return nil
 }
