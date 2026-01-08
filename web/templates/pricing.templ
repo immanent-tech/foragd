@@ -28,7 +28,7 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 					</div>
 					<div class="mt-8">
 						<form action={ action } method={ method }>
-							@UpdateCSRFToken()
+							<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 							<input type="hidden" name={ models.ParamPlanID } value="Gatherer-85297d6"/>
 							<button aria-label="Start a free trial on the Gatherer plan" id="checkout-gatherer" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
 						</form>
@@ -76,7 +76,7 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 					</div>
 					<div class="mt-8">
 						<form action={ action } method={ method }>
-							@UpdateCSRFToken()
+							<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 							<input type="hidden" name={ models.ParamPlanID } value="Collector-07ad4d0"/>
 							<button aria-label="Start a free trial on the Collector plan" id="checkout-collector" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
 						</form>
@@ -130,7 +130,7 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 					</div>
 					<div class="mt-8">
 						<form action={ action } method={ method }>
-							@UpdateCSRFToken()
+							<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 							<input type="hidden" name={ models.ParamPlanID } value="Curator-2c67637"/>
 							<button aria-label="Start a free trial on the Curator plan" id="checkout-curator" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
 						</form>
