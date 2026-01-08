@@ -115,7 +115,6 @@ Foragd is an online, web-based feed reader for all syndication formats (RSS, Ato
   </ul>
 </details>
 
-<details>
 
 <!-- Features -->
 ### :dart: Features
