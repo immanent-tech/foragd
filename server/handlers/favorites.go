@@ -79,11 +79,7 @@ func ListFavorites() http.HandlerFunc {
 			}
 
 			// Render appropriate content.
-			if len(subscriptions) > 0 || len(articles) > 0 {
-				template = templates.FavoritesGrid(subscriptions, articles)
-			} else {
-				template = templates.EmptyContent()
-			}
+			template = templates.FavoritesGrid(subscriptions, articles)
 
 			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {

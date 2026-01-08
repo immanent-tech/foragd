@@ -31,7 +31,22 @@ templ ArticleCard(article *models.Article) {
 				WithClasses("link-hover"),
 			) {
 				<figure>
-					@showArticleImage(article, 400, 266, "w-full sm:max-w-100 h-full sm:object-cover")
+					{{ img := article.GetImage() }}
+					if img.GetTitle() == "" {
+						{{ img.Title = article.GetTitle() }}
+					}
+					// rs:auto:300:200 - resize to 300x200 https://docs.imgproxy.net/usage/processing#resize
+					// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
+					// el:1 - enlarge if smaller https://docs.imgproxy.net/usage/processing#enlarge
+					// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
+					// sm:1 - strip metadata
+					// kcr:1 - keep copyright
+					// scp:1 - convert color profile to sRGB
+					@NewProxiedImage(img, "rs:auto:400:266/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
+						WithClasses("w-full sm:max-w-100 h-auto object-cover"),
+						WithAttribute("width", "400"),
+						WithAttribute("height", "266"),
+					)
 				</figure>
 			}
 		}
@@ -448,7 +463,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				}
 			} else {
 				{{ response.Filters.Subscriptions = nil }}
-				@EmptyContent()
+				@emptyContent()
 			}
 		</section>
 	}
@@ -465,25 +480,6 @@ templ PaginateArticles(response *models.ListArticlesResponse) {
 		// Add pagination htmx props to last article.
 		@PaginationControl(ctx, "/list/articles/paginate", "#content-filters,[name='csrf_token']", response.Pagination)
 	}
-}
-
-templ showArticleImage(article *models.Article, width, height int, classes ...string) {
-	{{ img := article.GetImage() }}
-	if img.GetTitle() == "" {
-		{{ img.Title = article.GetTitle() }}
-	}
-	// rs:auto:300:200 - resize to 300x200 https://docs.imgproxy.net/usage/processing#resize
-	// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
-	// el:1 - enlarge if smaller https://docs.imgproxy.net/usage/processing#enlarge
-	// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
-	// sm:1 - strip metadata
-	// kcr:1 - keep copyright
-	// scp:1 - convert color profile to sRGB
-	@NewProxiedImage(img, "rs:auto:"+strconv.Itoa(width)+":"+strconv.Itoa(height)+"/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
-		WithClasses(classes...),
-		WithAttribute("width", strconv.Itoa(width)),
-		WithAttribute("height", strconv.Itoa(height)),
-	)
 }
 
 // shareArticleLink renders a link that opens the share dialog. This will be either the native navigator.share API

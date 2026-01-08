@@ -12,56 +12,60 @@ import (
 // FavoritesGrid renders subscription and article favorites in a grid layout.
 templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles) {
 	@container() {
-		<div id="top" class="flex items-center justify-between mt-4">
-			<div class="min-w-0 flex-1">
-				<h2 class="page-title">
-					Favorites
-				</h2>
-			</div>
-		</div>
-		// Hidden content filters.
-		<div id="content-filters" class="hidden">
-			<input type="hidden" name={ models.ParamView } value={ models.ViewAll }/>
-		</div>
-		// Show jump to links for quick access when there are both subscriptions and articles.
-		if len(subscriptions) > 0 && len(articles) > 0 {
-			<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8 text-sm">
-				<h3 class="font-medium text-primary">
-					Jump To:
-				</h3>
-				<div class="flex items-center px-2">
-					<a href="#subscriptions" class="link link-hover">Subscriptions</a>
-					<div aria-hidden="true" class="h-5 w-px bg-base-content/40 m-4 block"></div>
-					<a href="#articles" class="link link-hover">Articles</a>
+		if len(subscriptions) > 0 || len(articles) > 0 {
+			<div id="top" class="flex items-center justify-between mt-4">
+				<div class="min-w-0 flex-1">
+					<h2 class="page-title">
+						Favorites
+					</h2>
 				</div>
 			</div>
-		}
-		// Favorite subscriptions.
-		if len(subscriptions) > 0 {
-			<section id="subscriptions" class="mt-4">
-				<div class="pb-5">
-					<h3 class="text-base font-semibold">Subscriptions</h3>
+			// Hidden content filters.
+			<div id="content-filters" class="hidden">
+				<input type="hidden" name={ models.ParamView } value={ models.ViewAll }/>
+			</div>
+			// Show jump to links for quick access when there are both subscriptions and articles.
+			if len(subscriptions) > 0 && len(articles) > 0 {
+				<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8 text-sm">
+					<h3 class="font-medium text-primary">
+						Jump To:
+					</h3>
+					<div class="flex items-center px-2">
+						<a href="#subscriptions" class="link link-hover">Subscriptions</a>
+						<div aria-hidden="true" class="h-5 w-px bg-base-content/40 m-4 block"></div>
+						<a href="#articles" class="link link-hover">Articles</a>
+					</div>
 				</div>
-				@grid() {
-					for subscription := range slices.Values(subscriptions) {
-						@SubscriptionCard(subscription)
+			}
+			// Favorite subscriptions.
+			if len(subscriptions) > 0 {
+				<section id="subscriptions" class="mt-4">
+					<div class="pb-5">
+						<h3 class="text-base font-semibold">Subscriptions</h3>
+					</div>
+					@grid() {
+						for subscription := range slices.Values(subscriptions) {
+							@SubscriptionCard(subscription)
+						}
 					}
-				}
-			</section>
-		}
-		// Favorite articles.
-		if len(articles) > 0 {
-			<section id="articles" class="mt-4">
-				<div class="pb-5">
-					<h3 class="text-base font-semibold">Articles</h3>
-				</div>
-				@grid() {
-					for article := range slices.Values(articles) {
-						@ArticleCard(article)
+				</section>
+			}
+			// Favorite articles.
+			if len(articles) > 0 {
+				<section id="articles" class="mt-4">
+					<div class="pb-5">
+						<h3 class="text-base font-semibold">Articles</h3>
+					</div>
+					@grid() {
+						for article := range slices.Values(articles) {
+							@ArticleCard(article)
+						}
 					}
-				}
-			</section>
+				</section>
+			}
+			@btnBackToTop()
+		} else {
+			@emptyContent()
 		}
-		@btnBackToTop()
 	}
 }

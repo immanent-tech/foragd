@@ -94,14 +94,12 @@ templ ErrorPage(msg *models.UserMessage) {
 	}
 }
 
-// EmptyContent renders a layout appropriate for use when there is nothing to show.
-templ EmptyContent() {
-	@container() {
-		<div class="text-center">
-			@tabler.RosetteDiscountCheckFilled(i.Props{Class: "mx-auto text-success size-12"})
-			<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">All caught up!</h2>
-		</div>
-	}
+// emptyContent renders a layout appropriate for use when there is nothing to show.
+templ emptyContent() {
+	<div class="text-center">
+		@tabler.RosetteDiscountCheckFilled(i.Props{Class: "mx-auto text-success size-12"})
+		<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">All caught up!</h2>
+	</div>
 }
 
 // showTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time

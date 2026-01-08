@@ -26,10 +26,7 @@ type Home struct {
 templ (page *Home) Template() {
 	@container() {
 		if len(page.LatestArticles) == 0 {
-			<div class="text-center">
-				@tabler.CircleCheckFilled(i.Props{Class: "mx-auto size-12"})
-				<h3 class="mt-2 text-sm font-semibold">All caught up!</h3>
-			</div>
+			@emptyContent()
 		} else {
 			<div class="w-full grow lg:flex space-x-4">
 				// Left column.
@@ -51,15 +48,6 @@ templ (page *Home) Template() {
 												srcset={ generateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + generateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
 												sizes="(max-width: 480px) 100vw, 600px"
 											/>
-											// <img
-											// 	if elem.GetID() != "" {
-											// 		id={ elem.GetID() }
-											// 	}
-											// 	src={ generateImageProxyURL(ctx, img.GetURL(), props) }
-											// 	alt={ img.GetTitle() }
-											// 	{ elem.attributes... }
-											// />
-											// @showArticleImage(article, 300, 200, "sm:h-full sm:object-cover")
 										</figure>
 									}
 									<div class="card-body">
