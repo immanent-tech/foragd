@@ -125,7 +125,7 @@ func getHomePageData(ctx context.Context) (*templates.Home, error) {
 		return nil, fmt.Errorf("unable to generate articles: %w", err)
 	}
 
-	if errors.Is(err, elastic.ErrNotFound) {
+	if errors.Is(err, elastic.ErrNotFound) || len(data.LatestArticles) == 0 {
 		return data, nil
 	}
 
