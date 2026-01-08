@@ -17,10 +17,12 @@ const (
 // DefaultPageTitle is the default <title> tag value if none is set.
 var DefaultPageTitle = config.AppName + ": " + config.AppDescription
 
+// PageTitleToCtx stores the page title string in the context.
 func PageTitleToCtx(ctx context.Context, title string) context.Context {
 	return context.WithValue(ctx, pageTitleCtxKey, GeneratePageTitle(title))
 }
 
+// PageTitleFromCtx retrieves the page title string from the context.
 func PageTitleFromCtx(ctx context.Context) string {
 	title, ok := ctx.Value(pageTitleCtxKey).(string)
 	if !ok {

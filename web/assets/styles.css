@@ -9,6 +9,7 @@
     abyss;
   /* https://github.com/saadeghi/daisyui/issues/3882 */
   exclude: properties;
+  utils: true;
 }
 
 @plugin './catppuccinTheme.latte.ts';
