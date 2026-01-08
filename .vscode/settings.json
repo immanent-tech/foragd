@@ -129,6 +129,9 @@
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
   "xmlTools.splitAttributesOnFormat": true,
   "languageToolLinter.languageTool.ignoredWordsInWorkspace": [
-    "foragd"
-  ]
+    "foragd",
+    "jsonfeed",
+    "podman"
+  ],
+  "languageToolLinter.languageTool.motherTongue": "en-US"
 }

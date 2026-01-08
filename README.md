@@ -11,8 +11,7 @@
     A beautiful, web based, online feed reader.
   </p>
   <p>
-    Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news,
-		blogs and other online sources, across your mobile, tablet, desktop and laptop.
+    Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop.
   </p>
 
 <!-- Badges -->
@@ -66,7 +65,6 @@
     - [:running: Run Locally](#running-run-locally)
     - [:triangular\_flag\_on\_post: Deployment](#triangular_flag_on_post-deployment)
   - [:eyes: Usage](#eyes-usage)
-  - [:compass: Roadmap](#compass-roadmap)
   - [:wave: Contributing](#wave-contributing)
     - [:scroll: Code of Conduct](#scroll-code-of-conduct)
   - [:warning: License](#warning-license)
@@ -94,7 +92,6 @@ Foragd is an online, web-based feed reader for all syndication formats (RSS, Ato
   <img src="/web/content/screenshots/screenshot-article-content-mobile.png" alt="Article content display on mobile" />
 </div>
 
-
 <!-- TechStack -->
 ### :space_invader: Tech Stack
 
@@ -115,6 +112,14 @@ Foragd is an online, web-based feed reader for all syndication formats (RSS, Ato
   </ul>
 </details>
 
+<details>
+<summary>Backend</summary>
+  <ul>
+    <li><a href="https://auth0.com/">Auth0</a></li>
+    <li><a href="https://stripe.com/">Stripe</a></li>
+    <li><a href="https://resend.com/">Resend</a></li>
+  </ul>
+</details>
 
 <!-- Features -->
 ### :dart: Features
@@ -149,7 +154,6 @@ TBA.
 <!-- Running Tests -->
 ### :test_tube: Running Tests
 
-
 TBA.
 
 <!-- Run Locally -->
@@ -162,18 +166,10 @@ TBA.
 
 TBA.
 
-
 <!-- Usage -->
 ## :eyes: Usage
 
 TBA.
-
-<!-- Roadmap -->
-## :compass: Roadmap
-
-* [x] Todo 1
-* [ ] Todo 2
-
 
 <!-- Contributing -->
 ## :wave: Contributing
@@ -182,33 +178,26 @@ TBA.
   <img src="https://contrib.rocks/image?repo=immanent-tech/foragd" />
 </a>
 
-
 Contributions are always welcome!
 
 See `contributing.md` for ways to get started.
-
 
 <!-- Code of Conduct -->
 ### :scroll: Code of Conduct
 
 TBA.
 
-
 <!-- License -->
 ## :warning: License
 
-Distributed under the AGPL-3.0-or-later License. See LICENSE for more information.
-
+Distributed under the AGPL-3.0-or-later License. See [LICENSE](./LICENSE) for more information.
 
 <!-- Contact -->
 ## :handshake: Contact
 
-Immanent Tech - hello@immanent.tech
+Immanent Tech — <hello@immanent.tech>
 
 Project Link: [https://github.com/immanent-tech/foragd](https://github.com/immanent-tech/foragd)
 
-
 <!-- Acknowledgments -->
 ## :gem: Acknowledgements
-
-TBA.
