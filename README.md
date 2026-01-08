@@ -1,52 +1,51 @@
 <!--
-Hey, thanks for using the awesome-readme-template template.
-If you have any enhancements, then fork this project and create a pull request
-or just open an issue with the label "enhancement".
-
-Don't forget to give this project a star for additional support ;)
-Maybe you can mention me or this repo in the acknowledgements too
+ Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+ SPDX-License-Identifier: 	AGPL-3.0-or-later
 -->
+
 <div align="center">
 
-  <img src="assets/logo.png" alt="logo" width="200" height="auto" />
-  <h1>Awesome Readme Template</h1>
-
+  <img src="/web/assets/logo-color.svg" alt="logo" width="200" height="auto" />
+  <h1>Foragd</h1>
   <p>
-    An awesome README template for your projects!
+    A beautiful, web based, online feed reader.
   </p>
-
+  <p>
+    Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news,
+		blogs and other online sources, across your mobile, tablet, desktop and laptop.
+  </p>
 
 <!-- Badges -->
 <p>
-  <a href="https://github.com/Louis3797/awesome-readme-template/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/Louis3797/awesome-readme-template" alt="contributors" />
+  <a href="https://github.com/immanent-tech/foragd/graphs/contributors">
+    <img src="https://img.shields.io/github/contributors/immanent-tech/foragd" alt="contributors" />
   </a>
   <a href="">
-    <img src="https://img.shields.io/github/last-commit/Louis3797/awesome-readme-template" alt="last update" />
+    <img src="https://img.shields.io/github/last-commit/immanent-tech/foragd" alt="last update" />
   </a>
-  <a href="https://github.com/Louis3797/awesome-readme-template/network/members">
-    <img src="https://img.shields.io/github/forks/Louis3797/awesome-readme-template" alt="forks" />
+  <a href="https://github.com/immanent-tech/foragd/network/members">
+    <img src="https://img.shields.io/github/forks/immanent-tech/foragd" alt="forks" />
   </a>
-  <a href="https://github.com/Louis3797/awesome-readme-template/stargazers">
-    <img src="https://img.shields.io/github/stars/Louis3797/awesome-readme-template" alt="stars" />
+  <a href="https://github.com/immanent-tech/foragd/stargazers">
+    <img src="https://img.shields.io/github/stars/immanent-tech/foragd" alt="stars" />
   </a>
-  <a href="https://github.com/Louis3797/awesome-readme-template/issues/">
-    <img src="https://img.shields.io/github/issues/Louis3797/awesome-readme-template" alt="open issues" />
+  <a href="https://github.com/immanent-tech/foragd/issues/">
+    <img src="https://img.shields.io/github/issues/immanent-tech/foragd" alt="open issues" />
   </a>
-  <a href="https://github.com/Louis3797/awesome-readme-template/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/Louis3797/awesome-readme-template.svg" alt="license" />
+  <a href="https://github.com/immanent-tech/foragd/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/immanent-tech/foragd.svg" alt="license" />
   </a>
 </p>
 
 <h4>
-    <a href="https://github.com/Louis3797/awesome-readme-template/">View Demo</a>
-  <span> · </span>
-    <a href="https://github.com/Louis3797/awesome-readme-template">Documentation</a>
+    <a href="https://foragd.app/">Homepage</a>
+  <!-- <span> · </span> -->
+    <!-- <a href="https://github.com/Louis3797/awesome-readme-template">Documentation</a>
   <span> · </span>
     <a href="https://github.com/Louis3797/awesome-readme-template/issues/">Report Bug</a>
   <span> · </span>
     <a href="https://github.com/Louis3797/awesome-readme-template/issues/">Request Feature</a>
-  </h4>
+  </h4> -->
 </div>
 
 <br />
@@ -56,14 +55,12 @@ Maybe you can mention me or this repo in the acknowledgements too
 
 - [:notebook\_with\_decorative\_cover: Table of Contents](#notebook_with_decorative_cover-table-of-contents)
   - [:star2: About the Project](#star2-about-the-project)
+    - [What Makes Foragd Different?](#what-makes-foragd-different)
     - [:camera: Screenshots](#camera-screenshots)
     - [:space\_invader: Tech Stack](#space_invader-tech-stack)
     - [:dart: Features](#dart-features)
-    - [:art: Color Reference](#art-color-reference)
-    - [:key: Configuration](#key-configuration)
   - [:toolbox: Getting Started](#toolbox-getting-started)
     - [:bangbang: Prerequisites](#bangbang-prerequisites)
-      - [Limits](#limits)
     - [:gear: Installation](#gear-installation)
     - [:test\_tube: Running Tests](#test_tube-running-tests)
     - [:running: Run Locally](#running-run-locally)
@@ -72,7 +69,6 @@ Maybe you can mention me or this repo in the acknowledgements too
   - [:compass: Roadmap](#compass-roadmap)
   - [:wave: Contributing](#wave-contributing)
     - [:scroll: Code of Conduct](#scroll-code-of-conduct)
-  - [:grey\_question: FAQ](#grey_question-faq)
   - [:warning: License](#warning-license)
   - [:handshake: Contact](#handshake-contact)
   - [:gem: Acknowledgements](#gem-acknowledgements)
@@ -82,27 +78,25 @@ Maybe you can mention me or this repo in the acknowledgements too
 <!-- About the Project -->
 ## :star2: About the Project
 
+Foragd is an online, web-based feed reader for all syndication formats (RSS, Atom, JSONFeed).
+
+### What Makes Foragd Different?
+
+- **Focused on reading content, not tracking totals:** not trying to shoehorn feeds into an email-like interface and not showing unread counts. Straightforward homepage, subscription, and article views.
+- **Powerful Search:** fast and powerful searching. Find that article mentioning that thing from that site a while back, easily.
+- **Easy Filtering:** easily filter articles within a subscription by keyword, phrase, category, or author. No complex filter building, just easy `+/-` operators. For example: `alcoholic drinks + -"rum based" +daiquiri`
 
 <!-- Screenshots -->
 ### :camera: Screenshots
 
 <div align="center">
-  <img src="https://placehold.co/600x400?text=Your+Screenshot+here" alt="screenshot" />
+  <img src="/web/content/screenshots/screenshot-card.png" alt="Article summary in a card layout" />
+  <img src="/web/content/screenshots/screenshot-article-content-mobile.png" alt="Article content display on mobile" />
 </div>
 
 
 <!-- TechStack -->
 ### :space_invader: Tech Stack
-
-<details>
-  <summary>Client</summary>
-  <ul>
-    <li><a href="https://www.typescriptlang.org/">Typescript</a></li>
-    <li><a href="https://nextjs.org/">Next.js</a></li>
-    <li><a href="https://reactjs.org/">React.js</a></li>
-    <li><a href="https://tailwindcss.com/">TailwindCSS</a></li>
-  </ul>
-</details>
 
 <details>
   <summary>Server</summary>
@@ -122,35 +116,18 @@ Maybe you can mention me or this repo in the acknowledgements too
 </details>
 
 <details>
-<summary>DevOps</summary>
-  <ul>
-    <li><a href="https://www.docker.com/">Docker</a></li>
-    <li><a href="https://gowebly.org/">Gowebly</a></li>
-  </ul>
-</details>
 
 <!-- Features -->
 ### :dart: Features
 
-- Feature 1
-- Feature 2
-- Feature 3
-
-<!-- Color Reference -->
-### :art: Color Reference
-
-| Color             | Hex                                                                |
-| ----------------- | ------------------------------------------------------------------ |
-| Primary Color | ![#222831](https://via.placeholder.com/10/222831?text=+) #222831 |
-| Secondary Color | ![#393E46](https://via.placeholder.com/10/393E46?text=+) #393E46 |
-| Accent Color | ![#00ADB5](https://via.placeholder.com/10/00ADB5?text=+) #00ADB5 |
-| Text Color | ![#EEEEEE](https://via.placeholder.com/10/EEEEEE?text=+) #EEEEEE |
-
-
-<!-- Env Variables -->
-### :key: Configuration
-
-See [server.toml](./project/server.toml) for configuration variables. Any configuration variables defined in the configuration file can also be defined as environment variables by prefixing them with `GOFEEDME_`, i.e., `GOFEEDME_BACKEND_PORT`.
+- **Mobile and Desktop Friendly.** Foragd is a web based online app. It works in any browser on any device, anywhere.
+- **Article Filtering.** Filter articles in subscriptions by text/phrase, category or authors, with easy to use operators.
+- **Content Comes First.** Simple UI. Big images. Beautiful typography. Let the content shine.
+- **Powerful Search.** Full-text search across subscriptions and articles. Quickly access subscriptions and perform actions from the search bar.
+- **Subscription customisation.** Set a nickname for your subscriptions. Add your own categories to easily group and find similar content.
+- **Subscription and article favorites.** Mark subscriptions and articles as favorites, to quickly access them later.
+- **Group subscriptions.** Combine multiple subscriptions to present a unified view of articles from any of them. Make it easy to keep up with similar posts across different sources.
+- **Search subscriptions.** Use the powerful search to find what you need. Save the search terms as a search subscription to always find new articles that match. Great for keeping track of news or topics across multiple subscriptions.
 
 <!-- Getting Started -->
 ## 	:toolbox: Getting Started
@@ -158,91 +135,39 @@ See [server.toml](./project/server.toml) for configuration variables. Any config
 <!-- Prerequisites -->
 ### :bangbang: Prerequisites
 
-This project uses Yarn as package manager
-
-```bash
- npm install --global yarn
-```
-
-#### Limits
-
-- Elasticsearch requires the following system limits to be in place:
-
-```
-  user  soft    memlock unlimited
-  user  hard    memlock unlimited
-```
+- Podman/Docker.
+- Elasticsearch.
+- Auth0.
+- Stripe.
+- Resend.
+- GCP.
 
 <!-- Installation -->
 ### :gear: Installation
 
-Install my-project with npm
-
-```bash
-  yarn install my-project
-  cd my-project
-```
+TBA.
 
 <!-- Running Tests -->
 ### :test_tube: Running Tests
 
-To run tests, run the following command
 
-```bash
-  yarn test test
-```
+TBA.
 
 <!-- Run Locally -->
 ### :running: Run Locally
 
-Clone the project
-
-```bash
-  git clone https://github.com/Louis3797/awesome-readme-template.git
-```
-
-Go to the project directory
-
-```bash
-  cd my-project
-```
-
-Install dependencies
-
-```bash
-  yarn install
-```
-
-Start the server
-
-```bash
-  yarn start
-```
-
+TBA.
 
 <!-- Deployment -->
 ### :triangular_flag_on_post: Deployment
 
-To deploy this project run
-
-```bash
-  yarn deploy
-```
+TBA.
 
 
 <!-- Usage -->
 ## :eyes: Usage
 
-Use this space to tell a little more about your project and how it can be used. Show additional screenshots, code samples, demos or link to other resources.
-
-
-```javascript
-import Component from 'my-project'
-
-function App() {
-  return <Component />
-}
-```
+TBA.
 
 <!-- Roadmap -->
 ## :compass: Roadmap
@@ -254,8 +179,8 @@ function App() {
 <!-- Contributing -->
 ## :wave: Contributing
 
-<a href="https://github.com/Louis3797/awesome-readme-template/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Louis3797/awesome-readme-template" />
+<a href="https://github.com/immanent-tech/foragd/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=immanent-tech/foragd" />
 </a>
 
 
@@ -267,41 +192,24 @@ See `contributing.md` for ways to get started.
 <!-- Code of Conduct -->
 ### :scroll: Code of Conduct
 
-Please read the [Code of Conduct](https://github.com/Louis3797/awesome-readme-template/blob/master/CODE_OF_CONDUCT.md)
-
-<!-- FAQ -->
-## :grey_question: FAQ
-
-- Question 1
-
-  + Answer 1
-
-- Question 2
-
-  + Answer 2
+TBA.
 
 
 <!-- License -->
 ## :warning: License
 
-Distributed under the no License. See LICENSE.txt for more information.
+Distributed under the AGPL-3.0-or-later License. See LICENSE for more information.
 
 
 <!-- Contact -->
 ## :handshake: Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Immanent Tech - hello@immanent.tech
 
-Project Link: [https://github.com/Louis3797/awesome-readme-template](https://github.com/Louis3797/awesome-readme-template)
+Project Link: [https://github.com/immanent-tech/foragd](https://github.com/immanent-tech/foragd)
 
 
 <!-- Acknowledgments -->
 ## :gem: Acknowledgements
 
-Use this section to mention useful resources and libraries that you have used in your projects.
-
- - [Shields.io](https://shields.io/)
- - [Awesome README](https://github.com/matiassingers/awesome-readme)
- - [Emoji Cheat Sheet](https://github.com/ikatyang/emoji-cheat-sheet/blob/master/README.md#travel--places)
- - [Readme Template](https://github.com/othneildrew/Best-README-Template)
-
+TBA.
