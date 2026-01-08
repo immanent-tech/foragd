@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.18.0](https://github.com/immanent-tech/foragd/compare/v0.17.0...v0.18.0) (2026-01-08)
+
+
+### Features
+
+* **templates:** :sparkles: top-left logo is a link back to homepage ([185b515](https://github.com/immanent-tech/foragd/commit/185b51502d9f5429bd4b6d56e87ce94052c392f8))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: show "all caught up" if no unread on homepage ([54a8129](https://github.com/immanent-tech/foragd/commit/54a812998a5c7a478181baf2e1acebcf9b8d54ef))
+
 ## [0.17.0](https://github.com/immanent-tech/foragd/compare/v0.16.0...v0.17.0) (2026-01-08)
 
 
