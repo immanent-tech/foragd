@@ -31,7 +31,7 @@ templ ArticleCard(article *models.Article) {
 				WithClasses("link-hover"),
 			) {
 				<figure>
-					@showArticleImage(article, 400, 266, "sm:h-full sm:object-cover")
+					@showArticleImage(article, 400, 266, "w-full sm:max-w-100 h-full sm:object-cover")
 				</figure>
 			}
 		}
@@ -472,7 +472,6 @@ templ showArticleImage(article *models.Article, width, height int, classes ...st
 	if img.GetTitle() == "" {
 		{{ img.Title = article.GetTitle() }}
 	}
-	{{ classes = append(classes, "responsive-img") }}
 	// rs:auto:300:200 - resize to 300x200 https://docs.imgproxy.net/usage/processing#resize
 	// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
 	// el:1 - enlarge if smaller https://docs.imgproxy.net/usage/processing#enlarge

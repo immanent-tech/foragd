@@ -99,7 +99,7 @@ func ArticleCard(article *models.Article) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = showArticleImage(article, 400, 266, "sm:h-full sm:object-cover").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = showArticleImage(article, 400, 266, "w-full sm:max-w-100 h-full sm:object-cover").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1906,7 +1906,6 @@ func showArticleImage(article *models.Article, width, height int, classes ...str
 		if img.GetTitle() == "" {
 			img.Title = article.GetTitle()
 		}
-		classes = append(classes, "responsive-img")
 		templ_7745c5c3_Err = NewProxiedImage(img, "rs:auto:"+strconv.Itoa(width)+":"+strconv.Itoa(height)+"/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
 			WithClasses(classes...),
 			WithAttribute("width", strconv.Itoa(width)),
@@ -2108,7 +2107,7 @@ func favoriteArticleLink(article *models.Article) templ.Component {
 		var templ_7745c5c3_Var93 string
 		templ_7745c5c3_Var93, templ_7745c5c3_Err = templ.JoinStringErrs("favorite_" + article.GetID())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 531, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/article.templ`, Line: 530, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var93))
 		if templ_7745c5c3_Err != nil {
