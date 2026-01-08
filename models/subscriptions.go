@@ -533,6 +533,11 @@ func ProcessSubscriptionRequest(
 		return
 	}
 
+	slogctx.FromCtx(ctx).Debug("New subscription required.",
+		slog.String("feed_title", result.Feed.GetTitle()),
+		slog.String("feed_id", result.Feed.GetID()),
+	)
+
 	// New subscription required.
 	resultsCh <- result
 }

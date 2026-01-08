@@ -862,6 +862,9 @@ func ImportSubscriptions() http.HandlerFunc {
 			// Create the subscriptions for any results that don't already indicate an error.
 			err = models.CreateFeedSubscriptions(req.Context(), slices.Collect(models.FilterSlice(results,
 				func(r *models.AddFeedSubscriptionResult) bool {
+					if r.Message == nil {
+						return true
+					}
 					if r.Message != nil && r.Message.Status != models.UserMessageStatusError &&
 						r.Message.Status != models.UserMessageStatusWarning {
 						return true
