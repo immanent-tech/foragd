@@ -3,12 +3,22 @@
 
 package templates
 
+import (
+	"github.com/cespare/xxhash/v2"
+	"github.com/immanent-tech/go-syndication"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+	"slices"
+	"strconv"
+)
+
 templ Inspector() {
 	@container() {
 		<section id="inspector">
 			@h2("Feed Inspector")
 			@p() {
 				Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
+				The feed content, if found, will be displayed below.
 			}
 			<form
 				id="inspector-form"
@@ -20,18 +30,140 @@ templ Inspector() {
 			>
 				<fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-4 w-full">
 					<legend class="fieldset-legend">URL</legend>
-					<input type="text" name="url" class="input w-full" placeholder="https://some.site"/>
+					<div class="join">
+						<input type="text" name="url" class="input w-full" placeholder="https://some.site"/>
+						<button class="btn join-item">Inspect</button>
+					</div>
 					<p class="label">Enter a URL of a site to inspect for feeds</p>
 				</fieldset>
 			</form>
 		</section>
-		<section id="inspector-results"></section>
+		<div id="processing" class="htmx-indicator my-4 flex justify-center mx-auto">
+			<span class="flex loading loading-dots loading-lg"></span>
+		</div>
+		<section id="inspector-results" class="mt-8"></section>
 	}
 }
 
-type InspectorResultsComponent struct {
-	Component
-}
-
-templ InspectorResults() {
+templ InspectorResults(feed *feeds.Feed) {
+	<div class="overflow-hidden">
+		<h2 id="profile-overview-title" class="sr-only">Feed Overview</h2>
+		<div class="p-6">
+			<div class="sm:flex sm:items-center sm:justify-between">
+				<div class="sm:flex sm:space-x-5">
+					if img := feed.GetImage(); img != nil {
+						<div class="shrink-0">
+							@NewProxiedImage(img, "rs:auto:48:48/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
+								WithClasses("mx-auto size-48 rounded-full"),
+								WithAttribute("width", "48"),
+								WithAttribute("height", "48"),
+							)
+						</div>
+					}
+					<div class="mt-4 text-center sm:mt-0 sm:pt-1 sm:text-left">
+						<p class="text-xl font-bold">{ feed.GetTitle() }</p>
+						if feed.GetDescription() != "" {
+							<p class="text-sm font-medium">{ feed.GetDescription() }</p>
+						}
+					</div>
+				</div>
+				<div class="mt-5 flex justify-center sm:mt-0">
+					<a href={ feed.GetLink() } role="button" class="flex link link-hover">
+						@tabler.ExternalLink()
+					</a>
+				</div>
+			</div>
+		</div>
+		<div class="grid grid-cols-1 sm:grid-cols-3">
+			<div class="px-6 py-5 text-center text-sm font-medium">
+				<span class="">{ len(feed.GetItems()) }</span>
+				<span class="">Items</span>
+			</div>
+			<div class="px-6 py-5 text-center text-sm font-medium">
+				<span class="">
+					@showTimestamp(feed.GetUpdatedDate())
+				</span>
+				<span class="">Last Update</span>
+			</div>
+		</div>
+	</div>
+	if len(feed.GetItems()) > 0 {
+		<div class="overflow-x-auto">
+			<table class="table table-sm sm:table-md">
+				<thead>
+					<tr>
+						<th>Image</th>
+						<th>Title</th>
+						<th>Link</th>
+						<th>Published</th>
+					</tr>
+				</thead>
+				<tbody>
+					for item := range slices.Values(feed.GetItems()) {
+						<tr>
+							<td>
+								if img := item.GetImage(); img != nil {
+									@NewProxiedImage(img, "rs:auto:96:96/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
+										WithClasses("w-96 h-96"),
+										WithAttribute("width", "96"),
+										WithAttribute("height", "96"),
+									)
+								}
+							</td>
+							<td>
+								// Only show title on mobile.
+								<div class="flex sm:hidden">
+									{ item.GetTitle() }
+								</div>
+								// Show title and disclosure containing item content on desktop.
+								<div class="hidden sm:flex">
+									<button
+										command="--toggle"
+										commandfor={ "disclosure-" + strconv.FormatUint(xxhash.Sum64String(item.GetLink()), 10) }
+										type="button"
+										class="flex w-full items-start justify-between text-left"
+									>
+										<span>{ item.GetTitle() }</span>
+										<span class="ml-6 flex h-7 items-center">
+											@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
+											@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
+										</span>
+									</button>
+									<el-disclosure
+										hidden
+										id={ "disclosure-" + strconv.FormatUint(xxhash.Sum64String(item.GetLink()), 10) }
+									>
+										<article
+											data-disable-scripting
+											class="prose-custom prose-sm forced-width"
+										>
+											switch  {
+												case item.GetContent() != "":
+													@templ.Raw(item.GetContent())
+												case item.GetDescription() != "":
+													@templ.Raw(item.GetDescription())
+											}
+										</article>
+									</el-disclosure>
+								</div>
+							</td>
+							<td>
+								@NewLink(
+									WithAttribute("href", item.GetLink()),
+									WithAttribute("target", "_blank"),
+									WithAttribute("rel", "noopener"),
+								) {
+									@tabler.ExternalLink()
+								}
+							</td>
+							<td>
+								Updated&nbsp;
+								@showTimestamp(item.GetUpdatedDate())
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
 }

@@ -166,9 +166,17 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	// User uploaded screenshots
 	router.Get("/img/screenshots/*", handlers.LoadCachedImage)
 
-	// Front page.
-	router.Get("/", handlers.Landing())
-	// Sign-up/Login.
+	// Public facing routes.
+	router.Group(func(r chi.Router) {
+		r.Use(
+			middlewares.Etag,
+		)
+		r.Get("/", handlers.Landing())
+		r.Get("/inspector", handlers.Inspector())
+		r.With(middlewares.RequireHTMX).Post("/inspector", handlers.Inspector())
+	})
+
+	// Sign-up/Login routes.
 	router.Group(func(r chi.Router) {
 		r.Use(
 			middlewares.Etag,
