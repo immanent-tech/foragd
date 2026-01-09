@@ -4,12 +4,10 @@
 package templates
 
 import (
-	"github.com/cespare/xxhash/v2"
 	"github.com/immanent-tech/go-syndication"
-	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
-	"strconv"
+	"strings"
 )
 
 templ Inspector() {
@@ -53,11 +51,30 @@ templ InspectorResults(feed *feeds.Feed) {
 				<div class="sm:flex sm:space-x-5">
 					if img := feed.GetImage(); img != nil {
 						<div class="shrink-0">
-							@NewProxiedImage(img, "rs:auto:48:48/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
-								WithClasses("mx-auto size-48 rounded-full"),
-								WithAttribute("width", "48"),
-								WithAttribute("height", "48"),
-							)
+							if img := feed.GetImage(); img != nil {
+								// If the source has an image, use that as the avatar.
+								<div class="avatar">
+									<div class="rounded-box size-12 border border-base-content">
+										// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
+										// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
+										// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
+										// sm:1 - strip metadata
+										// kcr:1 - keep copyright
+										// scp:1 - convert color profile to sRGB
+										@NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
+											WithAttribute("width", "48"),
+											WithAttribute("height", "48"),
+										)
+									</div>
+								</div>
+							} else {
+								// Otherwise, take the first letter of the title and create a placeholder avatar.
+								<div class="avatar avatar-placeholder">
+									<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
+										<span class="text-3xl capitalize">{ feed.GetTitle()[0:1] }</span>
+									</div>
+								</div>
+							}
 						</div>
 					}
 					<div class="mt-4 text-center sm:mt-0 sm:pt-1 sm:text-left">
@@ -68,102 +85,88 @@ templ InspectorResults(feed *feeds.Feed) {
 					</div>
 				</div>
 				<div class="mt-5 flex justify-center sm:mt-0">
-					<a href={ feed.GetLink() } role="button" class="flex link link-hover">
+					@NewLink(
+						WithAttribute("href", feed.GetLink()),
+						WithAttribute("target", "_blank"),
+						WithAttribute("rel", "noopener"),
+						WithAttribute("role", "button"),
+						WithClasses("btn", "btn-primary", "link-hover"),
+					) {
+						View Website
 						@tabler.ExternalLink()
-					</a>
+					}
 				</div>
 			</div>
 		</div>
-		<div class="grid grid-cols-1 sm:grid-cols-3">
+		<div class="mx-auto grid grid-cols-1 sm:grid-cols-3 justify-center">
 			<div class="px-6 py-5 text-center text-sm font-medium">
 				<span class="">{ len(feed.GetItems()) }</span>
 				<span class="">Items</span>
 			</div>
 			<div class="px-6 py-5 text-center text-sm font-medium">
+				<span class="">Last Updated</span>
 				<span class="">
 					@showTimestamp(feed.GetUpdatedDate())
 				</span>
-				<span class="">Last Update</span>
 			</div>
 		</div>
 	</div>
 	if len(feed.GetItems()) > 0 {
-		<div class="overflow-x-auto">
-			<table class="table table-sm sm:table-md">
-				<thead>
-					<tr>
-						<th>Image</th>
-						<th>Title</th>
-						<th>Link</th>
-						<th>Published</th>
-					</tr>
-				</thead>
-				<tbody>
-					for item := range slices.Values(feed.GetItems()) {
-						<tr>
-							<td>
-								if img := item.GetImage(); img != nil {
-									@NewProxiedImage(img, "rs:auto:96:96/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
-										WithClasses("w-96 h-96"),
-										WithAttribute("width", "96"),
-										WithAttribute("height", "96"),
-									)
-								}
-							</td>
-							<td>
-								// Only show title on mobile.
-								<div class="flex sm:hidden">
-									{ item.GetTitle() }
-								</div>
-								// Show title and disclosure containing item content on desktop.
-								<div class="hidden sm:flex">
-									<button
-										command="--toggle"
-										commandfor={ "disclosure-" + strconv.FormatUint(xxhash.Sum64String(item.GetLink()), 10) }
-										type="button"
-										class="flex w-full items-start justify-between text-left"
-									>
-										<span>{ item.GetTitle() }</span>
-										<span class="ml-6 flex h-7 items-center">
-											@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
-											@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
-										</span>
-									</button>
-									<el-disclosure
-										hidden
-										id={ "disclosure-" + strconv.FormatUint(xxhash.Sum64String(item.GetLink()), 10) }
-									>
-										<article
-											data-disable-scripting
-											class="prose-custom prose-sm forced-width"
-										>
-											switch  {
-												case item.GetContent() != "":
-													@templ.Raw(item.GetContent())
-												case item.GetDescription() != "":
-													@templ.Raw(item.GetDescription())
-											}
-										</article>
-									</el-disclosure>
-								</div>
-							</td>
-							<td>
-								@NewLink(
-									WithAttribute("href", item.GetLink()),
-									WithAttribute("target", "_blank"),
-									WithAttribute("rel", "noopener"),
-								) {
-									@tabler.ExternalLink()
-								}
-							</td>
-							<td>
-								Updated&nbsp;
-								@showTimestamp(item.GetUpdatedDate())
-							</td>
-						</tr>
-					}
-				</tbody>
-			</table>
-		</div>
+		@grid() {
+			for item := range slices.Values(feed.GetItems()) {
+				@inspectorItemCard(item)
+			}
+		}
 	}
+}
+
+// inspectorItemCard renders a feed item in a card.
+templ inspectorItemCard(item feeds.Item) {
+	<div class="card bg-base-100 w-96 shadow-sm">
+		if img := item.GetImage(); img != nil {
+			<figure>
+				<img
+					src={ img.GetURL() }
+					alt={ img.GetTitle() }
+					srcset={ generateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + generateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
+					sizes="(max-width: 480px) 100vw, 600px"
+				/>
+			</figure>
+		}
+		<div class="card-body">
+			<h2 class="card-title">{ item.GetTitle() }</h2>
+			<div class="flex-1 inline-grid">
+				// Author(s) and Published Time.
+				if len(item.GetAuthors()) > 0 {
+					<p class="col-span-full text-sm/6 italic truncate">
+						{ strings.Join(item.GetAuthors(),",") }
+					</p>
+				}
+				<p class="col-span-full text-sm/6 capitalize">
+					Updated&nbsp;
+					@showTimestamp(item.GetUpdatedDate())
+				</p>
+			</div>
+			<div data-disable-scripting class="prose-summary">
+				switch  {
+					case item.GetContent() != "":
+						@templ.Raw(item.GetContent())
+					case item.GetDescription() != "":
+						@templ.Raw(item.GetDescription())
+				}
+			</div>
+			<div class="card-actions justify-end">
+				@NewLink(
+					WithAttribute("href", item.GetLink()),
+					WithAttribute("target", "_blank"),
+					WithAttribute("rel", "noopener"),
+					WithAttribute("role", "button"),
+					WithClasses("btn", "btn-primary", "link-hover"),
+				) {
+					View
+					@tabler.ExternalLink()
+				}
+			</div>
+		</div>
+	</div>
 }
