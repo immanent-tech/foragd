@@ -130,3 +130,40 @@ templ UpdatesToast() {
 		</div>
 	</div>
 }
+
+// ErrorMessage displays a user-facing error message in a prominent way on a page, with navigation links for returning
+// home or emailing support.
+templ ErrorMessage(msg *models.UserMessage) {
+	@container() {
+		@userMessage("Whoops 😿", msg) {
+			<div class="mt-10 flex items-center justify-center gap-x-6">
+				@NewLink(
+					WithAttribute("role", "button"),
+					WithAttribute("href", "/home"),
+					WithClasses("btn", "btn-primary"),
+				) {
+					Go Back Home
+				}
+				@NewLink(
+					WithAttribute("role", "button"),
+					WithAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
+					WithClasses("btn", "btn-ghost"),
+				) {
+					Email Support <span aria-hidden="true">&rarr;</span>
+				}
+			</div>
+		}
+	}
+}
+
+// userMessage displays a UserMessage in a center-aligned element, with the given title.
+templ userMessage(title string, msg *models.UserMessage) {
+	<div class="text-center">
+		<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl">{ title }</h1>
+		<h2 class="mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-5xl">{ msg.Summary }</h2>
+		if msg.HasDetails() {
+			<p class="mt-6 text-lg font-medium text-pretty sm:text-xl/8">{ msg.Details }</p>
+		}
+		{ children... }
+	</div>
+}

@@ -31,7 +31,8 @@ func Login(res http.ResponseWriter, req *http.Request) {
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Can't contact auth backend")),
+			templates.ErrorMessage(
+				models.NewErrorMessage("Unable to log in.", "Can't contact auth backend")),
 		).ServeHTTP(res, req.WithContext(ctx))
 	}
 	// prompt=login&screen_hint=signup
@@ -41,7 +42,8 @@ func Login(res http.ResponseWriter, req *http.Request) {
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Invalid state")),
+			templates.ErrorMessage(
+				models.NewErrorMessage("Unable to log in.", "Invalid state")),
 		).ServeHTTP(res, req.WithContext(ctx))
 	}
 	var authURL string
@@ -73,7 +75,7 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ExternalError(
+			templates.ErrorMessage(
 				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
 			),
 		).ServeHTTP(res, req.WithContext(ctx))
@@ -81,7 +83,7 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 	if req.FormValue("state") != state {
 		slogctx.FromCtx(req.Context()).Error("Invalid state.")
 		renderPage(
-			templates.ExternalError(
+			templates.ErrorMessage(
 				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
 			),
 		).ServeHTTP(res, req.WithContext(ctx))
@@ -94,7 +96,7 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ExternalError(
+			templates.ErrorMessage(
 				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
 			),
 		).ServeHTTP(res, req.WithContext(ctx))
@@ -106,7 +108,7 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ExternalError(
+			templates.ErrorMessage(
 				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
 			),
 		).ServeHTTP(res, req.WithContext(ctx))
@@ -119,7 +121,7 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ExternalError(
+			templates.ErrorMessage(
 				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
 			),
 		).ServeHTTP(res, req.WithContext(ctx))
@@ -140,7 +142,7 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 				slog.Any("error", err),
 			)
 			renderPage(
-				templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Account creation failed")),
+				templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Account creation failed")),
 			).ServeHTTP(res, req.WithContext(ctx))
 		}
 	case err != nil: // Backend error.
@@ -149,7 +151,7 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ExternalError(
+			templates.ErrorMessage(
 				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
 			),
 		).ServeHTTP(res, req.WithContext(ctx))
@@ -207,7 +209,7 @@ func LoginError(res http.ResponseWriter, req *http.Request) {
 		slog.String("error_description", req.URL.Query().Get("error_description")),
 	)
 	renderPage(
-		templates.ExternalError(models.NewErrorMessage("Unable to log in.", "Auth backend reported an error")),
+		templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Auth backend reported an error")),
 	).ServeHTTP(res, req)
 }
 

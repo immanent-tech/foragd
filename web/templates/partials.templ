@@ -14,9 +14,13 @@ import (
 // NotFound renders a layout appropriate to use for a 404 response.
 templ NotFound() {
 	@container() {
-		<div class="text-center">
-			<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Page not found</h1>
-			<p class="mt-6 text-lg font-medium text-pretty sm:text-xl/8">Sorry, we couldn't find the page you're looking for.</p>
+		@userMessage(
+			"Not found",
+			models.NewErrorMessage(
+				"Page not found or does not exist",
+				"Please check the URL and try again",
+			),
+		) {
 			<div class="mt-10 flex items-center justify-center gap-x-6">
 				@NewLink(
 					WithAttribute("role", "button"),
@@ -33,64 +37,7 @@ templ NotFound() {
 					Email Support <span aria-hidden="true">&rarr;</span>
 				}
 			</div>
-		</div>
-	}
-}
-
-// ExternalErrorPage renders a page containing a link to contact support and/or go back to the landing page.
-templ ExternalError(msg *models.UserMessage) {
-	@container() {
-		<div class="text-center">
-			<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Whoops 😿</h1>
-			<h2 class="mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-5xl">{ msg.Summary }</h2>
-			if msg.HasDetails() {
-				<p class="mt-6 text-lg font-medium text-pretty sm:text-xl/8">{ msg.Details }</p>
-			}
-			<div class="mt-10 flex items-center justify-center gap-x-6">
-				@NewLink(
-					WithAttribute("role", "button"),
-					WithAttribute("href", "/"),
-					WithClasses("btn", "btn-primary"),
-				) {
-					Go Back
-				}
-				@NewLink(
-					WithAttribute("role", "button"),
-					WithAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
-					WithClasses("btn", "btn-ghost"),
-				) {
-					Email Support <span aria-hidden="true">&rarr;</span>
-				}
-			</div>
-		</div>
-	}
-}
-
-templ ErrorPage(msg *models.UserMessage) {
-	@container() {
-		<div class="text-center">
-			<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Whoops 😿</h1>
-			<h2 class="mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-5xl">{ msg.Summary }</h2>
-			if msg.HasDetails() {
-				<p class="mt-6 text-lg font-medium text-pretty sm:text-xl/8">{ msg.Details }</p>
-			}
-			<div class="mt-10 flex items-center justify-center gap-x-6">
-				@NewLink(
-					WithAttribute("role", "button"),
-					WithAttribute("href", "/home"),
-					WithClasses("btn", "btn-primary"),
-				) {
-					Go Back Home
-				}
-				@NewLink(
-					WithAttribute("role", "button"),
-					WithAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
-					WithClasses("btn", "btn-ghost"),
-				) {
-					Email Support <span aria-hidden="true">&rarr;</span>
-				}
-			</div>
-		</div>
+		}
 	}
 }
 

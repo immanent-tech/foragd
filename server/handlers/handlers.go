@@ -87,7 +87,7 @@ func CSRFError() http.HandlerFunc {
 			slog.String("referer", req.Referer()),
 			slog.String(slogchi.RequestIDKey, middleware.GetReqID(req.Context())),
 		)
-		renderPage(templates.ErrorPage(
+		renderPage(templates.ErrorMessage(
 			models.NewErrorMessage("CSRF Check Failed", "Cannot complete your request."),
 		))
 		res.WriteHeader(http.StatusBadRequest)
@@ -238,7 +238,7 @@ func showOnError(f func(http.ResponseWriter, *http.Request) error) http.HandlerF
 				apiErr.WriteLog(req.Context())
 				res.WriteHeader(apiErr.HTTPStatus())
 				renderPage(
-					wrapContent(req, templates.ErrorPage(apiErr.GetUserMessage())),
+					wrapContent(req, templates.ErrorMessage(apiErr.GetUserMessage())),
 				).ServeHTTP(res, req)
 			} else {
 				slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
@@ -307,7 +307,7 @@ func wrapContent(req *http.Request, template templ.Component) templ.Component {
 	case !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			return templates.ErrorPage(
+			return templates.ErrorMessage(
 				models.NewErrorMessage("Invalid request", "This might be a temporary error, please try again."),
 			)
 		}

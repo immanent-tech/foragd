@@ -614,7 +614,7 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Unable to get user data.",
 				slog.Any("error", err),
 			)
-			renderPage(templates.ExternalError(models.NewErrorMessage(
+			renderPage(templates.ErrorMessage(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
 			))).ServeHTTP(res, req)
@@ -630,7 +630,7 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Unable to process checkout.",
 				slog.Any("error", err),
 			)
-			renderPage(templates.ExternalError(models.NewErrorMessage(
+			renderPage(templates.ErrorMessage(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
 			))).ServeHTTP(res, req)
@@ -653,7 +653,7 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Unable to get user data.",
 				slog.Any("error", err),
 			)
-			renderPage(templates.ExternalError(models.NewErrorMessage(
+			renderPage(templates.ErrorMessage(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
 			))).ServeHTTP(res, req)
@@ -666,7 +666,7 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("User checkout session: unable to retrieve plan id from session.",
 				slog.Any("error", ErrInvalidRequestParams),
 			)
-			renderPage(templates.ExternalError(models.NewErrorMessage(
+			renderPage(templates.ErrorMessage(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
 			))).ServeHTTP(res, req)
@@ -680,7 +680,7 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Unable to create new checkout session.",
 				slog.Any("error", err),
 			)
-			renderPage(templates.ExternalError(models.NewErrorMessage(
+			renderPage(templates.ErrorMessage(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
 			))).ServeHTTP(res, req)
@@ -723,7 +723,7 @@ func UserManageAccountSubscription() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Unable to manage subscription",
 				slog.Any("error", stripe.ErrInvalidSubscription),
 			)
-			renderPage(wrapContent(req.WithContext(ctx), templates.ExternalError(models.NewErrorMessage(
+			renderPage(wrapContent(req.WithContext(ctx), templates.ErrorMessage(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
 			)))).ServeHTTP(res, req.WithContext(ctx))
@@ -735,7 +735,7 @@ func UserManageAccountSubscription() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Unable to create new portal session.",
 				slog.Any("error", err),
 			)
-			renderPage(wrapContent(req.WithContext(ctx), templates.ExternalError(models.NewErrorMessage(
+			renderPage(wrapContent(req.WithContext(ctx), templates.ErrorMessage(models.NewErrorMessage(
 				"Unable to process checkout",
 				"This might be a temporary error, please try again.",
 			)))).ServeHTTP(res, req.WithContext(ctx))

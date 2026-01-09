@@ -1,0 +1,37 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+templ Inspector() {
+	@container() {
+		<section id="inspector">
+			@h2("Feed Inspector")
+			@p() {
+				Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
+			}
+			<form
+				id="inspector-form"
+				hx-post={ "/inspector" }
+				hx-include="[name='csrf_token']"
+				hx-target="#inspector-results"
+				hx-swap="innerHTML transition:true"
+				hx-indicator="#processing"
+			>
+				<fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-4 w-full">
+					<legend class="fieldset-legend">URL</legend>
+					<input type="text" name="url" class="input w-full" placeholder="https://some.site"/>
+					<p class="label">Enter a URL of a site to inspect for feeds</p>
+				</fieldset>
+			</form>
+		</section>
+		<section id="inspector-results"></section>
+	}
+}
+
+type InspectorResultsComponent struct {
+	Component
+}
+
+templ InspectorResults() {
+}

@@ -4,8 +4,12 @@
 package templates
 
 import (
+	"context"
+	"fmt"
+	"io"
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 )
 
@@ -60,4 +64,17 @@ func NewTemplate(req *http.Request) Template {
 		IsHTMX:               htmx.IsHTMX(req),
 		IsHTMXHistoryRestore: htmx.IsHistoryRestoreRequest(req),
 	}
+}
+
+type Component struct {
+	Data templ.Component
+}
+
+func (c *Component) Render(ctx context.Context, w io.Writer) error {
+	if c.Data != nil {
+		if err := c.Data.Render(ctx, w); err != nil {
+			return fmt.Errorf("render template data component: %w", err)
+		}
+	}
+	return nil
 }
