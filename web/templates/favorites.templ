@@ -25,9 +25,9 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 			// Show jump to links for quick access when there are both subscriptions and articles.
 			if len(subscriptions) > 0 && len(articles) > 0 {
 				<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8 text-sm">
-					<h3 class="font-medium text-primary">
+					<p class="font-medium text-primary">
 						Jump To:
-					</h3>
+					</p>
 					<div class="flex items-center px-2">
 						<a href="#subscriptions" class="link link-hover">Subscriptions</a>
 						<div aria-hidden="true" class="h-5 w-px bg-base-content/40 m-4 block"></div>
@@ -39,7 +39,7 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 			if len(subscriptions) > 0 {
 				<section id="subscriptions" class="mt-4">
 					<div class="pb-5">
-						<h3 class="text-base font-semibold">Subscriptions</h3>
+						@h3("Subscriptions")
 					</div>
 					@grid() {
 						for subscription := range slices.Values(subscriptions) {
@@ -52,7 +52,7 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 			if len(articles) > 0 {
 				<section id="articles" class="mt-4">
 					<div class="pb-5">
-						<h3 class="text-base font-semibold">Articles</h3>
+						@h3("Articles")
 					</div>
 					@grid() {
 						for article := range slices.Values(articles) {

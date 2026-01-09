@@ -91,7 +91,7 @@ func FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles)
 					return templ_7745c5c3_Err
 				}
 				if len(subscriptions) > 0 && len(articles) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8 text-sm\"><h3 class=\"font-medium text-primary\">Jump To:</h3><div class=\"flex items-center px-2\"><a href=\"#subscriptions\" class=\"link link-hover\">Subscriptions</a><div aria-hidden=\"true\" class=\"h-5 w-px bg-base-content/40 m-4 block\"></div><a href=\"#articles\" class=\"link link-hover\">Articles</a></div></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8 text-sm\"><p class=\"font-medium text-primary\">Jump To:</p><div class=\"flex items-center px-2\"><a href=\"#subscriptions\" class=\"link link-hover\">Subscriptions</a><div aria-hidden=\"true\" class=\"h-5 w-px bg-base-content/40 m-4 block\"></div><a href=\"#articles\" class=\"link link-hover\">Articles</a></div></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -101,7 +101,15 @@ func FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles)
 					return templ_7745c5c3_Err
 				}
 				if len(subscriptions) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<section id=\"subscriptions\" class=\"mt-4\"><div class=\"pb-5\"><h3 class=\"text-base font-semibold\">Subscriptions</h3></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<section id=\"subscriptions\" class=\"mt-4\"><div class=\"pb-5\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = h3("Subscriptions").Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -129,17 +137,25 @@ func FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</section>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</section>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "  ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "  ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if len(articles) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<section id=\"articles\" class=\"mt-4\"><div class=\"pb-5\"><h3 class=\"text-base font-semibold\">Articles</h3></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<section id=\"articles\" class=\"mt-4\"><div class=\"pb-5\">")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = h3("Articles").Render(ctx, templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -167,12 +183,12 @@ func FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</section>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</section>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

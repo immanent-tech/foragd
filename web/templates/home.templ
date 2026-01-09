@@ -33,7 +33,7 @@ templ (page *Home) Template() {
 				<section class="xl:flex xl:flex-col">
 					// Latest articles.
 					<div class="border-b border-base-content/80 mb-5">
-						<h3 class="text-base font-semibold">Latest Articles</h3>
+						@h3("Latest Articles")
 					</div>
 					if len(page.LatestArticles) > 0 {
 						<div class="grid grid-cols-1 justify-center gap-y-8">
@@ -81,7 +81,7 @@ templ (page *Home) Template() {
 				<aside class="xl:flex xl:flex-col xl:w-96">
 					if len(page.TopCategories) > 0 {
 						<div class="border-b border-base-content/80 pb-5 mt-8">
-							<h3 class="text-base font-semibold">Most Common Categories</h3>
+							@h3("Most Common Categories")
 						</div>
 						<div class="flex justify-center gap-2 p-2 m-2">
 							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
@@ -108,7 +108,7 @@ templ (page *Home) Template() {
 					// Show top articles (if found).
 					if len(page.TopArticles) > 0 {
 						<div class="border-b border-base-content/80 pb-5 mt-8">
-							<h3 class="text-base font-semibold">Article Picks</h3>
+							@h3("Article Picks")
 						</div>
 						<ul role="list" class="grid grid-cols-1 justify-center">
 							for article := range slices.Values(page.TopArticles) {
@@ -122,7 +122,7 @@ templ (page *Home) Template() {
 					if len(page.RareCategories) > 0 {
 						if page.RareCategories != nil {
 							<div class="border-b border-base-content/80 pb-5 mt-8">
-								<h3 class="text-base font-semibold">Interesting Categories</h3>
+								@h3("Interesting Categories")
 							</div>
 							<div class="mt-8">
 								<div class="flex justify-center gap-2 p-4 m-4">
@@ -163,7 +163,7 @@ templ NewUserHome() {
 		@h2("Welcome to " + config.AppName)
 		<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
 		<div class="py-4">
-			<h3 class="text-base font-semibold pb-5">Add/Import Subscriptions</h3>
+			@h3("Add/Import Subscriptions")
 			<p class="py-2">Import your subscriptions from an external service or start fresh.</p>
 			<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content max-w-prose">
 				<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
@@ -207,7 +207,7 @@ templ NewUserHome() {
 			</div>
 		</div>
 		<div class="py-4">
-			<h3 class="text-base font-semibold pb-5">Start With Curated Subscription Sets</h3>
+			@h3("Start With Curated Subscription Sets")
 			<p class="py-2">Or try one or more curated starter sets (you can also add these later in settings).</p>
 			<form
 				hx-post="/user/feedset"
@@ -262,7 +262,7 @@ templ NewUserHome() {
 			</form>
 		</div>
 		<div class="py-4">
-			<h3 class="text-base font-semibold pb-5">Get to know Foragd</h3>
+			@h3("Get to know Foragd")
 			<p class="py-2">Read the documentation/help to get familiar with the app.</p>
 			<ul class="list-disc list-inside">
 				<li><a class="link" href="/help/index">Documentation Home</a></li>
