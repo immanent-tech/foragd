@@ -8,6 +8,7 @@ import (
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
+	"strings"
 )
 
 templ CategoryManagement(path, inputName string, suggested []models.Category, existing []models.Category) {
@@ -100,12 +101,25 @@ templ AddCategory(path, inputName string, category models.Category) {
 	>
 		<input type="hidden" name={ inputName } value={ category }/>
 		<div class="flex gap-2 text-sm capitalize">
-			<div
-				class="badge badge-primary"
-			>
-				{ category }
+			@NewCategoryBadge(category).Render("badge-outline") {
 				@tabler.X(i.Props{Class: "size-4"})
-			</div>
+			}
 		</div>
 	</button>
+}
+
+// CategoryBadge represents a Category as a badge in the UI.
+type CategoryBadge models.Category
+
+// NewCategoryBadge creates a new CategoryBadge from the given Category.
+func NewCategoryBadge(category models.Category) CategoryBadge {
+	return CategoryBadge(category)
+}
+
+// Render will render the CategoryBadge.
+templ (c CategoryBadge) Render(classes ...string) {
+	<div class={ "badge", templ.KV(strings.Join(classes," "),len(classes)>0) }>
+		{ c }
+		{ children... }
+	</div>
 }

@@ -204,28 +204,19 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 					<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>
 					<div class="mt-2 sm:mt-0 sm:ml-4">
 						<div class="-m-1 flex flex-wrap items-center">
-							// // Show view filter badge indicator.
-							// <div class="badge badge-secondary m-1 capitalize">
-							// 	{ filters.GetView() }
-							// </div>
-							// // Show sort filter badge indicator.
-							// <div class="badge badge-secondary m-1 capitalize">
-							// 	{ filters.GetSort().String() }
-							// </div>
 							// Add favorites filter badge if listing subscriptions and favorites filter is active.
 							if path == "/list/subscriptions" && filters.OnlyFavorites {
-								<div class="badge badge-secondary m-1">
-									<form id="filter-clear-only-favorites" class="flex items-center">
-										<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-										<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-										<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-										for subscription := range slices.Values(filters.GetSubscriptions()) {
-											<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-										}
-										for category := range slices.Values(filters.GetCategories()) {
-											<input type="hidden" name={ models.ParamCategories } value={ category }/>
-										}
-										Favorites
+								<form id="filter-clear-only-favorites" class="flex items-center">
+									<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+									<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+									<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+									for subscription := range slices.Values(filters.GetSubscriptions()) {
+										<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+									}
+									for category := range slices.Values(filters.GetCategories()) {
+										<input type="hidden" name={ models.ParamCategories } value={ category }/>
+									}
+									@NewCategoryBadge("Favorites").Render("badge-secondary", "m-1") {
 										<button
 											hx-get={ models.PathFromCtx(ctx) }
 											hx-replace-url="true"
@@ -234,8 +225,8 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 										>
 											@tabler.X(i.Props{Class: "size-4"})
 										</button>
-									</form>
-								</div>
+									}
+								</form>
 							}
 							// Add filter badges for any active category filters.
 							for category := range slices.Values(categories.GetTopCategories(10)) {
@@ -362,8 +353,7 @@ templ clearCategoryFilters(path, id string, filters *models.ListFilters) {
 }
 
 templ activeCategoryFilterBadge(path string, category models.Category, filters *models.ListFilters) {
-	<div class="badge badge-secondary m-1">
-		{ category }
+	@NewCategoryBadge(category).Render("badge-secondary", "m-1") {
 		<form id={ "clear-filter-category-" + strings.ToLower(strings.ReplaceAll(category, " ", "_")) }>
 			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
@@ -382,7 +372,7 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 				@tabler.X(i.Props{Class: "size-4"})
 			}
 		</form>
-	</div>
+	}
 }
 
 templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {

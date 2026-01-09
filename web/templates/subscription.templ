@@ -130,7 +130,7 @@ templ SubscriptionCard(s *models.Subscription) {
 								WithClasses("link-hover"),
 							) {
 								<div class="flex gap-2 capitalize">
-									<div class="badge badge-outline badge-sm">{ category }</div>
+									@NewCategoryBadge(category).Render("badge-outline")
 								</div>
 							}
 						}

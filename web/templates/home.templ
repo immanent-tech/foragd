@@ -10,7 +10,6 @@ import (
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 	"slices"
-	"strconv"
 )
 
 type Home struct {
@@ -96,9 +95,7 @@ templ (page *Home) Template() {
 										WithHXPushURL(true),
 									) {
 										<div class="block gap-2 text-sm capitalize line-clamp-1 truncate">
-											<div class="badge badge-secondary">
-												{ category.Category+ " "+ strconv.Itoa(category.Count) }
-											</div>
+											@NewCategoryBadge(category.Category).Render("badge-secondary")
 										</div>
 									}
 								}
@@ -113,7 +110,19 @@ templ (page *Home) Template() {
 						<ul role="list" class="grid grid-cols-1 justify-center">
 							for article := range slices.Values(page.TopArticles) {
 								<li class="py-4 w-full max-h-96 overflow-hidden">
-									@articleCardTitle(article)
+									@NewLink(
+										WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+										WithHXTarget(ContentID.Target()),
+										WithHXPushURL(true),
+										WithHXSwap("innerHTML show:window:top"),
+										WithClasses("link-hover"),
+									) {
+										if article.GetTitle() != "" {
+											@h3(article.GetTitle())
+										} else {
+											@h3("(no title)")
+										}
+									}
 								</li>
 							}
 						</ul>
@@ -139,9 +148,7 @@ templ (page *Home) Template() {
 												WithAttribute("tabindex", "0"),
 											) {
 												<div class="block gap-2 text-sm capitalize line-clamp-1 truncate">
-													<div class="badge badge-secondary">
-														{ category.Category+ " "+ strconv.Itoa(category.Count) }
-													</div>
+													@NewCategoryBadge(category.Category).Render("badge-secondary")
 												</div>
 											}
 										}
