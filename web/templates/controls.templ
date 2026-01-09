@@ -21,7 +21,7 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
 				<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl">
 					<div class="flex items-center justify-between px-4">
-						<h2 class="text-lg font-medium">Filters</h2>
+						@h3("Filters")
 						<button
 							type="button"
 							command="close"

@@ -206,12 +206,20 @@ func AccountSettings(user *models.User) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if !strings.HasPrefix(user.GetExternalID(), "auth0|") {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"col-span-full\"><h2 class=\"text-base/7 font-semibold\">Edit Account</h2><p class=\"mt-1 text-sm/6 text-neutral\">Your account is provided by an external service provider such as Google or Facebook, please log in to your account on the external service to make changes to your nickname, email, avatar or password.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"col-span-full\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = h2("Edit Account").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<p class=\"mt-1 text-sm/6 text-neutral\">Your account is provided by an external service provider such as Google or Facebook, please log in to your account on the external service to make changes to your nickname, email, avatar or password.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " <div><h3 class=\"text-base/7 font-semibold\">Edit Account</h3><p class=\"mt-1 text-sm/6\">Use an email address that can receive messages.</p></div><form hx-post=\"/user/settings/account\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" hx-encoding=\"multipart/form-data\" class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><label for=\"nickname\" class=\"block text-sm/6 font-medium\">Nickname</label><div class=\"mt-2\"><input id=\"nickname\" type=\"text\" class=\"input input-primary validator invalid:input-error bg-base-content/10\" placeholder=\"Nickname\" name=\"nickname\" required value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " <div><h3 class=\"text-base/7 font-semibold\">Edit Account</h3><p class=\"mt-1 text-sm/6\">Use an email address that can receive messages.</p></div><form hx-post=\"/user/settings/account\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" hx-encoding=\"multipart/form-data\" class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><label for=\"nickname\" class=\"block text-sm/6 font-medium\">Nickname</label><div class=\"mt-2\"><input id=\"nickname\" type=\"text\" class=\"input input-primary validator invalid:input-error bg-base-content/10\" placeholder=\"Nickname\" name=\"nickname\" required value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -224,7 +232,7 @@ func AccountSettings(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"><p class=\"validator-hint\">Nickname is required</p></div></div><div class=\"sm:col-span-full\"><label for=\"nickname\" class=\"block text-sm/6 font-medium\">Email</label><div class=\"mt-2\"><input id=\"nickname\" type=\"email\" class=\"input input-primary invalid:input-error validator bg-base-content/10\" placeholder=\"Email\" name=\"email\" required value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><p class=\"validator-hint\">Nickname is required</p></div></div><div class=\"sm:col-span-full\"><label for=\"nickname\" class=\"block text-sm/6 font-medium\">Email</label><div class=\"mt-2\"><input id=\"nickname\" type=\"email\" class=\"input input-primary invalid:input-error validator bg-base-content/10\" placeholder=\"Email\" name=\"email\" required value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -237,7 +245,7 @@ func AccountSettings(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><p class=\"validator-hint\">Must be a valid email address</p></div></div><div class=\"sm:col-span-full\"><label for=\"avatar\" class=\"block text-sm/6 font-medium\">Avatar</label><p class=\"text-sm/6 text-base-content/80\">Use a JPG, PNG or WEBP image. Max size 1MB.</p><div class=\"mt-2 flex items-center space-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\"><p class=\"validator-hint\">Must be a valid email address</p></div></div><div class=\"sm:col-span-full\"><label for=\"avatar\" class=\"block text-sm/6 font-medium\">Avatar</label><p class=\"text-sm/6 text-base-content/80\">Use a JPG, PNG or WEBP image. Max size 1MB.</p><div class=\"mt-2 flex items-center space-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -245,7 +253,7 @@ func AccountSettings(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<input id=\"avatar\" type=\"file\" class=\"flex file-input file-input-primary bg-base-content/10\" name=\"avatar\" accept=\".jpg,.png,.webp\"></div></div><input type=\"hidden\" name=\"avatar_url\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<input id=\"avatar\" type=\"file\" class=\"flex file-input file-input-primary bg-base-content/10\" name=\"avatar\" accept=\".jpg,.png,.webp\"></div></div><input type=\"hidden\" name=\"avatar_url\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -258,13 +266,13 @@ func AccountSettings(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Save</button></div></div></form> <div><h3 class=\"text-base/7 font-semibold\">Change Password</h3><p class=\"mt-1 text-sm/6\">Update your password associated with your account.</p></div><form hx-post=\"/user/settings/password\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('delete-account').show()\" class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><label for=\"new-password\" class=\"block text-sm/6 font-medium\">New Password</label><div class=\"mt-2\"><input id=\"nickname\" type=\"password\" class=\"input input-primary bg-base-content/10\" name=\"new_password\" required></div></div><div class=\"sm:col-span-full\"><label for=\"nickname\" class=\"block text-sm/6 font-medium\">Confirm New Password</label><div class=\"mt-2\"><input id=\"nickname\" type=\"password\" class=\"input input-primary bg-base-content/10\" name=\"confirm_new_password\" required></div></div><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Change Password</button></div></div></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Save</button></div></div></form> <div><h3 class=\"text-base/7 font-semibold\">Change Password</h3><p class=\"mt-1 text-sm/6\">Update your password associated with your account.</p></div><form hx-post=\"/user/settings/password\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('delete-account').show()\" class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><label for=\"new-password\" class=\"block text-sm/6 font-medium\">New Password</label><div class=\"mt-2\"><input id=\"nickname\" type=\"password\" class=\"input input-primary bg-base-content/10\" name=\"new_password\" required></div></div><div class=\"sm:col-span-full\"><label for=\"nickname\" class=\"block text-sm/6 font-medium\">Confirm New Password</label><div class=\"mt-2\"><input id=\"nickname\" type=\"password\" class=\"input input-primary bg-base-content/10\" name=\"confirm_new_password\" required></div></div><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Change Password</button></div></div></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
 		if cancelled, _ := user.Cancelled(); cancelled {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div><h3 class=\"text-base/7 font-semibold\">Cancel deactivation</h3><p class=\"mt-1 text-sm/6\">Change of mind? You can cancel the deactivation of your account and restore it to full functionality. You'll continue to get billed at the start of your next billing cycle.</p></div><div class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><form hx-post=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div><h3 class=\"text-base/7 font-semibold\">Cancel deactivation</h3><p class=\"mt-1 text-sm/6\">Change of mind? You can cancel the deactivation of your account and restore it to full functionality. You'll continue to get billed at the start of your next billing cycle.</p></div><div class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><form hx-post=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -277,7 +285,7 @@ func AccountSettings(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" hx-include=\"[name='csrf_token']\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" hx-include=\"[name='csrf_token']\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -290,12 +298,12 @@ func AccountSettings(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" class=\"flex items-start md:col-span-2\"><button type=\"submit\" class=\"btn btn-success\">Yes, please cancel the deactivation</button></form></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"flex items-start md:col-span-2\"><button type=\"submit\" class=\"btn btn-success\">Yes, please cancel the deactivation</button></form></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if user.Active() {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, " <div><h3 class=\"text-base/7 font-semibold\">Deactivate Account</h3><p class=\"mt-1 text-sm/6\">No longer want to use our service? You can deactivate your account here. What this does:</p><ul class=\"mt-1 text-sm/6 list-disc list-inside\"><li>Your active subscription plan will be cancelled and stop at your next billing period.</li><li>Until then, you can continue to use your account.</li><li>If you change your mind, you can come back here before the cancellation date and stop the cancellation.</li><li>After the cancellation date, your account (including all subscriptions, favorites and settings) will be permanently deleted. You will no longer be able to log in.</li></ul></div><div class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><form hx-get=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, " <div><h3 class=\"text-base/7 font-semibold\">Deactivate Account</h3><p class=\"mt-1 text-sm/6\">No longer want to use our service? You can deactivate your account here. What this does:</p><ul class=\"mt-1 text-sm/6 list-disc list-inside\"><li>Your active subscription plan will be cancelled and stop at your next billing period.</li><li>Until then, you can continue to use your account.</li><li>If you change your mind, you can come back here before the cancellation date and stop the cancellation.</li><li>After the cancellation date, your account (including all subscriptions, favorites and settings) will be permanently deleted. You will no longer be able to log in.</li></ul></div><div class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><form hx-get=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -308,7 +316,7 @@ func AccountSettings(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -321,12 +329,12 @@ func AccountSettings(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" class=\"flex items-start md:col-span-2\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('deactivate-account').show()\"><button type=\"submit\" class=\"btn btn-error\">Yes, deactivate my account</button></form></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" class=\"flex items-start md:col-span-2\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('deactivate-account').show()\"><button type=\"submit\" class=\"btn btn-error\">Yes, deactivate my account</button></form></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -355,27 +363,43 @@ func DisplaySettings(user *models.User) templ.Component {
 			templ_7745c5c3_Var18 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div id=\"display-settings\"><div id=\"behaviour-settings\" class=\"grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8\"><div><h2 class=\"text-base/7 font-semibold\">Behaviour</h2><p class=\"mt-1 text-sm/6\">Settings that control the display behaviour in the app.</p></div><form hx-post=\"/user/settings/display\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" class=\"col-span-full md:col-span-2 space-y-10\"><div class=\"flex items-center gap-x-4\"><input id=\"setting-show-subscription-stats\" type=\"checkbox\" name=\"show_subscription_stats\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<div id=\"display-settings\"><div id=\"behaviour-settings\" class=\"grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8\"><div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = h3("Behaviour").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<p class=\"mt-1 text-sm/6\">Settings that control the display behaviour in the app.</p></div><form hx-post=\"/user/settings/display\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" class=\"col-span-full md:col-span-2 space-y-10\"><div class=\"flex items-center gap-x-4\"><input id=\"setting-show-subscription-stats\" type=\"checkbox\" name=\"show_subscription_stats\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if user.GetSettings().ShowSubscriptionStats {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " checked")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " aria-describedby=\"setting-show-subscription-stats-description\" class=\"col-start-1 row-start-1 toggle toggle-sm toggle-primary\"><div class=\"flex-1 text-sm/6\"><label for=\"setting-show-subscription-stats\" class=\"font-medium\">Show Subscription Stats</label><p id=\"setting-show-subscription-stats-description\" class=\"text-base-content/80\">Controls whether to show various stats (e.g., unread counts, articles per day) on subscriptions.</p></div></div><div class=\"flex items-center gap-x-4\"><input id=\"setting-mark-article-read-on-view\" type=\"checkbox\" name=\"mark_article_read_on_view\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if user.GetSettings().MarkArticleReadOnView {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " checked")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " aria-describedby=\"setting-mark-article-read-on-view-description\" class=\"col-start-1 row-start-1 toggle toggle-sm toggle-primary\"><div class=\"flex-1 text-sm/6\"><label for=\"setting-mark-article-read-on-view\" class=\"font-medium\">Mark Article Read on View</label><p id=\"setting-mark-article-read-on-view-description\" class=\"text-base-content/80\">When viewing an article, mark it as read automatically when viewed.</p></div></div><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Save</button></div></div></form></div><div id=\"theme-settings\" class=\"grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8\"><div class=\"md:col-span-full\"><h2 class=\"text-base/7 font-semibold\">Theme</h2><p class=\"mt-1 text-sm/6\">Choose a theme from the selection below. It will be applied instantly.</p></div><div class=\"grid max-w-7xl col-span-full grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " aria-describedby=\"setting-show-subscription-stats-description\" class=\"col-start-1 row-start-1 toggle toggle-sm toggle-primary\"><div class=\"flex-1 text-sm/6\"><label for=\"setting-show-subscription-stats\" class=\"font-medium\">Show Subscription Stats</label><p id=\"setting-show-subscription-stats-description\" class=\"text-base-content/80\">Controls whether to show various stats (e.g., unread counts, articles per day) on subscriptions.</p></div></div><div class=\"flex items-center gap-x-4\"><input id=\"setting-mark-article-read-on-view\" type=\"checkbox\" name=\"mark_article_read_on_view\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if user.GetSettings().MarkArticleReadOnView {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, " checked")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " aria-describedby=\"setting-mark-article-read-on-view-description\" class=\"col-start-1 row-start-1 toggle toggle-sm toggle-primary\"><div class=\"flex-1 text-sm/6\"><label for=\"setting-mark-article-read-on-view\" class=\"font-medium\">Mark Article Read on View</label><p id=\"setting-mark-article-read-on-view-description\" class=\"text-base-content/80\">When viewing an article, mark it as read automatically when viewed.</p></div></div><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Save</button></div></div></form></div><div id=\"theme-settings\" class=\"grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8\"><div class=\"md:col-span-full\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = h3("Theme").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<p class=\"mt-1 text-sm/6\">Choose a theme from the selection below. It will be applied instantly.</p></div><div class=\"grid max-w-7xl col-span-full grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -408,7 +432,7 @@ func DisplaySettings(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -437,7 +461,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 			templ_7745c5c3_Var19 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border outline-2 outline-offset-2 outline-transparent\" data-act-class=\"outline-base-content!\" data-set-theme=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<div class=\"border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border outline-2 outline-offset-2 outline-transparent\" data-act-class=\"outline-base-content!\" data-set-theme=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -450,7 +474,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" _=\"on click set #page-theme.value to @data-set-theme\" hx-trigger=\"click\" hx-put=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" _=\"on click set #page-theme.value to @data-set-theme\" hx-trigger=\"click\" hx-put=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -463,7 +487,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" hx-include=\"[name='csrf_token']\" hx-swap=\"outerHTML\" hx-target=\"#display-settings\" id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" hx-include=\"[name='csrf_token']\" hx-swap=\"outerHTML\" hx-target=\"#display-settings\" id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -476,7 +500,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\"><div class=\"bg-base-100 text-base-content w-full cursor-pointer font-sans\" data-theme=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\"><div class=\"bg-base-100 text-base-content w-full cursor-pointer font-sans\" data-theme=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -489,7 +513,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\"><div class=\"grid grid-cols-5 grid-rows-3\"><div class=\"bg-base-200 col-start-1 row-span-2 row-start-1\"></div><div class=\"bg-base-300 col-start-1 row-start-3\"></div><div class=\"bg-base-100 col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 p-2\"><div class=\"font-bold capitalize\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\"><div class=\"grid grid-cols-5 grid-rows-3\"><div class=\"bg-base-200 col-start-1 row-span-2 row-start-1\"></div><div class=\"bg-base-300 col-start-1 row-start-3\"></div><div class=\"bg-base-100 col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 p-2\"><div class=\"font-bold capitalize\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -503,7 +527,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, " (current)")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, " (current)")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -518,7 +542,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</div><div class=\"flex flex-wrap gap-1\"><div class=\"bg-primary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-primary-content text-sm font-bold\">A</div></div><div class=\"bg-secondary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-secondary-content text-sm font-bold\">A</div></div><div class=\"bg-accent flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-accent-content text-sm font-bold\">A</div></div><div class=\"bg-neutral flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-neutral-content text-sm font-bold\">A</div></div></div></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</div><div class=\"flex flex-wrap gap-1\"><div class=\"bg-primary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-primary-content text-sm font-bold\">A</div></div><div class=\"bg-secondary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-secondary-content text-sm font-bold\">A</div></div><div class=\"bg-accent flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-accent-content text-sm font-bold\">A</div></div><div class=\"bg-neutral flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-neutral-content text-sm font-bold\">A</div></div></div></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

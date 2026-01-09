@@ -1,0 +1,25 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+// h1 applies consistent styling for <h1></h1>
+templ h1[T ~string](hdr T) {
+	<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance capitalize sm:text-7xl">
+		{ hdr }
+	</h1>
+}
+
+// h2 applies consistent styling for <h2></h2>
+templ h2[T ~string](hdr T) {
+	<h2 class="text-2xl/7 font-bold tracking-tight capitalize sm:text-3xl">
+		{ hdr }
+	</h2>
+}
+
+// h3 applies consistent styling for <h3></h3>
+templ h3[T ~string](hdr T) {
+	<h2 class="text-lg font-medium capitalize">
+		{ hdr }
+	</h2>
+}

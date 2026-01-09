@@ -96,7 +96,7 @@ templ AccountSettings(user *models.User) {
 		</div>
 		if !strings.HasPrefix(user.GetExternalID(),"auth0|") {
 			<div class="col-span-full">
-				<h2 class="text-base/7 font-semibold">Edit Account</h2>
+				@h2("Edit Account")
 				<p class="mt-1 text-sm/6 text-neutral">
 					Your account is provided by an external service provider such as Google or Facebook, please log in to your account on the external service to make changes to your nickname, email, avatar or password.
 				</p>
@@ -262,7 +262,7 @@ templ DisplaySettings(user *models.User) {
 		// Display settings.
 		<div id="behaviour-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div>
-				<h2 class="text-base/7 font-semibold">Behaviour</h2>
+				@h3("Behaviour")
 				<p class="mt-1 text-sm/6">Settings that control the display behaviour in the app.</p>
 			</div>
 			<form
@@ -321,7 +321,7 @@ templ DisplaySettings(user *models.User) {
 		// Theme settings.
 		<div id="theme-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div class="md:col-span-full">
-				<h2 class="text-base/7 font-semibold">Theme</h2>
+				@h3("Theme")
 				<p class="mt-1 text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
 			</div>
 			// * Changing themes here also requires updating the list in styles.css.

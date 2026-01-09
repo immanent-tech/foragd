@@ -13,7 +13,9 @@ import (
 templ CategoryManagement(path, inputName string, suggested []models.Category, existing []models.Category) {
 	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 		<div>
-			<label for="add-categories" class="text-base/7 font-semibold">Add Categories</label>
+			<label for="add-categories">
+				@h3("Add Categories")
+			</label>
 			<p class="mt-1 text-sm/6">Optional. Add additional categories to the subscription.</p>
 		</div>
 		// Add categories.
@@ -67,7 +69,9 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 	// Manage categories.
 	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 		<div>
-			<label for="current-categories" class="text-base/7 font-semibold">Manage Existing Categories</label>
+			<label for="current-categories">
+				@h3("Manage Existing Categories")
+			</label>
 			<p class="mt-1 text-sm/6">Existing categories. Click the X to remove them from the subscription.</p>
 		</div>
 		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">

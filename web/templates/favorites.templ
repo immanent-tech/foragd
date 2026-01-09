@@ -15,9 +15,7 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 		if len(subscriptions) > 0 || len(articles) > 0 {
 			<div id="top" class="flex items-center justify-between mt-4">
 				<div class="min-w-0 flex-1">
-					<h2 class="page-title">
-						Favorites
-					</h2>
+					@h2("Favorites")
 				</div>
 			</div>
 			// Hidden content filters.

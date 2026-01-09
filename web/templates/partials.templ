@@ -98,7 +98,7 @@ templ ErrorPage(msg *models.UserMessage) {
 templ emptyContent() {
 	<div class="text-center">
 		@tabler.RosetteDiscountCheckFilled(i.Props{Class: "mx-auto text-success size-12"})
-		<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">All caught up!</h2>
+		@h2("All caught up!")
 	</div>
 }
 

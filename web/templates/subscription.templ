@@ -291,15 +291,11 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 		// Show a page header.
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
-				<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">Subscriptions</h2>
+				@h2("Subscriptions")
 			</div>
 			<div class="mt-4 flex md:mt-0 md:ml-4 space-x-4">
-				<p class="text-sm font-semibold capitalize">
-					{ response.Filters.GetView() }
-				</p>
-				<p class="text-sm font-semibold capitalize">
-					{ response.Filters.GetSort().String() }
-				</p>
+				@h3(response.Filters.GetView())
+				@h3(response.Filters.GetSort().String())
 			</div>
 		</div>
 		@FilterControls("/list/subscriptions", response.CategoryCounts, &response.Filters) {
@@ -421,7 +417,7 @@ templ PaginateSubscriptions(response *models.ListSubscriptionsResponse) {
 templ EditSubscription(request *models.EditSubscriptionRequest) {
 	@container() {
 		<div class="min-w-0 flex-1 pb-8">
-			<h2 class="page-title sm:truncate">Editing { request.Nickname }</h2>
+			@h2("Editing " + request.Nickname)
 		</div>
 		if request.HasError() {
 			<div role="alert" class="alert alert-error alert-outline mt-12">
@@ -485,7 +481,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				// Filtering.
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Filtering</h2>
+						@h3("Filtering")
 						<div class="flex items-center">
 							<p class="mt-1 text-sm/6 ">Filter articles by keywords/text in fields.</p>
 							@HelpPopover("subscription-filters-help", "top end") {
@@ -616,7 +612,7 @@ templ EditSubscriptionSuccessNotification(subscription *models.Subscription) {
 templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 	@container() {
 		<div class="min-w-0 flex-1 pb-8">
-			<h2 class="page-title">Add A Subscription</h2>
+			@h2("Add A Subscription")
 		</div>
 		if request.HasError() {
 			<div role="alert" class="alert alert-error alert-outline mt-12">
@@ -640,7 +636,7 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 				// URL.
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Feed Website or URL</h2>
+						@h3("Feed Website or URL")
 						<p class="mt-1 text-sm/6 ">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -663,7 +659,7 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 				// Nickname.
 				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 					<div>
-						<h2 class="text-base/7 font-semibold">Feed Nickname</h2>
+						@h3("Feed Nickname")
 						<p class="mt-1 text-sm/6 ">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
 					</div>
 					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
@@ -716,9 +712,9 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 		<div class="min-w-0 flex-1 pb-8">
 			switch action {
 				case "add":
-					<h2 class="page-title">Add A Search Subscription</h2>
+					@h2("Add A Search Subscription")
 				case "edit":
-					<h2 class="page-title">{ "Editing "+request.Customisation.Nickname }</h2>
+					@h2("Editing " + request.Customisation.Nickname)
 			}
 		</div>
 		// if request.HasError() {
@@ -1036,9 +1032,9 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 		<div class="min-w-0 flex-1 pb-8">
 			switch action {
 				case "add":
-					<h2 class="page-title">Add A Group Subscription</h2>
+					@h2("Add A Group Subscription")
 				case "edit":
-					<h2 class="page-title">{ "Editing "+request.Customisation.Nickname }</h2>
+					@h2("Editing " + request.Customisation.Nickname)
 			}
 		</div>
 		<div class="space-y-8">
@@ -1170,7 +1166,7 @@ templ ImportSubscriptions() {
 	@container() {
 		<div class="mx-auto max-w-3xl">
 			<div class="min-w-0 flex-1 pb-8">
-				<h2 class="text-2xl/7 font-bold tracking-tight sm:text-3xl">Import Subscriptions</h2>
+				@h2("Import Subscriptions")
 			</div>
 			<div class="md:flex md:items-center md:justify-between">
 				<p class="mt-2 max-w-4xl text-sm text-base-content/80">
@@ -1219,7 +1215,7 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 	{{ failedResults := filterUnsuccessfulResults(results) }}
 	{{ warningResults := filterWarningResults(results) }}
 	<div class="min-w-0 flex-1">
-		<h2 class="text-2xl/7 font-bold tracking-tight sm:text-3xl">Import Results</h2>
+		@h2("Import Results")
 	</div>
 	// Import results summary.
 	<ul class="py-4 space-y-8">
@@ -1313,7 +1309,7 @@ templ ExportSubscriptions() {
 	@container() {
 		<div class="md:flex md:items-center md:justify-between mt-8">
 			<div class="min-w-0 flex-1">
-				<h2 class="page-title">Export Subscriptions</h2>
+				@h2("Export Subscriptions")
 			</div>
 		</div>
 		<p class="mt-2 max-w-4xl text-sm text-base-content/80">

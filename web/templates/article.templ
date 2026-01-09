@@ -170,7 +170,7 @@ templ ArticleContent(article *models.Article) {
 					WithAttribute("rel", "noopener"),
 					WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 				) {
-					<h2 class="page-title">{ article.GetTitle() }</h2>
+					@h2(article.GetTitle())
 				}
 			</div>
 			// Subscription link.
@@ -281,7 +281,7 @@ templ ArticleContent(article *models.Article) {
 		<div
 			aria-hidden="true"
 			hx-post={ "/mark/article/" + article.GetID() + "/read" }
-			hx-target={ "#mark_" + article.GetID() }
+			hx-swap="none"
 			hx-include="[name='csrf_token'],[name='view']"
 			hx-vals={ templ.JSONString(map[string]any{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
 			hx-trigger="intersect once,load delay:10s"
@@ -353,21 +353,17 @@ templ ListArticles(response *models.ListArticlesResponse) {
 		// Show a page header.
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
-				<h2 class="page-title">
-					if response.Subscription != nil {
-						{ response.Subscription.GetTitle() }
-					} else {
-						Articles
-					}
-				</h2>
+				{{ var title string }}
+				if response.Subscription != nil {
+					{{ title = response.Subscription.GetTitle() }}
+				} else {
+					{{ title = "Articles" }}
+				}
+				@h2(title)
 			</div>
 			<div class="mt-4 flex md:mt-0 md:ml-4 space-x-4">
-				<p class="text-sm font-semibold capitalize">
-					{ response.Filters.GetView() }
-				</p>
-				<p class="text-sm font-semibold capitalize">
-					{ response.Filters.GetSort().String() }
-				</p>
+				@h3(response.Filters.GetView())
+				@h3(response.Filters.GetSort().String())
 			</div>
 		</div>
 		<div
