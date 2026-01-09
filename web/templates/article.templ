@@ -17,7 +17,7 @@ import (
 templ ArticleCard(article *models.Article) {
 	<div
 		id={ article.GetID() }
-		class={ "card h-full bg-base-200 shadow-md",
+		class={ "card w-full h-full bg-base-200 shadow-md",
 		templ.KV("row-span-1",article.GetImage() == nil),
 		templ.KV("row-span-2",article.GetImage() != nil),
 		templ.KV("opacity-50",!article.IsUnread()) }
@@ -30,20 +30,12 @@ templ ArticleCard(article *models.Article) {
 				WithHXSwap("innerHTML show:window:top"),
 				WithClasses("link-hover"),
 			) {
+				{{ img := article.GetImage() }}
+				if img.GetTitle() == "" {
+					{{ img.Title = article.GetTitle() }}
+				}
 				<figure>
-					{{ img := article.GetImage() }}
-					if img.GetTitle() == "" {
-						{{ img.Title = article.GetTitle() }}
-					}
-					// rs:auto:300:200 - resize to 300x200 https://docs.imgproxy.net/usage/processing#resize
-					// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
-					// el:1 - enlarge if smaller https://docs.imgproxy.net/usage/processing#enlarge
-					// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
-					// sm:1 - strip metadata
-					// kcr:1 - keep copyright
-					// scp:1 - convert color profile to sRGB
-					@NewProxiedImage(img, "rs:auto:400:266/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1",
-						WithClasses("w-full sm:max-w-100 h-auto object-cover"),
+					@NewProxiedImage(img, "rs:auto:400:266/sh:0.5/q:80/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
 						WithAttribute("width", "400"),
 						WithAttribute("height", "266"),
 					)
