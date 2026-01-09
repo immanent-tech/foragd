@@ -27,7 +27,7 @@ templ (page *Home) Template() {
 		if len(page.LatestArticles) == 0 {
 			@emptyContent()
 		} else {
-			<div class="w-full grow lg:flex space-x-4">
+			<div class="w-full xl:flex xl:grow space-x-4">
 				// Left column.
 				<section class="xl:flex xl:flex-col">
 					// Latest articles.
@@ -37,41 +37,7 @@ templ (page *Home) Template() {
 					if len(page.LatestArticles) > 0 {
 						<div class="grid grid-cols-1 justify-center gap-y-8">
 							for article := range slices.Values(page.LatestArticles) {
-								<div id={ article.GetID() } class="card lg:card-side w-full h-full max-h-128 overflow-hidden bg-base-200 shadow-md">
-									// Article image.
-									if img := article.GetImage(); img != nil {
-										<figure>
-											<img
-												src={ article.GetImage().GetURL() }
-												alt={ article.GetImage().GetTitle() }
-												srcset={ generateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + generateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
-												sizes="(max-width: 480px) 100vw, 600px"
-											/>
-										</figure>
-									}
-									<div class="card-body">
-										// Article title.
-										@articleCardTitle(article)
-										<div class="grid grid-flow-row justify-between mt-2">
-											// Timestamp.
-											<p class="flex text-xs/tight">
-												Updated&nbsp;
-												@showTimestamp(article.GetUpdatedDate())
-											</p>
-											// Subscription.
-											<p class="flex text-xs/tight truncate">
-												@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
-													{ article.GetFeedTitle() }
-												}
-											</p>
-										</div>
-										// Content summary.
-										<article data-disable-scripting class="prose-summary">
-											@templ.Raw(article.GetContent())
-										</article>
-										// }
-									</div>
-								</div>
+								@homePageArticle(article)
 							}
 						</div>
 					}
@@ -85,19 +51,7 @@ templ (page *Home) Template() {
 						<div class="flex justify-center gap-2 p-2 m-2">
 							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
 								for category := range slices.Values(page.TopCategories) {
-									{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
-									{{ params[models.ParamCategories] = category.Category }}
-									@NewLink(
-										WithHXMethod(http.MethodGet, "/list/articles"),
-										WithHXTarget(ContentID.Target()),
-										WithHXSwap("innerHTML show:window:top transition:true"),
-										WithHXVals(params),
-										WithHXPushURL(true),
-									) {
-										<div class="block gap-2 text-sm capitalize line-clamp-1 truncate">
-											@NewCategoryBadge(category.Category).Render("badge-secondary")
-										</div>
-									}
+									@homePageCategoryBadge(&category)
 								}
 							</div>
 						</div>
@@ -109,21 +63,7 @@ templ (page *Home) Template() {
 						</div>
 						<ul role="list" class="grid grid-cols-1 justify-center">
 							for article := range slices.Values(page.TopArticles) {
-								<li class="py-4 w-full max-h-96 overflow-hidden">
-									@NewLink(
-										WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-										WithHXTarget(ContentID.Target()),
-										WithHXPushURL(true),
-										WithHXSwap("innerHTML show:window:top"),
-										WithClasses("link-hover"),
-									) {
-										if article.GetTitle() != "" {
-											@h3(article.GetTitle())
-										} else {
-											@h3("(no title)")
-										}
-									}
-								</li>
+								@homePageHeadline(article)
 							}
 						</ul>
 					}
@@ -137,20 +77,7 @@ templ (page *Home) Template() {
 								<div class="flex justify-center gap-2 p-4 m-4">
 									<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
 										for category := range slices.Values(page.RareCategories) {
-											{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
-											{{ params[models.ParamCategories] = category.Category }}
-											@NewLink(
-												WithHXMethod(http.MethodGet, "/list/articles"),
-												WithHXTarget(ContentID.Target()),
-												WithHXSwap("innerHTML show:window:top transition:true"),
-												WithHXVals(params),
-												WithHXPushURL(true),
-												WithAttribute("tabindex", "0"),
-											) {
-												<div class="block gap-2 text-sm capitalize line-clamp-1 truncate">
-													@NewCategoryBadge(category.Category).Render("badge-secondary")
-												</div>
-											}
+											@homePageCategoryBadge(&category)
 										}
 									</div>
 								</div>
@@ -162,6 +89,78 @@ templ (page *Home) Template() {
 			@btnBackToTop()
 			<div id="update-notifications" sse-connect="/home/updates" sse-swap="message" class="toast toast-center z-50"></div>
 		}
+	}
+}
+
+templ homePageArticle(article *models.Article) {
+	<div id={ article.GetID() } class="card lg:card-side w-full h-full max-h-128 overflow-hidden bg-base-200 shadow-md">
+		// Article image.
+		if img := article.GetImage(); img != nil {
+			<figure>
+				<img
+					src={ article.GetImage().GetURL() }
+					alt={ article.GetImage().GetTitle() }
+					srcset={ generateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + generateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
+					sizes="(max-width: 480px) 100vw, 600px"
+				/>
+			</figure>
+		}
+		<div class="card-body">
+			// Article title.
+			@articleCardTitle(article)
+			<div class="grid grid-flow-row justify-between mt-2">
+				// Timestamp.
+				<p class="flex text-xs/tight">
+					Updated&nbsp;
+					@showTimestamp(article.GetUpdatedDate())
+				</p>
+				// Subscription.
+				<p class="flex text-xs/tight truncate">
+					@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
+						{ article.GetFeedTitle() }
+					}
+				</p>
+			</div>
+			// Content summary.
+			<article data-disable-scripting class="prose-summary">
+				@templ.Raw(article.GetContent())
+			</article>
+			// }
+		</div>
+	</div>
+}
+
+templ homePageHeadline(article *models.Article) {
+	<li class="py-4 w-full max-h-96 overflow-hidden">
+		@NewLink(
+			WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
+			WithHXTarget(ContentID.Target()),
+			WithHXPushURL(true),
+			WithHXSwap("innerHTML show:window:top"),
+			WithClasses("link-hover"),
+		) {
+			if article.GetTitle() != "" {
+				@h3(article.GetTitle())
+			} else {
+				@h3("(no title)")
+			}
+		}
+	</li>
+}
+
+templ homePageCategoryBadge(category *models.CategoryCount) {
+	{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
+	{{ params[models.ParamCategories] = category.Category }}
+	@NewLink(
+		WithHXMethod(http.MethodGet, "/list/articles"),
+		WithHXTarget(ContentID.Target()),
+		WithHXSwap("innerHTML show:window:top transition:true"),
+		WithHXVals(params),
+		WithHXPushURL(true),
+	) {
+		<div class="block gap-2 text-sm capitalize line-clamp-1 truncate">
+			@NewCategoryBadge(category.Category).Render("badge-secondary")
+		</div>
 	}
 }
 
