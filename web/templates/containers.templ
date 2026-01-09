@@ -40,14 +40,12 @@ templ Document(data []byte) {
 templ Content(data *models.ViewComponent) {
 	@header(&data.User)
 	@SideBar(nil)
-	<main aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8">
-		<div id={ ContentID.String() } hx-indicator="#content-loading">
-			@data.Component
-		</div>
-		<div id="content-loading" class="mt-8 flex mx-auto justify-center items-center space-x-2 htmx-indicator">
-			<span class="loading loading-bars loading-xl"></span>
-			<p class="text-lg/loose font-semibold">Loading content...</p>
-		</div>
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@data.Component
 	</main>
+	<div id="content-loading" class="mt-8 flex mx-auto justify-center items-center space-x-2 htmx-indicator">
+		<span class="loading loading-bars loading-xl"></span>
+		<p class="text-lg/loose font-semibold">Loading content...</p>
+	</div>
 	@Dock(data.URL.Path, nil)
 }
