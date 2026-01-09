@@ -32,7 +32,7 @@ templ AddFeedsetsSuccessNotification(feedsets []string) {
 
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
 templ SubscriptionCard(s *models.Subscription) {
-	<div
+	<article
 		id={ s.GetID() }
 		class={ "card h-full bg-base-200 shadow-md",
 			templ.KV("row-span-2",len(s.GetCategories(0))== 0),
@@ -58,7 +58,7 @@ templ SubscriptionCard(s *models.Subscription) {
 									@subscriptionThumbnail(s.GetImage(), s.GetTitle())
 								</div>
 								<div>
-									<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
+									<h3 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h3>
 								</div>
 							</div>
 						}
@@ -79,7 +79,7 @@ templ SubscriptionCard(s *models.Subscription) {
 										@subscriptionThumbnail(s.GetImage(), s.GetTitle())
 									</div>
 									<div>
-										<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
+										<h3 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h3>
 									</div>
 								</div>
 							}
@@ -106,7 +106,7 @@ templ SubscriptionCard(s *models.Subscription) {
 									@subscriptionThumbnail(s.GetImage(), s.GetTitle())
 								</div>
 								<div>
-									<h4 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h4>
+									<h3 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h3>
 								</div>
 							</div>
 						}
@@ -162,7 +162,7 @@ templ SubscriptionCard(s *models.Subscription) {
 				}
 			</div>
 		</div>
-	</div>
+	</article>
 }
 
 templ subscriptionContextMenu(s *models.Subscription) {

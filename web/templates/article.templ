@@ -15,7 +15,7 @@ import (
 
 // Card renders an article as a card, for displaying in a list.
 templ ArticleCard(article *models.Article) {
-	<div
+	<article
 		id={ article.GetID() }
 		class={ "card w-full h-full bg-base-200 shadow-md",
 		templ.KV("row-span-1",article.GetImage() == nil),
@@ -128,7 +128,7 @@ templ ArticleCard(article *models.Article) {
 			</div>
 		</div>
 		@ShareObjectModal(article.GetID(), "Sharing "+article.GetTitle(), article.GetLink())
-	</div>
+	</article>
 }
 
 templ articleCardTitle(article *models.Article) {
