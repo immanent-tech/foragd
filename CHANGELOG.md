@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/immanent-tech/foragd/compare/v0.18.0...v0.19.0) (2026-01-09)
+
+
+### Features
+
+* :sparkles: add a feed inspector to inspect feeds on websites ([8721f8c](https://github.com/immanent-tech/foragd/commit/8721f8c288a5729684b1369313065a7a7cf8abdf))
+
 ## [0.18.0](https://github.com/immanent-tech/foragd/compare/v0.17.0...v0.18.0) (2026-01-08)
 
 
