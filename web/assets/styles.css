@@ -9,7 +9,6 @@
     abyss;
   /* https://github.com/saadeghi/daisyui/issues/3882 */
   exclude: properties;
-  utils: true;
 }
 
 @plugin './catppuccinTheme.latte.ts';
@@ -39,10 +38,6 @@
   }
 }
 
-@theme {
-  --aspect-ratio: 3 / 2;
-}
-
 /* Use page view transitions. */
 @view-transition {
   navigation: auto;
@@ -55,12 +50,15 @@
       @apply focus:text-primary flex items-center gap-4 px-4 py-2 text-sm no-underline hover:underline focus:outline-hidden;
     }
   }
+
   dialog {
     @apply backdrop:bg-transparent;
   }
+
   el-dialog-backdrop {
     @apply bg-base-100/25 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0;
   }
+
   el-dialog-panel {
     @apply transition duration-200 data-closed:scale-95 data-closed:opacity-0;
   }
@@ -156,7 +154,7 @@
 }
 
 @utility prose-custom {
-  @apply prose sm:prose-lg text-base-content dark:prose-invert prose-headings:tracking-tight prose-img:responsive-img prose-video:responsive-video max-w-none;
+  @apply prose sm:prose-lg text-base-content dark:prose-invert prose-headings:tracking-tight max-w-none;
   pre {
     overflow-x: auto;
   }
@@ -182,20 +180,4 @@
   * {
     @apply w-full sm:max-w-prose;
   }
-}
-
-@utility responsive-img {
-  max-width: 100%;
-  height: auto;
-  aspect-ratio: var(--aspect-ratio);
-  /* Prevent haptic touch previews */
-  -webkit-touch-callout: none;
-  -webkit-user-drag: none;
-}
-
-@utility responsive-video {
-  max-width: fit-content;
-  height: auto;
-  aspect-ratio: var(--aspect-ratio);
-  object-fit: cover;
 }
