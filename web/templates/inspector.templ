@@ -19,6 +19,12 @@ templ Inspector() {
 				Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
 				The feed content, if found, will be displayed below.
 			}
+			@p() {
+				Feed Inspector is powered by open-source! Check out the <a
+	class="link"
+	href="https://github.com/immanent-tech/go-syndication"
+>go-syndication</a> library on GitHub.
+			}
 			<form
 				id="inspector-form"
 				hx-post={ "/inspector" }
