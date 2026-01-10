@@ -122,7 +122,7 @@ templ InspectorResults(feed *feeds.Feed) {
 
 // inspectorItemCard renders a feed item in a card.
 templ inspectorItemCard(item feeds.Item) {
-	<div class="card bg-base-100 w-96 shadow-sm">
+	<div class="card bg-base-200 w-full shadow-sm">
 		if img := item.GetImage(); img != nil {
 			<figure>
 				<img
