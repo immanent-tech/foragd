@@ -68,6 +68,14 @@ templ header(user *models.User) {
 						_="on keydown[key is 'Escape'] add .hidden"
 					></el-command-list>
 				</el-command-palette>
+				// Advanced search dialog.
+				<el-dialog>
+					<dialog id="search-filters-dialog" class="mt-16 mb-auto mx-auto p-4 sm:p-6 w-full sm:max-w-3xl max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+						<el-dialog-panel>
+							@SearchFilters(nil)
+						</el-dialog-panel>
+					</dialog>
+				</el-dialog>
 			</div>
 			// User settings menu.
 			<div class="flex items-center justify-end mx-2 sm:mr-4">
@@ -130,17 +138,6 @@ templ header(user *models.User) {
 					</el-menu>
 				</el-dropdown>
 			</div>
-			// Advanced search dialog.
-			<el-dialog>
-				<dialog
-					id="search-filters-dialog"
-					class="mt-16 mb-auto mx-auto p-4 sm:p-6 w-full sm:max-w-3xl max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15"
-				>
-					<el-dialog-panel>
-						@SearchFilters(nil)
-					</el-dialog-panel>
-				</dialog>
-			</el-dialog>
 		} else {
 			<div class="flex flex-1"></div>
 			<div class="flex items-center justify-end mx-2 sm:mr-4">
