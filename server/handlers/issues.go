@@ -46,8 +46,12 @@ func GetPageIssues() http.HandlerFunc {
 		template := templates.ReportPageIssue(
 			&models.ReportIssueRequest{PageUrl: currentURL, UserEmail: user.GetEmail()},
 		)
-		ctx := templates.PageTitleToCtx(req.Context(), "Report Page Issue")
-		renderPage(wrapContent(req, template)).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(
+			templates.NewPage(
+				wrapContent(req, template),
+				templates.WithPageTitle("Report Page Issue"),
+			),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -109,8 +113,12 @@ func SubmitPageIssues() http.HandlerFunc {
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
-		ctx := templates.PageTitleToCtx(req.Context(), "Report Page Issue")
-		renderPage(wrapContent(req, templates.IssueReportedConfirmation(msg))).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(
+			templates.NewPage(
+				wrapContent(req, templates.IssueReportedConfirmation(msg)),
+				templates.WithPageTitle("Report Page Issue"),
+			),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -155,8 +163,12 @@ func GetObjectIssues() http.HandlerFunc {
 			params.ObjectID,
 			models.NewObjectIssue(params, user.GetEmail(), currentURL),
 		)
-		ctx := templates.PageTitleToCtx(req.Context(), "Report an issue")
-		renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(
+			templates.NewPage(
+				wrapContent(req, template),
+				templates.WithPageTitle("Report an Issue"),
+			),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -221,10 +233,12 @@ func SubmitObjectIssues() http.HandlerFunc {
 			"Thanks for reporting the issue!",
 			"We will look into it and implement fixes as appropriate.",
 		)
-		ctx := templates.PageTitleToCtx(req.Context(), "Report issue")
 		renderPage(
-			wrapContent(req.WithContext(ctx), templates.IssueReportedConfirmation(msg)),
-		).ServeHTTP(res, req.WithContext(ctx))
+			templates.NewPage(
+				wrapContent(req, templates.IssueReportedConfirmation(msg)),
+				templates.WithPageTitle("Report Issue"),
+			),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

@@ -45,13 +45,12 @@ func ListArticles() http.HandlerFunc {
 					}
 				}
 
-				ctx := templates.PageTitleToCtx(req.Context(), "Articles")
 				// Redirect to include query parameters in address bar.
 				if len(req.URL.Query()) == 0 {
 					if htmx.IsHTMX(req) {
 						res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+request.Filters.QueryString())
 					} else {
-						http.Redirect(res, req.WithContext(ctx), req.URL.Path+"?"+request.Filters.QueryString(), http.StatusSeeOther)
+						http.Redirect(res, req, req.URL.Path+"?"+request.Filters.QueryString(), http.StatusSeeOther)
 					}
 				}
 
@@ -61,7 +60,7 @@ func ListArticles() http.HandlerFunc {
 					err          error
 					template     templ.Component
 				)
-				wg, jobCtx := errgroup.WithContext(ctx)
+				wg, jobCtx := errgroup.WithContext(req.Context())
 				defer jobCtx.Done()
 
 				// Get articles matching filters.
@@ -105,18 +104,24 @@ func ListArticles() http.HandlerFunc {
 				// Render appropriate content.
 				// If the list of articles is from a single subscription, update the page tile to include the subscription
 				// name.
+				var title string
 				if len(articles) > 0 && response.Subscription != nil {
-					ctx = templates.PageTitleToCtx(ctx, subscription.GetTitle()+" | Articles")
+					title = subscription.GetTitle() + " | Articles"
+				} else {
+					title = "Articles"
 				}
 				template = templates.ListArticles(response)
 				// Choose rendering method based on method (get = page, post = partial).
 				switch req.Method {
 				case http.MethodGet:
 					renderPage(
-						wrapContent(req.WithContext(ctx), template),
-					).ServeHTTP(res, req.WithContext(ctx))
+						templates.NewPage(
+							wrapContent(req, template),
+							templates.WithPageTitle(title),
+						),
+					).ServeHTTP(res, req)
 				case http.MethodPost:
-					renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
+					renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 				}
 				return nil
 			}
@@ -174,7 +179,7 @@ func PaginateArticles() http.HandlerFunc {
 					Filters:    request.Filters,
 					Pagination: request.Pagination,
 				}
-				renderPartial(templates.PaginateArticles(response)).ServeHTTP(res, req)
+				renderPartial(templates.NewPartial(templates.PaginateArticles(response))).ServeHTTP(res, req)
 			} else {
 				res.WriteHeader(http.StatusNoContent)
 				return nil
@@ -219,8 +224,12 @@ func FindSimilarArticles() http.HandlerFunc {
 		} else {
 			template = templates.NoSearchResults()
 		}
-		ctx := templates.PageTitleToCtx(req.Context(), "Similar Articles")
-		renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(
+			templates.NewPage(
+				wrapContent(req, template),
+				templates.WithPageTitle("Similar Articles"),
+			),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -252,7 +261,6 @@ func ViewArticle() http.HandlerFunc {
 			}
 		}
 		article := articles[0]
-		ctx := templates.PageTitleToCtx(req.Context(), article.GetTitle()+" | "+article.GetFeedTitle()+" | ")
 		// Get the "show_full_content" value and override the article value.
 		if fullContent, err := strconv.ParseBool(req.FormValue(models.ParamFullArticleContent)); err != nil ||
 			!fullContent {
@@ -286,7 +294,12 @@ func ViewArticle() http.HandlerFunc {
 		} else {
 			template = templates.ArticleContent(article)
 		}
-		renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(
+			templates.NewPage(
+				wrapContent(req, template),
+				templates.WithPageTitle(article.GetTitle()+" | "+article.GetFeedTitle()),
+			),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -343,7 +356,7 @@ func AddFavoriteArticle() http.HandlerFunc {
 				templates.DefaultNotificationTimeout,
 			),
 		)
-		renderPartial(template).ServeHTTP(res, req)
+		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -399,7 +412,7 @@ func RemoveFavoriteArticle() http.HandlerFunc {
 				templates.DefaultNotificationTimeout,
 			),
 		)
-		renderPartial(template).ServeHTTP(res, req)
+		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -458,13 +471,13 @@ func MarkArticle() http.HandlerFunc {
 					}
 				}
 				// Render new article card.
-				renderPartial(templates.ArticleCard(articles[0])).ServeHTTP(res, req)
+				renderPartial(templates.NewPartial(templates.ArticleCard(articles[0]))).ServeHTTP(res, req)
 			}
 		case "mark_" + itemID: // Swap target is link (viewing article).
 			if request.Mark == models.MarkRead {
-				renderPartial(templates.UpdateViewArticleMark(itemID, false)).ServeHTTP(res, req)
+				renderPartial(templates.NewPartial(templates.UpdateViewArticleMark(itemID, false))).ServeHTTP(res, req)
 			} else {
-				renderPartial(templates.UpdateViewArticleMark(itemID, true)).ServeHTTP(res, req)
+				renderPartial(templates.NewPartial(templates.UpdateViewArticleMark(itemID, true))).ServeHTTP(res, req)
 			}
 		}
 		res.WriteHeader(http.StatusOK)

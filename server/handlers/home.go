@@ -27,8 +27,7 @@ import (
 func Home() http.HandlerFunc {
 	return defaultHandlerChain.Append(setCacheControl).
 		ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
-			ctx := templates.PageTitleToCtx(req.Context(), "Home")
-			user, err := models.UserFromCtx(ctx)
+			user, err := models.UserFromCtx(req.Context())
 			if err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("get user data: %w", err),
@@ -41,12 +40,15 @@ func Home() http.HandlerFunc {
 			}
 			if user.GetSettings().ShowOnboarding {
 				renderPage(
-					wrapContent(req.WithContext(ctx), templates.NewUserHome()),
-				).ServeHTTP(res, req.WithContext(ctx))
+					templates.NewPage(
+						wrapContent(req, templates.NewUserHome()),
+						templates.WithPageTitle("Home"),
+					),
+				).ServeHTTP(res, req)
 				return nil
 			}
 
-			data, err := getHomePageData(ctx)
+			data, err := getHomePageData(req.Context())
 			if err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("run data collection: %w", err),
@@ -57,7 +59,12 @@ func Home() http.HandlerFunc {
 					),
 				}
 			}
-			renderPage(wrapContent(req.WithContext(ctx), data.Template())).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(
+				templates.NewPage(
+					wrapContent(req, data.Template()),
+					templates.WithPageTitle("Home"),
+				),
+			).ServeHTTP(res, req)
 			return nil
 		})).
 		ServeHTTP

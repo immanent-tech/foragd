@@ -4,79 +4,97 @@
 package templates
 
 import (
-	"context"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/htmx"
+	"github.com/immanent-tech/foragd/web/templates/opengraph"
+	"slices"
 )
-
-const (
-	pageTitleCtxKey contextKey = "page_title"
-)
-
-// DefaultPageTitle is the default <title> tag value if none is set.
-var DefaultPageTitle = config.AppName + ": " + config.AppDescription
-
-// PageTitleToCtx stores the page title string in the context.
-func PageTitleToCtx(ctx context.Context, title string) context.Context {
-	return context.WithValue(ctx, pageTitleCtxKey, GeneratePageTitle(title))
-}
-
-// PageTitleFromCtx retrieves the page title string from the context.
-func PageTitleFromCtx(ctx context.Context) string {
-	title, ok := ctx.Value(pageTitleCtxKey).(string)
-	if !ok {
-		return DefaultPageTitle
-	}
-	return title
-}
-
-// GeneratePageTitle generates an appropriate page title string by combining the input with the app name.
-func GeneratePageTitle(title string) string {
-	return title + " | " + config.AppName
-}
 
 var csrfHandle = templ.NewOnceHandle()
 
 // UpdateCSRFToken renders an input with the csrf token taken from the context.
-templ UpdateCSRFToken() {
+templ updateCSRFToken() {
 	@csrfHandle.Once() {
 		<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 	}
 }
 
+templ UpdateHead(update templ.Component) {
+	<head>
+		@update
+	</head>
+}
+
+type Page struct {
+	Component   templ.Component
+	Title       string
+	Description string
+	OGMetadata  *opengraph.Metadata
+}
+
+func NewPage(template templ.Component, options ...PageOption) *Page {
+	p := &Page{
+		Component:   template,
+		Title:       config.AppName,
+		Description: config.AppDescription,
+		OGMetadata:  opengraph.NewMetadata(),
+	}
+
+	for option := range slices.Values(options) {
+		option(p)
+	}
+
+	return p
+}
+
+type PageOption func(*Page)
+
+func WithPageTitle(title string) PageOption {
+	return func(p *Page) {
+		p.Title = title + " | " + config.AppName
+	}
+}
+
+func WithPageDescription(desc string) PageOption {
+	return func(p *Page) {
+		p.Description = desc
+	}
+}
+
+func WithOGMetadata(metadata *opengraph.Metadata) PageOption {
+	return func(p *Page) {
+		p.OGMetadata = metadata
+	}
+}
+
 // Page renders a full HTML page with the given body content and title.
-templ Page(body templ.Component) {
+templ (p *Page) FullTemplate() {
 	<!DOCTYPE html>
 	<html lang="en" class="h-full">
-		@Head()
-		if body != nil {
-			@Body(body)
-		} else {
-			@Body(nil) {
-				{ children... }
-			}
-		}
+		@p.renderHead()
+		@p.renderBody()
 	</html>
 }
 
+templ (p *Page) PartialTemplate() {
+	@p.Component
+	<title>{ p.Title }</title>
+	@updateCSRFToken()
+}
+
 // Head renders the `<head>` html element. If the title is blank, a default title is used.
-templ Head() {
+templ (p *Page) renderHead() {
 	<head>
 		<meta charset="UTF-8" hx-preserve="true"/>
-		<meta name="description" content="Foragd is a cloud-based content viewer for syndicated formats like RSS and Atom." hx-preserve="true"/>
+		<meta name="description" content={ p.Description } hx-preserve="true"/>
 		// https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Viewport_meta_element#interactive-widget
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual" hx-preserve="true"/>
 		<meta http-equiv="X-UA-Compatible" content="ie=edge" hx-preserve="true"/>
 		<meta http-equiv="Accept-CH" content="DPR, Viewport-Width, Width" hx-preserve="true"/>
-		<meta property="og:title" content={ PageTitleFromCtx(ctx) } hx-head="re-eval"/>
-		<meta property="og:url" content="https://foragd.app" hx-head="re-eval"/>
-		<meta
-			property="og:description"
-			content="A beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop."
-			hx-head="re-eval"
-		/>
-		<meta property="og:image" content="https://foragd.app/content/logo-color.webp" hx-preserve="true"/>
+		if p.OGMetadata != nil {
+			@p.OGMetadata.Render()
+		}
 		<link rel="canonical" href="https://foragd.app" hx-preserve="true"/>
 		<link rel="manifest" href="/content/manifest.json" hx-preserve="true"/>
 		<link rel="apple-touch-icon" href="/content/apple-touch-icon.png" hx-preserve="true"/>
@@ -111,12 +129,12 @@ templ Head() {
 			}) }
 			hx-preserve="true"
 		/>
-		@PageTitle()
+		<title>{ p.Title }</title>
 	</head>
 }
 
 // Body renders the `<body>` element. Body content can be passed directly or the children templ syntax can be used.
-templ Body(content templ.Component) {
+templ (p *Page) renderBody() {
 	<body
 		class="h-full"
 		hx-ext="response-targets,preload,sse,head-support"
@@ -127,18 +145,22 @@ templ Body(content templ.Component) {
 		<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 		<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>
 		<div id={ ModalContainerID.String() } hx-target-error="#modal-errors"></div>
-		if content != nil {
-			@content
-		}
-		{ children... }
-		//  px-4 py-6 sm:p-6
+		@p.Component
 		<div aria-live="assertive" class="pointer-events-none fixed inset-0 flex items-end sm:items-start z-999">
 			<div id={ NotificationsID.String() } class="flex w-full flex-col items-center space-y-4 m-4 sm:items-end"></div>
 		</div>
-		// @ShowTailwindBreakpoints()
 	</body>
 }
 
-templ PageTitle() {
-	<title>{ PageTitleFromCtx(ctx) }</title>
+type Partial struct {
+	Component templ.Component
+}
+
+func NewPartial(template templ.Component) *Partial {
+	return &Partial{Component: template}
+}
+
+templ (p *Partial) PartialTemplate() {
+	@p.Component
+	@updateCSRFToken()
 }

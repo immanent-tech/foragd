@@ -25,9 +25,7 @@ func ListFavorites() http.HandlerFunc {
 				err           error
 			)
 
-			ctx := templates.PageTitleToCtx(req.Context(), "Favorites")
-
-			user, err := models.UserFromCtx(ctx)
+			user, err := models.UserFromCtx(req.Context())
 			if err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("get user data: %w", err),
@@ -84,9 +82,14 @@ func ListFavorites() http.HandlerFunc {
 			// Choose rendering method based on method (get = page, post = partial).
 			switch req.Method {
 			case http.MethodGet:
-				renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
+				renderPage(
+					templates.NewPage(
+						wrapContent(req, template),
+						templates.WithPageTitle("Favorites"),
+					),
+				).ServeHTTP(res, req)
 			case http.MethodPost:
-				renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
+				renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 			}
 			return nil
 		})).

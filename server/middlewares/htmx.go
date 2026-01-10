@@ -23,7 +23,7 @@ func SetupHTMX(next http.Handler) http.Handler {
 func RequireHTMX(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if !htmx.IsHTMX(req) {
-			http.Error(res, "HTMX Required", http.StatusForbidden)
+			http.Error(res, "Not allowed", http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(res, req)

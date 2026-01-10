@@ -120,7 +120,9 @@ func GetSearchSuggestions() http.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 		}
 
-		renderPartial(templates.SearchSuggestions(search, subscriptions, articles)).ServeHTTP(res, req)
+		renderPartial(
+			templates.NewPartial(templates.SearchSuggestions(search, subscriptions, articles)),
+		).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
@@ -210,7 +212,9 @@ func GetSearchResults() http.HandlerFunc {
 
 		if strings.HasSuffix(chi.RouteContext(ctx).RoutePattern(), "/paginate") {
 			if len(articles) > 0 {
-				renderPartial(templates.SearchResults(articles, pagination)).ServeHTTP(res, req.WithContext(ctx))
+				renderPartial(
+					templates.NewPartial(templates.SearchResults(articles, pagination)),
+				).ServeHTTP(res, req.WithContext(ctx))
 			} else {
 				res.WriteHeader(http.StatusNoContent)
 			}
@@ -227,10 +231,12 @@ func GetSearchResults() http.HandlerFunc {
 			template = templ.Join(template, templates.SearchFilters(templ.Attributes{"hx-swap-oob": "true"}))
 		}
 		res.Header().Add(htmx.HeaderPushURL, "/search?"+search.Query())
-		ctx = templates.PageTitleToCtx(ctx, "Search results")
 		renderPage(
-			wrapContent(req.WithContext(ctx), template),
-		).ServeHTTP(res, req.WithContext(ctx))
+			templates.NewPage(
+				wrapContent(req, template),
+				templates.WithPageTitle("Search Results"),
+			),
+		).ServeHTTP(res, req)
 
 		return nil
 	})).ServeHTTP
@@ -286,7 +292,7 @@ func AddSubscriptionFilter() http.HandlerFunc {
 				),
 			}
 		}
-		renderPartial(templates.AddSearchSubscriptionFilter(subscription)).ServeHTTP(res, req)
+		renderPartial(templates.NewPartial(templates.AddSearchSubscriptionFilter(subscription))).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -315,6 +321,8 @@ func GetSubscriptionFilterSuggestions() http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		renderPartial(templates.SearchSubscriptionFilterSuggestions(subscriptions)).ServeHTTP(res, req)
+		renderPartial(
+			templates.NewPartial(templates.SearchSubscriptionFilterSuggestions(subscriptions)),
+		).ServeHTTP(res, req)
 	}).ServeHTTP
 }

@@ -10,14 +10,28 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/opengraph"
 )
 
 func Viewer() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		ctx := templates.PageTitleToCtx(req.Context(), "Feed Viewer")
+		title := "Feed Viewer"
+		description := "Search for and view syndicated content (RSS, Atom, JSONFeed feeds) on any site."
 		switch req.Method {
 		case http.MethodGet:
-			renderPage(templates.Viewer()).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(
+				templates.NewPage(
+					templates.Viewer(),
+					templates.WithPageTitle(title),
+					templates.WithPageDescription(description),
+					templates.WithOGMetadata(
+						opengraph.NewMetadata(
+							opengraph.WithTitle(title, nil),
+							opengraph.WithDescription(description, nil),
+						),
+					),
+				),
+			).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get the submitted URL.
 			url := req.Form.Get("url")
@@ -25,16 +39,19 @@ func Viewer() http.HandlerFunc {
 			// Parse the URL and find feed content.
 			feed, err := feeds.NewFeedFromURL(req.Context(), url)
 			if err != nil {
-				renderPartial(templates.ErrorMessage(
-					models.NewErrorMessage(
-						"Unable inspect URL",
-						"This might be a temporary issue, please try again",
-					),
-				)).ServeHTTP(res, req.WithContext(ctx))
+				renderPartial(
+					templates.NewPartial(
+						templates.ErrorMessage(
+							models.NewErrorMessage(
+								"Unable inspect URL",
+								"This might be a temporary issue, please try again",
+							),
+						),
+					)).ServeHTTP(res, req)
 				return
 			}
 
-			renderPartial(templates.ViewerResults(feed)).ServeHTTP(res, req.WithContext(ctx))
+			renderPartial(templates.NewPartial(templates.ViewerResults(feed))).ServeHTTP(res, req)
 		}
 	}
 }

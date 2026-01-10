@@ -24,16 +24,15 @@ import (
 
 // Login handles login requests.
 func Login(res http.ResponseWriter, req *http.Request) {
-	ctx := templates.PageTitleToCtx(req.Context(), "Login")
-
-	if err := auth0.InitAuthenticator(ctx); err != nil {
+	if err := auth0.InitAuthenticator(req.Context()); err != nil {
 		slogctx.FromCtx(req.Context()).Error("Unable to initialise authenticator backend.",
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ErrorMessage(
-				models.NewErrorMessage("Unable to log in.", "Can't contact auth backend")),
-		).ServeHTTP(res, req.WithContext(ctx))
+			templates.NewPage(
+				templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Can't contact auth backend")),
+			),
+		).ServeHTTP(res, req)
 	}
 	// prompt=login&screen_hint=signup
 	state, err := generateRandomState()
@@ -42,76 +41,83 @@ func Login(res http.ResponseWriter, req *http.Request) {
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ErrorMessage(
-				models.NewErrorMessage("Unable to log in.", "Invalid state")),
-		).ServeHTTP(res, req.WithContext(ctx))
+			templates.NewPage(
+				templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Invalid state")),
+			),
+		).ServeHTTP(res, req)
 	}
 	var authURL string
-	switch chi.RouteContext(ctx).RoutePattern() {
+	switch chi.RouteContext(req.Context()).RoutePattern() {
 	case "/signup":
 		// Retrieve and save the selected plan id into the session for later use.
 		planID := req.URL.Query().Get(models.ParamPlanID)
-		session.Save(ctx, models.ParamPlanID, planID)
+		session.Save(req.Context(), models.ParamPlanID, planID)
 		authURL = auth0.AuthClient.AuthCodeURL(state,
 			oauth2.SetAuthURLParam("screen_hint", "signup"),
 		)
 	case "/login":
 		authURL = auth0.AuthClient.AuthCodeURL(state)
 	}
-	session.Save(ctx, "state", state)
-	slogctx.FromCtx(ctx).Debug("Authentication required, redirecting to provider.",
+	session.Save(req.Context(), "state", state)
+	slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
 		slog.String("url", auth0.AuthClient.AuthCodeURL(state)),
 	)
-	http.Redirect(res, req.WithContext(ctx), authURL, http.StatusTemporaryRedirect)
+	http.Redirect(res, req.WithContext(req.Context()), authURL, http.StatusTemporaryRedirect)
 }
 
 // LoginCallback handles processing the response from a login provider.
 func LoginCallback(res http.ResponseWriter, req *http.Request) {
-	ctx := templates.PageTitleToCtx(req.Context(), "Login")
-
-	state, err := session.Restore[string](ctx, "state")
+	state, err := session.Restore[string](req.Context(), "state")
 	if err != nil {
 		slogctx.FromCtx(req.Context()).Error("Restore state from session failed.",
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ErrorMessage(
-				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+			templates.NewPage(
+				templates.ErrorMessage(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			),
-		).ServeHTTP(res, req.WithContext(ctx))
+		).ServeHTTP(res, req)
 	}
 	if req.FormValue("state") != state {
 		slogctx.FromCtx(req.Context()).Error("Invalid state.")
 		renderPage(
-			templates.ErrorMessage(
-				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+			templates.NewPage(
+				templates.ErrorMessage(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			),
-		).ServeHTTP(res, req.WithContext(ctx))
+		).ServeHTTP(res, req)
 	}
 
 	// Exchange an authorization code for a token.
-	token, err := auth0.AuthClient.Exchange(ctx, req.FormValue("code"))
+	token, err := auth0.AuthClient.Exchange(req.Context(), req.FormValue("code"))
 	if err != nil {
 		slogctx.FromCtx(req.Context()).Error("Unable to exchange auth token.",
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ErrorMessage(
-				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+			templates.NewPage(
+				templates.ErrorMessage(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			),
-		).ServeHTTP(res, req.WithContext(ctx))
+		).ServeHTTP(res, req)
 	}
 
-	idToken, err := auth0.AuthClient.VerifyIDToken(ctx, token)
+	idToken, err := auth0.AuthClient.VerifyIDToken(req.Context(), token)
 	if err != nil {
 		slogctx.FromCtx(req.Context()).Error("Unable to verify token.",
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ErrorMessage(
-				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+			templates.NewPage(
+				templates.ErrorMessage(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			),
-		).ServeHTTP(res, req.WithContext(ctx))
+		).ServeHTTP(res, req)
 	}
 
 	var profile auth0.UserProfile
@@ -121,29 +127,33 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ErrorMessage(
-				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+			templates.NewPage(
+				templates.ErrorMessage(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			),
-		).ServeHTTP(res, req.WithContext(ctx))
+		).ServeHTTP(res, req)
 	}
 
-	session.Save(ctx, "access_token", token.AccessToken)
-	session.Save(ctx, "profile", profile)
+	session.Save(req.Context(), "access_token", token.AccessToken)
+	session.Save(req.Context(), "profile", profile)
 
 	var user *models.User
-	user, err = models.GetUserByExternalID(ctx, profile.GetID())
+	user, err = models.GetUserByExternalID(req.Context(), profile.GetID())
 	switch {
 	case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
 		// Create a new local account for the user
 		var err error
-		user, err = models.CreateUser(ctx, profile.GetID(), profile.GetEmail())
+		user, err = models.CreateUser(req.Context(), profile.GetID(), profile.GetEmail())
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Unable to create new local user.",
 				slog.Any("error", err),
 			)
 			renderPage(
-				templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Account creation failed")),
-			).ServeHTTP(res, req.WithContext(ctx))
+				templates.NewPage(
+					templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Account creation failed")),
+				),
+			).ServeHTTP(res, req)
 		}
 	case err != nil: // Backend error.
 		slogctx.FromCtx(req.Context()).Error("Unable to find a local user match.",
@@ -151,15 +161,17 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 			slog.Any("error", err),
 		)
 		renderPage(
-			templates.ErrorMessage(
-				models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+			templates.NewPage(
+				templates.ErrorMessage(
+					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
+				),
 			),
-		).ServeHTTP(res, req.WithContext(ctx))
+		).ServeHTTP(res, req)
 	default: // Existing user.
 		// Sync user data from the backend.
-		syncLocalUser(ctx, user, profile)
+		syncLocalUser(req.Context(), user, profile)
 	}
-	ctx = models.UserToCtx(ctx, user)
+	ctx := models.UserToCtx(req.Context(), user)
 	// Redirect the user appropriately.
 	if user.Metadata.Plan == "" {
 		// New user or user without a plan; redirect to choose subscription plan.
@@ -209,7 +221,9 @@ func LoginError(res http.ResponseWriter, req *http.Request) {
 		slog.String("error_description", req.URL.Query().Get("error_description")),
 	)
 	renderPage(
-		templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Auth backend reported an error")),
+		templates.NewPage(
+			templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Auth backend reported an error")),
+		),
 	).ServeHTTP(res, req)
 }
 

@@ -55,14 +55,14 @@ var defaultHandlerChain = alice.New(
 // Landing handles displaying the landing page.
 func Landing() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		ctx := templates.PageTitleToCtx(req.Context(), "A beautiful, web based, online feed reader")
-		renderPage(templates.Landing()).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(templates.NewPage(templates.Landing())).ServeHTTP(res, req)
 	}
 }
 
 // NotFound handles showing a page for a 404 response.
 func NotFound() http.HandlerFunc {
-	return alice.New().Then(renderPage(templates.NotFound())).ServeHTTP
+	return alice.New().Then(
+		renderPage(templates.NewPage(templates.NotFound()))).ServeHTTP
 }
 
 // CSRFError handles CSRF error conditions. It will log details about the request then show an error page to the user.
@@ -87,9 +87,10 @@ func CSRFError() http.HandlerFunc {
 			slog.String("referer", req.Referer()),
 			slog.String(slogchi.RequestIDKey, middleware.GetReqID(req.Context())),
 		)
-		renderPage(templates.ErrorMessage(
-			models.NewErrorMessage("CSRF Check Failed", "Cannot complete your request."),
-		))
+		renderPage(
+			templates.NewPage(
+				templates.ErrorMessage(models.NewErrorMessage("CSRF Check Failed", "Cannot complete your request.")),
+			))
 		res.WriteHeader(http.StatusBadRequest)
 	}).ServeHTTP
 }
@@ -165,9 +166,11 @@ func PolicyDocsHandler() http.HandlerFunc {
 		}
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
-		ctx := templates.PageTitleToCtx(req.Context(), strings.ToTitle(doc))
-		template := templates.Page(templates.Document(output))
-		err = template.Render(ctx, res)
+		template := templates.NewPage(
+			templates.Document(output),
+			templates.WithPageTitle(strings.ToTitle(doc)),
+		).FullTemplate()
+		err = template.Render(req.Context(), res)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not render policy document.",
 				slog.String("doc", doc),
@@ -193,8 +196,12 @@ func DocumentationHandler() http.HandlerFunc {
 		}
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
-		ctx := templates.PageTitleToCtx(req.Context(), "Documentation")
-		renderPage(wrapContent(req.WithContext(ctx), templates.Document(output))).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(
+			templates.NewPage(
+				wrapContent(req, templates.Document(output)),
+				templates.WithPageTitle("Documentation"),
+			),
+		).ServeHTTP(res, req)
 	}
 }
 
@@ -211,7 +218,9 @@ func notifyOnError(f func(http.ResponseWriter, *http.Request) error) http.Handle
 					res.WriteHeader(apiErr.HTTPStatus())
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(
-						templates.ServerErrorNotification(apiErr.GetUserMessage()),
+						templates.NewPartial(
+							templates.ServerErrorNotification(apiErr.GetUserMessage()),
+						),
 					).ServeHTTP(res, req)
 				default: // called with non-HTMX request. Show plain error and log problem.
 					slogctx.FromCtx(req.Context()).Debug("notifyOnError called in non-HTMX request.")
@@ -238,7 +247,9 @@ func showOnError(f func(http.ResponseWriter, *http.Request) error) http.HandlerF
 				apiErr.WriteLog(req.Context())
 				res.WriteHeader(apiErr.HTTPStatus())
 				renderPage(
-					wrapContent(req, templates.ErrorMessage(apiErr.GetUserMessage())),
+					templates.NewPage(
+						wrapContent(req, templates.ErrorMessage(apiErr.GetUserMessage())),
+					),
 				).ServeHTTP(res, req)
 			} else {
 				slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
@@ -265,9 +276,9 @@ func setRedirect(res http.ResponseWriter, request htmxext.HXLocationRequest) err
 
 // renderPage will render the given template either as a full page or as partial content. For partial content, it will
 // also update the page title (if one is given) and CSRF token.
-func renderPage(template templ.Component) http.Handler {
+func renderPage(page *templates.Page) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if template == nil {
+		if page.PartialTemplate() == nil {
 			// If there is no response, return 204: No Content.
 			res.WriteHeader(http.StatusNoContent)
 			return
@@ -277,13 +288,10 @@ func renderPage(template templ.Component) http.Handler {
 			if htmx.IsHistoryRestoreRequest(req) {
 				res.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
 			}
-			templ.Handler(templates.Page(template)).ServeHTTP(res, req)
+			templ.Handler(page.FullTemplate()).ServeHTTP(res, req)
 			return
 		default: // HTMX request renders partial content.
-			// Update the page title if set.
-			template = templ.Join(template, templates.PageTitle())
-			// Add OOB swap to update CSRF token.
-			template = templ.Join(template, templates.UpdateCSRFToken())
+			template := page.PartialTemplate()
 			// Render template (or template fragment).
 			if target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget)); target != "" &&
 				target != templates.FragmentContent {
@@ -296,8 +304,8 @@ func renderPage(template templ.Component) http.Handler {
 }
 
 // renderPartial will render the given template only as a partial update.
-func renderPartial(template templ.Component) http.Handler {
-	return templ.Handler(templ.Join(template, templates.UpdateCSRFToken()))
+func renderPartial(partial *templates.Partial) http.Handler {
+	return templ.Handler(partial.PartialTemplate())
 }
 
 // wrapContent will wrap the given template with additional structure suitable for replacing the content target on a

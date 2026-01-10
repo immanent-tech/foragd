@@ -113,12 +113,16 @@ func ListSubscriptions() http.HandlerFunc {
 
 				// Choose rendering method based on method (get = page, post = partial).
 				template = templates.ListSubscriptions(response)
-				ctx := templates.PageTitleToCtx(req.Context(), "Subscriptions")
 				switch req.Method {
 				case http.MethodGet:
-					renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
+					renderPage(
+						templates.NewPage(
+							wrapContent(req, template),
+							templates.WithPageTitle("Subscriptions"),
+						),
+					).ServeHTTP(res, req)
 				case http.MethodPost:
-					renderPartial(template).ServeHTTP(res, req.WithContext(ctx))
+					renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 				}
 				return nil
 			}
@@ -176,7 +180,7 @@ func PaginateSubscriptions() http.HandlerFunc {
 
 			// Render appropriate content.
 			if len(subscriptions) > 0 {
-				renderPartial(templates.PaginateSubscriptions(response)).ServeHTTP(res, req)
+				renderPartial(templates.NewPartial(templates.PaginateSubscriptions(response))).ServeHTTP(res, req)
 			} else {
 				res.WriteHeader(http.StatusNoContent)
 				return nil
@@ -272,7 +276,7 @@ func MarkSubscription() http.HandlerFunc {
 					}
 				}
 				res.Header().Set(htmx.HeaderReswap, "outerHTML transition:true")
-				renderPartial(templates.SubscriptionCard(subscription)).ServeHTTP(res, req)
+				renderPartial(templates.NewPartial(templates.SubscriptionCard(subscription))).ServeHTTP(res, req)
 			}
 		}
 		return nil
@@ -371,7 +375,7 @@ func RemoveSubscription() http.HandlerFunc {
 		}
 		switch req.FormValue("confirmed") {
 		case "false":
-			renderPartial(templates.RemoveSubscriptionModal(request)).ServeHTTP(res, req)
+			renderPartial(templates.NewPartial(templates.RemoveSubscriptionModal(request))).ServeHTTP(res, req)
 		case "true":
 			if err := models.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
 				return &models.APIError{
@@ -385,9 +389,11 @@ func RemoveSubscription() http.HandlerFunc {
 			}
 			// Show success notification.
 			renderPartial(
-				templates.Notification(
-					models.NewSuccessMessage("Unsubscribed from "+request.Nickname, ""),
-					templates.DefaultNotificationTimeout,
+				templates.NewPartial(
+					templates.Notification(
+						models.NewSuccessMessage("Unsubscribed from "+request.Nickname, ""),
+						templates.DefaultNotificationTimeout,
+					),
 				),
 			).ServeHTTP(res, req)
 		}
@@ -433,7 +439,7 @@ func EditSubscription() http.HandlerFunc {
 			}
 			// Generate page template.
 			template = templates.EditSubscription(request)
-			pageTitle = templates.GeneratePageTitle("Editing " + request.GetNickname())
+			pageTitle = "Editing " + request.GetNickname()
 		case models.SubscriptionTypeSearch:
 			// Editing SearchSubscription.
 			request := &models.SearchSubscriptionRequest{
@@ -461,7 +467,7 @@ func EditSubscription() http.HandlerFunc {
 			}
 			// Generate page template.
 			template = templates.EditSearchSubscription(request)
-			pageTitle = templates.GeneratePageTitle("Editing " + request.Customisation.Nickname)
+			pageTitle = "Editing " + request.Customisation.Nickname
 		case models.SubscriptionTypeGroup:
 			// Editing SearchSubscription.
 			request := &models.GroupSubscriptionRequest{
@@ -486,10 +492,14 @@ func EditSubscription() http.HandlerFunc {
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			// Generate page template.
 			template = templates.EditGroupSubscription(request)
-			pageTitle = templates.GeneratePageTitle("Editing " + request.Customisation.Nickname)
+			pageTitle = "Editing " + request.Customisation.Nickname
 		}
-		ctx = templates.PageTitleToCtx(ctx, pageTitle)
-		renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(
+			templates.NewPage(
+				wrapContent(req.WithContext(ctx), template),
+				templates.WithPageTitle(pageTitle),
+			),
+		).ServeHTTP(res, req.WithContext(ctx))
 		return nil
 	})).ServeHTTP
 }
@@ -591,7 +601,9 @@ func SaveSubscription() http.HandlerFunc {
 				),
 			}
 		}
-		renderPartial(templates.EditSubscriptionSuccessNotification(subscription)).ServeHTTP(res, req)
+		renderPartial(
+			templates.NewPartial(templates.EditSubscriptionSuccessNotification(subscription)),
+		).ServeHTTP(res, req)
 
 		return nil
 	})).ServeHTTP
@@ -600,13 +612,17 @@ func SaveSubscription() http.HandlerFunc {
 // AddFeedSubscription handles adding a new subscription to a feed.
 func AddFeedSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-		ctx := templates.PageTitleToCtx(req.Context(), "Add subscription")
 		switch req.Method {
 		case http.MethodGet:
 			template := templates.AddFeedSubscription(&models.AddFeedSubscriptionRequest{})
-			renderPage(wrapContent(req.WithContext(ctx), template)).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(
+				templates.NewPage(
+					wrapContent(req, template),
+					templates.WithPageTitle("Add Feed Subscription"),
+				),
+			).ServeHTTP(res, req)
 		case http.MethodPost:
-			request, valid, err := forms.DecodeForm[*models.AddFeedSubscriptionRequest](req.WithContext(ctx))
+			request, valid, err := forms.DecodeForm[*models.AddFeedSubscriptionRequest](req)
 			if err != nil || !valid {
 				return &models.APIError{
 					InternalError: fmt.Errorf("decode add subscription request: %w", err),
@@ -622,7 +638,7 @@ func AddFeedSubscription() http.HandlerFunc {
 			resultsCh := make(chan models.AddFeedSubscriptionResult)
 			var wg sync.WaitGroup
 			wg.Go(func() {
-				models.ProcessSubscriptionRequest(ctx, request, resultsCh)
+				models.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
 			})
 			// Wait for all request processing to complete.
 			go func() {
@@ -634,20 +650,20 @@ func AddFeedSubscription() http.HandlerFunc {
 			if result.Error != nil {
 				switch result.Message.Status {
 				case models.UserMessageStatusError:
-					slogctx.FromCtx(ctx).Error("Error occurred during subscription request processing.",
+					slogctx.FromCtx(req.Context()).Error("Error occurred during subscription request processing.",
 						slog.String("url", result.Request.GetURL()),
 						slog.Any("error", result.Error),
 					)
 				case models.UserMessageStatusWarning:
 					fallthrough
 				default:
-					slogctx.FromCtx(ctx).Warn("Warning occurred during subscription request processing.",
+					slogctx.FromCtx(req.Context()).Warn("Warning occurred during subscription request processing.",
 						slog.String("url", result.Request.GetURL()),
 						slog.Any("error", result.Error),
 					)
 				}
 			} else {
-				err = models.CreateFeedSubscriptions(ctx, &result)
+				err = models.CreateFeedSubscriptions(req.Context(), &result)
 				if err != nil {
 					return &models.APIError{
 						InternalError: fmt.Errorf("add subscription: %w", err),
@@ -660,7 +676,7 @@ func AddFeedSubscription() http.HandlerFunc {
 				}
 			}
 
-			renderPartial(templates.Notification(result.Message, 0)).ServeHTTP(res, req.WithContext(ctx))
+			renderPartial(templates.NewPartial(templates.Notification(result.Message, 0))).ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP
@@ -701,9 +717,11 @@ func AddSearchSubscription() http.HandlerFunc {
 				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
 			template := templates.AddSearchSubscription(&models.SearchSubscriptionRequest{Search: *request})
-			ctx = templates.PageTitleToCtx(ctx, "Add search subscription")
 			renderPage(
-				wrapContent(req.WithContext(ctx), template),
+				templates.NewPage(
+					wrapContent(req.WithContext(ctx), template),
+					templates.WithPageTitle("Add Search Subscription"),
+				),
 			).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SearchSubscriptionRequest](req)
@@ -729,7 +747,9 @@ func AddSearchSubscription() http.HandlerFunc {
 				}
 			}
 			renderPartial(
-				templates.Notification(models.NewSuccessMessage("Search Subscription Created!", ""), 0),
+				templates.NewPartial(
+					templates.Notification(models.NewSuccessMessage("Search Subscription Created!", ""), 0),
+				),
 			).ServeHTTP(res, req)
 		}
 		return nil
@@ -742,10 +762,12 @@ func AddGroupSubscription() http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			template := templates.AddGroupSubscription(&models.GroupSubscriptionRequest{})
-			ctx := templates.PageTitleToCtx(req.Context(), "Add group subscription")
 			renderPage(
-				wrapContent(req.WithContext(ctx), template),
-			).ServeHTTP(res, req.WithContext(ctx))
+				templates.NewPage(
+					wrapContent(req, template),
+					templates.WithPageTitle("Add Group Subscription"),
+				),
+			).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Decode request.
 			request, valid, err := forms.DecodeForm[*models.GroupSubscriptionRequest](req)
@@ -795,7 +817,9 @@ func AddGroupSubscription() http.HandlerFunc {
 			}
 			// Render notification.
 			renderPartial(
-				templates.Notification(models.NewSuccessMessage("Search Subscription Created!", ""), 0),
+				templates.NewPartial(
+					templates.Notification(models.NewSuccessMessage("Search Subscription Created!", ""), 0),
+				),
 			).ServeHTTP(res, req)
 		}
 		return nil
@@ -809,10 +833,12 @@ func ImportSubscriptions() http.HandlerFunc {
 		// GET: show import modal.
 		case http.MethodGet:
 			template := templates.ImportSubscriptions()
-			ctx := templates.PageTitleToCtx(req.Context(), "Import subscriptions")
 			renderPage(
-				wrapContent(req.WithContext(ctx), template),
-			).ServeHTTP(res, req.WithContext(ctx))
+				templates.NewPage(
+					wrapContent(req, template),
+					templates.WithPageTitle("Import Subscriptions"),
+				),
+			).ServeHTTP(res, req)
 		// POST: process import.
 		case http.MethodPost:
 			// Extract OPML file.
@@ -891,7 +917,7 @@ func ImportSubscriptions() http.HandlerFunc {
 				templates.ImportResults(results),
 				templates.Notification(msg, templates.DefaultNotificationTimeout),
 			)
-			renderPartial(template).ServeHTTP(res, req)
+			renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP
@@ -901,7 +927,6 @@ func ImportSubscriptions() http.HandlerFunc {
 func ExportSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get the user details.
-		ctx := templates.PageTitleToCtx(req.Context(), "Export subscriptions")
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			return &models.APIError{
@@ -917,8 +942,11 @@ func ExportSubscriptions() http.HandlerFunc {
 		// GET: show import modal.
 		case http.MethodGet:
 			renderPage(
-				wrapContent(req.WithContext(ctx), templates.ExportSubscriptions()),
-			).ServeHTTP(res, req.WithContext(ctx))
+				templates.NewPage(
+					wrapContent(req, templates.ExportSubscriptions()),
+					templates.WithPageTitle("Export Subscriptions"),
+				),
+			).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get all subscriptions.
 			subscriptions, err := models.GetSubscriptions(req.Context())
@@ -968,7 +996,7 @@ func ExportSubscriptions() http.HandlerFunc {
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
 			filename := config.AppName + "-Export.opml"
 			res.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
-			http.ServeContent(res, req.WithContext(ctx), filename, time.Now(), bytes.NewReader(data))
+			http.ServeContent(res, req, filename, time.Now(), bytes.NewReader(data))
 		}
 		return nil
 	})).ServeHTTP
@@ -999,7 +1027,11 @@ func AdjustSubscriptionCategories() http.HandlerFunc {
 				inputName == "" {
 				res.WriteHeader(http.StatusNoContent)
 			} else {
-				renderPartial(templates.AddCategory(req.URL.Path, inputName, category)).ServeHTTP(res, req)
+				renderPartial(
+					templates.NewPartial(
+						templates.AddCategory(req.URL.Path, inputName, category),
+					),
+				).ServeHTTP(res, req)
 			}
 		case http.MethodDelete: // Remove a category.
 			res.WriteHeader(http.StatusOK)

@@ -36,10 +36,12 @@ import (
 // ShowSettings handles retrieving and rendering the user settings page.
 func ShowSettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := templates.PageTitleToCtx(req.Context(), "Settings")
 		renderPage(
-			wrapContent(req.WithContext(ctx), templates.SettingsPage()),
-		).ServeHTTP(res, req.WithContext(ctx))
+			templates.NewPage(
+				wrapContent(req, templates.SettingsPage()),
+				templates.WithPageTitle("Settings"),
+			),
+		).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
@@ -57,7 +59,7 @@ func ShowDisplaySettings() http.HandlerFunc {
 				),
 			}
 		}
-		renderPartial(templates.DisplaySettings(user)).ServeHTTP(res, req)
+		renderPartial(templates.NewPartial(templates.DisplaySettings(user))).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -76,7 +78,7 @@ func ShowAccountSettings() http.HandlerFunc {
 				),
 			}
 		}
-		renderPartial(templates.AccountSettings(user)).ServeHTTP(res, req)
+		renderPartial(templates.NewPartial(templates.AccountSettings(user))).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -123,7 +125,7 @@ func SaveDisplaySettings() http.HandlerFunc {
 		// Report success.
 		msg := models.NewSuccessMessage("Account edits saved!", "")
 		template := templates.Notification(msg, 0)
-		renderPartial(template).ServeHTTP(res, req)
+		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -260,7 +262,7 @@ func SaveAccountSettings() http.HandlerFunc {
 			),
 			templates.UserAvatar(user, templ.Attributes{"hx-swap-oob": "true"}),
 		)
-		renderPartial(template).ServeHTTP(res, req)
+		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -294,7 +296,7 @@ func ChangePassword() http.HandlerFunc {
 		// Report success.
 		msg := models.NewSuccessMessage("Password changed!", "Logout and log back in to use the new password.")
 		template := templates.Notification(msg, 0)
-		renderPartial(template).ServeHTTP(res, req)
+		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -328,7 +330,7 @@ func SetTheme() http.HandlerFunc {
 				),
 			}
 		}
-		renderPartial(templates.DisplaySettings(user)).ServeHTTP(res, req)
+		renderPartial(templates.NewPartial(templates.DisplaySettings(user))).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -366,7 +368,7 @@ func AddFavoriteSubscription() http.HandlerFunc {
 				templates.DefaultNotificationTimeout,
 			),
 		)
-		renderPartial(template).ServeHTTP(res, req)
+		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -410,7 +412,7 @@ func RemoveFavoriteSubscription() http.HandlerFunc {
 					templates.DefaultNotificationTimeout,
 				),
 			)
-			renderPartial(template).ServeHTTP(res, req)
+			renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
 		}
 		return nil
 	})).ServeHTTP
@@ -423,7 +425,7 @@ func UserDeactivateAccount() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		case http.MethodGet:
-			renderPartial(templates.DeactivateAccountModal()).ServeHTTP(res, req)
+			renderPartial(templates.NewPartial(templates.DeactivateAccountModal())).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get user account details.
 			user, err := models.UserFromCtx(req.Context())
@@ -451,9 +453,11 @@ func UserDeactivateAccount() http.HandlerFunc {
 			// Refresh the page
 			res.Header().Set(htmx.HeaderRefresh, "true")
 			renderPartial(
-				templates.Notification(
-					models.NewInfoMessage("Account cancelled", ""),
-					templates.DefaultNotificationTimeout,
+				templates.NewPartial(
+					templates.Notification(
+						models.NewInfoMessage("Account cancelled", ""),
+						templates.DefaultNotificationTimeout,
+					),
 				),
 			).ServeHTTP(res, req)
 		}
@@ -491,9 +495,11 @@ func UserCancelDeactivation() http.HandlerFunc {
 		// Refresh the page
 		res.Header().Set(htmx.HeaderRefresh, "true")
 		renderPartial(
-			templates.Notification(
-				models.NewSuccessMessage("Stopped account deactivation", ""),
-				templates.DefaultNotificationTimeout,
+			templates.NewPartial(
+				templates.Notification(
+					models.NewSuccessMessage("Stopped account deactivation", ""),
+					templates.DefaultNotificationTimeout,
+				),
 			),
 		).ServeHTTP(res, req)
 		return nil
@@ -601,7 +607,10 @@ func AddFeedset(static embed.FS) http.HandlerFunc {
 				}
 			}
 		}
-		renderPartial(templates.AddFeedsetsSuccessNotification(request.Feedset)).ServeHTTP(res, req)
+		renderPartial(
+			templates.NewPartial(
+				templates.AddFeedsetsSuccessNotification(request.Feedset)),
+		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
@@ -614,10 +623,14 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Unable to get user data.",
 				slog.Any("error", err),
 			)
-			renderPage(templates.ErrorMessage(models.NewErrorMessage(
-				"Unable to process checkout",
-				"This might be a temporary error, please try again.",
-			))).ServeHTTP(res, req)
+			renderPage(
+				templates.NewPage(
+					templates.ErrorMessage(models.NewErrorMessage(
+						"Unable to process checkout",
+						"This might be a temporary error, please try again.",
+					)),
+				),
+			).ServeHTTP(res, req)
 			return
 		}
 		// Try to find a selected plan id if it exists, from either the request query params or current session data.
@@ -630,15 +643,23 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Unable to process checkout.",
 				slog.Any("error", err),
 			)
-			renderPage(templates.ErrorMessage(models.NewErrorMessage(
-				"Unable to process checkout",
-				"This might be a temporary error, please try again.",
-			))).ServeHTTP(res, req)
+			renderPage(
+				templates.NewPage(
+					templates.ErrorMessage(models.NewErrorMessage(
+						"Unable to process checkout",
+						"This might be a temporary error, please try again.",
+					)),
+				),
+			).ServeHTTP(res, req)
 			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
-		ctx := templates.PageTitleToCtx(req.Context(), "Choose a Subscription Plan")
-		renderPage(templates.UserChooseSubscriptionPlan(user, planID)).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(
+			templates.NewPage(
+				templates.UserChooseSubscriptionPlan(user, planID),
+				templates.WithPageTitle("Choose Subscription Plan"),
+			),
+		).ServeHTTP(res, req)
 	}
 }
 
@@ -646,17 +667,20 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 // processor.
 func UserSubscriptionPlanCheckout() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		ctx := templates.PageTitleToCtx(req.Context(), "Checkout Subscription Plan")
 		// Fetch the user details from context.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Unable to get user data.",
 				slog.Any("error", err),
 			)
-			renderPage(templates.ErrorMessage(models.NewErrorMessage(
-				"Unable to process checkout",
-				"This might be a temporary error, please try again.",
-			))).ServeHTTP(res, req)
+			renderPage(
+				templates.NewPage(
+					templates.ErrorMessage(models.NewErrorMessage(
+						"Unable to process checkout",
+						"This might be a temporary error, please try again.",
+					)),
+				),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -666,10 +690,14 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("User checkout session: unable to retrieve plan id from session.",
 				slog.Any("error", ErrInvalidRequestParams),
 			)
-			renderPage(templates.ErrorMessage(models.NewErrorMessage(
-				"Unable to process checkout",
-				"This might be a temporary error, please try again.",
-			))).ServeHTTP(res, req)
+			renderPage(
+				templates.NewPage(
+					templates.ErrorMessage(models.NewErrorMessage(
+						"Unable to process checkout",
+						"This might be a temporary error, please try again.",
+					)),
+				),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -680,16 +708,20 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Unable to create new checkout session.",
 				slog.Any("error", err),
 			)
-			renderPage(templates.ErrorMessage(models.NewErrorMessage(
-				"Unable to process checkout",
-				"This might be a temporary error, please try again.",
-			))).ServeHTTP(res, req)
+			renderPage(
+				templates.NewPage(
+					templates.ErrorMessage(models.NewErrorMessage(
+						"Unable to process checkout",
+						"This might be a temporary error, please try again.",
+					)),
+				),
+			).ServeHTTP(res, req)
 			return
 		}
 
 		// Redirect to strip processor to complete checkout session.
-		slogctx.FromCtx(ctx).Debug("Redirecting user to Stripe for payment.")
-		http.Redirect(res, req.WithContext(ctx), session.URL, http.StatusSeeOther)
+		slogctx.FromCtx(req.Context()).Debug("Redirecting user to Stripe for payment.")
+		http.Redirect(res, req, session.URL, http.StatusSeeOther)
 	}
 }
 
@@ -708,25 +740,31 @@ func UserAccountCancel() http.HandlerFunc {
 // critical issue with their account blocking access to the service.
 func UserAccountIssue() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		ctx := templates.PageTitleToCtx(req.Context(), "Account Issue")
 		// stripeSessionID := req.FormValue("session_id")
-		renderPage(templates.UserAccountIssue()).ServeHTTP(res, req.WithContext(ctx))
+		renderPage(
+			templates.NewPage(
+				templates.UserAccountIssue(),
+				templates.WithPageTitle("Account Issue"),
+			),
+		).ServeHTTP(res, req)
 	}
 }
 
 func UserManageAccountSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := templates.PageTitleToCtx(req.Context(), "Subscription Plan Checkout")
-
 		sessionID := req.FormValue("session_id")
 		if sessionID == "" {
 			slogctx.FromCtx(req.Context()).Error("Unable to manage subscription",
 				slog.Any("error", stripe.ErrInvalidSubscription),
 			)
-			renderPage(wrapContent(req.WithContext(ctx), templates.ErrorMessage(models.NewErrorMessage(
-				"Unable to process checkout",
-				"This might be a temporary error, please try again.",
-			)))).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(
+				templates.NewPage(
+					wrapContent(req, templates.ErrorMessage(models.NewErrorMessage(
+						"Unable to process checkout",
+						"This might be a temporary error, please try again.",
+					))),
+				),
+			).ServeHTTP(res, req)
 			return
 		}
 
@@ -735,10 +773,14 @@ func UserManageAccountSubscription() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Unable to create new portal session.",
 				slog.Any("error", err),
 			)
-			renderPage(wrapContent(req.WithContext(ctx), templates.ErrorMessage(models.NewErrorMessage(
-				"Unable to process checkout",
-				"This might be a temporary error, please try again.",
-			)))).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(
+				templates.NewPage(
+					wrapContent(req, templates.ErrorMessage(models.NewErrorMessage(
+						"Unable to process checkout",
+						"This might be a temporary error, please try again.",
+					))),
+				),
+			).ServeHTTP(res, req)
 			return
 		}
 
