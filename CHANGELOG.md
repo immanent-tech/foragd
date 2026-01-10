@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.20.0](https://github.com/immanent-tech/foragd/compare/v0.19.0...v0.20.0) (2026-01-10)
+
+
+### Features
+
+* **assets:** :sparkles: add htmx-head-support htmx extension ([193d78d](https://github.com/immanent-tech/foragd/commit/193d78d73483939943784b840602d09d89422744))
+* **templates:** :sparkles: add header and footer to document pages ([b7e0557](https://github.com/immanent-tech/foragd/commit/b7e055780640daec6a311e817ec7bd8043250f4b))
+* **templates:** :sparkles: add header and footer to inspector page ([4d40512](https://github.com/immanent-tech/foragd/commit/4d40512347c4750afc1fc03ca56b52657d638ac9))
+* **templates:** :sparkles: flexible and reusable header and footer ([2bd66b4](https://github.com/immanent-tech/foragd/commit/2bd66b40d06b62e627ead9568471deb1a9dc49dc))
+* **templates:** :sparkles: use card layout for inspector results ([f3e93b2](https://github.com/immanent-tech/foragd/commit/f3e93b2659fee27ae1648e236d7eb5a38b99b883))
+
+
+### Bug Fixes
+
+* **templates:** :bug: also enlarge article images if required ([7da66ef](https://github.com/immanent-tech/foragd/commit/7da66ef968587ba13a06d091f903264a61aa6182))
+* **templates:** :bug: handle article images that don't match our desired aspect ratio ([dd3ba37](https://github.com/immanent-tech/foragd/commit/dd3ba37beea1103fcab8c150070e13d9935104c9))
+* **templates:** :bug: make sure article images are full width on cards ([61f6186](https://github.com/immanent-tech/foragd/commit/61f61869ef39e8bcf998249a29d28054ad111881))
+* **templates:** :bug: make sure subscription thumbnail can be generated ([05ceeea](https://github.com/immanent-tech/foragd/commit/05ceeea98f57e0a1874b0ebc89de4f055526f0db))
+
 ## [0.19.0](https://github.com/immanent-tech/foragd/compare/v0.18.0...v0.19.0) (2026-01-09)
 
 
