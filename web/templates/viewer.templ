@@ -10,26 +10,26 @@ import (
 	"strings"
 )
 
-templ Inspector() {
+templ Viewer() {
 	@header(nil)
 	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
-		<section id="inspector">
-			@h2("Feed Inspector")
+		<section id="viewer">
+			@h2("Feed Viewer")
 			@p() {
 				Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
 				The feed content, if found, will be displayed below.
 			}
 			@p() {
-				Feed Inspector is powered by open-source! Check out the <a
+				Feed Viewer is powered by open-source! Check out the <a
 	class="link"
 	href="https://github.com/immanent-tech/go-syndication"
 >go-syndication</a> library on GitHub.
 			}
 			<form
-				id="inspector-form"
-				hx-post={ "/inspector" }
+				id="viewer-form"
+				hx-post="/viewer"
 				hx-include="[name='csrf_token']"
-				hx-target="#inspector-results"
+				hx-target="#viewer-results"
 				hx-swap="innerHTML transition:true"
 				hx-indicator="#processing"
 			>
@@ -37,7 +37,7 @@ templ Inspector() {
 					<legend class="fieldset-legend">URL</legend>
 					<div class="join">
 						<input type="text" name="url" class="input w-full" placeholder="https://some.site"/>
-						<button class="btn join-item">Inspect</button>
+						<button class="btn join-item">View</button>
 					</div>
 					<p class="label">Enter a URL of a site to inspect for feeds</p>
 				</fieldset>
@@ -46,12 +46,12 @@ templ Inspector() {
 		<div id="processing" class="htmx-indicator my-4 flex justify-center mx-auto">
 			<span class="flex loading loading-dots loading-lg"></span>
 		</div>
-		<section id="inspector-results" class="mt-8"></section>
+		<section id="viewer-results" class="mt-8"></section>
 	</div>
 	@footer()
 }
 
-templ InspectorResults(feed *feeds.Feed) {
+templ ViewerResults(feed *feeds.Feed) {
 	<div class="overflow-hidden">
 		<h2 id="profile-overview-title" class="sr-only">Feed Overview</h2>
 		<div class="p-6">
@@ -118,18 +118,18 @@ templ InspectorResults(feed *feeds.Feed) {
 				</span>
 			</div>
 		</div>
-	</div>
+	</div>Inspector
 	if len(feed.GetItems()) > 0 {
 		@grid() {
 			for item := range slices.Values(feed.GetItems()) {
-				@inspectorItemCard(item)
+				@viewerItemCard(item)
 			}
 		}
 	}
 }
 
 // inspectorItemCard renders a feed item in a card.
-templ inspectorItemCard(item feeds.Item) {
+templ viewerItemCard(item feeds.Item) {
 	<div class="card bg-base-200 w-full shadow-sm">
 		if img := item.GetImage(); img != nil {
 			<figure>

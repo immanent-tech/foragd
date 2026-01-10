@@ -173,8 +173,8 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		)
 		r.Get("/", handlers.Landing())
 		r.Get("/about", handlers.About())
-		r.Get("/inspector", handlers.Inspector())
-		r.With(middlewares.RequireHTMX).Post("/inspector", handlers.Inspector())
+		r.Get("/viewer", handlers.Viewer())
+		r.With(middlewares.RequireHTMX).Post("/viewer", handlers.Viewer())
 	})
 
 	// Sign-up/Login routes.

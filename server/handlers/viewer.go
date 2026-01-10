@@ -12,12 +12,12 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-func Inspector() http.HandlerFunc {
+func Viewer() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		ctx := templates.PageTitleToCtx(req.Context(), "Feed Inspector")
+		ctx := templates.PageTitleToCtx(req.Context(), "Feed Viewer")
 		switch req.Method {
 		case http.MethodGet:
-			renderPage(templates.Inspector()).ServeHTTP(res, req.WithContext(ctx))
+			renderPage(templates.Viewer()).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
 			// Get the submitted URL.
 			url := req.Form.Get("url")
@@ -34,7 +34,7 @@ func Inspector() http.HandlerFunc {
 				return
 			}
 
-			renderPartial(templates.InspectorResults(feed)).ServeHTTP(res, req.WithContext(ctx))
+			renderPartial(templates.ViewerResults(feed)).ServeHTTP(res, req.WithContext(ctx))
 		}
 	}
 }
