@@ -172,6 +172,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			middlewares.Etag,
 		)
 		r.Get("/", handlers.Landing())
+		r.Get("/about", handlers.About())
 		r.Get("/inspector", handlers.Inspector())
 		r.With(middlewares.RequireHTMX).Post("/inspector", handlers.Inspector())
 	})
