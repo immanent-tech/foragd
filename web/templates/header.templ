@@ -16,10 +16,7 @@ templ header(user *models.User) {
 		class="sticky w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30"
 	>
 		@NewLink(
-			WithHXMethod(http.MethodGet, "/home"),
-			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(true),
-			WithHXSwap("innerHTML show:window:top"),
+			WithAttribute("href", "/home"),
 			WithClasses("link-hover"),
 		) {
 			<div class="flex flex-row shrink-0 p-2 items-center text-primary">

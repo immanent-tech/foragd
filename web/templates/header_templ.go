@@ -71,10 +71,7 @@ func header(user *models.User) templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = NewLink(
-			WithHXMethod(http.MethodGet, "/home"),
-			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(true),
-			WithHXSwap("innerHTML show:window:top"),
+			WithAttribute("href", "/home"),
 			WithClasses("link-hover"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
