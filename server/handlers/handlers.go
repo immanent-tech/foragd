@@ -198,7 +198,7 @@ func DocumentationHandler() http.HandlerFunc {
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
 		renderPage(
 			templates.NewPage(
-				wrapContent(req, templates.Document(output)),
+				templates.Document(output),
 				templates.WithPageTitle("Documentation"),
 			),
 		).ServeHTTP(res, req)

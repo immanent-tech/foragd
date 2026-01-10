@@ -102,7 +102,8 @@ templ header(user *models.User) {
 						// Help documentation.
 						@NewLink(
 							WithAttribute("href", "/help/index"),
-							WithAttribute("_", "on click remove @open from #header-menu"),
+							WithAttribute("rel", "noopener"),
+							WithAttribute("target", "_blank"),
 							WithClasses("link-hover"),
 						) {
 							<div class="flex flex-1 items-center gap-x-2">
@@ -135,17 +136,18 @@ templ header(user *models.User) {
 					</el-menu>
 				</el-dropdown>
 			</div>
-		} else {
-			<div class="flex flex-1"></div>
-			<div class="flex items-center justify-end mx-2 sm:mr-4">
-				@NewLink(
-					WithAttribute("href", "/login"),
-					WithAttribute("role", "button"),
-					WithClasses("btn", "btn-primary", "link-hover"),
-				) {
-					Log in
-				}
-			</div>
 		}
+		//  else {
+		// 	<div class="flex flex-1"></div>
+		// 	<div class="flex items-center justify-end mx-2 sm:mr-4">
+		// 		@NewLink(
+		// 			WithAttribute("href", "/login"),
+		// 			WithAttribute("role", "button"),
+		// 			WithClasses("btn", "btn-primary", "link-hover"),
+		// 		) {
+		// 			Log in
+		// 		}
+		// 	</div>
+		// }
 	</header>
 }

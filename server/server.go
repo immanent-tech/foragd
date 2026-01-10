@@ -174,6 +174,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.Get("/", handlers.Landing())
 		r.Get("/about", handlers.About())
 		r.Get("/viewer", handlers.Viewer())
+		r.Get("/help/*", handlers.DocumentationHandler())
 		r.With(middlewares.RequireHTMX).Post("/viewer", handlers.Viewer())
 	})
 
@@ -273,9 +274,6 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.Route("/list/favorites", func(r chi.Router) {
 			r.Get("/", handlers.ListFavorites())
 		})
-
-		// Help documentation.
-		r.Get("/help/*", handlers.DocumentationHandler())
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
