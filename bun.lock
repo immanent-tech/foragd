@@ -8,6 +8,7 @@
         "daisyui": "^5.5.14",
         "date-fns": "^4.1.0",
         "dotenv": "^17.2.3",
+        "htmx-ext-head-support": "^2.0.5",
         "htmx-ext-preload": "^2.1.2",
         "htmx-ext-response-targets": "^2.0.4",
         "htmx-ext-sse": "^2.2.4",
@@ -374,6 +375,8 @@
     "he": ["he@1.2.0", "", { "bin": { "he": "bin/he" } }, "sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw=="],
 
     "hosted-git-info": ["hosted-git-info@4.1.0", "", { "dependencies": { "lru-cache": "^6.0.0" } }, "sha512-kyCuEOWjJqZuDbRHzL8V93NzQhwIB71oFWSyzVo+KPZI+pnQPPxucdkrOZvkLRnrf5URsQM+IJ09Dw29cRALIA=="],
+
+    "htmx-ext-head-support": ["htmx-ext-head-support@2.0.5", "", { "dependencies": { "htmx.org": "^2.0.2" } }, "sha512-fTzqnCw7OnMijiS48CCBFBHTuOMvycbX0nEFRL0lkRxyu5DFWX90IV1SwXpQ92fJf02IzkXcRNyjXn3j0QtYxA=="],
 
     "htmx-ext-preload": ["htmx-ext-preload@2.1.2", "", { "dependencies": { "htmx.org": "^2.0.3" } }, "sha512-foD06XAITUUQApCUQnPexyJ6B7+4vFGMQ+t42unTVTGRu/CYHdAAt6oHg7eekPHT7NRnbM5hjnGVKtClryPabg=="],
 
