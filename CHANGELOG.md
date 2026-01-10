@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.22.0](https://github.com/immanent-tech/foragd/compare/v0.21.0...v0.22.0) (2026-01-10)
+
+
+### Features
+
+* :sparkles: allow docs access externally ([0774280](https://github.com/immanent-tech/foragd/commit/0774280d7dd3a0528eda9c9be0701f65d1b56ee1))
+
+
+### Bug Fixes
+
+* **templates:** :bug: add missing share model when viewing article content ([8750007](https://github.com/immanent-tech/foragd/commit/87500071e538b5c1e50bfa4e5adad0ad02d0d723))
+
 ## [0.21.0](https://github.com/immanent-tech/foragd/compare/v0.20.0...v0.21.0) (2026-01-10)
 
 
