@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.21.0](https://github.com/immanent-tech/foragd/compare/v0.20.0...v0.21.0) (2026-01-10)
+
+
+### Features
+
+* :sparkles: add an about page ([1f7cfd6](https://github.com/immanent-tech/foragd/commit/1f7cfd647ac15ee63f13234a1c5afc43f5ce6284))
+* **config:** :sparkles: better default app description ([3079103](https://github.com/immanent-tech/foragd/commit/3079103f6c83dacace6389adf5792db5f1fc9887))
+* **templates:** :recycle: reworked template rendering ([2b88e48](https://github.com/immanent-tech/foragd/commit/2b88e48c8353a5632e0796a38861372537bc936f))
+* **templates:** :sparkles: opengraph properties support ([4e4a640](https://github.com/immanent-tech/foragd/commit/4e4a64042902b83ac31cb370a60acaa58c6bc84a))
+
+
+### Bug Fixes
+
+* **templates:** :bug: don't use htmx for home link in header ([cfbea2c](https://github.com/immanent-tech/foragd/commit/cfbea2c0851b36448ee1f73f96ccddf358f0703f))
+* **templates:** :bug: fix footer links ([814529d](https://github.com/immanent-tech/foragd/commit/814529d9ee454df9dbdf722553700797f9718537))
+* **templates:** :bug: fix link to pricing ([6e4db72](https://github.com/immanent-tech/foragd/commit/6e4db7233e3601be4a8f224ce2a6f0156fe9d578))
+
 ## [0.20.0](https://github.com/immanent-tech/foragd/compare/v0.19.0...v0.20.0) (2026-01-10)
 
 
