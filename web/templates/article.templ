@@ -243,6 +243,7 @@ templ ArticleContent(article *models.Article) {
 			}
 		</article>
 	}
+	@ShareObjectModal(article.GetID(), "Sharing "+article.GetTitle(), article.GetLink())
 	<nav class="my-16 flex items-center justify-center gap-x-4 text-sm">
 		// Toggle view full content action.
 		@NewLink(
