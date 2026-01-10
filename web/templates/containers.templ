@@ -27,12 +27,14 @@ templ grid() {
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
 templ Document(data []byte) {
-	@container() {
-		<div class="prose sm:prose-lg prose-img:shadow-md my-4">
+	@header(nil)
+	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
+		<article class="prose sm:prose-lg prose-img:shadow-md my-4">
 			@templ.Raw(string(data))
-		</div>
+		</article>
 		@btnBackToTop()
-	}
+	</div>
+	@footer()
 }
 
 // Content renders the given template wrapped with appropriate header/footer navigation. Used for most user content
