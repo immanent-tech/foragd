@@ -1,0 +1,12 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package opengraph
+
+templ (m *Metadata) Render() {
+	<meta property="og:title" content={ m.Title.Value } { m.Title.Attributes... }/>
+	<meta property="og:description" content={ m.Description.Value } { m.Description.Attributes... }/>
+	<meta property="og:type" content={ m.ObjectType.Value } { m.ObjectType.Attributes... }/>
+	<meta property="og:url" content={ m.URL.Value } { m.URL.Attributes... }/>
+	<meta property="og:image" content={ m.Image.Value } { m.Image.Attributes... }/>
+}
