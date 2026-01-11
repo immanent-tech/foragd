@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.23.1](https://github.com/immanent-tech/foragd/compare/v0.23.0...v0.23.1) (2026-01-11)
+
+
+### Bug Fixes
+
+* **templates:** :lipstick: make sure subscription card indicates it is clickable with cursor ([5381b2d](https://github.com/immanent-tech/foragd/commit/5381b2dbcd81faac16edbd28b806f264a7393d36))
+
+
+### Reverts
+
+* change pricing to TBD until its finalised ([0130a03](https://github.com/immanent-tech/foragd/commit/0130a03d824a36e2c136727f5f678dda6a813337))
+
 ## [0.23.0](https://github.com/immanent-tech/foragd/compare/v0.22.1...v0.23.0) (2026-01-11)
 
 
