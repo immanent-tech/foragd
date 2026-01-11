@@ -174,7 +174,7 @@ func (s *SubscriptionCard) Render() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var5 = []any{"card card-link h-full bg-base-200 shadow-md",
+		var templ_7745c5c3_Var5 = []any{"card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
 			templ.KV("row-span-2", len(s.Subscription.GetCategories(0)) == 0),
 			templ.KV("row-span-3", len(s.Subscription.GetCategories(0)) > 0),
 			templ.KV("opacity-50", !s.Subscription.GetStats().IsUnread())}

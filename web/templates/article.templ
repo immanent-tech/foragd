@@ -22,7 +22,7 @@ templ ArticleCard(article *models.Article) {
 		hx-swap="innerHTML show:window:top"
 		hx-trigger="click"
 		id={ article.GetID() }
-		class={ "card w-full h-full bg-base-200 shadow-md",
+		class={ "card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
 		templ.KV("row-span-1",article.GetImage() == nil),
 		templ.KV("row-span-2",article.GetImage() != nil),
 		templ.KV("opacity-50",!article.IsUnread()) }

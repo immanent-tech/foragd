@@ -93,14 +93,14 @@ templ (page *Home) Template() {
 }
 
 templ homePageArticle(article *models.Article) {
-	<div
+	<article
 		hx-get={ "/view/article/" + article.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-swap="innerHTML show:window:top"
 		hx-trigger="click"
 		id={ article.GetID() }
-		class="card lg:card-side w-full h-full max-h-128 overflow-hidden bg-base-200 shadow-md"
+		class="card lg:card-side card-link w-full h-full max-h-128 overflow-hidden bg-base-200 shadow-md"
 	>
 		// Article image.
 		if img := article.GetImage(); img != nil {
@@ -134,11 +134,11 @@ templ homePageArticle(article *models.Article) {
 				</p>
 			</div>
 			// Content summary.
-			<article data-disable-scripting class="prose-summary">
+			<div data-disable-scripting class="prose-summary">
 				@templ.Raw(article.GetContent())
-			</article>
+			</div>
 		</div>
-	</div>
+	</article>
 }
 
 templ homePageHeadline(article *models.Article) {
