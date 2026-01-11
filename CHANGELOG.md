@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.1](https://github.com/immanent-tech/foragd/compare/v0.22.0...v0.22.1) (2026-01-11)
+
+
+### Performance Improvements
+
+* **templates:** :zap: add lazy and async image loading on feed viewer ([9a3780a](https://github.com/immanent-tech/foragd/commit/9a3780a5ef6e9a0f252a3c1cdf012ca97fb0de4c))
+
 ## [0.22.0](https://github.com/immanent-tech/foragd/compare/v0.21.0...v0.22.0) (2026-01-10)
 
 
