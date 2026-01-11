@@ -91,19 +91,20 @@ templ (s *SubscriptionCard) Render() {
 		{ s.linkAttributes... }
 	>
 		<div class="card-body">
-			<div class="flex items-center">
-				<div class="flex flex-1 items-center">
-					<div class="mr-4 shrink-0 self-center">
-						@subscriptionThumbnail(s.Subscription.GetImage(), s.Subscription.GetTitle())
-					</div>
-					<div>
-						<h3 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.Subscription.GetTitle() }</h3>
-					</div>
+			<div class="card-title flex items-center">
+				<div class="mr-4 shrink-0 self-center">
+					@subscriptionThumbnail(s.Subscription.GetImage(), s.Subscription.GetTitle())
 				</div>
-				<div class="flex flex-none">
-					@subscriptionContextMenu(s.Subscription)
-				</div>
+				<h2 class="text-pretty line-clamp-3 tracking-tight">{ s.Subscription.GetTitle() }</h2>
 			</div>
+			<p class="text-xs/4 italic truncate">
+				Last update
+				if !s.Subscription.GetUpdatedDate().IsZero() {
+					@showTimestamp(s.Subscription.GetUpdatedDate())
+				} else {
+					unknown
+				}
+			</p>
 			// Display up to 5 of the subscription categories.
 			if len(s.Subscription.GetCategories(0)) > 0 {
 				<div class="flex justify-start my-2">
@@ -126,37 +127,33 @@ templ (s *SubscriptionCard) Render() {
 					</div>
 				</div>
 			}
-			// Show stats and info as appropriate.
-			<div class="card-actions grid grid-cols-3 mt-auto">
-				if s.Subscription.Settings.ShowSubscriptionStats {
-					if s.Subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
-						<p class="grid justify-end col-span-3 text-xs/4">
-							{ s.Subscription.GetStats().UpdateFrequency() }
+			<div class="card-actions grid grid-cols-3 mt-auto items-center">
+				<div class="col-span-2 text-xs/4">
+					// Show stats if user requested.
+					if s.Subscription.Settings.ShowSubscriptionStats {
+						if s.Subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
+							<p>
+								{ s.Subscription.GetStats().UpdateFrequency() }
+							</p>
+						}
+						<p>
+							{ s.Subscription.GetStats().UnreadTotal() }
+							Unread
 						</p>
 					}
-				}
-				<p class="col-span-2 text-xs/4">
-					Last update
-					if !s.Subscription.GetUpdatedDate().IsZero() {
-						@showTimestamp(s.Subscription.GetUpdatedDate())
-					} else {
-						unknown
-					}
-				</p>
-				if s.Subscription.Settings.ShowSubscriptionStats {
-					<p class="grid justify-end text-xs/4">
-						{ s.Subscription.GetStats().UnreadTotal() }
-						Unread
-					</p>
-				}
+				</div>
+				// Context menu actions.
+				<div class="grid col-span-1 justify-end">
+					@subscriptionContextMenu(s.Subscription)
+				</div>
 			</div>
 		</div>
 	</article>
 }
 
 templ subscriptionContextMenu(s *models.Subscription) {
-	<el-dropdown class="relative ml-auto" _="on click halt the event's bubbling">
-		<button class="btn btn-sm btn-ghost btn-square">
+	<el-dropdown class="relative" _="on click halt the event's bubbling">
+		<button class="btn btn-sm btn-ghost p-12">
 			<span class="sr-only">s.GetTitle() + " Actions"</span>
 			@tabler.DotsVertical(i.Props{Class: "size-5"})
 		</button>
