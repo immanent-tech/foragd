@@ -97,12 +97,17 @@ templ homePageArticle(article *models.Article) {
 		// Article image.
 		if img := article.GetImage(); img != nil {
 			<figure>
-				<img
-					src={ article.GetImage().GetURL() }
-					alt={ article.GetImage().GetTitle() }
-					srcset={ generateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + generateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
-					sizes="(max-width: 480px) 100vw, 600px"
-				/>
+				@NewProxiedImage(img, "rs:auto:400:266/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
+					WithAttribute("width", "400"),
+					WithAttribute("height", "266"),
+					// WithClasses("w-full h-auto sm:h-full rounded-box"),
+				)
+				// <img
+				// 	src={ article.GetImage().GetURL() }
+				// 	alt={ article.GetImage().GetTitle() }
+				// 	srcset={ generateImageProxyURL(ctx, img.GetURL(), "rs:auto:300:200/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 200w, " + generateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
+				// 	sizes="(max-width: 480px) 100vw, 600px"
+				// />
 			</figure>
 		}
 		<div class="card-body">
