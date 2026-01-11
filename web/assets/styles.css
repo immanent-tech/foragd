@@ -181,3 +181,8 @@
     @apply w-full sm:max-w-prose;
   }
 }
+
+/* Change cursor to indicate card is a link. */
+@utility card-link {
+  @apply cursor-pointer;
+}
