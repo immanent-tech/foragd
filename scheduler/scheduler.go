@@ -72,8 +72,6 @@ func Run(ctx context.Context) error {
 		return fmt.Errorf("create scheduler: %w", err)
 	}
 
-	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
-
 	if err := RunStartupTasks(ctx); err != nil {
 		return fmt.Errorf("run scheduler startup tasks: %w", err)
 	}
@@ -122,6 +120,8 @@ func NewManager(ctx context.Context) error {
 // RunStartupTasks will run a bunch of tasks that should be done when the scheduler first starts. Effectively, this
 // seeds the job queue with some required jobs for scheduler functionality and maintenance.
 func RunStartupTasks(ctx context.Context) error {
+	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
+
 	startupTasks, tasksCtx := errgroup.WithContext(ctx)
 	defer tasksCtx.Done()
 
