@@ -28,8 +28,6 @@ const (
 	defaultOutdatedThreshold = 50 * time.Second
 )
 
-var ErrScheduler = errors.New("scheduler encountered an error")
-
 // manager contains data for managing a scheduler instance.
 type manager struct {
 	quartz.Scheduler
@@ -39,8 +37,63 @@ type manager struct {
 
 var Manager *manager
 
+// GetJobState returns the job state of the job with the given id.
+func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
+	state, err := elastic.GetDoc[string, *models.JobState](ctx, models.SchedulerIndexRO, id)
+	if err != nil {
+		return nil, fmt.Errorf("scheduler: get job state: %w", err)
+	}
+	return state, nil
+}
+
+// UpdateJobState will update the job state for the job with the given id.
+func (m *manager) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
+	updates["updated_at"] = time.Now().UTC()
+	if err := elastic.UpdateDoc(ctx, models.SchedulerIndexRW, id, updates,
+		elastic.UpdateDocAsUpsert(),
+		elastic.WithRefresh("true"),
+	); err != nil {
+		return fmt.Errorf("scheduled: update job state: %w", err)
+	}
+	return nil
+}
+
+// Clear will remove all jobs from the queue.
+func (m *manager) Clear() error {
+	if err := m.queue.Clear(); err != nil {
+		return fmt.Errorf("clear job queue: %w")
+	}
+	return nil
+}
+
 // Run starts the scheduler manager.
 func Run(ctx context.Context) error {
+	if err := NewManager(ctx); err != nil {
+		return fmt.Errorf("create scheduler: %w", err)
+	}
+
+	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
+
+	if err := RunStartupTasks(ctx); err != nil {
+		return fmt.Errorf("run scheduler startup tasks: %w", err)
+	}
+
+	Manager.Start(ctx)
+
+	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler starting.")
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	<-stop
+
+	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler stopping.")
+	Manager.Stop()
+
+	return nil
+}
+
+// NewManager will create a new manager object containing the scheduler and job queue.
+func NewManager(ctx context.Context) error {
 	// Create distributed queue instance.
 	jobQueue, err := queue.NewJobQueue(ctx)
 	if err != nil {
@@ -63,8 +116,12 @@ func Run(ctx context.Context) error {
 		queue:     jobQueue,
 	}
 
-	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
+	return nil
+}
 
+// RunStartupTasks will run a bunch of tasks that should be done when the scheduler first starts. Effectively, this
+// seeds the job queue with some required jobs for scheduler functionality and maintenance.
+func RunStartupTasks(ctx context.Context) error {
 	startupTasks, tasksCtx := errgroup.WithContext(ctx)
 	defer tasksCtx.Done()
 
@@ -112,37 +169,5 @@ func Run(ctx context.Context) error {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
 
-	scheduler.Start(ctx)
-
-	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler starting.")
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
-	<-stop
-
-	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler stopping.")
-	scheduler.Stop()
-
-	return nil
-}
-
-// GetJobState returns the job state of the job with the given id.
-func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
-	state, err := elastic.GetDoc[string, *models.JobState](ctx, models.SchedulerIndexRO, id)
-	if err != nil {
-		return nil, fmt.Errorf("scheduler: get job state: %w", err)
-	}
-	return state, nil
-}
-
-// UpdateJobState will update the job state for the job with the given id.
-func (m *manager) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
-	updates["updated_at"] = time.Now().UTC()
-	if err := elastic.UpdateDoc(ctx, models.SchedulerIndexRW, id, updates,
-		elastic.UpdateDocAsUpsert(),
-		elastic.WithRefresh("true"),
-	); err != nil {
-		return fmt.Errorf("scheduled: update job state: %w", err)
-	}
 	return nil
 }
