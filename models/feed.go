@@ -5,6 +5,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -16,6 +17,7 @@ import (
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
+	"github.com/go-playground/validator/v10"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
 	slogctx "github.com/veqryn/slog-context"
@@ -296,21 +298,36 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 	ctx, cancel := context.WithTimeout(ctx, feeds.DefaultRequestTimeout)
 	defer cancel()
 
-	results := feeds.NewFeedsFromURLs(ctx, url)
-	for result := range slices.Values(results) {
-		if result.Err != nil {
-			return nil, fmt.Errorf("could not create feed from URL %s: %w", url, result.Err)
-		}
-		if result.Feed.GetImage() == nil {
-			if err := feeds.FindFeedImage(ctx, result.Feed); err != nil {
-				slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
-					slog.String("feed", result.Feed.GetTitle()),
-					slog.String("url", result.Feed.GetSourceURL()),
-				)
+	result, err := feeds.NewFeedFromURL(ctx, url)
+	if err != nil {
+		var validateErrs validator.ValidationErrors
+		if errors.As(err, &validateErrs) {
+			slogctx.FromCtx(ctx).Warn("Feed is invalid, continuing without validation",
+				slog.String("url", url),
+			)
+			// On validation errors, try again without validation.
+			var (
+				err     error
+				invalid *feeds.Feed
+			)
+			invalid, err = feeds.NewFeedFromURL(ctx, url, feeds.PerformValidation(false))
+			if err != nil {
+				return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
 			}
+			result = invalid
+		} else {
+			return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
 		}
-		feed = NewFeedFromSource(url, result.Feed)
 	}
+	if result.GetImage() == nil {
+		if err := feeds.FindFeedImage(ctx, result); err != nil {
+			slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
+				slog.String("feed", result.GetTitle()),
+				slog.String("url", result.GetSourceURL()),
+			)
+		}
+	}
+	feed = NewFeedFromSource(url, result)
 
 	return feed, nil
 }
