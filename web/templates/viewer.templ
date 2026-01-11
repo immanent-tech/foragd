@@ -72,6 +72,8 @@ templ ViewerResults(feed *feeds.Feed) {
 										@NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
 											WithAttribute("width", "48"),
 											WithAttribute("height", "48"),
+											WithAttribute("loading", "lazy"),
+											WithAttribute("decoding", "async"),
 										)
 									</div>
 								</div>
@@ -138,6 +140,8 @@ templ viewerItemCard(item feeds.Item) {
 					alt={ img.GetTitle() }
 					srcset={ generateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + generateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
 					sizes="(max-width: 480px) 100vw, 600px"
+					decoding="async"
+					loading="lazy"
 				/>
 			</figure>
 		}
