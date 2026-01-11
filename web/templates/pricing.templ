@@ -4,7 +4,6 @@
 package templates
 
 import (
-	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
@@ -27,11 +26,18 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 						</div>
 					</div>
 					<div class="mt-8">
-						<form action={ action } method={ method }>
-							<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-							<input type="hidden" name={ models.ParamPlanID } value="Gatherer-85297d6"/>
-							<button aria-label="Start a free trial on the Gatherer plan" id="checkout-gatherer" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
-						</form>
+						// <form action={ action } method={ method }>
+						// 	<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+						// 	<input type="hidden" name={ models.ParamPlanID } value="Gatherer-85297d6"/>
+						// 	<button aria-label="Start a free trial on the Gatherer plan" id="checkout-gatherer" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
+						// </form>
+						<a
+							role="button"
+							class="btn btn-accent btn-block"
+							rel="noopener"
+							target="_blank"
+							href="https://docs.google.com/forms/d/e/1FAIpQLSfMnLy6zJToJ8yuQfr8TlsnTuC7Bt4x2OGhl9F_jP6IncGiCA/viewform?usp=dialog"
+						>Sign up for beta access</a>
 					</div>
 					<div class="mt-8">
 						<h3 class="text-sm/6 font-medium">Features:</h3>
@@ -93,11 +99,18 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 						</div>
 					</div>
 					<div class="mt-8">
-						<form action={ action } method={ method }>
-							<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-							<input type="hidden" name={ models.ParamPlanID } value="Collector-07ad4d0"/>
-							<button aria-label="Start a free trial on the Collector plan" id="checkout-collector" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
-						</form>
+						// <form action={ action } method={ method }>
+						// 	<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+						// 	<input type="hidden" name={ models.ParamPlanID } value="Collector-07ad4d0"/>
+						// 	<button aria-label="Start a free trial on the Collector plan" id="checkout-collector" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
+						// </form>
+						<a
+							role="button"
+							class="btn btn-accent btn-block"
+							rel="noopener"
+							target="_blank"
+							href="https://docs.google.com/forms/d/e/1FAIpQLSfMnLy6zJToJ8yuQfr8TlsnTuC7Bt4x2OGhl9F_jP6IncGiCA/viewform?usp=dialog"
+						>Sign up for beta access</a>
 					</div>
 					<div class="mt-8">
 						<h3 class="text-sm/6 font-medium">Features:</h3>
@@ -165,11 +178,18 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 						</div>
 					</div>
 					<div class="mt-8">
-						<form action={ action } method={ method }>
-							<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-							<input type="hidden" name={ models.ParamPlanID } value="Curator-2c67637"/>
-							<button aria-label="Start a free trial on the Curator plan" id="checkout-curator" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
-						</form>
+						<a
+							role="button"
+							class="btn btn-accent btn-block"
+							rel="noopener"
+							target="_blank"
+							href="https://docs.google.com/forms/d/e/1FAIpQLSfMnLy6zJToJ8yuQfr8TlsnTuC7Bt4x2OGhl9F_jP6IncGiCA/viewform?usp=dialog"
+						>Sign up for beta access</a>
+						// <form action={ action } method={ method }>
+						// 	<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
+						// 	<input type="hidden" name={ models.ParamPlanID } value="Curator-2c67637"/>
+						// 	<button aria-label="Start a free trial on the Curator plan" id="checkout-curator" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
+						// </form>
 					</div>
 					<div class="mt-8">
 						<h3 class="text-sm/6 font-medium">Features:</h3>
