@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.23.0](https://github.com/immanent-tech/foragd/compare/v0.22.1...v0.23.0) (2026-01-11)
+
+
+### Features
+
+* **models:** :sparkles: start supporting finding feeds for specific sites with APIs/quirks ([c9c19a6](https://github.com/immanent-tech/foragd/commit/c9c19a6c3d26c7c745f3930dba0e3fac1c605b22))
+
+
+### Bug Fixes
+
+* **templates:** :bug: fix context menu sizing on subscription cards ([c00e105](https://github.com/immanent-tech/foragd/commit/c00e1055fe1973be5ff40bac39a41468aba32671))
+
 ## [0.22.1](https://github.com/immanent-tech/foragd/compare/v0.22.0...v0.22.1) (2026-01-11)
 
 
