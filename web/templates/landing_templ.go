@@ -180,41 +180,4 @@ func Landing() templ.Component {
 	})
 }
 
-func footer() templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var2 == nil {
-			templ_7745c5c3_Var2 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<footer><div class=\"mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8\"><nav aria-label=\"Footer\" class=\"-mb-6 flex flex-wrap justify-center gap-x-12 gap-y-3 text-sm/6\"><a href=\"/about\" class=\"link link-hover\">About</a> <a href=\"#\" class=\"link link-hover\">Blog (Coming Soon)</a> <a href=\"/viewer\" class=\"link link-hover\">Feed Viewer</a> <a href=\"/policies/tos\" class=\"link link-hover\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover\">Acceptable Use</a> <a href=\"/policies/privacy\" class=\"link link-hover\">Privacy Policy</a></nav><div class=\"mt-16 flex justify-center gap-x-10\"><a href=\"mailto:hello@immanent.tech\" class=\"link link-hover\"><span class=\"sr-only\">Email</span>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Mail().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</a></div><p class=\"mt-10 text-center text-sm/6 text-neutral\">&copy; 2025 <a class=\"link\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></div></footer>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
 var _ = templruntime.GeneratedTemplate
