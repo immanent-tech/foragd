@@ -385,7 +385,7 @@ func subscriptionContextMenu(s *models.Subscription) templ.Component {
 			templ_7745c5c3_Var12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<el-dropdown class=\"relative\" _=\"on click halt the event's bubbling\"><button class=\"btn btn-sm btn-ghost p-12\"><span class=\"sr-only\">s.GetTitle() + \" Actions\"</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<el-dropdown class=\"relative\" _=\"on click halt the event's bubbling\"><button class=\"btn btn-sm btn-ghost\"><span class=\"sr-only\">s.GetTitle() + \" Actions\"</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
