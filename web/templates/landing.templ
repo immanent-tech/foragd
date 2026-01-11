@@ -60,6 +60,9 @@ templ Landing() {
 							blogs and other online sources, across your mobile, tablet, desktop and laptop.
 						</p>
 					</div>
+					<div class="mt-16 flow-root sm:mt-24">
+						<img width="1600" height="1200" decoding="async" src="/content/screenshots/screenshot-desktop-phone.png" alt="App screenshot" class="w-304 rounded-md shadow-xl"/>
+					</div>
 					<div class="mt-10 grid gap-4 sm:mt-16 lg:grid-cols-3 lg:grid-rows-2">
 						<div class="relative lg:row-span-2">
 							<div class="absolute inset-px rounded-lg bg-base-200 lg:rounded-l-4xl"></div>
@@ -73,20 +76,45 @@ templ Landing() {
 									</p>
 								</div>
 								<div class="@container relative min-h-120 sm:h-170 w-full max-lg:mx-auto max-lg:max-w-sm">
-									<div class="absolute min-h-120 sm:h-170 inset-x-10 top-10 bottom-0 overflow-hidden rounded-t-[12cqw] rounded-b-[12cqw] border-x-[3cqw] border-t-[3cqw] border-b-[3cqw] bg-base-100 shadow-2xl">
-										<img
-											src="/content/screenshots/screenshot-article-content-mobile.png"
-											height="1600"
-											width="719"
-											alt="Screenshot of Foragd viewing an article on a mobile device"
-											class="w-full min-h-120 sm:h-170 object-scale-down object-top"
-											loading="lazy"
-											decoding="async"
-										/>
-									</div>
+									// <div class="absolute min-h-120 sm:h-170 inset-x-10 top-10 bottom-0 overflow-hidden rounded-t-[12cqw] rounded-b-[12cqw] border-x-[3cqw] border-t-[3cqw] border-b-[3cqw] bg-base-100 shadow-2xl">
+									<img
+										src="/content/screenshots/screenshot-article-content-mobile.png"
+										height="1600"
+										width="719"
+										alt="Screenshot of Foragd viewing an article on a mobile device"
+										class="w-full min-h-120 sm:h-170 object-scale-down object-top"
+										loading="lazy"
+										decoding="async"
+									/>
+									// </div>
 								</div>
 							</div>
 							<div class="pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 lg:rounded-l-4xl dark:outline-white/15"></div>
+						</div>
+						<div class="relative max-lg:row-start-3 lg:col-start-2 lg:row-start-2">
+							<div class="absolute inset-px rounded-lg bg-base-200"></div>
+							<div class="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)]">
+								<div class="px-8 pt-8 sm:px-10 sm:pt-10">
+									<p class="mt-2 text-lg font-medium tracking-tight max-lg:text-center">
+										Content Comes First
+									</p>
+									<p class="mt-2 max-w-lg text-sm/6 max-lg:text-center">
+										Simple UI. Big images. Beautiful typography. Let the content shine.
+									</p>
+								</div>
+								<div class="flex flex-1 items-center justify-center max-lg:pt-10 max-lg:pb-12 sm:px-10">
+									<img
+										src="/content/screenshots/screenshot-card.png"
+										height="409"
+										width="531"
+										alt="Screenshot of an article card with large image, title and byline"
+										class="max-w-100 h-auto rounded-box max-lg:max-w-xs sm:px-10"
+										loading="lazy"
+										decoding="async"
+									/>
+								</div>
+							</div>
+							<div class="pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 dark:outline-white/15"></div>
 						</div>
 						<div class="relative max-lg:row-start-1">
 							<div class="absolute inset-px rounded-lg bg-base-200 max-lg:rounded-t-4xl"></div>
@@ -113,31 +141,6 @@ templ Landing() {
 								</div>
 							</div>
 							<div class="pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 max-lg:rounded-t-4xl dark:outline-white/15"></div>
-						</div>
-						<div class="relative max-lg:row-start-3 lg:col-start-2 lg:row-start-2">
-							<div class="absolute inset-px rounded-lg bg-base-200"></div>
-							<div class="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)]">
-								<div class="px-8 pt-8 sm:px-10 sm:pt-10">
-									<p class="mt-2 text-lg font-medium tracking-tight max-lg:text-center">
-										Content Comes First
-									</p>
-									<p class="mt-2 max-w-lg text-sm/6 max-lg:text-center">
-										Simple UI. Big images. Beautiful typography. Let the content shine.
-									</p>
-								</div>
-								<div class="flex flex-1 items-center justify-center max-lg:pt-10 max-lg:pb-12 sm:px-10">
-									<img
-										src="/content/screenshots/screenshot-card.png"
-										height="409"
-										width="531"
-										alt="Screenshot of an article card with large image, title and byline"
-										class="max-w-100 h-auto rounded-box max-lg:max-w-xs sm:px-10"
-										loading="lazy"
-										decoding="async"
-									/>
-								</div>
-							</div>
-							<div class="pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 dark:outline-white/15"></div>
 						</div>
 						<div class="relative lg:row-span-2">
 							<div class="absolute inset-px rounded-lg bg-base-200 max-lg:rounded-b-4xl lg:rounded-r-4xl"></div>
