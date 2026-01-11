@@ -272,6 +272,7 @@ templ viewFeedSubscriptionLink(id models.SubscriptionID, title string, view mode
 			WithHXTarget(ContentID.Target()),
 			WithHXPushURL(true),
 			WithHXSwap("innerHTML show:window:top transition:true"),
+			WithHXTrigger("click consume"),
 			WithClasses("link-hover"),
 		}
 		allOptions = append(allOptions, options...)

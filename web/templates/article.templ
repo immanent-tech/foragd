@@ -16,6 +16,11 @@ import (
 // Card renders an article as a card, for displaying in a list.
 templ ArticleCard(article *models.Article) {
 	<article
+		hx-get={ "/view/article/" + article.GetID() }
+		hx-target={ ContentID.Target() }
+		hx-push-url="true"
+		hx-swap="innerHTML show:window:top"
+		hx-trigger="click"
 		id={ article.GetID() }
 		class={ "card w-full h-full bg-base-200 shadow-md",
 		templ.KV("row-span-1",article.GetImage() == nil),
@@ -23,28 +28,25 @@ templ ArticleCard(article *models.Article) {
 		templ.KV("opacity-50",!article.IsUnread()) }
 	>
 		if img := article.GetImage(); img != nil {
-			@NewLink(
-				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(true),
-				WithHXSwap("innerHTML show:window:top"),
-				WithClasses("link-hover"),
-			) {
-				{{ img := article.GetImage() }}
-				if img.GetTitle() == "" {
-					{{ img.Title = article.GetTitle() }}
-				}
-				<figure>
-					@NewProxiedImage(img, "rs:auto:400:266/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
-						WithAttribute("width", "400"),
-						WithAttribute("height", "266"),
-						WithClasses("w-full"),
-					)
-				</figure>
+			{{ img := article.GetImage() }}
+			if img.GetTitle() == "" {
+				{{ img.Title = article.GetTitle() }}
 			}
+			<figure>
+				@NewProxiedImage(img, "rs:auto:400:266/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
+					WithAttribute("width", "400"),
+					WithAttribute("height", "266"),
+				)
+			</figure>
 		}
 		<div class="card-body">
-			@articleCardTitle(article)
+			<h2 class="card-title text-pretty line-clamp-3 tracking-tight">
+				if article.GetTitle() != "" {
+					{ article.GetTitle() }
+				} else {
+					(no title)
+				}
+			</h2>
 			<div class="grid grid-cols-1 grid-flow-row mb-4">
 				if len(article.GetAuthors()) > 0 {
 					<p class="inline-block text-xs/4 italic truncate">
@@ -96,6 +98,7 @@ templ ArticleCard(article *models.Article) {
 									WithHXMethod(http.MethodPost, markURL),
 									WithHXTarget("#"+article.GetID()),
 									WithHXInclude("[name='csrf_token'],#content-filters"),
+									WithHXTrigger("click consume"),
 									WithClasses("link-hover"),
 								) {
 									switch article.IsUnread() {
@@ -480,6 +483,7 @@ templ shareArticleLink(article *models.Article, classes ...string) {
 		WithAttribute("_",
 			"on click if navigator.share then "+shareAPIDialog(article.GetTitle(), article.GetLink())+" else call document.getElementById('share-"+article.GetID()+"').show() ",
 		),
+		WithHXTrigger("click consume"),
 	) {
 		{ children... }
 	}
@@ -491,6 +495,7 @@ templ goToArticleLink(article *models.Article, classes ...string) {
 		WithAttribute("href", article.GetLink()),
 		WithAttribute("target", "_blank"),
 		WithAttribute("rel", "noopener"),
+		WithAttribute("_", "on click halt the event's bubbling"),
 		WithClasses(classes...),
 	) {
 		{ children... }
@@ -503,6 +508,7 @@ templ reportArticleIssueLink(article *models.Article, classes ...string) {
 		WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
 		WithHXTarget(ContentID.Target()),
 		WithHXReplaceURL(true),
+		WithHXTrigger("click consume"),
 		WithClasses(classes...),
 	) {
 		{ children... }
@@ -524,6 +530,7 @@ templ findSimilarArticlesLink(article *models.Article) {
 		WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
 		WithHXTarget(ContentID.Target()),
 		WithHXPushURL(true),
+		WithHXTrigger("click consume"),
 		WithClasses("link-hover"),
 	) {
 		@tabler.FileSearch(i.Props{Class: "size-4"})
