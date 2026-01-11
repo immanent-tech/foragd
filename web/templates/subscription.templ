@@ -4,6 +4,7 @@
 package templates
 
 import (
+	"context"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
@@ -30,96 +31,84 @@ templ AddFeedsetsSuccessNotification(feedsets []string) {
 	}
 }
 
+type SubscriptionCard struct {
+	Subscription   *models.Subscription
+	linkAttributes templ.Attributes
+}
+
+func NewSubscriptionCard(ctx context.Context, subscription *models.Subscription) *SubscriptionCard {
+	card := &SubscriptionCard{
+		Subscription:   subscription,
+		linkAttributes: make(templ.Attributes),
+	}
+	card.linkAttributes["hx-target"] = ContentID.Target()
+	card.linkAttributes["hx-swap"] = "innerHTML show:window:top transition:true"
+	card.linkAttributes["hx-push-url"] = "true"
+	card.linkAttributes["hx-trigger"] = "click consume"
+	switch card.Subscription.GetSubscriptionType() {
+	case models.SubscriptionTypeFeed:
+		filters := models.PageFiltersFromCtx(ctx, "/list/articles").Values()
+		filters[models.ParamSubscriptions] = card.Subscription.GetID()
+		filters[models.ParamSubscriptionID] = card.Subscription.GetID()
+		if card.Subscription.GetStats().IsUnread() {
+			filters[models.ParamView] = models.ViewUnread
+		} else {
+			filters[models.ParamView] = models.ViewRead
+		}
+		filterVals, _ := templ.JSONString(filters)
+		card.linkAttributes["hx-vals"] = filterVals
+		card.linkAttributes["hx-get"] = "/list/articles"
+	case models.SubscriptionTypeSearch:
+		card.linkAttributes["hx-post"] = "/search"
+		card.linkAttributes["hx-include"] = "[name='csrf_token']"
+		card.Subscription.SearchData.Search.SubscriptionID = card.Subscription.GetID()
+		card.linkAttributes["hx-vals"] = card.Subscription.SearchData.Search.HXVals()
+	case models.SubscriptionTypeGroup:
+		filters := models.PageFiltersFromCtx(ctx, "/list/articles").Values()
+		filters[models.ParamSubscriptionID] = card.Subscription.GetID()
+		filters[models.ParamSubscriptions] = card.Subscription.GroupData.Subscriptions
+		if card.Subscription.GetStats().IsUnread() {
+			filters[models.ParamView] = models.ViewUnread
+		} else {
+			filters[models.ParamView] = models.ViewRead
+		}
+		filterVals, _ := templ.JSONString(filters)
+		card.linkAttributes["hx-vals"] = filterVals
+		card.linkAttributes["hx-get"] = "/list/articles"
+	}
+
+	return card
+}
+
 // SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
-templ SubscriptionCard(s *models.Subscription) {
+templ (s *SubscriptionCard) Render() {
 	<article
-		id={ s.GetID() }
+		id={ s.Subscription.GetID() }
 		class={ "card h-full bg-base-200 shadow-md",
-			templ.KV("row-span-2",len(s.GetCategories(0))== 0),
-			templ.KV("row-span-3",len(s.GetCategories(0)) >0),
-			templ.KV("opacity-50",!s.GetStats().IsUnread()) }
+			templ.KV("row-span-2",len(s.Subscription.GetCategories(0))== 0),
+			templ.KV("row-span-3",len(s.Subscription.GetCategories(0)) >0),
+			templ.KV("opacity-50",!s.Subscription.GetStats().IsUnread()) }
+		{ s.linkAttributes... }
 	>
 		<div class="card-body">
-			<div class="flex items-center card-section">
-				// Heading containing thumbnail, subscription title, all as a link to the subscription articles.
-				switch s.GetSubscriptionType() {
-					case models.SubscriptionTypeFeed:
-						{{ var view models.View }}
-						if s.GetStats().IsUnread() {
-							{{ view = models.ViewUnread }}
-						} else {
-							{{ view = models.ViewRead }}
-						}
-						@viewFeedSubscriptionLink(s.GetID(), s.GetTitle(), view,
-							WithClasses("flex", "flex-1", "items-center", "gap-x-4"),
-						) {
-							<div class="flex flex-1 items-center">
-								<div class="mr-4 shrink-0 self-center">
-									@subscriptionThumbnail(s.GetImage(), s.GetTitle())
-								</div>
-								<div>
-									<h3 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h3>
-								</div>
-							</div>
-						}
-					case models.SubscriptionTypeSearch:
-						<form class="flex flex-1">
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
-							@NewLink(
-								WithHXMethod(http.MethodPost, "/search"),
-								WithHXInclude("[name='csrf_token']"),
-								WithHXValsJS(s.SearchData.Search.HXVals()),
-								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(true),
-								WithHXSwap("innerHTML show:window:top transition:true"),
-								WithClasses("link-hover", "flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
-							) {
-								<div class="flex flex-1 items-center">
-									<div class="mr-4 shrink-0 self-center">
-										@subscriptionThumbnail(s.GetImage(), s.GetTitle())
-									</div>
-									<div>
-										<h3 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h3>
-									</div>
-								</div>
-							}
-						</form>
-					case models.SubscriptionTypeGroup:
-						{{ overrides := map[string]any{models.ParamSort: string(models.SortNewestFirst), models.ParamSubscriptions: s.GroupData.Subscriptions} }}
-						if s.GetStats().IsUnread() {
-							{{ overrides[models.ParamView] = string(models.ViewUnread) }}
-						} else {
-							{{ overrides[models.ParamView] = string(models.ViewRead) }}
-						}
-						{{ overrides[models.ParamSubscriptionID] = s.GetID() }}
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/list/articles"),
-							WithHXInclude("#content-filters"),
-							WithHXVals(overrides),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(true),
-							WithHXSwap("innerHTML show:window:top transition:true"),
-							WithClasses("link-hover", "flex", "flex-1", "items-center", "gap-x-4", "hover:text-accent"),
-						) {
-							<div class="flex items-center">
-								<div class="mr-4 shrink-0 self-center">
-									@subscriptionThumbnail(s.GetImage(), s.GetTitle())
-								</div>
-								<div>
-									<h3 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.GetTitle() }</h3>
-								</div>
-							</div>
-						}
-				}
+			<div class="flex items-center">
+				<div class="flex flex-1 items-center">
+					<div class="mr-4 shrink-0 self-center">
+						@subscriptionThumbnail(s.Subscription.GetImage(), s.Subscription.GetTitle())
+					</div>
+					<div>
+						<h3 id="subscription-name" class="text-lg font-bold line-clamp-2">{ s.Subscription.GetTitle() }</h3>
+					</div>
+				</div>
 				<div class="flex flex-none">
-					@subscriptionContextMenu(s)
+					@subscriptionContextMenu(s.Subscription)
 				</div>
 			</div>
 			// Display up to 5 of the subscription categories.
-			if len(s.GetCategories(0)) > 0 {
+			if len(s.Subscription.GetCategories(0)) > 0 {
 				<div class="flex justify-start my-2">
 					<div class="flex flex-row flex-wrap p-2 gap-2">
-						for category := range slices.Values(s.GetCategories(5)) {
+						for category := range slices.Values(s.Subscription.GetCategories(5)) {
 							{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
 							{{ filters[models.ParamCategories] = category }}
 							@NewLink(
@@ -139,24 +128,24 @@ templ SubscriptionCard(s *models.Subscription) {
 			}
 			// Show stats and info as appropriate.
 			<div class="card-actions grid grid-cols-3 mt-auto">
-				if s.Settings.ShowSubscriptionStats {
-					if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
+				if s.Subscription.Settings.ShowSubscriptionStats {
+					if s.Subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
 						<p class="grid justify-end col-span-3 text-xs/4">
-							{ s.GetStats().UpdateFrequency() }
+							{ s.Subscription.GetStats().UpdateFrequency() }
 						</p>
 					}
 				}
 				<p class="col-span-2 text-xs/4">
 					Last update
-					if !s.GetUpdatedDate().IsZero() {
-						@showTimestamp(s.GetUpdatedDate())
+					if !s.Subscription.GetUpdatedDate().IsZero() {
+						@showTimestamp(s.Subscription.GetUpdatedDate())
 					} else {
 						unknown
 					}
 				</p>
-				if s.Settings.ShowSubscriptionStats {
+				if s.Subscription.Settings.ShowSubscriptionStats {
 					<p class="grid justify-end text-xs/4">
-						{ s.GetStats().UnreadTotal() }
+						{ s.Subscription.GetStats().UnreadTotal() }
 						Unread
 					</p>
 				}
@@ -166,7 +155,7 @@ templ SubscriptionCard(s *models.Subscription) {
 }
 
 templ subscriptionContextMenu(s *models.Subscription) {
-	<el-dropdown class="relative ml-auto">
+	<el-dropdown class="relative ml-auto" _="on click halt the event's bubbling">
 		<button class="btn btn-sm btn-ghost btn-square">
 			<span class="sr-only">s.GetTitle() + " Actions"</span>
 			@tabler.DotsVertical(i.Props{Class: "size-5"})
@@ -181,6 +170,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 					WithAttribute("href", s.GetLink()),
 					WithAttribute("rel", "noopener"),
 					WithAttribute("target", "_blank"),
+					WithAttribute("_", "on click halt the event's bubbling"),
 					WithClasses("link-hover"),
 				) {
 					@tabler.ExternalLink(i.Props{Class: "size-4"})
@@ -201,6 +191,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 						WithHXMethod(http.MethodPost, markURL),
 						WithHXInclude("[name='csrf_token'],#content-filters"),
 						WithHXTarget("#"+s.GetID()),
+						WithHXTrigger("click consume"),
 						WithClasses("link-hover"),
 					) {
 						switch s.GetStats().IsUnread() {
@@ -226,6 +217,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 				WithHXTarget(ContentID.Target()),
 				WithHXSwap("innerHTML show:window:top transition:true"),
 				WithHXPushURL(true),
+				WithHXTrigger("click consume"),
 				WithClasses("link-hover"),
 			) {
 				@tabler.Edit(i.Props{Class: "size-4"})
@@ -239,7 +231,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 					WithHXMethod(http.MethodPost, "/remove/subscription/"+s.GetID()),
 					WithHXTarget(ModalContainerID.Target()),
 					WithHXInclude("[name='csrf_token']"),
-					WithAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"),
+					WithAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show() then halt the event's bubbling"),
 					WithClasses("link-hover"),
 				) {
 					@tabler.TrashFilled(i.Props{Class: "size-4"})
@@ -251,6 +243,7 @@ templ subscriptionContextMenu(s *models.Subscription) {
 				WithHXMethod(http.MethodGet, "/issue/subscription/"+s.GetID()),
 				WithHXTarget(ContentID.Target()),
 				WithHXReplaceURL(true),
+				WithHXTrigger("click consume"),
 				WithClasses("link-hover"),
 			) {
 				@tabler.FlagFilled(i.Props{Class: "size-4"})
@@ -407,7 +400,7 @@ templ subscriptionsActionsButton(filters *models.ListFilters) {
 // to load more.
 templ PaginateSubscriptions(response *models.ListSubscriptionsResponse) {
 	for subscription := range slices.Values(response.Subscriptions) {
-		@SubscriptionCard(subscription)
+		@NewSubscriptionCard(ctx, subscription).Render()
 	}
 	if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
 		// Add pagination htmx props to last article.
@@ -741,7 +734,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 				if action == "add" {
 					hx-post="/user/subscription/add/search"
 				} else {
-					hx-post={ "/edit/subscription/" + request.Search.ID }
+					hx-post={ "/edit/subscription/" + request.Search.SubscriptionID }
 				}
 				hx-swap="none"
 				hx-include="[name='customisation.categories'],[name='csrf_token']"

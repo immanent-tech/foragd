@@ -236,11 +236,11 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 							Mark all Unread
 						</a>
 					</form>
-					if request.ID != "" {
+					if request.SubscriptionID != "" {
 						<div class="py-1">
 							// Edit action.
 							@NewLink(
-								WithHXMethod(http.MethodGet, "/edit/subscription/"+request.ID),
+								WithHXMethod(http.MethodGet, "/edit/subscription/"+request.SubscriptionID),
 								WithHXTarget(ContentID.Target()),
 								WithHXSwap("innerHTML show:window:top transition:true"),
 								WithHXPushURL(true),

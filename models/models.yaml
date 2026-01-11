@@ -1038,16 +1038,16 @@ components:
         - published_within
         - timezone
       properties:
-        id:
+        subscription_id:
           description: >
             will be a subscription ID if the user has created a SearchSubscription for this request.
           allOf:
             - $ref: '#/components/schemas/SubscriptionID'
-          x-go-name: ID
+          x-go-name: SubscriptionID
           x-oapi-codegen-extra-tags:
             json: '-'
             form: 'subscription_id'
-            validate: 'omitempty,startswith=sub_'
+            validate: 'omitzero,startswith=sub_'
         text:
           description: >
             is the text to search.

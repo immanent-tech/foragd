@@ -276,7 +276,7 @@ func MarkSubscription() http.HandlerFunc {
 					}
 				}
 				res.Header().Set(htmx.HeaderReswap, "outerHTML transition:true")
-				renderPartial(templates.NewPartial(templates.SubscriptionCard(subscription))).ServeHTTP(res, req)
+				renderPartial(templates.NewPartial(templates.NewSubscriptionCard(req.Context(), subscription).Render())).ServeHTTP(res, req)
 			}
 		}
 		return nil
@@ -447,7 +447,7 @@ func EditSubscription() http.HandlerFunc {
 				Settings:      subscription.Settings,
 				Search:        subscription.SearchData.Search,
 			}
-			request.Search.ID = subscription.GetID()
+			request.Search.SubscriptionID = subscription.GetID()
 			// Get any extra subscription info for subscription filters.
 			if len(request.Search.Subscriptions) > 0 {
 				subscriptions, err := models.GetSubscriptions(ctx,

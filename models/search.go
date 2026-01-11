@@ -98,8 +98,8 @@ func (r *SearchRequest) params() url.Values {
 	params.Set("published_within", string(r.PublishedWithin))
 	params.Set(ParamSort, string(r.Sort))
 	params.Set("timezone", r.Timezone)
-	if r.ID != "" {
-		params.Set(ParamSubscriptionID, r.ID)
+	if r.SubscriptionID != "" {
+		params.Set(ParamSubscriptionID, r.SubscriptionID)
 	}
 	return params
 }

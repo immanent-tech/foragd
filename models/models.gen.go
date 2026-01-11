@@ -732,14 +732,14 @@ type SearchRequest struct {
 	// Categories a list of search terms for categories.
 	Categories string `form:"categories" json:"categories,omitempty,omitzero"`
 
-	// ID will be a subscription ID if the user has created a SearchSubscription for this request.
-	ID SubscriptionID `form:"subscription_id" json:"-" validate:"omitempty,startswith=sub_"`
-
 	// PublishedWithin represents a time range within which the objects should be published
 	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within" validate:"required,oneof=all_time last_hour last_12hours last_day last_week last_month"`
 
 	// Sort is how a list of objects is sorted.
 	Sort Sort `form:"sort" json:"sort,omitempty,omitzero" validate:"oneof=newest_first oldest_first most_unread least_unread most_relevant"`
+
+	// SubscriptionID will be a subscription ID if the user has created a SearchSubscription for this request.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"-" validate:"omitzero,startswith=sub_"`
 
 	// Subscriptions is a list of subscription IDs.
 	Subscriptions []string `form:"subscriptions" json:"subscriptions,omitempty,omitzero" validate:"omitempty,unique,dive,startswith=sub_"`

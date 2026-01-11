@@ -211,7 +211,7 @@ func ArticleCard(article *models.Article) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</p></div><div class=\"flex flex-none\"><el-dropdown class=\"relative ml-auto\"><button class=\"btn btn-sm btn-ghost btn-square\"><span class=\"sr-only\">article.GetTitle() + \" Actions\"</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</p></div><div class=\"flex flex-none\"><el-dropdown class=\"relative ml-auto\" _=\"on click halt the event's bubbling\"><button class=\"btn btn-sm btn-ghost btn-square\"><span class=\"sr-only\">article.GetTitle() + \" Actions\"</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

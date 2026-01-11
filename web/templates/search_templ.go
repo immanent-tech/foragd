@@ -605,7 +605,7 @@ func SearchResultsGrid(request *models.SearchRequest, articles models.Articles, 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if request.ID != "" {
+			if request.SubscriptionID != "" {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<div class=\"py-1\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -633,7 +633,7 @@ func SearchResultsGrid(request *models.SearchRequest, articles models.Articles, 
 					return nil
 				})
 				templ_7745c5c3_Err = NewLink(
-					WithHXMethod(http.MethodGet, "/edit/subscription/"+request.ID),
+					WithHXMethod(http.MethodGet, "/edit/subscription/"+request.SubscriptionID),
 					WithHXTarget(ContentID.Target()),
 					WithHXSwap("innerHTML show:window:top transition:true"),
 					WithHXPushURL(true),

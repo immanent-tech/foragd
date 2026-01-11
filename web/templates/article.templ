@@ -69,7 +69,7 @@ templ ArticleCard(article *models.Article) {
 				</div>
 				// Actions menu.
 				<div class="flex flex-none">
-					<el-dropdown class="relative ml-auto">
+					<el-dropdown class="relative ml-auto" _="on click halt the event's bubbling">
 						<button class="btn btn-sm btn-ghost btn-square">
 							<span class="sr-only">article.GetTitle() + " Actions"</span>
 							@tabler.DotsVertical(i.Props{Class: "size-5"})
