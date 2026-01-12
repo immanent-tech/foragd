@@ -182,13 +182,15 @@ func (u *User) Cancelled() (bool, time.Time) {
 // Active returns a boolean indicating whether the user is "active", which means a paying customer with no payment
 // issues or customer currently on a trial.
 func (u *User) Active() bool {
-	if u.Metadata.PlanStatus == stripe.SubscriptionStatusActive {
-		return true
-	}
-	if trial, _ := u.OnTrial(); trial {
-		return true
-	}
-	return false
+	// ! Uncomment after beta.
+	// if u.Metadata.PlanStatus == stripe.SubscriptionStatusActive {
+	// 	return true
+	// }
+	// if trial, _ := u.OnTrial(); trial {
+	// 	return true
+	// }
+	// return false
+	return true
 }
 
 // GetSubscriptionPlan returns the name of the subscription plan of the user.

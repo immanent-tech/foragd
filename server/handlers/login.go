@@ -173,20 +173,21 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 	}
 	ctx := models.UserToCtx(req.Context(), user)
 	// Redirect the user appropriately.
-	if user.Metadata.Plan == "" {
-		// New user or user without a plan; redirect to choose subscription plan.
-		http.Redirect(res, req.WithContext(ctx), models.RouteCheckoutChoosePlan, http.StatusSeeOther)
-		return
-	}
-	if err := user.Metadata.Valid(); err != nil {
-		// User metadata is invalid, redirect user to page indicating they need to contact support to resolve the issue.
-		slogctx.FromCtx(req.Context()).Error("User data is invalid.",
-			slog.String("user_id", user.GetID()),
-			slog.Any("error", err),
-		)
-		http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
-		return
-	}
+	// ! Uncomment after beta.
+	// if user.Metadata.Plan == "" {
+	// 	// New user or user without a plan; redirect to choose subscription plan.
+	// 	http.Redirect(res, req.WithContext(ctx), models.RouteCheckoutChoosePlan, http.StatusSeeOther)
+	// 	return
+	// }
+	// if err := user.Metadata.Valid(); err != nil {
+	// 	// User metadata is invalid, redirect user to page indicating they need to contact support to resolve the issue.
+	// 	slogctx.FromCtx(req.Context()).Error("User data is invalid.",
+	// 		slog.String("user_id", user.GetID()),
+	// 		slog.Any("error", err),
+	// 	)
+	// 	http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
+	// 	return
+	// }
 	if !user.Active() {
 		slogctx.FromCtx(req.Context()).Error("User is not active.",
 			slog.String("user_id", user.GetID()),
