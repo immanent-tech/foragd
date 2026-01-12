@@ -106,18 +106,19 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	slogctx.FromCtx(ctx).Debug("Checking for new items.",
 		slog.Time("since", details.LastFetched),
 		slog.Int("total_items", len(items)),
+		slog.Duration("interval", time.Duration(details.UpdateInterval)),
 	)
 	// Add any new items since the last feed update.
-	if len(items.FilterSince(details.LastFetched)) > 0 {
+	if newItems := items.FilterSince(details.LastFetched); len(newItems) > 0 {
 		// Add any new items.
 		if _, err := elastic.BulkUpdate(
 			ctx,
 			models.ItemsIndexRW,
-			items.FilterSince(details.LastFetched)...); err != nil {
+			newItems...); err != nil {
 			return fmt.Errorf("update items: %w", err)
 		}
 		slogctx.FromCtx(ctx).Debug("Added new items.",
-			slog.Int("count", len(items.FilterSince(details.LastFetched))),
+			slog.Int("count", len(newItems)),
 		)
 		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 		// newer articles where a feed lags behind real-time.
