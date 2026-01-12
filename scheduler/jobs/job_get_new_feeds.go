@@ -22,6 +22,8 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
+const jobGetNewFeedsStateID = "get_new_feeds_state"
+
 // GetNewFeedsJobData contains the data required by the GetNewFeeds job.
 type GetNewFeedsJobData struct {
 	// Interval is the interval on which to check for new feeds.
@@ -35,7 +37,7 @@ type GetNewFeedsJobState struct {
 }
 
 // NewGetNewFeedsJob creates a job for checking for new feeds.
-func NewGetNewFeedsJob() (*ScheduledJob, error) {
+func NewGetNewFeedsJob(ctx context.Context) (*ScheduledJob, error) {
 	job := &ScheduledJob{
 		CreatedAt:      time.Now().UTC(),
 		JobTriggerType: jobTriggerTypePoll,
@@ -47,6 +49,10 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 		data []byte
 		err  error
 	)
+
+	if _, err := fetchGetNewFeedsJobState(ctx); err != nil {
+		return nil, fmt.Errorf("%w: set up job state: %w", ErrCreateJobFailed, err)
+	}
 
 	// Create trigger.
 	data, err = json.Marshal(newPollTrigger(defaultPollInterval, defaultPollJitter))
@@ -68,36 +74,26 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 // executeGetNewFeedsJob runs a job that will look for newly added feeds and schedule new jobs to fetch item updates for
 // them.
 func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
-	jobStateID := "get_new_feeds_state"
+	state, err := fetchGetNewFeedsJobState(ctx)
+	if err != nil {
+		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
+	}
 
 	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
 	if !ok || schedulerAPI == nil {
 		return fmt.Errorf("%w: unable to get scheduler api from context", ErrExecuteJobFailed)
 	}
 
-	state := &GetNewFeedsJobState{}
-	if lastState, err := schedulerAPI.GetJobState(ctx, jobStateID); err != nil {
-		if !errors.Is(err, elastic.ErrNotFound) {
-			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
-		}
-		state.Checkpoint = time.Time{}
-	} else {
-		err = json.Unmarshal(lastState.JobData, state)
-		if err != nil {
-			return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
-		}
-	}
 	slogctx.FromCtx(ctx).DebugContext(ctx, "Looking for new feeds.",
 		slog.Time("since", state.Checkpoint),
 	)
 
-	// Find new feeds. We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
+	// Find new allFeeds. We detect new allFeeds by those where the last_fetched value equals Unix Epoch, indicating they
 	// don't have a job scheduled for updating their items.
 	var (
-		feeds models.Feeds
-		err   error
+		allFeeds models.Feeds
 	)
-	feeds, err = elastic.SearchAll[*models.Feed](
+	allFeeds, err = elastic.SearchAll[*models.Feed](
 		ctx,
 		models.FeedsIndexRO,
 		query.Term("last_fetched", models.UnixEpoch),
@@ -106,68 +102,67 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	if err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
-	if len(feeds) > 0 {
+	if len(allFeeds) > 0 {
 		slogctx.FromCtx(ctx).DebugContext(ctx, "Found new feeds.",
-			slog.Int("count", len(feeds)),
-			slog.Any("feed_ids", feeds.GetIDs()),
+			slog.Int("count", len(allFeeds)),
+			slog.Any("feed_ids", allFeeds.GetIDs()),
 		)
-	}
-	// Update the checkpoint.
-	state.Checkpoint = time.Now().UTC()
-	err = schedulerAPI.UpdateJobState(ctx, jobStateID, map[string]any{
-		"job_data": state,
-	})
-	if err != nil {
-		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
 	}
 
 	var wg sync.WaitGroup
 	// Create new feed jobs where necessary.
-	for feed := range slices.Values(feeds) {
+	for feed := range slices.Values(allFeeds) {
+		// Add additional feed details to logs.
+		feedCtx := slogctx.With(ctx, "feed_id", feed.GetID())
+		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
+
 		wg.Go(func() {
 			jobKey := job.generateJobKey(feed.GetID(), job.JobType)
 			existingJob, err := schedulerAPI.GetScheduledJob(jobKey)
 			if err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound) {
 				// If we cannot ascertain if there is an existing scheduled job, skip this feed.
-				slogctx.FromCtx(ctx).Warn("Unable to check for existing scheduled job.",
+				slogctx.FromCtx(feedCtx).Warn("Unable to check for existing scheduled job.",
 					slog.String("feed_id", feed.GetID()),
 					slog.Any("error", err),
 				)
 				return
 			}
 			if existingJob == nil || !errors.Is(err, quartz.ErrJobNotFound) {
+				// Determine and set the feed update interval.
+				if err := feed.SetUpdateInterval(feedCtx); err != nil {
+					slogctx.FromCtx(feedCtx).Warn("Unable to set an update interval for feed.",
+						slog.Any("error", err),
+					)
+					return
+				}
 				// If there is no existing scheduled newJob, create one.
 				newJob, err := NewUpdateFeedJob(
 					feed.GetID(),
 					feed.SourceURLs,
-					newPollTrigger(defaultPollInterval, defaultPollJitter),
+					newPollTrigger(feed.UpdateInterval, defaultPollJitter),
 				)
 				if err != nil {
-					slogctx.FromCtx(ctx).Warn("Unable to create new update feed job for feed.",
-						slog.String("feed_id", feed.GetID()),
+					slogctx.FromCtx(feedCtx).Warn("Unable to create new update feed job for feed.",
 						slog.Any("error", err),
 					)
 					return
 				}
 				// Schedule the new job.
 				if err = schedulerAPI.ScheduleJob(newJob.JobDetail(), newJob.Trigger()); err != nil {
-					slogctx.FromCtx(ctx).Error("Failed to schedule new job for feed.",
-						slog.String("feed_id", feed.GetID()),
+					slogctx.FromCtx(feedCtx).Error("Failed to schedule new job for feed.",
 						slog.String("job_id", newJob.JobDetail().JobKey().String()),
 						slog.String("job_schedule", newJob.Trigger().Description()),
 						slog.Any("error", err),
 					)
 					return
 				}
-				slogctx.FromCtx(ctx).DebugContext(ctx, "Added job for feed.",
-					slog.String("feed_id", feed.GetID()),
+				slogctx.FromCtx(feedCtx).Debug("Added job for feed.",
 					slog.String("job_id", newJob.JobDetail().JobKey().String()),
 					slog.String("job_schedule", newJob.Trigger().Description()),
 				)
 				// Do an initial run of the job.
 				if err = newJob.JobDetail().Job().Execute(ctx); err != nil {
-					slogctx.FromCtx(ctx).Error("Failed initial run of update feed job.",
-						slog.String("feed_id", feed.GetID()),
+					slogctx.FromCtx(feedCtx).Error("Failed initial run of update feed job.",
 						slog.String("job_id", newJob.JobDetail().JobKey().String()),
 						slog.String("job_schedule", newJob.Trigger().Description()),
 						slog.Any("error", err),
@@ -175,7 +170,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 				}
 				return
 			}
-			slogctx.FromCtx(ctx).Error("Existing update feed job.",
+			slogctx.FromCtx(feedCtx).Error("Existing update feed job.",
 				slog.String("feed_id", feed.GetID()),
 				slog.String("job_id", existingJob.JobDetail().JobKey().String()),
 				slog.String("job_schedule", existingJob.Trigger().Description()),
@@ -186,5 +181,40 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 
 	wg.Wait()
 
+	// Update the checkpoint.
+	state.Checkpoint = time.Now().UTC()
+	if err = schedulerAPI.UpdateJobState(ctx, jobGetNewFeedsStateID, map[string]any{
+		"job_data": state,
+	}); err != nil {
+		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
+	}
+
 	return nil
+}
+
+func fetchGetNewFeedsJobState(ctx context.Context) (*GetNewFeedsJobState, error) {
+	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
+	if !ok || schedulerAPI == nil {
+		return nil, errors.New("unable to get scheduler api from context")
+	}
+
+	state := &GetNewFeedsJobState{}
+	if lastState, err := schedulerAPI.GetJobState(ctx, jobGetNewFeedsStateID); err != nil {
+		if !errors.Is(err, elastic.ErrNotFound) {
+			return nil, fmt.Errorf("get existing job state: %w", err)
+		}
+		slogctx.FromCtx(ctx).Debug("No existing job state. Creating new.")
+		state.Checkpoint = time.Time{}
+		if err = schedulerAPI.UpdateJobState(ctx, jobGetNewFeedsStateID, map[string]any{
+			"job_data": state,
+		}); err != nil {
+			return nil, fmt.Errorf("create job state: %w", err)
+		}
+	} else {
+		err = json.Unmarshal(lastState.JobData, state)
+		if err != nil {
+			return nil, fmt.Errorf("marshal job state: %w", err)
+		}
+	}
+	return state, nil
 }

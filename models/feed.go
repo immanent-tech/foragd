@@ -290,6 +290,48 @@ func (f *Feed) GetRights() string {
 	return f.Copyright
 }
 
+// SetUpdateInterval will set the update interval of the feed. It fetches the feed details from the source and
+// determines a reasonable update interval. In the case of errors, a default interval will be set.
+func (f *Feed) SetUpdateInterval(ctx context.Context) error {
+	// In case of an error, set the default update interval to hourly.
+	f.UpdateInterval = int64(time.Hour)
+
+	// Get fresh feed details.
+	details, err := feeds.NewFeedFromURL(ctx, f.GetSourceURLs()[0])
+	if err != nil {
+		return fmt.Errorf("get feed details: %w", err)
+	}
+
+	// For Atom, assume a default hourly update.
+	if details.SourceType == feeds.TypeAtom || details.SourceType == feeds.TypeJSONFeed {
+		f.UpdateInterval = int64(time.Hour)
+	}
+
+	// For RSS use either the reasonable interval given by the feed or a reasonable default.
+	if details.SourceType == feeds.TypeRSS {
+		interval := details.GetUpdateInterval()
+		switch {
+		case interval < time.Minute:
+			// Set really short update intervals to every 5 minutes.
+			f.UpdateInterval = int64(5 * time.Minute)
+		case interval > 24*time.Hour:
+			// Set really long update intervals to daily.
+			f.UpdateInterval = int64(24 * time.Hour)
+		default:
+			f.UpdateInterval = int64(interval)
+		}
+	}
+
+	// Update the feed with the calculated poll interval for reference.
+	if err := elastic.UpdateDoc(ctx, FeedsIndexRW, f.GetID(), map[string]any{
+		"update_interval": f.UpdateInterval,
+	}); err != nil {
+		return fmt.Errorf("set feed update interval: %w", err)
+	}
+
+	return nil
+}
+
 // NewFeedFromURL generates a new Feed object from the given URL. If there is a problem generating the object, a non-nil
 // error is returned.
 func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {

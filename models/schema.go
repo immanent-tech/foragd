@@ -335,6 +335,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 									templates.WithKeywordMapping("feed_id"),
 									templates.WithDatetimeMapping("created_at"),
 									templates.WithDatetimeMapping("last_fetched"),
+									templates.WithInt64Mapping("update_interval"),
 									templates.WithKeywordMapping("source_urls"),
 								),
 								templates.WithDynamicProperties(false),
@@ -698,7 +699,8 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 		var err error
 		switch index {
 		case "users":
-			err = migrateIndexData(ctx, api, usersSchemaPrefix, nil) // ingest.NewIngestPipeline(
+			err = migrateIndexData(ctx, api, usersSchemaPrefix, nil)
+			// ingest.NewIngestPipeline(
 			// 	ingest.WithProcessor(types.ProcessorContainer{
 			// 		Rename: &types.RenameProcessor{
 			// 			Field:       "settings.max_history",
@@ -713,7 +715,9 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 			// 	}),
 			// ),
 		case "scheduler":
-			err = migrateIndexData(ctx, api, schedulerIndexPrefix, nil) // ingest.NewIngestPipeline(
+			err = migrateIndexData(ctx, api, schedulerIndexPrefix, nil)
+		case "feeds":
+			err = migrateIndexData(ctx, api, feedsIndexPrefix, nil)
 		}
 		if err != nil {
 			return fmt.Errorf("could not migrate users: %w", err)

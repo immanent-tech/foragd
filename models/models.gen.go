@@ -394,6 +394,9 @@ type Feed struct {
 	// Title is the title of the feed or item.
 	Title string `json:"title"`
 
+	// UpdateInterval indicates how often the feed is updated. Where a feed does not supply an actual update interval, this value will be derived from the median update interval between published items.
+	UpdateInterval int64 `json:"update_interval"`
+
 	// Updated is the datetime at which the feed or item was updated.
 	Updated time.Time `json:"updated,omitempty,omitzero"`
 

@@ -198,6 +198,13 @@ func WithKeywordMapping(fieldname string) PropertiesOption {
 	}
 }
 
+// WithInt64Mapping option creates a new numeric field with a int64 (long) mapping.
+func WithInt64Mapping(fieldname string) PropertiesOption {
+	return func(mp Properties) {
+		mp[fieldname] = types.NewLongNumberProperty()
+	}
+}
+
 // WithFlattenedMapping option creates a new field with a flattened mapping.
 func WithFlattenedMapping(fieldname string) PropertiesOption {
 	return func(mp Properties) {

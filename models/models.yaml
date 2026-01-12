@@ -484,6 +484,7 @@ components:
             - web_urls
             - created_at
             - last_fetched
+            - update_interval
           properties:
             feed_id:
               $ref: '#/components/schemas/FeedID'
@@ -502,6 +503,12 @@ components:
               description: >
                 indicates when new items for the feed were last fetched.
               x-go-type: time.Time
+            update_interval:
+              description: >
+                indicates how often the feed is updated. Where a feed does not supply an actual update interval, this
+                value will be derived from the median update interval between published items.
+              type: integer
+              format: int64
     Item:
       description: represents an individual item (e.g., an individual feed item).
       type: object
