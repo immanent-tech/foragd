@@ -64,6 +64,14 @@ func SearchItems(
 	return items, newPagination, nil
 }
 
+// AddItems wraps an elastic bulk update to index items.
+func AddItems(ctx context.Context, items ...*Item) error {
+	if _, err := elastic.BulkUpdate(ctx, ItemsIndexRW, items...); err != nil {
+		return fmt.Errorf("add email item: %w", err)
+	}
+	return nil
+}
+
 // BuildItemsQuery generates a query to fetch the Items that match the given Filters from the given Subscriptions.
 func BuildItemsQuery(
 	ctx context.Context,
@@ -267,8 +275,8 @@ func (i *Item) IsNewer(since time.Time) bool {
 	return i.GetTimestamp().After(since) && i.GetTimestamp().Before(time.Now().UTC())
 }
 
-// NewItemFromSource generates an Item from the underlying feed data.
-func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
+// NewFeedItem generates an Item from the underlying feed data.
+func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
 	var itemID ItemID
 	if sourceID := source.GetID(); sourceID != "" {
@@ -302,6 +310,26 @@ func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.
 	if valid, _ := validateDatetime(item.Published); !valid {
 		item.Published = feed.GetTimestamp()
+	}
+
+	return item
+}
+
+// NewFeedItem generates an Item from the underlying feed data.
+func NewEmailItem(email Email, subscription *Subscription) *Item {
+	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
+	itemID := "item_" + strconv.FormatUint(xxhash.Sum64String(email.GetID()), 10)
+	item := &Item{
+		ItemID:     itemID,
+		FeedID:     subscription.GetID(),
+		Timestamp:  email.Timestamp(),
+		Published:  email.Timestamp(),
+		Updated:    email.Timestamp(),
+		Title:      email.GetSubject(),
+		SourceType: ItemSourceType(FeedSourceTypeEmail),
+		Authors:    []string{email.GetFrom().Name},
+		Content:    email.GetBody(),
+		FeedTitle:  subscription.GetTitle(),
 	}
 
 	return item

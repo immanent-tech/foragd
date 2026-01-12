@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"net/mail"
 	"net/url"
 	"slices"
 	"strconv"
@@ -1248,6 +1249,79 @@ func (s *GroupSubscription) Valid() error {
 	return nil
 }
 
+func NewEmailSubscription(ctx context.Context, request *EmailSubscriptionRequest) (*Subscription, error) {
+	emailSubscription := &EmailSubscription{
+		EmailSenderID: request.Sender.Address,
+	}
+
+	subscription, err := newSubscription(ctx,
+		*newSubscriptionCustomisation(request.Sender.Name, "", nil),
+		*newSubscriptionSettings(),
+		emailSubscription)
+	if err != nil {
+		return nil, fmt.Errorf("new group subscription: %w", err)
+	}
+	subscription.Favorite = true
+	return subscription, nil
+}
+
+// GetEmailSubscription retrieves an EmailSubscription for the given user ID and email sender.
+func GetEmailSubscription(ctx context.Context, userID UserID, from *mail.Address) (*Subscription, error) {
+	// Check for an existing email subscription for the user.
+	subscriptions, _, err := SearchSubscriptions(ctx,
+		query.Bool(
+			query.Filter(
+				query.Term("user_id", userID),
+				query.Term("email_data.email_sender_id", from.Address),
+			),
+		))
+	if err != nil {
+		return nil, fmt.Errorf("search subscriptions: %w", err)
+	}
+
+	var subscription *Subscription
+	switch {
+	case len(subscriptions) > 1:
+		// Ambiguous subscription match for sender.
+		return nil, fmt.Errorf("%w: ambiguous subscription match for sender", ErrInvalidAPIResult)
+	case len(subscriptions) == 0:
+		// Create a new email subscription for this sender.
+		request := &EmailSubscriptionRequest{
+			Sender: *from,
+		}
+		subscription, err = NewEmailSubscription(ctx, request)
+		if err != nil {
+			return nil, fmt.Errorf("create email subscription: %w", err)
+		}
+		if err := AddSubscriptions(ctx, subscription); err != nil {
+			return nil, fmt.Errorf("add email subscription: %w", err)
+		}
+	default:
+		// Use the existing email subscription.
+		subscription = subscriptions[0]
+	}
+
+	return subscription, nil
+}
+
+// Valid returns a non-nil error if the EmailSubscription contains invalid data.
+func (s *EmailSubscription) Valid() error {
+	if err := validation.Validate.Struct(s); err != nil {
+		return fmt.Errorf("email subscription is invalid: %w", err)
+	}
+	return nil
+}
+
+func (r *EmailSubscriptionRequest) Valid() error {
+	if r.Sender.Address == "" {
+		return fmt.Errorf("%w: blank sender address", ErrValidationErr)
+	}
+	if err := validation.Validate.Var(r.Sender.Address, "required,email"); err != nil {
+		return fmt.Errorf("%w: sender address: %w", ErrValidationErr, err)
+	}
+	return nil
+}
+
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *Subscription) Valid() error {
@@ -1776,6 +1850,9 @@ func newSubscription(
 		subscription.Type = SubscriptionTypeGroup
 		subscription.GroupData = *typeData
 		subscription.Favorite = true
+	case *EmailSubscription:
+		subscription.Type = SubscriptionTypeEmail
+		subscription.EmailData = *typeData
 	default:
 		return nil, fmt.Errorf("new subscription: %w", ErrInvalidAPIResult)
 	}

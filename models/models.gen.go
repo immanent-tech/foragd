@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"image"
 	"mime/multipart"
+	"net/mail"
 	"net/url"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 // Defines values for ArticleArchiveSourceType.
 const (
 	ArticleArchiveSourceTypeAtom     ArticleArchiveSourceType = "Atom"
+	ArticleArchiveSourceTypeEmail    ArticleArchiveSourceType = "Email"
 	ArticleArchiveSourceTypeJSONFeed ArticleArchiveSourceType = "JSONFeed"
 	ArticleArchiveSourceTypeRSS      ArticleArchiveSourceType = "RSS"
 )
@@ -25,6 +27,7 @@ const (
 // Defines values for FeedSourceType.
 const (
 	FeedSourceTypeAtom     FeedSourceType = "Atom"
+	FeedSourceTypeEmail    FeedSourceType = "Email"
 	FeedSourceTypeJSONFeed FeedSourceType = "JSONFeed"
 	FeedSourceTypeRSS      FeedSourceType = "RSS"
 )
@@ -32,6 +35,7 @@ const (
 // Defines values for ItemSourceType.
 const (
 	ItemSourceTypeAtom     ItemSourceType = "Atom"
+	ItemSourceTypeEmail    ItemSourceType = "Email"
 	ItemSourceTypeJSONFeed ItemSourceType = "JSONFeed"
 	ItemSourceTypeRSS      ItemSourceType = "RSS"
 )
@@ -45,6 +49,7 @@ const (
 // Defines values for ObjectCommonSourceType.
 const (
 	ObjectCommonSourceTypeAtom     ObjectCommonSourceType = "Atom"
+	ObjectCommonSourceTypeEmail    ObjectCommonSourceType = "Email"
 	ObjectCommonSourceTypeJSONFeed ObjectCommonSourceType = "JSONFeed"
 	ObjectCommonSourceTypeRSS      ObjectCommonSourceType = "RSS"
 )
@@ -83,6 +88,7 @@ const (
 
 // Defines values for SubscriptionType.
 const (
+	SubscriptionTypeEmail  SubscriptionType = "email"
 	SubscriptionTypeFeed   SubscriptionType = "feed"
 	SubscriptionTypeGroup  SubscriptionType = "group"
 	SubscriptionTypeSearch SubscriptionType = "search"
@@ -90,6 +96,7 @@ const (
 
 // Defines values for SubscriptionMetadataType.
 const (
+	SubscriptionMetadataTypeEmail  SubscriptionMetadataType = "email"
 	SubscriptionMetadataTypeFeed   SubscriptionMetadataType = "feed"
 	SubscriptionMetadataTypeGroup  SubscriptionMetadataType = "group"
 	SubscriptionMetadataTypeSearch SubscriptionMetadataType = "search"
@@ -353,6 +360,21 @@ type EditSubscriptionRequest struct {
 
 // EditUserRequest contains account fields that a user can customize.
 type EditUserRequest = UserCustomisation
+
+// EmailSenderID is an email address that sends emails.
+type EmailSenderID = string
+
+// EmailSubscription is a subscription to an email newsletter source.
+type EmailSubscription struct {
+	// EmailSenderID is an email address that sends emails.
+	EmailSenderID EmailSenderID `form:"email_sender_id" json:"email_sender_id" validate:"required,email"`
+}
+
+// EmailSubscriptionRequest represents a request to create an email subscription.
+type EmailSubscriptionRequest struct {
+	// Sender is the sender address that will be used to group emails under the subscription.
+	Sender mail.Address `json:"sender"`
+}
 
 // Feed defines model for Feed.
 type Feed struct {
@@ -792,6 +814,9 @@ type Subscription struct {
 	// Customisation contains object fields that can be customised (overridden) by a user
 	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
 
+	// EmailData is a subscription to an email newsletter source.
+	EmailData EmailSubscription `json:"email_data,omitempty,omitzero" validate:"omitempty"`
+
 	// Favorite indicates whether this subscription has been marked as a favorite by the user.
 	Favorite bool `json:"favorite"`
 
@@ -817,7 +842,7 @@ type Subscription struct {
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// Type is the type of subscription.
-	Type SubscriptionType `json:"type" validate:"required,oneof=feed search group"`
+	Type SubscriptionType `json:"type" validate:"required,oneof=feed search group email"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -877,7 +902,7 @@ type SubscriptionMetadata struct {
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// Type is the type of subscription.
-	Type SubscriptionMetadataType `json:"type" validate:"required,oneof=feed search group"`
+	Type SubscriptionMetadataType `json:"type" validate:"required,oneof=feed search group email"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`

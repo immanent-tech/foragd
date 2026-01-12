@@ -85,6 +85,14 @@ components:
         validate: 'required,startswith=sub_'
         json: 'subscription_id'
         form: 'subscription_id'
+    EmailSenderID:
+      description: >
+        is an email address that sends emails.
+      type: string
+      x-go-name: EmailSenderID
+      x-oapi-codegen-extra-tags:
+        form: 'email_sender_id'
+        validate: 'required,email'
     ObjectID:
       description: represents an ID of any user-facing object.
       type: string
@@ -240,6 +248,13 @@ components:
             form: 'mark_article_read_on_view'
           x-omitzero: false
           x-omitempty: false
+        subscription_email:
+          description: >
+            is an email address the user can use to subscribe to email newsletters.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'subscription_email'
+            validate: 'omitempty,email'
     UserMetadata:
       description: >
         contains metadata related to the user's account.
@@ -423,7 +438,7 @@ components:
           description: >
             indicates what type of source the object came from.
           type: string
-          enum: ['RSS', 'Atom', 'JSONFeed']
+          enum: ['RSS', 'Atom', 'JSONFeed', 'Email']
         title:
           description: >
             is the title of the feed or item.
@@ -666,9 +681,9 @@ components:
           description: >
             is the type of subscription.
           type: string
-          enum: ['feed','search','group']
+          enum: ['feed','search','group','email']
           x-oapi-codegen-extra-tags:
-            validate: 'required,oneof=feed search group'
+            validate: 'required,oneof=feed search group email'
         customisation:
           $ref: '#/components/schemas/SubscriptionCustomisation'
         settings:
@@ -743,6 +758,17 @@ components:
           $ref: '#/components/schemas/SearchRequest'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
+    EmailSubscription:
+      description: >
+        is a subscription to an email newsletter source.
+      type: object
+      required:
+        - email_sender_id
+      properties:
+        email_sender_id:
+          $ref: '#/components/schemas/EmailSenderID'
+      x-oapi-codegen-extra-tags:
+        validate: 'omitempty'
     Subscription:
       description: >
         represents any kind of subscription.
@@ -757,6 +783,8 @@ components:
               $ref: '#/components/schemas/SearchSubscription'
             group_data:
               $ref: '#/components/schemas/GroupSubscription'
+            email_data:
+              $ref: '#/components/schemas/EmailSubscription'
             stats:
               $ref: '#/components/schemas/SubscriptionStats'
     AddFeedSubscriptionRequest:
@@ -883,6 +911,17 @@ components:
             - $ref: '#/components/schemas/SubscriptionSettings'
           x-oapi-codegen-extra-tags:
             form: 'settings'
+    EmailSubscriptionRequest:
+      description: >
+        represents a request to create an email subscription.
+      type: object
+      required:
+        - sender
+      properties:
+        sender:
+          description: >
+            is the sender address that will be used to group emails under the subscription.
+          x-go-type: mail.Address
     EditSubscriptionRequest:
       description: >
         is the request details for editing a subscription.

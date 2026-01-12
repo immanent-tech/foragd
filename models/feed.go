@@ -27,6 +27,23 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
+// GetFeedByID fetches the given Feed by its id.
+func GetFeedByID(ctx context.Context, id FeedID) (*Feed, error) {
+	feed, err := elastic.GetDoc[FeedID, *Feed](ctx, FeedsIndexRO, id)
+	if err != nil {
+		return nil, fmt.Errorf("get feed by id: %w", err)
+	}
+	return feed, nil
+}
+
+// UpdateFeed applies the given updates to a Feed.
+func UpdateFeed(ctx context.Context, id FeedID, updates map[string]any) error {
+	if err := elastic.UpdateDoc(ctx, SchedulerIndexRW, id, updates); err != nil {
+		return fmt.Errorf("update feed: %w", err)
+	}
+	return nil
+}
+
 func getFeedUnreadCounts(
 	ctx context.Context,
 	subscriptions Subscriptions,
@@ -369,13 +386,13 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 			)
 		}
 	}
-	feed = NewFeedFromSource(url, result)
+	feed = NewSyndicationFeed(url, result)
 
 	return feed, nil
 }
 
-// NewFeedFromSource converts the raw types.FeedSource into a Feed object.
-func NewFeedFromSource(url string, source *feeds.Feed) *Feed {
+// NewSyndicationFeed converts the raw types.FeedSource into a Feed object.
+func NewSyndicationFeed(url string, source *feeds.Feed) *Feed {
 	id := "feed_" + strconv.FormatUint(xxhash.Sum64String(source.GetLink()), 10)
 	feed := &Feed{
 		FeedID:       id,

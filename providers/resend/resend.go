@@ -4,16 +4,23 @@
 package resend
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"net/mail"
 	"sync"
 
 	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/foragd/models"
 )
+
+var ErrInvalidEmail = errors.New("email is invalid")
 
 var loadClient = sync.OnceValues(func() (*resend.Client, error) {
 	if err := loadConfig(); err != nil {
@@ -83,6 +90,22 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 			slog.String("type", payload["type"].(string)),
 			slog.Any("payload", payload),
 		)
+		var email EmailRecieved
+		if err := json.Unmarshal(body, &email); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Unable to parse email.recieved webhook body.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if err := handleRecievedEmail(req.Context(), client, email); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Error occured processing received email.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	default:
 		slogctx.FromCtx(req.Context()).Warn("Recieved unhandled webhook",
 			slog.String("type", payload["type"].(string)),
@@ -93,4 +116,42 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 	json.NewEncoder(res).Encode(map[string]bool{"success": true})
+}
+
+func handleRecievedEmail(ctx context.Context, client *resend.Client, details EmailRecieved) error {
+	// Match the email to address to a user subscription email
+	user, err := models.GetUserBySubscriptionEmail(ctx, details.To...)
+	if err != nil {
+		return fmt.Errorf("get user by subscription email: %w", err)
+	}
+
+	from, err := mail.ParseAddress(details.From)
+	if err != nil {
+		return fmt.Errorf("parse from address: %w", err)
+	}
+
+	// Retrieve (and/or create) an EmailSubscription for this user and sender.
+	subscription, err := models.GetEmailSubscription(ctx, user.GetID(), from)
+	if err != nil {
+		return fmt.Errorf("get email subscription: %w", err)
+	}
+
+	// Retrieve the full email content and details.
+	rawEmail, err := client.Emails.Receiving.GetWithContext(ctx, details.EmailId)
+	if err != nil {
+		return fmt.Errorf("get email details: %w", err)
+	}
+
+	// Parse into our custom format and ensure its valid.
+	email := &ReceivedEmail{ReceivedEmail: rawEmail}
+	if err := email.Valid(); err != nil {
+		return fmt.Errorf("parse email contents: %w", err)
+	}
+
+	// Create an Item from the email and index it.
+	item := models.NewEmailItem(email, subscription)
+	if err := models.AddItems(ctx, item); err != nil {
+		return fmt.Errorf("add email item: %w", err)
+	}
+	return nil
 }

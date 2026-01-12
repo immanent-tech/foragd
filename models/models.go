@@ -11,6 +11,7 @@ import (
 	"io"
 	"iter"
 	"maps"
+	"net/mail"
 	"slices"
 	"time"
 
@@ -27,6 +28,8 @@ const (
 )
 
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
+
+var ErrValidationErr = errors.New("validation failed")
 
 var UnixEpoch = time.Unix(0, 0)
 
@@ -112,4 +115,12 @@ func (r *ViewComponent) Render(ctx context.Context, w io.Writer) error {
 		}
 	}
 	return nil
+}
+
+type Email interface {
+	GetID() string
+	Timestamp() time.Time
+	GetSubject() string
+	GetBody() string
+	GetFrom() *mail.Address
 }

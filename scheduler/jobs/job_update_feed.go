@@ -77,13 +77,11 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	defer cancel()
 
 	// Retrieve the feed details.
-	details, err := elastic.GetDoc[models.FeedID, *models.Feed](ctx, models.FeedsIndexRO, jobData.FeedID)
+	details, err := models.GetFeedByID(ctx, jobData.FeedID)
 	if err != nil {
 		// If the returned error indicates there is no feed with the given ID, mark the job to be deleted.
 		if errors.Is(err, elastic.ErrNotFound) {
-			if err := elastic.UpdateDoc(ctx, models.SchedulerIndexRW, jobData.FeedID, map[string]any{
-				"job_data.deleted": true,
-			}); err != nil {
+			if err := models.UpdateFeed(ctx, jobData.FeedID, map[string]any{"job_data.deleted": true}); err != nil {
 				return fmt.Errorf("mark job for deletion: %w", err)
 			}
 		}
@@ -101,7 +99,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	}
 	items := make(models.Items, 0, len(feed.GetItems()))
 	for i := range slices.Values(feed.GetItems()) {
-		items = append(items, models.NewItemFromSource(&i, details))
+		items = append(items, models.NewFeedItem(&i, details))
 	}
 	slogctx.FromCtx(ctx).Debug("Checking for new items.",
 		slog.Time("since", details.LastFetched),
@@ -111,11 +109,8 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	// Add any new items since the last feed update.
 	if newItems := items.FilterSince(details.LastFetched); len(newItems) > 0 {
 		// Add any new items.
-		if _, err := elastic.BulkUpdate(
-			ctx,
-			models.ItemsIndexRW,
-			newItems...); err != nil {
-			return fmt.Errorf("update items: %w", err)
+		if err := models.AddItems(ctx, newItems...); err != nil {
+			return fmt.Errorf("add new items: %w", err)
 		}
 		slogctx.FromCtx(ctx).Debug("Added new items.",
 			slog.Int("count", len(newItems)),
