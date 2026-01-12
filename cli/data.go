@@ -6,13 +6,17 @@ package cli
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
+	slogctx "github.com/veqryn/slog-context"
+
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
 // DataCmd defines the `data` command, which contains commands for manipulating data.
@@ -34,9 +38,17 @@ func (c *DeleteCmd) Run(opts *DeleteCmd) error {
 			return fmt.Errorf("unable to delete feed %s: %w", opts.ObjectID, err)
 		}
 	case strings.HasPrefix(opts.ObjectID, "user_"):
+		// Delete the user.
 		if err := elastic.DeleteDoc(ctx, models.UsersIndexRW, opts.ObjectID); err != nil {
 			return fmt.Errorf("unable to delete user %s: %w", opts.ObjectID, err)
 		}
+		// Delete the user's subscriptions.
+		if err := elastic.DeleteDocs(ctx, models.SubscriptionsIndexRW, query.Term("user_id", opts.ObjectID)); err != nil {
+			return fmt.Errorf("unable to delete user %s: %w", opts.ObjectID, err)
+		}
+		slogctx.FromCtx(ctx).Info("Deleted user.",
+			slog.String("user_id", opts.ObjectID),
+		)
 	}
 
 	return nil
