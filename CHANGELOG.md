@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.24.0](https://github.com/immanent-tech/foragd/compare/v0.23.1...v0.24.0) (2026-01-12)
+
+
+### Features
+
+* :sparkles: when creating update feed jobs, support setting interval to value derived from feed details, if set ([56e2518](https://github.com/immanent-tech/foragd/commit/56e25189199db50fea7ab8fff92b8bb064a66cce))
+* **models:** :sparkles: if a feed isn't strictly valid (according to the format spec), just use it anyway ([1c86e73](https://github.com/immanent-tech/foragd/commit/1c86e7304f8ae524e5ddec5e913845bf57f422ee))
+* **scheduler:** :sparkles: add a cli command for clearing the job queue ([1139dfe](https://github.com/immanent-tech/foragd/commit/1139dfe1f4a268ef1ffc50d03caddef2f0de1638))
+* **scheduler:** :sparkles: add a cli command for initialising the scheduler/job queue ([9f25731](https://github.com/immanent-tech/foragd/commit/9f25731cb752502301c95974ddd268a7493b4fff))
+
+
+### Bug Fixes
+
+* **cli:** :bug: when deleting a user, also delete their subscriptions ([2f1dc43](https://github.com/immanent-tech/foragd/commit/2f1dc4327ad8d7020c3d1d2012e3197e4ac6c735))
+* **models:** :bug: get feed title from passed in feed details for items ([ddeb5df](https://github.com/immanent-tech/foragd/commit/ddeb5dfb0bd033c87fb44f410a4e85ea22a102e3))
+* **scheduler:** :bug: also clear job states when clearing job queue ([46210ad](https://github.com/immanent-tech/foragd/commit/46210adb259c6f8576a371f39bbbd0800cb76fde))
+* **scheduler:** :bug: handle int64 as duration when parsing poll job triggers ([b4e6324](https://github.com/immanent-tech/foragd/commit/b4e6324ddad134b60c3b27439e009266f259f6a3))
+
 ## [0.23.1](https://github.com/immanent-tech/foragd/compare/v0.23.0...v0.23.1) (2026-01-11)
 
 
