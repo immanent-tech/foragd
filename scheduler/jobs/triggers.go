@@ -65,6 +65,8 @@ func asDuration(input any, fallback time.Duration) time.Duration {
 	switch value := input.(type) {
 	case time.Duration:
 		return value
+	case int64:
+		return time.Duration(value)
 	case string:
 		dur, err := time.ParseDuration(value)
 		if err != nil {
