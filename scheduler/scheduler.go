@@ -59,9 +59,15 @@ func (m *manager) UpdateJobState(ctx context.Context, id string, updates map[str
 }
 
 // Clear will remove all jobs from the queue.
-func (m *manager) Clear() error {
+func (m *manager) Clear(ctx context.Context) error {
 	if err := m.queue.Clear(); err != nil {
-		return fmt.Errorf("clear job queue: %w")
+		return fmt.Errorf("clear job queue: %w", err)
+	}
+	if err := elastic.DeleteDoc(ctx, models.SchedulerIndexRW, "clear_deleted_feeds_state"); err != nil {
+		return fmt.Errorf("clear job clear_delete_feeds state: %w", err)
+	}
+	if err := elastic.DeleteDoc(ctx, models.SchedulerIndexRW, "get_new_feeds_state"); err != nil {
+		return fmt.Errorf("clear job get_new_feeds state: %w", err)
 	}
 	return nil
 }
@@ -75,6 +81,8 @@ func Run(ctx context.Context) error {
 	if err := RunStartupTasks(ctx); err != nil {
 		return fmt.Errorf("run scheduler startup tasks: %w", err)
 	}
+
+	ctx = jobs.SchedulerAPIToCtx(ctx, Manager)
 
 	Manager.Start(ctx)
 
@@ -127,7 +135,7 @@ func RunStartupTasks(ctx context.Context) error {
 
 	startupTasks.Go(func() error {
 		// Setup get new feeds getNewFeedsJob.
-		getNewFeedsJob, err := jobs.NewGetNewFeedsJob()
+		getNewFeedsJob, err := jobs.NewGetNewFeedsJob(ctx)
 		if err != nil {
 			return fmt.Errorf("create get new feeds job: %w", err)
 		}
@@ -137,10 +145,6 @@ func RunStartupTasks(ctx context.Context) error {
 			if err != nil {
 				return fmt.Errorf("check get new feeds job: %w", err)
 			}
-		}
-		// Check for new feeds on startup.
-		if err := getNewFeedsJob.JobDetail().Job().Execute(ctx); err != nil {
-			return fmt.Errorf("schedule get new feeds job: %w", err)
 		}
 		return nil
 	})

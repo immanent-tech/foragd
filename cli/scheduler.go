@@ -50,7 +50,7 @@ func (c *ClearSchedulerCmd) Run(opts *Arguments) error {
 		return fmt.Errorf("could not run scheduler: %w", err)
 	}
 	// Clear job queue.
-	if err := scheduler.Manager.Clear(); err != nil {
+	if err := scheduler.Manager.Clear(ctx); err != nil {
 		return fmt.Errorf("could not clear job queue: %w", err)
 	}
 	slogctx.FromCtx(ctx).Info("Job queue cleared.")
