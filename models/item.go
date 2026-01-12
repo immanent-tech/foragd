@@ -292,7 +292,7 @@ func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
 		Content:      source.GetContent(),
-		FeedTitle:    source.FeedTitle,
+		FeedTitle:    feed.GetTitle(),
 	}
 
 	if source.GetImage() != nil {
