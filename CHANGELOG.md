@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.25.0](https://github.com/immanent-tech/foragd/compare/v0.24.0...v0.25.0) (2026-01-13)
+
+
+### Features
+
+* :sparkles: add support for email subscriptions ([75778bc](https://github.com/immanent-tech/foragd/commit/75778bcd566b8daac6a230d9e9278625f24c30d3))
+
+
+### Bug Fixes
+
+* **templates:** :bug: remove modal in wrong place ([91095bb](https://github.com/immanent-tech/foragd/commit/91095bbf53dd9729f247b9e84c992df65f7c0447))
+* **templates:** :bug: remove modal in wrong place ([4e4d166](https://github.com/immanent-tech/foragd/commit/4e4d1662871b80657a0313bf97112270ffc5cc15))
+
 ## [0.24.0](https://github.com/immanent-tech/foragd/compare/v0.23.1...v0.24.0) (2026-01-12)
 
 
