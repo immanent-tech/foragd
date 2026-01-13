@@ -18,6 +18,7 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
@@ -55,9 +56,16 @@ func FilterArticles(
 		return nil, "", fmt.Errorf("filter articles: get user data: %w", err)
 	}
 
+	// Get all user subscriptions.
 	subscriptions, err := GetSubscriptions(ctx,
 		GetSubscriptionsByIDs(request.Filters.GetSubscriptions()...),
+		GetSubscriptionsDynamicInfo(true),
 	)
+	// Filter based on current filters.
+	subscriptions = subscriptions.
+		FilterByView(request.Filters.GetView()).
+		FilterByFavorites(request.Filters.OnlyFavorites)
+
 	if err != nil {
 		return nil, "", fmt.Errorf("filter articles: get subscriptions: %w", err)
 	}
@@ -70,9 +78,10 @@ func FilterArticles(
 	articleQuery := query.Bool(
 		query.Filter(
 			// Must match any of the given categories.
+			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
 			query.Terms("categories.raw", request.Filters.GetCategories()...),
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, request.Filters.GetView(), subscriptions)...),
+				query.Should(BuildItemQueries(user, request.Filters.GetView(), subscriptions)...),
 			),
 		),
 	)
@@ -84,6 +93,7 @@ func FilterArticles(
 	if err != nil {
 		return nil, "", fmt.Errorf("could not retrieve filtered items: %w", err)
 	}
+
 	// Generate articles.
 	articles, err := GenerateArticles(ctx, items)
 	if err != nil {
@@ -122,7 +132,7 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...ItemID) (Art
 	similarQuery := query.Bool(
 		query.Filter(
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, ViewUnread, subscriptions)...),
+				query.Should(BuildItemQueries(user, ViewUnread, subscriptions)...),
 			),
 		),
 		query.Must(
@@ -150,30 +160,50 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 	if err != nil {
 		return nil, fmt.Errorf("generate articles: get user data: %w", err)
 	}
-	subscriptions, _, err := SearchSubscriptions(ctx,
+
+	// Perform search.
+	var subscriptions Subscriptions
+	subscriptions, _, err = elastic.Search[*Subscription](
+		ctx,
+		SubscriptionsIndexRO,
 		query.Bool(
-			query.Filter(
-				query.Term("user_id", user.GetID()),
-				query.Terms("type", SubscriptionTypeFeed),
-				query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
+			query.Should(
+				query.Bool(
+					query.Filter(
+						query.Term("user_id", user.GetID()),
+						query.Terms("type", SubscriptionTypeFeed),
+						query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
+					),
+				),
+				query.Bool(
+					query.Filter(
+						query.Term("user_id", user.GetID()),
+						query.Terms("type", SubscriptionTypeEmail),
+						query.Terms("email_data.feed_id", items.GetFeedIDs()...),
+					),
+				),
 			),
 		),
-		searchSubscriptionsMaxResults(len(items.GetFeedIDs())),
+		len(items.GetFeedIDs()),
 	)
+	// var subscriptions Subscriptions
 	switch {
 	case err != nil:
-		return nil, fmt.Errorf("generate articles: get subscriptions: %w", err)
+		return nil, es2APIError("search subscriptions failed", err)
 	case len(subscriptions) == 0:
 		return nil, fmt.Errorf("generate articles: get subscriptions: %w", ErrNotFound)
 	}
+
 	// Create articles from the items.
 	articles := make(Articles, 0, len(items))
 	for item := range slices.Values(items) {
+		// godump.Dump(item, subscriptions.GetByFeedID(item.GetFeedID()))
 		subscription := subscriptions.GetByFeedID(item.GetFeedID())
 		article := &Article{
 			Item:           *item,
 			SubscriptionID: subscription.GetID(),
-			State:          *subscription.FeedData.GetItemState(item.GetID()),
+			State:          *subscription.GetItemState(item.GetID()),
+			SourceType:     item.SourceType,
 		}
 		// If there is favorite data, mark article as a favorite.
 		if slices.Contains(user.ItemFavorites, item.GetID()) {

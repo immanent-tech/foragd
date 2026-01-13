@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -115,7 +116,7 @@ func getHomePageData(ctx context.Context) (*templates.Home, error) {
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
 			query.Bool(
-				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread, subscriptions)...),
+				query.Should(models.BuildItemQueries(user, models.ViewUnread, subscriptions)...),
 			),
 		),
 	)
@@ -127,10 +128,19 @@ func getHomePageData(ctx context.Context) (*templates.Home, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
 	}
+
 	data.LatestArticles, err = models.GenerateArticles(ctx, latestItems)
 	if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 		return nil, fmt.Errorf("unable to generate articles: %w", err)
 	}
+
+	filters := models.NewListDisplayFilters()
+	godump.Dump(filters)
+
+	articles, _, err := models.FilterArticles(ctx, &models.ListRequest{
+		Filters: filters,
+	})
+	data.LatestArticles = articles
 
 	if errors.Is(err, elastic.ErrNotFound) || len(data.LatestArticles) == 0 {
 		return data, nil

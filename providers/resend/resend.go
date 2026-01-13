@@ -14,6 +14,7 @@ import (
 	"net/mail"
 	"sync"
 
+	"github.com/goforj/godump"
 	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -90,7 +91,7 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 			slog.String("type", payload["type"].(string)),
 			slog.Any("payload", payload),
 		)
-		var email EmailRecieved
+		var email WebhookEmailReceieved
 		if err := json.Unmarshal(body, &email); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Unable to parse email.recieved webhook body.",
 				slog.Any("error", err),
@@ -99,7 +100,7 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		if err := handleRecievedEmail(req.Context(), client, email); err != nil {
+		if err := handleRecievedEmail(req.Context(), client, email.Data); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Error occured processing received email.",
 				slog.Any("error", err),
 			)
@@ -119,15 +120,23 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 }
 
 func handleRecievedEmail(ctx context.Context, client *resend.Client, details EmailRecieved) error {
+	godump.Dump(details)
 	// Match the email to address to a user subscription email
 	user, err := models.GetUserBySubscriptionEmail(ctx, details.To...)
 	if err != nil {
 		return fmt.Errorf("get user by subscription email: %w", err)
 	}
+	// Load user data into context for later methods.
+	ctx = models.UserToCtx(ctx, user)
 
 	from, err := mail.ParseAddress(details.From)
 	if err != nil {
-		return fmt.Errorf("parse from address: %w", err)
+		slogctx.FromCtx(ctx).Warn("Unable to parse from address. Deriving manually.",
+			slog.Any("error", err),
+		)
+		from = &mail.Address{
+			Address: details.From,
+		}
 	}
 
 	// Retrieve (and/or create) an EmailSubscription for this user and sender.

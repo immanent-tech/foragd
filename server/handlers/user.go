@@ -788,3 +788,30 @@ func UserManageAccountSubscription() http.HandlerFunc {
 		http.Redirect(res, req, portalSession.URL, http.StatusSeeOther)
 	}).ServeHTTP
 }
+
+func GenerateSubscriptionEmail() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+		// Fetch the user details from context.
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return fmt.Errorf("unable to get user data: %w", err)
+		}
+
+		settings := user.GetSettings()
+		settings.SubscriptionEmail = "foragd_user_" + strconv.FormatUint(
+			xxhash.Sum64String(user.GetID()+user.GetNickname()),
+			10,
+		) + "@foragd.app"
+
+		if err := models.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": settings}); err != nil {
+			return fmt.Errorf("unable to add subscription email to user: %w", err)
+
+		}
+
+		renderPartial(
+			templates.NewPartial(templates.ShowSubscriptionEmail(settings.SubscriptionEmail)),
+		).ServeHTTP(res, req)
+
+		return nil
+	})).ServeHTTP
+}

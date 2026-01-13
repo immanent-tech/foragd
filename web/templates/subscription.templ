@@ -46,7 +46,7 @@ func NewSubscriptionCard(ctx context.Context, subscription *models.Subscription)
 	card.linkAttributes["hx-push-url"] = "true"
 	card.linkAttributes["hx-trigger"] = "click consume"
 	switch card.Subscription.GetSubscriptionType() {
-	case models.SubscriptionTypeFeed:
+	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
 		filters := models.PageFiltersFromCtx(ctx, "/list/articles").Values()
 		filters[models.ParamSubscriptions] = card.Subscription.GetID()
 		filters[models.ParamSubscriptionID] = card.Subscription.GetID()
@@ -1136,6 +1136,82 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 					} else {
 						Save
 					}
+				}
+			</div>
+		</div>
+	}
+}
+
+templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
+	@container() {
+		<div class="min-w-0 flex-1 pb-8">
+			@h2("Editing " + request.Customisation.Nickname)
+		</div>
+		<div class="space-y-8">
+			<form
+				id="manage-email-subscription"
+				hx-post={ "/edit/subscription/" + request.SubscriptionID }
+				hx-swap="none"
+				hx-include="[name='customisation.categories'],[name='csrf_token']"
+				hx-params="not subscription-text"
+				hx-indicator="#processing"
+				hx-encoding="multipart/form-data"
+			>
+				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeEmail) }/>
+				<input type="hidden" name="subscription_id" value={ request.SubscriptionID }/>
+				// Nickname.
+				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+					<div>
+						<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
+						// <p class="mt-1 text-sm/6 "></p>
+					</div>
+					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+						<div class="col-span-full mt-2">
+							<input
+								id="subscription-nickname"
+								type="text"
+								required
+								name="customisation.nickname"
+								value={ request.Customisation.Nickname }
+								placeholder="My Email Subscription"
+								class="input input-primary bg-base-content/10 w-full"
+								autocomplete="off"
+							/>
+						</div>
+					</div>
+				</div>
+			</form>
+			// Image.
+			<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+				<div>
+					<label for="image" class="text-base/7 font-semibold">Image</label>
+					<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
+				</div>
+				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+					<div class="col-span-full mt-2 flex items-center gap-x-2">
+						@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
+						<input
+							id="image"
+							type="file"
+							class="flex file-input file-input-primary bg-base-content/10"
+							name="image"
+							accept=".jpg,.png,.webp"
+						/>
+					</div>
+				</div>
+			</div>
+			// Categories
+			{{ categoryMgmtPath := "/user/subscription/category" }}
+			@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
+			// Action buttons.
+			<div class="flex flex-1 items-center justify-end gap-x-6">
+				<div id="processing" class="htmx-indicator">
+					Processing...
+					<span class="loading loading-spinner loading-md"></span>
+				</div>
+				@btnBack()
+				@btnSubmit(templ.Attributes{"form": "manage-email-subscription"}) {
+					Save
 				}
 			</div>
 		</div>

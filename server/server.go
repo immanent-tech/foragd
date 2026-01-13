@@ -320,6 +320,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 				r.Route("/theme", func(r chi.Router) {
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handlers.SetTheme())
 				})
+				r.With(middlewares.RequireHTMX).Post("/subscriptionemail", handlers.GenerateSubscriptionEmail())
 			})
 			r.With(middlewares.RequireHTMX).Get("/deactivate", handlers.UserDeactivateAccount())
 			r.With(middlewares.RequireHTMX).Post("/deactivate", handlers.UserDeactivateAccount())

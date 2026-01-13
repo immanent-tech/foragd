@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"image"
 	"mime/multipart"
-	"net/mail"
 	"net/url"
 	"time"
 
@@ -16,42 +15,10 @@ import (
 	"github.com/stripe/stripe-go/v83"
 )
 
-// Defines values for ArticleArchiveSourceType.
-const (
-	ArticleArchiveSourceTypeAtom     ArticleArchiveSourceType = "Atom"
-	ArticleArchiveSourceTypeEmail    ArticleArchiveSourceType = "Email"
-	ArticleArchiveSourceTypeJSONFeed ArticleArchiveSourceType = "JSONFeed"
-	ArticleArchiveSourceTypeRSS      ArticleArchiveSourceType = "RSS"
-)
-
-// Defines values for FeedSourceType.
-const (
-	FeedSourceTypeAtom     FeedSourceType = "Atom"
-	FeedSourceTypeEmail    FeedSourceType = "Email"
-	FeedSourceTypeJSONFeed FeedSourceType = "JSONFeed"
-	FeedSourceTypeRSS      FeedSourceType = "RSS"
-)
-
-// Defines values for ItemSourceType.
-const (
-	ItemSourceTypeAtom     ItemSourceType = "Atom"
-	ItemSourceTypeEmail    ItemSourceType = "Email"
-	ItemSourceTypeJSONFeed ItemSourceType = "JSONFeed"
-	ItemSourceTypeRSS      ItemSourceType = "RSS"
-)
-
 // Defines values for Mark.
 const (
 	MarkRead   Mark = "read"
 	MarkUnread Mark = "unread"
-)
-
-// Defines values for ObjectCommonSourceType.
-const (
-	ObjectCommonSourceTypeAtom     ObjectCommonSourceType = "Atom"
-	ObjectCommonSourceTypeEmail    ObjectCommonSourceType = "Email"
-	ObjectCommonSourceTypeJSONFeed ObjectCommonSourceType = "JSONFeed"
-	ObjectCommonSourceTypeRSS      ObjectCommonSourceType = "RSS"
 )
 
 // Defines values for ObjectType.
@@ -77,6 +44,14 @@ const (
 	SortMostUnread   Sort = "most_unread"
 	SortNewestFirst  Sort = "newest_first"
 	SortOldestFirst  Sort = "oldest_first"
+)
+
+// Defines values for SourceType.
+const (
+	SourceTypeAtom     SourceType = "Atom"
+	SourceTypeEmail    SourceType = "Email"
+	SourceTypeJSONFeed SourceType = "JSONFeed"
+	SourceTypeRSS      SourceType = "RSS"
 )
 
 // Defines values for State.
@@ -201,6 +176,9 @@ type Article struct {
 	// ShowFullContent indicates whether the full article content should be fetched and displayed instead of any content from the feed item itself.
 	ShowFullContent bool `json:"show_full_content"`
 
+	// SourceType indicates what type of source the object came from.
+	SourceType SourceType `json:"source_type,omitempty,omitzero"`
+
 	// State tracks the state of an article.
 	State ArticleState `json:"state"`
 
@@ -246,7 +224,7 @@ type ArticleArchive struct {
 	Published time.Time `json:"published"`
 
 	// SourceType indicates what type of source the object came from.
-	SourceType ArticleArchiveSourceType `json:"source_type"`
+	SourceType SourceType `json:"source_type"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -264,11 +242,11 @@ type ArticleArchive struct {
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
 }
 
-// ArticleArchiveSourceType indicates what type of source the object came from.
-type ArticleArchiveSourceType string
-
 // ArticleMetadata contains the stored data that represents an article.
 type ArticleMetadata struct {
+	// SourceType indicates what type of source the object came from.
+	SourceType SourceType `json:"source_type,omitempty,omitzero"`
+
 	// State tracks the state of an article.
 	State ArticleState `json:"state"`
 
@@ -322,6 +300,15 @@ type CreatedAt = time.Time
 // DeletedAt records when the object was deleted.
 type DeletedAt = time.Time
 
+// EditEmailSubscriptionRequest represents a request to create an email subscription.
+type EditEmailSubscriptionRequest struct {
+	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`
+	Settings      SubscriptionSettings      `form:"settings" json:"settings,omitempty,omitzero"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
 // EditSubscriptionRequest defines model for EditSubscriptionRequest.
 type EditSubscriptionRequest struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
@@ -366,14 +353,17 @@ type EmailSenderID = string
 
 // EmailSubscription is a subscription to an email newsletter source.
 type EmailSubscription struct {
+	// ArticleFilters holds filters to apply to the articles within a subscription.
+	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters,omitempty,omitzero"`
+
+	// ArticleStates contains the states of items marked explicitly as read/unread/saved by the user.
+	ArticleStates map[ItemID]ArticleState `json:"article_states" validate:"required"`
+
 	// EmailSenderID is an email address that sends emails.
 	EmailSenderID EmailSenderID `form:"email_sender_id" json:"email_sender_id" validate:"required,email"`
-}
 
-// EmailSubscriptionRequest represents a request to create an email subscription.
-type EmailSubscriptionRequest struct {
-	// Sender is the sender address that will be used to group emails under the subscription.
-	Sender mail.Address `json:"sender"`
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 }
 
 // Feed defines model for Feed.
@@ -408,7 +398,7 @@ type Feed struct {
 	Published time.Time `json:"published"`
 
 	// SourceType indicates what type of source the object came from.
-	SourceType FeedSourceType `json:"source_type"`
+	SourceType SourceType `json:"source_type"`
 
 	// SourceURLs is a list of URLs that point to the feed source. These might be either the website corresponding to the feed or the
 	SourceURLs []URL `json:"source_urls" validate:"required,dive,url"`
@@ -425,9 +415,6 @@ type Feed struct {
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty,omitzero" validate:"omitempty,url"`
 }
-
-// FeedSourceType indicates what type of source the object came from.
-type FeedSourceType string
 
 // FeedID is the unique ID of a feed.
 type FeedID = string
@@ -518,7 +505,7 @@ type Item struct {
 	Published time.Time `json:"published"`
 
 	// SourceType indicates what type of source the object came from.
-	SourceType ItemSourceType `json:"source_type"`
+	SourceType SourceType `json:"source_type"`
 
 	// Title is the title of the feed or item.
 	Title string `json:"title"`
@@ -529,9 +516,6 @@ type Item struct {
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty,omitzero" validate:"omitempty,url"`
 }
-
-// ItemSourceType indicates what type of source the object came from.
-type ItemSourceType string
 
 // ItemID is the unique ID of an item.
 type ItemID = string
@@ -663,7 +647,7 @@ type ObjectCommon struct {
 	Published time.Time `json:"published"`
 
 	// SourceType indicates what type of source the object came from.
-	SourceType ObjectCommonSourceType `json:"source_type"`
+	SourceType SourceType `json:"source_type"`
 
 	// Title is the title of the feed or item.
 	Title string `json:"title"`
@@ -674,9 +658,6 @@ type ObjectCommon struct {
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty,omitzero" validate:"omitempty,url"`
 }
-
-// ObjectCommonSourceType indicates what type of source the object came from.
-type ObjectCommonSourceType string
 
 // ObjectID represents an ID of any user-facing object.
 type ObjectID = string
@@ -798,6 +779,9 @@ type SearchSubscriptionRequest struct {
 // Sort is how a list of objects is sorted.
 type Sort string
 
+// SourceType indicates what type of source the object came from.
+type SourceType string
+
 // State Tracks the state of an object.
 type State string
 
@@ -815,22 +799,22 @@ type Subscription struct {
 	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
 
 	// EmailData is a subscription to an email newsletter source.
-	EmailData EmailSubscription `json:"email_data,omitempty,omitzero" validate:"omitempty"`
+	EmailData *EmailSubscription `json:"email_data,omitempty" validate:"omitempty"`
 
 	// Favorite indicates whether this subscription has been marked as a favorite by the user.
 	Favorite bool `json:"favorite"`
 
 	// FeedData represents a feed a user has subscribed to.
-	FeedData FeedSubscription `json:"feed_data,omitempty,omitzero" validate:"omitempty"`
+	FeedData *FeedSubscription `json:"feed_data,omitempty" validate:"omitempty"`
 
 	// GroupData represents a subscription that combines other subscriptions.
-	GroupData GroupSubscription `json:"group_data,omitempty,omitzero" validate:"omitempty"`
+	GroupData *GroupSubscription `json:"group_data,omitempty" validate:"omitempty"`
 
 	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
 	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
 
 	// SearchData is a custom subscription created from a search request.
-	SearchData SearchSubscription `json:"search_data,omitempty,omitzero" validate:"omitempty"`
+	SearchData *SearchSubscription `json:"search_data,omitempty" validate:"omitempty"`
 
 	// Settings contains options that control how the subscription is stored/displayed.
 	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
@@ -1068,6 +1052,9 @@ type UserSettings struct {
 
 	// ShowSubscriptionStats indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
 	ShowSubscriptionStats bool `form:"show_subscription_stats" json:"show_subscription_stats"`
+
+	// SubscriptionEmail is an email address the user can use to subscribe to email newsletters.
+	SubscriptionEmail string `form:"subscription_email" json:"subscription_email,omitempty,omitzero" validate:"omitempty,email"`
 
 	// Theme the user interface theme chosen by the user.
 	Theme string `form:"-" json:"theme,omitempty,omitzero"`

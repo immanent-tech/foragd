@@ -493,6 +493,15 @@ func EditSubscription() http.HandlerFunc {
 			// Generate page template.
 			template = templates.EditGroupSubscription(request)
 			pageTitle = "Editing " + request.Customisation.Nickname
+		case models.SubscriptionTypeEmail:
+			// Editing SearchSubscription.
+			request := &models.EditEmailSubscriptionRequest{
+				Customisation:  subscription.Customisation,
+				Settings:       subscription.Settings,
+				SubscriptionID: subscription.GetID(),
+			}
+			template = templates.EditEmailSubscription(request)
+			pageTitle = "Editing " + request.Customisation.Nickname
 		}
 		renderPage(
 			templates.NewPage(
@@ -571,6 +580,20 @@ func SaveSubscription() http.HandlerFunc {
 			subscription.Customisation = request.Customisation
 			subscription.Settings = request.Settings
 			subscription.GroupData.Subscriptions = request.Subscriptions
+		case models.SubscriptionTypeEmail:
+			request, valid, err := forms.DecodeForm[*models.EditEmailSubscriptionRequest](req)
+			if err != nil || !valid {
+				return &models.APIError{
+					InternalError: fmt.Errorf("decode email subscription request: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to save subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}
+			}
+			subscription.Customisation = request.Customisation
+			subscription.Settings = request.Settings
 		}
 
 		// Process any uploaded thumbnail image.

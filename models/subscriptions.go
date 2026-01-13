@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -198,7 +199,7 @@ func GetSubscriptions(
 		queries = append(queries, query.Terms("subscription_id", req.filterIDs...))
 	}
 	if len(req.filterCategories) > 0 {
-		queries = append(queries, query.Terms("subscription_id", req.filterCategories...))
+		queries = append(queries, query.Terms("customisation.categories", req.filterCategories...))
 	}
 
 	// Construct query.
@@ -863,11 +864,19 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions
 
 	// For feed subscriptions, add stats.
 	for subscription := range slices.Values(subscriptions.FilterByType(SubscriptionTypeFeed)) {
-		// Add stats for feed subscriptions.
-		subscription.Stats.UnreadCount = int(unreadCounts[subscription.FeedData.FeedID])
-		subscription.Stats.LastUpdate = lastUpdate[subscription.FeedData.FeedID]
+		subscription.Stats.UnreadCount = int(unreadCounts[subscription.GetFeedID()])
+		subscription.Stats.LastUpdate = lastUpdate[subscription.GetFeedID()]
 		if user.GetSettings().ShowSubscriptionStats {
-			subscription.Stats.AvgDailyUpdates = avgDailyUpdates[subscription.FeedData.FeedID]
+			subscription.Stats.AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+		}
+	}
+
+	// For email subscriptions, add stats.
+	for subscription := range slices.Values(subscriptions.FilterByType(SubscriptionTypeEmail)) {
+		subscription.Stats.UnreadCount = int(unreadCounts[subscription.GetFeedID()])
+		subscription.Stats.LastUpdate = lastUpdate[subscription.GetFeedID()]
+		if user.GetSettings().ShowSubscriptionStats {
+			subscription.Stats.AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
 		}
 	}
 
@@ -986,8 +995,8 @@ func GetAllSubscriptionCategories(ctx context.Context) (CategoryCounts, error) {
 	return counts, nil
 }
 
-// BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
-func BuildSubscriptionQueries(
+// BuildItemQueries generates a slices of queries for the given subscriptions, based on the given filters.
+func BuildItemQueries(
 	user *User,
 	view View,
 	subscriptions Subscriptions,
@@ -998,9 +1007,6 @@ func BuildSubscriptionQueries(
 		return nil
 	}
 	for subscription := range slices.Values(subscriptions) {
-		if subscription.GetSubscriptionType() != SubscriptionTypeFeed {
-			continue
-		}
 		switch view {
 		case ViewRead:
 			queries = append(queries, queryReadItems(user, subscription))
@@ -1015,80 +1021,87 @@ func BuildSubscriptionQueries(
 	return queries
 }
 
+type itemSource interface {
+	GetFeedID() FeedID
+	GetMarkedReadAt() time.Time
+	GetReadItems() []ItemID
+	GetUnreadItems() []ItemID
+	GetArticleFilters() SubscriptionArticleFilters
+}
+
 // queryReadItems generates a query for finding read items for the given subscription.
-func queryReadItems(user *User, subscription *Subscription) query.Option {
-	if subscription.GetSubscriptionType() != SubscriptionTypeFeed {
-		return nil
-	}
+func queryReadItems(user *User, source itemSource) query.Option {
+	// if subscription.GetSubscriptionType() != SubscriptionTypeFeed {
+	// 	return nil
+	// }
 	return query.Bool(
-		query.WithBoolQueryName(subscription.FeedData.FeedID+"_read_items"),
+		query.WithBoolQueryName(source.GetFeedID()+"_read_items"),
 		query.Filter(
 			// Must match this feed.
-			query.Term("feed_id", subscription.FeedData.FeedID),
+			query.Term("feed_id", source.GetFeedID()),
 			// And should be between the user max history and last read time.
 			query.Bool(
 				query.Should(
-					query.Between("published", user.GetMaxHistory(), subscription.MarkedReadAt),
-					query.Between("updated", user.GetMaxHistory(), subscription.MarkedReadAt),
-					query.Terms("item_id", subscription.FeedData.GetReadItems()...),
+					query.Between("published", user.GetMaxHistory(), source.GetMarkedReadAt()),
+					query.Between("updated", user.GetMaxHistory(), source.GetMarkedReadAt()),
+					query.Terms("item_id", source.GetReadItems()...),
 				),
 				// Must not match any unread items for the feed
 				query.MustNot(
-					query.Terms("item_id", subscription.FeedData.GetUnreadItems()...),
+					query.Terms("item_id", source.GetUnreadItems()...),
 				),
 			),
 		),
 		// User-specified field-level filtering.
 		query.Must(
-			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Text, "", "title", "description", "content"),
-			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Authors, "", "authors", "contributors"),
-			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Categories, "", "categories"),
+			query.SimpleQueryString(source.GetArticleFilters().Text, "", "title", "description", "content"),
+			query.SimpleQueryString(source.GetArticleFilters().Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(source.GetArticleFilters().Categories, "", "categories"),
 		),
 	)
 }
 
 // QueryUnreadItems generates a query for finding unread items for the given subscription.
-func queryUnreadItems(_ *User, subscription *Subscription) query.Option {
-	if subscription.GetSubscriptionType() != SubscriptionTypeFeed {
-		return nil
+func queryUnreadItems(_ *User, source itemSource) query.Option {
+	if source.GetFeedID() == "feed_8361677206553538734" {
+		godump.Dump(
+			source.GetMarkedReadAt(),
+		)
 	}
 	return query.Bool(
-		query.WithBoolQueryName(subscription.FeedData.GetFeedID()+"_unread_items"),
+		query.WithBoolQueryName(source.GetFeedID()+"_unread_items"),
 		query.Filter(
 			// Must match this feed.
-			query.Term("feed_id", subscription.FeedData.GetFeedID()),
+			query.Term("feed_id", source.GetFeedID()),
 			query.Bool(
 				query.Should(
-					query.Since("published", subscription.MarkedReadAt),
-					query.Since("updated", subscription.MarkedReadAt),
-					query.Terms("item_id", subscription.FeedData.GetUnreadItems()...),
+					query.Since("published", source.GetMarkedReadAt()),
+					query.Since("updated", source.GetMarkedReadAt()),
+					query.Terms("item_id", source.GetUnreadItems()...),
 				),
 				// Must not match any read items for the feed
 				query.MustNot(
-					query.Terms("item_id", subscription.FeedData.GetReadItems()...),
+					query.Terms("item_id", source.GetReadItems()...),
 				),
 			),
 		),
 		// User-specified field-level filtering.
 		query.Must(
-			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Text, "", "title", "description", "content"),
-			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Authors, "", "authors", "contributors"),
-			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Categories, "", "categories"),
+			query.SimpleQueryString(source.GetArticleFilters().Text, "", "title", "description", "content"),
+			query.SimpleQueryString(source.GetArticleFilters().Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(source.GetArticleFilters().Categories, "", "categories"),
 		),
 	)
 }
 
 // subscriptionQueryReadItems generates a query for finding all items for the given subscription.
-func queryAllItems(user *User, subscription *Subscription) query.Option {
-	if subscription.GetSubscriptionType() != SubscriptionTypeFeed {
-		return nil
-	}
+func queryAllItems(user *User, source itemSource) query.Option {
 	maxHistory := user.GetMaxHistory()
 	return query.Bool(
-		query.WithBoolQueryName(subscription.FeedData.GetFeedID()+"_all_items"),
+		query.WithBoolQueryName(source.GetFeedID()+"_all_items"),
 		query.Filter(
 			// Must match this feed.
-			query.Term("feed_id", subscription.FeedData.GetFeedID()),
+			query.Term("feed_id", source.GetFeedID()),
 			// And be published/updated since the user max history.
 			query.Bool(
 				query.Should(
@@ -1099,9 +1112,9 @@ func queryAllItems(user *User, subscription *Subscription) query.Option {
 		),
 		// User-specified field-level filtering.
 		query.Must(
-			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Text, "", "title", "description", "content"),
-			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Authors, "", "authors", "contributors"),
-			query.SimpleQueryString(subscription.FeedData.ArticleFilters.Categories, "", "categories"),
+			query.SimpleQueryString(source.GetArticleFilters().Text, "", "title", "description", "content"),
+			query.SimpleQueryString(source.GetArticleFilters().Authors, "", "authors", "contributors"),
+			query.SimpleQueryString(source.GetArticleFilters().Categories, "", "categories"),
 		),
 	)
 }
@@ -1150,59 +1163,6 @@ func (s *FeedSubscription) GetFeedID() FeedID {
 	return s.FeedID
 }
 
-// GetUnreadItems retrieves a list of ItemIDs for the feed subscription that
-// user has explicitly marked as unread.
-func (s *FeedSubscription) GetUnreadItems() []ItemID {
-	ids := make([]ItemID, 0)
-	for id, state := range s.ArticleStates {
-		if !state.Read {
-			ids = append(ids, id)
-		}
-	}
-	return ids
-}
-
-// GetReadItems retrieves a list of ItemIDs for the feed subscription that
-// user has explicitly marked as read.
-func (s *FeedSubscription) GetReadItems() []ItemID {
-	ids := make([]ItemID, 0)
-	for id, state := range s.ArticleStates {
-		if state.Read {
-			ids = append(ids, id)
-		}
-	}
-	return ids
-}
-
-// GetItemState retrieves the item state (read/unread/saved) from the
-// subscription. By default it will return unread unless the user has explicitly
-// marked or saved the item.
-func (s *FeedSubscription) GetItemState(itemID ItemID) *ArticleState {
-	// If the subscription has no article states, return unread state.
-	if s.ArticleStates == nil {
-		return &ArticleState{
-			Read: false,
-		}
-	}
-	// If a state is found return that.
-	if state, found := s.ArticleStates[itemID]; found {
-		return &state
-	}
-	// Return unread state if no state found.
-	return &ArticleState{
-		Read: false,
-	}
-}
-
-// SetItemState will set the state of the item to the given state.
-func (s *FeedSubscription) SetItemState(itemID ItemID, state *ArticleState) {
-	// Create a new article state map if none exists.
-	if s.ArticleStates == nil {
-		s.ArticleStates = make(map[ItemID]ArticleState)
-	}
-	s.ArticleStates[itemID] = *state
-}
-
 // NewSearchSubscription creates a new SearchSubscription. A SearchSubscription collates articles that match a search
 // into a single custom subscription.
 func NewSearchSubscription(ctx context.Context, request *SearchSubscriptionRequest) (*Subscription, error) {
@@ -1249,19 +1209,39 @@ func (s *GroupSubscription) Valid() error {
 	return nil
 }
 
-func NewEmailSubscription(ctx context.Context, request *EmailSubscriptionRequest) (*Subscription, error) {
-	emailSubscription := &EmailSubscription{
-		EmailSenderID: request.Sender.Address,
+func NewEmailSubscription(
+	ctx context.Context,
+	userID UserID,
+	from *mail.Address,
+) (*Subscription, error) {
+	// Validate sender address.
+	if from.Address == "" {
+		return nil, fmt.Errorf("%w: blank sender address", ErrValidationErr)
+	}
+	if err := validation.Validate.Var(from.Address, "required,email"); err != nil {
+		return nil, fmt.Errorf("%w: sender address: %w", ErrValidationErr, err)
 	}
 
-	subscription, err := newSubscription(ctx,
-		*newSubscriptionCustomisation(request.Sender.Name, "", nil),
-		*newSubscriptionSettings(),
-		emailSubscription)
+	emailSubscription := &EmailSubscription{
+		EmailSenderID: from.Address,
+	}
+	customisation := newSubscriptionCustomisation(from.String(), "", nil)
+	settings := newSubscriptionSettings()
+
+	subscription, err := newSubscription(ctx, *customisation, *settings, emailSubscription)
 	if err != nil {
 		return nil, fmt.Errorf("new group subscription: %w", err)
 	}
-	subscription.Favorite = true
+
+	// Override the default SubscriptionID generation
+	subscription.SubscriptionID = "sub_" + strconv.FormatUint(
+		xxhash.Sum64String(userID+from.Address),
+		10,
+	)
+
+	// Generate a "virtual" FeedID.
+	subscription.EmailData.FeedID = strings.ReplaceAll(subscription.GetID(), "sub_", "feed_")
+
 	return subscription, nil
 }
 
@@ -1286,10 +1266,7 @@ func GetEmailSubscription(ctx context.Context, userID UserID, from *mail.Address
 		return nil, fmt.Errorf("%w: ambiguous subscription match for sender", ErrInvalidAPIResult)
 	case len(subscriptions) == 0:
 		// Create a new email subscription for this sender.
-		request := &EmailSubscriptionRequest{
-			Sender: *from,
-		}
-		subscription, err = NewEmailSubscription(ctx, request)
+		subscription, err = NewEmailSubscription(ctx, userID, from)
 		if err != nil {
 			return nil, fmt.Errorf("create email subscription: %w", err)
 		}
@@ -1312,13 +1289,26 @@ func (s *EmailSubscription) Valid() error {
 	return nil
 }
 
-func (r *EmailSubscriptionRequest) Valid() error {
-	if r.Sender.Address == "" {
-		return fmt.Errorf("%w: blank sender address", ErrValidationErr)
+// Valid returns a boolean indicating whether the SubscriptionRequest is valid,
+// and any validation errors if applicable.
+func (r *EditEmailSubscriptionRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("email subscription validation error: %w", err)
 	}
-	if err := validation.Validate.Var(r.Sender.Address, "required,email"); err != nil {
-		return fmt.Errorf("%w: sender address: %w", ErrValidationErr, err)
+	return nil
+}
+
+// Sanitise will sanitise the input values of the SubscriptionRequest.
+func (r *EditEmailSubscriptionRequest) Sanitise() error {
+	if r.Customisation.Nickname != "" {
+		r.Customisation.Nickname = validation.SanitizeString(r.Customisation.Nickname)
 	}
+	categories := make([]Category, 0, len(r.Customisation.Categories))
+	for category := range slices.Values(r.Customisation.Categories) {
+		category = validation.SanitizeString(category)
+		categories = append(categories, category)
+	}
+	r.Customisation.Categories = categories
 	return nil
 }
 
@@ -1334,6 +1324,18 @@ func (s *Subscription) Valid() error {
 // GetID returns the unqiue ID of the subscription.
 func (s *Subscription) GetID() SubscriptionID {
 	return s.SubscriptionID
+}
+
+// GetFeedID returns the unqiue FeedID of the subscription. Not all subscription types will have a FeedID.
+func (s *Subscription) GetFeedID() FeedID {
+	switch s.Type {
+	case SubscriptionTypeFeed:
+		return s.FeedData.FeedID
+	case SubscriptionTypeEmail:
+		return s.EmailData.FeedID
+	default:
+		return ""
+	}
 }
 
 // GetSubscriptionType returns the type of subscription (i.e., feed, search, group, etc.).
@@ -1383,6 +1385,17 @@ func (s *Subscription) GetLink() string {
 	}
 }
 
+func (s *Subscription) GetArticleFilters() SubscriptionArticleFilters {
+	switch s.Type {
+	case SubscriptionTypeFeed:
+		return s.FeedData.ArticleFilters
+	case SubscriptionTypeEmail:
+		return s.EmailData.ArticleFilters
+	default:
+		return SubscriptionArticleFilters{}
+	}
+}
+
 // GetStats returns the stats object containing the dynamically generated stats (i.e., unread count, article rate) of
 // the subscription.
 func (s *Subscription) GetStats() *SubscriptionStats {
@@ -1395,6 +1408,102 @@ func (s *Subscription) IsFavorite() bool {
 	return s.Favorite
 }
 
+func (s *Subscription) GetMarkedReadAt() time.Time {
+	return s.MarkedReadAt
+}
+
+// GetReadItems retrieves a list of ItemIDs for the feed subscription that
+// user has explicitly marked as read.
+func (s *Subscription) GetReadItems() []ItemID {
+	ids := make([]ItemID, 0)
+	states := make(map[ItemID]ArticleState)
+	switch s.Type {
+	case SubscriptionTypeFeed:
+		maps.Copy(states, s.FeedData.ArticleStates)
+	case SubscriptionTypeEmail:
+		maps.Copy(states, s.EmailData.ArticleStates)
+	default:
+		return nil
+	}
+
+	for id, state := range states {
+		if state.Read {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+// GetUnreadItems retrieves a list of ItemIDs for the feed subscription that
+// user has explicitly marked as unread.
+func (s *Subscription) GetUnreadItems() []ItemID {
+	ids := make([]ItemID, 0)
+	states := make(map[ItemID]ArticleState)
+	switch s.Type {
+	case SubscriptionTypeFeed:
+		maps.Copy(states, s.FeedData.ArticleStates)
+	case SubscriptionTypeEmail:
+		maps.Copy(states, s.EmailData.ArticleStates)
+	default:
+		return nil
+	}
+
+	for id, state := range states {
+		if !state.Read {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+// GetItemState retrieves the item state (read/unread/saved) from the
+// subscription. By default it will return unread unless the user has explicitly
+// marked or saved the item.
+func (s *Subscription) GetItemState(itemID ItemID) *ArticleState {
+	states := make(map[ItemID]ArticleState)
+	switch s.Type {
+	case SubscriptionTypeFeed:
+		maps.Copy(states, s.FeedData.ArticleStates)
+	case SubscriptionTypeEmail:
+		maps.Copy(states, s.EmailData.ArticleStates)
+	default:
+		return nil
+	}
+
+	// If the subscription has no article states, return unread state.
+	if len(states) == 0 {
+		return &ArticleState{
+			Read: false,
+		}
+	}
+
+	// If a state is found return that.
+	if state, found := states[itemID]; found {
+		return &state
+	}
+
+	// Return unread state if no state found.
+	return &ArticleState{
+		Read: false,
+	}
+}
+
+// SetItemState will set the state of the item to the given state.
+func (s *Subscription) SetItemState(itemID ItemID, state *ArticleState) {
+	switch s.Type {
+	case SubscriptionTypeFeed:
+		if s.FeedData.ArticleStates == nil {
+			s.FeedData.ArticleStates = make(map[ItemID]ArticleState)
+		}
+		s.FeedData.ArticleStates[itemID] = *state
+	case SubscriptionTypeEmail:
+		if s.EmailData.ArticleStates == nil {
+			s.EmailData.ArticleStates = make(map[ItemID]ArticleState)
+		}
+		s.EmailData.ArticleStates[itemID] = *state
+	}
+}
+
 // Mark applies the given mark (read/unread) to a subscription.
 func (s *Subscription) Mark(user *User, mark Mark) {
 	switch mark {
@@ -1405,17 +1514,20 @@ func (s *Subscription) Mark(user *User, mark Mark) {
 		// Set marked at to max history when marking unread.
 		s.MarkedReadAt = user.GetMaxHistory()
 	}
-	// Reset article states for feed subscriptions as well
-	if s.GetSubscriptionType() == SubscriptionTypeFeed {
+	// Reset article states for appropriate subscription types.
+	switch s.GetSubscriptionType() {
+	case SubscriptionTypeFeed:
 		s.FeedData.ArticleStates = nil
+	case SubscriptionTypeEmail:
+		s.EmailData.ArticleStates = nil
 	}
 }
 
 // MarkItemsRead will mark the given items as read for the subscription.
 func (s *Subscription) MarkItemsRead(itemIDs ...ItemID) {
 	for itemID := range slices.Values(itemIDs) {
-		if !s.FeedData.GetItemState(itemID).Read {
-			s.FeedData.SetItemState(itemID, &ArticleState{Read: true, UpdatedAt: time.Now().UTC()})
+		if !s.GetItemState(itemID).Read {
+			s.SetItemState(itemID, &ArticleState{Read: true, UpdatedAt: time.Now().UTC()})
 		}
 	}
 }
@@ -1423,8 +1535,8 @@ func (s *Subscription) MarkItemsRead(itemIDs ...ItemID) {
 // MarkItemsUnread will mark the given items as unread for the subscription.
 func (s *Subscription) MarkItemsUnread(itemIDs ...ItemID) {
 	for itemID := range slices.Values(itemIDs) {
-		if s.FeedData.GetItemState(itemID).Read {
-			s.FeedData.SetItemState(itemID, &ArticleState{Read: false, UpdatedAt: time.Now().UTC()})
+		if s.GetItemState(itemID).Read {
+			s.SetItemState(itemID, &ArticleState{Read: false, UpdatedAt: time.Now().UTC()})
 		}
 	}
 }
@@ -1457,8 +1569,8 @@ func (s Subscriptions) GetFeedIDs() []FeedID {
 	ids := make([]FeedID, 0)
 	for subscription := range slices.Values(s) {
 		switch subscription.Type {
-		case SubscriptionTypeFeed:
-			ids = append(ids, subscription.FeedData.FeedID)
+		case SubscriptionTypeFeed, SubscriptionTypeEmail:
+			ids = append(ids, subscription.GetFeedID())
 		case SubscriptionTypeGroup:
 			ids = append(ids, subscription.GroupData.Subscriptions...)
 		}
@@ -1469,7 +1581,7 @@ func (s Subscriptions) GetFeedIDs() []FeedID {
 // GetByFeedID will return the subscription that matches the given feed ID, if any.
 func (s Subscriptions) GetByFeedID(id FeedID) *Subscription {
 	if idx := slices.IndexFunc(s, func(e *Subscription) bool {
-		return e.FeedData.GetFeedID() == id
+		return e.GetFeedID() == id
 	}); idx != -1 {
 		return s[idx]
 	}
@@ -1841,18 +1953,18 @@ func newSubscription(
 	switch typeData := data.(type) {
 	case *FeedSubscription:
 		subscription.Type = SubscriptionTypeFeed
-		subscription.FeedData = *typeData
+		subscription.FeedData = typeData
 	case *SearchSubscription:
 		subscription.Type = SubscriptionTypeSearch
-		subscription.SearchData = *typeData
+		subscription.SearchData = typeData
 		subscription.Favorite = true
 	case *GroupSubscription:
 		subscription.Type = SubscriptionTypeGroup
-		subscription.GroupData = *typeData
+		subscription.GroupData = typeData
 		subscription.Favorite = true
 	case *EmailSubscription:
 		subscription.Type = SubscriptionTypeEmail
-		subscription.EmailData = *typeData
+		subscription.EmailData = typeData
 	default:
 		return nil, fmt.Errorf("new subscription: %w", ErrInvalidAPIResult)
 	}

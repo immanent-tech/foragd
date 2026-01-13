@@ -56,7 +56,8 @@ func getFeedUnreadCounts(
 	// Generate unread count query.
 	subscriptionQueries := make([]query.Option, 0, len(subscriptions))
 	for subscription := range slices.Values(subscriptions) {
-		if subscription.GetSubscriptionType() != SubscriptionTypeFeed {
+		if subscription.GetSubscriptionType() != SubscriptionTypeFeed &&
+			subscription.GetSubscriptionType() != SubscriptionTypeEmail {
 			continue
 		}
 		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, subscription))
@@ -402,7 +403,7 @@ func NewSyndicationFeed(url string, source *feeds.Feed) *Feed {
 		Updated:      source.GetUpdatedDate().UTC(),
 		Title:        source.GetTitle(),
 		Description:  source.GetDescription(),
-		SourceType:   FeedSourceType(source.SourceType),
+		SourceType:   SourceType(source.SourceType),
 		SourceURLs:   []string{source.GetSourceURL()},
 		URL:          source.GetLink(),
 		Authors:      source.GetAuthors(),

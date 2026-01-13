@@ -83,7 +83,7 @@ func GetUserByExternalID(ctx context.Context, externalID string) (*User, error) 
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*User, error) {
 	// Get the user.
-	users, _, err := elastic.Search[*User](ctx, UsersIndexRO, query.Terms("settings.subscription_email", emails), 1,
+	users, _, err := elastic.Search[*User](ctx, UsersIndexRO, query.Terms("settings.subscription_email", emails...), 1,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
 		elastic.WithTrackTotalHits(false),
 	)

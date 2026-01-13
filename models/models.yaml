@@ -109,6 +109,11 @@ components:
         validate: 'required,oneof=subscription article'
         json: 'object'
         form: 'object'
+    SourceType:
+      description: >
+        indicates what type of source the object came from.
+      type: string
+      enum: ['RSS', 'Atom', 'JSONFeed', 'Email']
     UserID:
       description: is the unique ID of a user.
       type: string
@@ -434,11 +439,6 @@ components:
             is the datetime at which the feed or item was updated.
           x-go-type: time.Time
           x-go-type-skip-optional-pointer: true
-        source_type:
-          description: >
-            indicates what type of source the object came from.
-          type: string
-          enum: ['RSS', 'Atom', 'JSONFeed', 'Email']
         title:
           description: >
             is the title of the feed or item.
@@ -485,6 +485,8 @@ components:
         copyright:
           type: string
           x-go-type-skip-optional-pointer: true
+        source_type:
+          $ref: '#/components/schemas/SourceType'
         image:
           $ref: '../pkg/go-syndication/schema/types.yaml#/components/schemas/ImageInfo'
     Feed:
@@ -729,6 +731,7 @@ components:
           $ref: '#/components/schemas/SubscriptionArticleFilters'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
+      x-go-type-skip-optional-pointer: false
     GroupSubscription:
       description: >
         represents a subscription that combines other subscriptions.
@@ -747,6 +750,7 @@ components:
             validate: 'required,dive,startswith=sub_'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
+      x-go-type-skip-optional-pointer: false
     SearchSubscription:
       description: >
         is a custom subscription created from a search request.
@@ -758,17 +762,31 @@ components:
           $ref: '#/components/schemas/SearchRequest'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
+      x-go-type-skip-optional-pointer: false
     EmailSubscription:
       description: >
         is a subscription to an email newsletter source.
       type: object
       required:
+        - feed_id
         - email_sender_id
+        - article_states
       properties:
+        feed_id:
+          $ref: '#/components/schemas/FeedID'
         email_sender_id:
           $ref: '#/components/schemas/EmailSenderID'
+        article_states:
+          description: >
+            contains the states of items marked explicitly as read/unread/saved by the user.
+          x-go-type: 'map[ItemID]ArticleState'
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        article_filters:
+          $ref: '#/components/schemas/SubscriptionArticleFilters'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
+      x-go-type-skip-optional-pointer: false
     Subscription:
       description: >
         represents any kind of subscription.
@@ -911,17 +929,25 @@ components:
             - $ref: '#/components/schemas/SubscriptionSettings'
           x-oapi-codegen-extra-tags:
             form: 'settings'
-    EmailSubscriptionRequest:
+    EditEmailSubscriptionRequest:
       description: >
         represents a request to create an email subscription.
       type: object
       required:
-        - sender
+        - subscription_id
       properties:
-        sender:
-          description: >
-            is the sender address that will be used to group emails under the subscription.
-          x-go-type: mail.Address
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        customisation:
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionCustomisation'
+          x-oapi-codegen-extra-tags:
+            form: 'customisation'
+        settings:
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionSettings'
+          x-oapi-codegen-extra-tags:
+            form: 'settings'
     EditSubscriptionRequest:
       description: >
         is the request details for editing a subscription.
@@ -980,6 +1006,8 @@ components:
           $ref: '#/components/schemas/SubscriptionID'
         state:
           $ref: '#/components/schemas/ArticleState'
+        source_type:
+          $ref: '#/components/schemas/SourceType'
     ArticleSettings:
       description: >
         contains settings related to the display of the article.

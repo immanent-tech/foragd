@@ -104,7 +104,7 @@ func BuildItemsQuery(
 			query.Terms("categories.raw", filters.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, filters.GetView(), subscriptions)...),
+				query.Should(BuildItemQueries(user, filters.GetView(), subscriptions)...),
 			),
 		),
 	), nil
@@ -292,7 +292,7 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		Updated:      source.GetUpdatedDate().UTC(),
 		Title:        source.GetTitle(),
 		Description:  source.GetDescription(),
-		SourceType:   ItemSourceType(feed.SourceType),
+		SourceType:   feed.SourceType,
 		URL:          source.GetLink(),
 		Authors:      source.GetAuthors(),
 		Contributors: source.GetContributors(),
@@ -315,19 +315,19 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 	return item
 }
 
-// NewFeedItem generates an Item from the underlying feed data.
+// NewEmailItem generates a new Item from an email.
 func NewEmailItem(email Email, subscription *Subscription) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
 	itemID := "item_" + strconv.FormatUint(xxhash.Sum64String(email.GetID()), 10)
 	item := &Item{
 		ItemID:     itemID,
-		FeedID:     subscription.GetID(),
+		FeedID:     subscription.GetFeedID(),
 		Timestamp:  email.Timestamp(),
 		Published:  email.Timestamp(),
 		Updated:    email.Timestamp(),
 		Title:      email.GetSubject(),
-		SourceType: ItemSourceType(FeedSourceTypeEmail),
-		Authors:    []string{email.GetFrom().Name},
+		SourceType: SourceTypeEmail,
+		Authors:    []string{email.GetFrom().String()},
 		Content:    email.GetBody(),
 		FeedTitle:  subscription.GetTitle(),
 	}

@@ -478,6 +478,9 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 									templates.WithFlattenedMapping("search_data"),
 									templates.WithObjectMapping("email_data",
 										templates.WithKeywordMapping("sender"),
+										templates.WithKeywordMapping("feed_id"),
+										templates.WithFlattenedMapping("article_states"),
+										templates.WithFlattenedMapping("article_filters"),
 									),
 								),
 								templates.WithDynamicProperties(false),
@@ -721,6 +724,8 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 			err = migrateIndexData(ctx, api, schedulerIndexPrefix, nil)
 		case "feeds":
 			err = migrateIndexData(ctx, api, feedsIndexPrefix, nil)
+		case "subscriptions":
+			err = migrateIndexData(ctx, api, subscriptionsSchemaPrefix, nil)
 		}
 		if err != nil {
 			return fmt.Errorf("could not migrate users: %w", err)

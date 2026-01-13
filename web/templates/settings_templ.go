@@ -14,6 +14,8 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"os"
 	"strings"
 	"time"
@@ -95,7 +97,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(user.GetSubscriptionPlan() + " (trial, ending on " + endDate.Format(time.DateOnly) + ")")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 49, Col: 90}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 51, Col: 90}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -105,7 +107,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(user.GetSubscriptionPlan() + " (cancelled, ending on " + endDate.Format(time.DateOnly) + ")")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 51, Col: 94}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 53, Col: 94}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -115,7 +117,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(user.GetSubscriptionPlan())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 53, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 55, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -134,7 +136,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var7 templ.SafeURL
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs(mgmtLink)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 60, Col: 61}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 62, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -182,7 +184,7 @@ func AccountSettings(user *models.User) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 85, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 87, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -195,7 +197,7 @@ func AccountSettings(user *models.User) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 92, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 94, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -226,7 +228,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(user.GetNickname())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 127, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 129, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -239,7 +241,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(user.GetEmail())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 142, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 144, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -260,81 +262,96 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(user.GetAvatar())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 161, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 163, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Save</button></div></div></form> <div><h3 class=\"text-base/7 font-semibold\">Change Password</h3><p class=\"mt-1 text-sm/6\">Update your password associated with your account.</p></div><form hx-post=\"/user/settings/password\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><label for=\"new-password\" class=\"block text-sm/6 font-medium\">New Password</label><div class=\"mt-2\"><input id=\"nickname\" type=\"password\" class=\"input input-primary bg-base-content/10\" name=\"new_password\" required></div></div><div class=\"sm:col-span-full\"><label for=\"nickname\" class=\"block text-sm/6 font-medium\">Confirm New Password</label><div class=\"mt-2\"><input id=\"nickname\" type=\"password\" class=\"input input-primary bg-base-content/10\" name=\"confirm_new_password\" required></div></div><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Change Password</button></div></div></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Save</button></div></div></form> <div><h3 class=\"text-base/7 font-semibold\">Subcribe to Email Newsletters</h3><p class=\"mt-1 text-sm/6\">Use or generate an email for subscribing to email newsletters</p></div><div id=\"subscription-email\" class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if user.Settings.SubscriptionEmail == "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<form hx-post=\"/user/settings/subscriptionemail\" hx-target=\"#subscription-email\" hx-swap=\"innerHTML transition:true\" hx-include=\"[name='csrf_token']\" class=\"col-span-full\"><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Generate Email Address</button></div></div></form>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = ShowSubscriptionEmail(user.Settings.SubscriptionEmail).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div> <div><h3 class=\"text-base/7 font-semibold\">Change Password</h3><p class=\"mt-1 text-sm/6\">Update your password associated with your account.</p></div><form hx-post=\"/user/settings/password\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><label for=\"new-password\" class=\"block text-sm/6 font-medium\">New Password</label><div class=\"mt-2\"><input id=\"nickname\" type=\"password\" class=\"input input-primary bg-base-content/10\" name=\"new_password\" required></div></div><div class=\"sm:col-span-full\"><label for=\"nickname\" class=\"block text-sm/6 font-medium\">Confirm New Password</label><div class=\"mt-2\"><input id=\"nickname\" type=\"password\" class=\"input input-primary bg-base-content/10\" name=\"confirm_new_password\" required></div></div><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Change Password</button></div></div></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
 		if cancelled, _ := user.Cancelled(); cancelled {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div><h3 class=\"text-base/7 font-semibold\">Cancel deactivation</h3><p class=\"mt-1 text-sm/6\">Change of mind? You can cancel the deactivation of your account and restore it to full functionality. You'll continue to get billed at the start of your next billing cycle.</p></div><div class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><form hx-post=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div><h3 class=\"text-base/7 font-semibold\">Cancel deactivation</h3><p class=\"mt-1 text-sm/6\">Change of mind? You can cancel the deactivation of your account and restore it to full functionality. You'll continue to get billed at the start of your next billing cycle.</p></div><div class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><form hx-post=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(models.RouteUserCancelDeactivationAccount)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 216, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 246, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" hx-include=\"[name='csrf_token']\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" hx-include=\"[name='csrf_token']\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(ModalContainerID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 218, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 248, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" class=\"flex items-start md:col-span-2\"><button type=\"submit\" class=\"btn btn-success\">Yes, please cancel the deactivation</button></form></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" class=\"flex items-start md:col-span-2\"><button type=\"submit\" class=\"btn btn-success\">Yes, please cancel the deactivation</button></form></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if user.Active() {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, " <div><h3 class=\"text-base/7 font-semibold\">Deactivate Account</h3><p class=\"mt-1 text-sm/6\">No longer want to use our service? You can deactivate your account here. What this does:</p><ul class=\"mt-1 text-sm/6 list-disc list-inside\"><li>Your active subscription plan will be cancelled and stop at your next billing period.</li><li>Until then, you can continue to use your account.</li><li>If you change your mind, you can come back here before the cancellation date and stop the cancellation.</li><li>After the cancellation date, your account (including all subscriptions, favorites and settings) will be permanently deleted. You will no longer be able to log in.</li></ul></div><div class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><div class=\"sm:col-span-full\"><form hx-get=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " <div><h3 class=\"text-base/7 font-semibold\">Deactivate Account</h3><p class=\"mt-1 text-sm/6\">No longer want to use our service? You can deactivate your account here.</p></div><div class=\"grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2\"><ul class=\"mt-1 text-sm/6 list-disc list-inside col-span-full\"><li>Your active subscription plan will be cancelled and stop at your next billing period.</li><li>Until then, you can continue to use your account.</li><li>If you change your mind, you can come back here before the cancellation date and stop the cancellation.</li><li>After the cancellation date, your account (including all subscriptions, favorites and settings) will be permanently deleted. You will no longer be able to log in.</li></ul><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><form hx-get=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(models.RouteUserDeactivateAccount)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 244, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 290, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(ModalContainerID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 245, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 291, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" class=\"flex items-start md:col-span-2\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('deactivate-account').show()\"><button type=\"submit\" class=\"btn btn-error\">Yes, deactivate my account</button></form></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"flex items-start md:col-span-2\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('deactivate-account').show()\"><button type=\"submit\" class=\"btn btn-error\">Yes, deactivate my account</button></form></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -363,7 +380,7 @@ func DisplaySettings(user *models.User) templ.Component {
 			templ_7745c5c3_Var18 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<div id=\"display-settings\"><div id=\"behaviour-settings\" class=\"grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8\"><div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div id=\"display-settings\"><div id=\"behaviour-settings\" class=\"grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8\"><div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -371,27 +388,27 @@ func DisplaySettings(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<p class=\"mt-1 text-sm/6\">Settings that control the display behaviour in the app.</p></div><form hx-post=\"/user/settings/display\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" class=\"col-span-full md:col-span-2 space-y-10\"><div class=\"flex items-center gap-x-4\"><input id=\"setting-show-subscription-stats\" type=\"checkbox\" name=\"show_subscription_stats\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<p class=\"mt-1 text-sm/6\">Settings that control the display behaviour in the app.</p></div><form hx-post=\"/user/settings/display\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" class=\"col-span-full md:col-span-2 space-y-10\"><div class=\"flex items-center gap-x-4\"><input id=\"setting-show-subscription-stats\" type=\"checkbox\" name=\"show_subscription_stats\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if user.GetSettings().ShowSubscriptionStats {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " checked")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " aria-describedby=\"setting-show-subscription-stats-description\" class=\"col-start-1 row-start-1 toggle toggle-sm toggle-primary\"><div class=\"flex-1 text-sm/6\"><label for=\"setting-show-subscription-stats\" class=\"font-medium\">Show Subscription Stats</label><p id=\"setting-show-subscription-stats-description\" class=\"text-base-content/80\">Controls whether to show various stats (e.g., unread counts, articles per day) on subscriptions.</p></div></div><div class=\"flex items-center gap-x-4\"><input id=\"setting-mark-article-read-on-view\" type=\"checkbox\" name=\"mark_article_read_on_view\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if user.GetSettings().MarkArticleReadOnView {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, " checked")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " aria-describedby=\"setting-mark-article-read-on-view-description\" class=\"col-start-1 row-start-1 toggle toggle-sm toggle-primary\"><div class=\"flex-1 text-sm/6\"><label for=\"setting-mark-article-read-on-view\" class=\"font-medium\">Mark Article Read on View</label><p id=\"setting-mark-article-read-on-view-description\" class=\"text-base-content/80\">When viewing an article, mark it as read automatically when viewed.</p></div></div><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Save</button></div></div></form></div><div id=\"theme-settings\" class=\"grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8\"><div class=\"md:col-span-full\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " aria-describedby=\"setting-show-subscription-stats-description\" class=\"col-start-1 row-start-1 toggle toggle-sm toggle-primary\"><div class=\"flex-1 text-sm/6\"><label for=\"setting-show-subscription-stats\" class=\"font-medium\">Show Subscription Stats</label><p id=\"setting-show-subscription-stats-description\" class=\"text-base-content/80\">Controls whether to show various stats (e.g., unread counts, articles per day) on subscriptions.</p></div></div><div class=\"flex items-center gap-x-4\"><input id=\"setting-mark-article-read-on-view\" type=\"checkbox\" name=\"mark_article_read_on_view\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if user.GetSettings().MarkArticleReadOnView {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, " checked")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, " aria-describedby=\"setting-mark-article-read-on-view-description\" class=\"col-start-1 row-start-1 toggle toggle-sm toggle-primary\"><div class=\"flex-1 text-sm/6\"><label for=\"setting-mark-article-read-on-view\" class=\"font-medium\">Mark Article Read on View</label><p id=\"setting-mark-article-read-on-view-description\" class=\"text-base-content/80\">When viewing an article, mark it as read automatically when viewed.</p></div></div><div class=\"col-span-full place-self-end\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><div class=\"mt-2 flex items-center justify-end gap-x-6\"><button type=\"submit\" class=\"btn btn-primary\">Save</button></div></div></form></div><div id=\"theme-settings\" class=\"grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8\"><div class=\"md:col-span-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -399,7 +416,7 @@ func DisplaySettings(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<p class=\"mt-1 text-sm/6\">Choose a theme from the selection below. It will be applied instantly.</p></div><div class=\"grid max-w-7xl col-span-full grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<p class=\"mt-1 text-sm/6\">Choose a theme from the selection below. It will be applied instantly.</p></div><div class=\"grid max-w-7xl col-span-full grid-cols-1 gap-x-8 gap-y-10 px-4 pb-16 sm:px-6 md:grid-cols-3 lg:px-8\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -432,7 +449,84 @@ func DisplaySettings(user *models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</div></div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func ShowSubscriptionEmail(email string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var19 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var19 == nil {
+			templ_7745c5c3_Var19 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<p class=\"mt-1 text-sm/6 col-span-full\">This is your unique subscription email. Use it in place of your own email to subscribe to email newsletters.</p><div class=\"join join-vertical sm:join-horizontal col-span-full\"><input type=\"text\" class=\"input input-primary join-item\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var20 string
+		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(email)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 391, Col: 72}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" readonly>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Var21 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = tabler.Copy(i.Props{Class: "size-4"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, " <span class=\"sr-only\">Copy</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = NewButton(
+			WithAttribute("_",
+				"on click set currentValue to (my innerHTML) then writeText('"+email+"') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me",
+			),
+			WithClasses("join-item"),
+		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var21), templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -456,93 +550,93 @@ func themePreview(theme string, currentTheme string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var19 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var19 == nil {
-			templ_7745c5c3_Var19 = templ.NopComponent
+		templ_7745c5c3_Var22 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var22 == nil {
+			templ_7745c5c3_Var22 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<div class=\"border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border outline-2 outline-offset-2 outline-transparent\" data-act-class=\"outline-base-content!\" data-set-theme=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var20 string
-		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 345, Col: 24}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" _=\"on click set #page-theme.value to @data-set-theme\" hx-trigger=\"click\" hx-put=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var21 string
-		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("/user/settings/theme/" + theme)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 348, Col: 42}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" hx-include=\"[name='csrf_token']\" hx-swap=\"outerHTML\" hx-target=\"#display-settings\" id=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var22 string
-		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs("theme-preview-" + theme)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 352, Col: 31}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\"><div class=\"bg-base-100 text-base-content w-full cursor-pointer font-sans\" data-theme=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<div class=\"border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border outline-2 outline-offset-2 outline-transparent\" data-act-class=\"outline-base-content!\" data-set-theme=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 354, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 413, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\"><div class=\"grid grid-cols-5 grid-rows-3\"><div class=\"bg-base-200 col-start-1 row-span-2 row-start-1\"></div><div class=\"bg-base-300 col-start-1 row-start-3\"></div><div class=\"bg-base-100 col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 p-2\"><div class=\"font-bold capitalize\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" _=\"on click set #page-theme.value to @data-set-theme\" hx-trigger=\"click\" hx-put=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var24 string
+		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs("/user/settings/theme/" + theme)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 416, Col: 42}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\" hx-include=\"[name='csrf_token']\" hx-swap=\"outerHTML\" hx-target=\"#display-settings\" id=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var25 string
+		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs("theme-preview-" + theme)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 420, Col: 31}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\"><div class=\"bg-base-100 text-base-content w-full cursor-pointer font-sans\" data-theme=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var26 string
+		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 422, Col: 95}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\"><div class=\"grid grid-cols-5 grid-rows-3\"><div class=\"bg-base-200 col-start-1 row-span-2 row-start-1\"></div><div class=\"bg-base-300 col-start-1 row-start-3\"></div><div class=\"bg-base-100 col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 p-2\"><div class=\"font-bold capitalize\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if currentTheme == theme {
-			var templ_7745c5c3_Var24 string
-			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
+			var templ_7745c5c3_Var27 string
+			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 361, Col: 14}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 429, Col: 14}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, " (current)")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, " (current)")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			var templ_7745c5c3_Var25 string
-			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
+			var templ_7745c5c3_Var28 string
+			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 363, Col: 14}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 431, Col: 14}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</div><div class=\"flex flex-wrap gap-1\"><div class=\"bg-primary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-primary-content text-sm font-bold\">A</div></div><div class=\"bg-secondary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-secondary-content text-sm font-bold\">A</div></div><div class=\"bg-accent flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-accent-content text-sm font-bold\">A</div></div><div class=\"bg-neutral flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-neutral-content text-sm font-bold\">A</div></div></div></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</div><div class=\"flex flex-wrap gap-1\"><div class=\"bg-primary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-primary-content text-sm font-bold\">A</div></div><div class=\"bg-secondary flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-secondary-content text-sm font-bold\">A</div></div><div class=\"bg-accent flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-accent-content text-sm font-bold\">A</div></div><div class=\"bg-neutral flex aspect-square w-5 items-center justify-center rounded lg:w-6\"><div class=\"text-neutral-content text-sm font-bold\">A</div></div></div></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
