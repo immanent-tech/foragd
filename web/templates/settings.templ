@@ -178,7 +178,6 @@ templ AccountSettings(user *models.User) {
 				hx-post="/user/settings/password"
 				hx-swap="none"
 				hx-include="[name='csrf_token']"
-				_="on htmx:afterOnLoad wait 10ms then call document.getElementById('delete-account').show()"
 				class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2"
 			>
 				<div class="sm:col-span-full">
