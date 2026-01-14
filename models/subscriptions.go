@@ -34,6 +34,28 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
+// GetSubscriptionsForItems returns the subscriptions that the list of items belong to.
+func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, error) {
+	// Get subscription details for the feeds the items belong to. In this case, we shouldn't need to filter by user as
+	// these items should already have been filtered by the user's subscriptions. We're just fetching the additional
+	// data we need.
+	subscriptions, _, err := elastic.Search[*Subscription](
+		ctx,
+		SubscriptionsIndexRO,
+		query.Bool(
+			query.Should(
+				query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
+				query.Terms("email_data.feed_id", items.GetFeedIDs()...),
+			),
+		),
+		len(items.GetFeedIDs()),
+	)
+	if err != nil {
+		return nil, es2APIError("get subscriptions", err)
+	}
+	return subscriptions, nil
+}
+
 type subscriptionsRequest struct {
 	filterFavorites  bool
 	filterIDs        []SubscriptionID

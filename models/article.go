@@ -18,7 +18,6 @@ import (
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/validation"
@@ -161,28 +160,13 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 		return nil, fmt.Errorf("generate articles: get user data: %w", err)
 	}
 
-	// Get subscription details for the feeds the items belong to. In this case, we shouldn't need to filter by user as
-	// these items should already have been filtered by the user's subscriptions. We're just fetching the additional
-	// data we need.
-	var subscriptions Subscriptions
-	subscriptions, _, err = elastic.Search[*Subscription](
-		ctx,
-		SubscriptionsIndexRO,
-		query.Bool(
-			query.Should(
-				query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
-				query.Terms("email_data.feed_id", items.GetFeedIDs()...),
-			),
-		),
-		len(items.GetFeedIDs()),
-	)
-
-	// var subscriptions Subscriptions
-	switch {
-	case err != nil:
-		return nil, es2APIError("search subscriptions failed", err)
-	case len(subscriptions) == 0:
-		return nil, fmt.Errorf("generate articles: get subscriptions: %w", ErrNotFound)
+	// Get the subscriptions associated with the items.
+	subscriptions, err := GetSubscriptionsForItems(ctx, items)
+	if err != nil {
+		return nil, fmt.Errorf("get subscriptions for items: %w", err)
+	}
+	if len(subscriptions) == 0 {
+		return nil, fmt.Errorf("get subscriptions for items: %w", ErrNotFound)
 	}
 
 	// Create articles from the items.
