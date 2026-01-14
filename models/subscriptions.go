@@ -36,13 +36,18 @@ import (
 
 // GetSubscriptionsForItems returns the subscriptions that the list of items belong to.
 func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, error) {
-	// Get subscription details for the feeds the items belong to. In this case, we shouldn't need to filter by user as
-	// these items should already have been filtered by the user's subscriptions. We're just fetching the additional
-	// data we need.
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get user data: %w", err)
+	}
+	// Get user subscription details for the feeds the items belong to.
 	subscriptions, _, err := elastic.Search[*Subscription](
 		ctx,
 		SubscriptionsIndexRO,
 		query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+			),
 			query.Should(
 				query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
 				query.Terms("email_data.feed_id", items.GetFeedIDs()...),
