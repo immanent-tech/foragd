@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.26.0](https://github.com/immanent-tech/foragd/compare/v0.25.0...v0.26.0) (2026-01-14)
+
+
+### Features
+
+* :sparkles: add frontend support for email subscriptions ([39abe1a](https://github.com/immanent-tech/foragd/commit/39abe1a2c3ec14ca427d7a40011244f533400f18))
+* :sparkles: new plan/pricing ([182cc73](https://github.com/immanent-tech/foragd/commit/182cc735ca8fefa7ef72777261a04a9a0b563bf5))
+* **models:** :sparkles: try to extract an image from the article content if one is not explicitly set ([08f8124](https://github.com/immanent-tech/foragd/commit/08f8124b36d2c29c9f98f0384891b8df85db0efc))
+
+
+### Bug Fixes
+
+* :bug: actually we do need to filter by user... ([3c994a4](https://github.com/immanent-tech/foragd/commit/3c994a429b7ffd32cc36d65ae682f07822608a04))
+* :bug: don't generation subscription query clauses for subscription that aren't based on a feed source ([2adf4e8](https://github.com/immanent-tech/foragd/commit/2adf4e85fd0fd911fbc9844fc2a64f609c0a894c))
+* **models:** :bug: fix article generation from items ([b37967d](https://github.com/immanent-tech/foragd/commit/b37967dae792eca979717d06095bd26398a871ee))
+* **templates:** :bug: remove extraneous text on viewer page ([e4cfc1e](https://github.com/immanent-tech/foragd/commit/e4cfc1e5a04ac1c031e60eda19a1280fba040878))
+
 ## [0.25.0](https://github.com/immanent-tech/foragd/compare/v0.24.0...v0.25.0) (2026-01-13)
 
 
