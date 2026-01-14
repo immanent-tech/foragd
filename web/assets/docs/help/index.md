@@ -10,9 +10,9 @@
     - [Subscriptions](#subscriptions)
       - [Customisation](#customisation)
       - [Filtering articles within a subscription](#filtering-articles-within-a-subscription)
-      - [Group Subscriptions (Curator plan level)](#group-subscriptions-curator-plan-level)
-      - [Search Subscriptions (Curator plan level)](#search-subscriptions-curator-plan-level)
-    - [Favorites (Collector and Curator plan levels)](#favorites-collector-and-curator-plan-levels)
+      - [Group Subscriptions](#group-subscriptions)
+      - [Search Subscriptions](#search-subscriptions)
+    - [Favorites](#favorites)
     - [Filtering](#filtering)
     - [Global Keyboard Shortcuts](#global-keyboard-shortcuts)
   - [Policies and Terms of Service](#policies-and-terms-of-service)
@@ -26,8 +26,8 @@
 
 - **Subscription** is a source of articles created by the user. The articles may come from different sources, such as a single website, a group of other subscriptions or a configured search. These can also be referred to individually as:
   - **Feed Subscription**: a subscription to a single website (i.e., an RSS/Atom feed for a particular website).
-  - **Group Subscription**: a subscription that aggregates the articles from other subscriptions (Curator level account plans).
-  - **Search Subscription**: a subscription created from a particular set of search terms (Curator level account plans).
+  - **Group Subscription**: a subscription that aggregates the articles from other subscriptions.
+  - **Search Subscription**: a subscription created from a particular set of search terms.
 - **Article**: is a single item from a subscription (i.e., an article, blog post, etc.).
 
 ## Accounts
@@ -70,7 +70,7 @@ See [filtering](#filtering) for usage.
 
 **Note:** article filters are applied globally, meaning all searches, views and any group/search Subscriptions you create will have the subscription article filters applied.
 
-#### Group Subscriptions (Curator plan level)
+#### Group Subscriptions
 
 You can add a _Group Subscription_ which aggregates all the Articles from two or more Feed Subscriptions. This is useful where you subscribe to a number of feeds that have similar content, like Android news sites. When creating a Group Subscription, use the provided search input to filter your existing subscriptions for the ones you want to add:
 
@@ -81,7 +81,7 @@ To add a Group Subscription:
 - Search for _Add_ in the global search and choose the **Add A Group Subscription** action.
 - On the [Subscriptions](/list/subscriptions) page, select **Add A Group Subscription** from the _Actions_ menu.
 
-#### Search Subscriptions (Curator plan level)
+#### Search Subscriptions
 
 Any [search](#searching) can also be made into a Search Subscription. This is useful for keeping track of particular keywords or content across any number of your feed subscriptions.
 
@@ -92,7 +92,7 @@ To add a Group Subscription:
 
 ![Screenshot of creating a Search Subscription](/content/screenshots/screenshot-add-search-subscription.png)
 
-### Favorites (Collector and Curator plan levels)
+### Favorites
 
 - You can mark any subscription or article as a favorite.
 - All favorites can be found on the [favorites](/list/favorites) page.
