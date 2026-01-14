@@ -124,3 +124,11 @@ type Email interface {
 	GetBody() string
 	GetFrom() *mail.Address
 }
+
+type ItemSource interface {
+	GetFeedID() FeedID
+	GetMarkedReadAt() time.Time
+	GetReadItems() []ItemID
+	GetUnreadItems() []ItemID
+	GetArticleFilters() SubscriptionArticleFilters
+}

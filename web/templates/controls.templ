@@ -51,10 +51,14 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 							</h3>
 							<el-disclosure id="filter-section-category" hidden class="block pt-6">
 								<div class="flex flex-col">
-									// Top 10 categories only.
-									for idx, category := range categories.GetTopCategories(10) {
-										@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters)
-									}
+									<div id="category-filters">
+										// Top 10 categories only.
+										@ListCategoryFilters(&models.CategoryFilters{
+											Categories: categories.GetTopCategories(10),
+											Path:       path,
+											Filters:    *filters,
+										}, nil)
+									</div>
 									if len(filters.GetCategories()) > 0 {
 										<div class="flex justify-end">
 											@clearCategoryFilters(path, "clear-category-filters-mobile", filters)
@@ -140,11 +144,13 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 								</button>
 								<el-menu anchor="bottom end" popover>
-									<div class="py-1">
+									<div id="category-filters" class="py-1">
 										// Top 10 categories only.
-										for idx, category := range categories.GetTopCategories(10) {
-											@categoryFilter(path, "filter-mobile-category-"+strconv.Itoa(idx), category, filters)
-										}
+										@ListCategoryFilters(&models.CategoryFilters{
+											Categories: categories.GetTopCategories(10),
+											Path:       path,
+											Filters:    *filters,
+										}, nil)
 									</div>
 									if len(filters.GetCategories()) > 0 {
 										<div class="py-1">
@@ -300,6 +306,14 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
 			Only Favorites
 		}
 	</form>
+}
+
+templ ListCategoryFilters(filters *models.CategoryFilters, attrs templ.Attributes) {
+	<div { attrs... }>
+		for idx, category := range filters.Categories.GetTopCategories(10) {
+			@categoryFilter(filters.Path, "filter-mobile-category-"+strconv.Itoa(idx), category, &filters.Filters)
+		}
+	</div>
 }
 
 // categoryFilter renders a checkbox for a category filter.

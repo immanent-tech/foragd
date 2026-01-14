@@ -282,6 +282,15 @@ type CategoryCount struct {
 	Count    int      `json:"count"`
 }
 
+// CategoryFilters contains categories that can be used for filtering.
+type CategoryFilters struct {
+	Categories CategoryCounts `json:"categories"`
+
+	// Filters contains filters for altering the display of objects.
+	Filters ListFilters `json:"filters" validate:"required"`
+	Path    string      `json:"path"`
+}
+
 // ChangePasswordRequest contains details for changing a user password.
 type ChangePasswordRequest struct {
 	// ConfirmNewPassword is the new password (again), used for confirmation.

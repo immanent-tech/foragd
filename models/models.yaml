@@ -1465,6 +1465,21 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'details'
+    CategoryFilters:
+      description: >
+        contains categories that can be used for filtering.
+      type: object
+      required:
+        - categories
+        - path
+        - filters
+      properties:
+        categories:
+          x-go-type: CategoryCounts
+        path:
+          type: string
+        filters:
+          $ref: '#/components/schemas/ListFilters'
     UserMessage:
       description: >
         represents a message that can be displayed to the user as the result of an action.

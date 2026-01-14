@@ -25,7 +25,6 @@ import (
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -75,32 +74,19 @@ func ListSubscriptions() http.HandlerFunc {
 				}
 
 				// Get subscriptions matching filters.
-				wg, jobCtx := errgroup.WithContext(req.Context())
-				defer jobCtx.Done()
-				wg.Go(func() error {
-					subscriptions, request.Pagination, err = models.FilterSubscriptions(jobCtx, request)
-					if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-						return fmt.Errorf("filter subscriptions: %w", err)
-					}
-					return nil
-				})
-				// Get all subscription categories.
-				wg.Go(func() error {
-					counts, err = models.GetAllSubscriptionCategories(jobCtx)
-					if err != nil {
-						slogctx.FromCtx(jobCtx).Warn("Could not get all subscription categories.",
-							slog.Any("error", err),
-						)
-					}
-					return nil
-				})
-
-				// Wait for fetch jobs to finish.
-				if err := wg.Wait(); err != nil {
+				subscriptions, request.Pagination, err = models.FilterSubscriptions(req.Context(), request)
+				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
 					return &models.APIError{
 						InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
 						StatusCode:    http.StatusInternalServerError,
 					}
+				}
+				// Get top subscription categories.
+				counts, err = models.GetSubscriptionCategories(req.Context(), subscriptions)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
+						slog.Any("error", err),
+					)
 				}
 
 				// Build response object.
@@ -170,6 +156,13 @@ func PaginateSubscriptions() http.HandlerFunc {
 					),
 				}
 			}
+			// Get top subscription categories.
+			counts, err := models.GetSubscriptionCategories(req.Context(), subscriptions)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
+					slog.Any("error", err),
+				)
+			}
 
 			// Build response object.
 			response := &models.ListSubscriptionsResponse{
@@ -180,7 +173,20 @@ func PaginateSubscriptions() http.HandlerFunc {
 
 			// Render appropriate content.
 			if len(subscriptions) > 0 {
-				renderPartial(templates.NewPartial(templates.PaginateSubscriptions(response))).ServeHTTP(res, req)
+				renderPartial(
+					templates.NewPartial(
+						templ.Join(
+							templates.PaginateSubscriptions(response),
+							templates.ListCategoryFilters(
+								&models.CategoryFilters{
+									Categories: counts,
+									Path:       "/list/subscriptions",
+									Filters:    request.Filters,
+								},
+								templ.Attributes{"hx-swap-oob": "beforeend:#category-filters"},
+							),
+						),
+					)).ServeHTTP(res, req)
 			} else {
 				res.WriteHeader(http.StatusNoContent)
 				return nil

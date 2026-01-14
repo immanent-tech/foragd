@@ -61,6 +61,82 @@ func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, 
 	return subscriptions, nil
 }
 
+// GetSubscriptionCategories retrieves a map of categories from user subscriptions by count.
+func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions) (CategoryCounts, error) {
+	// Retrieve user object.
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get user data: %w", err)
+	}
+
+	// Build query.
+	var searchQuery query.Option
+	if len(subscriptions) == 0 {
+		searchQuery = query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+			),
+		)
+	} else {
+		searchQuery = query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+				query.Terms("subscription_id", subscriptions.GetIDs()...),
+			),
+		)
+	}
+
+	// Build aggregations.
+	termsField := "customisation.categories.raw"
+	termsCount := 200
+	aggs := aggregations.Aggs{
+		"CategoryCounts": types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+		},
+	}
+
+	resp, err := elastic.NewSearchRequest(
+		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
+		elastic.WithIndex[*search.Search, elastic.SearchRequest](SubscriptionsIndexRO),
+		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](searchQuery),
+		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
+		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
+	).Do(ctx)
+	if err != nil {
+		return nil, es2APIError("get all subscription categories failed", err)
+	}
+
+	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf(
+			"category counts aggregation invalid: %w",
+			ErrInvalidAPIResult,
+		)
+	}
+	categoryCountsBuckets, ok := categoryCounts.Buckets.([]types.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf(
+			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
+			ErrInvalidAPIResult,
+		)
+	}
+
+	counts := make(CategoryCounts, 0, len(categoryCountsBuckets))
+
+	// Loop through the aggregation results and extract the unread count for each feed.
+	for bucket := range slices.Values(categoryCountsBuckets) {
+		var category Category
+		if category, ok = bucket.Key.(string); ok {
+			counts = append(counts, CategoryCount{Category: category, Count: int(bucket.DocCount)})
+		}
+	}
+	return counts, nil
+}
+
 type subscriptionsRequest struct {
 	filterFavorites  bool
 	filterIDs        []SubscriptionID
@@ -955,72 +1031,6 @@ func getAllSubscriptionsByQuery(ctx context.Context, query query.Option) (Subscr
 	return subscriptions, nil
 }
 
-// GetAllSubscriptionCategories retrieves a map of categories from user subscriptions by count.
-func GetAllSubscriptionCategories(ctx context.Context) (CategoryCounts, error) {
-	// Retrieve user object.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user data: %w", err)
-	}
-
-	// Build query.
-	query := query.Bool(
-		query.Filter(
-			query.Term("user_id", user.GetID()),
-		),
-	)
-
-	// Build aggregations.
-	termsField := "customisation.categories.raw"
-	termsCount := 200
-	aggs := aggregations.Aggs{
-		"CategoryCounts": types.Aggregations{
-			Terms: &types.TermsAggregation{
-				Field: &termsField,
-				Size:  &termsCount,
-			},
-		},
-	}
-
-	resp, err := elastic.NewSearchRequest(
-		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](SubscriptionsIndexRO),
-		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](query),
-		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
-		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
-	).Do(ctx)
-	if err != nil {
-		return nil, es2APIError("get all subscription categories failed", err)
-	}
-
-	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
-	if !ok {
-		return nil, fmt.Errorf(
-			"category counts aggregation invalid: %w",
-			ErrInvalidAPIResult,
-		)
-	}
-	categoryCountsBuckets, ok := categoryCounts.Buckets.([]types.StringTermsBucket)
-	if !ok {
-		return nil, fmt.Errorf(
-			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
-			ErrInvalidAPIResult,
-		)
-	}
-
-	counts := make(CategoryCounts, 0, len(categoryCountsBuckets))
-
-	// Loop through the aggregation results and extract the unread count for each feed.
-	for bucket := range slices.Values(categoryCountsBuckets) {
-		var category Category
-		if category, ok = bucket.Key.(string); ok {
-			counts = append(counts, CategoryCount{Category: category, Count: int(bucket.DocCount)})
-		}
-	}
-	return counts, nil
-}
-
 // BuildItemQueries generates a slices of queries for the given subscriptions, based on the given filters.
 func BuildItemQueries(
 	user *User,
@@ -1052,16 +1062,8 @@ func BuildItemQueries(
 	return queries
 }
 
-type itemSource interface {
-	GetFeedID() FeedID
-	GetMarkedReadAt() time.Time
-	GetReadItems() []ItemID
-	GetUnreadItems() []ItemID
-	GetArticleFilters() SubscriptionArticleFilters
-}
-
 // queryReadItems generates a query for finding read items for the given subscription.
-func queryReadItems(user *User, source itemSource) query.Option {
+func queryReadItems(user *User, source ItemSource) query.Option {
 	// if subscription.GetSubscriptionType() != SubscriptionTypeFeed {
 	// 	return nil
 	// }
@@ -1093,7 +1095,7 @@ func queryReadItems(user *User, source itemSource) query.Option {
 }
 
 // QueryUnreadItems generates a query for finding unread items for the given subscription.
-func queryUnreadItems(_ *User, source itemSource) query.Option {
+func queryUnreadItems(_ *User, source ItemSource) query.Option {
 	return query.Bool(
 		query.WithBoolQueryName(source.GetFeedID()+"_unread_items"),
 		query.Filter(
@@ -1121,7 +1123,7 @@ func queryUnreadItems(_ *User, source itemSource) query.Option {
 }
 
 // subscriptionQueryReadItems generates a query for finding all items for the given subscription.
-func queryAllItems(user *User, source itemSource) query.Option {
+func queryAllItems(user *User, source ItemSource) query.Option {
 	maxHistory := user.GetMaxHistory()
 	return query.Bool(
 		query.WithBoolQueryName(source.GetFeedID()+"_all_items"),
