@@ -13,12 +13,12 @@ import (
 )
 
 type Home struct {
-	User               *models.User
-	SubscriptionsCount int
-	LatestArticles     models.Articles
-	TopCategories      models.CategoryCounts
-	TopArticles        models.Articles
-	RareCategories     models.CategoryCounts
+	User           *models.User
+	Subscriptions  models.Subscriptions
+	LatestArticles models.Articles
+	TopCategories  models.CategoryCounts
+	TopArticles    models.Articles
+	RareCategories models.CategoryCounts
 }
 
 // content renders the home page content.

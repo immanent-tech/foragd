@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,11 +12,9 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
@@ -88,8 +85,6 @@ func WatchHome() http.HandlerFunc {
 }
 
 // getHomePageData retrieves the data required to construct the homepage content.
-//
-//nolint:funlen,gocognit,nestif // mostly aggregation definitions.
 func getHomePageData(ctx context.Context) (*templates.Home, error) {
 	data := &templates.Home{}
 	// Retrieve user object.
@@ -99,53 +94,69 @@ func getHomePageData(ctx context.Context) (*templates.Home, error) {
 	}
 	data.User = user
 
-	subscriptions, err := models.GetSubscriptions(ctx)
+	// Retrieve unread subscriptions and articles.
+	subscriptions, articles, err := getHomePageObjects(ctx, user)
 	if err != nil {
-		return nil, fmt.Errorf("filter articles: get subscriptions: %w", err)
-	}
-	// Return early if there the user has no subscriptions (i.e., new user).
-	if len(subscriptions) == 0 {
-		return nil, elastic.ErrNotFound
+		return data, fmt.Errorf("unable to retrieve subscriptions and/or articles: %w", err)
 	}
 
-	data.SubscriptionsCount = len(subscriptions)
-	// Query definition for fetching unread items for all subscriptions.
-	articlesQuery := query.Bool(
-		query.WithBoolQueryName("item_filters"),
+	data.Subscriptions = subscriptions
+	data.LatestArticles = articles
+
+	// Retrieve statistics.
+	if err := performHomePageAggs(ctx, user, data); err != nil {
+		return data, fmt.Errorf("unable to perform aggregations: %w", err)
+	}
+
+	return data, nil
+}
+
+// getHomePageObjects retrieves all unread subscriptions and the latest (max 10) unread articles.
+func getHomePageObjects(ctx context.Context, user *models.User) (models.Subscriptions, models.Articles, error) {
+	// Use default filters.
+	filters := models.NewListDisplayFilters()
+
+	// Get all user subscriptions.
+	subscriptions, err := models.GetSubscriptions(ctx,
+		models.GetSubscriptionsDynamicInfo(true),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("get subscriptions: %w", err)
+	}
+	subscriptions = subscriptions.
+		FilterByView(filters.GetView())
+
+	// Generate a query for getting articles.
+	articleQuery := query.Bool(
 		query.Filter(
-			// Must match any of the given feed IDs.
+			// Must match any of the given categories.
 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+			query.Terms("categories.raw", filters.GetCategories()...),
 			query.Bool(
-				query.Should(models.BuildItemQueries(user, models.ViewUnread, subscriptions)...),
+				query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
 			),
 		),
 	)
 
-	// Fetch latest articles.
-	sort := models.SortNewestFirst
-	maxLatestItemsCount := 12
-	latestItems, _, err := models.SearchItems(ctx, articlesQuery, maxLatestItemsCount, &sort, "")
+	sort := filters.GetSort()
+
+	// Find items matching filters.
+	items, _, err := models.SearchItems(ctx, articleQuery, filters.GetCount(), &sort, "")
 	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve articles: %w", err)
+		return nil, nil, fmt.Errorf("get items: %w", err)
 	}
 
-	data.LatestArticles, err = models.GenerateArticles(ctx, latestItems)
-	if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-		return nil, fmt.Errorf("unable to generate articles: %w", err)
+	// Generate articles.
+	articles, err := models.GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, nil, fmt.Errorf("generate articles: %w", err)
 	}
 
-	filters := models.NewListDisplayFilters()
-	godump.Dump(filters)
+	return subscriptions, articles, nil
+}
 
-	articles, _, err := models.FilterArticles(ctx, &models.ListRequest{
-		Filters: filters,
-	})
-	data.LatestArticles = articles
-
-	if errors.Is(err, elastic.ErrNotFound) || len(data.LatestArticles) == 0 {
-		return data, nil
-	}
-
+// performHomePageAggs performs aggregations to get statistics and samples of the top unread subscriptions and articles.
+func performHomePageAggs(ctx context.Context, user *models.User, data *templates.Home) error {
 	// Fetch aggregation data.
 	termsField := "categories.raw"
 	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
@@ -201,9 +212,19 @@ func getHomePageData(ctx context.Context) (*templates.Home, error) {
 	}
 
 	// Perform the request.
-	queryResult, err := models.ItemsAggregation(ctx, articlesQuery, 0, aggs)
+	filters := models.NewListDisplayFilters()
+	queryResult, err := models.ItemsAggregation(ctx, query.Bool(
+		query.Filter(
+			// Must match any of the given categories.
+			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()...),
+			query.Terms("categories.raw", filters.GetCategories()...),
+			query.Bool(
+				query.Should(models.BuildItemQueries(user, filters.GetView(), data.Subscriptions)...),
+			),
+		),
+	), 0, aggs)
 	if err != nil {
-		return nil, fmt.Errorf("unable to calculate aggregations: %w", err)
+		return fmt.Errorf("unable to calculate aggregations: %w", err)
 	}
 
 	// Get the top categories.
@@ -275,5 +296,5 @@ func getHomePageData(ctx context.Context) (*templates.Home, error) {
 		}
 	}
 
-	return data, nil
+	return nil
 }
