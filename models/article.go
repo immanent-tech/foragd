@@ -6,13 +6,18 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
 	"slices"
+	"strings"
 	"time"
 
 	slogctx "github.com/veqryn/slog-context"
+	"golang.org/x/net/html"
+
+	"golang.org/x/net/html/atom"
 
 	"github.com/immanent-tech/go-syndication/types"
 
@@ -383,6 +388,15 @@ func (a *Article) GetImage() *types.ImageInfo {
 	if a.Item.GetImage() != nil && a.Item.GetImage().GetURL() != "" {
 		return a.Item.GetImage()
 	}
+	// Try to extract an image from the content.
+	img, err := a.extractImageFromContent()
+	switch {
+	case err != nil:
+		return nil
+	case img != nil:
+		return img
+	}
+
 	return nil
 }
 
@@ -431,6 +445,36 @@ func (a *Article) IsFavorite() bool {
 // GetObjectType returns the type of the object, in this case, "article".
 func (a *Article) GetObjectType() ObjectType {
 	return ObjectTypeArticle
+}
+
+func (a *Article) extractImageFromContent() (*types.ImageInfo, error) {
+	doc, err := html.Parse(strings.NewReader(a.GetContent()))
+	if err != nil {
+		return nil, fmt.Errorf("parse content: %w", err)
+	}
+	for n := range doc.Descendants() {
+		if n.Type == html.ElementNode && n.DataAtom == atom.Img {
+			img := &types.ImageInfo{}
+
+			for a := range slices.Values(n.Attr) {
+				switch a.Key {
+				case "src":
+					img.URL = a.Val
+				case "alt":
+					img.Title = a.Val
+				}
+			}
+
+			if img.URL != "" {
+				if img.Title == "" {
+					img.Title = a.GetTitle()
+				}
+				return img, nil
+			}
+		}
+	}
+
+	return nil, errors.New("no img element found")
 }
 
 // Valid ensures that the MarkArticlesRequest contains valid data.
