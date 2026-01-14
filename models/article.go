@@ -161,31 +161,22 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 		return nil, fmt.Errorf("generate articles: get user data: %w", err)
 	}
 
-	// Perform search.
+	// Get subscription details for the feeds the items belong to. In this case, we shouldn't need to filter by user as
+	// these items should already have been filtered by the user's subscriptions. We're just fetching the additional
+	// data we need.
 	var subscriptions Subscriptions
 	subscriptions, _, err = elastic.Search[*Subscription](
 		ctx,
 		SubscriptionsIndexRO,
 		query.Bool(
 			query.Should(
-				query.Bool(
-					query.Filter(
-						query.Term("user_id", user.GetID()),
-						query.Terms("type", SubscriptionTypeFeed),
-						query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
-					),
-				),
-				query.Bool(
-					query.Filter(
-						query.Term("user_id", user.GetID()),
-						query.Terms("type", SubscriptionTypeEmail),
-						query.Terms("email_data.feed_id", items.GetFeedIDs()...),
-					),
-				),
+				query.Terms("feed_data.feed_id", items.GetFeedIDs()...),
+				query.Terms("email_data.feed_id", items.GetFeedIDs()...),
 			),
 		),
 		len(items.GetFeedIDs()),
 	)
+
 	// var subscriptions Subscriptions
 	switch {
 	case err != nil:
@@ -197,8 +188,15 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 	// Create articles from the items.
 	articles := make(Articles, 0, len(items))
 	for item := range slices.Values(items) {
-		// godump.Dump(item, subscriptions.GetByFeedID(item.GetFeedID()))
 		subscription := subscriptions.GetByFeedID(item.GetFeedID())
+		if subscription == nil {
+			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not match item to subscription.",
+				slog.Any("error", err),
+				slog.String("item_id", item.GetID()),
+				slog.String("feed_id", item.GetFeedID()),
+			)
+			continue
+		}
 		article := &Article{
 			Item:           *item,
 			SubscriptionID: subscription.GetID(),
@@ -405,7 +403,7 @@ func (a *Article) GetLink() string {
 
 // GetCategories returns the categories of the article (if any).
 func (a *Article) GetCategories(num int) Categories {
-	categories := a.Item.GetCategories()
+	categories := slices.Compact(a.Item.GetCategories())
 	if num != 0 {
 		if len(categories) > num {
 			return categories[:num]

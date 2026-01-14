@@ -234,7 +234,8 @@ func (i *Item) GetContributors() []string {
 
 // GetCategories returns a slice of the item's categories, if any.
 func (i *Item) GetCategories() []string {
-	return i.Categories
+	// Just in case there are duplicate categories, avoids a validation error.
+	return slices.Compact(i.Categories)
 }
 
 // GetImage returns an image that can represent the item, if any.

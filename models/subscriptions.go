@@ -24,7 +24,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
@@ -1063,11 +1062,6 @@ func queryReadItems(user *User, source itemSource) query.Option {
 
 // QueryUnreadItems generates a query for finding unread items for the given subscription.
 func queryUnreadItems(_ *User, source itemSource) query.Option {
-	if source.GetFeedID() == "feed_8361677206553538734" {
-		godump.Dump(
-			source.GetMarkedReadAt(),
-		)
-	}
 	return query.Bool(
 		query.WithBoolQueryName(source.GetFeedID()+"_unread_items"),
 		query.Filter(
