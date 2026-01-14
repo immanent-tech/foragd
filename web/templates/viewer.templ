@@ -120,7 +120,7 @@ templ ViewerResults(feed *feeds.Feed) {
 				</span>
 			</div>
 		</div>
-	</div>Inspector
+	</div>
 	if len(feed.GetItems()) > 0 {
 		@grid() {
 			for item := range slices.Values(feed.GetItems()) {
