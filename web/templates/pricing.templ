@@ -11,16 +11,16 @@ import (
 
 templ pricingGrid(action, method, selectedID, selectedText string) {
 	<div class="grid grid-cols-1 gap-10 lg:grid-cols-3">
-		<div class="-m-2 grid grid-cols-1 rounded-4xl bg-base-100 shadow-[inset_0_0_2px_1px_#ffffff4d] max-lg:mx-auto max-lg:w-full max-lg:max-w-md">
+		<div class="-m-2 grid mx-auto col-span-full rounded-4xl bg-base-100 shadow-[inset_0_0_2px_1px_#ffffff4d] max-lg:mx-auto max-lg:w-full max-lg:max-w-md">
 			<div class="grid grid-cols-1 rounded-4xl p-2 shadow-md shadow-black/5">
 				<div class="rounded-3xl bg-base-200 p-10 pb-9 shadow-2xl">
-					<h2 class="text-lg/7 font-semibold text-primary">Gatherer <span class="sr-only">plan</span></h2>
-					if selectedID == "Gatherer-85297d6" {
+					<h2 class="text-lg/7 font-semibold text-primary">The One <span class="sr-only">plan</span></h2>
+					if selectedID == "TheOne-85297d6" {
 						<span class="badge badge-xs badge-primary">{ selectedText }</span>
 					}
-					<p class="mt-2 text-sm/6 text-pretty text-neutral">Perfect for keeping up with the latest news feeds.</p>
+					<p class="mt-2 text-sm/6 text-pretty text-neutral">Single plan, all features, generous inclusions.</p>
 					<div class="mt-8 flex items-center gap-4">
-						<div class="text-5xl font-semibold">$TBD</div>
+						<div class="text-5xl font-semibold">$7</div>
 						<div class="text-sm">
 							<p>USD</p>
 							<p>per month</p>
@@ -30,8 +30,8 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 						if user, err := models.UserFromCtx(ctx); err != nil && user != nil {
 							<form action={ action } method={ method }>
 								<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-								<input type="hidden" name={ models.ParamPlanID } value="Gatherer-85297d6"/>
-								<button aria-label="Start a free trial on the Gatherer plan" id="checkout-gatherer" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
+								<input type="hidden" name={ models.ParamPlanID } value="TheOne-85297d6"/>
+								<button aria-label="Start a free trial on the One plan" id="checkout-theone" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
 							</form>
 						} else {
 							<a
@@ -50,89 +50,13 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 								<span class="inline-flex h-6 items-center">
 									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
 								</span>
-								1 week of article retention.
+								Unlimited subscriptions.
 							</li>
 							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
 								<span class="inline-flex h-6 items-center">
 									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
 								</span>
-								100 feed subscriptions.
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								Fetch remote article content.
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								Full text search through articles.
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								No ads, no recommended content, ever.
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								Personal use only.
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="-m-2 grid grid-cols-1 rounded-4xl bg-base-100 shadow-[inset_0_0_2px_1px_#ffffff4d] max-lg:mx-auto max-lg:w-full max-lg:max-w-md">
-			<div class="grid grid-cols-1 rounded-4xl p-2 shadow-md shadow-black/5">
-				<div class="rounded-3xl bg-base-200 p-10 pb-9 shadow-2xl">
-					<h2 class="text-lg/7 font-semibold text-primary">Collector <span class="sr-only">plan</span></h2>
-					if selectedID == "Collector-07ad4d0" {
-						<span class="badge badge-xs badge-primary">{ selectedText }</span>
-					}
-					<p class="mt-2 text-sm/6 text-pretty text-neutral">Great for following the news and your favorite blogs/content sites.</p>
-					<div class="mt-8 flex items-center gap-4">
-						<div class="text-5xl font-semibold">$TBD</div>
-						<div class="text-sm">
-							<p>USD</p>
-							<p>per month</p>
-						</div>
-					</div>
-					<div class="mt-8">
-						if user, err := models.UserFromCtx(ctx); err != nil && user != nil {
-							<form action={ action } method={ method }>
-								<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-								<input type="hidden" name={ models.ParamPlanID } value="Collector-07ad4d0"/>
-								<button aria-label="Start a free trial on the Collector plan" id="checkout-collector" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
-							</form>
-						} else {
-							<a
-								role="button"
-								class="btn btn-accent btn-block"
-								rel="noopener"
-								target="_blank"
-								href="https://docs.google.com/forms/d/e/1FAIpQLSfMnLy6zJToJ8yuQfr8TlsnTuC7Bt4x2OGhl9F_jP6IncGiCA/viewform?usp=dialog"
-							>Sign up for beta access</a>
-						}
-					</div>
-					<div class="mt-8">
-						<h3 class="text-sm/6 font-medium">Features:</h3>
-						<ul class="mt-3 space-y-3">
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								Six months of article retention.
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								150 feed subscriptions.
+								50 email newsletters.
 							</li>
 							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
 								<span class="inline-flex h-6 items-center">
@@ -145,100 +69,24 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
 								</span>
 								Add favorite subscriptions and articles.
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								Full text search through articles.
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								No ads, no recommended content, ever.
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								Personal use only.
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="-m-2 grid grid-cols-1 rounded-4xl bg-base-100 shadow-[inset_0_0_2px_1px_#ffffff4d] max-lg:mx-auto max-lg:w-full max-lg:max-w-md">
-			<div class="grid grid-cols-1 rounded-4xl p-2 shadow-md shadow-black/5">
-				<div class="rounded-3xl bg-base-200 p-10 pb-9 shadow-2xl">
-					<h2 class="text-lg/7 font-semibold text-primary">Curator <span class="sr-only">plan</span></h2>
-					if selectedID == "Curator-2c67637" {
-						<span class="badge badge-xs badge-primary">{ selectedText }</span>
-					}
-					<p class="mt-2 text-sm/6 text-pretty text-neutral">Extensive article history with all current and new features.</p>
-					<div class="mt-8 flex items-center gap-4">
-						<div class="text-5xl font-semibold">$TBD</div>
-						<div class="text-sm">
-							<p>USD</p>
-							<p>per month</p>
-						</div>
-					</div>
-					<div class="mt-8">
-						if user, err := models.UserFromCtx(ctx); err != nil && user != nil {
-							<form action={ action } method={ method }>
-								<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-								<input type="hidden" name={ models.ParamPlanID } value="Curator-2c67637"/>
-								<button aria-label="Start a free trial on the Curator plan" id="checkout-curator" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
-							</form>
-						} else {
-							<a
-								role="button"
-								class="btn btn-accent btn-block"
-								rel="noopener"
-								target="_blank"
-								href="https://docs.google.com/forms/d/e/1FAIpQLSfMnLy6zJToJ8yuQfr8TlsnTuC7Bt4x2OGhl9F_jP6IncGiCA/viewform?usp=dialog"
-							>Sign up for beta access</a>
-						}
-					</div>
-					<div class="mt-8">
-						<h3 class="text-sm/6 font-medium">Features:</h3>
-						<ul class="mt-3 space-y-3">
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								Two years of article retention.
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								Unlimited feed subscriptions.
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								Fetch remote article content.
 							</li>
 							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
 								<span class="inline-flex h-6 items-center">
 									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
 								</span>
 								Group subscriptions (combine multiple feeds into one).
+								<a href="/help/index#group-subscriptions" rel="noopener" target="_blank" class="link">
+									@tabler.HelpCircle(i.Props{Class: "size-6"})
+								</a>
 							</li>
 							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
 								<span class="inline-flex h-6 items-center">
 									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
 								</span>
 								Search subscriptions (save search results as a subscription).
-							</li>
-							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
-								<span class="inline-flex h-6 items-center">
-									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
-								</span>
-								Add favorite subscriptions and articles.
+								<a href="/help/index#search-subscriptions" rel="noopener" target="_blank" class="link">
+									@tabler.HelpCircle(i.Props{Class: "size-6"})
+								</a>
 							</li>
 							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
 								<span class="inline-flex h-6 items-center">
@@ -251,6 +99,12 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
 								</span>
 								No ads, no recommended content, ever.
+							</li>
+							<li class="group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90">
+								<span class="inline-flex h-6 items-center">
+									@tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"})
+								</span>
+								Personal use only.
 							</li>
 						</ul>
 					</div>
