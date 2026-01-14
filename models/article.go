@@ -60,23 +60,23 @@ func FilterArticles(
 		GetSubscriptionsByIDs(request.Filters.GetSubscriptions()...),
 		GetSubscriptionsDynamicInfo(true),
 	)
+	if err != nil {
+		return nil, "", fmt.Errorf("filter articles: get subscriptions: %w", err)
+	}
 	// Filter based on current filters.
 	subscriptions = subscriptions.
 		FilterByView(request.Filters.GetView()).
 		FilterByFavorites(request.Filters.OnlyFavorites)
 
-	if err != nil {
-		return nil, "", fmt.Errorf("filter articles: get subscriptions: %w", err)
-	}
 	// Return early if there the user has no subscriptions (i.e., new user).
 	if len(subscriptions) == 0 {
 		return nil, "", fmt.Errorf("filter articles: %w", ErrNotFound)
 	}
+
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
 	articleQuery := query.Bool(
 		query.Filter(
-			// Must match any of the given categories.
 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
 			query.Terms("categories.raw", request.Filters.GetCategories()...),
 			query.Bool(
@@ -305,6 +305,22 @@ func (a Articles) GetCategoryCounts() CategoryCounts {
 	}
 
 	return counts
+}
+
+// FilterByView returns a slice containing the subscription which match the given view state.
+func (a Articles) FilterByView(view View) Articles {
+	switch view {
+	case ViewRead:
+		return slices.Collect(FilterSlice(a, func(article *Article) bool {
+			return !article.IsUnread()
+		}))
+	case ViewUnread:
+		return slices.Collect(FilterSlice(a, func(article *Article) bool {
+			return article.IsUnread()
+		}))
+	default:
+		return a
+	}
 }
 
 // Valid returns a boolean indicating if the article contains valid data (true). If it contains invalid data

@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"slices"
 	"strconv"
@@ -453,8 +452,6 @@ func MarkArticle() http.HandlerFunc {
 				}
 			}
 		}
-
-		slog.Info("here")
 
 		// Generate appropriate swap content based on target header.
 		switch req.Header.Get(htmx.HeaderTarget) {

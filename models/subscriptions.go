@@ -1033,6 +1033,11 @@ func BuildItemQueries(
 		return nil
 	}
 	for subscription := range slices.Values(subscriptions) {
+		// Ignore subscriptions that aren't based on a feed object.
+		if subscription.GetFeedID() == "" {
+			continue
+		}
+
 		switch view {
 		case ViewRead:
 			queries = append(queries, queryReadItems(user, subscription))
@@ -1100,11 +1105,11 @@ func queryUnreadItems(_ *User, source itemSource) query.Option {
 					query.Since("updated", source.GetMarkedReadAt()),
 					query.Terms("item_id", source.GetUnreadItems()...),
 				),
-				// Must not match any read items for the feed
-				query.MustNot(
-					query.Terms("item_id", source.GetReadItems()...),
-				),
 			),
+		),
+		// Must not match any read items for the feed
+		query.MustNot(
+			query.Terms("item_id", source.GetReadItems()...),
 		),
 		// User-specified field-level filtering.
 		query.Must(
