@@ -628,7 +628,7 @@ type MarkSubscriptionsRequest struct {
 	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 
 	// Subscriptions is a list of subscription IDs.
-	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
+	Subscriptions []SubscriptionID `form:"displayed_subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`

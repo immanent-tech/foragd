@@ -1382,7 +1382,7 @@ components:
           items:
             $ref: '#/components/schemas/SubscriptionID'
           x-oapi-codegen-extra-tags:
-            form: 'subscriptions'
+            form: 'displayed_subscriptions'
             validate: 'omitempty,dive,startswith=sub_'
         view:
           $ref: '#/components/schemas/View'

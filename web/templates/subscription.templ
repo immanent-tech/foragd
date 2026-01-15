@@ -301,9 +301,6 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					<div class="py-1">
 						// Mark all subscriptions action.
 						<form>
-							for subscription := range slices.Values(response.Filters.GetSubscriptions()) {
-								<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-							}
 							<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
 							{{ var markText string }}
 							{{ var markURL string }}
@@ -319,16 +316,15 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
 								<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
 							}
-							@NewLink(
-								WithHXMethod(http.MethodPost, markURL),
-								WithHXTarget(ContentID.Target()),
-								WithHXInclude("[name='csrf_token']"),
-								WithClasses("link-hover"),
-							) {
+							<a
+								hx-post={ markURL }
+								hx-target={ ContentID.Target() }
+								hx-include="[name='csrf_token'],[name='displayed_subscriptions']"
+							>
 								@markIcon
 								<span class="sr-only">{ markText }</span>
 								{ markText }
-							}
+							</a>
 						</form>
 					</div>
 					<div class="py-1">
