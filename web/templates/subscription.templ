@@ -138,6 +138,8 @@ templ (s *Subscription) Card() {
 			templ.KV("opacity-50",!s.Subscription.GetStats().IsUnread()) }
 		{ s.ViewArticlesAttributes()... }
 	>
+		// Hidden input used for acting on all displayed subscriptions.
+		<input type="hidden" name="displayed_subscriptions" value={ s.GetID() }/>
 		<div class="card-body">
 			<div class="card-title flex items-center">
 				<div class="mr-4 shrink-0 self-center">
@@ -382,7 +384,6 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 // to load more.
 templ PaginateSubscriptions(response *models.ListSubscriptionsResponse) {
 	for subscription := range slices.Values(response.Subscriptions) {
-		<input type="hidden" name="displayed_subscriptions" value={ subscription.GetID() }/>
 		@NewSubscriptionView(subscription).Card()
 	}
 	if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {

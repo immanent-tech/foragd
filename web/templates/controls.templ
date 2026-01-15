@@ -54,7 +54,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								id="category-filters-mobile"
 								class="flex flex-col"
 								hx-get={ path + "/categories" }
-								hx-include="#grid-objects"
+								hx-include="[name='displayed_subscriptions']"
 								hx-vals={ generateHXVals(filters.Values()) }
 								hx-trigger="click from:#filters-mobile-disclosure"
 								hx-indicator="#load-categories-mobile"
@@ -137,7 +137,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 							<button
 								class="inline-flex btn btn-wide"
 								hx-get={ path + "/categories" }
-								hx-include="#grid-objects"
+								hx-include="[name='displayed_subscriptions']"
 								hx-vals={ generateHXVals(filters.Values()) }
 								hx-target="#category-filters-desktop"
 								hx-indicator="#load-categories-desktop"
