@@ -54,9 +54,17 @@ templ ArticleCard(article *models.Article) {
 					</p>
 				}
 				<p class="inline-block text-xs/4 truncate">
-					@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
+					<a
+						hx-get="/list/articles"
+						hx-target={ ContentID.Target() }
+						hx-push-url="true"
+						hx-swap="innerHTML show:window:top transition:true"
+						hx-trigger="click consume"
+						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: article.GetSubscriptionID()}) }
+						class="link link-hover truncate"
+					>
 						{ article.GetFeedTitle() }
-					}
+					</a>
 				</p>
 			</div>
 			<div class="card-actions mt-auto justify-between items-center">

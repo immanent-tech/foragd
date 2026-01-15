@@ -128,9 +128,17 @@ templ homePageArticle(article *models.Article) {
 				</p>
 				// Subscription.
 				<p class="flex text-xs/tight truncate">
-					@viewFeedSubscriptionLink(article.GetSubscriptionID(), article.GetFeedTitle(), models.ViewUnread, WithClasses("truncate")) {
+					<a
+						hx-get="/list/articles"
+						hx-target={ ContentID.Target() }
+						hx-push-url="true"
+						hx-swap="innerHTML show:window:top transition:true"
+						hx-trigger="click consume"
+						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: article.GetSubscriptionID()}) }
+						class="link link-hover truncate"
+					>
 						{ article.GetFeedTitle() }
-					}
+					</a>
 				</p>
 			</div>
 			// Content summary.

@@ -256,7 +256,7 @@ func MarkSubscription() http.HandlerFunc {
 					}
 				}
 				res.Header().Set(htmx.HeaderReswap, "outerHTML transition:true")
-				renderPartial(templates.NewPartial(templates.NewSubscriptionCard(req.Context(), subscription).Render())).ServeHTTP(res, req)
+				renderPartial(templates.NewPartial(templates.NewSubscriptionView(subscription).Card())).ServeHTTP(res, req)
 			}
 		}
 		return nil

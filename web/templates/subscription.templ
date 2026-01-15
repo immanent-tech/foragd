@@ -4,7 +4,6 @@
 package templates
 
 import (
-	"context"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
@@ -16,79 +15,128 @@ import (
 	"time"
 )
 
-// AddFeedsetsSuccessNotification renders a notification when a new user is successfully subscribed to one or more curated feedsets.
-templ AddFeedsetsSuccessNotification(feedsets []string) {
-	@Notification(models.NewSuccessMessage("Subscribed!", "You are now subscribed to the "+strings.Join(feedsets, ", ")+" feedsets(s)."), 10*time.Second) {
-		<div class="mt-3 flex space-x-7">
-			@NewLink(
-				WithHXMethod(http.MethodGet, "/list/subscriptions"),
-				WithHXTarget(ContentID.Target()),
-				WithHXPushURL(true),
-			) {
-				Go to Subscriptions <span aria-hidden="true">&rarr;</span>
-			}
-		</div>
-	}
+type Subscription struct {
+	*models.Subscription
 }
 
-type SubscriptionCard struct {
-	Subscription   *models.Subscription
-	linkAttributes templ.Attributes
+// NewSubscriptionView wraps a Subscription object with additional methods for templates involving the subscription.
+func NewSubscriptionView(s *models.Subscription) *Subscription {
+	return &Subscription{Subscription: s}
 }
 
-func NewSubscriptionCard(ctx context.Context, subscription *models.Subscription) *SubscriptionCard {
-	card := &SubscriptionCard{
-		Subscription:   subscription,
-		linkAttributes: make(templ.Attributes),
+// ViewOriginAttributes generates a templ.Attributes object containing htmx directives for viewing the subscription's origin URL.
+func (s *Subscription) ViewOriginAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	switch s.GetSubscriptionType() {
+	case models.SubscriptionTypeFeed:
+		attrs["href"] = s.GetLink()
+		attrs["rel"] = "noopener"
+		attrs["target"] = "_blank"
+		attrs["_"] = "on click halt the event's bubbling"
 	}
-	card.linkAttributes["hx-target"] = ContentID.Target()
-	card.linkAttributes["hx-swap"] = "innerHTML show:window:top transition:true"
-	card.linkAttributes["hx-push-url"] = "true"
-	card.linkAttributes["hx-trigger"] = "click consume"
-	switch card.Subscription.GetSubscriptionType() {
-	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
-		filters := models.PageFiltersFromCtx(ctx, "/list/articles").Values()
-		filters[models.ParamSubscriptions] = card.Subscription.GetID()
-		filters[models.ParamSubscriptionID] = card.Subscription.GetID()
-		if card.Subscription.GetStats().IsUnread() {
-			filters[models.ParamView] = models.ViewUnread
+	return attrs
+}
+
+// ViewAttributes generates a templ.Attributes object containing htmx directives for viewing a subscription.
+func (s *Subscription) ViewArticlesAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	attrs["hx-target"] = ContentID.Target()
+	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
+	attrs["hx-push-url"] = "true"
+	attrs["hx-trigger"] = "click consume"
+	switch s.GetSubscriptionType() {
+	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail, models.SubscriptionTypeGroup:
+		filters := models.NewListDisplayFilters()
+		filters.Subscriptions = []string{s.GetID()}
+		if s.GetStats().IsUnread() {
+			filters.View = models.ViewUnread
 		} else {
-			filters[models.ParamView] = models.ViewRead
+			filters.View = models.ViewRead
 		}
-		filterVals, _ := templ.JSONString(filters)
-		card.linkAttributes["hx-vals"] = filterVals
-		card.linkAttributes["hx-get"] = "/list/articles"
+		values := filters.Values()
+		values[models.ParamSubscriptionID] = s.GetID()
+		attrs["hx-vals"] = generateHXVals(values)
+		attrs["hx-get"] = "/list/articles"
 	case models.SubscriptionTypeSearch:
-		card.linkAttributes["hx-post"] = "/search"
-		card.linkAttributes["hx-include"] = "[name='csrf_token']"
-		card.Subscription.SearchData.Search.SubscriptionID = card.Subscription.GetID()
-		card.linkAttributes["hx-vals"] = card.Subscription.SearchData.Search.HXVals()
-	case models.SubscriptionTypeGroup:
-		filters := models.PageFiltersFromCtx(ctx, "/list/articles").Values()
-		filters[models.ParamSubscriptionID] = card.Subscription.GetID()
-		filters[models.ParamSubscriptions] = card.Subscription.GroupData.Subscriptions
-		if card.Subscription.GetStats().IsUnread() {
-			filters[models.ParamView] = models.ViewUnread
-		} else {
-			filters[models.ParamView] = models.ViewRead
-		}
-		filterVals, _ := templ.JSONString(filters)
-		card.linkAttributes["hx-vals"] = filterVals
-		card.linkAttributes["hx-get"] = "/list/articles"
+		attrs["hx-post"] = "/search"
+		attrs["hx-include"] = "[name='csrf_token']"
+		s.SearchData.Search.SubscriptionID = s.GetID()
+		attrs["hx-vals"] = s.SearchData.Search.HXVals()
 	}
-
-	return card
+	return attrs
 }
 
-// SubscriptionCard renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
-templ (s *SubscriptionCard) Render() {
+// MarkAttributes generates a templ.Attributes object containing htmx directives for marking a subscription.
+func (s *Subscription) MarkAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	switch s.GetSubscriptionType() {
+	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail, models.SubscriptionTypeGroup:
+		attrs["hx-include"] = "[name='csrf_token']"
+		attrs["hx-target"] = ID(s.GetID()).Target()
+		attrs["hx-trigger"] = "click consume"
+		if s.GetStats().IsUnread() {
+			attrs["hx-post"] = "/mark/subscription/" + s.GetID() + "/read"
+		} else {
+			attrs["hx-post"] = "/mark/subscription/" + s.GetID() + "/unread"
+		}
+	}
+	return attrs
+}
+
+// FavoriteAttributes generates a templ.Attributes object containing htmx directives for favoriting a subscription.
+func (s *Subscription) FavoriteAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	if s.IsFavorite() {
+		attrs["hx-post"] = "/user/favorite/remove/subscription/" + s.GetID()
+	} else {
+		attrs["hx-post"] = "/user/favorite/add/subscription/" + s.GetID()
+	}
+	attrs["hx-target"] = ID("favorite_" + s.GetID()).Target()
+	attrs["hx-include"] = "[name='csrf_token']"
+	attrs["hx-trigger"] = "click consume"
+	return attrs
+}
+
+// EditAttributes generates a templ.Attributes object containing htmx directives for editing a subscription.
+func (s *Subscription) EditAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	attrs["hx-get"] = "/edit/subscription/" + s.GetID()
+	attrs["hx-target"] = ContentID.Target()
+	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
+	attrs["hx-push-url"] = "true"
+	attrs["hx-trigger"] = "click consume"
+	return attrs
+}
+
+// UnsubscribeAttributes generates a templ.Attributes object containing htmx directives for unsubscribing from a subscription.
+func (s *Subscription) UnsubscribeAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	attrs["hx-post"] = "/remove/subscription/" + s.GetID()
+	attrs["hx-target"] = ModalContainerID.Target()
+	attrs["hx-include"] = "[name='csrf_token']"
+	attrs["_"] = "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show() then halt the event's bubbling"
+	return attrs
+}
+
+// ReportIssueAttributes generates a templ.Attributes object containing directives for reporting an issue with the subscription.
+func (s *Subscription) ReportIssueAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	attrs["hx-get"] = "/issue/subscription/" + s.GetID()
+	attrs["hx-target"] = ContentID.Target()
+	attrs["hx-replace-url"] = "true"
+	attrs["hx-trigger"] = "click consume"
+	return attrs
+}
+
+// Card renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
+templ (s *Subscription) Card() {
 	<article
 		id={ s.Subscription.GetID() }
 		class={ "card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
 			templ.KV("row-span-2",len(s.Subscription.GetCategories(0))== 0),
 			templ.KV("row-span-3",len(s.Subscription.GetCategories(0)) >0),
 			templ.KV("opacity-50",!s.Subscription.GetStats().IsUnread()) }
-		{ s.linkAttributes... }
+		{ s.ViewArticlesAttributes()... }
 	>
 		<div class="card-body">
 			<div class="card-title flex items-center">
@@ -144,133 +192,77 @@ templ (s *SubscriptionCard) Render() {
 				</div>
 				// Context menu actions.
 				<div class="grid col-span-1 justify-end">
-					@subscriptionContextMenu(s.Subscription)
+					<el-dropdown class="relative" _="on click halt the event's bubbling">
+						<button class="btn btn-sm btn-ghost">
+							<span class="sr-only">s.GetTitle() + " Actions"</span>
+							@tabler.DotsVertical(i.Props{Class: "size-5"})
+						</button>
+						<el-menu anchor="bottom end" popover>
+							// View action.
+							if len(s.ViewOriginAttributes()) > 0 {
+								<a class="link link-hover" { s.ViewOriginAttributes()... }>
+									@tabler.ExternalLink(i.Props{Class: "size-4"})
+									Feed Website
+								</a>
+							}
+							// Mark action.
+							if len(s.MarkAttributes()) > 0 {
+								<form id={ "mark-" + s.GetID() }>
+									<input
+										type="hidden"
+										name={ models.ParamView }
+										value={ generateHXVals(map[string]any{models.ParamView: models.PageFiltersFromCtx(ctx, "/list/subscriptions").GetView()}) }
+									/>
+									<a class="link link-hover" { s.MarkAttributes()... }>
+										switch s.GetStats().IsUnread() {
+											case true:
+												@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+												Mark Read
+											case false:
+												@tabler.MailFilled(i.Props{Class: "size-4"})
+												Mark Unread
+										}
+									</a>
+								</form>
+							}
+							// Favorite action.
+							<div id={ "favorite_" + s.GetID() }>
+								<a class="link link-hover" { s.FavoriteAttributes()... }>
+									switch s.IsFavorite() {
+										case true:
+											@tabler.HeartFilled(i.Props{Class: "size-4"})
+											Remove Favorite
+										case false:
+											@tabler.Heart(i.Props{Class: "size-4"})
+											Add Favorite
+									}
+								</a>
+							</div>
+							// Edit action.
+							<a class="link link-hover" { s.EditAttributes()... }>
+								@tabler.Edit(i.Props{Class: "size-4"})
+								Edit Subscription
+							</a>
+							// Unsubscribe action.
+							<form>
+								<input type="hidden" name="nickname" value={ s.GetTitle() }/>
+								<input type="hidden" name="confirmed" value="false"/>
+								<a class="link link-hover" { s.UnsubscribeAttributes()... }>
+									@tabler.TrashFilled(i.Props{Class: "size-4"})
+									Remove Subscription
+								</a>
+							</form>
+							// Report issue action.
+							<a class="link link-hover" { s.ReportIssueAttributes()... }>
+								@tabler.FlagFilled(i.Props{Class: "size-4"})
+								Report an issue
+							</a>
+						</el-menu>
+					</el-dropdown>
 				</div>
 			</div>
 		</div>
 	</article>
-}
-
-templ subscriptionContextMenu(s *models.Subscription) {
-	<el-dropdown class="relative" _="on click halt the event's bubbling">
-		<button class="btn btn-sm btn-ghost">
-			<span class="sr-only">s.GetTitle() + " Actions"</span>
-			@tabler.DotsVertical(i.Props{Class: "size-5"})
-		</button>
-		<el-menu
-			anchor="bottom end"
-			popover
-		>
-			// View action.
-			if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-				@NewLink(
-					WithAttribute("href", s.GetLink()),
-					WithAttribute("rel", "noopener"),
-					WithAttribute("target", "_blank"),
-					WithAttribute("_", "on click halt the event's bubbling"),
-					WithClasses("link-hover"),
-				) {
-					@tabler.ExternalLink(i.Props{Class: "size-4"})
-					Feed Website
-				}
-			}
-			if s.GetSubscriptionType() == models.SubscriptionTypeFeed || s.GetSubscriptionType() == models.SubscriptionTypeGroup {
-				// Mark action.
-				<form id={ "mark-" + s.GetID() }>
-					// MarkURL returns the app URL for marking the subscription.
-					{{ var markURL string }}
-					if s.GetStats().IsUnread() {
-						{{ markURL = "/mark/subscription/" + s.GetID() + "/read" }}
-					} else {
-						{{ markURL = "/mark/subscription/" + s.GetID() + "/unread" }}
-					}
-					@NewLink(
-						WithHXMethod(http.MethodPost, markURL),
-						WithHXInclude("[name='csrf_token']"),
-						WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
-						WithHXTarget("#"+s.GetID()),
-						WithHXTrigger("click consume"),
-						WithClasses("link-hover"),
-					) {
-						switch s.GetStats().IsUnread() {
-							case true:
-								@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-								Mark Read
-							case false:
-								@tabler.MailFilled(i.Props{Class: "size-4"})
-								Mark Unread
-						}
-					}
-				</form>
-			}
-			if s.GetSubscriptionType() == models.SubscriptionTypeFeed {
-				// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-				<div id={ "favorite_" + s.GetID() }>
-					@ToggleFavorite(s.GetID(), string(models.ObjectTypeSubscription), s.IsFavorite())
-				</div>
-			}
-			// Edit action.
-			@NewLink(
-				WithHXMethod(http.MethodGet, "/edit/subscription/"+s.GetID()),
-				WithHXTarget(ContentID.Target()),
-				WithHXSwap("innerHTML show:window:top transition:true"),
-				WithHXPushURL(true),
-				WithHXTrigger("click consume"),
-				WithClasses("link-hover"),
-			) {
-				@tabler.Edit(i.Props{Class: "size-4"})
-				Edit Subscription
-			}
-			// Unsubscribe action.
-			<form>
-				<input type="hidden" name="nickname" value={ s.GetTitle() }/>
-				<input type="hidden" name="confirmed" value="false"/>
-				@NewLink(
-					WithHXMethod(http.MethodPost, "/remove/subscription/"+s.GetID()),
-					WithHXTarget(ModalContainerID.Target()),
-					WithHXInclude("[name='csrf_token']"),
-					WithAttribute("_", "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show() then halt the event's bubbling"),
-					WithClasses("link-hover"),
-				) {
-					@tabler.TrashFilled(i.Props{Class: "size-4"})
-					Remove Subscription
-				}
-			</form>
-			// Report issue action.
-			@NewLink(
-				WithHXMethod(http.MethodGet, "/issue/subscription/"+s.GetID()),
-				WithHXTarget(ContentID.Target()),
-				WithHXReplaceURL(true),
-				WithHXTrigger("click consume"),
-				WithClasses("link-hover"),
-			) {
-				@tabler.FlagFilled(i.Props{Class: "size-4"})
-				Report an issue
-			}
-		</el-menu>
-	</el-dropdown>
-}
-
-templ viewFeedSubscriptionLink(id models.SubscriptionID, title string, view models.View, options ...Option[element]) {
-	{{ values := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
-	{{ values[models.ParamSubscriptions] = id }} // used for filtering articles.
-	{{ values[models.ParamSubscriptionID] = id }} // used for subscription actions.
-	{{ values[models.ParamView] = view }}
-	{{
-		allOptions := []Option[element]{
-			WithHXMethod(http.MethodGet, "/list/articles"),
-			WithHXVals(values),
-			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(true),
-			WithHXSwap("innerHTML show:window:top transition:true"),
-			WithHXTrigger("click consume"),
-			WithClasses("link-hover"),
-		}
-		allOptions = append(allOptions, options...)
-	}}
-	@NewLink(allOptions...) {
-		{ children... }
-	}
 }
 
 // ListSubscriptions renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
@@ -289,7 +281,90 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 			</div>
 		</div>
 		@FilterControls("/list/subscriptions", &response.Filters) {
-			@subscriptionsActionsButton(&response.Filters)
+			// Subscriptions actions menu.
+			<el-dropdown class="inline-block flex-none">
+				<button
+					id="subscriptions-actions-button"
+					class="inline-flex btn btn-wide"
+				>
+					Actions
+					@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+				</button>
+				<el-menu
+					id="subscriptions-actions-menu"
+					anchor="bottom end"
+					popover
+					_="on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"
+				>
+					<div class="py-1">
+						// Mark all subscriptions action.
+						<form>
+							for subscription := range slices.Values(response.Filters.GetSubscriptions()) {
+								<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+							}
+							<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
+							{{ var markText string }}
+							{{ var markURL string }}
+							{{ var markIcon templ.Component }}
+							if response.Filters.GetView() == models.ViewUnread {
+								{{ markText = "Mark All Read" }}
+								{{ markURL = "/list/subscriptions/mark/" + string(models.MarkRead) }}
+								{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
+								<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+							} else {
+								{{ markText = "Mark All Unread" }}
+								{{ markURL = "/list/subscriptions/mark/" + string(models.MarkUnread) }}
+								{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
+								<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+							}
+							@NewLink(
+								WithHXMethod(http.MethodPost, markURL),
+								WithHXTarget(ContentID.Target()),
+								WithHXInclude("[name='csrf_token']"),
+								WithClasses("link-hover"),
+							) {
+								@markIcon
+								<span class="sr-only">{ markText }</span>
+								{ markText }
+							}
+						</form>
+					</div>
+					<div class="py-1">
+						<a
+							hx-get="/user/subscription/add/feed"
+							hx-target={ ContentID.Target() }
+							hx-push-url="true"
+							class="link link-hover"
+						>
+							@tabler.Plus(i.Props{Class: "size-4"})
+							Add Feed Subscription
+						</a>
+					</div>
+					<div class="py-1">
+						<a
+							hx-get="/user/subscription/add/search"
+							hx-target={ ContentID.Target() }
+							hx-include="#search-filters"
+							hx-push-url="true"
+							class="link link-hover"
+						>
+							@tabler.Plus(i.Props{Class: "size-4"})
+							Add Search Subscription
+						</a>
+					</div>
+					<div class="py-1">
+						<a
+							hx-get="/user/subscription/add/group"
+							hx-target={ ContentID.Target() }
+							hx-push-url="true"
+							class="link link-hover"
+						>
+							@tabler.Plus(i.Props{Class: "size-4"})
+							Add Group Subscription
+						</a>
+					</div>
+				</el-menu>
+			</el-dropdown>
 		}
 		<section class="mt-4">
 			if len(response.Subscriptions) > 0 {
@@ -303,101 +378,12 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	}
 }
 
-// subscriptionsActionsButton creates a button containing a menu of actions to apply to a list of subscriptions, or
-// actions related to subscriptions.
-templ subscriptionsActionsButton(filters *models.ListFilters) {
-	// Subscriptions actions menu.
-	<el-dropdown class="inline-block flex-none">
-		<button
-			id="subscriptions-actions-button"
-			class="inline-flex btn btn-wide"
-		>
-			Actions
-			@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
-		</button>
-		<el-menu
-			id="subscriptions-actions-menu"
-			anchor="bottom end"
-			popover
-			_="on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"
-		>
-			<div class="py-1">
-				// Mark all subscriptions action.
-				<form>
-					for subscription := range slices.Values(filters.GetSubscriptions()) {
-						<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-					}
-					<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-					{{ var markText string }}
-					{{ var markURL string }}
-					{{ var markIcon templ.Component }}
-					if filters.GetView() == models.ViewUnread {
-						{{ markText = "Mark All Read" }}
-						{{ markURL = "/list/subscriptions/mark/" + string(models.MarkRead) }}
-						{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
-						<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-					} else {
-						{{ markText = "Mark All Unread" }}
-						{{ markURL = "/list/subscriptions/mark/" + string(models.MarkUnread) }}
-						{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
-						<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
-					}
-					@NewLink(
-						WithHXMethod(http.MethodPost, markURL),
-						WithHXTarget(ContentID.Target()),
-						WithHXInclude("[name='csrf_token']"),
-						WithClasses("link-hover"),
-					) {
-						@markIcon
-						<span class="sr-only">{ markText }</span>
-						{ markText }
-					}
-				</form>
-			</div>
-			<div class="py-1">
-				@NewLink(
-					WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
-					WithHXTarget(ContentID.Target()),
-					WithHXPushURL(true),
-					WithClasses("link-hover"),
-				) {
-					@tabler.Plus(i.Props{Class: "size-4"})
-					Add Feed Subscription
-				}
-			</div>
-			<div class="py-1">
-				@NewLink(
-					WithHXMethod(http.MethodGet, "/user/subscription/add/search"),
-					WithHXTarget(ContentID.Target()),
-					WithHXInclude("#search-filters"),
-					WithHXPushURL(true),
-					WithClasses("link-hover"),
-				) {
-					@tabler.Plus(i.Props{Class: "size-4"})
-					Add Search Subscription
-				}
-			</div>
-			<div class="py-1">
-				@NewLink(
-					WithHXMethod(http.MethodGet, "/user/subscription/add/group"),
-					WithHXTarget(ContentID.Target()),
-					WithHXPushURL(true),
-					WithClasses("link-hover"),
-				) {
-					@tabler.Plus(i.Props{Class: "size-4"})
-					Add Group Subscription
-				}
-			</div>
-		</el-menu>
-	</el-dropdown>
-}
-
 // PaginateSubscriptions renders the given list of subscriptions as cards with an optional element to trigger pagination
 // to load more.
 templ PaginateSubscriptions(response *models.ListSubscriptionsResponse) {
 	for subscription := range slices.Values(response.Subscriptions) {
 		<input type="hidden" name="displayed_subscriptions" value={ subscription.GetID() }/>
-		@NewSubscriptionCard(ctx, subscription).Render()
+		@NewSubscriptionView(subscription).Card()
 	}
 	if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
 		// Add pagination htmx props to last article.
@@ -1457,6 +1443,21 @@ templ subscriptionThumbnail(url, title string) {
 					<span class="text-3xl capitalize">S</span>
 				}
 			</div>
+		</div>
+	}
+}
+
+// AddFeedsetsSuccessNotification renders a notification when a new user is successfully subscribed to one or more curated feedsets.
+templ AddFeedsetsSuccessNotification(feedsets []string) {
+	@Notification(models.NewSuccessMessage("Subscribed!", "You are now subscribed to the "+strings.Join(feedsets, ", ")+" feedsets(s)."), 10*time.Second) {
+		<div class="mt-3 flex space-x-7">
+			@NewLink(
+				WithHXMethod(http.MethodGet, "/list/subscriptions"),
+				WithHXTarget(ContentID.Target()),
+				WithHXPushURL(true),
+			) {
+				Go to Subscriptions <span aria-hidden="true">&rarr;</span>
+			}
 		</div>
 	}
 }

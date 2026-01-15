@@ -758,7 +758,7 @@ type SearchRequest struct {
 	Sort Sort `form:"sort" json:"sort,omitempty,omitzero" validate:"oneof=newest_first oldest_first most_unread least_unread most_relevant"`
 
 	// SubscriptionID will be a subscription ID if the user has created a SearchSubscription for this request.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"-" validate:"omitzero,startswith=sub_"`
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id,omitempty,omitzero" validate:"omitzero,startswith=sub_"`
 
 	// Subscriptions is a list of subscription IDs.
 	Subscriptions []string `form:"subscriptions" json:"subscriptions,omitempty,omitzero" validate:"omitempty,unique,dive,startswith=sub_"`

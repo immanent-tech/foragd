@@ -1125,7 +1125,6 @@ components:
             - $ref: '#/components/schemas/SubscriptionID'
           x-go-name: SubscriptionID
           x-oapi-codegen-extra-tags:
-            json: '-'
             form: 'subscription_id'
             validate: 'omitzero,startswith=sub_'
         text:

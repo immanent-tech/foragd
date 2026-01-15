@@ -100,7 +100,7 @@ func FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles)
 						}
 						ctx = templ.InitializeContext(ctx)
 						for subscription := range slices.Values(subscriptions) {
-							templ_7745c5c3_Err = NewSubscriptionCard(ctx, subscription).Render().Render(ctx, templ_7745c5c3_Buffer)
+							templ_7745c5c3_Err = NewSubscriptionView(subscription).Card().Render(ctx, templ_7745c5c3_Buffer)
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}

@@ -17,7 +17,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -60,36 +59,28 @@ func ListArticles() http.HandlerFunc {
 					err          error
 					template     templ.Component
 				)
-				wg, jobCtx := errgroup.WithContext(req.Context())
-				defer jobCtx.Done()
 
 				// Get articles matching filters.
-				wg.Go(func() error {
-					articles, request.Pagination, err = models.FilterArticles(jobCtx, request)
-					if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-						return fmt.Errorf("get articles: %w", err)
+				articles, request.Pagination, err = models.FilterArticles(req.Context(), request)
+				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+					return &models.APIError{
+						InternalError: fmt.Errorf("filter articles: %w", err),
+						StatusCode:    http.StatusInternalServerError,
 					}
-					return nil
-				})
-				// Get the subscription details if the list is for a specific subscription.
-				if subscriptionID := req.FormValue(models.ParamSubscriptionID); subscriptionID != "" {
-					wg.Go(func() error {
-						subscription, err = models.GetSubscription(
-							jobCtx,
-							subscriptionID,
-							models.GetSubscriptionsDynamicInfo(true),
-						)
-						if err != nil {
-							return fmt.Errorf("get subscription: %w", err)
-						}
-						return nil
-					})
 				}
 
-				if err := wg.Wait(); err != nil {
-					return &models.APIError{
-						InternalError: fmt.Errorf("unable to list articles: %w", err),
-						StatusCode:    http.StatusInternalServerError,
+				// Get the subscription details if the list is for a specific subscription.
+				if len(articles.GetSubscriptionIDs()) == 1 {
+					subscription, err = models.GetSubscription(
+						req.Context(),
+						articles.GetSubscriptionIDs()[0],
+						models.GetSubscriptionsDynamicInfo(true),
+					)
+					if err != nil {
+						return &models.APIError{
+							InternalError: fmt.Errorf("filter articles: %w", err),
+							StatusCode:    http.StatusInternalServerError,
+						}
 					}
 				}
 
