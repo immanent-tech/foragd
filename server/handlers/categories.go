@@ -17,6 +17,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+// ListCategories handles returning a list of categories that can be used for filtering subscriptions or articles.
 func ListCategories() http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {

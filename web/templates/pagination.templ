@@ -5,17 +5,23 @@ package templates
 
 import (
 	"context"
-	"fmt"
 	"github.com/immanent-tech/foragd/models"
 )
 
 // PaginationControl generates an element that will cause a pagination request when scrolled into view.
-templ PaginationControl(ctx context.Context, route, target string, pagination models.Pagination) {
+templ PaginationControl(ctx context.Context, route string, pagination models.Pagination) {
+	{{ values := models.PageFiltersFromCtx(ctx, route).Values() }}
+	{{ values[models.ParamPagination] = pagination }}
 	<div
 		class="invisible"
 		hx-post={ route }
-		hx-include={ target }
-		hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
+		if route == "/list/subscriptions/paginate" || route == "/list/articles/paginate" {
+			hx-include="[name='csrf_token']"
+			hx-vals={ generateHXVals(values) }
+		}
+		if route == "/search/paginate" {
+			hx-include="[name='csrf_token'],#search-filters"
+		}
 		hx-trigger="intersect once"
 		hx-target="#grid-objects"
 		hx-swap="beforeend transition:false"

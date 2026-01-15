@@ -97,7 +97,8 @@ templ ArticleCard(article *models.Article) {
 								@NewLink(
 									WithHXMethod(http.MethodPost, markURL),
 									WithHXTarget("#"+article.GetID()),
-									WithHXInclude("[name='csrf_token'],#content-filters"),
+									WithHXInclude("[name='csrf_token']"),
+									WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
 									WithHXTrigger("click consume"),
 									WithClasses("link-hover"),
 								) {
@@ -350,7 +351,6 @@ templ UpdateViewArticleFavorite(id models.ItemID, isFavorite bool) {
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ListArticles(response *models.ListArticlesResponse) {
 	@container() {
-		@generateFilters(&response.Filters)
 		// Watch for updates.
 		<div id="update-notifications" sse-connect={ "/list/articles/updates?" + response.Filters.QueryString() } sse-swap="message" class="toast toast-center z-50"></div>
 		// Show a page header.
@@ -477,7 +477,7 @@ templ PaginateArticles(response *models.ListArticlesResponse) {
 	// Add pagination element if pagination is required.
 	if response.Pagination != "" && len(response.Articles) == response.Filters.GetCount() {
 		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/list/articles/paginate", "#content-filters,[name='csrf_token']", response.Pagination)
+		@PaginationControl(ctx, "/list/articles/paginate", response.Pagination)
 	}
 }
 

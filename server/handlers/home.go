@@ -23,7 +23,7 @@ import (
 
 // Home handles displaying the user's home page.
 func Home() http.HandlerFunc {
-	return defaultHandlerChain.Append(setCacheControl).
+	return defaultHandlerChain.
 		ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 			user, err := models.UserFromCtx(req.Context())
 			if err != nil {

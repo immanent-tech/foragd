@@ -18,10 +18,6 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 					@h2("Favorites")
 				</div>
 			</div>
-			// Hidden content filters.
-			<div id="content-filters" class="hidden">
-				<input type="hidden" name={ models.ParamView } value={ models.ViewAll }/>
-			</div>
 			// Show jump to links for quick access when there are both subscriptions and articles.
 			if len(subscriptions) > 0 && len(articles) > 0 {
 				<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8 text-sm">
