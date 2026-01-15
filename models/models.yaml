@@ -265,6 +265,12 @@ components:
         contains metadata related to the user's account.
       type: object
       properties:
+        blocked:
+          description: >
+            indicates whether the user is blocked from the app.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
         stripe_customer_id:
           description: >
             is the stripe customer id of the user.

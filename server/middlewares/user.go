@@ -56,6 +56,11 @@ func RequireUserAuth(next http.Handler) http.Handler {
 			}
 			return
 		}
+		// Do not continue if user is blocked.
+		if user.Metadata.Blocked {
+			res.WriteHeader(http.StatusForbidden)
+			return
+		}
 		// Add context values.
 		ctx = models.UserToCtx(ctx, user)
 		ctx = slogctx.With(ctx, slog.String("user_id", user.GetID()))

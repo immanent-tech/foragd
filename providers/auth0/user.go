@@ -72,28 +72,25 @@ func (u *UserProfile) GetEmail() string {
 }
 
 // DeleteUser will delete the given user from the Auth0 backend.
-func DeleteUser(ctx context.Context, user *models.User) error {
-	err := LoadManagementAPI()
-	if err != nil {
+func DeleteUser(ctx context.Context, id string) error {
+	if err := LoadManagementAPI(); err != nil {
 		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
 	}
+
 	// Delete the user's active sessions.
-	err = mgmt.User.DeleteUserSessions(ctx, user.GetExternalID())
-	if err != nil {
+	if err := mgmt.User.DeleteUserSessions(ctx, id); err != nil {
 		slogctx.FromCtx(ctx).Warn("Could not remove active sessions for user while deleting account.",
 			slog.Any("error", err),
 		)
 	}
-	err = mgmt.User.Delete(ctx, user.GetExternalID())
-	if err != nil {
+	if err := mgmt.User.Delete(ctx, id); err != nil {
 		return fmt.Errorf("unable to delete user account on backend: %w", err)
 	}
 	return nil
 }
 
 func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
-	err := LoadManagementAPI()
-	if err != nil {
+	if err := LoadManagementAPI(); err != nil {
 		return fmt.Errorf("load management API: %w", err)
 	}
 	user, err := models.UserFromCtx(ctx)
@@ -113,8 +110,7 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 		VerifyEmail: &verifyEmail,
 	}
 	// Update the user.
-	err = mgmt.User.Update(ctx, user.GetExternalID(), updates)
-	if err != nil {
+	if err := mgmt.User.Update(ctx, user.GetExternalID(), updates); err != nil {
 		return fmt.Errorf("update user: %w", err)
 	}
 	return nil
@@ -122,8 +118,7 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 
 // ChangeUserPassword will perform a password change on behalf of a user.
 func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error {
-	err := LoadManagementAPI()
-	if err != nil {
+	if err := LoadManagementAPI(); err != nil {
 		return fmt.Errorf("load management API: %w", err)
 	}
 	user, err := models.UserFromCtx(ctx)
@@ -135,8 +130,7 @@ func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordReque
 		Password: &request.NewPassword,
 	}
 	// Update the user.
-	err = mgmt.User.Update(ctx, user.GetExternalID(), updates)
-	if err != nil {
+	if err := mgmt.User.Update(ctx, user.GetExternalID(), updates); err != nil {
 		return fmt.Errorf("update user: %w", err)
 	}
 	return nil

@@ -1005,6 +1005,9 @@ type UserMessageStatus string
 
 // UserMetadata contains metadata related to the user's account.
 type UserMetadata struct {
+	// Blocked indicates whether the user is blocked from the app.
+	Blocked bool `json:"blocked"`
+
 	// CancelAt is a date in the future at which the subscription will automatically get canceled.
 	CancelAt time.Time `json:"cancel_at,omitempty,omitzero"`
 

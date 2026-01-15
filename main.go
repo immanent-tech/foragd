@@ -24,6 +24,7 @@ var CLI struct {
 	Schema       cli.SchemaCmd        `cmd:"" help:"Perform schema operations."`
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
 	Data         cli.DataCmd          `cmd:"" help:"Manipulate data."`
+	User         cli.UserCmd          `cmd:"user" help:"Manipulate users."`
 	ProfileFlags logging.ProfileFlags `name:"profile" help:"Set profiling flags."`
 	Environment  string               `env:"FORAGD_ENVIRONMENT" name:"environment" help:"Set the running environment." required:"true" default:"development" enum:"development,production"`
 }
