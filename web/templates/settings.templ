@@ -98,7 +98,7 @@ templ AccountSettings(user *models.User) {
 		</div>
 		if !strings.HasPrefix(user.GetExternalID(),"auth0|") {
 			<div class="col-span-full">
-				@h2("Edit Account")
+				<h3 class="text-base/7 font-semibold">Edit Account</h3>
 				<p class="mt-1 text-sm/6 text-neutral">
 					Your account is provided by an external service provider such as Google or Facebook, please log in to your account on the external service to make changes to your nickname, email, avatar or password.
 				</p>
@@ -171,34 +171,6 @@ templ AccountSettings(user *models.User) {
 					</div>
 				</div>
 			</form>
-			// Subscription Email
-			<div>
-				<h3 class="text-base/7 font-semibold">Subcribe to Email Newsletters</h3>
-				<p class="mt-1 text-sm/6">Use or generate an email for subscribing to email newsletters</p>
-			</div>
-			<div id="subscription-email" class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
-				if user.Settings.SubscriptionEmail == "" {
-					<form
-						hx-post="/user/settings/subscriptionemail"
-						hx-target="#subscription-email"
-						hx-swap="innerHTML transition:true"
-						hx-include="[name='csrf_token']"
-						class="col-span-full"
-					>
-						<div class="col-span-full place-self-end">
-							<div id="processing" class="htmx-indicator">
-								Processing...
-								<span class="loading loading-spinner loading-md"></span>
-							</div>
-							<div class="mt-2 flex items-center justify-end gap-x-6">
-								<button type="submit" class="btn btn-primary">Generate Email Address</button>
-							</div>
-						</div>
-					</form>
-				} else {
-					@ShowSubscriptionEmail(user.Settings.SubscriptionEmail)
-				}
-			</div>
 			// Change password.
 			<div>
 				<h3 class="text-base/7 font-semibold">Change Password</h3>
@@ -233,6 +205,34 @@ templ AccountSettings(user *models.User) {
 				</div>
 			</form>
 		}
+		// Subscription Email
+		<div>
+			<h3 class="text-base/7 font-semibold">Subcribe to Email Newsletters</h3>
+			<p class="mt-1 text-sm/6">Use or generate an email for subscribing to email newsletters</p>
+		</div>
+		<div id="subscription-email" class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
+			if user.Settings.SubscriptionEmail == "" {
+				<form
+					hx-post="/user/settings/subscriptionemail"
+					hx-target="#subscription-email"
+					hx-swap="innerHTML transition:true"
+					hx-include="[name='csrf_token']"
+					class="col-span-full"
+				>
+					<div class="col-span-full place-self-end">
+						<div id="processing" class="htmx-indicator">
+							Processing...
+							<span class="loading loading-spinner loading-md"></span>
+						</div>
+						<div class="mt-2 flex items-center justify-end gap-x-6">
+							<button type="submit" class="btn btn-primary">Generate Email Address</button>
+						</div>
+					</div>
+				</form>
+			} else {
+				@ShowSubscriptionEmail(user.Settings.SubscriptionEmail)
+			}
+		</div>
 		if cancelled, _ := user.Cancelled(); cancelled {
 			<div>
 				<h3 class="text-base/7 font-semibold">Cancel deactivation</h3>
