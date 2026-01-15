@@ -289,7 +289,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				@h3(response.Filters.GetSort().String())
 			</div>
 		</div>
-		@FilterControls("/list/subscriptions", response.CategoryCounts, &response.Filters) {
+		@FilterControls("/list/subscriptions", &response.Filters) {
 			@subscriptionsActionsButton(&response.Filters)
 		}
 		<section class="mt-4">
@@ -397,6 +397,7 @@ templ subscriptionsActionsButton(filters *models.ListFilters) {
 // to load more.
 templ PaginateSubscriptions(response *models.ListSubscriptionsResponse) {
 	for subscription := range slices.Values(response.Subscriptions) {
+		<input type="hidden" name="displayed_subscriptions" value={ subscription.GetID() }/>
 		@NewSubscriptionCard(ctx, subscription).Render()
 	}
 	if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {

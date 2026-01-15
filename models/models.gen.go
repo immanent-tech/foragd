@@ -564,7 +564,7 @@ type ListFilters struct {
 	Sort Sort `form:"sort" json:"sort,omitempty,omitzero" validate:"oneof=newest_first oldest_first most_unread least_unread most_relevant"`
 
 	// Subscriptions is a list of subscription IDs.
-	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,dive,startswith=sub_"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`
@@ -579,10 +579,14 @@ type ListRequest struct {
 	Pagination Pagination `form:"pagination" json:"pagination,omitempty,omitzero" validate:"omitempty,url_encoded"`
 }
 
+// ListSubscriptionCategoriesRequest contains data for listing categories for a list of subscriptions.
+type ListSubscriptionCategoriesRequest struct {
+	// Subscriptions is a list of subscription IDs.
+	Subscriptions []SubscriptionID `form:"displayed_subscriptions" json:"subscriptions,omitempty,omitzero" validate:"omitempty,dive,startswith=sub_"`
+}
+
 // ListSubscriptionsResponse contains the data retrieved and relevant for listing subscriptions.
 type ListSubscriptionsResponse struct {
-	CategoryCounts CategoryCounts `json:"category_counts"`
-
 	// Filters contains filters for altering the display of objects.
 	Filters ListFilters `json:"filters" validate:"required"`
 

@@ -242,6 +242,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkSubscriptions())
 			r.Get("/updates", handlers.WatchList())
+			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).
 			Post("/mark/subscription/{subscription_id}/{mark}", handlers.MarkSubscription())
@@ -263,6 +264,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())
 			r.Get("/updates", handlers.WatchList())
+			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}/{mark}", handlers.MarkArticle())
 		r.Get("/view/article/{item_id}", handlers.ViewArticle())

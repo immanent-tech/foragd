@@ -374,7 +374,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				hx-vals={ templ.JSONString(map[string]string{models.ParamSubscriptionID: response.Subscription.GetID()}) }
 			}
 		>
-			@FilterControls("/list/articles", response.Articles.GetCategoryCounts(), &response.Filters) {
+			@FilterControls("/list/articles", &response.Filters) {
 				<el-dropdown class="inline-block flex-none">
 					<button id="articles-actions-button" class="inline-flex btn btn-wide">
 						Actions

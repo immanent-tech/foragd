@@ -4,8 +4,11 @@
 package models
 
 import (
+	"fmt"
 	"slices"
 	"sort"
+
+	"github.com/immanent-tech/foragd/validation"
 )
 
 // CommonCategoryFilters is slice of categories that are so general or inclusive that they are ultimately useless for
@@ -56,4 +59,15 @@ func (c CategoryCounts) GetTopCategories(count int) []CategoryCount {
 		count = len(c)
 	}
 	return c[:count]
+}
+
+func (r *ListSubscriptionCategoriesRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("list subscription categories request is invalid: %w", err)
+	}
+	return nil
+}
+
+func (r *ListSubscriptionCategoriesRequest) Sanitise() error {
+	return nil
 }

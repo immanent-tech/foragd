@@ -1261,7 +1261,7 @@ components:
           x-oapi-codegen-extra-tags:
             json: 'subscriptions'
             form: 'subscriptions'
-            validate: 'omitnil,unique,dive,startswith=sub_'
+            validate: 'omitnil,dive,startswith=sub_'
           x-go-type-skip-optional-pointer: true
         onlyFavorites:
           description: >
@@ -1312,7 +1312,6 @@ components:
       type: object
       required:
         - subscriptions
-        - category_counts
         - filters
         - pagination
       properties:
@@ -1324,8 +1323,6 @@ components:
           # items:
           #   $ref: '#/components/schemas/Subscription'
           # x-go-type-skip-optional-pointer: true
-        category_counts:
-          x-go-type: CategoryCounts
         filters:
           $ref: '#/components/schemas/ListFilters'
         pagination:
@@ -1356,6 +1353,20 @@ components:
           $ref: '#/components/schemas/ListFilters'
         pagination:
           $ref: '#/components/schemas/Pagination'
+    ListSubscriptionCategoriesRequest:
+      description: >
+        contains data for listing categories for a list of subscriptions.
+      type: object
+      properties:
+        subscriptions:
+          description: >
+            is a list of subscription IDs.
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionID'
+          x-oapi-codegen-extra-tags:
+            form: 'displayed_subscriptions'
+            validate: 'omitempty,dive,startswith=sub_'
     MarkSubscriptionsRequest:
       description: >
         contains the parameters for marking a list of subscriptions.

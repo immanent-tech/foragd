@@ -61,6 +61,81 @@ func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, 
 	return subscriptions, nil
 }
 
+func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...SubscriptionID) (CategoryCounts, error) {
+	// Retrieve user object.
+	user, err := UserFromCtx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get user data: %w", err)
+	}
+
+	// Build query.
+	var searchQuery query.Option
+	if len(subscriptionIDs) == 0 {
+		searchQuery = query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+			),
+		)
+	} else {
+		searchQuery = query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+				query.Terms("subscription_id", subscriptionIDs...),
+			),
+		)
+	}
+
+	// Build aggregations.
+	termsField := "customisation.categories.raw"
+	termsCount := 200
+	aggs := aggregations.Aggs{
+		"CategoryCounts": types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+		},
+	}
+
+	resp, err := elastic.NewSearchRequest(
+		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
+		elastic.WithIndex[*search.Search, elastic.SearchRequest](SubscriptionsIndexRO),
+		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](searchQuery),
+		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
+		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
+	).Do(ctx)
+	if err != nil {
+		return nil, es2APIError("get all subscription categories failed", err)
+	}
+
+	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf(
+			"category counts aggregation invalid: %w",
+			ErrInvalidAPIResult,
+		)
+	}
+	categoryCountsBuckets, ok := categoryCounts.Buckets.([]types.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf(
+			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
+			ErrInvalidAPIResult,
+		)
+	}
+
+	counts := make(CategoryCounts, 0, len(categoryCountsBuckets))
+
+	// Loop through the aggregation results and extract the unread count for each feed.
+	for bucket := range slices.Values(categoryCountsBuckets) {
+		var category Category
+		if category, ok = bucket.Key.(string); ok {
+			counts = append(counts, CategoryCount{Category: category, Count: int(bucket.DocCount)})
+		}
+	}
+	return counts, nil
+}
+
 // GetSubscriptionCategories retrieves a map of categories from user subscriptions by count.
 func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions) (CategoryCounts, error) {
 	// Retrieve user object.

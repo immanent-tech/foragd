@@ -25,6 +25,60 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
+func GetTopCategoriesForItems(ctx context.Context, itemsQueries ...query.Option) (CategoryCounts, error) {
+	// Build aggregations.
+	termsField := "categories.raw"
+	termsCount := 200
+	aggs := aggregations.Aggs{
+		"CategoryCounts": estypes.Aggregations{
+			Terms: &estypes.TermsAggregation{
+				Field: &termsField,
+				Size:  &termsCount,
+			},
+		},
+	}
+
+	resp, err := elastic.NewSearchRequest(
+		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
+		elastic.WithIndex[*search.Search, elastic.SearchRequest](ItemsIndexRO),
+		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](itemsQueries...),
+		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
+			&estypes.SortOptions{Doc_: estypes.NewScoreSort()},
+		),
+		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
+	).Do(ctx)
+	if err != nil {
+		return nil, es2APIError("get item categories failed", err)
+	}
+
+	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
+	if !ok {
+		return nil, fmt.Errorf(
+			"category counts aggregation invalid: %w",
+			ErrInvalidAPIResult,
+		)
+	}
+	categoryCountsBuckets, ok := categoryCounts.Buckets.([]estypes.StringTermsBucket)
+	if !ok {
+		return nil, fmt.Errorf(
+			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
+			ErrInvalidAPIResult,
+		)
+	}
+
+	counts := make(CategoryCounts, 0, len(categoryCountsBuckets))
+
+	// Loop through the aggregation results and extract the unread count for each feed.
+	for bucket := range slices.Values(categoryCountsBuckets) {
+		var category Category
+		if category, ok = bucket.Key.(string); ok {
+			counts = append(counts, CategoryCount{Category: category, Count: int(bucket.DocCount)})
+		}
+	}
+	return counts, nil
+}
+
 // CountItems returns a count of items that match the given query.
 func CountItems(ctx context.Context, query query.Option) (int64, error) {
 	count, err := elastic.Count(ctx, ItemsIndexRO, query)

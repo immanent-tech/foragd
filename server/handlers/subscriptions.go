@@ -63,7 +63,6 @@ func ListSubscriptions() http.HandlerFunc {
 				}
 				var (
 					subscriptions models.Subscriptions
-					counts        models.CategoryCounts
 					err           error
 					template      templ.Component
 				)
@@ -81,20 +80,12 @@ func ListSubscriptions() http.HandlerFunc {
 						StatusCode:    http.StatusInternalServerError,
 					}
 				}
-				// Get top subscription categories.
-				counts, err = models.GetSubscriptionCategories(req.Context(), subscriptions)
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
-						slog.Any("error", err),
-					)
-				}
 
 				// Build response object.
 				response := &models.ListSubscriptionsResponse{
-					CategoryCounts: counts,
-					Filters:        request.Filters,
-					Pagination:     request.Pagination,
-					Subscriptions:  subscriptions,
+					Filters:       request.Filters,
+					Pagination:    request.Pagination,
+					Subscriptions: subscriptions,
 				}
 
 				// Choose rendering method based on method (get = page, post = partial).
@@ -156,13 +147,6 @@ func PaginateSubscriptions() http.HandlerFunc {
 					),
 				}
 			}
-			// Get top subscription categories.
-			counts, err := models.GetSubscriptionCategories(req.Context(), subscriptions)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
-					slog.Any("error", err),
-				)
-			}
 
 			// Build response object.
 			response := &models.ListSubscriptionsResponse{
@@ -175,17 +159,7 @@ func PaginateSubscriptions() http.HandlerFunc {
 			if len(subscriptions) > 0 {
 				renderPartial(
 					templates.NewPartial(
-						templ.Join(
-							templates.PaginateSubscriptions(response),
-							templates.ListCategoryFilters(
-								&models.CategoryFilters{
-									Categories: counts,
-									Path:       "/list/subscriptions",
-									Filters:    request.Filters,
-								},
-								templ.Attributes{"hx-swap-oob": "beforeend:#category-filters"},
-							),
-						),
+						templates.PaginateSubscriptions(response),
 					)).ServeHTTP(res, req)
 			} else {
 				res.WriteHeader(http.StatusNoContent)

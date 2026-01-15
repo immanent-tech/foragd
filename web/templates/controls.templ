@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-templ FilterControls(path string, categories models.CategoryCounts, filters *models.ListFilters) {
+templ FilterControls(path string, filters *models.ListFilters) {
 	// Mobile filters dialog slides in from the right.
 	<el-dialog id="content-filters-mobile">
 		<dialog id="mobile-filters-menu" class="overflow-hidden sm:hidden">
@@ -34,40 +34,35 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 						</button>
 					</div>
 					// Category Filters.
-					if len(categories.GetTopCategories(10)) > 0 {
-						<div class="border-t border-base-content/10 px-4 py-6">
-							<h3 class="-mx-2 -my-3 flow-root">
-								<button
-									type="button"
-									command="--toggle"
-									commandfor="filter-section-category"
-									class="flex w-full items-center justify-between px-2 py-3 text-sm"
-								>
-									<span class="font-medium">Category</span>
-									<span class="ml-6 flex items-center">
-										@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
-									</span>
-								</button>
-							</h3>
-							<el-disclosure id="filter-section-category" hidden class="block pt-6">
-								<div class="flex flex-col">
-									<div id="category-filters">
-										// Top 10 categories only.
-										@ListCategoryFilters(&models.CategoryFilters{
-											Categories: categories.GetTopCategories(10),
-											Path:       path,
-											Filters:    *filters,
-										}, nil)
-									</div>
-									if len(filters.GetCategories()) > 0 {
-										<div class="flex justify-end">
-											@clearCategoryFilters(path, "clear-category-filters-mobile", filters)
-										</div>
-									}
-								</div>
-							</el-disclosure>
-						</div>
-					}
+					<div class="border-t border-base-content/10 px-4 py-6">
+						<h3 class="-mx-2 -my-3 flow-root">
+							<button
+								id="filters-mobile-disclosure"
+								type="button"
+								command="--toggle"
+								commandfor="filter-section-category"
+								class="flex w-full items-center justify-between px-2 py-3 text-sm"
+							>
+								<span class="font-medium">Category</span>
+								<span class="ml-6 flex items-center">
+									@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
+								</span>
+							</button>
+						</h3>
+						<el-disclosure id="filter-section-category" hidden class="pt-6 flex flex-col">
+							<div
+								id="category-filters-mobile"
+								class="flex flex-col"
+								hx-get={ path + "/categories" }
+								hx-include="#grid-objects"
+								hx-vals={ generateHXVals(filters.Values()) }
+								hx-trigger="click from:#filters-mobile-disclosure"
+								hx-indicator="#load-categories-mobile"
+							>
+								<span id="load-categories-mobile" class="loading loading-spinner loading-sm"></span>
+							</div>
+						</el-disclosure>
+					</div>
 					// View Filters (mobile).
 					<div class="mt-4 border-t border-base-content/10 px-4 py-6">
 						<h3 class="-mx-2 -my-3 flow-root">
@@ -130,6 +125,7 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 			<div class="mx-auto flex max-w-7xl items-center justify-between">
 				{ children... }
 				<button
+					id="filters-mobile-button"
 					type="button"
 					command="show-modal"
 					commandfor="mobile-filters-menu"
@@ -137,36 +133,34 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 				>Filters</button>
 				<div class="hidden sm:flex">
 					<div class="flex gap-x-4 ">
-						if len(categories.GetTopCategories(10)) > 0 {
-							<el-dropdown class="inline-block">
-								<button class="inline-flex btn btn-wide">
-									Category
-									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
-								</button>
-								<el-menu anchor="bottom end" popover>
-									<div id="category-filters" class="py-1">
-										// Top 10 categories only.
-										@ListCategoryFilters(&models.CategoryFilters{
-											Categories: categories.GetTopCategories(10),
-											Path:       path,
-											Filters:    *filters,
-										}, nil)
-									</div>
-									if len(filters.GetCategories()) > 0 {
-										<div class="py-1">
-											@clearCategoryFilters(path, "clear-category-filters-desktop", filters)
-										</div>
-									}
-								</el-menu>
-							</el-dropdown>
-						}
+						<el-dropdown class="inline-block">
+							<button
+								class="inline-flex btn btn-wide"
+								hx-get={ path + "/categories" }
+								hx-include="#grid-objects"
+								hx-vals={ generateHXVals(filters.Values()) }
+								hx-target="#category-filters-desktop"
+								hx-indicator="#load-categories-desktop"
+							>
+								Category
+								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+							</button>
+							<el-menu anchor="bottom end" popover>
+								<div
+									id="category-filters-desktop"
+									class="py-1"
+								>
+									<span id="load-categories-desktop" class="loading loading-spinner loading-sm"></span>
+								</div>
+							</el-menu>
+						</el-dropdown>
 						// View filters.
 						<el-dropdown class="inline-block">
 							<button class="inline-flex btn btn-wide">
 								View
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
-							<el-menu anchor="bottom end" popover>
+							<el-menu id="filters-categories-desktop-menu" anchor="bottom end" popover>
 								<div class="py-1">
 									@viewFilter(path, "filter-view-unread-desktop", models.ViewUnread, filters)
 									@viewFilter(path, "filter-view-read-desktop", models.ViewRead, filters)
@@ -209,7 +203,7 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 					</h3>
 					<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>
 					<div class="mt-2 sm:mt-0 sm:ml-4">
-						<div class="-m-1 flex flex-wrap items-center">
+						<div id="active-filters" class="-m-1 flex flex-wrap items-center">
 							// Add favorites filter badge if listing subscriptions and favorites filter is active.
 							if path == "/list/subscriptions" && filters.OnlyFavorites {
 								<form id="filter-clear-only-favorites" class="flex items-center">
@@ -234,11 +228,8 @@ templ FilterControls(path string, categories models.CategoryCounts, filters *mod
 									}
 								</form>
 							}
-							// Add filter badges for any active category filters.
-							for category := range slices.Values(categories.GetTopCategories(10)) {
-								if slices.Contains(filters.GetCategories(),category.Category) {
-									@activeCategoryFilterBadge(path, category.Category, filters)
-								}
+							if len(filters.GetCategories()) > 0 {
+								@activeCategoryFilterBadge(path, filters.GetCategories()[0], filters)
 							}
 						</div>
 					</div>
@@ -308,12 +299,15 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
 	</form>
 }
 
-templ ListCategoryFilters(filters *models.CategoryFilters, attrs templ.Attributes) {
-	<div { attrs... }>
-		for idx, category := range filters.Categories.GetTopCategories(10) {
-			@categoryFilter(filters.Path, "filter-mobile-category-"+strconv.Itoa(idx), category, &filters.Filters)
-		}
-	</div>
+templ ListCategoryFilters(filters *models.CategoryFilters) {
+	for idx, category := range filters.Categories.GetTopCategories(10) {
+		@categoryFilter(filters.Path, "filter-category-"+strconv.Itoa(idx), category, &filters.Filters)
+	}
+	if len(filters.Filters.GetCategories()) > 0 {
+		<div class="flex justify-end">
+			@clearCategoryFilters(filters.Path, "clear-category-filters", &filters.Filters)
+		</div>
+	}
 }
 
 // categoryFilter renders a checkbox for a category filter.
@@ -367,26 +361,28 @@ templ clearCategoryFilters(path, id string, filters *models.ListFilters) {
 }
 
 templ activeCategoryFilterBadge(path string, category models.Category, filters *models.ListFilters) {
-	@NewCategoryBadge(category).Render("badge-secondary", "m-1") {
-		<form id={ "clear-filter-category-" + strings.ToLower(strings.ReplaceAll(category, " ", "_")) }>
-			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-			<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-			for subscription := range slices.Values(filters.GetSubscriptions()) {
-				<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-			}
-			@NewLink(
-				WithHXMethod(http.MethodPost, path),
-				WithHXTarget(ContentID.Target()),
-				WithHXInclude("[name='csrf_token']"),
-				WithHXReplaceURL(true),
-				WithHXSwap("innerHTML transition:true"),
-				WithClasses("link-hover"),
-			) {
-				@tabler.X(i.Props{Class: "size-4"})
-			}
-		</form>
-	}
+	<div hx-swap-oob="beforeend:#active-filters">
+		@NewCategoryBadge(category).Render("badge-secondary", "m-1") {
+			<form id={ "clear-filter-category-" + strings.ToLower(strings.ReplaceAll(category, " ", "_")) }>
+				<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+				<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+				<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+				for subscription := range slices.Values(filters.GetSubscriptions()) {
+					<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+				}
+				@NewLink(
+					WithHXMethod(http.MethodPost, path),
+					WithHXTarget(ContentID.Target()),
+					WithHXInclude("[name='csrf_token']"),
+					WithHXReplaceURL(true),
+					WithHXSwap("innerHTML transition:true"),
+					WithClasses("link-hover"),
+				) {
+					@tabler.X(i.Props{Class: "size-4"})
+				}
+			</form>
+		}
+	</div>
 }
 
 templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {

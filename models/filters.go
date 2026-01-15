@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -84,6 +85,9 @@ func (f *ListFilters) GetSubscriptions() []SubscriptionID {
 func (f *ListFilters) Sanitise() error {
 	if f == nil {
 		return ErrNoFilters
+	}
+	if len(f.Subscriptions) > 0 {
+		f.Subscriptions = slices.Compact(f.Subscriptions)
 	}
 	// Set required filters to valid values as necessary.
 	f.Sort = setValidSort(f.Sort)
