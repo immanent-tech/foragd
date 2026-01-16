@@ -292,7 +292,12 @@ templ (a *Article) Content() {
 							<span class="sr-only">Article Actions</span>
 							@tabler.DotsVertical(i.Props{Class: "size-6"})
 						</button>
-						<el-menu id="article-content-menu" anchor="bottom end" popover>
+						<el-menu
+							id="article-content-menu"
+							anchor="bottom end"
+							popover
+							_="on htmx:afterRequest(successful) hidePopover() on me"
+						>
 							// Find similar action.
 							<a class="link link-hover" { a.SimilarArticlesAttributes()... }>
 								@tabler.FileSearch(i.Props{Class: "size-4"})
@@ -344,25 +349,32 @@ templ (a *Article) Content() {
 		</article>
 	}
 	if a.SourceType != models.SourceTypeEmail {
-		<nav class="my-16 flex items-center justify-center text-sm join join-vertical sm:join-horizontal">
-			// Toggle view full content action.
-			<a
-				role="button"
-				class="btn btn-primary join-item"
-				hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
-				{ a.ViewAttributes()... }
-			>
-				if a.IsRemoteContent() {
-					Feed content
-				} else {
-					Original content
-				}
-			</a>
+		<nav class="my-16 flex flex-col sm:flex-row gap-2 items-center justify-center text-sm">
+			// Show a toggle for fetching full content where it appears the feed content is only a summary
+			if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
+				<a
+					role="button"
+					class="btn btn-primary"
+					hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
+					{ a.ViewAttributes()... }
+				>
+					if a.IsRemoteContent() {
+						@tabler.FileRss()
+						Feed content
+					} else {
+						@tabler.FileDownload()
+						Remote content
+					}
+				</a>
+			}
 			// View original article action.
-			<a role="button" class="btn btn-primary join-item" { a.ViewRemoteAttributes()... }>
+			<a role="button" class="btn btn-primary" { a.ViewRemoteAttributes()... }>
+				@tabler.ExternalLink()
 				View Remote
 			</a>
-			<a role="button" class="btn btn-primary join-item" { a.ShareAttributes()... }>
+			// Share article action.
+			<a role="button" class="btn btn-primary" { a.ShareAttributes()... }>
+				@tabler.Share()
 				Share
 			</a>
 		</nav>
