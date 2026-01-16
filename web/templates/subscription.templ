@@ -194,11 +194,15 @@ templ (s *Subscription) Card() {
 				// Context menu actions.
 				<div class="grid col-span-1 justify-end">
 					<el-dropdown class="relative" _="on click halt the event's bubbling">
-						<button class="btn btn-sm btn-ghost">
+						<button
+							id={ "btn-" + s.GetID() + "-actions" }
+							class="btn btn-sm btn-ghost"
+						>
 							<span class="sr-only">s.GetTitle() + " Actions"</span>
 							@tabler.DotsVertical(i.Props{Class: "size-5"})
 						</button>
 						<el-menu
+							id={ "menu-" + s.GetID() + "-actions" }
 							anchor="bottom end"
 							popover
 							_="on htmx:afterRequest(successful) hidePopover() on me"
