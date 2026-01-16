@@ -111,8 +111,7 @@ templ (a *Article) Card() {
 		{ a.ViewAttributes()... }
 	>
 		// Hidden inputs used for some group article actions.
-		<input type="hidden" name={ "metadata[" + a.GetSubscriptionID() + "]" } value={ a.GetID() }/>
-		<input type="hidden" name="displayed_articles" value={ a.GetID() }/>
+		<input type="hidden" name={ "displayed_articles[" + a.GetSubscriptionID() + "]" } value={ a.GetID() }/>
 		if img := a.GetImage(); img != nil {
 			{{ img := a.GetImage() }}
 			if img.GetTitle() == "" {
@@ -512,22 +511,25 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						id="articles-actions-menu"
 						anchor="bottom end"
 						popover
-						_="on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"
+						_="
+						on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me end
+						on htmx:afterRequest(successful) hidePopover() on me
+						"
+						class="w-fit"
 					>
 						<div class="py-1">
 							if response.Subscription == nil {
 								// Mark all articles action.
-								<form>
-									<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
+								<form class="flex items-center">
 									<a
-										class="link link-hover"
+										class="link link-hover px-4 py-2 focus:text-primary focus:outline-hidden"
 										if response.Filters.GetView() == models.ViewUnread {
 											hx-post="/list/articles/mark/read"
 										} else {
 											hx-post="/list/articles/mark/unread"
 										}
 										hx-target={ ContentID.Target() }
-										hx-include="#grid-objects,[name='csrf_token']"
+										hx-include="[name='displayed_articles'],[name='csrf_token']"
 									>
 										if response.Filters.GetView() == models.ViewUnread {
 											@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
@@ -544,7 +546,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								</form>
 							} else {
 								// Mark subscription action.
-								<form id={ "mark-" + response.Subscription.GetID() }>
+								<form id={ "mark-" + response.Subscription.GetID() } class="flex items-center">
 									// MarkURL returns the app URL for marking the subscription.
 									{{ var markURL string }}
 									{{ var markText string }}
@@ -558,25 +560,26 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										{{ markText = "Mark Subscription Unread" }}
 										{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
 									}
-									@NewLink(
-										WithHXMethod(http.MethodPost, markURL),
-										WithHXInclude("[name='csrf_token'],[name='view']"),
-										WithClasses("link-hover"),
-									) {
+									<a
+										hx-post={ markURL }
+										hx-include="[name='csrf_token']"
+										hx-vals={ generateHXVals(map[string]any{models.ParamView: models.PageFiltersFromCtx(ctx, "/list/articles").GetView()}) }
+										class="link link-hover px-4 py-2 focus:text-primary focus:outline-hidden"
+									>
 										@markIcon
 										{ markText }
-									}
+									</a>
 								</form>
 								// Edit subscription action.
-								@NewLink(
-									WithHXMethod(http.MethodGet, "/edit/subscription/"+response.Subscription.GetID()),
-									WithHXTarget(ContentID.Target()),
-									WithHXPushURL(true),
-									WithClasses("link-hover"),
-								) {
+								<a
+									hx-get={ "/edit/subscription/" + response.Subscription.GetID() }
+									hx-target={ ContentID.Target() }
+									hx-push-url="true"
+									class="link link-hover px-4 py-2 flex items-center focus:text-primary focus:outline-hidden"
+								>
 									@tabler.Edit(i.Props{Class: "size-4"})
 									Edit Subscription
-								}
+								</a>
 							}
 						</div>
 					</el-menu>

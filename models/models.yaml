@@ -1408,20 +1408,17 @@ components:
         contains the parameters for marking articles.
       type: object
       required:
-        - metadata
+        - displayed_articles
         - mark
-        - view
       properties:
-        metadata:
+        displayed_articles:
           description: >
-            contains the item IDs per subscription to mark.
+            is a map of item ids per subscription.
           x-go-type: 'map[SubscriptionID][]ItemID'
           x-oapi-codegen-extra-tags:
-            form: 'metadata'
+            form: 'displayed_articles'
         mark:
           $ref: '#/components/schemas/Mark'
-        view:
-          $ref: '#/components/schemas/View'
     RemoveSubscriptionRequest:
       description: >
         contains the parameters for removing a subscription.

@@ -474,7 +474,7 @@ func (a *Article) extractImageFromContent() (*types.ImageInfo, error) {
 
 // Valid ensures that the MarkArticlesRequest contains valid data.
 func (r *MarkArticlesRequest) Valid() error {
-	for key, value := range r.Metadata {
+	for key, value := range r.DisplayedArticles {
 		err := validation.Validate.Var(key, "startswith=sub_")
 		if err != nil {
 			return fmt.Errorf("mark articles request: invalid subscription ID: %w", err)
@@ -490,7 +490,6 @@ func (r *MarkArticlesRequest) Valid() error {
 // Sanitise will alter MarkArticlesRequest data to ensure safety, where needed.
 func (r *MarkArticlesRequest) Sanitise() error {
 	r.Mark = setValidMark(r.Mark)
-	r.View = setValidView(r.View)
 	return nil
 }
 
@@ -499,6 +498,7 @@ func (r *MarkArticleRequest) Valid() error {
 }
 
 func (r *MarkArticleRequest) Sanitise() error {
+	r.Mark = setValidMark(r.Mark)
 	return nil
 }
 

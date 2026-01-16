@@ -612,14 +612,11 @@ type MarkArticleRequest struct {
 
 // MarkArticlesRequest contains the parameters for marking articles.
 type MarkArticlesRequest struct {
+	// DisplayedArticles is a map of item ids per subscription.
+	DisplayedArticles map[SubscriptionID][]ItemID `form:"displayed_articles" json:"displayed_articles"`
+
 	// Mark applies the given mark action to objects.
 	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-
-	// Metadata contains the item IDs per subscription to mark.
-	Metadata map[SubscriptionID][]ItemID `form:"metadata" json:"metadata"`
-
-	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
 // MarkObjectParams defines model for MarkObjectParams.

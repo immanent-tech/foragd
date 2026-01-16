@@ -518,7 +518,7 @@ func MarkArticles() http.HandlerFunc {
 		}
 
 		// Mark Articles.
-		for subscriptionID, itemIDs := range request.Metadata {
+		for subscriptionID, itemIDs := range request.DisplayedArticles {
 			if err = markArticles(req.Context(), request.Mark, subscriptionID, itemIDs...); err != nil {
 				return &models.APIError{
 					InternalError: fmt.Errorf("mark subscriptions: %w", err),
