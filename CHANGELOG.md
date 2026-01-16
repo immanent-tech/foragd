@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.27.0](https://github.com/immanent-tech/foragd/compare/v0.26.0...v0.27.0) (2026-01-16)
+
+
+### Features
+
+* :sparkles: dynamic list of category filters based on shown subscriptions/articles ([e6bb133](https://github.com/immanent-tech/foragd/commit/e6bb1334ad01d59b1d571b93854472aab6178376))
+* **cli:** :sparkles: improve cli user management ([d96d1d8](https://github.com/immanent-tech/foragd/commit/d96d1d81664029a902dc88d19fd0121144ecd969))
+* **templates:** :lipstick: improved notification styling ([f5159f4](https://github.com/immanent-tech/foragd/commit/f5159f46143f92408d8ac38bc409a27fc615fa2f))
+* **templates:** :lipstick: visually improved actions on article content ([8f3a0bc](https://github.com/immanent-tech/foragd/commit/8f3a0bcc0cd279acde656cd6ffcbd49c1cc05047))
+
+
+### Bug Fixes
+
+* :bug: fix list of category filters for subscriptions ([70faad0](https://github.com/immanent-tech/foragd/commit/70faad057cd0131aa683365dc9fa7e145fab1a89))
+* :bug: mark all subscriptions now handles marking all subscriptions after pagination ([bafc7cd](https://github.com/immanent-tech/foragd/commit/bafc7cdd94c44265e6e096080e0bdea439f492ba))
+* **templates:** :bug: improved category filter listing ([bbc7fe0](https://github.com/immanent-tech/foragd/commit/bbc7fe085f4218d8782f10daff7913e80a06e14f))
+* **templates:** :bug: move subscription email so it shows up for accounts using a social login ([e4795ea](https://github.com/immanent-tech/foragd/commit/e4795ea2070f803971201ab0809c221f6dda5b08))
+
 ## [0.26.0](https://github.com/immanent-tech/foragd/compare/v0.25.0...v0.26.0) (2026-01-14)
 
 
