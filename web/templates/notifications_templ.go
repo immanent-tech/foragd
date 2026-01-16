@@ -103,7 +103,7 @@ func Notification(msg *models.UserMessage, timeout time.Duration) templ.Componen
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " class=\"card card-sm pointer-events-auto bg-base-300 w-full max-w-sm\"><div class=\"card-body\"><div class=\"flex items-start\"><div class=\"shrink-0\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " class=\"card card-sm pointer-events-auto bg-base-300 w-full max-w-sm shadow-xl\"><div class=\"card-body\"><div class=\"flex items-start\"><div class=\"shrink-0\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

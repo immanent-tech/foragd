@@ -33,7 +33,7 @@ templ Notification(msg *models.UserMessage, timeout time.Duration) {
 			if timeout != 0 {
 				_={ "on load wait for " + timeout.String() + " then remove me" }
 			}
-			class="card card-sm pointer-events-auto bg-base-300 w-full max-w-sm"
+			class="card card-sm pointer-events-auto bg-base-300 w-full max-w-sm shadow-xl"
 		>
 			<div class="card-body">
 				<div class="flex items-start">
