@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.28.0](https://github.com/immanent-tech/foragd/compare/v0.27.0...v0.28.0) (2026-01-16)
+
+
+### Features
+
+* **templates:** :sparkles: viewer can now extract images from feed content if no image was supplied in item object ([6341bcd](https://github.com/immanent-tech/foragd/commit/6341bcd94440bac494d7417b1fd39510e72a4a43))
+
+
+### Bug Fixes
+
+* **models:** :bug: fix filter articles logic ([3c18376](https://github.com/immanent-tech/foragd/commit/3c18376a258406ede3c77b937c6a5542310f99fe))
+
 ## [0.27.0](https://github.com/immanent-tech/foragd/compare/v0.26.0...v0.27.0) (2026-01-16)
 
 
