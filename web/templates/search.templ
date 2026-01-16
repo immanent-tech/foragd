@@ -11,7 +11,7 @@ import (
 )
 
 // SearchSuggestions will render suggestions for a given search.
-templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subscriptions, articles models.Articles) {
+templ SearchSuggestions(suggestions *models.SearchResults) {
 	// Always generate a suggestion to execute a full search.
 	<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="search-group-label">
 		<form
@@ -23,14 +23,14 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions"
 		>
 			//  then set #global-search.value to ''
-			<input type="hidden" name="text" value={ request.Text }/>
+			<input type="hidden" name="text" value={ suggestions.Search.Text }/>
 			<a
 				href="#"
 				hidden
 				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content text-sm"
 			>
 				@tabler.Search(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-				<span class="ml-3 flex-auto truncate">Search for { request.Text }</span>
+				<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
 				<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Search...</span>
 			</a>
 		</form>
@@ -129,11 +129,11 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 		</a>
 	</el-command-group>
-	if len(subscriptions) > 0 {
+	if len(suggestions.Subscriptions) > 0 {
 		// Subscription suggestions.
 		<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="subscriptions-group-label">
 			<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
-			for subscription := range slices.Values(subscriptions) {
+			for subscription := range slices.Values(suggestions.Subscriptions) {
 				<a
 					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 					href="#"
@@ -147,11 +147,11 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 			}
 		</el-command-group>
 	}
-	if len(articles) > 0 {
+	if len(suggestions.Articles)> 0 {
 		// Article suggestions.
 		<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="articles-group-label">
 			<div id="articles-group-label" class="text-base-content/80 px-3 py-2">Articles</div>
-			for article := range slices.Values(articles) {
+			for article := range slices.Values(suggestions.Articles) {
 				<a
 					href="#"
 					hx-get={ "/view/article/" + article.GetID() }
@@ -171,7 +171,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions models.Subs
 }
 
 // SearchResultsGrid renders the given articles returned from the given search in a grid layout with an actions menu.
-templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles, pagination models.Pagination) {
+templ SearchResultsGrid(results *models.SearchResults) {
 	@container() {
 		<div id="search-results" class="flex items-center justify-between mt-4">
 			// Page title.
@@ -215,11 +215,11 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 							Mark all Unread
 						</a>
 					</form>
-					if request.SubscriptionID != "" {
+					if results.Search.SubscriptionID != "" {
 						<div class="py-1">
 							// Edit action.
 							@NewLink(
-								WithHXMethod(http.MethodGet, "/edit/subscription/"+request.SubscriptionID),
+								WithHXMethod(http.MethodGet, "/edit/subscription/"+results.Search.SubscriptionID),
 								WithHXTarget(ContentID.Target()),
 								WithHXSwap("innerHTML show:window:top transition:true"),
 								WithHXPushURL(true),
@@ -246,29 +246,43 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 			</el-dropdown>
 		</div>
 		// Watch for updates.
-		<div id="update-notifications" sse-connect={ "/search/updates?" + request.Query() } sse-swap="message" class="toast toast-center z-50"></div>
+		<div id="update-notifications" sse-connect={ "/search/updates?" + results.Search.Query() } sse-swap="message" class="toast toast-center z-50"></div>
 		// Articles grid.
 		<section class="mt-4">
 			@grid() {
-				@SearchResults(articles, pagination)
+				@SearchResults(results)
 			}
 		</section>
 	}
 }
 
 // SearchResults renders the list of articles as cards with an optional element to trigger pagination for loading more.
-templ SearchResults(articles models.Articles, pagination models.Pagination) {
-	for article := range slices.Values(articles) {
+templ SearchResults(results *models.SearchResults) {
+	for article := range slices.Values(results.Articles) {
 		<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
 		@NewArticleView(article).Card()
 	}
-	if pagination != "" && len(articles) == 15 {
-		@PaginationControl(ctx, "/search/paginate", nil, pagination)
+	if results.Pagination != "" && len(results.Articles) == 15 {
+		<form
+			hx-post="/search/paginate"
+			hx-vals={ templ.JSONString(results.Search) }
+			hx-include="[name='csrf_token']"
+			hx-trigger="intersect once"
+			hx-target="#grid-objects"
+			hx-swap="beforeend transition:false"
+			hx-indicator="#content-loading"
+			hx-push-url="false"
+			preload
+			preload-images="true"
+			_="on htmx:afterRequest remove me"
+			class="invisible"
+		>
+			<input type="hidden" name="pagination" value={ results.Pagination }/>
+		</form>
 	}
 }
 
-templ SearchFilters(attributes templ.Attributes) {
-	{{ request := models.SearchRequestFromCtx(ctx) }}
+templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) {
 	// Search form.
 	<div id="search-filters" { attributes... }>
 		<form

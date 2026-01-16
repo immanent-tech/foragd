@@ -1184,6 +1184,21 @@ components:
             validate: 'required,timezone'
       x-oapi-codegen-extra-tags:
         validate: 'required'
+    SearchResults:
+      description: >
+        contains the results of a search.
+      type: object
+      required:
+        - search
+      properties:
+        search:
+          $ref: '#/components/schemas/SearchRequest'
+        articles:
+          x-go-type: Articles
+        subscriptions:
+          x-go-type: Subscriptions
+        pagination:
+          $ref: '#/components/schemas/Pagination'
     AddSubscriptionSearchFilterRequest:
       description: >
         contains the data for adding a new subscription filter to a search request.

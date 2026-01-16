@@ -785,6 +785,18 @@ type SearchRequest struct {
 // SearchRequestPublishedWithin represents a time range within which the objects should be published
 type SearchRequestPublishedWithin string
 
+// SearchResults contains the results of a search.
+type SearchResults struct {
+	Articles Articles `json:"articles,omitempty,omitzero"`
+
+	// Pagination contains data for paginating through results.
+	Pagination Pagination `form:"pagination" json:"pagination,omitempty,omitzero" validate:"omitempty,url_encoded"`
+
+	// Search represents a search request by the user.
+	Search        SearchRequest `json:"search" validate:"required"`
+	Subscriptions Subscriptions `json:"subscriptions,omitempty,omitzero"`
+}
+
 // SearchSubscription is a custom subscription created from a search request.
 type SearchSubscription struct {
 	// Search represents a search request by the user.

@@ -120,8 +120,15 @@ func GetSearchSuggestions() http.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 		}
 
+		// Generate search suggestions object.
+		suggestions := &models.SearchResults{
+			Search:        *search,
+			Subscriptions: subscriptions,
+			Articles:      articles,
+		}
+
 		renderPartial(
-			templates.NewPartial(templates.SearchSuggestions(search, subscriptions, articles)),
+			templates.NewPartial(templates.SearchSuggestions(suggestions)),
 		).ServeHTTP(res, req)
 	}).ServeHTTP
 }
@@ -142,8 +149,8 @@ func GetSearchResults() http.HandlerFunc {
 			}
 		}
 
-		// Embed the request in the context.
-		ctx := models.SearchRequestToCtx(req.Context(), *search)
+		ctx := req.Context()
+
 		// If the search request has subscription filters, get subscription details.
 		if len(search.Subscriptions) > 0 {
 			var subscriptions models.Subscriptions
@@ -210,10 +217,19 @@ func GetSearchResults() http.HandlerFunc {
 			}
 		}
 
+		// Generate results object.
+		results := &models.SearchResults{
+			Search:     *search,
+			Articles:   articles,
+			Pagination: pagination,
+		}
+
 		if strings.HasSuffix(chi.RouteContext(ctx).RoutePattern(), "/paginate") {
 			if len(articles) > 0 {
 				renderPartial(
-					templates.NewPartial(templates.SearchResults(articles, pagination)),
+					templates.NewPartial(
+						templates.SearchResults(results),
+					),
 				).ServeHTTP(res, req.WithContext(ctx))
 			} else {
 				res.WriteHeader(http.StatusNoContent)
@@ -223,12 +239,15 @@ func GetSearchResults() http.HandlerFunc {
 		var template templ.Component
 		if len(articles) > 0 {
 			// Pagination request, just display next set of results.
-			template = templates.SearchResultsGrid(search, articles, pagination)
+			template = templates.SearchResultsGrid(results)
 		} else {
 			template = templates.NoSearchResults()
 		}
 		if htmx.IsHTMX(req) {
-			template = templ.Join(template, templates.SearchFilters(templ.Attributes{"hx-swap-oob": "true"}))
+			template = templ.Join(
+				template,
+				templates.SearchFilters(&results.Search, templ.Attributes{"hx-swap-oob": "true"}),
+			)
 		}
 		res.Header().Add(htmx.HeaderPushURL, "/search?"+search.Query())
 		renderPage(
