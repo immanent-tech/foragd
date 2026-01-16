@@ -291,10 +291,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 		</div>
 		@FilterControls("/list/subscriptions", &response.Filters) {
 			// Subscriptions actions menu.
-			<el-dropdown class="inline-block flex-none">
+			<el-dropdown class="inline-block">
 				<button
 					id="subscriptions-actions-button"
-					class="inline-flex btn btn-wide"
+					class="btn btn-wide"
 				>
 					Actions
 					@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
@@ -304,10 +304,11 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					anchor="bottom end"
 					popover
 					_="on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"
+					class="w-fit"
 				>
 					<div class="py-1">
 						// Mark all subscriptions action.
-						<form>
+						<form class="flex items-center">
 							<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
 							{{ var markText string }}
 							{{ var markURL string }}
@@ -327,42 +328,37 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								hx-post={ markURL }
 								hx-target={ ContentID.Target() }
 								hx-include="[name='csrf_token'],[name='displayed_subscriptions']"
+								class="link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
 							>
 								@markIcon
 								<span class="sr-only">{ markText }</span>
 								{ markText }
 							</a>
 						</form>
-					</div>
-					<div class="py-1">
 						<a
 							hx-get="/user/subscription/add/feed"
 							hx-target={ ContentID.Target() }
 							hx-push-url="true"
-							class="link link-hover"
+							class="flex items-center link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
 						>
 							@tabler.Plus(i.Props{Class: "size-4"})
 							Add Feed Subscription
 						</a>
-					</div>
-					<div class="py-1">
 						<a
 							hx-get="/user/subscription/add/search"
 							hx-target={ ContentID.Target() }
 							hx-include="#search-filters"
 							hx-push-url="true"
-							class="link link-hover"
+							class="flex items-center link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
 						>
 							@tabler.Plus(i.Props{Class: "size-4"})
 							Add Search Subscription
 						</a>
-					</div>
-					<div class="py-1">
 						<a
 							hx-get="/user/subscription/add/group"
 							hx-target={ ContentID.Target() }
 							hx-push-url="true"
-							class="link link-hover"
+							class="flex items-center link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
 						>
 							@tabler.Plus(i.Props{Class: "size-4"})
 							Add Group Subscription

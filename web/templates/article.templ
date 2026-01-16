@@ -173,15 +173,16 @@ templ (a *Article) Card() {
 							anchor="bottom end"
 							popover
 							_="on htmx:afterRequest(successful) hidePopover() on me"
+							class="w-fit"
 						>
 							<div class="py-1">
 								// View original article action.
-								<a class="menu-link" { a.ViewRemoteAttributes()... }>
+								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ViewRemoteAttributes()... }>
 									@tabler.ExternalLink(i.Props{Class: "size-4"})
 									Go To Article
 								</a>
 								// Find similar action.
-								<a class="menu-link" { a.SimilarArticlesAttributes()... }>
+								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.SimilarArticlesAttributes()... }>
 									@tabler.FileSearch(i.Props{Class: "size-4"})
 									Find similar...
 								</a>
@@ -201,7 +202,7 @@ templ (a *Article) Card() {
 								<form>
 									<input type="hidden" name="display" value="card"/>
 									<div id={ "favorite_" + a.GetID() }>
-										<a class="menu-link" { a.FavoriteAttributes()... }>
+										<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.FavoriteAttributes()... }>
 											switch a.IsFavorite() {
 												case true:
 													@tabler.HeartFilled(i.Props{Class: "size-4"})
@@ -214,12 +215,12 @@ templ (a *Article) Card() {
 									</div>
 								</form>
 								// Share action.
-								<a class="menu-link" { a.ShareAttributes()... }>
+								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ShareAttributes()... }>
 									@tabler.Share(i.Props{Class: "size-4"})
 									Share
 								</a>
 								// Report issue action.
-								<a class="menu-link" { a.ReportIssueAttributes()... }>
+								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ReportIssueAttributes()... }>
 									@tabler.FlagFilled(i.Props{Class: "size-4"})
 									Report an issue
 								</a>
@@ -303,10 +304,11 @@ templ (a *Article) Content() {
 							anchor="bottom end"
 							popover
 							_="on htmx:afterRequest(successful) hidePopover() on me"
+							class="w-fit"
 						>
 							<div class="py-1">
 								// Find similar action.
-								<a class="menu-link" { a.SimilarArticlesAttributes()... }>
+								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.SimilarArticlesAttributes()... }>
 									@tabler.FileSearch(i.Props{Class: "size-4"})
 									Find similar...
 								</a>
@@ -318,7 +320,7 @@ templ (a *Article) Content() {
 								<form>
 									<input type="hidden" name="display" value="card"/>
 									<div id={ "favorite_" + a.GetID() }>
-										<a class="menu-link" { a.FavoriteAttributes()... }>
+										<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.FavoriteAttributes()... }>
 											switch a.IsFavorite() {
 												case true:
 													@tabler.HeartFilled(i.Props{Class: "size-4"})
@@ -331,7 +333,7 @@ templ (a *Article) Content() {
 									</div>
 								</form>
 								// Report article issue action.
-								<a class="menu-link" { a.ReportIssueAttributes()... }>
+								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ReportIssueAttributes()... }>
 									@tabler.FlagFilled(i.Props{Class: "size-4"})
 									Report an issue
 								</a>
@@ -407,7 +409,7 @@ templ (a *Article) Content() {
 templ (a *Article) MenuActionMark() {
 	<a
 		id={ a.GetID() + "-mark-action" }
-		class="menu-link"
+		class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden"
 		{ a.MarkAttributes()... }
 	>
 		switch a.IsUnread() {

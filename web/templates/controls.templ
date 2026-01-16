@@ -145,7 +145,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								Category
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
-							<el-menu anchor="bottom end" popover>
+							<el-menu anchor="bottom end" popover class="w-fit">
 								<div
 									id="category-filters-desktop"
 									class="py-1"
@@ -160,17 +160,15 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								View
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
-							<el-menu id="filters-categories-desktop-menu" anchor="bottom end" popover>
+							<el-menu id="filters-categories-desktop-menu" anchor="bottom end" popover class="w-fit">
 								<div class="py-1">
 									@viewFilter(path, "filter-view-unread-desktop", models.ViewUnread, filters)
 									@viewFilter(path, "filter-view-read-desktop", models.ViewRead, filters)
 									@viewFilter(path, "filter-view-all-desktop", models.ViewAll, filters)
-								</div>
-								if path == "/list/subscriptions" {
-									<div class="py-1">
+									if path == "/list/subscriptions" {
 										@viewFilterOnlyFavorites(path, "filter-only-favorites-desktop", filters)
-									</div>
-								}
+									}
+								</div>
 							</el-menu>
 						</el-dropdown>
 						// Sorting.
@@ -179,7 +177,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								Sort
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
-							<el-menu anchor="bottom end" popover>
+							<el-menu anchor="bottom end" popover class="w-fit">
 								<div class="py-1">
 									@sortOption(path, models.SortNewestFirst, filters)
 									@sortOption(path, models.SortOldestFirst, filters)

@@ -198,7 +198,3 @@
     outline-offset: 2px;
   }
 }
-
-@utility menu-link {
-  @apply link link-hover focus:text-primary block px-4 focus:outline-hidden;
-}
