@@ -609,7 +609,12 @@ func AddFeedset(static embed.FS) http.HandlerFunc {
 		}
 		renderPartial(
 			templates.NewPartial(
-				templates.AddFeedsetsSuccessNotification(request.Feedset)),
+				templates.Notification(
+					models.NewSuccessMessage(
+						"Added feedsets "+strings.Join(request.Feedset, ", "), "",
+					),
+					templates.DefaultNotificationTimeout,
+				)),
 		).ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP

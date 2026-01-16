@@ -33,76 +33,50 @@ templ Notification(msg *models.UserMessage, timeout time.Duration) {
 			if timeout != 0 {
 				_={ "on load wait for " + timeout.String() + " then remove me" }
 			}
-			class={
-				"pointer-events-auto w-full max-w-sm translate-y-0 transform rounded-lg opacity-100 shadow-lg outline-1 -outline-offset-1 transition duration-300 ease-out sm:translate-x-0 starting:translate-y-2 starting:opacity-0 starting:sm:translate-x-2 starting:sm:translate-y-0",
-				templ.KV("bg-success outline-success text-success-content", msg.IsSuccess()),
-				templ.KV("bg-error outline-error text-error-content", msg.IsError()),
-				templ.KV("bg-warning outline-warning text-warning-content", msg.IsWarning()),
-				templ.KV("bg-info outline-info text-info-content", msg.IsInfo()),
-			}
+			class="card card-sm pointer-events-auto bg-base-300 w-full max-w-sm"
 		>
-			<div class="p-4">
+			<div class="card-body">
 				<div class="flex items-start">
 					<div class="shrink-0">
 						// Generate appropriate status icon.
 						switch msg.Status {
 							case models.UserMessageStatusSuccess:
-								@tabler.CircleCheck(i.Props{Class: "size-6 text-success-content"})
+								@tabler.CircleCheck(i.Props{Class: "size-6 text-success"})
 							case models.UserMessageStatusError:
-								@tabler.ExclamationCircle(i.Props{Class: "size-6 text-error-content"})
+								@tabler.ExclamationCircle(i.Props{Class: "size-6 text-error"})
 							case models.UserMessageStatusWarning:
-								@tabler.AlertTriangle(i.Props{Class: "size-6 text-warning-content"})
+								@tabler.AlertTriangle(i.Props{Class: "size-6 text-warning"})
 							default:
-								@tabler.InfoCircle(i.Props{Class: "size-6 text-info-content"})
+								@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
 						}
 					</div>
-					// Notification contents.
-					<div class="ml-3 w-0 flex-1 pt-0.5">
-						<p class="text-sm font-medium">{ msg.Summary }</p>
-						if msg.HasDetails() {
-							<p
-								class={
-									"mt-1 text-xs",
-									templ.KV("text-success-content/80", msg.IsSuccess()),
-									templ.KV("text-error-content/80", msg.IsError()),
-									templ.KV("text-warning-content/80", msg.IsWarning()),
-									templ.KV("text-info-content/80", msg.IsInfo()),
-								}
-							>{ msg.Details }</p>
+					<h2 class="ml-4 card-title">{ msg.Summary }</h2>
+				</div>
+				if msg.HasDetails() {
+					<p
+						class={
+							"mt-1 text-xs",
+							templ.KV("text-success-content/80", msg.IsSuccess()),
+							templ.KV("text-error-content/80", msg.IsError()),
+							templ.KV("text-warning-content/80", msg.IsWarning()),
+							templ.KV("text-info-content/80", msg.IsInfo()),
 						}
-						// Any additional content goes here.
-						{ children... }
-					</div>
-					// Close button.
-					<div class="ml-4 flex shrink-0">
-						<button
-							type="button"
-							class="inline-flex rounded-md"
-							_={ "on click remove #" + id }
-						>
-							<span class="sr-only">Close</span>
-							@tabler.X(i.Props{Class: "size-5"})
-						</button>
-					</div>
+					>{ msg.Details }</p>
+				}
+				// Close button.
+				<div class="absolute top-0 right-0 p-2">
+					<button
+						type="button"
+						class="btn btn-square btn-xs btn-ghost"
+						_={ "on click remove #" + id }
+					>
+						<span class="sr-only">Close</span>
+						@tabler.X()
+					</button>
 				</div>
 			</div>
 		</div>
 	</div>
-}
-
-// ServerErrorNotification creates an error notification that includes a button for reporting the error to support.
-templ ServerErrorNotification(msg *models.UserMessage) {
-	@Notification(msg, 0) {
-		<div class="mt-3 flex space-x-7">
-			@NewLink(
-				WithAttribute("role", "button"),
-				WithAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
-				WithClasses("btn"),
-			) {
-				Email Support <span aria-hidden="true">&rarr;</span>
-			}
-		</div>
-	}
 }
 
 // UpdatesToast renders a toast notification to inform the user that updated content is available.

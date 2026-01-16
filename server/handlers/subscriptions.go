@@ -605,7 +605,13 @@ func SaveSubscription() http.HandlerFunc {
 			}
 		}
 		renderPartial(
-			templates.NewPartial(templates.EditSubscriptionSuccessNotification(subscription)),
+			templates.NewPartial(
+				templates.Notification(
+					models.NewSuccessMessage(
+						subscription.GetTitle()+" saved", "",
+					),
+					templates.DefaultNotificationTimeout,
+				)),
 		).ServeHTTP(res, req)
 
 		return nil

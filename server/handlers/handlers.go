@@ -219,7 +219,7 @@ func notifyOnError(f func(http.ResponseWriter, *http.Request) error) http.Handle
 					res.Header().Add(htmx.HeaderReswap, "none")
 					renderPartial(
 						templates.NewPartial(
-							templates.ServerErrorNotification(apiErr.GetUserMessage()),
+							templates.Notification(apiErr.GetUserMessage(), templates.DefaultNotificationTimeout),
 						),
 					).ServeHTTP(res, req)
 				default: // called with non-HTMX request. Show plain error and log problem.
