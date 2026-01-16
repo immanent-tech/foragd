@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.28.1](https://github.com/immanent-tech/foragd/compare/v0.28.0...v0.28.1) (2026-01-16)
+
+
+### Bug Fixes
+
+* :bug: fix passing filters when paginating results ([592e520](https://github.com/immanent-tech/foragd/commit/592e5205d562cf51dbda44661056318ec0ff84c3))
+* **search:** :bug: also match phrase prefix when searching for results ([e09956e](https://github.com/immanent-tech/foragd/commit/e09956e76220eaec57fdc92d5c56d8d1b3f389d0))
+* **search:** :bug: fix search pagination ([b46f580](https://github.com/immanent-tech/foragd/commit/b46f5802df7fd352d1392a9da7d6ad1f788e5127))
+
 ## [0.28.0](https://github.com/immanent-tech/foragd/compare/v0.27.0...v0.28.0) (2026-01-16)
 
 
