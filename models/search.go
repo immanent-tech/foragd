@@ -140,7 +140,12 @@ func SearchResultsClause(search *SearchRequest) query.BoolOption {
 	return query.Must(
 		// Search across title, description and content fields, with preference for match in that order (via field
 		// boosting).
-		query.SimpleQueryString(search.Text, "", "title^6", "description^3", "content"),
+		query.Bool(
+			query.Should(
+				query.SimpleQueryString(search.Text, "", "title^6", "description^3", "content"),
+				query.MultiMatchPrefix(search.Text, "title^6", "description^3", "content"),
+			),
+		),
 		// Search in categories.
 		query.SimpleQueryString(search.Categories, "", "categories"),
 		// Search in authors, contributors.

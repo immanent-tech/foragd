@@ -74,6 +74,24 @@ func MultiMatch(value string, fields ...string) Option {
 	}
 }
 
+// MultiMatchPrefix adds a "MultiMatch" query on the given field with the given value and performing a phrase_prefix
+// search.
+//
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-multi-match-query#type-phrase
+func MultiMatchPrefix(value string, fields ...string) Option {
+	return func(query *types.Query) {
+		if value != "" {
+			name := "multi-match-prefix-" + strings.Join(fields, "+")
+			query.MultiMatch = &types.MultiMatchQuery{
+				Fields:     fields,
+				Query:      value,
+				QueryName_: &name,
+				Type:       &textquerytype.Phraseprefix,
+			}
+		}
+	}
+}
+
 // Distance adds a Distance Feature query.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-distance-feature-query
