@@ -52,7 +52,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "><div class=\"flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4\"><div aria-label=\"Sidebar Navigation\" class=\"flex flex-1 flex-col place-items-center\"><ul role=\"list\" class=\"flex flex-1 flex-col py-24 my-auto justify-between\"><li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "><div class=\"flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4\"><div aria-label=\"Sidebar Navigation\" class=\"flex flex-1 flex-col place-items-center\"><ul role=\"list\" class=\"flex flex-1 flex-col py-16 gap-y-8 my-auto\"><li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
