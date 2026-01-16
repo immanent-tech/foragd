@@ -384,11 +384,14 @@ func (a *Article) GetImage() *types.ImageInfo {
 		return a.Item.GetImage()
 	}
 	// Try to extract an image from the content.
-	img, err := a.extractImageFromContent()
+	img, err := ExtractImageFromContent(a.GetContent())
 	switch {
 	case err != nil:
 		return nil
 	case img != nil:
+		if img.Title == "" {
+			img.Title = a.GetTitle()
+		}
 		return img
 	}
 
@@ -442,8 +445,8 @@ func (a *Article) GetObjectType() ObjectType {
 	return ObjectTypeArticle
 }
 
-func (a *Article) extractImageFromContent() (*types.ImageInfo, error) {
-	doc, err := html.Parse(strings.NewReader(a.GetContent()))
+func ExtractImageFromContent(content string) (*types.ImageInfo, error) {
+	doc, err := html.Parse(strings.NewReader(content))
 	if err != nil {
 		return nil, fmt.Errorf("parse content: %w", err)
 	}
@@ -461,9 +464,6 @@ func (a *Article) extractImageFromContent() (*types.ImageInfo, error) {
 			}
 
 			if img.URL != "" {
-				if img.Title == "" {
-					img.Title = a.GetTitle()
-				}
 				return img, nil
 			}
 		}
