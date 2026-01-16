@@ -494,7 +494,7 @@ components:
         source_type:
           $ref: '#/components/schemas/SourceType'
         image:
-          $ref: '../pkg/go-syndication/schema/types.yaml#/components/schemas/ImageInfo'
+          $ref: '../../pkg/go-syndication/schema/types.yaml#/components/schemas/ImageInfo'
     Feed:
       description: represents a feed object.
       type: object

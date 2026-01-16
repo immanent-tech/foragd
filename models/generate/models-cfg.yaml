@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package: models
-output: models.gen.go
+output: ../models.gen.go
 generate:
   models: true
 output-options:
@@ -16,4 +16,4 @@ output-options:
 compatibility:
   always-prefix-enum-values: true
 import-mapping:
-  ../pkg/go-syndication/schema/types.yaml: github.com/immanent-tech/go-syndication/types
+  ../../pkg/go-syndication/schema/types.yaml: github.com/immanent-tech/go-syndication/types
