@@ -386,8 +386,22 @@ templ PaginateSubscriptions(response *models.ListSubscriptionsResponse) {
 		@NewSubscriptionView(subscription).Card()
 	}
 	if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
-		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/list/subscriptions/paginate", &response.Filters, response.Pagination)
+		<form
+			class="invisible"
+			hx-post="/list/subscriptions/paginate"
+			hx-include="[name='csrf_token']"
+			hx-vals={ generateHXVals(response.Filters.Values()) }
+			hx-trigger="intersect once"
+			hx-target="#grid-objects"
+			hx-swap="beforeend transition:false"
+			hx-indicator="#content-loading"
+			hx-push-url="false"
+			preload
+			preload-images="true"
+			_="on htmx:afterRequest remove me"
+		>
+			<input type="hidden" name={ models.ParamPagination } value={ response.Pagination }/>
+		</form>
 	}
 }
 
