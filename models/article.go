@@ -63,19 +63,14 @@ func FilterArticles(
 	// Get all user subscriptions.
 	subscriptions, err := GetSubscriptions(ctx,
 		GetSubscriptionsByIDs(request.Filters.GetSubscriptions()...),
-		GetSubscriptionsDynamicInfo(true),
 	)
 	if err != nil {
 		return nil, "", fmt.Errorf("filter articles: get subscriptions: %w", err)
 	}
-	// Filter based on current filters.
-	subscriptions = subscriptions.
-		FilterByView(request.Filters.GetView()).
-		FilterByFavorites(request.Filters.OnlyFavorites)
 
 	// Return early if there the user has no subscriptions (i.e., new user).
 	if len(subscriptions) == 0 {
-		return nil, "", fmt.Errorf("filter articles: %w", ErrNotFound)
+		return nil, "", ErrNotFound
 	}
 
 	// Search through items matching any given feeds filters, excluding any read
@@ -496,6 +491,14 @@ func (r *MarkArticlesRequest) Valid() error {
 func (r *MarkArticlesRequest) Sanitise() error {
 	r.Mark = setValidMark(r.Mark)
 	r.View = setValidView(r.View)
+	return nil
+}
+
+func (r *MarkArticleRequest) Valid() error {
+	return validation.Validate.Struct(r)
+}
+
+func (r *MarkArticleRequest) Sanitise() error {
 	return nil
 }
 
