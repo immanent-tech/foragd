@@ -13,24 +13,107 @@ import (
 	"strings"
 )
 
+type Article struct {
+	*models.Article
+}
+
+// NewArticleView wraps an Article object with additional methods for templates involving the article.
+func NewArticleView(a *models.Article) *Article {
+	return &Article{Article: a}
+}
+
+// ViewRemoteAttributes generates a templ.Attributes object containing htmx directives for viewing the article remote content.
+func (a *Article) ViewRemoteAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	attrs["href"] = a.GetLink()
+	attrs["target"] = "_blank"
+	attrs["rel"] = "noopener"
+	attrs["_"] = "on click halt the event's bubbling"
+	return attrs
+}
+
+// ViewAttributes generates a templ.Attributes object containing htmx directives for viewing the article content.
+func (a *Article) ViewAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	attrs["hx-get"] = "/view/article/" + a.GetID()
+	attrs["hx-target"] = ContentID.Target()
+	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
+	attrs["hx-push-url"] = "true"
+	attrs["hx-trigger"] = "click"
+	return attrs
+}
+
+func (a *Article) SimilarArticlesAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	attrs["hx-get"] = "/view/article/" + a.GetID() + "/similar"
+	attrs["hx-target"] = ContentID.Target()
+	attrs["hx-push-url"] = "true"
+	attrs["hx-trigger"] = "click consume"
+	return attrs
+}
+
+func (a *Article) MarkAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	if a.IsUnread() {
+		attrs["hx-post"] = "/mark/article/" + a.GetID() + "/read"
+		attrs["hx-vals"] = generateHXVals(map[string]any{models.ParamMark: models.MarkRead})
+	} else {
+		attrs["hx-post"] = "/mark/article/" + a.GetID() + "/unread"
+		attrs["hx-vals"] = generateHXVals(map[string]any{models.ParamMark: models.MarkUnread})
+	}
+	attrs["hx-target"] = ID(a.GetID()).Target()
+	attrs["hx-include"] = "[name='csrf_token']"
+	attrs["hx-trigger"] = "click consume"
+	return attrs
+
+}
+
+func (a Article) FavoriteAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	if a.IsFavorite() {
+		attrs["hx-post"] = "/user/favorite/remove/article/" + a.GetID()
+	} else {
+		attrs["hx-post"] = "/user/favorite/add/article/" + a.GetID()
+	}
+	attrs["hx-target"] = ID("favorite_" + a.GetID()).Target()
+	attrs["hx-include"] = "[name='csrf_token']"
+	attrs["hx-trigger"] = "click consume"
+	return attrs
+}
+
+func (a *Article) ShareAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	attrs["_"] = "on click if navigator.share then " + shareAPIDialog(a.GetTitle(), a.GetLink()) + " else call document.getElementById('share-" + a.GetID() + "').show() then halt the event's bubbling"
+	return attrs
+}
+
+func (a *Article) ReportIssueAttributes() templ.Attributes {
+	attrs := make(templ.Attributes)
+	attrs["hx-get"] = "/issue/article/" + a.GetID()
+	attrs["hx-target"] = ContentID.Target()
+	attrs["hx-replace-url"] = "true"
+	attrs["hx-trigger"] = "click consume"
+	return attrs
+}
+
 // Card renders an article as a card, for displaying in a list.
-templ ArticleCard(article *models.Article) {
+templ (a *Article) Card() {
 	<article
-		hx-get={ "/view/article/" + article.GetID() }
-		hx-target={ ContentID.Target() }
-		hx-push-url="true"
-		hx-swap="innerHTML show:window:top"
-		hx-trigger="click"
-		id={ article.GetID() }
+		id={ a.GetID() }
 		class={ "card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
-		templ.KV("row-span-1",article.GetImage() == nil),
-		templ.KV("row-span-2",article.GetImage() != nil),
-		templ.KV("opacity-50",!article.IsUnread()) }
+		templ.KV("row-span-1",a.GetImage() == nil),
+		templ.KV("row-span-2",a.GetImage() != nil),
+		templ.KV("opacity-50",!a.IsUnread()) }
+		hx-disinherit="*"
+		{ a.ViewAttributes()... }
 	>
-		if img := article.GetImage(); img != nil {
-			{{ img := article.GetImage() }}
+		// Hidden inputs used for some group article actions.
+		<input type="hidden" name={ "metadata[" + a.GetSubscriptionID() + "]" } value={ a.GetID() }/>
+		<input type="hidden" name="displayed_articles" value={ a.GetID() }/>
+		if img := a.GetImage(); img != nil {
+			{{ img := a.GetImage() }}
 			if img.GetTitle() == "" {
-				{{ img.Title = article.GetTitle() }}
+				{{ img.Title = a.GetTitle() }}
 			}
 			<figure>
 				@NewProxiedImage(img, "rs:auto:400:266/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
@@ -41,16 +124,16 @@ templ ArticleCard(article *models.Article) {
 		}
 		<div class="card-body">
 			<h2 class="card-title text-pretty line-clamp-3 tracking-tight">
-				if article.GetTitle() != "" {
-					{ article.GetTitle() }
+				if a.GetTitle() != "" {
+					{ a.GetTitle() }
 				} else {
 					(no title)
 				}
 			</h2>
 			<div class="grid grid-cols-1 grid-flow-row mb-4">
-				if len(article.GetAuthors()) > 0 {
+				if len(a.GetAuthors()) > 0 {
 					<p class="inline-block text-xs/4 italic truncate">
-						{ strings.Join(article.GetAuthors(),",") }
+						{ strings.Join(a.GetAuthors(),",") }
 					</p>
 				}
 				<p class="inline-block text-xs/4 truncate">
@@ -60,10 +143,10 @@ templ ArticleCard(article *models.Article) {
 						hx-push-url="true"
 						hx-swap="innerHTML show:window:top transition:true"
 						hx-trigger="click consume"
-						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: article.GetSubscriptionID()}) }
+						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: a.GetSubscriptionID()}) }
 						class="link link-hover truncate"
 					>
-						{ article.GetFeedTitle() }
+						{ a.GetFeedTitle() }
 					</a>
 				</p>
 			</div>
@@ -72,45 +155,37 @@ templ ArticleCard(article *models.Article) {
 				<div class="flex flex-1 gap-x-2">
 					<p class="text-xs/4 capitalize">
 						Updated&nbsp;
-						@showTimestamp(article.GetUpdatedDate())
+						@showTimestamp(a.GetUpdatedDate())
 					</p>
 				</div>
 				// Actions menu.
 				<div class="flex flex-none">
 					<el-dropdown class="relative ml-auto" _="on click halt the event's bubbling">
 						<button class="btn btn-sm btn-ghost btn-square">
-							<span class="sr-only">article.GetTitle() + " Actions"</span>
+							<span class="sr-only">a.GetTitle() + " Actions"</span>
 							@tabler.DotsVertical(i.Props{Class: "size-5"})
 						</button>
 						<el-menu
 							anchor="bottom end"
 							popover
+							_="on htmx:afterRequest(successful) hidePopover() on me"
 						>
 							// View original article action.
-							@goToArticleLink(article, "link-hover") {
+							<a class="link link-hover" { a.ViewRemoteAttributes()... }>
 								@tabler.ExternalLink(i.Props{Class: "size-4"})
 								Go To Article
-							}
+							</a>
 							// Find similar action.
-							@findSimilarArticlesLink(article)
+							<a class="link link-hover" { a.SimilarArticlesAttributes()... }>
+								@tabler.FileSearch(i.Props{Class: "size-4"})
+								Find similar...
+							</a>
 							// Mark action.
-							<form id={ "mark-" + article.GetID() }>
-								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-								{{ var markURL string }}
-								if article.IsUnread() {
-									{{ markURL = "/mark/article/" + article.GetID() + "/read" }}
-								} else {
-									{{ markURL = "/mark/article/" + article.GetID() + "/unread" }}
-								}
-								@NewLink(
-									WithHXMethod(http.MethodPost, markURL),
-									WithHXTarget("#"+article.GetID()),
-									WithHXInclude("[name='csrf_token']"),
-									WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
-									WithHXTrigger("click consume"),
-									WithClasses("link-hover"),
-								) {
-									switch article.IsUnread() {
+							<form id={ "mark-" + a.GetID() }>
+								<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
+								<input type="hidden" name={ models.ParamView } value={ models.PageFiltersFromCtx(ctx, "/list/articles").GetView() }/>
+								<a class="link link-hover" { a.MarkAttributes()... }>
+									switch a.IsUnread() {
 										case true:
 											@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 											Mark Read
@@ -118,68 +193,62 @@ templ ArticleCard(article *models.Article) {
 											@tabler.MailFilled(i.Props{Class: "size-4"})
 											Mark Unread
 									}
-								}
+								</a>
 							</form>
 							// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-							@favoriteArticleLink(article) {
-								@ToggleFavorite(article.GetID(), string(article.GetObjectType()), article.IsFavorite())
-							}
+							<form>
+								<input type="hidden" name="display" value="card"/>
+								<div id={ "favorite_" + a.GetID() }>
+									<a class="link link-hover" { a.FavoriteAttributes()... }>
+										switch a.IsFavorite() {
+											case true:
+												@tabler.HeartFilled(i.Props{Class: "size-4"})
+												Remove Favorite
+											case false:
+												@tabler.Heart(i.Props{Class: "size-4"})
+												Add Favorite
+										}
+									</a>
+								</div>
+							</form>
 							// Share action.
-							@shareArticleLink(article, "link-hover") {
+							<a class="link link-hover" { a.ShareAttributes()... }>
 								@tabler.Share(i.Props{Class: "size-4"})
 								Share
-							}
+							</a>
 							// Report issue action.
-							@reportArticleIssueLink(article, "link-hover") {
+							<a class="link link-hover" { a.ReportIssueAttributes()... }>
 								@tabler.FlagFilled(i.Props{Class: "size-4"})
 								Report an issue
-							}
+							</a>
 						</el-menu>
 					</el-dropdown>
 				</div>
 			</div>
 		</div>
-		@ShareObjectModal(article.GetID(), "Sharing "+article.GetTitle(), article.GetLink())
+		@ShareObjectModal(a.GetID(), "Sharing "+a.GetTitle(), a.GetLink())
 	</article>
 }
 
-templ articleCardTitle(article *models.Article) {
-	@NewLink(
-		WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-		WithHXTarget(ContentID.Target()),
-		WithHXPushURL(true),
-		WithHXSwap("innerHTML show:window:top"),
-		WithClasses("link-hover"),
-	) {
-		<h2 class="card-title text-pretty line-clamp-3 tracking-tight">
-			if article.GetTitle() != "" {
-				{ article.GetTitle() }
-			} else {
-				(no title)
-			}
-		</h2>
-	}
-}
-
 // ArticleContent renders the complete content of an article.
-templ ArticleContent(article *models.Article) {
+templ (a *Article) Content() {
 	// Add the subscription ID as a hidden input that htmx can use for actions.
-	<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
+	<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
 	@container() {
-		<article id={ article.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
+		<article id={ a.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
 			// Article title.
 			<div class="flex flex-1 pb-2">
-				if article.SourceType != models.SourceTypeEmail {
+				if a.SourceType != models.SourceTypeEmail {
 					@NewLink(
-						WithAttribute("href", article.GetLink()),
+						WithAttribute("href", a.GetLink()),
 						WithAttribute("target", "_blank"),
 						WithAttribute("rel", "noopener"),
 						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 					) {
-						@h2(article.GetTitle())
+						@h2(a.GetTitle())
 					}
 				} else {
-					@h2(article.GetTitle())
+					@h2(a.GetTitle())
 				}
 			</div>
 			// Subscription link.
@@ -189,9 +258,9 @@ templ ArticleContent(article *models.Article) {
 					<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 					<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 					<input type="hidden" name={ models.ParamSort } value={ filters.GetSort() }/>
-					<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
-					<input type="hidden" name={ models.ParamSubscriptionName } value={ article.GetFeedTitle() }/>
-					<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+					<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
+					<input type="hidden" name={ models.ParamSubscriptionName } value={ a.GetFeedTitle() }/>
+					<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
 					@NewLink(
 						WithHXMethod(http.MethodPost, "/list/articles"),
 						WithHXTarget(ContentID.Target()),
@@ -200,21 +269,21 @@ templ ArticleContent(article *models.Article) {
 						WithHXSwap("innerHTML show:window:top transition:true"),
 						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
 					) {
-						<h3>{ article.GetFeedTitle() }</h3>
+						<h3>{ a.GetFeedTitle() }</h3>
 					}
 				</form>
 			</div>
 			<div class="flex items-center">
 				<div class="flex-1 inline-grid">
 					// Author(s) and Published Time.
-					if len(article.GetAuthors()) > 0 {
+					if len(a.GetAuthors()) > 0 {
 						<p class="col-span-full text-sm/6 italic truncate">
-							{ strings.Join(article.GetAuthors(),",") }
+							{ strings.Join(a.GetAuthors(),",") }
 						</p>
 					}
 					<p class="col-span-full text-sm/6 capitalize">
 						Updated&nbsp;
-						@showTimestamp(article.GetUpdatedDate())
+						@showTimestamp(a.GetUpdatedDate())
 					</p>
 				</div>
 				<div class="flex items-center justify-end">
@@ -225,82 +294,96 @@ templ ArticleContent(article *models.Article) {
 						</button>
 						<el-menu id="article-content-menu" anchor="bottom end" popover>
 							// Find similar action.
-							@findSimilarArticlesLink(article)
+							<a class="link link-hover" { a.SimilarArticlesAttributes()... }>
+								@tabler.FileSearch(i.Props{Class: "size-4"})
+								Find similar...
+							</a>
 							// Mark action.
 							<form>
-								<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-								<div id={ "mark_" + article.GetID() }>
-									@UpdateViewArticleMark(article.GetID(), article.IsUnread())
+								<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
+								<div id={ "mark_" + a.GetID() }>
+									@UpdateViewArticleMark(a.GetID(), a.IsUnread())
 								</div>
 							</form>
 							// Favorite action.
-							@favoriteArticleLink(article) {
-								@UpdateViewArticleFavorite(article.GetID(), article.IsFavorite())
-							}
+							<form>
+								<input type="hidden" name="display" value="card"/>
+								<div id={ "favorite_" + a.GetID() }>
+									<a class="link link-hover" { a.FavoriteAttributes()... }>
+										switch a.IsFavorite() {
+											case true:
+												@tabler.HeartFilled(i.Props{Class: "size-4"})
+												Remove Favorite
+											case false:
+												@tabler.Heart(i.Props{Class: "size-4"})
+												Add Favorite
+										}
+									</a>
+								</div>
+							</form>
 							// Report article issue action.
-							@reportArticleIssueLink(article, "link-hover") {
+							<a class="link link-hover" { a.ReportIssueAttributes()... }>
 								@tabler.FlagFilled(i.Props{Class: "size-4"})
 								Report an issue
-							}
+							</a>
 						</el-menu>
 					</el-dropdown>
 				</div>
 			</div>
 			// Content.
-			if article.GetContent() != "" || article.GetDescription() != "" {
+			if a.GetContent() != "" || a.GetDescription() != "" {
 				<div data-disable-scripting class="prose-custom forced-width">
 					switch  {
-						case article.GetContent() != "":
-							@templ.Raw(article.GetContent())
-						case article.GetDescription() != "":
-							@templ.Raw(article.GetDescription())
+						case a.GetContent() != "":
+							@templ.Raw(a.GetContent())
+						case a.GetDescription() != "":
+							@templ.Raw(a.GetDescription())
 					}
 				</div>
 			}
 		</article>
 	}
-	if article.SourceType != models.SourceTypeEmail {
-		<nav class="my-16 flex items-center justify-center gap-x-4 text-sm">
+	if a.SourceType != models.SourceTypeEmail {
+		<nav class="my-16 flex items-center justify-center text-sm join join-vertical sm:join-horizontal">
 			// Toggle view full content action.
-			@NewLink(
-				WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-				WithHXTarget(ContentID.Target()),
-				WithHXInclude("[name='csrf_token']"),
-				WithHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}),
-			) {
-				if article.IsRemoteContent() {
+			<a
+				role="button"
+				class="btn btn-primary join-item"
+				hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
+				{ a.ViewAttributes()... }
+			>
+				if a.IsRemoteContent() {
 					Feed content
 				} else {
 					Original content
 				}
-			}
+			</a>
 			// View original article action.
-			@goToArticleLink(article) {
-				Go to article
-			}
-			// Share article action.
-			@shareArticleLink(article) {
+			<a role="button" class="btn btn-primary join-item" { a.ViewRemoteAttributes()... }>
+				View Remote
+			</a>
+			<a role="button" class="btn btn-primary join-item" { a.ShareAttributes()... }>
 				Share
-			}
-			@ShareObjectModal(article.GetID(), "Sharing "+article.GetTitle(), article.GetLink())
+			</a>
 		</nav>
 	}
 	@btnBackToTop()
 	// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 	// read and mark it so (when the user has set this option).
-	if article.IsUnread() && article.MarkArticleReadOnView {
+	if a.IsUnread() && a.MarkArticleReadOnView {
 		<input type="hidden" name="view" value={ models.ViewAll }/>
 		<div
 			aria-hidden="true"
-			hx-post={ "/mark/article/" + article.GetID() + "/read" }
+			hx-post={ "/mark/article/" + a.GetID() + "/read" }
 			hx-swap="none"
 			hx-include="[name='csrf_token'],[name='view']"
-			hx-vals={ templ.JSONString(map[string]any{models.ParamSubscriptionID: article.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
+			hx-vals={ templ.JSONString(map[string]any{models.ParamSubscriptionID: a.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
 			hx-trigger="intersect once,load delay:10s"
 			hx-push-url="false"
 			_="on htmx:afterRequest remove me"
 		></div>
 	}
+	@ShareObjectModal(a.GetID(), "Sharing "+a.GetTitle(), a.GetLink())
 }
 
 // UpdateViewArticleMark updates the mark action when viewing an article.
@@ -479,75 +562,11 @@ templ ListArticles(response *models.ListArticlesResponse) {
 // PaginateArticles renders the given list of articles as cards with an optional element to trigger pagination to load more.
 templ PaginateArticles(response *models.ListArticlesResponse) {
 	for article := range slices.Values(response.Articles) {
-		<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
-		@ArticleCard(article)
+		@NewArticleView(article).Card()
 	}
 	// Add pagination element if pagination is required.
 	if response.Pagination != "" && len(response.Articles) == response.Filters.GetCount() {
 		// Add pagination htmx props to last article.
 		@PaginationControl(ctx, "/list/articles/paginate", response.Pagination)
-	}
-}
-
-// shareArticleLink renders a link that opens the share dialog. This will be either the native navigator.share API
-// dialog or a custom modal, depending on browser support.
-templ shareArticleLink(article *models.Article, classes ...string) {
-	@NewLink(
-		WithClasses(classes...),
-		WithAttribute("_",
-			"on click if navigator.share then "+shareAPIDialog(article.GetTitle(), article.GetLink())+" else call document.getElementById('share-"+article.GetID()+"').show() ",
-		),
-		WithHXTrigger("click consume"),
-	) {
-		{ children... }
-	}
-}
-
-// goToArticleLink renders a link that directs to the remote article.
-templ goToArticleLink(article *models.Article, classes ...string) {
-	@NewLink(
-		WithAttribute("href", article.GetLink()),
-		WithAttribute("target", "_blank"),
-		WithAttribute("rel", "noopener"),
-		WithAttribute("_", "on click halt the event's bubbling"),
-		WithClasses(classes...),
-	) {
-		{ children... }
-	}
-}
-
-// reportArticleIssueLink renders a link that opens the form to report an issue with the article.
-templ reportArticleIssueLink(article *models.Article, classes ...string) {
-	@NewLink(
-		WithHXMethod(http.MethodGet, "/issue/article/"+article.GetID()),
-		WithHXTarget(ContentID.Target()),
-		WithHXReplaceURL(true),
-		WithHXTrigger("click consume"),
-		WithClasses(classes...),
-	) {
-		{ children... }
-	}
-}
-
-// favoriteArticleLink renders a link for toggling an article favorite.
-templ favoriteArticleLink(article *models.Article) {
-	<form>
-		<input type="hidden" name="display" value="card"/>
-		<div id={ "favorite_" + article.GetID() }>
-			{ children... }
-		</div>
-	</form>
-}
-
-templ findSimilarArticlesLink(article *models.Article) {
-	@NewLink(
-		WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()+"/similar"),
-		WithHXTarget(ContentID.Target()),
-		WithHXPushURL(true),
-		WithHXTrigger("click consume"),
-		WithClasses("link-hover"),
-	) {
-		@tabler.FileSearch(i.Props{Class: "size-4"})
-		Find similar...
 	}
 }

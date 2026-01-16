@@ -136,6 +136,7 @@ templ (s *Subscription) Card() {
 			templ.KV("row-span-2",len(s.Subscription.GetCategories(0))== 0),
 			templ.KV("row-span-3",len(s.Subscription.GetCategories(0)) >0),
 			templ.KV("opacity-50",!s.Subscription.GetStats().IsUnread()) }
+		hx-disinherit="*"
 		{ s.ViewArticlesAttributes()... }
 	>
 		// Hidden input used for acting on all displayed subscriptions.
@@ -199,7 +200,11 @@ templ (s *Subscription) Card() {
 							<span class="sr-only">s.GetTitle() + " Actions"</span>
 							@tabler.DotsVertical(i.Props{Class: "size-5"})
 						</button>
-						<el-menu anchor="bottom end" popover>
+						<el-menu
+							anchor="bottom end"
+							popover
+							_="on htmx:afterRequest(successful) hidePopover() on me"
+						>
 							// View action.
 							if len(s.ViewOriginAttributes()) > 0 {
 								<a class="link link-hover" { s.ViewOriginAttributes()... }>

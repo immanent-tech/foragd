@@ -260,7 +260,7 @@ templ SearchResultsGrid(request *models.SearchRequest, articles models.Articles,
 templ SearchResults(articles models.Articles, pagination models.Pagination) {
 	for article := range slices.Values(articles) {
 		<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
-		@ArticleCard(article)
+		@NewArticleView(article).Card()
 	}
 	if pagination != "" && len(articles) == 15 {
 		@PaginationControl(ctx, "/search/paginate", pagination)
@@ -556,7 +556,7 @@ templ SimilarArticles(articles models.Articles) {
 		<section class="mt-4">
 			@grid() {
 				for article := range slices.Values(articles) {
-					@ArticleCard(article)
+					@NewArticleView(article).Card()
 				}
 			}
 		</section>

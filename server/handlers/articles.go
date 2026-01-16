@@ -281,9 +281,9 @@ func ViewArticle() http.HandlerFunc {
 		// Render appropriate content.
 		var template templ.Component
 		if remoteContentErrMsg != nil {
-			template = templ.Join(templates.ArticleContent(article), remoteContentErrMsg)
+			template = templ.Join(templates.NewArticleView(article).Content(), remoteContentErrMsg)
 		} else {
-			template = templates.ArticleContent(article)
+			template = templates.NewArticleView(article).Content()
 		}
 		renderPage(
 			templates.NewPage(
@@ -462,7 +462,7 @@ func MarkArticle() http.HandlerFunc {
 					}
 				}
 				// Render new article card.
-				renderPartial(templates.NewPartial(templates.ArticleCard(articles[0]))).ServeHTTP(res, req)
+				renderPartial(templates.NewPartial(templates.NewArticleView(articles[0]).Card())).ServeHTTP(res, req)
 			}
 		case "mark_" + itemID: // Swap target is link (viewing article).
 			if request.Mark == models.MarkRead {
