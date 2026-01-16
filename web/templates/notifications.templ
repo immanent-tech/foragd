@@ -53,15 +53,9 @@ templ Notification(msg *models.UserMessage, timeout time.Duration) {
 					<h2 class="ml-4 card-title">{ msg.Summary }</h2>
 				</div>
 				if msg.HasDetails() {
-					<p
-						class={
-							"mt-1 text-xs",
-							templ.KV("text-success-content/80", msg.IsSuccess()),
-							templ.KV("text-error-content/80", msg.IsError()),
-							templ.KV("text-warning-content/80", msg.IsWarning()),
-							templ.KV("text-info-content/80", msg.IsInfo()),
-						}
-					>{ msg.Details }</p>
+					<p class="mt-1">
+						{ msg.Details }
+					</p>
 				}
 				// Close button.
 				<div class="absolute top-0 right-0 p-2">

@@ -54,14 +54,17 @@ func (a *Article) SimilarArticlesAttributes() templ.Attributes {
 
 func (a *Article) MarkAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
+	vals := make(map[string]any)
 	if a.IsUnread() {
 		attrs["hx-post"] = "/mark/article/" + a.GetID() + "/read"
-		attrs["hx-vals"] = generateHXVals(map[string]any{models.ParamMark: models.MarkRead})
+		vals[models.ParamMark] = models.MarkRead
 	} else {
 		attrs["hx-post"] = "/mark/article/" + a.GetID() + "/unread"
-		attrs["hx-vals"] = generateHXVals(map[string]any{models.ParamMark: models.MarkUnread})
+		vals[models.ParamMark] = models.MarkUnread
 	}
-	attrs["hx-target"] = ID(a.GetID()).Target()
+	vals[models.ParamSubscriptionID] = a.GetSubscriptionID()
+	vals[models.ParamItemID] = a.GetID()
+	attrs["hx-vals"] = generateHXVals(vals)
 	attrs["hx-include"] = "[name='csrf_token']"
 	attrs["hx-trigger"] = "click consume"
 	return attrs
@@ -119,6 +122,7 @@ templ (a *Article) Card() {
 				@NewProxiedImage(img, "rs:auto:400:266/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
 					WithAttribute("width", "400"),
 					WithAttribute("height", "266"),
+					WithClasses("inline"),
 				)
 			</figure>
 		}
@@ -170,57 +174,56 @@ templ (a *Article) Card() {
 							popover
 							_="on htmx:afterRequest(successful) hidePopover() on me"
 						>
-							// View original article action.
-							<a class="link link-hover" { a.ViewRemoteAttributes()... }>
-								@tabler.ExternalLink(i.Props{Class: "size-4"})
-								Go To Article
-							</a>
-							// Find similar action.
-							<a class="link link-hover" { a.SimilarArticlesAttributes()... }>
-								@tabler.FileSearch(i.Props{Class: "size-4"})
-								Find similar...
-							</a>
-							// Mark action.
-							<form id={ "mark-" + a.GetID() }>
-								<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-								<input type="hidden" name={ models.ParamView } value={ models.PageFiltersFromCtx(ctx, "/list/articles").GetView() }/>
-								<a class="link link-hover" { a.MarkAttributes()... }>
-									switch a.IsUnread() {
-										case true:
-											@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-											Mark Read
-										case false:
-											@tabler.MailFilled(i.Props{Class: "size-4"})
-											Mark Unread
-									}
+							<div class="py-1">
+								// View original article action.
+								<a class="menu-link" { a.ViewRemoteAttributes()... }>
+									@tabler.ExternalLink(i.Props{Class: "size-4"})
+									Go To Article
 								</a>
-							</form>
-							// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-							<form>
-								<input type="hidden" name="display" value="card"/>
-								<div id={ "favorite_" + a.GetID() }>
-									<a class="link link-hover" { a.FavoriteAttributes()... }>
-										switch a.IsFavorite() {
-											case true:
-												@tabler.HeartFilled(i.Props{Class: "size-4"})
-												Remove Favorite
-											case false:
-												@tabler.Heart(i.Props{Class: "size-4"})
-												Add Favorite
-										}
-									</a>
-								</div>
-							</form>
-							// Share action.
-							<a class="link link-hover" { a.ShareAttributes()... }>
-								@tabler.Share(i.Props{Class: "size-4"})
-								Share
-							</a>
-							// Report issue action.
-							<a class="link link-hover" { a.ReportIssueAttributes()... }>
-								@tabler.FlagFilled(i.Props{Class: "size-4"})
-								Report an issue
-							</a>
+								// Find similar action.
+								<a class="menu-link" { a.SimilarArticlesAttributes()... }>
+									@tabler.FileSearch(i.Props{Class: "size-4"})
+									Find similar...
+								</a>
+								// Mark action.
+								<form
+									if models.PageFiltersFromCtx(ctx, "/list/articles").GetView() == models.ViewAll {
+										hx-swap="outerHTML transition:true"
+									}
+									if models.PageFiltersFromCtx(ctx, "/list/articles").GetView() != models.ViewAll {
+										hx-swap="delete transition:true"
+									}
+									hx-target={ "#" + a.GetID() }
+								>
+									@a.MenuActionMark()
+								</form>
+								// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+								<form>
+									<input type="hidden" name="display" value="card"/>
+									<div id={ "favorite_" + a.GetID() }>
+										<a class="menu-link" { a.FavoriteAttributes()... }>
+											switch a.IsFavorite() {
+												case true:
+													@tabler.HeartFilled(i.Props{Class: "size-4"})
+													Remove Favorite
+												case false:
+													@tabler.Heart(i.Props{Class: "size-4"})
+													Add Favorite
+											}
+										</a>
+									</div>
+								</form>
+								// Share action.
+								<a class="menu-link" { a.ShareAttributes()... }>
+									@tabler.Share(i.Props{Class: "size-4"})
+									Share
+								</a>
+								// Report issue action.
+								<a class="menu-link" { a.ReportIssueAttributes()... }>
+									@tabler.FlagFilled(i.Props{Class: "size-4"})
+									Report an issue
+								</a>
+							</div>
 						</el-menu>
 					</el-dropdown>
 				</div>
@@ -288,49 +291,51 @@ templ (a *Article) Content() {
 				</div>
 				<div class="flex items-center justify-end">
 					<el-dropdown>
-						<button id="article-content-menu-toggle">
+						<button
+							id="btn-article-actions"
+							class="btn btn-ghost btn-square"
+						>
 							<span class="sr-only">Article Actions</span>
-							@tabler.DotsVertical(i.Props{Class: "size-6"})
+							@tabler.DotsVertical()
 						</button>
 						<el-menu
-							id="article-content-menu"
+							id="menu-article-actions"
 							anchor="bottom end"
 							popover
 							_="on htmx:afterRequest(successful) hidePopover() on me"
 						>
-							// Find similar action.
-							<a class="link link-hover" { a.SimilarArticlesAttributes()... }>
-								@tabler.FileSearch(i.Props{Class: "size-4"})
-								Find similar...
-							</a>
-							// Mark action.
-							<form>
-								<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-								<div id={ "mark_" + a.GetID() }>
-									@UpdateViewArticleMark(a.GetID(), a.IsUnread())
-								</div>
-							</form>
-							// Favorite action.
-							<form>
-								<input type="hidden" name="display" value="card"/>
-								<div id={ "favorite_" + a.GetID() }>
-									<a class="link link-hover" { a.FavoriteAttributes()... }>
-										switch a.IsFavorite() {
-											case true:
-												@tabler.HeartFilled(i.Props{Class: "size-4"})
-												Remove Favorite
-											case false:
-												@tabler.Heart(i.Props{Class: "size-4"})
-												Add Favorite
-										}
-									</a>
-								</div>
-							</form>
-							// Report article issue action.
-							<a class="link link-hover" { a.ReportIssueAttributes()... }>
-								@tabler.FlagFilled(i.Props{Class: "size-4"})
-								Report an issue
-							</a>
+							<div class="py-1">
+								// Find similar action.
+								<a class="menu-link" { a.SimilarArticlesAttributes()... }>
+									@tabler.FileSearch(i.Props{Class: "size-4"})
+									Find similar...
+								</a>
+								// Mark action.
+								<form hx-swap="outerHTML transition:true" hx-target={ "#" + a.GetID() + "-mark-action" }>
+									@a.MenuActionMark()
+								</form>
+								// Favorite action.
+								<form>
+									<input type="hidden" name="display" value="card"/>
+									<div id={ "favorite_" + a.GetID() }>
+										<a class="menu-link" { a.FavoriteAttributes()... }>
+											switch a.IsFavorite() {
+												case true:
+													@tabler.HeartFilled(i.Props{Class: "size-4"})
+													Remove Favorite
+												case false:
+													@tabler.Heart(i.Props{Class: "size-4"})
+													Add Favorite
+											}
+										</a>
+									</div>
+								</form>
+								// Report article issue action.
+								<a class="menu-link" { a.ReportIssueAttributes()... }>
+									@tabler.FlagFilled(i.Props{Class: "size-4"})
+									Report an issue
+								</a>
+							</div>
 						</el-menu>
 					</el-dropdown>
 				</div>
@@ -396,6 +401,24 @@ templ (a *Article) Content() {
 		></div>
 	}
 	@ShareObjectModal(a.GetID(), "Sharing "+a.GetTitle(), a.GetLink())
+}
+
+// MenuActionMark renders a menu action for marking an article.
+templ (a *Article) MenuActionMark() {
+	<a
+		id={ a.GetID() + "-mark-action" }
+		class="menu-link"
+		{ a.MarkAttributes()... }
+	>
+		switch a.IsUnread() {
+			case true:
+				@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+				Mark Read
+			case false:
+				@tabler.MailFilled(i.Props{Class: "size-4"})
+				Mark Unread
+		}
+	</a>
 }
 
 // UpdateViewArticleMark updates the mark action when viewing an article.

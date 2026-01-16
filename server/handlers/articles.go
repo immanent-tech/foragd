@@ -17,6 +17,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -62,7 +63,7 @@ func ListArticles() http.HandlerFunc {
 
 				// Get articles matching filters.
 				articles, request.Pagination, err = models.FilterArticles(req.Context(), request)
-				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+				if err != nil && !errors.Is(err, models.ErrNotFound) {
 					return &models.APIError{
 						InternalError: fmt.Errorf("filter articles: %w", err),
 						StatusCode:    http.StatusInternalServerError,
@@ -411,15 +412,18 @@ func RemoveFavoriteArticle() http.HandlerFunc {
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
 func MarkArticle() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-		// Extract request values.
-		subscriptionID := req.FormValue(models.ParamSubscriptionID)
-		itemID := chi.URLParam(req, models.ParamItemID)
-		request := &models.MarkArticlesRequest{
-			Metadata: map[models.SubscriptionID][]models.ItemID{subscriptionID: {itemID}},
-			Mark:     models.Mark(chi.URLParam(req, models.ParamMark)),
-			View:     models.View(req.FormValue(models.ParamView)),
+		request, valid, err := forms.DecodeForm[*models.MarkArticleRequest](req)
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark article",
+					"This might be a temporary issue, please try again.",
+				),
+			}
 		}
-		if err := request.Valid(); err != nil {
+		if !valid {
 			return &models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusUnprocessableEntity,
@@ -430,46 +434,57 @@ func MarkArticle() http.HandlerFunc {
 			}
 		}
 
-		// Mark articles.
-		for subscriptionID, itemIDs := range request.Metadata {
-			if err := markArticles(req.Context(), request.Mark, subscriptionID, itemIDs...); err != nil {
-				return &models.APIError{
-					InternalError: fmt.Errorf("unable to update user: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to mark article",
-						"This might be a temporary issue, please try again.",
-					),
-				}
+		// Mark the article.
+		if err := markArticles(req.Context(), request.Mark, request.SubscriptionID, request.ItemID); err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("unable to mark article: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark article",
+					"This might be a temporary issue, please try again.",
+				),
 			}
 		}
 
-		// Generate appropriate swap content based on target header.
+		// Get the updated article details.
+		articles, err := models.GetArticles(req.Context(), request.ItemID)
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("unable to mark article: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark article",
+					"This might be a temporary issue, please try again.",
+				),
+			}
+		}
+		if len(articles) == 0 || len(articles) > 1 {
+			return &models.APIError{
+				InternalError: models.ErrInvalidAPIResult,
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark article",
+					"This might be a temporary issue, please try again.",
+				),
+			}
+		}
+		article := articles[0]
+
 		switch req.Header.Get(htmx.HeaderTarget) {
-		case itemID: // Swap target is card.
-			// Update UI according to current view.
-			if request.View != models.ViewAll {
-				res.Header().Add(htmx.HeaderReswap, "delete transition:true")
-			} else {
-				res.Header().Add(htmx.HeaderReswap, "outerHTML transition:true")
-				// Get updated article.
-				articles, err := models.GetArticles(req.Context(), itemID)
-				if err != nil || len(articles) == 0 || len(articles) > 1 {
-					return &models.APIError{
-						InternalError: fmt.Errorf("could not retrieve updated articles: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage:   models.NewErrorMessage("Unable to mark objects", "This might be a temporary error, please try again."),
-					}
-				}
-				// Render new article card.
-				renderPartial(templates.NewPartial(templates.NewArticleView(articles[0]).Card())).ServeHTTP(res, req)
-			}
-		case "mark_" + itemID: // Swap target is link (viewing article).
-			if request.Mark == models.MarkRead {
-				renderPartial(templates.NewPartial(templates.UpdateViewArticleMark(itemID, false))).ServeHTTP(res, req)
-			} else {
-				renderPartial(templates.NewPartial(templates.UpdateViewArticleMark(itemID, true))).ServeHTTP(res, req)
-			}
+		case article.GetID() + "-mark-action":
+			renderPartial(
+				templates.NewPartial(
+					templates.NewArticleView(article).MenuActionMark(),
+				),
+			).ServeHTTP(res, req)
+		case article.GetID():
+			renderPartial(
+				templates.NewPartial(
+					templates.NewArticleView(article).Card(),
+				),
+			).ServeHTTP(res, req)
+		default:
+			slogctx.FromCtx(req.Context()).Warn("Could not determine appropriate content swap.")
 		}
 		res.WriteHeader(http.StatusOK)
 		return nil

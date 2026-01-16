@@ -1388,6 +1388,21 @@ components:
           $ref: '#/components/schemas/View'
         mark:
           $ref: '#/components/schemas/Mark'
+    MarkArticleRequest:
+      description: >
+        contains parameters for marking an article.
+      type: object
+      required:
+        - mark
+        - subscription_id
+        - item_id
+      properties:
+        item_id:
+          $ref: '#/components/schemas/ItemID'
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        mark:
+          $ref: '#/components/schemas/Mark'
     MarkArticlesRequest:
       description: >
         contains the parameters for marking articles.
