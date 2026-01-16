@@ -338,6 +338,10 @@ func parseFilters(next http.Handler) http.Handler {
 		ctx := req.Context()
 		switch {
 		case err != nil:
+			slogctx.FromCtx(ctx).Warn("Unable to parse new filters. Using filters from session.",
+				slog.Any("error", err),
+				slog.Any("filters", filters),
+			)
 			// Try to restore filters from session.
 			restored, err := session.Restore[models.ListFilters](ctx, "filters_"+req.URL.Path)
 			if err != nil {
@@ -350,7 +354,13 @@ func parseFilters(next http.Handler) http.Handler {
 			newFilters := models.NewListDisplayFilters()
 			session.Save(ctx, "filters_"+req.URL.Path, newFilters)
 			ctx = models.PageFiltersToCtx(ctx, req.URL.Path, filters)
+			slogctx.FromCtx(ctx).Warn("Invalid filters. Creating new filters.",
+				slog.Any("error", err),
+			)
 		default:
+			slogctx.FromCtx(ctx).Debug("Saving filters",
+				slog.Any("filters", filters),
+			)
 			ctx = models.PageFiltersToCtx(ctx, req.URL.Path, filters)
 		}
 		next.ServeHTTP(res, req.WithContext(ctx))

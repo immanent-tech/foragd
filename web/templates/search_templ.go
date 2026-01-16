@@ -702,7 +702,7 @@ func SearchResults(articles models.Articles, pagination models.Pagination) templ
 			}
 		}
 		if pagination != "" && len(articles) == 15 {
-			templ_7745c5c3_Err = PaginationControl(ctx, "/search/paginate", pagination).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = PaginationControl(ctx, "/search/paginate", nil, pagination).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

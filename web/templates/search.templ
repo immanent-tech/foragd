@@ -263,7 +263,7 @@ templ SearchResults(articles models.Articles, pagination models.Pagination) {
 		@NewArticleView(article).Card()
 	}
 	if pagination != "" && len(articles) == 15 {
-		@PaginationControl(ctx, "/search/paginate", pagination)
+		@PaginationControl(ctx, "/search/paginate", nil, pagination)
 	}
 }
 

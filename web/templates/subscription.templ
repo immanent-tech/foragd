@@ -387,7 +387,7 @@ templ PaginateSubscriptions(response *models.ListSubscriptionsResponse) {
 	}
 	if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
 		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/list/subscriptions/paginate", response.Pagination)
+		@PaginationControl(ctx, "/list/subscriptions/paginate", &response.Filters, response.Pagination)
 	}
 }
 

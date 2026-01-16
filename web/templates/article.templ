@@ -242,14 +242,14 @@ templ (a *Article) Content() {
 			// Article title.
 			<div class="flex flex-1 pb-2">
 				if a.SourceType != models.SourceTypeEmail {
-					@NewLink(
-						WithAttribute("href", a.GetLink()),
-						WithAttribute("target", "_blank"),
-						WithAttribute("rel", "noopener"),
-						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
-					) {
+					<a
+						href={ a.GetLink() }
+						target="_blank"
+						rel="noopener"
+						class="link link-hover focus:text-primary focus:outline-hidden"
+					>
 						@h2(a.GetTitle())
-					}
+					</a>
 				} else {
 					@h2(a.GetTitle())
 				}
@@ -264,16 +264,16 @@ templ (a *Article) Content() {
 					<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
 					<input type="hidden" name={ models.ParamSubscriptionName } value={ a.GetFeedTitle() }/>
 					<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-					@NewLink(
-						WithHXMethod(http.MethodPost, "/list/articles"),
-						WithHXTarget(ContentID.Target()),
-						WithHXInclude("[name='csrf_token']"),
-						WithHXPushURL(true),
-						WithHXSwap("innerHTML show:window:top transition:true"),
-						WithClasses("group/item", "no-underline", "hover:underline", "focus:text-primary", "focus:outline-hidden"),
-					) {
+					<a
+						hx-post="/list/articles"
+						hx-target={ ContentID.Target() }
+						hx-include="[name='csrf_token']"
+						hx-push-url="true"
+						hx-swap="innerHTML show:window:top transition:true"
+						class="link link-hover focus:text-primary focus:outline-hidden"
+					>
 						<h3>{ a.GetFeedTitle() }</h3>
-					}
+					</a>
 				</form>
 			</div>
 			<div class="flex items-center">
@@ -420,33 +420,6 @@ templ (a *Article) MenuActionMark() {
 				Mark Unread
 		}
 	</a>
-}
-
-// UpdateViewArticleMark updates the mark action when viewing an article.
-templ UpdateViewArticleMark(id string, isUnread bool) {
-	{{ var markURL string }}
-	if isUnread {
-		{{ markURL = "/mark/article/" + id + "/read" }}
-		<input type="hidden" name={ models.ParamView } value={ models.ViewUnread }/>
-	} else {
-		{{ markURL = "/mark/article/" + id + "/unread" }}
-		<input type="hidden" name={ models.ParamView } value={ models.ViewRead }/>
-	}
-	@NewLink(
-		WithHXMethod(http.MethodPost, markURL),
-		WithHXTarget("#mark_"+id),
-		WithHXInclude("[name='csrf_token']"),
-		WithClasses("link-hover", "group/item", "flex", "items-center", "px-4", "py-2", "no-underline", "hover:underline", "text-sm", "gap-4", "focus:text-primary", "focus:outline-hidden"),
-	) {
-		switch isUnread {
-			case true:
-				@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-				Mark Read
-			case false:
-				@tabler.MailFilled(i.Props{Class: "size-4"})
-				Mark Unread
-		}
-	}
 }
 
 // UpdateViewArticleFavorite updates the favorite action when viewing an article.
@@ -607,6 +580,6 @@ templ PaginateArticles(response *models.ListArticlesResponse) {
 	// Add pagination element if pagination is required.
 	if response.Pagination != "" && len(response.Articles) == response.Filters.GetCount() {
 		// Add pagination htmx props to last article.
-		@PaginationControl(ctx, "/list/articles/paginate", response.Pagination)
+		@PaginationControl(ctx, "/list/articles/paginate", &response.Filters, response.Pagination)
 	}
 }

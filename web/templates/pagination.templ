@@ -9,9 +9,12 @@ import (
 )
 
 // PaginationControl generates an element that will cause a pagination request when scrolled into view.
-templ PaginationControl(ctx context.Context, route string, pagination models.Pagination) {
-	{{ values := models.PageFiltersFromCtx(ctx, route).Values() }}
-	{{ values[models.ParamPagination] = pagination }}
+templ PaginationControl(ctx context.Context, route string, filters *models.ListFilters, pagination models.Pagination) {
+	{{ var values map[string]any }}
+	if route == "/list/subscriptions/paginate" || route == "/list/articles/paginate" {
+		{{ values = filters.Values() }}
+		{{ values[models.ParamPagination] = pagination }}
+	}
 	<div
 		class="invisible"
 		hx-post={ route }
