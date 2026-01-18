@@ -12,7 +12,7 @@ import (
 
 // NotFound renders a layout appropriate to use for a 404 response.
 templ NotFound() {
-	@container() {
+	<div class="ui-container">
 		@userMessage(
 			"Not found",
 			models.NewErrorMessage(
@@ -37,7 +37,7 @@ templ NotFound() {
 				}
 			</div>
 		}
-	}
+	</div>
 }
 
 // emptyContent renders a layout appropriate for use when there is nothing to show.

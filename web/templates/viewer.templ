@@ -124,11 +124,12 @@ templ ViewerResults(feed *feeds.Feed) {
 		</div>
 	</div>
 	if len(feed.GetItems()) > 0 {
-		@grid() {
+		<div id="grid-objects" class="ui-grid">
 			for item := range slices.Values(feed.GetItems()) {
 				@viewerItemCard(item)
 			}
-		}
+		</div>
+		@btnBackToTop()
 	}
 }
 

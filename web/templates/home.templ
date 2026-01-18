@@ -23,7 +23,7 @@ type Home struct {
 
 // content renders the home page content.
 templ (page *Home) Template() {
-	@container() {
+	<div class="ui-container">
 		if len(page.LatestArticles) == 0 {
 			@emptyContent()
 		} else {
@@ -89,7 +89,7 @@ templ (page *Home) Template() {
 			@btnBackToTop()
 			<div id="update-notifications" sse-connect="/home/updates" sse-swap="message" class="toast toast-center z-50"></div>
 		}
-	}
+	</div>
 }
 
 templ homePageArticle(article *models.Article) {
@@ -184,7 +184,7 @@ templ homePageCategoryBadge(category *models.CategoryCount) {
 }
 
 templ NewUserHome() {
-	@container() {
+	<div class="ui-container">
 		@h2("Welcome to " + config.AppName)
 		<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
 		<div class="py-4">
@@ -293,5 +293,5 @@ templ NewUserHome() {
 				<li><a class="link" href="/help/index">Documentation Home</a></li>
 			</ul>
 		</div>
-	}
+	</div>
 }

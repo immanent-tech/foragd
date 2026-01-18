@@ -172,7 +172,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 
 // SearchResultsGrid renders the given articles returned from the given search in a grid layout with an actions menu.
 templ SearchResultsGrid(results *models.SearchResults) {
-	@container() {
+	<div class="ui-container">
 		<div id="search-results" class="flex items-center justify-between mt-4">
 			// Page title.
 			<div class="min-w-0 flex-1">
@@ -249,11 +249,12 @@ templ SearchResultsGrid(results *models.SearchResults) {
 		<div id="update-notifications" sse-connect={ "/search/updates?" + results.Search.Query() } sse-swap="message" class="toast toast-center z-50"></div>
 		// Articles grid.
 		<section class="mt-4">
-			@grid() {
+			<div id="grid-objects" class="ui-grid">
 				@SearchResults(results)
-			}
+				@btnBackToTop()
+			</div>
 		</section>
-	}
+	</div>
 }
 
 // SearchResults renders the list of articles as cards with an optional element to trigger pagination for loading more.
@@ -559,7 +560,7 @@ templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequ
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
-	@container() {
+	<div class="ui-container">
 		// Show a page header.
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
@@ -568,18 +569,19 @@ templ SimilarArticles(articles models.Articles) {
 		</div>
 		// Show results.
 		<section class="mt-4">
-			@grid() {
+			<div id="grid-objects" class="ui-grid">
 				for article := range slices.Values(articles) {
 					@NewArticleView(article).Card()
 				}
-			}
+			</div>
+			@btnBackToTop()
 		</section>
-	}
+	</div>
 }
 
 // NoSearchResults renders an informational message for when no search results were returned.
 templ NoSearchResults() {
-	@container() {
+	<div class="ui-container">
 		// Page title.
 		<div class="min-w-0 flex flex-1">
 			@h2("Search Results")
@@ -597,5 +599,5 @@ templ NoSearchResults() {
 				}
 			</div>
 		</div>
-	}
+	</div>
 }

@@ -144,6 +144,7 @@ require (
 	codeberg.org/readeck/go-readability/v2 v2.1.0
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/alecthomas/kong v1.13.0
+	github.com/anilsenay/htmlcheck v1.0.0
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/didip/tollbooth/v8 v8.0.1

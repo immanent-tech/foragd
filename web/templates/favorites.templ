@@ -11,7 +11,7 @@ import (
 
 // FavoritesGrid renders subscription and article favorites in a grid layout.
 templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles) {
-	@container() {
+	<div class="ui-container">
 		if len(subscriptions) > 0 || len(articles) > 0 {
 			<div id="top" class="flex items-center justify-between mt-4">
 				<div class="min-w-0 flex-1">
@@ -37,11 +37,12 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 					<div class="pb-5">
 						@h3("Subscriptions")
 					</div>
-					@grid() {
+					<div id="grid-objects" class="ui-grid">
 						for subscription := range slices.Values(subscriptions) {
 							@NewSubscriptionView(subscription).Card()
 						}
-					}
+					</div>
+					@btnBackToTop()
 				</section>
 			}
 			// Favorite articles.
@@ -50,16 +51,17 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 					<div class="pb-5">
 						@h3("Articles")
 					</div>
-					@grid() {
+					<div id="grid-objects" class="ui-grid">
 						for article := range slices.Values(articles) {
 							@NewArticleView(article).Card()
 						}
-					}
+					</div>
+					@btnBackToTop()
 				</section>
 			}
 			@btnBackToTop()
 		} else {
 			@emptyContent()
 		}
-	}
+	</div>
 }

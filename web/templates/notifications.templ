@@ -102,7 +102,7 @@ templ UpdatesToast() {
 // ErrorMessage displays a user-facing error message in a prominent way on a page, with navigation links for returning
 // home or emailing support.
 templ ErrorMessage(msg *models.UserMessage) {
-	@container() {
+	<div class="ui-container">
 		@userMessage("Whoops 😿", msg) {
 			<div class="mt-10 flex items-center justify-center gap-x-6">
 				@NewLink(
@@ -121,7 +121,7 @@ templ ErrorMessage(msg *models.UserMessage) {
 				}
 			</div>
 		}
-	}
+	</div>
 }
 
 // userMessage displays a UserMessage in a center-aligned element, with the given title.

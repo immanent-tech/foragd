@@ -13,7 +13,7 @@ import (
 )
 
 templ SettingsPage() {
-	@container() {
+	<div class="ui-container">
 		<div
 			class="tabs tabs-box mt-8"
 			hx-trigger="load once"
@@ -39,7 +39,7 @@ templ SettingsPage() {
 			/>
 		</div>
 		<section id="current-settings"></section>
-	}
+	</div>
 }
 
 templ AccountSettings(user *models.User) {

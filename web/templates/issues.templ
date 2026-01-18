@@ -7,7 +7,7 @@ import "github.com/immanent-tech/foragd/models"
 
 // ReportPageIssue renders a form for reporting issues with the app.
 templ ReportPageIssue(details *models.ReportIssueRequest) {
-	@container() {
+	<div class="ui-container">
 		<div class="mx-auto max-w-3xl">
 			<div class="md:flex md:items-center md:justify-between">
 				<div class="min-w-0 flex-1">
@@ -86,11 +86,11 @@ templ ReportPageIssue(details *models.ReportIssueRequest) {
 				</div>
 			</form>
 		</div>
-	}
+	</div>
 }
 
 templ ReportObjectIssues(objectType, id string, details *models.ReportObjectIssueRequest) {
-	@container() {
+	<div class="ui-container">
 		<div class="mx-auto max-w-3xl">
 			<div class="md:flex md:items-center md:justify-between">
 				<div class="min-w-0 flex-1">
@@ -219,12 +219,12 @@ templ ReportObjectIssues(objectType, id string, details *models.ReportObjectIssu
 				</div>
 			</form>
 		</div>
-	}
+	</div>
 }
 
 // IssueReportedConfirmation will show feedback to a user that the issue they reported has been recorded.
 templ IssueReportedConfirmation(msg *models.UserMessage) {
-	@container() {
+	<div class="ui-container">
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
 				@h2(msg.Summary)
@@ -241,5 +241,5 @@ templ IssueReportedConfirmation(msg *models.UserMessage) {
 				hx-target={ ContentID.Target() }
 			>Back home <span aria-hidden="true">&rarr;</span></button>
 		</div>
-	}
+	</div>
 }
