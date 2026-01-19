@@ -389,17 +389,20 @@ templ (a *Article) Content() {
 	// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 	// read and mark it so (when the user has set this option).
 	if a.IsUnread() && a.MarkArticleReadOnView {
-		<input type="hidden" name="view" value={ models.ViewAll }/>
-		<div
+		<form
 			aria-hidden="true"
 			hx-post={ "/mark/article/" + a.GetID() + "/read" }
 			hx-swap="none"
-			hx-include="[name='csrf_token'],[name='view']"
-			hx-vals={ templ.JSONString(map[string]any{models.ParamSubscriptionID: a.GetSubscriptionID(), models.ParamMark: string(models.MarkRead)}) }
+			hx-include="[name='csrf_token']"
 			hx-trigger="intersect once,load delay:10s"
 			hx-push-url="false"
 			_="on htmx:afterRequest remove me"
-		></div>
+		>
+			<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
+			<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
+			<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+			<input type="hidden" name={ models.ParamView } value={ models.ViewAll }/>
+		</form>
 	}
 	@ShareObjectModal(a.GetID(), "Sharing "+a.GetTitle(), a.GetLink())
 }
