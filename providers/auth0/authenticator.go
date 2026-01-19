@@ -9,14 +9,29 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 
 	"golang.org/x/oauth2"
 
+	"github.com/auth0/go-auth0/v2/authentication"
 	"github.com/coreos/go-oidc/v3/oidc"
+	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/foragd/server/session"
 )
 
 var ErrNoIDToken = errors.New("no id_token field in oauth2 token")
+var ErrInvalidToken = errors.New("token is invalid")
+
+type RefreshTokenResponse struct {
+	AccessToken  string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	ExpiresIn    int    `json:"expires_in,omitempty"`
+	Scope        string `json:"scope,omitempty"`
+	IDToken      string `json:"id_token,omitempty"`
+	TokenType    string `json:"token_type,omitempty"`
+}
 
 // Authenticator is used to authenticate our users.
 type Authenticator struct {
@@ -32,7 +47,7 @@ var InitAuthenticator = func(ctx context.Context) error {
 	err := sync.OnceValue(func() error {
 		err := loadConfigOnce()
 		if err != nil {
-			return fmt.Errorf("unable to create authenticator: %w", err)
+			return fmt.Errorf("load config: %w", err)
 		}
 
 		provider, err := oidc.NewProvider(
@@ -40,7 +55,7 @@ var InitAuthenticator = func(ctx context.Context) error {
 			"https://"+cfg.Domain+"/",
 		)
 		if err != nil {
-			return fmt.Errorf("unable to create authenticator: %w", err)
+			return fmt.Errorf("create provider: %w", err)
 		}
 
 		conf := oauth2.Config{
@@ -48,7 +63,7 @@ var InitAuthenticator = func(ctx context.Context) error {
 			ClientSecret: cfg.ClientSecret,
 			RedirectURL:  cfg.CallbackURL,
 			Endpoint:     provider.Endpoint(),
-			Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+			Scopes:       []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, "profile", "email"},
 		}
 		AuthClient = &Authenticator{
 			Provider: provider,
@@ -99,4 +114,44 @@ func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 	logoutURL.RawQuery = parameters.Encode()
 
 	return logoutURL, nil
+}
+
+func RefreshAccessToken(req *http.Request, currentToken *oauth2.Token) error {
+	if err := InitAuthenticator(req.Context()); err != nil {
+		return fmt.Errorf("unable to generate logout URL: %w", err)
+	}
+
+	// Generate API url for refreshing the token.
+	refreshURL, err := url.Parse("https://" + cfg.Domain + "/oauth/token")
+	if err != nil {
+		return fmt.Errorf("unable to generate logout url: %w", err)
+	}
+
+	// Add parameters.
+	parameters := url.Values{}
+	parameters.Add("grant_type", "refresh_token")
+	parameters.Add("client_id", cfg.ClientID)
+	parameters.Add("client_secret", cfg.ClientSecret)
+	parameters.Add("refresh_token", currentToken.RefreshToken)
+	payload := strings.NewReader(parameters.Encode())
+
+	var newToken oauth2.Token
+	var errResult authentication.Error
+
+	client := loadHTTPClient()
+	if resp, err := client.R().
+		SetBody(payload).
+		SetHeader("content-type", "application/x-www-form-urlencoded").
+		SetResult(&newToken).
+		SetError(&errResult).
+		Post(refreshURL.String()); err != nil || resp.IsError() {
+		return fmt.Errorf("unable to refresh token: %w", &errResult)
+	}
+
+	slogctx.FromCtx(req.Context()).Debug("Refreshed access token.")
+
+	session.Save(req.Context(), "token", newToken)
+
+	return nil
+
 }

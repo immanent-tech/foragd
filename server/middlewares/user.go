@@ -6,9 +6,11 @@ package middlewares
 import (
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
+	"golang.org/x/oauth2"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
@@ -19,6 +21,15 @@ import (
 func RequireUserAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
+
+		// Validate the access token stored in the session.
+		if token, err := session.Restore[oauth2.Token](req.Context(), "token"); err != nil || !token.Valid() {
+			slogctx.FromCtx(req.Context()).Error("Invalid session token.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusForbidden)
+			return
+		}
 
 		profile, err := session.Restore[auth0.UserProfile](ctx, "profile")
 		switch {
@@ -67,5 +78,41 @@ func RequireUserAuth(next http.Handler) http.Handler {
 
 		// Pass to next request.
 		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+// RefreshTokenIfNeeded handles refreshing the user's access token (using a refresh token) when it is about to expire.
+func RefreshTokenIfNeeded(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Retrieve the refresh token from the session.
+		token, err := session.Restore[oauth2.Token](req.Context(), "token")
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Invalid session token.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusForbidden)
+			return
+		}
+		// Check token validity.
+		if !token.Valid() {
+			slogctx.FromCtx(req.Context()).Error("Invalid user token.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusForbidden)
+			return
+		}
+
+		const refreshGracePeriod = time.Hour
+
+		// If token is about to expire, refresh it.
+		if token.Expiry.UTC().Sub(time.Now().UTC()) < refreshGracePeriod {
+			if err := auth0.RefreshAccessToken(req, &token); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Unable to refresh token.",
+					slog.Any("error", err),
+				)
+			}
+		}
+
+		next.ServeHTTP(res, req)
 	})
 }

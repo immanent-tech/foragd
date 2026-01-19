@@ -5,7 +5,6 @@ package auth0
 
 import (
 	"context"
-	"encoding/gob"
 	"fmt"
 	"log/slog"
 
@@ -14,10 +13,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 )
-
-func init() {
-	gob.Register(UserProfile{})
-}
 
 // UserProfile represents the data returned from the auth0 backend that represents an authorised user.
 //

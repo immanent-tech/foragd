@@ -106,6 +106,7 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 		).ServeHTTP(res, req)
 	}
 
+	// Verify token.
 	idToken, err := auth0.AuthClient.VerifyIDToken(req.Context(), token)
 	if err != nil {
 		slogctx.FromCtx(req.Context()).Error("Unable to verify token.",
@@ -119,7 +120,10 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 			),
 		).ServeHTTP(res, req)
 	}
+	// Save token details to session
+	session.Save(req.Context(), "token", *token)
 
+	// Extract user profile.
 	var profile auth0.UserProfile
 	err = idToken.Claims(&profile)
 	if err != nil {
@@ -134,8 +138,7 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 			),
 		).ServeHTTP(res, req)
 	}
-
-	session.Save(req.Context(), "access_token", token.AccessToken)
+	// Save profile to session.
 	session.Save(req.Context(), "profile", profile)
 
 	var user *models.User
