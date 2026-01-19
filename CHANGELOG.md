@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.30.0](https://github.com/immanent-tech/foragd/compare/v0.29.1...v0.30.0) (2026-01-19)
+
+
+### Features
+
+* **logging:** :sparkles: add a replacer to format logs with gcp logging format in containers ([5c29d4b](https://github.com/immanent-tech/foragd/commit/5c29d4b831c2fec6008912840a82d4b1250b7970))
+
+
+### Bug Fixes
+
+* **scheduler:** :bug: ensure single job context is used ([3506f8e](https://github.com/immanent-tech/foragd/commit/3506f8ebc6fc917ec9bde934e97742a5e86987d4))
+
 ## [0.29.1](https://github.com/immanent-tech/foragd/compare/v0.29.0...v0.29.1) (2026-01-19)
 
 
