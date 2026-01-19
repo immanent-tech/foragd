@@ -317,7 +317,11 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 	// Get fresh feed details.
 	details, err := feeds.NewFeedFromURL(ctx, f.GetSourceURLs()[0])
 	if err != nil {
-		return fmt.Errorf("get feed details: %w", err)
+		slogctx.FromCtx(ctx).
+			Warn("Unable to retrieve feed details to determine update interval. Using default update interval.",
+				slog.Any("error", err),
+			)
+		f.UpdateInterval = int64(time.Hour)
 	}
 
 	// For Atom, assume a default hourly update.
