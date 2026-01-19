@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.29.0](https://github.com/immanent-tech/foragd/compare/v0.28.1...v0.29.0) (2026-01-19)
+
+
+### Features
+
+* **auth0:** :sparkles: use refresh tokens to keep a user logged in ([af22864](https://github.com/immanent-tech/foragd/commit/af22864f8e0fb23bbedea2a5b5728e75ff43b3cd))
+
+
+### Bug Fixes
+
+* **models:** :bug: if feed details cannot be retrieved, set a default update interval ([dfc5aa1](https://github.com/immanent-tech/foragd/commit/dfc5aa1cc604464c79548231d8fcb1bced16727d))
+* **templates:** :bug: ensure all required parameters are passed to mark article as read after viewing ([c10cfb6](https://github.com/immanent-tech/foragd/commit/c10cfb6d65ece3f0dc9edf025ede26d06f111cde))
+
 ## [0.28.1](https://github.com/immanent-tech/foragd/compare/v0.28.0...v0.28.1) (2026-01-16)
 
 
