@@ -105,7 +105,7 @@ func containerConsoleOptions(level slog.Level) *slogjson.HandlerOptions {
 	opts := &slogjson.HandlerOptions{
 		AddSource:   false,
 		Level:       level,
-		ReplaceAttr: fileLevelReplacer,
+		ReplaceAttr: containerReplacer,
 		JSONOptions: json.JoinOptions(
 			json.Deterministic(true),
 			jsontext.EscapeForJS(false),
@@ -187,6 +187,44 @@ func fileLevelReplacer(_ []string, attr slog.Attr) slog.Attr {
 	}
 
 	return attr
+}
+
+// ReplaceAttr replaces slog default attributes with GCP compatible ones
+// https://cloud.google.com/logging/docs/structured-logging
+// https://cloud.google.com/logging/docs/agent/logging/configuration#special-fields
+func containerReplacer(groups []string, attr slog.Attr) slog.Attr {
+	switch {
+	// TimeKey and format correspond to GCP convention by default
+	// https://cloud.google.com/logging/docs/agent/logging/configuration#timestamp-processing
+	case attr.Key == slog.TimeKey && len(groups) == 0:
+		return attr
+	case attr.Key == slog.LevelKey && len(groups) == 0:
+		logLevel, ok := attr.Value.Any().(slog.Level)
+		if !ok {
+			return attr
+		}
+		switch logLevel {
+		case slog.LevelDebug:
+			return slog.String("severity", "DEBUG")
+		case slog.LevelInfo:
+			return slog.String("severity", "INFO")
+		case slog.LevelWarn:
+			return slog.String("severity", "WARNING")
+		case slog.LevelError:
+			return slog.String("severity", "ERROR")
+		default:
+			// Format custom log level.
+			if levelLabel, exists := LevelNames[logLevel]; exists {
+				return slog.String("severity", levelLabel)
+			}
+			return slog.String("severity", "DEFAULT")
+		}
+	case attr.Key == slog.MessageKey && len(groups) == 0:
+		return slog.String("message", attr.Value.String())
+	default:
+		return attr
+	}
+
 }
 
 // openLogFile will attempt to open the specified log file. It will also attempt
