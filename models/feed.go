@@ -322,6 +322,7 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 				slog.Any("error", err),
 			)
 		f.UpdateInterval = int64(time.Hour)
+		return nil
 	}
 
 	// For Atom, assume a default hourly update.
