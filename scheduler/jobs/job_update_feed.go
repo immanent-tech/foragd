@@ -70,11 +70,11 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		return fmt.Errorf("unmarshal job data: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, defaultJobTimeout)
+	defer cancel()
+
 	// Add feed id as slog attribute for log tracking.
 	ctx = slogctx.With(ctx, "feed_id", jobData.FeedID)
-
-	jobCtx, cancel := context.WithTimeout(ctx, defaultJobTimeout)
-	defer cancel()
 
 	// Retrieve the feed details.
 	details, err := models.GetFeedByID(ctx, jobData.FeedID)
@@ -93,7 +93,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
 
 	// Get new items since the last fetch.
-	feed, err := feeds.NewFeedFromURL(jobCtx, jobData.URLs[0])
+	feed, err := feeds.NewFeedFromURL(ctx, jobData.URLs[0])
 	if err != nil {
 		return fmt.Errorf("fetch feed: %w", err)
 	}
