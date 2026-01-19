@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.1](https://github.com/immanent-tech/foragd/compare/v0.29.0...v0.29.1) (2026-01-19)
+
+
+### Bug Fixes
+
+* **models:** :bug: add missing return ([3da4bb8](https://github.com/immanent-tech/foragd/commit/3da4bb8de9bdf9dba3ea40a22289a72c63ad19e2))
+
 ## [0.29.0](https://github.com/immanent-tech/foragd/compare/v0.28.1...v0.29.0) (2026-01-19)
 
 
