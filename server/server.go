@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"os"
 	"os/signal"
 	"strconv"
 	"syscall"
@@ -31,17 +30,15 @@ import (
 )
 
 const (
-	gracefulShutdownTimeout = 15 * time.Second
-	forcedShutdownTimeout   = 3 * time.Second
-	readinessDrainDelay     = 5 * time.Second
+	gracefulShutdownTimeout = 30 * time.Second
 )
 
 // Start will start the server.
 func Start(logger *slog.Logger) error {
-	rootCtx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancelFunc()
 
-	rootCtx = slogctx.NewCtx(rootCtx, logger)
+	ctx = slogctx.NewCtx(ctx, logger)
 
 	// Load the server config.
 	if err := loadConfigOnce(); err != nil {
@@ -56,13 +53,12 @@ func Start(logger *slog.Logger) error {
 	}
 
 	// Set up routes.
-	router := setupRoutes(rootCtx)
+	router := setupRoutes(ctx)
 	csrfRouter := nosurf.New(router)
 	csrfRouter.SetFailureHandler(handlers.CSRFError())
 	csrfRouter.ExemptPath("/checkout/webhooks")
 	csrfRouter.ExemptPath("/mail/webhooks")
 
-	ongoingCtx, stopOngoingGracefully := context.WithCancel(context.Background())
 	h2s := &http2.Server{}
 	svr := &http.Server{
 		Handler:      h2c.NewHandler(csrfRouter, h2s),
@@ -71,13 +67,12 @@ func Start(logger *slog.Logger) error {
 		WriteTimeout: cfg.WriteTimeout.Duration(),
 		IdleTimeout:  cfg.IdleTimeout.Duration(),
 		BaseContext: func(_ net.Listener) context.Context {
-			return ongoingCtx
+			return ctx
 		},
 	}
 
 	err = http2.ConfigureServer(svr, h2s)
 	if err != nil {
-		stopOngoingGracefully()
 		return fmt.Errorf("unable to configure server for H2C: %w", err)
 	}
 
@@ -106,17 +101,18 @@ func Start(logger *slog.Logger) error {
 		}
 	}()
 
-	<-rootCtx.Done()
-	cancelFunc()
-	logger.Info("Shutting down server...")
-	time.Sleep(readinessDrainDelay)
+	<-ctx.Done()
+
+	// Create shutdown context with 30-second timeout
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
 	defer cancel()
-	err = svr.Shutdown(shutdownCtx)
-	stopOngoingGracefully()
-	if err != nil {
-		logger.Error("Failed to wait for ongoing requests to finish, waiting for forced cancellation.")
-		time.Sleep(forcedShutdownTimeout)
+
+	// Trigger graceful shutdown
+	logger.Info("Shutting down server...")
+	if err := svr.Shutdown(shutdownCtx); err != nil {
+		logger.Error("Server failed to shutdown gracefully.",
+			slog.Any("error", err),
+		)
 	}
 
 	logger.Info("Server shutdown gracefully")
