@@ -117,8 +117,12 @@ templ ViewerResults(feed *feeds.Feed) {
 			</div>
 			<div class="px-6 py-5 text-center text-sm font-medium">
 				<span class="">Last Updated</span>
-				<span class="">
-					@showTimestamp(feed.GetUpdatedDate())
+				<span class="label">
+					if !feed.GetUpdatedDate().Equal(models.UnixEpoch) {
+						@showTimestamp(feed.GetUpdatedDate())
+					} else {
+						Unknown
+					}
 				</span>
 			</div>
 		</div>
