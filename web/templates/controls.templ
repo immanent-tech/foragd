@@ -238,13 +238,17 @@ templ FilterControls(path string, filters *models.ListFilters) {
 }
 
 templ ListCategoryFilters(filters *models.CategoryFilters) {
-	for idx, category := range filters.Categories.GetTopCategories(10) {
-		@categoryFilter(filters.Path, "filter-category-"+strconv.Itoa(idx), category, &filters.Filters)
-	}
-	if len(filters.Filters.GetCategories()) > 0 {
-		<div class="flex justify-end">
-			@clearCategoryFilters(filters.Path, "clear-category-filters", &filters.Filters)
-		</div>
+	if len(filters.Categories) == 0 {
+		<p class="text-sm italic p-2">No Categories...</p>
+	} else {
+		for idx, category := range filters.Categories.GetTopCategories(10) {
+			@categoryFilter(filters.Path, "filter-category-"+strconv.Itoa(idx), category, &filters.Filters)
+		}
+		if len(filters.Filters.GetCategories()) > 0 {
+			<div class="flex justify-end">
+				@clearCategoryFilters(filters.Path, "clear-category-filters", &filters.Filters)
+			</div>
+		}
 	}
 }
 
