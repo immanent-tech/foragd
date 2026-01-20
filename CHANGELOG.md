@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.31.1](https://github.com/immanent-tech/foragd/compare/v0.31.0...v0.31.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* **templates:** :bug: only show mark action when view is not all ([96e4219](https://github.com/immanent-tech/foragd/commit/96e4219fb418698ee3df45fb74f22d721335946d))
+* **templates:** :bug: show a message if there are no categories to filter on ([ccff576](https://github.com/immanent-tech/foragd/commit/ccff57643a7e497fca7e72b3e76c95ef5e994d50))
+
+
+### Performance Improvements
+
+* **server:** :zap: simpler graceful shutdown logic ([03685d3](https://github.com/immanent-tech/foragd/commit/03685d3cd19da7a05ac4fa1375a532e8ef94b84c))
+
 ## [0.31.0](https://github.com/immanent-tech/foragd/compare/v0.30.0...v0.31.0) (2026-01-20)
 
 
