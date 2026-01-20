@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.31.0](https://github.com/immanent-tech/foragd/compare/v0.30.0...v0.31.0) (2026-01-20)
+
+
+### Features
+
+* :sparkles: add mark and favorite buttons on article cards and out of menu ([ec1f889](https://github.com/immanent-tech/foragd/commit/ec1f889c8e9cc93da3263a2d90e0e43b456602df))
+* :sparkles: add mark and favorite buttons on subscription cards and out of menu ([4a4a29c](https://github.com/immanent-tech/foragd/commit/4a4a29cb0ff80c07cb7a684c9116fe1dee0bcce3))
+
+
+### Bug Fixes
+
+* **templates:** :bug: mark all subscription articles works again ([f4de1cb](https://github.com/immanent-tech/foragd/commit/f4de1cb684600128b836ca79f3c20933b7757942))
+
 ## [0.30.0](https://github.com/immanent-tech/foragd/compare/v0.29.1...v0.30.0) (2026-01-19)
 
 
