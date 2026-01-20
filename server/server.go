@@ -246,7 +246,9 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).
-			Post("/mark/subscription/{subscription_id}/{mark}", handlers.MarkSubscription())
+			Post("/mark/subscription/{subscription_id}", handlers.MarkSubscription())
+		r.With(middlewares.RequireHTMX).
+			Post("/favorite/subscription/{subscription_id}", handlers.FavoriteSubscription())
 		r.With(middlewares.RequireHTMX).
 			Post("/remove/subscription/{subscription_id}", handlers.RemoveSubscription())
 		r.With(middlewares.RequireHTMX).
@@ -303,11 +305,6 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Post("/import", handlers.ImportSubscriptions())
 			r.Get("/export", handlers.ExportSubscriptions())
 			r.Post("/export", handlers.ExportSubscriptions())
-			// Favorites.
-			r.Route("/favorite", func(r chi.Router) {
-				r.Post("/add/subscription/{subscription_id}", handlers.AddFavoriteSubscription())
-				r.Post("/remove/subscription/{subscription_id}", handlers.RemoveFavoriteSubscription())
-			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handlers.ShowSettings())

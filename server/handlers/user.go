@@ -29,7 +29,6 @@ import (
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
-	"github.com/immanent-tech/foragd/validation"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -331,89 +330,6 @@ func SetTheme() http.HandlerFunc {
 			}
 		}
 		renderPartial(templates.NewPartial(templates.DisplaySettings(user))).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
-// AddFavoriteSubscription handles adding a new favorite subscription for a user.
-func AddFavoriteSubscription() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-		id := chi.URLParam(req, models.ParamSubscriptionID)
-		if err := validation.Validate.Var(id, "required,startswith=sub_"); err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("decode subscription: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add favorite subscription",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-		// Get the subscription state.
-		if err := models.UpdateFavoriteSubscription(req.Context(), id, true); err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("update favorite subscription: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add favorite subscription",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-		// Update the display.
-		template := templ.Join(
-			templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), true),
-			templates.Notification(
-				models.NewSuccessMessage("Added Favorite", ""),
-				templates.DefaultNotificationTimeout,
-			),
-		)
-		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
-// RemoveFavoriteSubscription handles removing a favorite subscription for a user.
-func RemoveFavoriteSubscription() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-		id := chi.URLParam(req, models.ParamSubscriptionID)
-		if err := validation.Validate.Var(id, "required,startswith=sub_"); err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("decode subscription: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to remove favorite subscription",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-		if err := models.UpdateFavoriteSubscription(req.Context(), id, false); err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("remove favorite subscription: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to remove favorite subscription",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-		// Update the display as appropriate.
-		if currentURL, found := htmx.GetCurrentURL(req); found && strings.Contains(currentURL, "/favorites") {
-			// On the favorites page, remove the subscription card when removing it as a favorite.
-			res.Header().Add(htmx.HeaderReswap, "delete transition:true")
-			res.Header().Set(htmx.HeaderRetarget, "#"+id)
-			res.WriteHeader(http.StatusOK)
-		} else {
-			// Update the favorite button.
-			template := templ.Join(
-				templates.ToggleFavorite(id, string(models.ObjectTypeSubscription), false),
-				templates.Notification(
-					models.NewSuccessMessage("Removed Favorite", ""),
-					templates.DefaultNotificationTimeout,
-				),
-			)
-			renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
-		}
 		return nil
 	})).ServeHTTP
 }

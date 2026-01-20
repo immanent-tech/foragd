@@ -384,6 +384,12 @@ type FavoriteArticleRequest struct {
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
+// FavoriteSubscriptionRequest contains parameters for favoriting a subscription.
+type FavoriteSubscriptionRequest struct {
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
 // Feed defines model for Feed.
 type Feed struct {
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
@@ -638,6 +644,15 @@ type MarkObjectParams struct {
 
 	// Object represents the type of any user-facing object.
 	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
+}
+
+// MarkSubscriptionRequest contains the parameters for marking a subscription.
+type MarkSubscriptionRequest struct {
+	// Mark applies the given mark action to objects.
+	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
 // MarkSubscriptionsRequest contains the parameters for marking a list of subscriptions.

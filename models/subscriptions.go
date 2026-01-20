@@ -1976,6 +1976,19 @@ func (s *EditSubscriptionRequest) HasError() bool {
 	return s.NicknameErr != nil || s.CategoriesErr != nil || s.ImageErr != nil
 }
 
+// Valid checks that the MarkSubscriptionRequest contains valid data.
+func (s *MarkSubscriptionRequest) Valid() error {
+	if err := validation.Validate.Struct(s); err != nil {
+		return fmt.Errorf("mark subscription request is invalid: %w", err)
+	}
+	return nil
+}
+
+// Sanitise will sanitise the MarkSubscriptionRequest, ensuring it contains valid field values.
+func (s *MarkSubscriptionRequest) Sanitise() error {
+	return nil
+}
+
 // Valid checks that the MarkSubscriptionsRequest contains valid data.
 func (s *MarkSubscriptionsRequest) Valid() error {
 	if err := validation.Validate.Struct(s); err != nil {
@@ -1990,6 +2003,19 @@ func (s *MarkSubscriptionsRequest) Sanitise() error {
 		s.Subscriptions[idx] = validation.SanitizeString(id)
 	}
 	s.View = setValidView(s.View)
+	return nil
+}
+
+// Valid checks that the FavoriteSubscriptionsRequest contains valid data.
+func (s *FavoriteSubscriptionRequest) Valid() error {
+	if err := validation.Validate.Struct(s); err != nil {
+		return fmt.Errorf("favorite subscriptions request is invalid: %w", err)
+	}
+	return nil
+}
+
+// Sanitise will sanitise the FavoriteSubscriptionsRequest, ensuring it contains valid field values.
+func (s *FavoriteSubscriptionRequest) Sanitise() error {
 	return nil
 }
 

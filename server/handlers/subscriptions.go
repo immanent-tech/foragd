@@ -14,7 +14,6 @@ import (
 	"os"
 	"slices"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -173,26 +172,31 @@ func PaginateSubscriptions() http.HandlerFunc {
 // MarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
 func MarkSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-		// Extract request values.
-		subscriptionID := chi.URLParam(req, models.ParamSubscriptionID)
-		request := &models.MarkSubscriptionsRequest{
-			Subscriptions: []models.SubscriptionID{subscriptionID},
-			Mark:          models.Mark(chi.URLParam(req, models.ParamMark)),
-			View:          models.View(req.FormValue(models.ParamView)),
-		}
-		if err := request.Valid(); err != nil {
+		// Decode request parameters.
+		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionRequest](req)
+		if err != nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				InternalError: fmt.Errorf("decode mark subscriptions request: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to mark articles.",
+					"This might be a temporary error, please try again.",
+				),
+			}
+		}
+		if !valid {
+			return &models.APIError{
+				InternalError: fmt.Errorf("validate mark subscriptions request: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
-					"Unable to mark subscription",
-					"This might be a temporary issue, please try again.",
+					"Unable to mark articles.",
+					"This might be a temporary error, please try again.",
 				),
 			}
 		}
 
 		// Mark subscription.
-		if err := models.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...); err != nil {
+		if err := models.MarkSubscriptions(req.Context(), request.Mark, request.SubscriptionID); err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("mark subscriptions: %w", err),
 				StatusCode:    http.StatusInternalServerError,
@@ -203,62 +207,7 @@ func MarkSubscription() http.HandlerFunc {
 			}
 		}
 
-		// Determine the URL the request came from.
-		currentURL, found := htmx.GetCurrentURL(req)
-		if !found {
-			if err := setRedirect(res, htmxext.HXLocationRequest{
-				Path:   "/home",
-				Target: templates.ContentID.Target(),
-			}); err != nil {
-				return &models.APIError{
-					InternalError: fmt.Errorf("set redirect: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to mark subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}
-			}
-		}
-		if strings.Contains(currentURL, "/list/articles") {
-			// If the current URL is /list/articles, return to /list/subscriptions.
-			if err := setRedirect(res, htmxext.HXLocationRequest{
-				Path:   "/list/subscriptions",
-				Target: templates.ContentID.Target(),
-				Values: models.PageFiltersFromCtx(req.Context(), "/list/subscriptions").Values(),
-			}); err != nil {
-				return &models.APIError{
-					InternalError: fmt.Errorf("set redirect: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Unable to mark subscription",
-						"This might be a temporary issue, please try again.",
-					),
-				}
-			}
-			res.WriteHeader(http.StatusOK)
-		} else {
-			// Else swap content apprpriately.
-			switch request.View {
-			case models.ViewRead, models.ViewUnread:
-				res.Header().Set(htmx.HeaderReswap, "delete transition:true")
-				res.WriteHeader(http.StatusOK)
-			case models.ViewAll:
-				subscription, err := models.GetSubscription(req.Context(), request.Subscriptions[0], models.GetSubscriptionsDynamicInfo(true))
-				if err != nil {
-					return &models.APIError{
-						InternalError: fmt.Errorf("get subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to mark subscription",
-							"This might be a temporary issue, please try again.",
-						),
-					}
-				}
-				res.Header().Set(htmx.HeaderReswap, "outerHTML transition:true")
-				renderPartial(templates.NewPartial(templates.NewSubscriptionView(subscription).Card())).ServeHTTP(res, req)
-			}
-		}
+		res.WriteHeader(http.StatusOK)
 		return nil
 	})).ServeHTTP
 }
@@ -331,6 +280,67 @@ func MarkSubscriptions() http.HandlerFunc {
 				),
 			}
 		}
+		res.WriteHeader(http.StatusOK)
+		return nil
+	})).ServeHTTP
+}
+
+// FavoriteSubscription handles managing a favorite subscription for a user.
+func FavoriteSubscription() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+		request, valid, err := forms.DecodeForm[*models.FavoriteSubscriptionRequest](req)
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to favorite subscription",
+					"This might be a temporary issue, please try again.",
+				),
+			}
+		}
+		if !valid {
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to favorite subscription",
+					"This might be a temporary issue, please try again.",
+				),
+			}
+		}
+
+		subscription, err := models.GetSubscription(req.Context(), request.SubscriptionID)
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("get subscription: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to favorite subscription",
+					"This might be a temporary issue, please try again.",
+				),
+			}
+		}
+
+		var favorite bool
+		if subscription.IsFavorite() {
+			favorite = false
+		} else {
+			favorite = true
+		}
+
+		// Get the subscription state.
+		if err := models.UpdateFavoriteSubscription(req.Context(), request.SubscriptionID, favorite); err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("update favorite subscription: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add favorite subscription",
+					"This might be a temporary error, please try again.",
+				),
+			}
+		}
+
 		res.WriteHeader(http.StatusOK)
 		return nil
 	})).ServeHTTP

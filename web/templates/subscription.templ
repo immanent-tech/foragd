@@ -81,20 +81,6 @@ func (s *Subscription) MarkAttributes() templ.Attributes {
 	return attrs
 }
 
-// FavoriteAttributes generates a templ.Attributes object containing htmx directives for favoriting a subscription.
-func (s *Subscription) FavoriteAttributes() templ.Attributes {
-	attrs := make(templ.Attributes)
-	if s.IsFavorite() {
-		attrs["hx-post"] = "/user/favorite/remove/subscription/" + s.GetID()
-	} else {
-		attrs["hx-post"] = "/user/favorite/add/subscription/" + s.GetID()
-	}
-	attrs["hx-target"] = ID("favorite_" + s.GetID()).Target()
-	attrs["hx-include"] = "[name='csrf_token']"
-	attrs["hx-trigger"] = "click consume"
-	return attrs
-}
-
 // EditAttributes generates a templ.Attributes object containing htmx directives for editing a subscription.
 func (s *Subscription) EditAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
@@ -133,7 +119,7 @@ templ (s *Subscription) Card() {
 		class={ "card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
 			templ.KV("row-span-2",len(s.Subscription.GetCategories(0))== 0),
 			templ.KV("row-span-3",len(s.Subscription.GetCategories(0)) >0),
-			templ.KV("opacity-80",!s.Subscription.GetStats().IsUnread()) }
+			templ.KV("brightness-50",!s.Subscription.GetStats().IsUnread()) }
 		hx-disinherit="*"
 		{ s.ViewArticlesAttributes()... }
 	>
@@ -176,9 +162,9 @@ templ (s *Subscription) Card() {
 					</div>
 				</div>
 			}
-			<div class="card-actions grid grid-cols-3 mt-auto items-center">
-				<div class="col-span-2 text-xs/4">
-					// Show stats if user requested.
+			<div class="card-actions mt-auto items-center">
+				// Show stats if user requested.
+				<div class="inline-flex flex-1 flex-col text-xs/4">
 					if s.Subscription.Settings.ShowSubscriptionStats {
 						if s.Subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
 							<p>
@@ -191,15 +177,74 @@ templ (s *Subscription) Card() {
 						</p>
 					}
 				</div>
+				// Favorite action.
+				<form>
+					<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
+					<label class="swap" _="on click halt the event's bubbling">
+						<input
+							hx-post={ "/favorite/subscription/" + s.GetID() }
+							hx-include="[name='csrf_token']"
+							hx-swap="none"
+							id={ s.GetID() + "-favorite-state" }
+							type="checkbox"
+							if s.IsFavorite() {
+								checked
+							}
+							_="on htmx:afterRequest(failed) toggle @checked on me"
+						/>
+						@tabler.HeartFilled(i.Props{Class: "size-5 swap-on"})
+						@tabler.Heart(i.Props{Class: "size-5 swap-off"})
+					</label>
+				</form>
+				// Mark action.
+				if s.GetSubscriptionType() != models.SubscriptionTypeSearch {
+					<form>
+						<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
+						<input
+							type="hidden"
+							name={ models.ParamMark }
+							if s.GetStats().IsUnread() {
+								value={ models.MarkRead }
+							} else {
+								value={ models.MarkUnread }
+							}
+						/>
+						<label class="swap" _="on click halt the event's bubbling">
+							<input
+								hx-post={ "/mark/subscription/" + s.GetID() }
+								hx-include="[name='csrf_token']"
+								hx-swap="none"
+								id={ s.GetID() + "-read-state" }
+								type="checkbox"
+								if !s.GetStats().IsUnread() {
+									checked
+								}
+								_="
+					on htmx:afterRequest(successful)
+					tell the previous <input />
+						get your value
+						if your value equals 'read'
+						set your value to 'unread'
+						else
+						set your value to 'read'
+						end
+					on htmx:afterRequest(failed) toggle @checked on me
+					"
+							/>
+							@tabler.MailOpened(i.Props{Class: "size-5 swap-on"})
+							@tabler.MailFilled(i.Props{Class: "size-5 swap-off"})
+						</label>
+					</form>
+				}
 				// Context menu actions.
-				<div class="grid col-span-1 justify-end">
+				<div class="flex flex-none">
 					<el-dropdown class="relative" _="on click halt the event's bubbling">
 						<button
 							id={ "btn-" + s.GetID() + "-actions" }
 							class="btn btn-sm btn-ghost"
 						>
 							<span class="sr-only">s.GetTitle() + " Actions"</span>
-							@tabler.DotsVertical(i.Props{Class: "size-5"})
+							@tabler.Menu2(i.Props{Class: "size-5"})
 						</button>
 						<el-menu
 							id={ "menu-" + s.GetID() + "-actions" }
@@ -214,39 +259,6 @@ templ (s *Subscription) Card() {
 									Feed Website
 								</a>
 							}
-							// Mark action.
-							if len(s.MarkAttributes()) > 0 {
-								<form id={ "mark-" + s.GetID() }>
-									<input
-										type="hidden"
-										name={ models.ParamView }
-										value={ generateHXVals(map[string]any{models.ParamView: models.PageFiltersFromCtx(ctx, "/list/subscriptions").GetView()}) }
-									/>
-									<a class="link link-hover" { s.MarkAttributes()... }>
-										switch s.GetStats().IsUnread() {
-											case true:
-												@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-												Mark Read
-											case false:
-												@tabler.MailFilled(i.Props{Class: "size-4"})
-												Mark Unread
-										}
-									</a>
-								</form>
-							}
-							// Favorite action.
-							<div id={ "favorite_" + s.GetID() }>
-								<a class="link link-hover" { s.FavoriteAttributes()... }>
-									switch s.IsFavorite() {
-										case true:
-											@tabler.HeartFilled(i.Props{Class: "size-4"})
-											Remove Favorite
-										case false:
-											@tabler.Heart(i.Props{Class: "size-4"})
-											Add Favorite
-									}
-								</a>
-							</div>
 							// Edit action.
 							<a class="link link-hover" { s.EditAttributes()... }>
 								@tabler.Edit(i.Props{Class: "size-4"})
