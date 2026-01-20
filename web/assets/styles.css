@@ -153,7 +153,8 @@
   }
 }
 
-@utility prose-custom {
+/* For formatting articles.  */
+@utility prose-article {
   @apply prose sm:prose-lg text-base-content dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box max-w-none;
   pre {
     overflow-x: auto;
@@ -163,8 +164,9 @@
   }
 }
 
+/* For formatting a short summary of article content. */
 @utility prose-summary {
-  @apply prose-custom prose-sm sm:prose prose-img:hidden prose-figure:hidden prose-video:hidden prose-table:hidden line-clamp-3;
+  @apply prose-article prose-sm sm:prose prose-img:hidden prose-figure:hidden prose-video:hidden prose-table:hidden line-clamp-3;
   img {
     @apply hidden;
   }
@@ -176,8 +178,31 @@
   }
 }
 
+/* For formatting email newsletters. */
+@utility prose-email {
+  :where(p) > p {
+    @apply prose my-2;
+  }
+
+  :where(h1) {
+    @apply my-4 text-xl font-bold;
+  }
+
+  :where(h2, h3, h4, h5, h6) {
+    @apply my-4 text-lg font-semibold;
+  }
+
+  :where(img) {
+    @apply rounded-box h-auto w-auto max-w-full;
+  }
+
+  :where(a) {
+    @apply link;
+  }
+}
+
 @utility forced-width {
-  * {
+  :where(pre, code) {
     @apply w-full sm:max-w-prose;
   }
 }

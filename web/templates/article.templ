@@ -276,12 +276,15 @@ templ (a *Article) Content() {
 			</div>
 			<div class="flex items-center">
 				<div class="flex-1 inline-grid">
-					// Author(s) and Published Time.
-					if len(a.GetAuthors()) > 0 {
-						<p class="col-span-full text-sm/6 italic truncate">
-							{ strings.Join(a.GetAuthors(),",") }
-						</p>
+					if a.SourceType != models.SourceTypeEmail {
+						// Show authors if found.
+						if len(a.GetAuthors()) > 0 {
+							<p class="col-span-full text-sm/6 italic truncate">
+								{ strings.Join(a.GetAuthors(),",") }
+							</p>
+						}
 					}
+					// Show updated date.
 					<p class="col-span-full text-sm/6 capitalize">
 						Updated&nbsp;
 						@showTimestamp(a.GetUpdatedDate())
@@ -377,15 +380,21 @@ templ (a *Article) Content() {
 				</div>
 			</div>
 			// Content.
-			if a.GetContent() != "" || a.GetDescription() != "" {
-				<div data-disable-scripting class="prose-custom forced-width">
-					switch  {
-						case a.GetContent() != "":
-							@templ.Raw(a.GetContent())
-						case a.GetDescription() != "":
-							@templ.Raw(a.GetDescription())
-					}
+			if a.SourceType == models.SourceTypeEmail {
+				<div class="prose-email" data-disable-scripting>
+					@templ.Raw(a.GetContent())
 				</div>
+			} else {
+				if a.GetContent() != "" || a.GetDescription() != "" {
+					<div data-disable-scripting class="prose-article forced-width">
+						switch  {
+							case a.GetContent() != "":
+								@templ.Raw(a.GetContent())
+							case a.GetDescription() != "":
+								@templ.Raw(a.GetDescription())
+						}
+					</div>
+				}
 			}
 		</article>
 	</div>
