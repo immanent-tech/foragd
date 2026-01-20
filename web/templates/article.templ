@@ -143,8 +143,8 @@ templ (a *Article) Card() {
 							}
 							_="on htmx:afterRequest(failed) toggle @checked on me"
 						/>
-						@tabler.HeartFilled(i.Props{Class: "size-5 swap-on"})
-						@tabler.Heart(i.Props{Class: "size-5 swap-off"})
+						@tabler.HeartFilled(i.Props{Class: "size-5 text-primary swap-on"})
+						@tabler.Heart(i.Props{Class: "size-5 text-primary swap-off"})
 					</label>
 				</form>
 				<form>
@@ -181,8 +181,8 @@ templ (a *Article) Card() {
 					on htmx:afterRequest(failed) toggle @checked on me
 					"
 						/>
-						@tabler.MailOpened(i.Props{Class: "size-5 swap-on"})
-						@tabler.MailFilled(i.Props{Class: "size-5 swap-off"})
+						@tabler.MailOpened(i.Props{Class: "size-5 text-primary swap-on"})
+						@tabler.MailFilled(i.Props{Class: "size-5 text-primary swap-off"})
 					</label>
 				</form>
 				// Actions menu.
