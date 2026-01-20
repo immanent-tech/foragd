@@ -25,13 +25,12 @@ import (
 const (
 	// DefaultUserTheme is the default theme for the app.
 	DefaultUserTheme = "greenhouse"
-
-	GathererMaxHistory        = 7 * 24 * time.Hour // One week.
-	GathererUpdatesFrequency  = time.Hour
-	CollectorMaxHistory       = 30 * 24 * time.Hour // One month.
-	CollectorUpdatesFrequency = 5 * time.Minute
-	CuratorMaxHistory         = 365 * 24 * time.Hour // One year.
-	CuratorUpdatesFrequency   = time.Minute
+	// DefaultMaxHistory is a default maximum history value for when the user has not specified one.
+	DefaultMaxHistory = 31 * 24 * time.Hour
+	// DefaultUpdateInterval is the default interval on which to check for updates.
+	DefaultUpdateInterval = 5 * time.Minute
+	// MaxSubscriptions is the maxiumum number of subscriptions a user can have.
+	MaxSubscriptions = 3000
 )
 
 var (
@@ -156,26 +155,20 @@ func (u *User) GetEmail() string {
 // GetMaxHistory returns a timestamp in the past from which the user can view items. If there is an issue retrieving and
 // parsing the value from the user's metadata, it will default to using the lowest plan max history.
 func (u *User) GetMaxHistory() time.Time {
-	if u.Metadata.MaxHistory == "" {
-		return time.Now().Add(-GathererMaxHistory)
+	if u.GetSettings().MaxViewHistory == 0 {
+		return time.Now().Add(-DefaultMaxHistory)
 	}
 
-	dur, err := time.ParseDuration(u.Metadata.MaxHistory)
-	if err != nil {
-		return time.Now().Add(-GathererMaxHistory)
-	}
-
-	return time.Now().Add(-dur)
+	return time.Now().Add(-u.GetSettings().MaxViewHistory)
 }
 
 // GetUpdatesFrequency returns a duration on which the user will see new updates. If there is an issue retrieving and
 // parsing the value from the user's metdata, it will use the lowest plan updates frequency.
 func (u *User) GetUpdatesFrequency() time.Duration {
-	freq, err := time.ParseDuration(u.Metadata.UpdatesFrequency)
-	if err != nil {
-		return GathererUpdatesFrequency
+	if u.GetSettings().UpdatesInterval == 0 {
+		return DefaultUpdateInterval
 	}
-	return freq
+	return u.GetSettings().UpdatesInterval
 }
 
 // OnTrial returns a boolean indicating whether the user is currently in a trial period and if so, a timestamp

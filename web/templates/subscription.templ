@@ -192,8 +192,8 @@ templ (s *Subscription) Card() {
 							}
 							_="on htmx:afterRequest(failed) toggle @checked on me"
 						/>
-						@tabler.HeartFilled(i.Props{Class: "size-5 swap-on"})
-						@tabler.Heart(i.Props{Class: "size-5 swap-off"})
+						@tabler.HeartFilled(i.Props{Class: "size-5 text-secondary swap-on"})
+						@tabler.Heart(i.Props{Class: "size-5 text-secondary swap-off"})
 					</label>
 				</form>
 				// Mark action.

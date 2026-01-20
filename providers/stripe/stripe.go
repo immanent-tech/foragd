@@ -332,18 +332,6 @@ func handleSubscriptionUpdated(ctx context.Context, subscription stripe.Subscrip
 		StripeSubscriptionID: subscription.ID,
 		CancelAt:             time.Unix(subscription.CancelAt, 0),
 	}
-	// Set plan-specific metadata
-	switch metadata.Plan {
-	case "Gatherer":
-		metadata.MaxHistory = models.GathererMaxHistory.String()
-		metadata.UpdatesFrequency = models.GathererUpdatesFrequency.String()
-	case "Collector":
-		metadata.MaxHistory = models.CollectorMaxHistory.String()
-		metadata.UpdatesFrequency = models.CollectorUpdatesFrequency.String()
-	case "Curator":
-		metadata.MaxHistory = models.CuratorMaxHistory.String()
-		metadata.UpdatesFrequency = models.CuratorUpdatesFrequency.String()
-	}
 
 	// Update the user object with the new metadata.
 	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
@@ -382,18 +370,6 @@ func handleSubscriptionCreated(ctx context.Context, subscription stripe.Subscrip
 		TrialEnd:             time.Unix(subscription.TrialEnd, 0),
 		StripeCustomerID:     subscription.Customer.ID,
 		StripeSubscriptionID: subscription.ID,
-	}
-	// Set plan-specific metadata
-	switch metadata.Plan {
-	case "Gatherer":
-		metadata.MaxHistory = models.GathererMaxHistory.String()
-		metadata.UpdatesFrequency = models.GathererUpdatesFrequency.String()
-	case "Collector":
-		metadata.MaxHistory = models.CollectorMaxHistory.String()
-		metadata.UpdatesFrequency = models.CollectorUpdatesFrequency.String()
-	case "Curator":
-		metadata.MaxHistory = models.CuratorMaxHistory.String()
-		metadata.UpdatesFrequency = models.CuratorUpdatesFrequency.String()
 	}
 
 	// Update the user object with the new metadata.

@@ -260,6 +260,20 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'subscription_email'
             validate: 'omitempty,email'
+        max_view_history:
+          description: >
+            is a user-specified limit on how far back in time to view articles.
+          x-go-type: time.Duration
+          x-oapi-codegen-extra-tags:
+            form: "max_view_history"
+            validate: "gte=0"
+        updates_interval:
+          description: >
+            is the interval on which to check for new updates.
+          x-go-type: time.Duration
+          x-oapi-codegen-extra-tags:
+            form: "update_interval"
+            validate: "gte=0"
     UserMetadata:
       description: >
         contains metadata related to the user's account.
@@ -326,20 +340,6 @@ components:
           description: >
             is the date when the trial for the subscription ended.
           x-go-type: time.Time
-        max_history:
-          description: >
-            is a duration representing the maximum time-frame over which objects contained within are available. Set by
-            the account level.
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required'
-        updates_frequency:
-          description: >
-            is a duration indicating how often the account should check for updates in various places within the apply.
-            Set by the account level.
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
     User:

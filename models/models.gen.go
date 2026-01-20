@@ -1060,9 +1060,6 @@ type UserMetadata struct {
 	// CancelAt is a date in the future at which the subscription will automatically get canceled.
 	CancelAt time.Time `json:"cancel_at,omitempty,omitzero"`
 
-	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available. Set by the account level.
-	MaxHistory string `json:"max_history,omitempty,omitzero" validate:"required"`
-
 	// Plan is the name of the subscription plan that the user is paying for.
 	// Possible values will come from the product defined in Stripe.
 	Plan string `json:"plan,omitempty,omitzero" validate:"required"`
@@ -1086,9 +1083,6 @@ type UserMetadata struct {
 
 	// TrialEnd is the date when the trial for the subscription ended.
 	TrialEnd time.Time `json:"trial_end,omitempty,omitzero"`
-
-	// UpdatesFrequency is a duration indicating how often the account should check for updates in various places within the apply. Set by the account level.
-	UpdatesFrequency string `json:"updates_frequency,omitempty,omitzero" validate:"required"`
 }
 
 // UserSession tracks a user session.
@@ -1108,6 +1102,9 @@ type UserSettings struct {
 	// MarkArticleReadOnView indicates whether to automatically mark an article as read when viewed.
 	MarkArticleReadOnView bool `form:"mark_article_read_on_view" json:"mark_article_read_on_view"`
 
+	// MaxViewHistory is a user-specified limit on how far back in time to view articles.
+	MaxViewHistory time.Duration `form:"max_view_history" json:"max_view_history,omitempty,omitzero" validate:"gte=0"`
+
 	// ShowOnboarding indicates whether to show onboarding information (i.e., for a new user).
 	ShowOnboarding bool `form:"-" json:"show_onboarding"`
 
@@ -1119,6 +1116,9 @@ type UserSettings struct {
 
 	// Theme the user interface theme chosen by the user.
 	Theme string `form:"-" json:"theme,omitempty,omitzero"`
+
+	// UpdatesInterval is the interval on which to check for new updates.
+	UpdatesInterval time.Duration `form:"update_interval" json:"updates_interval,omitempty,omitzero" validate:"gte=0"`
 }
 
 // View The state of objects to view.
