@@ -141,7 +141,7 @@ func RefreshAccessToken(req *http.Request, currentToken *oauth2.Token) error {
 	client := loadHTTPClient()
 	if resp, err := client.R().
 		SetBody(payload).
-		SetHeader("content-type", "application/x-www-form-urlencoded").
+		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetResult(&newToken).
 		SetError(&errResult).
 		Post(refreshURL.String()); err != nil || resp.IsError() {
