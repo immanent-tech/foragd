@@ -509,31 +509,34 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									</a>
 								</form>
 							} else {
-								// Mark subscription action.
-								<form id={ "mark-" + response.Subscription.GetID() } class="flex items-center">
-									<input type="hidden" name={ models.ParamSubscriptionID } value={ response.Subscription.GetID() }/>
-									<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
-									// MarkURL returns the app URL for marking the subscription.
-									{{ var markText string }}
-									{{ var markIcon templ.Component }}
-									if response.Filters.GetView() == models.ViewUnread {
-										{{ markText = "Mark Subscription Read" }}
-										{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
-										<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-									} else {
-										{{ markText = "Mark Subscription Unread" }}
-										{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
-										<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
-									}
-									<a
-										hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-										hx-include="[name='csrf_token']"
-										class="link link-hover px-4 py-2 focus:text-primary focus:outline-hidden"
-									>
-										@markIcon
-										{ markText }
-									</a>
-								</form>
+								// Show mark read/unread action when not viewing all articles.
+								if response.Filters.GetView() != models.ViewAll {
+									// Mark subscription action.
+									<form id={ "mark-" + response.Subscription.GetID() } class="flex items-center">
+										<input type="hidden" name={ models.ParamSubscriptionID } value={ response.Subscription.GetID() }/>
+										<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
+										// MarkURL returns the app URL for marking the subscription.
+										{{ var markText string }}
+										{{ var markIcon templ.Component }}
+										if response.Filters.GetView() == models.ViewUnread {
+											{{ markText = "Mark Subscription Read" }}
+											{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
+											<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+										} else {
+											{{ markText = "Mark Subscription Unread" }}
+											{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
+											<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+										}
+										<a
+											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
+											hx-include="[name='csrf_token']"
+											class="link link-hover px-4 py-2 focus:text-primary focus:outline-hidden"
+										>
+											@markIcon
+											{ markText }
+										</a>
+									</form>
+								}
 								// Edit subscription action.
 								<a
 									hx-get={ "/edit/subscription/" + response.Subscription.GetID() }
