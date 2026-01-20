@@ -14,7 +14,6 @@ import (
 	"net/mail"
 	"sync"
 
-	"github.com/goforj/godump"
 	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -120,7 +119,6 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 }
 
 func handleRecievedEmail(ctx context.Context, client *resend.Client, details EmailRecieved) error {
-	godump.Dump(details)
 	// Match the email to address to a user subscription email
 	user, err := models.GetUserBySubscriptionEmail(ctx, details.To...)
 	if err != nil {
