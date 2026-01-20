@@ -14,6 +14,7 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -173,20 +174,10 @@ func PaginateSubscriptions() http.HandlerFunc {
 func MarkSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Decode request parameters.
-		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionRequest](req)
+		request, _, err := forms.DecodeForm[*models.MarkSubscriptionRequest](req)
 		if err != nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("decode mark subscriptions request: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark articles.",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-		if !valid {
-			return &models.APIError{
-				InternalError: fmt.Errorf("validate mark subscriptions request: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark articles.",
@@ -204,6 +195,20 @@ func MarkSubscription() http.HandlerFunc {
 					"Unable to mark subscription",
 					"This might be a temporary issue, please try again.",
 				),
+			}
+		}
+
+		// Do extra processing based on the current url.
+		if currentURL, found := htmx.GetCurrentURL(req); found {
+			if strings.Contains(currentURL, "/list/articles") {
+				// On /list/articles, redirect back to subscriptions after marking.
+				if err := setRedirect(res, htmxext.HXLocationRequest{
+					Path:   "/list/subscriptions",
+					Target: templates.ContentID.Target(),
+					Values: models.PageFiltersFromCtx(req.Context(), "/list/subscriptions").Values(),
+				}); err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Unable to set redirect", slog.Any("error", err))
+				}
 			}
 		}
 

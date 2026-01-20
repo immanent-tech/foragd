@@ -511,23 +511,23 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							} else {
 								// Mark subscription action.
 								<form id={ "mark-" + response.Subscription.GetID() } class="flex items-center">
+									<input type="hidden" name={ models.ParamSubscriptionID } value={ response.Subscription.GetID() }/>
+									<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
 									// MarkURL returns the app URL for marking the subscription.
-									{{ var markURL string }}
 									{{ var markText string }}
 									{{ var markIcon templ.Component }}
 									if response.Filters.GetView() == models.ViewUnread {
-										{{ markURL = "/mark/subscription/" + response.Subscription.GetID() + "/read" }}
 										{{ markText = "Mark Subscription Read" }}
 										{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
+										<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 									} else {
-										{{ markURL = "/mark/subscription/" + response.Subscription.GetID() + "/unread" }}
 										{{ markText = "Mark Subscription Unread" }}
 										{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
+										<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
 									}
 									<a
-										hx-post={ markURL }
+										hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
 										hx-include="[name='csrf_token']"
-										hx-vals={ generateHXVals(map[string]any{models.ParamView: models.PageFiltersFromCtx(ctx, "/list/articles").GetView()}) }
 										class="link link-hover px-4 py-2 focus:text-primary focus:outline-hidden"
 									>
 										@markIcon
