@@ -145,7 +145,8 @@ func SearchResultsClause(search *SearchRequest) query.BoolOption {
 		query.Bool(
 			query.Should(
 				query.SimpleQueryString(search.Text, "", "title^6", "description^3", "content"),
-				query.MultiMatchPrefix(search.Text, "title^6", "description^3", "content"),
+				query.MultiMatchPrefix(search.Text, "title^6", "description^3"),
+				query.Match("content", search.Text),
 			),
 		),
 		// Search in categories.
@@ -162,7 +163,6 @@ func SearchSuggestionsClause(search *SearchRequest) query.BoolOption {
 			query.Should(
 				query.SearchAsYouType(search.Text, "title"),
 				query.SearchAsYouType(search.Text, "description"),
-				query.SearchAsYouType(search.Text, "content"),
 			),
 		),
 	)
