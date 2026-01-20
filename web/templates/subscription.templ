@@ -116,10 +116,11 @@ func (s *Subscription) ReportIssueAttributes() templ.Attributes {
 templ (s *Subscription) Card() {
 	<article
 		id={ s.Subscription.GetID() }
-		class={ "card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
-			templ.KV("row-span-2",len(s.Subscription.GetCategories(0))== 0),
-			templ.KV("row-span-3",len(s.Subscription.GetCategories(0)) >0),
-			templ.KV("brightness-50",!s.Subscription.GetStats().IsUnread()) }
+		class={
+			"card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
+			templ.KV("row-span-2", len(s.Subscription.GetCategories(0)) == 0),
+			templ.KV("row-span-3", len(s.Subscription.GetCategories(0)) > 0),
+		}
 		hx-disinherit="*"
 		{ s.ViewArticlesAttributes()... }
 	>

@@ -70,10 +70,11 @@ func (a *Article) ReportIssueAttributes() templ.Attributes {
 templ (a *Article) Card() {
 	<article
 		id={ a.GetID() }
-		class={ "card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
-		templ.KV("row-span-1",a.GetImage() == nil),
-		templ.KV("row-span-2",a.GetImage() != nil),
-		templ.KV("brightness-50",!a.IsUnread()) }
+		class={
+			"card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
+			templ.KV("row-span-1", a.GetImage() == nil),
+			templ.KV("row-span-2", a.GetImage() != nil),
+		}
 		hx-disinherit="*"
 		{ a.ViewAttributes()... }
 	>
