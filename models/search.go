@@ -17,11 +17,13 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
-// NewSearchRequest creates a new SearchRequest object with default values.
+// NewSearchRequest creates a new SearchRequest object with default values. Defaults are search all objects within last
+// week, sorted by most relevant.
 func NewSearchRequest() *SearchRequest {
 	return &SearchRequest{
 		PublishedWithin: SearchRequestPublishedWithinLastWeek,
-		View:            ViewUnread,
+		View:            ViewAll,
+		Sort:            SortMostRelevant,
 	}
 }
 

@@ -375,6 +375,15 @@ type EmailSubscription struct {
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 }
 
+// FavoriteArticleRequest contains parameters for favoriting an article.
+type FavoriteArticleRequest struct {
+	// ItemID is the unique ID of an item.
+	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
 // Feed defines model for Feed.
 type Feed struct {
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.

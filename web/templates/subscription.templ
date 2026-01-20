@@ -133,7 +133,7 @@ templ (s *Subscription) Card() {
 		class={ "card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
 			templ.KV("row-span-2",len(s.Subscription.GetCategories(0))== 0),
 			templ.KV("row-span-3",len(s.Subscription.GetCategories(0)) >0),
-			templ.KV("opacity-50",!s.Subscription.GetStats().IsUnread()) }
+			templ.KV("opacity-80",!s.Subscription.GetStats().IsUnread()) }
 		hx-disinherit="*"
 		{ s.ViewArticlesAttributes()... }
 	>

@@ -1434,6 +1434,18 @@ components:
             form: 'displayed_articles'
         mark:
           $ref: '#/components/schemas/Mark'
+    FavoriteArticleRequest:
+      description: >
+        contains parameters for favoriting an article.
+      type: object
+      required:
+        - subscription_id
+        - item_id
+      properties:
+        item_id:
+          $ref: '#/components/schemas/ItemID'
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
     RemoveSubscriptionRequest:
       description: >
         contains the parameters for removing a subscription.

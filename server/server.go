@@ -267,7 +267,8 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
-		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}/{mark}", handlers.MarkArticle())
+		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}", handlers.MarkArticle())
+		r.With(middlewares.RequireHTMX).Post("/favorite/article/{item_id}", handlers.FavoriteArticle())
 		r.Get("/view/article/{item_id}", handlers.ViewArticle())
 		r.Get("/view/article/{item_id}/similar", handlers.FindSimilarArticles())
 		// General.
@@ -306,10 +307,6 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.Route("/favorite", func(r chi.Router) {
 				r.Post("/add/subscription/{subscription_id}", handlers.AddFavoriteSubscription())
 				r.Post("/remove/subscription/{subscription_id}", handlers.RemoveFavoriteSubscription())
-				r.Post("/add/article/{item_id}", handlers.AddFavoriteArticle())
-				r.Post("/remove/article/{item_id}", handlers.RemoveFavoriteArticle())
-				// r.Post("/add/search", handler.AddFavoriteSearch())
-				// r.Post("/remove/search", handler.RemoveFavoriteSearch())
 			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {

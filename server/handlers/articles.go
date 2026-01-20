@@ -17,7 +17,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	slogctx "github.com/veqryn/slog-context"
+	"github.com/goforj/godump"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -296,119 +296,6 @@ func ViewArticle() http.HandlerFunc {
 	})).ServeHTTP
 }
 
-// AddFavoriteArticle handles adding a new favorite article for a user.
-func AddFavoriteArticle() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-		id := chi.URLParam(req, models.ParamItemID)
-		if err := validation.Validate.Var(id, "required,startswith=item_"); err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("decode article: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add favorite article",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add favorite article",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-		if err := updateFavoriteArticle(req.Context(), user, id, true); err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("update favorite article: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to add favorite article",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-		// Get the display type.
-		display := req.FormValue("display")
-		// Update the content as appropriate.
-		var template templ.Component
-		switch display {
-		case "card":
-			template = templates.ToggleFavorite(id, string(models.ObjectTypeArticle), true)
-		case "content":
-			template = templates.UpdateViewArticleFavorite(id, true)
-		}
-		template = templ.Join(
-			template,
-			templates.Notification(
-				models.NewSuccessMessage("Added Favorite", ""),
-				templates.DefaultNotificationTimeout,
-			),
-		)
-		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
-// RemoveFavoriteArticle handles removing a favorite article for a user.
-func RemoveFavoriteArticle() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-		id := chi.URLParam(req, models.ParamItemID)
-		if err := validation.Validate.Var(id, "required,startswith=item_"); err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("decode article: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Unable to remove favorite article",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to remove favorite article",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-		if err := updateFavoriteArticle(req.Context(), user, id, false); err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("update favorite article: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to remove favorite article",
-					"This might be a temporary error, please try again.",
-				),
-			}
-		}
-
-		// Update the content as appropriate.
-		var template templ.Component
-		switch req.FormValue("display") {
-		case "card":
-			template = templates.ToggleFavorite(id, string(models.ObjectTypeArticle), false)
-		case "content":
-			template = templates.UpdateViewArticleFavorite(id, false)
-		}
-		template = templ.Join(
-			template,
-			templates.Notification(
-				models.NewSuccessMessage("Removed Favorite", ""),
-				templates.DefaultNotificationTimeout,
-			),
-		)
-		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
 func MarkArticle() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
@@ -423,6 +310,7 @@ func MarkArticle() http.HandlerFunc {
 				),
 			}
 		}
+		godump.Dump(request)
 		if !valid {
 			return &models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
@@ -446,46 +334,6 @@ func MarkArticle() http.HandlerFunc {
 			}
 		}
 
-		// Get the updated article details.
-		articles, err := models.GetArticles(req.Context(), request.ItemID)
-		if err != nil {
-			return &models.APIError{
-				InternalError: fmt.Errorf("unable to mark article: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark article",
-					"This might be a temporary issue, please try again.",
-				),
-			}
-		}
-		if len(articles) == 0 || len(articles) > 1 {
-			return &models.APIError{
-				InternalError: models.ErrInvalidAPIResult,
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to mark article",
-					"This might be a temporary issue, please try again.",
-				),
-			}
-		}
-		article := articles[0]
-
-		switch req.Header.Get(htmx.HeaderTarget) {
-		case article.GetID() + "-mark-action":
-			renderPartial(
-				templates.NewPartial(
-					templates.NewArticleView(article).MenuActionMark(),
-				),
-			).ServeHTTP(res, req)
-		case article.GetID():
-			renderPartial(
-				templates.NewPartial(
-					templates.NewArticleView(article).Card(),
-				),
-			).ServeHTTP(res, req)
-		default:
-			slogctx.FromCtx(req.Context()).Warn("Could not determine appropriate content swap.")
-		}
 		res.WriteHeader(http.StatusOK)
 		return nil
 	})).ServeHTTP
@@ -550,6 +398,66 @@ func MarkArticles() http.HandlerFunc {
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark articles.",
+					"This might be a temporary error, please try again.",
+				),
+			}
+		}
+
+		res.WriteHeader(http.StatusOK)
+		return nil
+	})).ServeHTTP
+}
+
+// FavoriteArticle handles adding an article favorite.
+func FavoriteArticle() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+		request, valid, err := forms.DecodeForm[*models.FavoriteArticleRequest](req)
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to favorite article",
+					"This might be a temporary issue, please try again.",
+				),
+			}
+		}
+		if !valid {
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to favorite article",
+					"This might be a temporary issue, please try again.",
+				),
+			}
+		}
+
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("get user data: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add favorite article",
+					"This might be a temporary error, please try again.",
+				),
+			}
+		}
+
+		var favorite bool
+		if slices.Contains(user.ItemFavorites, request.ItemID) {
+			favorite = false
+		} else {
+			favorite = true
+		}
+
+		if err := updateFavoriteArticle(req.Context(), user, request.ItemID, favorite); err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("update favorite article: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable favorite article",
 					"This might be a temporary error, please try again.",
 				),
 			}

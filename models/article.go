@@ -502,6 +502,14 @@ func (r *MarkArticleRequest) Sanitise() error {
 	return nil
 }
 
+func (r *FavoriteArticleRequest) Valid() error {
+	return validation.Validate.Struct(r)
+}
+
+func (r *FavoriteArticleRequest) Sanitise() error {
+	return nil
+}
+
 // MarkRead will set the article state to read.
 func (s *ArticleState) MarkRead(markedAt time.Time) {
 	s.Read = true
