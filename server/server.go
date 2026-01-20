@@ -170,7 +170,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.Get("/", handlers.Landing())
 		r.Get("/about", handlers.About())
 		r.Get("/viewer", handlers.Viewer())
-		r.Get("/help/*", handlers.DocumentationHandler())
+		r.Get("/help", handlers.DocumentationHandler())
 		r.With(middlewares.RequireHTMX).Post("/viewer", handlers.Viewer())
 	})
 

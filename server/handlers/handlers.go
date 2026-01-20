@@ -183,13 +183,12 @@ func PolicyDocsHandler() http.HandlerFunc {
 // DocumentationHandler handles serving Markdown documents for help/documentation from directory in the embedded fs.
 func DocumentationHandler() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		doc := chi.URLParam(req, "*")
+		// doc := chi.URLParam(req, "*")
 		// Check, if the requested file is existing.
-		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "help", doc+".md"))
+		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "help", "index.md"))
 		if err != nil {
 			// If file is not found, return HTTP 404 error.
 			slogctx.FromCtx(req.Context()).Error("Could not read document.",
-				slog.String("doc", doc),
 				slog.Any("error", err),
 			)
 			http.NotFound(res, req)
@@ -473,6 +472,7 @@ func watchForUpdates(watch query.Option) http.Handler {
 				res.WriteHeader(http.StatusRequestTimeout)
 				return
 			default:
+				slogctx.FromCtx(req.Context()).Debug("Checking for updates...")
 				currentCount, err = models.CountItems(req.Context(), watch)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",

@@ -202,7 +202,7 @@ func header(user *models.User) templ.Component {
 				return nil
 			})
 			templ_7745c5c3_Err = NewLink(
-				WithAttribute("href", "/help/index"),
+				WithAttribute("href", "/help"),
 				WithAttribute("rel", "noopener"),
 				WithAttribute("target", "_blank"),
 				WithClasses("link-hover"),

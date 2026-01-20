@@ -169,7 +169,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span> Group subscriptions (combine multiple feeds into one). <a href=\"/help/index#group-subscriptions\" rel=\"noopener\" target=\"_blank\" class=\"link\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span> Group subscriptions (combine multiple feeds into one). <a href=\"/help#group-subscriptions\" rel=\"noopener\" target=\"_blank\" class=\"link\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -185,7 +185,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span> Search subscriptions (save search results as a subscription). <a href=\"/help/index#search-subscriptions\" rel=\"noopener\" target=\"_blank\" class=\"link\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span> Search subscriptions (save search results as a subscription). <a href=\"/help#search-subscriptions\" rel=\"noopener\" target=\"_blank\" class=\"link\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
