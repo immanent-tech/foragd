@@ -434,12 +434,14 @@ templ (a *Article) Content() {
 	// read and mark it so (when the user has set this option).
 	if a.IsUnread() && a.MarkArticleReadOnView {
 		<form
+			id="auto-mark-read"
+			hx-target="#auto-mark-read"
 			hx-post={ "/mark/article/" + a.GetID() }
-			hx-swap="none"
+			hx-swap="delete transition:false"
 			hx-include="[name='csrf_token']"
 			hx-trigger="intersect once delay:5s,load delay:5s"
 			aria-hidden="true"
-			_={ "on htmx:afterRequest(successful) toggle @checked on #" + a.GetID() + "-read-state then remove me" }
+			_={ "on htmx:afterRequest(successful) toggle @checked on #" + a.GetID() + "-read-state" }
 		>
 			<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
 			<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
