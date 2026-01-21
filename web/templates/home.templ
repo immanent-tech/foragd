@@ -35,7 +35,7 @@ templ (page *Home) Template() {
 						@h3("Latest Articles")
 					</div>
 					if len(page.LatestArticles) > 0 {
-						<div class="grid grid-cols-1 justify-center gap-y-8">
+						<div class="grid grid-cols-1 items-center gap-x-4 gap-y-8">
 							for article := range slices.Values(page.LatestArticles) {
 								@homePageArticle(article)
 							}
@@ -61,11 +61,11 @@ templ (page *Home) Template() {
 						<div class="border-b border-base-content/80 pb-5 mt-8">
 							@h3("Article Picks")
 						</div>
-						<ul role="list" class="grid grid-cols-1 justify-center">
+						<div class="grid grid-cols-1 items-center gap-x-4 gap-y-8">
 							for article := range slices.Values(page.TopArticles) {
 								@homePageHeadline(article)
 							}
-						</ul>
+						</div>
 					}
 					// Interesting Picks section: rare/semantic categories and articles.
 					if len(page.RareCategories) > 0 {
@@ -100,7 +100,7 @@ templ homePageArticle(article *models.Article) {
 		hx-swap="innerHTML show:window:top"
 		hx-trigger="click"
 		id={ article.GetID() }
-		class="card lg:card-side card-link w-full h-full max-h-128 overflow-hidden bg-base-200 shadow-md"
+		class="card lg:card-side card-link w-full sm:max-w-prose h-full max-h-128 overflow-hidden bg-base-200 shadow-md"
 	>
 		// Article image.
 		if img := article.GetImage(); img != nil {
