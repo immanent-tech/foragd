@@ -128,7 +128,15 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 				)
 				return
 			}
-			if existingJob == nil || !errors.Is(err, quartz.ErrJobNotFound) {
+			if existingJob != nil {
+				slogctx.FromCtx(feedCtx).Debug("Existing job found, ignoring.",
+					slog.String("job_id", existingJob.JobDetail().JobKey().String()),
+					slog.String("feed_id", feed.GetID()),
+					slog.Any("error", err),
+				)
+				return
+			}
+			if !errors.Is(err, quartz.ErrJobNotFound) {
 				// Determine and set the feed update interval.
 				if err := feed.SetUpdateInterval(feedCtx); err != nil {
 					slogctx.FromCtx(feedCtx).Warn("Unable to set an update interval for feed.",
@@ -157,7 +165,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 					)
 					return
 				}
-				slogctx.FromCtx(feedCtx).Debug("Added job for feed.",
+				slogctx.FromCtx(feedCtx).Debug("Added new job for feed.",
 					slog.String("job_id", newJob.JobDetail().JobKey().String()),
 					slog.String("job_schedule", newJob.Trigger().Description()),
 				)
