@@ -22,6 +22,7 @@ import (
 	"github.com/immanent-tech/go-syndication/types"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -29,7 +30,7 @@ import (
 
 // GetFeedByID fetches the given Feed by its id.
 func GetFeedByID(ctx context.Context, id FeedID) (*Feed, error) {
-	feed, err := elastic.GetDoc[FeedID, *Feed](ctx, FeedsIndexRO, id)
+	feed, err := elastic.GetDoc[FeedID, *Feed](ctx, schema.FeedsIndexRO, id)
 	if err != nil {
 		return nil, fmt.Errorf("get feed by id: %w", err)
 	}
@@ -38,7 +39,7 @@ func GetFeedByID(ctx context.Context, id FeedID) (*Feed, error) {
 
 // UpdateFeed applies the given updates to a Feed.
 func UpdateFeed(ctx context.Context, id FeedID, updates map[string]any) error {
-	if err := elastic.UpdateDoc(ctx, SchedulerIndexRW, id, updates); err != nil {
+	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW, id, updates); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
 	return nil
@@ -118,7 +119,7 @@ func getFeedLastUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]time.Tim
 	sort := SortNewestFirst
 	items, _, err := elastic.Search[*Item](
 		ctx,
-		ItemsIndexRO,
+		schema.ItemsIndexRO,
 		query.Terms("feed_id", ids...),
 		len(ids),
 		elastic.WithCollapseField("feed_id"),
@@ -346,7 +347,7 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 	}
 
 	// Update the feed with the calculated poll interval for reference.
-	if err := elastic.UpdateDoc(ctx, FeedsIndexRW, f.GetID(), map[string]any{
+	if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, f.GetID(), map[string]any{
 		"update_interval": f.UpdateInterval,
 	}); err != nil {
 		return fmt.Errorf("set feed update interval: %w", err)

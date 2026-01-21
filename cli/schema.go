@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
@@ -20,7 +20,7 @@ type SchemaCmd struct {
 }
 
 type UpdateCmd struct {
-	models.Options
+	schema.Options
 }
 
 func (r *UpdateCmd) Run(opts *UpdateCmd) error {
@@ -33,7 +33,7 @@ func (r *UpdateCmd) Run(opts *UpdateCmd) error {
 		return fmt.Errorf("update schemas: %w", err)
 	}
 	// Perform migrations.
-	err = models.CreateSchemas(ctx, elasticClient.TypedClient, &opts.Options)
+	err = schema.CreateSchemas(ctx, elasticClient.TypedClient, &opts.Options)
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}
@@ -41,7 +41,7 @@ func (r *UpdateCmd) Run(opts *UpdateCmd) error {
 }
 
 type MigrateCmd struct {
-	models.Options
+	schema.Options
 }
 
 func (r *MigrateCmd) Run(opts *MigrateCmd) error {
@@ -54,7 +54,7 @@ func (r *MigrateCmd) Run(opts *MigrateCmd) error {
 		return fmt.Errorf("update schemas: %w", err)
 	}
 	// Perform migrations.
-	err = models.Migrate(ctx, elasticClient.TypedClient, &opts.Options)
+	err = schema.Migrate(ctx, elasticClient.TypedClient, &opts.Options)
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}

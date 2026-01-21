@@ -15,7 +15,7 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
@@ -81,7 +81,7 @@ func executeClearDeletedFeeds(ctx context.Context, job *ScheduledJob) error {
 	)
 	jobs, err = elastic.SearchAll[*ScheduledJob](
 		ctx,
-		models.SchedulerIndexRO,
+		schema.SchedulerIndexRO,
 		query.Term("job_data.deleted", true),
 		defaultPaginationSize,
 	)

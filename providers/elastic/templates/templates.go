@@ -167,6 +167,8 @@ func NewProperties(options ...PropertiesOption) Properties {
 }
 
 // WithDatetimeMapping option creates a new field with a datetime mapping.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/date_nanos
 func WithDatetimeMapping(fieldname string) PropertiesOption {
 	return func(mp Properties) {
 		mp[fieldname] = types.NewDateNanosProperty()
@@ -174,6 +176,8 @@ func WithDatetimeMapping(fieldname string) PropertiesOption {
 }
 
 // WithBooleanMapping option creates a new field with a boolean mapping.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/boolean
 func WithBooleanMapping(fieldname string) PropertiesOption {
 	return func(mp Properties) {
 		mp[fieldname] = types.NewBooleanProperty()
@@ -181,6 +185,8 @@ func WithBooleanMapping(fieldname string) PropertiesOption {
 }
 
 // WithTextMapping option creates a new field with a text mapping.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/text
 func WithTextMapping(fieldname string, settings *types.TextProperty) PropertiesOption {
 	return func(mp Properties) {
 		if settings == nil {
@@ -191,7 +197,22 @@ func WithTextMapping(fieldname string, settings *types.TextProperty) PropertiesO
 	}
 }
 
+// WithSemanticTextMapping option creates a new field with a semantic_text mapping.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/semantic-text
+func WithSemanticTextMapping(fieldname string, settings *types.SemanticTextProperty) PropertiesOption {
+	return func(mp Properties) {
+		if settings == nil {
+			mp[fieldname] = types.NewSemanticTextProperty()
+		} else {
+			mp[fieldname] = settings
+		}
+	}
+}
+
 // WithKeywordMapping option creates a new field with a keyword mapping.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/keyword
 func WithKeywordMapping(fieldname string) PropertiesOption {
 	return func(mp Properties) {
 		mp[fieldname] = types.NewKeywordProperty()
@@ -206,6 +227,8 @@ func WithInt64Mapping(fieldname string) PropertiesOption {
 }
 
 // WithFlattenedMapping option creates a new field with a flattened mapping.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/flattened
 func WithFlattenedMapping(fieldname string) PropertiesOption {
 	return func(mp Properties) {
 		mp[fieldname] = types.NewFlattenedProperty()
@@ -213,6 +236,8 @@ func WithFlattenedMapping(fieldname string) PropertiesOption {
 }
 
 // WithBinaryMapping option creates a new field with a binary mapping.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/binary
 func WithBinaryMapping(fieldname string) PropertiesOption {
 	return func(mp Properties) {
 		mp[fieldname] = types.NewBinaryProperty()
@@ -220,6 +245,8 @@ func WithBinaryMapping(fieldname string) PropertiesOption {
 }
 
 // WithObjectMapping option creates a new field with a object mapping.
+//
+// https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/object
 func WithObjectMapping(fieldname string, options ...PropertiesOption) PropertiesOption {
 	return func(mp Properties) {
 		mp[fieldname] = types.ObjectProperty{

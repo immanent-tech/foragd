@@ -14,6 +14,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -49,11 +50,11 @@ func (c *DeleteUserCmd) Run() error {
 	}
 
 	// Delete the user.
-	if err := elastic.DeleteDoc(ctx, models.UsersIndexRW, user.GetID()); err != nil {
+	if err := elastic.DeleteDoc(ctx, schema.UsersIndexRW, user.GetID()); err != nil {
 		return fmt.Errorf("unable to delete user %s: %w", user.GetID(), err)
 	}
 	// Delete the user's subscriptions.
-	if err := elastic.DeleteDocs(ctx, models.SubscriptionsIndexRW, query.Term("user_id", user.GetID())); err != nil {
+	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW, query.Term("user_id", user.GetID())); err != nil {
 		return fmt.Errorf("unable to delete user %s: %w", user.GetID(), err)
 	}
 	// Delete from Auth0 backend

@@ -18,7 +18,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/logging"
-	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
@@ -71,14 +71,18 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
 
-	if err := elastic.UpdateDoc(ctx, models.SchedulerIndexRW, jobKeyToDocID(job.JobDetail().JobKey().String()), map[string]any{
-		"job_next_run":     data.JobNextRun,
-		"job_data":         data.JobData,
-		"job_trigger_type": data.JobTriggerType,
-		"job_trigger":      data.JobTrigger,
-		"job_type":         data.JobType,
-		"updated_at":       time.Now().UTC(),
-	},
+	if err := elastic.UpdateDoc(
+		ctx,
+		schema.SchedulerIndexRW,
+		jobKeyToDocID(job.JobDetail().JobKey().String()),
+		map[string]any{
+			"job_next_run":     data.JobNextRun,
+			"job_data":         data.JobData,
+			"job_trigger_type": data.JobTriggerType,
+			"job_trigger":      data.JobTrigger,
+			"job_type":         data.JobType,
+			"updated_at":       time.Now().UTC(),
+		},
 		elastic.UpdateDocAsUpsert(),
 		elastic.WithRefresh("true"),
 	); err != nil {
@@ -121,7 +125,7 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	// Find the next job
 	jobs, _, err := elastic.Search[*jobs.ScheduledJob](
 		ctx,
-		models.SchedulerIndexRO,
+		schema.SchedulerIndexRO,
 		query.Exists("job_type"),
 		1,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&jobSorting{JobNextRun: "asc"}),
@@ -142,7 +146,7 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	job, err := elastic.GetDoc[string, *jobs.ScheduledJob](ctx, models.SchedulerIndexRO, jobKeyToDocID(jobKey.String()))
+	job, err := elastic.GetDoc[string, *jobs.ScheduledJob](ctx, schema.SchedulerIndexRO, jobKeyToDocID(jobKey.String()))
 	if err != nil {
 		if errors.Is(err, elastic.ErrNotFound) {
 			return nil, quartz.ErrJobNotFound
@@ -180,7 +184,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 	allJobs, err := elastic.SearchAll[jobs.ScheduledJob](
 		ctx,
-		models.SchedulerIndexRO,
+		schema.SchedulerIndexRO,
 		query.Exists("job_type"),
 		defaultPaginationSize,
 	)
@@ -206,7 +210,7 @@ func (jq *JobQueue) Size() (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	count, err := elastic.Count(ctx, models.SchedulerIndexRO, query.Exists("job_type"))
+	count, err := elastic.Count(ctx, schema.SchedulerIndexRO, query.Exists("job_type"))
 	if err != nil {
 		return 0, fmt.Errorf("count jobs: %w", err)
 	}
@@ -219,7 +223,7 @@ func (jq *JobQueue) Clear() error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	if err := elastic.DeleteDocs(ctx, models.SchedulerIndexRW, query.Exists("job_type")); err != nil {
+	if err := elastic.DeleteDocs(ctx, schema.SchedulerIndexRW, query.Exists("job_type")); err != nil {
 		return fmt.Errorf("%w: %w", ErrClearJobs, err)
 	}
 
@@ -232,7 +236,7 @@ func (jq *JobQueue) delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	if err := elastic.DeleteDoc(ctx, models.SchedulerIndexRW, id); err != nil {
+	if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW, id); err != nil {
 		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
 	}
 

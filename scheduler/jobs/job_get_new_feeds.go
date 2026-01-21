@@ -18,6 +18,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
@@ -95,7 +96,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	)
 	allFeeds, err = elastic.SearchAll[*models.Feed](
 		ctx,
-		models.FeedsIndexRO,
+		schema.FeedsIndexRO,
 		query.Term("last_fetched", models.UnixEpoch),
 		defaultPaginationSize,
 	)

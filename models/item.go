@@ -20,6 +20,7 @@ import (
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
 
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -40,7 +41,7 @@ func GetTopCategoriesForItems(ctx context.Context, itemsQueries ...query.Option)
 
 	resp, err := elastic.NewSearchRequest(
 		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](ItemsIndexRO),
+		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.ItemsIndexRO),
 		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](itemsQueries...),
 		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
@@ -81,7 +82,7 @@ func GetTopCategoriesForItems(ctx context.Context, itemsQueries ...query.Option)
 
 // CountItems returns a count of items that match the given query.
 func CountItems(ctx context.Context, query query.Option) (int64, error) {
-	count, err := elastic.Count(ctx, ItemsIndexRO, query)
+	count, err := elastic.Count(ctx, schema.ItemsIndexRO, query)
 	if err != nil {
 		return 0, fmt.Errorf("count items: %w", err)
 	}
@@ -103,7 +104,7 @@ func SearchItems(
 		return nil, "", ErrInvalidParams
 	}
 	// Perform search.
-	items, newSearchAfter, err := elastic.Search[*Item](ctx, ItemsIndexRO, query, count,
+	items, newSearchAfter, err := elastic.Search[*Item](ctx, schema.ItemsIndexRO, query, count,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](newItemSortOptions(sort)...),
 		elastic.WithSearchAfter[*search.Search, elastic.SearchRequest](searchAfter...),
 	)
@@ -120,7 +121,7 @@ func SearchItems(
 
 // AddItems wraps an elastic bulk update to index items.
 func AddItems(ctx context.Context, items ...*Item) error {
-	if _, err := elastic.BulkUpdate(ctx, ItemsIndexRW, items...); err != nil {
+	if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW, items...); err != nil {
 		return fmt.Errorf("add email item: %w", err)
 	}
 	return nil
@@ -174,7 +175,7 @@ func ItemsAggregation(
 ) (*search.Response, error) {
 	req := elastic.NewSearchRequest(
 		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](ItemsIndexRO),
+		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.ItemsIndexRO),
 		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](query),
 		elastic.WithSize[*search.Search, elastic.SearchRequest](size),
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](

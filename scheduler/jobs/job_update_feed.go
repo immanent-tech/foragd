@@ -17,6 +17,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
@@ -117,7 +118,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		)
 		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 		// newer articles where a feed lags behind real-time.
-		if err := elastic.UpdateDoc(ctx, models.FeedsIndexRW, jobData.FeedID, map[string]any{
+		if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, map[string]any{
 			"last_fetched": items.SortByTimestamp()[0].GetTimestamp(),
 		}); err != nil {
 			return fmt.Errorf("update feed last fetched: %w", err)

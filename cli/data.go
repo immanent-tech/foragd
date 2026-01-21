@@ -14,7 +14,7 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
@@ -34,16 +34,20 @@ func (c *DeleteCmd) Run(opts *DeleteCmd) error {
 	defer cancelFunc()
 	switch {
 	case strings.HasPrefix(opts.ObjectID, "feed_"):
-		if err := elastic.DeleteDoc(ctx, models.FeedsIndexRW, opts.ObjectID); err != nil {
+		if err := elastic.DeleteDoc(ctx, schema.FeedsIndexRW, opts.ObjectID); err != nil {
 			return fmt.Errorf("unable to delete feed %s: %w", opts.ObjectID, err)
 		}
 	case strings.HasPrefix(opts.ObjectID, "user_"):
 		// Delete the user.
-		if err := elastic.DeleteDoc(ctx, models.UsersIndexRW, opts.ObjectID); err != nil {
+		if err := elastic.DeleteDoc(ctx, schema.UsersIndexRW, opts.ObjectID); err != nil {
 			return fmt.Errorf("unable to delete user %s: %w", opts.ObjectID, err)
 		}
 		// Delete the user's subscriptions.
-		if err := elastic.DeleteDocs(ctx, models.SubscriptionsIndexRW, query.Term("user_id", opts.ObjectID)); err != nil {
+		if err := elastic.DeleteDocs(
+			ctx,
+			schema.SubscriptionsIndexRW,
+			query.Term("user_id", opts.ObjectID),
+		); err != nil {
 			return fmt.Errorf("unable to delete user %s: %w", opts.ObjectID, err)
 		}
 		slogctx.FromCtx(ctx).Info("Deleted user.",

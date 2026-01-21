@@ -19,6 +19,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/scheduler/queue"
@@ -39,7 +40,7 @@ var Manager *manager
 
 // GetJobState returns the job state of the job with the given id.
 func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
-	state, err := elastic.GetDoc[string, *models.JobState](ctx, models.SchedulerIndexRO, id)
+	state, err := elastic.GetDoc[string, *models.JobState](ctx, schema.SchedulerIndexRO, id)
 	if err != nil {
 		return nil, fmt.Errorf("scheduler: get job state: %w", err)
 	}
@@ -49,7 +50,7 @@ func (m *manager) GetJobState(ctx context.Context, id string) (*models.JobState,
 // UpdateJobState will update the job state for the job with the given id.
 func (m *manager) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
 	updates["updated_at"] = time.Now().UTC()
-	if err := elastic.UpdateDoc(ctx, models.SchedulerIndexRW, id, updates,
+	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW, id, updates,
 		elastic.UpdateDocAsUpsert(),
 		elastic.WithRefresh("true"),
 	); err != nil {
@@ -63,10 +64,10 @@ func (m *manager) Clear(ctx context.Context) error {
 	if err := m.queue.Clear(); err != nil {
 		return fmt.Errorf("clear job queue: %w", err)
 	}
-	if err := elastic.DeleteDoc(ctx, models.SchedulerIndexRW, "clear_deleted_feeds_state"); err != nil {
+	if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW, "clear_deleted_feeds_state"); err != nil {
 		return fmt.Errorf("clear job clear_delete_feeds state: %w", err)
 	}
-	if err := elastic.DeleteDoc(ctx, models.SchedulerIndexRW, "get_new_feeds_state"); err != nil {
+	if err := elastic.DeleteDoc(ctx, schema.SchedulerIndexRW, "get_new_feeds_state"); err != nil {
 		return fmt.Errorf("clear job get_new_feeds state: %w", err)
 	}
 	return nil

@@ -27,6 +27,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/bulk"
@@ -43,7 +44,7 @@ func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, 
 	// Get user subscription details for the feeds the items belong to.
 	subscriptions, _, err := elastic.Search[*Subscription](
 		ctx,
-		SubscriptionsIndexRO,
+		schema.SubscriptionsIndexRO,
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
@@ -99,7 +100,7 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 
 	resp, err := elastic.NewSearchRequest(
 		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](SubscriptionsIndexRO),
+		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.SubscriptionsIndexRO),
 		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](searchQuery),
 		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
@@ -175,7 +176,7 @@ func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions)
 
 	resp, err := elastic.NewSearchRequest(
 		elastic.WithRequestID[*search.Search, elastic.SearchRequest](middleware.GetReqID(ctx)),
-		elastic.WithIndex[*search.Search, elastic.SearchRequest](SubscriptionsIndexRO),
+		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.SubscriptionsIndexRO),
 		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](searchQuery),
 		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
@@ -532,7 +533,7 @@ func SearchSubscriptions(
 	// Perform search.
 	subscriptions, newSearchAfter, err := elastic.Search[*Subscription](
 		ctx,
-		SubscriptionsIndexRO,
+		schema.SubscriptionsIndexRO,
 		query,
 		req.count,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](newSubscriptionSortOptions(req.sort)...),
@@ -661,7 +662,7 @@ func ProcessSubscriptionRequest(
 	terms = append(terms, query.Term("url", newFeed.URL))
 	// Find any existing feed.
 	feeds, _, err := elastic.Search[*Feed](ctx,
-		FeedsIndexRO,
+		schema.FeedsIndexRO,
 		query.Bool(
 			query.Filter(
 				query.Bool(
@@ -698,7 +699,7 @@ func ProcessSubscriptionRequest(
 			resultsCh <- result
 			return
 		}
-		if err := elastic.CreateDoc(ctx, FeedsIndexRW, newFeed.GetID(), newFeed); err != nil {
+		if err := elastic.CreateDoc(ctx, schema.FeedsIndexRW, newFeed.GetID(), newFeed); err != nil {
 			result.Error = err
 			result.Message = NewErrorMessage(
 				"Unable to create new feed for subscription",
@@ -773,7 +774,7 @@ func RemoveSubscriptions(ctx context.Context, ids ...SubscriptionID) error {
 	if err != nil {
 		return fmt.Errorf("get user data: %w", err)
 	}
-	if err := elastic.DeleteDocs(ctx, SubscriptionsIndexRW,
+	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW,
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
@@ -791,7 +792,7 @@ func UpdateSubscriptions(
 	ctx context.Context,
 	subscriptions ...*Subscription,
 ) (map[SubscriptionID]*bulk.OperationResponse, error) {
-	resp, err := elastic.BulkUpdate(ctx, SubscriptionsIndexRW, subscriptions...)
+	resp, err := elastic.BulkUpdate(ctx, schema.SubscriptionsIndexRW, subscriptions...)
 	if err != nil {
 		return nil, es2APIError("update subscriptions failed", err)
 	}
@@ -983,10 +984,11 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions
 			if err == nil {
 				subscription.Stats.UnreadCount = int(count)
 			} else {
-				slogctx.FromCtx(jobCtx).Warn("Add subscription dynamic info, could not get unread count for search subscription.",
-					slog.String("subscription_id", subscription.GetID()),
-					slog.Any("error", err),
-				)
+				slogctx.FromCtx(jobCtx).
+					Warn("Add subscription dynamic info, could not get unread count for search subscription.",
+						slog.String("subscription_id", subscription.GetID()),
+						slog.Any("error", err),
+					)
 			}
 			// Update query for getting last updated item (view: all, sort: newest first).
 			request.View = ViewAll
@@ -1002,10 +1004,11 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions
 			if items, _, err := SearchItems(jobCtx, query, 1, &sort, ""); err == nil && len(items) > 0 {
 				subscription.Stats.LastUpdate = items[0].GetTimestamp()
 			} else {
-				slogctx.FromCtx(jobCtx).Warn("Add subscription dynamic info, could not get last update for search subscription.",
-					slog.String("subscription_id", subscription.GetID()),
-					slog.Any("error", err),
-				)
+				slogctx.FromCtx(jobCtx).
+					Warn("Add subscription dynamic info, could not get last update for search subscription.",
+						slog.String("subscription_id", subscription.GetID()),
+						slog.Any("error", err),
+					)
 			}
 		}
 		return nil
@@ -1096,7 +1099,7 @@ func getAllSubscriptionsByQuery(ctx context.Context, query query.Option) (Subscr
 	)
 	subscriptions, err = elastic.SearchAll[*Subscription](
 		ctx,
-		SubscriptionsIndexRO,
+		schema.SubscriptionsIndexRO,
 		query,
 		DefaultPaginationSize,
 	)
