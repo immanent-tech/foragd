@@ -87,7 +87,12 @@ var feedItemsCommonMappings = withComponentTemplatesMigration(
 							"search": types.NewSearchAsYouTypeProperty(),
 						},
 					}),
-					templates.WithTextMapping("description", nil),
+					templates.WithTextMapping("description", &types.TextProperty{
+						Type: "text",
+						Fields: map[string]types.Property{
+							"semantic": types.NewSemanticTextProperty(),
+						},
+					}),
 					templates.WithTextMapping("authors", &types.TextProperty{
 						Type: "text",
 						Fields: map[string]types.Property{
