@@ -13,10 +13,12 @@ import (
 	"log/slog"
 	"net/http"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
@@ -132,6 +134,15 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 	})
 }
 
+var loadRobotsTxt = sync.OnceValue(func() error {
+	var err error
+	robotsTxt, err = web.StaticContentFS.ReadFile("content/robots.txt")
+	if err != nil {
+		return fmt.Errorf("read robots.txt: %w", err)
+	}
+	return nil
+})
+
 // RobotsHandler handles requests for robots.txt. In the future, it may handle more requests from non natural human
 // clients...
 func RobotsHandler() http.Handler {
@@ -150,12 +161,20 @@ func RobotsHandler() http.Handler {
 	})
 }
 
+var getPolicyDocs = sync.OnceValues(func() (*models.DocsDirectory, error) {
+	var policies models.DocsDirectory
+	if _, err := toml.DecodeFS(web.DocsFS, "assets/docs/policies/directory.toml", &policies); err != nil {
+		return nil, fmt.Errorf("read policy docs directory.toml: %w", err)
+	}
+	return &policies, nil
+})
+
 // PolicyDocsHandler handles serving policy Markdown documents from directory in the embedded fs.
 func PolicyDocsHandler() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		doc := chi.URLParam(req, "*")
 		// Check, if the requested file is existing.
-		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "policies", doc+".md"))
+		polices, err := getPolicyDocs()
 		if err != nil {
 			// If file is not found, return HTTP 404 error.
 			slogctx.FromCtx(req.Context()).Error("Could not read policy document.",
@@ -164,11 +183,34 @@ func PolicyDocsHandler() http.HandlerFunc {
 			)
 			http.NotFound(res, req)
 		}
+
+		idx := slices.IndexFunc(polices.Docs, func(e models.DocMetadata) bool {
+			return strings.HasPrefix(e.File, doc)
+		})
+
+		if idx == -1 {
+			res.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		metadata := polices.Docs[idx]
+		contents, err := web.DocsFS.ReadFile(filepath.Join("assets/docs/policies", metadata.File))
+		if err != nil {
+			// If file is not found, return HTTP 404 error.
+			slogctx.FromCtx(req.Context()).Error("Could not read policy document.",
+				slog.String("doc", doc),
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
 		template := templates.NewPage(
 			templates.Document(output),
-			templates.WithPageTitle(strings.ToTitle(doc)),
+			templates.WithPageTitle(metadata.Title),
+			templates.WithPageDescription(metadata.Description),
 		).FullTemplate()
 		err = template.Render(req.Context(), res)
 		if err != nil {
@@ -510,12 +552,3 @@ func watchForUpdates(watch query.Option) http.Handler {
 		}
 	})
 }
-
-var loadRobotsTxt = sync.OnceValue(func() error {
-	var err error
-	robotsTxt, err = web.StaticContentFS.ReadFile("content/robots.txt")
-	if err != nil {
-		return fmt.Errorf("read robots.txt: %w", err)
-	}
-	return nil
-})

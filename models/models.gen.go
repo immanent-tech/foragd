@@ -309,6 +309,27 @@ type CreatedAt = time.Time
 // DeletedAt records when the object was deleted.
 type DeletedAt = time.Time
 
+// DocMetadata contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
+type DocMetadata struct {
+	// Description is a description of the document, used in metadata headers of the page.
+	Description string `json:"description,omitempty,omitzero" toml:"description"`
+
+	// File is the path to the markdown file containing the document content.
+	File string `json:"file" toml:"file"`
+
+	// Path is the relative URL path under the documentation root from where this document should be served.
+	Path string `json:"path" toml:"path"`
+
+	// Title is the title to display for the document.
+	Title string `json:"title" toml:"title"`
+}
+
+// DocsDirectory contains metadata for documentation pages under a given path.
+type DocsDirectory struct {
+	// Docs is a list of metadata for docs in this directory.
+	Docs []DocMetadata `json:"docs,omitempty,omitzero" toml:"docs"`
+}
+
 // EditEmailSubscriptionRequest represents a request to create an email subscription.
 type EditEmailSubscriptionRequest struct {
 	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`

@@ -143,6 +143,7 @@ require (
 require (
 	cloud.google.com/go/storage v1.59.1
 	codeberg.org/readeck/go-readability/v2 v2.1.0
+	github.com/BurntSushi/toml v1.6.0
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/alecthomas/kong v1.13.0
 	github.com/auth0/go-auth0/v2 v2.3.0

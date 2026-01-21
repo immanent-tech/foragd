@@ -1621,3 +1621,52 @@ components:
           description: >
             is the template that will be rendered in the view.
           x-go-type: 'templ.Component'
+    DocMetadata:
+      description: >
+        contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
+      type: object
+      required:
+        - title
+        - file
+        - path
+      properties:
+        title:
+          description: >
+            is the title to display for the document.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: "title"
+        file:
+          description: >
+            is the path to the markdown file containing the document content.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: "file"
+        path:
+          description: >
+            is the relative URL path under the documentation root from where this document should be served.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: "path"
+        description:
+          description: >
+            is a description of the document, used in metadata headers of the page.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: "description"
+      x-oapi-codegen-extra-tags:
+        toml: "doc_metadata"
+    DocsDirectory:
+      description: >
+        contains metadata for documentation pages under a given path.
+      type: object
+      properties:
+        docs:
+          description: >
+            is a list of metadata for docs in this directory.
+          type: array
+          items:
+            $ref: '#/components/schemas/DocMetadata'
+          x-oapi-codegen-extra-tags:
+            toml: "docs"
+

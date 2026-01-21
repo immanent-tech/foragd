@@ -1,0 +1,17 @@
+[[docs]]
+path = "tos"
+file = "tos.md"
+title = "Terms of Service"
+description = "Terms of Service for using Foragd"
+
+[[docs]]
+path = "privacy"
+file = "privacy.md"
+title = "Privacy Policy"
+description = "Privacy Policy for Foragd"
+
+[[docs]]
+path = "acceptable-use"
+file = "acceptable-use.md"
+title = "Acceptable Use Policy"
+description = "Acceptable Use terms of Foragd"
