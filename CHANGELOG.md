@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.32.0](https://github.com/immanent-tech/foragd/compare/v0.31.1...v0.32.0) (2026-01-21)
+
+
+### Features
+
+* :sparkles: policy docs served through metadata ([9699f24](https://github.com/immanent-tech/foragd/commit/9699f24204bfe9016eed5ee477b2d8c8c11717c7))
+* **templates:** :sparkles: improved styling specifically for email newsletters ([a12b650](https://github.com/immanent-tech/foragd/commit/a12b6504c3449f92faafc55f54512325a331dc3c))
+* **templates:** :sparkles: update subscriptions limit in pricing ([6c9f93d](https://github.com/immanent-tech/foragd/commit/6c9f93db2b821a233600cab1d4dfeb5ef4809efe))
+
+
+### Bug Fixes
+
+* **auth0:** :bug: fix header format ([b5e0a09](https://github.com/immanent-tech/foragd/commit/b5e0a095cfc76ef2ae503499870ae68535168065))
+* **templates:** :bug: show unknown as last updated value if feed doesn't report an updated/published value itself ([2089ab7](https://github.com/immanent-tech/foragd/commit/2089ab75d9bc1c401247c0ad868bf89e2a9a3506))
+
 ## [0.31.1](https://github.com/immanent-tech/foragd/compare/v0.31.0...v0.31.1) (2026-01-20)
 
 
