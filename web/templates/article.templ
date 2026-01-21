@@ -381,12 +381,12 @@ templ (a *Article) Content() {
 			</div>
 			// Content.
 			if a.SourceType == models.SourceTypeEmail {
-				<div class="prose-email" data-disable-scripting>
+				<div class="prose-email" data-disable-scripting hx-disable>
 					@templ.Raw(a.GetContent())
 				</div>
 			} else {
 				if a.GetContent() != "" || a.GetDescription() != "" {
-					<div data-disable-scripting class="prose-article forced-width">
+					<div data-disable-scripting hx-disable class="prose-article forced-width">
 						switch  {
 							case a.GetContent() != "":
 								@templ.Raw(a.GetContent())
@@ -405,8 +405,12 @@ templ (a *Article) Content() {
 			<a
 				role="button"
 				class="btn btn-primary"
+				hx-get={ "/view/article/" + a.GetID() }
+				hx-target={ ContentID.Target() }
+				hx-swap="innerHTML transition:true"
+				hx-replace-url="true"
+				hx-trigger="click"
 				hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
-				{ a.ViewAttributes()... }
 			>
 				if a.IsRemoteContent() {
 					@tabler.FileRss()
