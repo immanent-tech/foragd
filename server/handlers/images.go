@@ -72,6 +72,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 				return
 			}
 			// Return success.
+			res.Header().Set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable")
 			res.WriteHeader(http.StatusOK)
 			return
 		}
@@ -96,6 +97,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		// Fetch the image (either from proxy or direct).
 		resp, err := httpClient.R().
 			SetDoNotParseResponse(true).
+			EnableTrace().
 			Get(proxiedURL)
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
@@ -111,6 +113,14 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			)
 			return
 		}
+
+		slogctx.FromCtx(req.Context()).Debug("Fetched image.",
+			slog.Duration("total_time", resp.Request.TraceInfo().TotalTime),
+			slog.Duration("server_time", resp.Request.TraceInfo().ServerTime),
+			slog.Duration("response_time", resp.Request.TraceInfo().ResponseTime),
+			slog.Bool("conn_reused", resp.Request.TraceInfo().IsConnReused),
+			slog.Bool("conn_idle", resp.Request.TraceInfo().IsConnWasIdle),
+		)
 
 		_, err = io.Copy(imgBuf, resp.RawBody())
 		if err != nil {
