@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/auth0/go-auth0/v2/authentication"
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/server/session"
@@ -116,10 +118,12 @@ func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 	return logoutURL, nil
 }
 
-func RefreshAccessToken(req *http.Request, currentToken *oauth2.Token) error {
+func RefreshAccessToken(res http.ResponseWriter, req *http.Request, currentToken *oauth2.Token) error {
 	if err := InitAuthenticator(req.Context()); err != nil {
 		return fmt.Errorf("unable to generate logout URL: %w", err)
 	}
+
+	godump.Dump(currentToken)
 
 	// Generate API url for refreshing the token.
 	refreshURL, err := url.Parse("https://" + cfg.Domain + "/oauth/token")
@@ -134,6 +138,7 @@ func RefreshAccessToken(req *http.Request, currentToken *oauth2.Token) error {
 	parameters.Add("client_secret", cfg.ClientSecret)
 	parameters.Add("refresh_token", currentToken.RefreshToken)
 	payload := strings.NewReader(parameters.Encode())
+	godump.Dump(payload)
 
 	var newToken oauth2.Token
 	var errResult authentication.Error
@@ -145,7 +150,21 @@ func RefreshAccessToken(req *http.Request, currentToken *oauth2.Token) error {
 		SetResult(&newToken).
 		SetError(&errResult).
 		Post(refreshURL.String()); err != nil || resp.IsError() {
-		return fmt.Errorf("unable to refresh token: %w", &errResult)
+		slogctx.FromCtx(req.Context()).Error("Unable to refresh session token.",
+			slog.Any("error", &errResult),
+		)
+		// Generate new state and save url for redirection after login.
+		if state, err := GenerateRandomState(); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
+				slog.Any("error", err),
+			)
+		} else {
+			session.Save(req.Context(), "state", state)
+			session.Save(req.Context(), state, map[string]string{
+				"redirectURL": req.URL.String(),
+			})
+		}
+		http.Redirect(res, req, "/login", http.StatusSeeOther)
 	}
 
 	slogctx.FromCtx(req.Context()).Debug("Refreshed access token.")

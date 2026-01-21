@@ -5,9 +5,6 @@ package handlers
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -24,6 +21,7 @@ import (
 
 // Login handles login requests.
 func Login(res http.ResponseWriter, req *http.Request) {
+	// Init the authenticator backend.
 	if err := auth0.InitAuthenticator(req.Context()); err != nil {
 		slogctx.FromCtx(req.Context()).Error("Unable to initialise authenticator backend.",
 			slog.Any("error", err),
@@ -34,18 +32,26 @@ func Login(res http.ResponseWriter, req *http.Request) {
 			),
 		).ServeHTTP(res, req)
 	}
-	// prompt=login&screen_hint=signup
-	state, err := generateRandomState()
-	if err != nil {
-		slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
-			slog.Any("error", err),
-		)
-		renderPage(
-			templates.NewPage(
-				templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Invalid state")),
-			),
-		).ServeHTTP(res, req)
+
+	// Retrieve existing stored state or generate new state.
+	var state string
+	state, err := session.Restore[string](req.Context(), "state")
+	if err != nil || state == "" {
+		slogctx.FromCtx(req.Context()).Debug("No existing or invalid previous state. Using new state.")
+		state, err = auth0.GenerateRandomState()
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
+				slog.Any("error", err),
+			)
+			renderPage(
+				templates.NewPage(
+					templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Invalid state")),
+				),
+			).ServeHTTP(res, req)
+		}
 	}
+
+	// Redirect the user appropriately.
 	var authURL string
 	switch chi.RouteContext(req.Context()).RoutePattern() {
 	case "/signup":
@@ -62,7 +68,7 @@ func Login(res http.ResponseWriter, req *http.Request) {
 	slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
 		slog.String("url", auth0.AuthClient.AuthCodeURL(state)),
 	)
-	http.Redirect(res, req.WithContext(req.Context()), authURL, http.StatusTemporaryRedirect)
+	http.Redirect(res, req, authURL, http.StatusTemporaryRedirect)
 }
 
 // LoginCallback handles processing the response from a login provider.
@@ -213,7 +219,17 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 	slogctx.FromCtx(ctx).Info("User logged in.",
 		slog.String("user_id", user.GetID()),
 	)
-	http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)
+
+	if appState, err := session.Restore[map[string]string](req.Context(), state); err != nil {
+		http.Redirect(res, req.WithContext(ctx), models.RouteHome, http.StatusTemporaryRedirect)
+	} else {
+		if redirectURL, found := appState["redirectURL"]; found {
+			slogctx.FromCtx(ctx).Info("Previous state found, redirecting user.",
+				slog.String("redirect_url", redirectURL))
+			http.Redirect(res, req.WithContext(ctx), redirectURL, http.StatusTemporaryRedirect)
+		}
+	}
+
 }
 
 // LoginError handles login errors, including invalid login callback URL, missing parameters, expired password reset
@@ -257,16 +273,4 @@ func syncLocalUser(ctx context.Context, user *models.User, profile auth0.UserPro
 		}
 		slogctx.FromCtx(ctx).Info("User data updated.")
 	}
-}
-
-func generateRandomState() (string, error) {
-	const stateSize = 32
-	bytes := make([]byte, stateSize)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", fmt.Errorf("unable to generate random state: %w", err)
-	}
-
-	state := base64.StdEncoding.EncodeToString(bytes)
-
-	return state, nil
 }

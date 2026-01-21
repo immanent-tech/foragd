@@ -27,7 +27,18 @@ func RequireUserAuth(next http.Handler) http.Handler {
 			slogctx.FromCtx(req.Context()).Error("Invalid session token.",
 				slog.Any("error", err),
 			)
-			res.WriteHeader(http.StatusForbidden)
+			// Generate new state and save url for redirection after login.
+			if state, err := auth0.GenerateRandomState(); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
+					slog.Any("error", err),
+				)
+			} else {
+				session.Save(req.Context(), "state", state)
+				session.Save(req.Context(), state, map[string]string{
+					"redirectURL": req.URL.String(),
+				})
+			}
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
@@ -106,7 +117,7 @@ func RefreshTokenIfNeeded(next http.Handler) http.Handler {
 
 		// If token is about to expire, refresh it.
 		if token.Expiry.UTC().Sub(time.Now().UTC()) < refreshGracePeriod {
-			if err := auth0.RefreshAccessToken(req, &token); err != nil {
+			if err := auth0.RefreshAccessToken(res, req, &token); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Unable to refresh token.",
 					slog.Any("error", err),
 				)
