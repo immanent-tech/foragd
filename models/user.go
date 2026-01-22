@@ -236,6 +236,8 @@ func (s *UserSettings) Valid() error {
 
 // Sanitise will sanitise UserSettings values.
 func (s *UserSettings) Sanitise() error {
+	// Multiply parsed MaxViewHistory by hours to get nanoseconds.
+	s.MaxViewHistory = s.MaxViewHistory * time.Hour
 	return nil
 }
 
