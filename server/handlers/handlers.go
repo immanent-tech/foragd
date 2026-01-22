@@ -499,6 +499,13 @@ func watchForUpdates(watch query.Option) http.Handler {
 		res.Header().Set("Cache-Control", "no-cache")
 		res.Header().Set("Connection", "keep-alive")
 		res.Header().Set("X-Accel-Buffering", "no")
+		if f, ok := res.(http.Flusher); ok {
+			f.Flush()
+		} else {
+			slogctx.FromCtx(req.Context()).Error("Cannot write SSE headers.")
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
 		// Set up counters.
 		var (
@@ -515,8 +522,11 @@ func watchForUpdates(watch query.Option) http.Handler {
 			return
 		}
 
-		// Set up ticker.
-		ticker := time.NewTicker(user.GetUpdatesFrequency())
+		// Set up updatesTicker.
+		updatesTicker := time.NewTicker(user.GetUpdatesFrequency())
+		defer updatesTicker.Stop()
+		keepAliveTicker := time.NewTicker(20 * time.Second)
+		defer keepAliveTicker.Stop()
 		slogctx.FromCtx(req.Context()).Debug("Checking for updates...",
 			slog.Duration("interval", user.GetUpdatesFrequency()),
 		)
@@ -525,10 +535,14 @@ func watchForUpdates(watch query.Option) http.Handler {
 		for {
 			select {
 			case <-req.Context().Done():
+				slogctx.FromCtx(req.Context()).Debug("Closing SSE connection.")
 				res.Header().Set("Connection", "close")
-				res.WriteHeader(http.StatusRequestTimeout)
+				res.WriteHeader(http.StatusOK)
+				if f, ok := res.(http.Flusher); ok {
+					f.Flush()
+				}
 				return
-			case <-ticker.C:
+			case <-updatesTicker.C:
 				currentCount, err = models.CountItems(req.Context(), watch)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
@@ -557,7 +571,7 @@ func watchForUpdates(watch query.Option) http.Handler {
 						slogctx.FromCtx(req.Context()).Error("Failed to flush SSE message buffer.",
 							slog.Any("error", err))
 					}
-					if _, err = fmt.Fprintf(res, "data: %s\n\n", respBuf.String()); err != nil {
+					if _, err = fmt.Fprintf(res, "event: updates\ndata: %s\n\n", respBuf.String()); err != nil {
 						slogctx.FromCtx(req.Context()).Error("Failed to send update SSE message.",
 							slog.Any("error", err))
 					}
@@ -565,8 +579,18 @@ func watchForUpdates(watch query.Option) http.Handler {
 						f.Flush()
 					}
 				}
+
 				slogctx.FromCtx(req.Context()).Debug("No updates")
 				prevCount = currentCount
+			case <-keepAliveTicker.C:
+				slogctx.FromCtx(req.Context()).Debug("Sending keep-alive message on SSE stream.")
+				if _, err = fmt.Fprint(res, ": keep-alive\n\n"); err != nil {
+					slogctx.FromCtx(req.Context()).Error("Failed to send keep-alive SSE message.",
+						slog.Any("error", err))
+				}
+				if f, ok := res.(http.Flusher); ok {
+					f.Flush()
+				}
 			}
 		}
 	})

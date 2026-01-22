@@ -87,7 +87,12 @@ templ (page *Home) Template() {
 				</aside>
 			</div>
 			@btnBackToTop()
-			<div id="update-notifications" sse-connect="/home/updates" sse-swap="message" class="toast toast-center z-50"></div>
+			<div
+				id="update-notifications"
+				sse-connect="/home/updates"
+				sse-swap="updates"
+				class="toast toast-center z-50"
+			></div>
 		}
 	</div>
 }

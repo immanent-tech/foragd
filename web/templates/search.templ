@@ -246,7 +246,12 @@ templ SearchResultsGrid(results *models.SearchResults) {
 			</el-dropdown>
 		</div>
 		// Watch for updates.
-		<div id="update-notifications" sse-connect={ "/search/updates?" + results.Search.Query() } sse-swap="message" class="toast toast-center z-50"></div>
+		<div
+			id="update-notifications"
+			sse-connect={ "/search/updates?" + results.Search.Query() }
+			sse-swap="updates"
+			class="toast toast-center z-50"
+		></div>
 		// Articles grid.
 		<section class="mt-4">
 			<div id="grid-objects" class="ui-grid">
