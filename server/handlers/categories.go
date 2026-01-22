@@ -27,7 +27,8 @@ func ListCategories() http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Unable to parse list categories request",
 					slog.Any("error", err),
 				)
-				res.WriteHeader(http.StatusNoContent)
+				renderPartial(
+					templates.NewPartial(templates.ListCategoryFilters(&models.CategoryFilters{}))).ServeHTTP(res, req)
 				return
 			}
 
@@ -40,14 +41,22 @@ func ListCategories() http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Warn("Unable to parse list categories request",
 						slog.Any("error", err),
 					)
-					res.WriteHeader(http.StatusNoContent)
+					renderPartial(
+						templates.NewPartial(
+							templates.ListCategoryFilters(&models.CategoryFilters{}),
+						),
+					).ServeHTTP(res, req)
 					return
 				}
 				if !valid {
 					slogctx.FromCtx(req.Context()).Warn("Invalid list categories request",
 						slog.Any("error", err),
 					)
-					res.WriteHeader(http.StatusNoContent)
+					renderPartial(
+						templates.NewPartial(
+							templates.ListCategoryFilters(&models.CategoryFilters{}),
+						),
+					).ServeHTTP(res, req)
 					return
 				}
 
@@ -57,7 +66,11 @@ func ListCategories() http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
 						slog.Any("error", err),
 					)
-					res.WriteHeader(http.StatusNoContent)
+					renderPartial(
+						templates.NewPartial(
+							templates.ListCategoryFilters(&models.CategoryFilters{}),
+						),
+					).ServeHTTP(res, req)
 					return
 				}
 
@@ -75,7 +88,11 @@ func ListCategories() http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Warn("Could not get user data.",
 						slog.Any("error", err),
 					)
-					res.WriteHeader(http.StatusNoContent)
+					renderPartial(
+						templates.NewPartial(
+							templates.ListCategoryFilters(&models.CategoryFilters{}),
+						),
+					).ServeHTTP(res, req)
 					return
 				}
 				// Get subscriptions based on filters.
@@ -86,7 +103,11 @@ func ListCategories() http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Warn("Could not list subscriptions.",
 						slog.Any("error", err),
 					)
-					res.WriteHeader(http.StatusNoContent)
+					renderPartial(
+						templates.NewPartial(
+							templates.ListCategoryFilters(&models.CategoryFilters{}),
+						),
+					).ServeHTTP(res, req)
 					return
 				}
 
@@ -101,7 +122,11 @@ func ListCategories() http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Warn("Could not get item categories.",
 						slog.Any("error", err),
 					)
-					res.WriteHeader(http.StatusNoContent)
+					renderPartial(
+						templates.NewPartial(
+							templates.ListCategoryFilters(&models.CategoryFilters{}),
+						),
+					).ServeHTTP(res, req)
 					return
 				}
 				// Generate the categories list template.

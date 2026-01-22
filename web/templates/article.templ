@@ -504,31 +504,35 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					>
 						<div class="py-1">
 							if response.Subscription == nil {
-								// Mark all articles action.
-								<form class="flex items-center">
-									<a
-										class="link link-hover px-4 py-2 focus:text-primary focus:outline-hidden"
-										if response.Filters.GetView() == models.ViewUnread {
-											hx-post="/list/articles/mark/read"
-										} else {
-											hx-post="/list/articles/mark/unread"
-										}
-										hx-target={ ContentID.Target() }
-										hx-include="[name='displayed_articles'],[name='csrf_token']"
-									>
-										if response.Filters.GetView() == models.ViewUnread {
-											@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-											<span class="sr-only">Mark All Read</span>
-											Mark Articles Read
-											<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-										} else {
-											@tabler.MailFilled(i.Props{Class: "size-4"})
-											<span class="sr-only">Mark All Unread</span>
-											Mark Articles Unread
-											<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-										}
-									</a>
-								</form>
+								if len(response.Articles) > 0 {
+									// Mark all articles action.
+									<form class="flex items-center">
+										<a
+											class="link link-hover px-4 py-2 focus:text-primary focus:outline-hidden"
+											if response.Filters.GetView() == models.ViewUnread {
+												hx-post="/list/articles/mark/read"
+											} else {
+												hx-post="/list/articles/mark/unread"
+											}
+											hx-target={ ContentID.Target() }
+											hx-include="[name='displayed_articles'],[name='csrf_token']"
+										>
+											if response.Filters.GetView() == models.ViewUnread {
+												@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+												<span class="sr-only">Mark All Read</span>
+												Mark Articles Read
+												<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+											} else {
+												@tabler.MailFilled(i.Props{Class: "size-4"})
+												<span class="sr-only">Mark All Unread</span>
+												Mark Articles Unread
+												<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+											}
+										</a>
+									</form>
+								} else {
+									<p class="italic px-4 py-2">No actions.</p>
+								}
 							} else {
 								// Show mark read/unread action when not viewing all articles.
 								if response.Filters.GetView() != models.ViewAll {
