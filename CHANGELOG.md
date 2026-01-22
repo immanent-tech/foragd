@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.33.0](https://github.com/immanent-tech/foragd/compare/v0.32.0...v0.33.0) (2026-01-22)
+
+
+### Features
+
+* **models:** :sparkles: add a semantic text sub-field to feed description ([2389a5b](https://github.com/immanent-tech/foragd/commit/2389a5b25ff0a95650aba7109391d799cd40fc92))
+
+
+### Bug Fixes
+
+* **scheduler:** :bug: ignore "new" feeds that already have a scheduled job (it just hasn't run or ran with errors) ([a2bfde4](https://github.com/immanent-tech/foragd/commit/a2bfde4b475f70fd93edb0ca3e8f4c6d1c7ae144))
+* **templates:** :bug: simplify logic for hx-swap for auto-marking article as read ([dfa9848](https://github.com/immanent-tech/foragd/commit/dfa984851daa05af9087e9bb8ad709a19a1381bf))
+* **templates:** :bug: view article fixes ([00e2533](https://github.com/immanent-tech/foragd/commit/00e25337aac78f164134e9b9a4a824f53eb82bc4))
+
 ## [0.32.0](https://github.com/immanent-tech/foragd/compare/v0.31.1...v0.32.0) (2026-01-21)
 
 
