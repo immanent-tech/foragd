@@ -513,7 +513,7 @@ func extractArticleFromURL(url string) (string, error) {
 	articleBuf := *articleBufPtr
 	defer func() {
 		articleBufPtr.Reset()
-		imgBufPool.Put(articleBufPtr)
+		bufPool.Put(articleBufPtr)
 	}()
 
 	if err := remote.RenderHTML(&articleBuf); err != nil {

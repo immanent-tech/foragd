@@ -50,14 +50,14 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			10,
 		)
 
-		imgBuf, ok := imgBufPool.Get().(*bytes.Buffer)
+		imgBuf, ok := bufPool.Get().(*bytes.Buffer)
 		if !ok {
 			res.WriteHeader(http.StatusInternalServerError)
 			slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
 			return
 		}
 		imgBuf.Reset()
-		defer imgBufPool.Put(imgBuf)
+		defer bufPool.Put(imgBuf)
 
 		var found bool
 		// Try to fetch the image from the cache. If found, return the cached image.
@@ -172,14 +172,14 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 func LoadCachedImage(res http.ResponseWriter, req *http.Request) {
 	key := chi.URLParam(req, "*")
 
-	imgBuf, ok := imgBufPool.Get().(*bytes.Buffer)
+	imgBuf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
 		res.WriteHeader(http.StatusInternalServerError)
 		slogctx.FromCtx(req.Context()).Error("Get image buffer failed.")
 		return
 	}
 	imgBuf.Reset()
-	defer imgBufPool.Put(imgBuf)
+	defer bufPool.Put(imgBuf)
 
 	var err error
 	switch {
@@ -246,12 +246,6 @@ func LoadCachedImage(res http.ResponseWriter, req *http.Request) {
 	// Return success.
 	res.Header().Set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable")
 	res.WriteHeader(http.StatusOK)
-}
-
-var imgBufPool = sync.Pool{
-	New: func() any {
-		return new(bytes.Buffer)
-	},
 }
 
 var imgCache objectCache

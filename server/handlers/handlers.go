@@ -59,6 +59,12 @@ var loadHTTPClient = sync.OnceValue(func() *resty.Client {
 	return resty.New().SetHeader("User-Agent", config.AppName+"/"+config.Version)
 })
 
+var bufPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
+}
+
 // Landing handles displaying the landing page.
 func Landing() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -493,16 +499,14 @@ func watchForUpdates(watch query.Option) http.Handler {
 		res.Header().Set("Cache-Control", "no-cache")
 		res.Header().Set("Connection", "keep-alive")
 		res.Header().Set("X-Accel-Buffering", "no")
-		if f, ok := res.(http.Flusher); ok {
-			f.Flush()
-		} else {
-			slogctx.FromCtx(req.Context()).Warn("Cannot flush update stream!")
-			res.WriteHeader(http.StatusNoContent)
-		}
+
+		// Set up counters.
 		var (
 			currentCount int64
 			prevCount    int64
 		)
+
+		// Get an initial count.
 		prevCount, err = models.CountItems(req.Context(), watch)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
@@ -511,15 +515,20 @@ func watchForUpdates(watch query.Option) http.Handler {
 			return
 		}
 
+		// Set up ticker.
+		ticker := time.NewTicker(user.GetUpdatesFrequency())
+		slogctx.FromCtx(req.Context()).Debug("Checking for updates...",
+			slog.Duration("interval", user.GetUpdatesFrequency()),
+		)
+
+		// Watch for updates.
 		for {
-			updateInterval := user.GetUpdatesFrequency()
 			select {
 			case <-req.Context().Done():
 				res.Header().Set("Connection", "close")
 				res.WriteHeader(http.StatusRequestTimeout)
 				return
-			default:
-				slogctx.FromCtx(req.Context()).Debug("Checking for updates...")
+			case <-ticker.C:
 				currentCount, err = models.CountItems(req.Context(), watch)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
@@ -529,21 +538,26 @@ func watchForUpdates(watch query.Option) http.Handler {
 				// Show updates toast if new items found.
 				if currentCount > prevCount {
 					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
-					var respBuf bytes.Buffer
-					template := bufio.NewWriter(&respBuf)
-					err := templates.UpdatesToast().Render(req.Context(), template)
-					if err != nil {
+					respBuf, ok := bufPool.Get().(*bytes.Buffer)
+					if !ok {
+						res.WriteHeader(http.StatusNoContent)
+						slogctx.FromCtx(req.Context()).Error("Get response buffer failed.")
+						continue
+					}
+					respBuf.Reset()
+					defer bufPool.Put(respBuf)
+
+					template := bufio.NewWriter(respBuf)
+					if err := templates.UpdatesToast().Render(req.Context(), template); err != nil {
 						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
 							slog.Any("error", err))
 						continue
 					}
-					err = template.Flush()
-					if err != nil {
+					if err = template.Flush(); err != nil {
 						slogctx.FromCtx(req.Context()).Error("Failed to flush SSE message buffer.",
 							slog.Any("error", err))
 					}
-					_, err = fmt.Fprintf(res, "data: %s\n\n", respBuf.String())
-					if err != nil {
+					if _, err = fmt.Fprintf(res, "data: %s\n\n", respBuf.String()); err != nil {
 						slogctx.FromCtx(req.Context()).Error("Failed to send update SSE message.",
 							slog.Any("error", err))
 					}
@@ -551,8 +565,8 @@ func watchForUpdates(watch query.Option) http.Handler {
 						f.Flush()
 					}
 				}
+				slogctx.FromCtx(req.Context()).Debug("No updates")
 				prevCount = currentCount
-				time.Sleep(updateInterval)
 			}
 		}
 	})
