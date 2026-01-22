@@ -23,6 +23,7 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-resty/resty/v2"
 	"github.com/justinas/alice"
 	"github.com/russross/blackfriday/v2"
 	slogchi "github.com/samber/slog-chi"
@@ -53,6 +54,10 @@ var defaultHandlerChain = alice.New(
 	setCacheControl,
 	pushCriticalAssets,
 )
+
+var loadHTTPClient = sync.OnceValue(func() *resty.Client {
+	return resty.New().SetHeader("User-Agent", config.AppName+"/"+config.Version)
+})
 
 // Landing handles displaying the landing page.
 func Landing() http.HandlerFunc {
