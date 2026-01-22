@@ -103,9 +103,11 @@ func getHomePageData(ctx context.Context) (*templates.Home, error) {
 	data.Subscriptions = subscriptions
 	data.LatestArticles = articles
 
-	// Retrieve statistics.
-	if err := performHomePageAggs(ctx, user, data); err != nil {
-		return data, fmt.Errorf("unable to perform aggregations: %w", err)
+	if len(data.Subscriptions) > 0 {
+		// Retrieve statistics.
+		if err := performHomePageAggs(ctx, user, data); err != nil {
+			return data, fmt.Errorf("unable to perform aggregations: %w", err)
+		}
 	}
 
 	return data, nil
@@ -116,40 +118,46 @@ func getHomePageObjects(ctx context.Context, user *models.User) (models.Subscrip
 	// Use default filters.
 	filters := models.NewListDisplayFilters()
 
-	// Get all user subscriptions.
-	subscriptions, err := models.GetSubscriptions(ctx,
+	var (
+		subscriptions models.Subscriptions
+		articles      models.Articles
+		err           error
+	)
+
+	// Fetch unread subscriptions.
+	subscriptions, err = models.GetSubscriptions(ctx,
 		models.GetSubscriptionsDynamicInfo(true),
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get subscriptions: %w", err)
 	}
-	subscriptions = subscriptions.
-		FilterByView(filters.GetView())
+	subscriptions = subscriptions.FilterByView(filters.GetView())
 
-	// Generate a query for getting articles.
-	articleQuery := query.Bool(
-		query.Filter(
-			// Must match any of the given categories.
-			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
-			query.Terms("categories.raw", filters.GetCategories()...),
-			query.Bool(
-				query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+	// Fetch articles for unread subscriptions.
+	if len(subscriptions) > 0 {
+		articleQuery := query.Bool(
+			query.Filter(
+				query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+				query.Terms("categories.raw", filters.GetCategories()...),
+				query.Bool(
+					query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+				),
 			),
-		),
-	)
+		)
 
-	sort := filters.GetSort()
+		sort := filters.GetSort()
 
-	// Find items matching filters.
-	items, _, err := models.SearchItems(ctx, articleQuery, filters.GetCount(), &sort, "")
-	if err != nil {
-		return nil, nil, fmt.Errorf("get items: %w", err)
-	}
+		// Find items matching filters.
+		items, _, err := models.SearchItems(ctx, articleQuery, filters.GetCount(), &sort, "")
+		if err != nil {
+			return nil, nil, fmt.Errorf("get items: %w", err)
+		}
 
-	// Generate articles.
-	articles, err := models.GenerateArticles(ctx, items)
-	if err != nil {
-		return nil, nil, fmt.Errorf("generate articles: %w", err)
+		// Generate articles.
+		articles, err = models.GenerateArticles(ctx, items)
+		if err != nil {
+			return nil, nil, fmt.Errorf("generate articles: %w", err)
+		}
 	}
 
 	return subscriptions, articles, nil
