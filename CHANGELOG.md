@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.34.0](https://github.com/immanent-tech/foragd/compare/v0.33.0...v0.34.0) (2026-01-22)
+
+
+### Features
+
+* :sparkles: add ability to change the max view history of articles ([d1be722](https://github.com/immanent-tech/foragd/commit/d1be722861178ee60d49186bff6ce63d7d268987))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: properly handle nothing unread on homepage ([bd27e05](https://github.com/immanent-tech/foragd/commit/bd27e05bde0e8587021c5ba913baa8a369bc169c))
+* **templates:** :bug: display fixes when there is nothing to show (no subscriptions and/or articles) ([7b19c3f](https://github.com/immanent-tech/foragd/commit/7b19c3fee6ffaa67dd60016a9c5b9e36fd873309))
+
+
+### Performance Improvements
+
+* **handlers:** :zap: watch for updates improvements ([7cf7763](https://github.com/immanent-tech/foragd/commit/7cf7763d22dfc574f9630acdd595c07365f21ac8))
+
 ## [0.33.0](https://github.com/immanent-tech/foragd/compare/v0.32.0...v0.33.0) (2026-01-22)
 
 
