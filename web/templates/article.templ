@@ -68,7 +68,7 @@ templ (a *Article) Card() {
 	<article
 		id={ a.GetID() }
 		class={
-			"card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
+			"card bg-base-200 mx-auto h-full w-full max-w-prose shadow-md", "card-link",
 			templ.KV("row-span-1", a.GetImage() == nil),
 			templ.KV("row-span-2", a.GetImage() != nil),
 		}

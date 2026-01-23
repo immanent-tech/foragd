@@ -94,7 +94,7 @@ func (a *Article) Card() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var2 = []any{"card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
+		var templ_7745c5c3_Var2 = []any{"card bg-base-200 mx-auto h-full w-full max-w-prose shadow-md", "card-link",
 			templ.KV("row-span-1", a.GetImage() == nil),
 			templ.KV("row-span-2", a.GetImage() != nil),
 		}

@@ -207,6 +207,18 @@
   }
 }
 
+@utility ui-container {
+  @apply mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8;
+}
+
+@utility ui-grid {
+  @apply grid grid-cols-1 place-items-center gap-4 sm:grid-cols-3;
+}
+
+@utility ui-card {
+  @apply card bg-base-200 mx-auto h-full w-full max-w-prose shadow-md;
+}
+
 /* Change cursor to indicate card is a link. */
 @utility card-link {
   @apply cursor-pointer;
@@ -222,12 +234,4 @@
     outline: 2px solid currentColor;
     outline-offset: 2px;
   }
-}
-
-@utility ui-container {
-  @apply mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8;
-}
-
-@utility ui-grid {
-  @apply grid grid-cols-1 items-center gap-x-4 gap-y-8 sm:grid-cols-2 xl:grid-cols-3;
 }

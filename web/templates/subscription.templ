@@ -108,7 +108,7 @@ templ (s *Subscription) Card() {
 	<article
 		id={ s.Subscription.GetID() }
 		class={
-			"card card-link w-full max-w-100 h-full bg-base-200 shadow-md",
+			"card bg-base-200 mx-auto h-full w-full max-w-prose shadow-md", "card-link",
 			templ.KV("row-span-2", len(s.Subscription.GetCategories(0)) == 0),
 			templ.KV("row-span-3", len(s.Subscription.GetCategories(0)) > 0),
 		}
