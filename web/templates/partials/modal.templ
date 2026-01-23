@@ -4,9 +4,13 @@
 package partials
 
 import (
+	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
+
+// ModalContainerID points to an element that holds a modal.
+const ModalContainerID = models.ElementID("modals")
 
 // Modal will render a modal with the given content.
 templ Modal(id string, open bool) {

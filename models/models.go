@@ -132,3 +132,17 @@ type ItemSource interface {
 	GetUnreadItems() []ItemID
 	GetArticleFilters() SubscriptionArticleFilters
 }
+
+// ID represents an id attribute in a HTML element.
+type ElementID string
+
+// Target returns the id attribute as a target (i.e., for htmx requests). This
+// is the base id string with a "#" prefix.
+func (a ElementID) Target() string {
+	return "#" + string(a)
+}
+
+// String returns the id attribute as a string.
+func (a ElementID) String() string {
+	return string(a)
+}

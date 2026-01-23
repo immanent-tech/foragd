@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"os"
@@ -245,7 +246,7 @@ templ AccountSettings(user *models.User) {
 					<form
 						hx-post={ models.RouteUserCancelDeactivationAccount }
 						hx-include="[name='csrf_token']"
-						hx-target={ ModalContainerID.Target() }
+						hx-target={ partials.ModalContainerID.Target() }
 						class="flex items-start md:col-span-2"
 					>
 						<button type="submit" class="btn btn-success">
@@ -288,7 +289,7 @@ templ AccountSettings(user *models.User) {
 					<div class="mt-2 flex items-center justify-end gap-x-6">
 						<form
 							hx-get={ models.RouteUserDeactivateAccount }
-							hx-target={ ModalContainerID.Target() }
+							hx-target={ partials.ModalContainerID.Target() }
 							class="flex items-start md:col-span-2"
 						>
 							<button type="submit" class="btn btn-error">

@@ -8,6 +8,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates/opengraph"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
 
@@ -144,7 +145,7 @@ templ (p *Page) renderBody() {
 		<input id="page-theme" type="checkbox" value={ models.GetUserTheme(ctx) } class="toggle theme-controller hidden" checked="checked"/>
 		<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 		<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>
-		<div id={ ModalContainerID.String() } hx-target-error="#modal-errors"></div>
+		<div id={ partials.ModalContainerID.String() } hx-target-error="#modal-errors"></div>
 		@p.Component
 		<div aria-live="assertive" class="pointer-events-none fixed inset-0 flex items-end sm:items-start z-999">
 			<div id={ NotificationsID.String() } class="flex w-full flex-col items-center space-y-4 m-4 sm:items-end"></div>

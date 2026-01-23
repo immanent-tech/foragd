@@ -71,7 +71,7 @@ func (s *Subscription) MarkAttributes() templ.Attributes {
 	switch s.GetSubscriptionType() {
 	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail, models.SubscriptionTypeGroup:
 		attrs["hx-include"] = "[name='csrf_token']"
-		attrs["hx-target"] = ID(s.GetID()).Target()
+		attrs["hx-target"] = models.ElementID(s.GetID()).Target()
 		attrs["hx-trigger"] = "click consume"
 		if s.GetStats().IsUnread() {
 			attrs["hx-post"] = "/mark/subscription/" + s.GetID() + "/read"
@@ -263,7 +263,7 @@ templ (s *Subscription) Card() {
 								<a
 									class="link link-hover"
 									hx-post={ "/remove/subscription/" + s.GetID() }
-									hx-target={ ModalContainerID.Target() }
+									hx-target={ partials.ModalContainerID.Target() }
 									hx-include="[name='csrf_token']"
 									hx-trigger="click consume"
 								>

@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/go-syndication/types"
 	"html"
 	"maps"
@@ -27,7 +28,7 @@ type HTMLElement struct {
 	sync.Mutex
 	attributes templ.Attributes
 	classes    []string
-	id         ID
+	id         models.ElementID
 }
 
 func NewHTMLElement() HTMLElement {
@@ -46,7 +47,7 @@ func (e *HTMLElement) GetTarget() string {
 }
 
 func (e *HTMLElement) SetID(id string) {
-	e.id = ID(id)
+	e.id = models.ElementID(id)
 }
 
 func (e *HTMLElement) SetAttribute(key string, value any) {

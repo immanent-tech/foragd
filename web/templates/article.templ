@@ -226,7 +226,7 @@ templ (a *Article) Card() {
 									<a
 										class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden"
 										hx-post={ "/share/article/" + a.GetID() }
-										hx-target={ ModalContainerID.Target() }
+										hx-target={ partials.ModalContainerID.Target() }
 										hx-include="[name='csrf_token']"
 										hx-trigger="click consume"
 									>
@@ -463,7 +463,7 @@ templ (a *Article) Content() {
 					role="button"
 					class="btn btn-primary"
 					hx-post={ "/share/article/" + a.GetID() }
-					hx-target={ ModalContainerID.Target() }
+					hx-target={ partials.ModalContainerID.Target() }
 					hx-include="[name='csrf_token']"
 					hx-trigger="click consume"
 				>
