@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/tabler"
@@ -133,7 +134,7 @@ templ ViewerResults(feed *feeds.Feed) {
 				@viewerItemCard(item)
 			}
 		</div>
-		@btnBackToTop()
+		@partials.ButtonBackToTop()
 	}
 }
 

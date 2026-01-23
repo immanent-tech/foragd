@@ -3,7 +3,10 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/models"
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+)
 
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
@@ -13,7 +16,7 @@ templ Document(data []byte) {
 		<article class="prose sm:prose-lg prose-img:shadow-md my-4">
 			@templ.Raw(string(data))
 		</article>
-		@btnBackToTop()
+		@partials.ButtonBackToTop()
 	</div>
 	@footer()
 }

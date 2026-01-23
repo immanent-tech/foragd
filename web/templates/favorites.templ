@@ -6,6 +6,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
 
@@ -42,7 +43,7 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 							@NewSubscriptionView(subscription).Card()
 						}
 					</div>
-					@btnBackToTop()
+					@partials.ButtonBackToTop()
 				</section>
 			}
 			// Favorite articles.
@@ -56,10 +57,10 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 							@NewArticleView(article).Card()
 						}
 					</div>
-					@btnBackToTop()
+					@partials.ButtonBackToTop()
 				</section>
 			}
-			@btnBackToTop()
+			@partials.ButtonBackToTop()
 		} else {
 			@emptyContent()
 		}

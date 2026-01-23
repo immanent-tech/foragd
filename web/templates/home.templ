@@ -6,6 +6,7 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
@@ -86,7 +87,7 @@ templ (page *Home) Template() {
 					}
 				</aside>
 			</div>
-			@btnBackToTop()
+			@partials.ButtonBackToTop()
 			<div
 				id="update-notifications"
 				sse-connect="/home/updates"

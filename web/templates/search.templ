@@ -4,6 +4,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
@@ -256,7 +257,7 @@ templ SearchResultsGrid(results *models.SearchResults) {
 		<section class="mt-4">
 			<div id="grid-objects" class="ui-grid">
 				@SearchResults(results)
-				@btnBackToTop()
+				@partials.ButtonBackToTop()
 			</div>
 		</section>
 	</div>
@@ -579,7 +580,7 @@ templ SimilarArticles(articles models.Articles) {
 					@NewArticleView(article).Card()
 				}
 			</div>
-			@btnBackToTop()
+			@partials.ButtonBackToTop()
 		</section>
 	</div>
 }

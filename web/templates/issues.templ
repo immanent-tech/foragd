@@ -3,7 +3,10 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/models"
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+)
 
 // ReportPageIssue renders a form for reporting issues with the app.
 templ ReportPageIssue(details *models.ReportIssueRequest) {
@@ -79,10 +82,8 @@ templ ReportPageIssue(details *models.ReportIssueRequest) {
 						Processing...
 						<span class="loading loading-spinner loading-md"></span>
 					</div>
-					@btnBack()
-					@btnSubmit(nil) {
-						Submit
-					}
+					@partials.ButtonBack()
+					<button type="submit" class="btn btn-primary">Submit</button>
 				</div>
 			</form>
 		</div>
@@ -212,10 +213,8 @@ templ ReportObjectIssues(objectType, id string, details *models.ReportObjectIssu
 						Processing...
 						<span class="loading loading-spinner loading-md"></span>
 					</div>
-					@btnBack()
-					@btnSubmit(nil) {
-						Submit
-					}
+					@partials.ButtonBack()
+					<button type="submit" class="btn btn-primary">Submit</button>
 				</div>
 			</form>
 		</div>
