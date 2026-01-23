@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.1](https://github.com/immanent-tech/foragd/compare/v0.34.0...v0.34.1) (2026-01-23)
+
+
+### Bug Fixes
+
+* :bug: fix display of modals ([bb90a17](https://github.com/immanent-tech/foragd/commit/bb90a17efbc5ac49bcc5be5a1b73ad6696143156))
+
 ## [0.34.0](https://github.com/immanent-tech/foragd/compare/v0.33.0...v0.34.0) (2026-01-22)
 
 
