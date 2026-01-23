@@ -16,7 +16,7 @@ import (
 
 // ListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.
 func ListFavorites() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters, setCacheControl).
+	return defaultHandlerChain.Append(parseFilters).
 		ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 			var (
 				articles      models.Articles

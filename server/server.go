@@ -209,6 +209,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			session.LoadAndSave,
 			middlewares.RequireUserAuth,
 			middlewares.RefreshTokenIfNeeded,
+			middlewares.SetCacheControl,
 			// middleware.NoCache,
 		)
 		// Payment routes (Stripe).
