@@ -104,6 +104,7 @@ func RefreshTokenIfNeeded(next http.Handler) http.Handler {
 			res.WriteHeader(http.StatusForbidden)
 			return
 		}
+
 		// Check token validity.
 		if !token.Valid() {
 			slogctx.FromCtx(req.Context()).Error("Invalid user token.",
@@ -113,9 +114,8 @@ func RefreshTokenIfNeeded(next http.Handler) http.Handler {
 			return
 		}
 
+		// If token will expire soon, refresh it.
 		const refreshGracePeriod = time.Hour
-
-		// If token is about to expire, refresh it.
 		if token.Expiry.UTC().Sub(time.Now().UTC()) < refreshGracePeriod {
 			if err := auth0.RefreshAccessToken(res, req, &token); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Unable to refresh token.",

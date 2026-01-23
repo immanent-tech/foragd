@@ -17,7 +17,6 @@ import (
 
 	"github.com/auth0/go-auth0/v2/authentication"
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/server/session"
@@ -123,8 +122,6 @@ func RefreshAccessToken(res http.ResponseWriter, req *http.Request, currentToken
 		return fmt.Errorf("unable to generate logout URL: %w", err)
 	}
 
-	godump.Dump(currentToken)
-
 	// Generate API url for refreshing the token.
 	refreshURL, err := url.Parse("https://" + cfg.Domain + "/oauth/token")
 	if err != nil {
@@ -138,7 +135,6 @@ func RefreshAccessToken(res http.ResponseWriter, req *http.Request, currentToken
 	parameters.Add("client_secret", cfg.ClientSecret)
 	parameters.Add("refresh_token", currentToken.RefreshToken)
 	payload := strings.NewReader(parameters.Encode())
-	godump.Dump(payload)
 
 	var newToken oauth2.Token
 	var errResult authentication.Error
@@ -153,7 +149,7 @@ func RefreshAccessToken(res http.ResponseWriter, req *http.Request, currentToken
 		slogctx.FromCtx(req.Context()).Error("Unable to refresh session token.",
 			slog.Any("error", &errResult),
 		)
-		// Generate new state and save url for redirection after login.
+		// Unable to refresh token, redirect the user to login manually.
 		if state, err := GenerateRandomState(); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
 				slog.Any("error", err),
@@ -167,10 +163,14 @@ func RefreshAccessToken(res http.ResponseWriter, req *http.Request, currentToken
 		http.Redirect(res, req, "/login", http.StatusSeeOther)
 	}
 
-	slogctx.FromCtx(req.Context()).Debug("Refreshed access token.")
+	// Check if new token is valid.
+	if !newToken.Valid() {
+		return ErrInvalidToken
+	}
 
+	// Overwrite existing token in session store with new token.
 	session.Save(req.Context(), "token", newToken)
 
+	slogctx.FromCtx(req.Context()).Debug("Refreshed access token.")
 	return nil
-
 }
