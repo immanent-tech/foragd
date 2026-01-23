@@ -324,7 +324,7 @@ func AccountSettings(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"flex items-start md:col-span-2\" _=\"on htmx:afterOnLoad wait 10ms then call document.getElementById('deactivate-account').show()\"><button type=\"submit\" class=\"btn btn-error\">Yes, deactivate my account</button></form></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"flex items-start md:col-span-2\"><button type=\"submit\" class=\"btn btn-error\">Yes, deactivate my account</button></form></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -493,7 +493,7 @@ func ShowSubscriptionEmail(email string) templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 420, Col: 72}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 419, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -570,7 +570,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 442, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 441, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -583,7 +583,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs("/user/settings/theme/" + theme)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 445, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 444, Col: 42}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -596,7 +596,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs("theme-preview-" + theme)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 449, Col: 31}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 448, Col: 31}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -609,7 +609,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 		var templ_7745c5c3_Var25 string
 		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 451, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 450, Col: 95}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {
@@ -623,7 +623,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 			var templ_7745c5c3_Var26 string
 			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 458, Col: 14}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 457, Col: 14}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 			if templ_7745c5c3_Err != nil {
@@ -637,7 +637,7 @@ func themePreview(theme string, currentTheme string) templ.Component {
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 460, Col: 14}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 459, Col: 14}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {

@@ -471,6 +471,29 @@ func FavoriteArticle() http.HandlerFunc {
 	})).ServeHTTP
 }
 
+// ShareArticle handles sharing an article.
+func ShareArticle() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+		request, _, err := forms.DecodeForm[*models.ShareArticleRequest](req)
+		if err != nil {
+			return &models.APIError{
+				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to favorite article",
+					"This might be a temporary issue, please try again.",
+				),
+			}
+		}
+
+		renderPartial(templates.NewPartial(
+			templates.ShareArticleModal(request),
+		)).ServeHTTP(res, req)
+
+		return nil
+	})).ServeHTTP
+}
+
 func markArticles(
 	ctx context.Context,
 	mark models.Mark,

@@ -4,9 +4,12 @@
 package templates
 
 import (
+	"fmt"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"html"
 	"slices"
 	"strconv"
 	"strings"
@@ -48,12 +51,6 @@ func (a *Article) SimilarArticlesAttributes() templ.Attributes {
 	attrs["hx-target"] = ContentID.Target()
 	attrs["hx-push-url"] = "true"
 	attrs["hx-trigger"] = "click consume"
-	return attrs
-}
-
-func (a *Article) ShareAttributes() templ.Attributes {
-	attrs := make(templ.Attributes)
-	attrs["_"] = "on click if navigator.share then " + shareAPIDialog(a.GetTitle(), a.GetLink()) + " else call document.getElementById('share-" + a.GetID() + "').show() then halt the event's bubbling"
 	return attrs
 }
 
@@ -211,11 +208,32 @@ templ (a *Article) Card() {
 									@tabler.FileSearch(i.Props{Class: "size-4"})
 									Find similar...
 								</a>
-								// Share action.
-								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ShareAttributes()... }>
-									@tabler.Share(i.Props{Class: "size-4"})
-									Share
-								</a>
+								// Mobile share action via navigator API.
+								<div _="init if not navigator.share then hide me">
+									<a
+										class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden"
+										_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
+									>
+										@tabler.Share(i.Props{Class: "size-4"})
+										Share
+									</a>
+								</div>
+								// Desktop share action with modal and options.
+								<form _="init if navigator.share then hide me">
+									<input type="hidden" name="item_id" value={ a.GetID() }/>
+									<input type="hidden" name="title" value={ a.GetTitle() }/>
+									<input type="hidden" name="link" value={ a.GetLink() }/>
+									<a
+										class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden"
+										hx-post={ "/share/article/" + a.GetID() }
+										hx-target={ ModalContainerID.Target() }
+										hx-include="[name='csrf_token']"
+										hx-trigger="click consume"
+									>
+										@tabler.Share(i.Props{Class: "size-4"})
+										Share
+									</a>
+								</form>
 								// Report issue action.
 								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ReportIssueAttributes()... }>
 									@tabler.FlagFilled(i.Props{Class: "size-4"})
@@ -227,7 +245,6 @@ templ (a *Article) Card() {
 				</div>
 			</div>
 		</div>
-		@ShareObjectModal(a.GetID(), "Sharing "+a.GetTitle(), a.GetLink())
 	</article>
 }
 
@@ -426,11 +443,34 @@ templ (a *Article) Content() {
 				@tabler.ExternalLink()
 				View Remote
 			</a>
-			// Share article action.
-			<a role="button" class="btn btn-primary" { a.ShareAttributes()... }>
-				@tabler.Share()
-				Share
-			</a>
+			// Mobile share action via navigator API.
+			<div _="init if not navigator.share then hide me">
+				<a
+					role="button"
+					class="btn btn-primary"
+					_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
+				>
+					@tabler.Share()
+					Share
+				</a>
+			</div>
+			// Desktop share action with modal and options.
+			<form _="init if navigator.share then hide me">
+				<input type="hidden" name="item_id" value={ a.GetID() }/>
+				<input type="hidden" name="title" value={ a.GetTitle() }/>
+				<input type="hidden" name="link" value={ a.GetLink() }/>
+				<a
+					role="button"
+					class="btn btn-primary"
+					hx-post={ "/share/article/" + a.GetID() }
+					hx-target={ ModalContainerID.Target() }
+					hx-include="[name='csrf_token']"
+					hx-trigger="click consume"
+				>
+					@tabler.Share()
+					Share
+				</a>
+			</form>
 		</nav>
 	}
 	@btnBackToTop()
@@ -452,7 +492,6 @@ templ (a *Article) Content() {
 			<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 		</form>
 	}
-	@ShareObjectModal(a.GetID(), "Sharing "+a.GetTitle(), a.GetLink())
 }
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
@@ -616,4 +655,56 @@ templ PaginateArticles(response *models.ListArticlesResponse) {
 			<input type="hidden" name={ models.ParamPagination } value={ response.Pagination }/>
 		</form>
 	}
+}
+
+templ ShareArticleModal(request *models.ShareArticleRequest) {
+	{{ id := string(request.ItemID) + "-share" }}
+	// _={ "on click if navigator.share then " + shareAPIDialog(a.GetTitle(), a.GetLink()) + " else call document.getElementById('share-" + a.GetID() + "').show() then halt the event's bubbling" }
+	@partials.Modal(id, true) {
+		<div class="sm:flex sm:items-start">
+			<div class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
+				@tabler.Share(i.Props{Class: "size-12"})
+			</div>
+			<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+				<h3 id="dialog-title" class="text-base font-semibold">Share</h3>
+				<div class="mt-2">
+					<p class="text-sm">{ request.Title }</p>
+				</div>
+			</div>
+		</div>
+		<div class="grid grid-flow-row grid-cols-3 mt-5 items-center justify-center sm:mt-4 gap-y-2 gap-x-2">
+			// @NewLink(
+			// 	WithAttribute("href", fmt.Sprintf("https://twitter.com/intent/tweet?text=%s&url%s", html.EscapeString(obj.GetTitle()), html.EscapeString(obj.GetLink()))),
+			// 	WithClasses("btn", "col-span-1", "twitter-share-button"),
+			// ) {
+			// 	@tabler.Mail(i.Props{Class: "size-4"})
+			// 	Email
+			// }
+			<a
+				href={ fmt.Sprintf("mailto:?subject=%q&body=%s", html.EscapeString(request.Title), request.Link) }
+				class="btn col-span-1 col-start-2"
+			>
+				@tabler.Mail(i.Props{Class: "size-4"})
+				Email
+			</a>
+			<div class="join col-span-3 flex space-x-2">
+				<div class="flex-1">
+					<label class="input join-item w-full">
+						<input type="text" value={ request.Link } readonly/>
+					</label>
+				</div>
+				<button
+					_={ "on click set currentValue to (my innerHTML) then writeText('" + request.Link + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
+					class="btn join-item flex items-center"
+				>
+					@tabler.Copy(i.Props{Class: "size-4"})
+					Copy Link
+				</button>
+			</div>
+		</div>
+	}
+}
+
+func shareAPIDialog(title, link string) string {
+	return fmt.Sprintf("navigator.share({title: %q, url: %q})", title, link)
 }

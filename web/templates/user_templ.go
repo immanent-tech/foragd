@@ -14,6 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -61,7 +62,7 @@ func UserChooseSubscriptionPlan(user *models.User, planID string) templ.Componen
 				var templ_7745c5c3_Var2 templ.SafeURL
 				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(mgmtLink)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 24, Col: 61}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 25, Col: 61}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
@@ -257,65 +258,39 @@ func DeactivateAccountModal() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><div class=\"mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left\"><h3 id=\"dialog-title\" class=\"text-base font-semibold\">Deactivate Account Confirmation</h3><div class=\"mt-2\"><p class=\"text-sm\">Are you sure you want to deactivate your account?</p></div></div></div><div class=\"mt-5 sm:mt-4 sm:flex sm:justify-end gap-x-2\"><button type=\"button\" command=\"close\" commandfor=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><div class=\"mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left\"><h3 id=\"dialog-title\" class=\"text-base font-semibold\">Deactivate Account Confirmation</h3><div class=\"mt-2\"><p class=\"text-sm\">Are you sure you want to deactivate your account?</p></div></div></div><div class=\"mt-5 sm:mt-4 sm:flex sm:justify-end gap-x-2\"><button type=\"button\" _=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(id)
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs("on click remove #el-dialog-" + id + " then halt the event's bubbling")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 100, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 100, Col: 78}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" _=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" class=\"btn btn-ghost\">Cancel</button> <button type=\"button\" hx-post=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs("on click remove #" + id + "-modal")
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(models.RouteUserDeactivateAccount)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 101, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 105, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"btn btn-ghost\">Cancel</button> <button type=\"button\" hx-post=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var11 string
-			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(models.RouteUserDeactivateAccount)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 106, Col: 47}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" hx-swap=\"none\" _=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var12 string
-			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("on htmx:afterRequest(successful) if successful remove #" + id + "-modal")
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/user.templ`, Line: 108, Col: 81}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" hx-include=\"[name='csrf_token']\" class=\"btn btn-error\">Yes</button></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" hx-swap=\"none\" hx-include=\"[name='csrf_token']\" class=\"btn btn-error\">Yes</button></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Modal(id).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = partials.Modal(id, true).Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -339,9 +314,9 @@ func UserAvatar(user *models.User, attributes templ.Attributes) templ.Component 
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var13 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var13 == nil {
-			templ_7745c5c3_Var13 = templ.NopComponent
+		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var11 == nil {
+			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "Avatar for user " + user.GetNickname()},

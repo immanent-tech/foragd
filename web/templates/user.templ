@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -81,7 +82,7 @@ templ UserAccountIssue() {
 
 templ DeactivateAccountModal() {
 	{{ id := "deactivate-account" }}
-	@Modal(id) {
+	@partials.Modal(id, true) {
 		<div class="sm:flex sm:items-start">
 			<div class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
 				@tabler.AlertTriangle(i.Props{Class: "size-12"})
@@ -96,16 +97,13 @@ templ DeactivateAccountModal() {
 		<div class="mt-5 sm:mt-4 sm:flex sm:justify-end gap-x-2">
 			<button
 				type="button"
-				command="close"
-				commandfor={ id }
-				_={ "on click remove #" + id + "-modal" }
+				_={ "on click remove #el-dialog-" + id + " then halt the event's bubbling" }
 				class="btn btn-ghost"
 			>Cancel</button>
 			<button
 				type="button"
 				hx-post={ models.RouteUserDeactivateAccount }
 				hx-swap="none"
-				_={ "on htmx:afterRequest(successful) if successful remove #" + id + "-modal" }
 				hx-include="[name='csrf_token']"
 				class="btn btn-error"
 			>Yes</button>

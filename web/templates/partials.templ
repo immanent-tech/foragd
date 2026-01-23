@@ -64,30 +64,3 @@ templ HelpPopover(id, anchor string) {
 		{ children... }
 	</el-popover>
 }
-
-// Modal will render a modal with the given content.
-templ Modal(id string) {
-	{{ modalID := id + "-modal" }}
-	<el-dialog id={ modalID }>
-		<dialog id={ id } aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent">
-			<el-dialog-backdrop></el-dialog-backdrop>
-			<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
-				<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-					<div class="absolute top-0 right-0 hidden pt-4 pr-4 sm:block">
-						<button
-							type="button"
-							command="close"
-							commandfor={ id }
-							_={ "on click remove " + modalID }
-							class="rounded-md hover:text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-hidden"
-						>
-							<span class="sr-only">Close</span>
-							@tabler.X(i.Props{Class: "size-6"})
-						</button>
-					</div>
-					{ children... }
-				</el-dialog-panel>
-			</div>
-		</dialog>
-	</el-dialog>
-}

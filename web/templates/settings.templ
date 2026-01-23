@@ -290,7 +290,6 @@ templ AccountSettings(user *models.User) {
 							hx-get={ models.RouteUserDeactivateAccount }
 							hx-target={ ModalContainerID.Target() }
 							class="flex items-start md:col-span-2"
-							_="on htmx:afterOnLoad wait 10ms then call document.getElementById('deactivate-account').show()"
 						>
 							<button type="submit" class="btn btn-error">
 								Yes, deactivate my account

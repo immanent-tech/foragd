@@ -267,6 +267,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		})
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}", handlers.MarkArticle())
 		r.With(middlewares.RequireHTMX).Post("/favorite/article/{item_id}", handlers.FavoriteArticle())
+		r.With(middlewares.RequireHTMX).Post("/share/article/{item_id}", handlers.ShareArticle())
 		r.Get("/view/article/{item_id}", handlers.ViewArticle())
 		r.Get("/view/article/{item_id}/similar", handlers.FindSimilarArticles())
 		// General.

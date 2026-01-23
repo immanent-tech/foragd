@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -89,16 +90,6 @@ func (s *Subscription) EditAttributes() templ.Attributes {
 	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
 	attrs["hx-push-url"] = "true"
 	attrs["hx-trigger"] = "click consume"
-	return attrs
-}
-
-// UnsubscribeAttributes generates a templ.Attributes object containing htmx directives for unsubscribing from a subscription.
-func (s *Subscription) UnsubscribeAttributes() templ.Attributes {
-	attrs := make(templ.Attributes)
-	attrs["hx-post"] = "/remove/subscription/" + s.GetID()
-	attrs["hx-target"] = ModalContainerID.Target()
-	attrs["hx-include"] = "[name='csrf_token']"
-	attrs["_"] = "on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show() then halt the event's bubbling"
 	return attrs
 }
 
@@ -269,7 +260,13 @@ templ (s *Subscription) Card() {
 							<form>
 								<input type="hidden" name="nickname" value={ s.GetTitle() }/>
 								<input type="hidden" name="confirmed" value="false"/>
-								<a class="link link-hover" { s.UnsubscribeAttributes()... }>
+								<a
+									class="link link-hover"
+									hx-post={ "/remove/subscription/" + s.GetID() }
+									hx-target={ ModalContainerID.Target() }
+									hx-include="[name='csrf_token']"
+									hx-trigger="click consume"
+								>
 									@tabler.TrashFilled(i.Props{Class: "size-4"})
 									Remove Subscription
 								</a>
@@ -1393,8 +1390,8 @@ templ ExportSubscriptions() {
 
 // RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.
 templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
-	{{ id := "unsubscribe" }}
-	@Modal(id) {
+	{{ id := request.SubscriptionID + "-unsubscribe-modal" }}
+	@partials.Modal(id, true) {
 		<div class="sm:flex sm:items-start">
 			<div class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
 				@tabler.AlertTriangle(i.Props{Class: "size-12"})
@@ -1412,7 +1409,7 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 				hx-target={ "#" + request.SubscriptionID }
 				hx-include="[name='csrf_token']"
 				hx-swap="delete transition:true"
-				_="on htmx:afterRequest(successful) if successful remove #unsubscribe-modal"
+				_={ "on htmx:afterRequest(successful) if successful remove #" + id }
 				class="flex"
 			>
 				<input type="hidden" name="nickname" value={ request.Nickname }/>
@@ -1424,9 +1421,7 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 			</form>
 			<button
 				type="button"
-				command="close"
-				commandfor={ id }
-				_={ "on click remove #" + id + "-modal" }
+				_={ "on click remove #el-dialog-" + id + " then halt the event's bubbling" }
 				class="btn btn-secondary hover:btn-error"
 			>Cancel</button>
 		</div>
