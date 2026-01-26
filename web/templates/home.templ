@@ -9,16 +9,17 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"maps"
 	"net/http"
 	"slices"
+	"strconv"
 )
 
 type Home struct {
 	User           *models.User
 	Subscriptions  models.Subscriptions
 	LatestArticles models.Articles
-	TopCategories  models.CategoryCounts
-	TopArticles    models.Articles
+	TopCategories  map[models.CategoryCount]models.Articles
 	RareCategories models.CategoryCounts
 }
 
@@ -28,77 +29,101 @@ templ (page *Home) Template() {
 		if len(page.LatestArticles) == 0 {
 			@emptyContent()
 		} else {
-			<div class="w-full xl:flex xl:grow space-x-4">
-				// Left column.
-				<section class="xl:flex xl:flex-col">
-					// Latest articles.
-					<div class="border-b border-base-content/80 mb-5">
-						@h3("Latest Articles")
-					</div>
-					if len(page.LatestArticles) > 0 {
-						<div class="grid grid-cols-1 items-center gap-x-4 gap-y-8">
-							for article := range slices.Values(page.LatestArticles) {
-								@homePageArticle(article)
-							}
-						</div>
+			if len(page.LatestArticles) > 0 {
+				<div class="flex w-full mb-4">
+					<h2 class="flex flex-1 justify-start">Latest Articles</h2>
+				</div>
+				// Grid of latest articles on large displays.
+				<div class="hidden sm:ui-grid">
+					for article := range slices.Values(page.LatestArticles) {
+						@NewArticleView(article).Card()
 					}
-				</section>
-				// Right column.
-				<aside class="xl:flex xl:flex-col xl:w-96">
-					if len(page.TopCategories) > 0 {
-						<div class="border-b border-base-content/80 pb-5 mt-8">
-							@h3("Most Common Categories")
-						</div>
-						<div class="flex justify-center gap-2 p-2 m-2">
-							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-								for category := range slices.Values(page.TopCategories) {
-									@homePageCategoryBadge(&category)
-								}
-							</div>
-						</div>
-					}
-					// Show top articles (if found).
-					if len(page.TopArticles) > 0 {
-						<div class="border-b border-base-content/80 pb-5 mt-8">
-							@h3("Article Picks")
-						</div>
-						<div class="grid grid-cols-1 items-center gap-x-4 gap-y-8">
-							for article := range slices.Values(page.TopArticles) {
-								@homePageHeadline(article)
-							}
-						</div>
-					}
-					// Interesting Picks section: rare/semantic categories and articles.
-					if len(page.RareCategories) > 0 {
-						if page.RareCategories != nil {
-							<div class="border-b border-base-content/80 pb-5 mt-8">
-								@h3("Interesting Categories")
-							</div>
-							<div class="mt-8">
-								<div class="flex justify-center gap-2 p-4 m-4">
-									<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-										for category := range slices.Values(page.RareCategories) {
-											@homePageCategoryBadge(&category)
-										}
-									</div>
-								</div>
+				</div>
+				// Carousel of latest articles on small displays.
+				<div class="sm:hidden w-full">
+					<div class="carousel w-full">
+						for article := range slices.Values(page.LatestArticles) {
+							<div id={ article.GetID() + "-carousel" } class="carousel-item w-full">
+								@NewArticleView(article).Card()
 							</div>
 						}
-					}
-				</aside>
-			</div>
-			@partials.ButtonBackToTop()
-			<div
-				id="update-notifications"
-				sse-connect="/home/updates"
-				sse-swap="updates"
-				class="toast toast-center z-50"
-			></div>
+					</div>
+					<div class="flex w-full justify-center gap-2 py-2">
+						for idx, article := range page.LatestArticles {
+							<a href={ "#" + article.GetID() + "-carousel" } class="btn btn-xs">{ strconv.Itoa(idx+1) }</a>
+						}
+					</div>
+				</div>
+			}
+			if len(page.TopCategories) > 0 {
+				<div class="flex w-full my-4">
+					<h2 class="flex flex-1 justify-start">Top Categories</h2>
+				</div>
+				<div class="flex justify-center gap-2 p-2 m-2">
+					<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+						for category := range maps.Keys(page.TopCategories) {
+							@homePageCategoryBadge(&category)
+						}
+					</div>
+				</div>
+			}
 		}
+		// 		// Right column.
+		// 		<aside class="xl:flex xl:flex-col xl:w-96">
+		// 			if len(page.TopCategories) > 0 {
+		// 				<div class="border-b border-base-content/80 pb-5 mt-8">
+		// 					@h3("Most Common Categories")
+		// 				</div>
+		// 				<div class="flex justify-center gap-2 p-2 m-2">
+		// 					<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+		// 						for category := range maps.Keys(page.TopCategories) {
+		// 							@homePageCategoryBadge(&category)
+		// 						}
+		// 					</div>
+		// 				</div>
+		// 			}
+		// 			// Show top articles (if found).
+		// 			for category, articles := range page.TopCategories {
+		// 				<div class="border-b border-base-content/80 pb-5 mt-8">
+		// 					@h3(category.Category)
+		// 				</div>
+		// 				<div class="grid grid-flow-row">
+		// 					for article := range slices.Values(articles) {
+		// 						@homePageTopCategoryArticle(article)
+		// 					}
+		// 				</div>
+		// 			}
+		// 			// Interesting Picks section: rare/semantic categories and articles.
+		// 			if len(page.RareCategories) > 0 {
+		// 				if page.RareCategories != nil {
+		// 					<div class="border-b border-base-content/80 pb-5 mt-8">
+		// 						@h3("Interesting Categories")
+		// 					</div>
+		// 					<div class="mt-8">
+		// 						<div class="flex justify-center gap-2 p-4 m-4">
+		// 							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+		// 								for category := range slices.Values(page.RareCategories) {
+		// 									@homePageCategoryBadge(&category)
+		// 								}
+		// 							</div>
+		// 						</div>
+		// 					</div>
+		// 				}
+		// 			}
+		// 		</aside>
+		// 	</div>
+		// }
+		@partials.ButtonBackToTop()
+		<div
+			id="update-notifications"
+			sse-connect="/home/updates"
+			sse-swap="updates"
+			class="toast toast-center z-50"
+		></div>
 	</div>
 }
 
-templ homePageArticle(article *models.Article) {
+templ homePageLatestArticle(article *models.Article) {
 	<article
 		hx-get={ "/view/article/" + article.GetID() }
 		hx-target={ ContentID.Target() }
@@ -106,7 +131,7 @@ templ homePageArticle(article *models.Article) {
 		hx-swap="innerHTML show:window:top"
 		hx-trigger="click"
 		id={ article.GetID() }
-		class="card lg:card-side card-link w-full sm:max-w-prose h-full max-h-128 overflow-hidden bg-base-200 shadow-md"
+		class="card overflow-hidden max-w-400 bg-base-200 shadow-md"
 	>
 		// Article image.
 		if img := article.GetImage(); img != nil {
@@ -150,6 +175,58 @@ templ homePageArticle(article *models.Article) {
 			// Content summary.
 			<div data-disable-scripting class="prose-summary">
 				@templ.Raw(article.GetContent())
+			</div>
+		</div>
+	</article>
+}
+
+templ homePageTopCategoryArticle(article *models.Article) {
+	<article
+		hx-get={ "/view/article/" + article.GetID() }
+		hx-target={ ContentID.Target() }
+		hx-push-url="true"
+		hx-swap="innerHTML show:window:top"
+		hx-trigger="click"
+		id={ article.GetID() }
+		class="card card-side card-link bg-base-200 shadow-md"
+	>
+		// Article image.
+		if img := article.GetImage(); img != nil {
+			<figure>
+				@NewProxiedImage(img, "rs:auto:100:100/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1")
+				// WithAttribute("width", "200"),
+				// WithAttribute("height", "125"),
+			</figure>
+		}
+		<div class="card-body">
+			// Article title.
+			<h2 class="card-title text-pretty line-clamp-3 tracking-tight">
+				if article.GetTitle() != "" {
+					{ article.GetTitle() }
+				} else {
+					(no title)
+				}
+			</h2>
+			<div class="grid grid-flow-row justify-between mt-2">
+				// Timestamp.
+				<p class="flex text-xs/tight">
+					Updated&nbsp;
+					@showTimestamp(article.GetUpdatedDate())
+				</p>
+				// Subscription.
+				<p class="flex text-xs/tight truncate">
+					<a
+						hx-get="/list/articles"
+						hx-target={ ContentID.Target() }
+						hx-push-url="true"
+						hx-swap="innerHTML show:window:top transition:true"
+						hx-trigger="click consume"
+						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: article.GetSubscriptionID()}) }
+						class="link link-hover truncate"
+					>
+						{ article.GetFeedTitle() }
+					</a>
+				</p>
 			</div>
 		</div>
 	</article>

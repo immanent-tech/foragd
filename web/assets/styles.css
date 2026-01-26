@@ -62,6 +62,22 @@
   el-dialog-panel {
     @apply transition duration-200 data-closed:scale-95 data-closed:opacity-0;
   }
+
+  h1 {
+    @apply mt-4 text-5xl font-semibold tracking-tight text-balance capitalize sm:text-7xl;
+  }
+
+  h2 {
+    @apply text-2xl/7 font-bold tracking-tight capitalize sm:text-3xl;
+  }
+
+  h3 {
+    @apply text-lg font-medium capitalize;
+  }
+
+  p {
+    @apply mt-1 text-sm/6;
+  }
 }
 
 /* Custom Component Classes */

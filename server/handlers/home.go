@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -86,7 +87,9 @@ func WatchHome() http.HandlerFunc {
 
 // getHomePageData retrieves the data required to construct the homepage content.
 func getHomePageData(ctx context.Context) (*templates.Home, error) {
-	data := &templates.Home{}
+	data := &templates.Home{
+		TopCategories: make(map[models.CategoryCount]models.Articles),
+	}
 	// Retrieve user object.
 	user, err := models.UserFromCtx(ctx)
 	if err != nil {
@@ -117,6 +120,8 @@ func getHomePageData(ctx context.Context) (*templates.Home, error) {
 func getHomePageObjects(ctx context.Context, user *models.User) (models.Subscriptions, models.Articles, error) {
 	// Use default filters.
 	filters := models.NewListDisplayFilters()
+	// Get up to 6 latest articles.
+	filters.Count = 6
 
 	var (
 		subscriptions models.Subscriptions
@@ -166,13 +171,13 @@ func getHomePageObjects(ctx context.Context, user *models.User) (models.Subscrip
 // performHomePageAggs performs aggregations to get statistics and samples of the top unread subscriptions and articles.
 func performHomePageAggs(ctx context.Context, user *models.User, data *templates.Home) error {
 	// Fetch aggregation data.
-	termsField := "categories.raw"
+	termsField := "categories.raw_nocase"
 	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
 	sampleField := "feed_id"
-	defaultMaxDocsPerValue := 8
-	shardSize := 1000
-	topHitsCount := 1
-	maxDocCount := int64(5)
+	defaultMaxDocsPerValue := 1
+	shardSize := 200
+	topHitsCount := 3
+	maxDocCount := int64(3)
 	aggs := aggregations.Aggs{
 		// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
 		// source.
@@ -190,21 +195,26 @@ func performHomePageAggs(ctx context.Context, user *models.User, data *templates
 						Exclude: models.CommonCategoryFilters,
 					},
 					Aggregations: map[string]types.Aggregations{
-						// top_articles: the top scoring article for each top category.
-						"top_articles": {
-							Filter: query.Build(query.Bool(
-								query.MustNot(
-									query.Terms("item_id", data.LatestArticles.GetIDs()...),
-								),
-							)),
-							Aggregations: map[string]types.Aggregations{
-								"top_article_hits": {
-									TopHits: &types.TopHitsAggregation{
-										Size: &topHitsCount,
-									},
-								},
+						"top_article_hits": {
+							TopHits: &types.TopHitsAggregation{
+								Size: &topHitsCount,
 							},
 						},
+						// top_articles: the top scoring article for each top category.
+						// "top_articles": {
+						// 	Filter: query.Build(query.Bool(
+						// 		query.MustNot(
+						// 			query.Terms("item_id", data.LatestArticles.GetIDs()...),
+						// 		),
+						// 	)),
+						// 	Aggregations: map[string]types.Aggregations{
+						// 		"top_article_hits": {
+						// 			TopHits: &types.TopHitsAggregation{
+						// 				Size: &topHitsCount,
+						// 			},
+						// 		},
+						// 	},
+						// },
 					},
 				},
 			},
@@ -242,24 +252,16 @@ func performHomePageAggs(ctx context.Context, user *models.User, data *templates
 			var categoryBuckets []types.StringTermsBucket
 			if categoryBuckets, ok = topCategoriesAgg.Buckets.([]types.StringTermsBucket); ok {
 				// Generate categories from aggregation.
-				data.TopCategories = make(models.CategoryCounts, 0)
-				data.TopArticles = make(models.Articles, 0)
 				for category := range slices.Values(categoryBuckets) {
 					var value string
 					if value, ok = category.Key.(string); !ok {
 						continue
 					}
-					data.TopCategories = append(
-						data.TopCategories,
-						models.CategoryCount{Category: value, Count: int(category.DocCount)},
-					)
-					// Get top article.
-					var topArticlesAgg *types.FilterAggregate
-					if topArticlesAgg, ok = category.Aggregations["top_articles"].(*types.FilterAggregate); !ok {
-						continue
-					}
+					value = strings.ToLower(value)
+					godump.Dump(value)
+					// Get top articles.
 					var topHitsAgg *types.TopHitsAggregate
-					if topHitsAgg, ok = topArticlesAgg.Aggregations["top_article_hits"].(*types.TopHitsAggregate); !ok {
+					if topHitsAgg, ok = category.Aggregations["top_article_hits"].(*types.TopHitsAggregate); !ok {
 						continue
 					}
 					var items models.Items
@@ -270,17 +272,13 @@ func performHomePageAggs(ctx context.Context, user *models.User, data *templates
 					if articles, err = models.GenerateArticles(ctx, items); err != nil {
 						continue
 					}
-					data.TopArticles = append(data.TopArticles, articles...)
+					newCategory := models.CategoryCount{Category: value, Count: int(category.DocCount)}
+					data.TopCategories[newCategory] = articles
 				}
-				// Sort categories by count.
-				data.TopCategories.Sort()
-				// Remove duplicate articles.
-				slices.SortFunc(data.TopArticles, func(a, b *models.Article) int {
-					return strings.Compare(a.GetID(), b.GetID())
-				})
-				data.TopArticles = slices.CompactFunc(data.TopArticles, func(a, b *models.Article) bool {
-					return a.GetID() == b.GetID()
-				})
+				// // Remove duplicate articles.
+				// slices.SortFunc(data.TopArticles, func(a, b *models.Article) int {
+				// 	return strings.Compare(a.GetID(), b.GetID())
+				// })
 			}
 		}
 	}
