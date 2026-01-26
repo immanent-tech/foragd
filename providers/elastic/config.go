@@ -24,10 +24,9 @@ const (
 )
 
 var defaultTransportConfig = &http.Transport{
-	ResponseHeaderTimeout: 5 * time.Second,
-	IdleConnTimeout:       120 * time.Second,
-	MaxIdleConnsPerHost:   10,
-	DialContext:           (&net.Dialer{Timeout: 10 * time.Second}).DialContext,
+	IdleConnTimeout:     120 * time.Second,
+	MaxIdleConnsPerHost: 10,
+	DialContext:         (&net.Dialer{Timeout: 10 * time.Second}).DialContext,
 	TLSClientConfig: &tls.Config{
 		// Only use curves which have assembly implementations
 		CurvePreferences: []tls.CurveID{
@@ -125,8 +124,8 @@ func genConfig(environment config.Environment) (*elasticsearch.Config, error) {
 	case config.EnvDevelopment:
 		generated = &elasticsearch.Config{
 			Addresses: cfg.Development.URLs,
-			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
-			// Logger:    &Logger{EnableResponseBody: true, EnableRequestBody: true},
+			// Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
+			Logger:    &Logger{EnableResponseBody: true, EnableRequestBody: true},
 			Username:  cfg.Development.Username,
 			Password:  cfg.Development.Password,
 			Transport: defaultTransportConfig,
