@@ -18,7 +18,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/goforj/godump v1.9.0
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
-	github.com/knadh/koanf/v2 v2.3.0
+	github.com/knadh/koanf/v2 v2.3.2
 	github.com/lmittmann/tint v1.1.2
 	github.com/mattn/go-isatty v0.0.20
 	github.com/rs/cors v1.11.1
