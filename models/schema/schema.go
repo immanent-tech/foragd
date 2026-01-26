@@ -17,6 +17,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/conflicts"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
@@ -89,9 +90,9 @@ var feedItemsCommonMappings = withComponentTemplatesMigration(
 					}),
 					templates.WithTextMapping("description", &types.TextProperty{
 						Type: "text",
-						Fields: map[string]types.Property{
-							"semantic": types.NewSemanticTextProperty(),
-						},
+						// Fields: map[string]types.Property{
+						// 	"semantic": types.NewSemanticTextProperty(),
+						// },
 					}),
 					templates.WithTextMapping("authors", &types.TextProperty{
 						Type: "text",
@@ -117,6 +118,9 @@ var feedItemsCommonMappings = withComponentTemplatesMigration(
 						Type: "text",
 						Fields: map[string]types.Property{
 							"raw": types.NewKeywordProperty(),
+							"raw_nocase": types.KeywordProperty{
+								Normalizer: &lowercaseNormalizerName,
+							},
 							"exact": types.TextProperty{
 								Analyzer: &englishExactAnalyzerName,
 							},
@@ -139,6 +143,12 @@ var feedItemsCommonMappings = withComponentTemplatesMigration(
 						englishExactAnalyzerName: types.CustomAnalyzer{
 							Tokenizer: "standard",
 							Filter:    []string{"lowercase"},
+						},
+					},
+					Normalizer: map[string]types.Normalizer{
+						lowercaseNormalizerName: types.CustomNormalizer{
+							Type:   "keyword",
+							Filter: []string{"lowercase"},
 						},
 					},
 				}),
@@ -172,9 +182,9 @@ var (
 						}),
 						templates.WithTextMapping("content", &types.TextProperty{
 							Type: "text",
-							Fields: map[string]types.Property{
-								"semantic": types.NewSemanticTextProperty(),
-							},
+							// Fields: map[string]types.Property{
+							// 	"semantic": types.NewSemanticTextProperty(),
+							// },
 						}),
 					),
 					templates.WithDynamicProperties(false),
@@ -487,6 +497,7 @@ var (
 
 var (
 	englishExactAnalyzerName = "english_exact"
+	lowercaseNormalizerName  = "keyword_lowercase"
 	// defaultMetadata defines default metadata.
 	defaultMetadata = types.Metadata{
 		"version":    json.RawMessage(fmt.Sprintf("%q", config.Version)),
@@ -662,7 +673,7 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 		var err error
 		switch index {
 		case "items":
-			err = migrateIndexData(ctx, api, usersSchemaPrefix, nil)
+			err = migrateIndexData(ctx, api, itemsSchemaPrefix, nil)
 		case "users":
 			err = migrateIndexData(ctx, api, usersSchemaPrefix, nil)
 			// ingest.NewIngestPipeline(
@@ -738,6 +749,7 @@ func migrateIndexData(
 	}
 	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index, pipelineName)).
 		WaitForCompletion(true).
+		Conflicts(conflicts.Proceed).
 		Do(ctx)
 	const statusCodeErrLevel = 500
 	switch {
