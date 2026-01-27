@@ -164,15 +164,11 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span></button></dt><el-disclosure id=\"faq-4\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Foragd is a web based online feed aggregator. It does not have any offline capabilities. If you need an app that can download and cache articles from your subscriptions to read offline later, there are lots of good alternatives out there.</p></dd></el-disclosure></div></dl></div></div><div class=\"relative -z-10 mt-32 px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"#pricing\" role=\"button\" class=\"btn btn-primary\">Start a free trial</a></div></div></div></main>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span></button></dt><el-disclosure id=\"faq-4\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Foragd is a web based online feed aggregator. It does not have any offline capabilities. If you need an app that can download and cache articles from your subscriptions to read offline later, there are lots of good alternatives out there.</p></dd></el-disclosure></div></dl></div></div><div class=\"relative -z-10 mt-32 px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"#pricing\" role=\"button\" class=\"btn btn-primary\">Start a free trial</a></div></div></div></main></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = footer().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
