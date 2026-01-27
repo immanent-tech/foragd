@@ -190,7 +190,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/realclientip/realclientip-go v1.0.0
-	github.com/resend/resend-go/v3 v3.0.0
+	github.com/resend/resend-go/v3 v3.1.0
 	github.com/reugn/go-quartz v0.15.2
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/samber/lo v1.52.0 // indirect
