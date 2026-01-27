@@ -68,10 +68,17 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				content={ templ.JSONString(htmx.Config{
 				AllowNestedOOBSwaps: false,
 				ResponseHandling: []*htmx.ResponseHandling{
+					// Don't swap on no content.
 					{Code: "204",Swap: false},
-					{Code:"[23]..",Swap: true},
+					// Swap all ok responses.
+					{Code:"[2]..",Swap: true},
+					// Don't swap on redirects.
+					{Code:"[3]..",Swap: false},
+					// Swap for unprocessable inputs.
 					{Code:"422",Swap: true},
+					// Swap on errors.
 					{Code: "[45]..",Swap: true,Error: true},
+					// All other status should not swap.
 					{Code:"...",Swap: false},
 				},
 				// InlineStyleNonce: templ.GetNonce(ctx),
