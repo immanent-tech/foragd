@@ -50,7 +50,8 @@ func (p *ListSubscriptions) FullResponse(res http.ResponseWriter, req *http.Requ
 func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(p.template, templ.WithFragments(templates.ListSubscriptionsFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-
+	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
 }
 
 func HandleListSubscriptions() http.HandlerFunc {
