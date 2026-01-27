@@ -35,139 +35,158 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-// ListSubscriptions handles fetching subscriptions based on the given page filters and displaying them. When the
-// request method is GET (i.e. initial page load), the subscriptions are shown in a grid layout. When the request method
-// is POST (i.e. pagination request), the subscriptions are shown as a list.
-func ListSubscriptions() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters).
-		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-			list := func(res http.ResponseWriter, req *http.Request) error {
-				// Generate request object.
-				request := &models.ListRequest{
-					Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
-					Pagination: req.FormValue(models.ParamPagination),
-				}
-				if err := request.Valid(); err != nil {
-					return &models.APIError{
-						InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-						StatusCode:    http.StatusUnprocessableEntity,
-					}
-				}
-
-				// Redirect to include query parameters in address bar.
-				switch {
-				case htmx.IsHTMX(req):
-					res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+request.Filters.QueryString())
-				case len(req.URL.Query()) == 0:
-					http.Redirect(res, req, req.URL.Path+"?"+request.Filters.QueryString(), http.StatusSeeOther)
-				}
-				var (
-					subscriptions models.Subscriptions
-					err           error
-					template      templ.Component
-				)
-
-				// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
-				if htmx.IsHistoryRestoreRequest(req) {
-					request.Filters.Subscriptions = nil
-				}
-
-				// Get subscriptions matching filters.
-				subscriptions, request.Pagination, err = models.FilterSubscriptions(req.Context(), request)
-				if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-					return &models.APIError{
-						InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-					}
-				}
-
-				// Build response object.
-				response := &models.ListSubscriptionsResponse{
-					Filters:       request.Filters,
-					Pagination:    request.Pagination,
-					Subscriptions: subscriptions,
-				}
-
-				// Choose rendering method based on method (get = page, post = partial).
-				template = templates.ListSubscriptions(response)
-				switch req.Method {
-				case http.MethodGet:
-					renderPage(
-						templates.NewPage(
-							wrapContent(req, template),
-							templates.WithPageTitle("Subscriptions"),
-						),
-					).ServeHTTP(res, req)
-				case http.MethodPost:
-					renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
-				}
-				return nil
-			}
-			switch req.Method {
-			case http.MethodGet:
-				showOnError(list).ServeHTTP(res, req)
-			case http.MethodPost:
-				notifyOnError(list).ServeHTTP(res, req)
-			}
-		}).ServeHTTP
+type ListSubscriptions struct {
+	title    string
+	template templ.Component
 }
 
-func PaginateSubscriptions() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters).
-		ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-			// Generate request object.
-			request := &models.ListRequest{
-				Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
-				Pagination: req.FormValue(models.ParamPagination),
-			}
-			if err := validation.Validate.Struct(request); err != nil {
-				return &models.APIError{
-					InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Could not list more subscriptions",
-						"This might be temporary, please try again.",
-					),
-				}
-			}
+func (p *ListSubscriptions) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(p.template,
+			templates.WithPageTitle(p.title),
+		)).ServeHTTP(res, req)
+}
 
-			// Get subscriptions matching filters.
-			var (
-				subscriptions models.Subscriptions
-				err           error
-			)
-			subscriptions, request.Pagination, err = models.FilterSubscriptions(req.Context(), request)
-			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-				return &models.APIError{
-					InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Could not list more subscriptions",
-						"This might be temporary, please try again.",
-					),
-				}
-			}
+func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(p.template, templ.WithFragments(templates.ListSubscriptionsFragment)).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 
-			// Build response object.
-			response := &models.ListSubscriptionsResponse{
-				Filters:       request.Filters,
-				Pagination:    request.Pagination,
-				Subscriptions: subscriptions,
-			}
+}
 
-			// Render appropriate content.
-			if len(subscriptions) > 0 {
-				renderPartial(
-					templates.NewPartial(
-						templates.PaginateSubscriptions(response),
-					)).ServeHTTP(res, req)
-			} else {
-				res.WriteHeader(http.StatusNoContent)
-				return nil
-			}
+func HandleListSubscriptions() http.HandlerFunc {
+	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+			}).ServeHTTP(res, req)
+			return
+		}
 
-			return nil
-		})).ServeHTTP
+		// Generate request object.
+		request := &models.ListRequest{
+			Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
+			Pagination: req.FormValue(models.ParamPagination),
+		}
+		if err := request.Valid(); err != nil {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+			}).ServeHTTP(res, req)
+			return
+		}
+
+		// Redirect to include query parameters in address bar.
+		switch {
+		case htmx.IsHTMX(req):
+			res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+request.Filters.QueryString())
+		case len(req.URL.Query()) == 0:
+			http.Redirect(res, req, req.URL.Path+"?"+request.Filters.QueryString(), http.StatusSeeOther)
+		}
+		var (
+			subscriptions models.Subscriptions
+		)
+
+		// Remove any subscription filters if this is a history restore request (i.e. back button clicked).
+		if htmx.IsHistoryRestoreRequest(req) {
+			request.Filters.Subscriptions = nil
+		}
+
+		// Get subscriptions matching filters.
+		subscriptions, request.Pagination, err = models.FilterSubscriptions(req.Context(), request)
+		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
+			return
+		}
+
+		// Build response object.
+		response := &models.ListSubscriptionsResponse{
+			User:          *user,
+			Filters:       request.Filters,
+			Pagination:    request.Pagination,
+			Subscriptions: subscriptions,
+		}
+
+		// Choose rendering method based on method (get = page, post = partial).
+		page := &ListSubscriptions{
+			title:    "Subscriptions",
+			template: templates.ListSubscriptions(response),
+		}
+		switch req.Method {
+		case http.MethodGet:
+			RenderPage(page).ServeHTTP(res, req)
+		case http.MethodPost:
+			RenderPartial(page).ServeHTTP(res, req)
+		}
+	}).ServeHTTP
+}
+
+type PaginateSubscriptions struct {
+	template templ.Component
+}
+
+func (p *PaginateSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(p.template).ServeHTTP(res, req)
+}
+
+func HandlePaginateSubscriptions() http.HandlerFunc {
+	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Generate request object.
+		request := &models.ListRequest{
+			Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
+			Pagination: req.FormValue(models.ParamPagination),
+		}
+		if err := validation.Validate.Struct(request); err != nil {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Could not list more subscriptions",
+					"This might be temporary, please try again.",
+				),
+			}).ServeHTTP(res, req)
+			return
+		}
+
+		// Get subscriptions matching filters.
+		var (
+			subscriptions models.Subscriptions
+			err           error
+		)
+		subscriptions, request.Pagination, err = models.FilterSubscriptions(req.Context(), request)
+		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Could not list more subscriptions",
+					"This might be temporary, please try again.",
+				),
+			}).ServeHTTP(res, req)
+			return
+		}
+
+		// Build response object.
+		response := &models.ListSubscriptionsResponse{
+			Filters:       request.Filters,
+			Pagination:    request.Pagination,
+			Subscriptions: subscriptions,
+		}
+
+		// Render appropriate content.
+		if len(subscriptions) > 0 {
+			RenderPartial(
+				&PaginateSubscriptions{template: templates.PaginateSubscriptions(response)},
+			).ServeHTTP(res, req)
+		} else {
+			res.WriteHeader(http.StatusNoContent)
+		}
+
+	}).ServeHTTP
 }
 
 // MarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.

@@ -263,11 +263,12 @@ func showOnError(f func(http.ResponseWriter, *http.Request) error) http.HandlerF
 		if err := f(res, req); err != nil {
 			var apiErr *models.APIError
 			if errors.As(err, &apiErr) {
+				user, _ := models.UserFromCtx(req.Context())
 				apiErr.WriteLog(req.Context())
 				res.WriteHeader(apiErr.HTTPStatus())
 				renderPage(
 					templates.NewPage(
-						wrapContent(req, templates.ErrorMessage(apiErr.GetUserMessage())),
+						wrapContent(req, templates.InternalError(user, apiErr.GetUserMessage())),
 					),
 				).ServeHTTP(res, req)
 			} else {
@@ -334,7 +335,8 @@ func wrapContent(req *http.Request, template templ.Component) templ.Component {
 	case !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			return templates.ErrorMessage(
+			return templates.InternalError(
+				user,
 				models.NewErrorMessage("Invalid request", "This might be a temporary error, please try again."),
 			)
 		}

@@ -1325,6 +1325,7 @@ components:
         contains the data retrieved and relevant for listing subscriptions.
       type: object
       required:
+        - user
         - subscriptions
         - filters
         - pagination
@@ -1337,6 +1338,8 @@ components:
           # items:
           #   $ref: '#/components/schemas/Subscription'
           # x-go-type-skip-optional-pointer: true
+        user:
+          $ref: '#/components/schemas/User'
         filters:
           $ref: '#/components/schemas/ListFilters'
         pagination:

@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	feeds "github.com/immanent-tech/go-syndication"
@@ -39,15 +40,10 @@ func Viewer() http.HandlerFunc {
 			// Parse the URL and find feed content.
 			feed, err := feeds.NewFeedFromURL(req.Context(), url)
 			if err != nil {
-				renderPartial(
-					templates.NewPartial(
-						templates.ErrorMessage(
-							models.NewErrorMessage(
-								"Unable inspect URL",
-								"This might be a temporary issue, please try again",
-							),
-						),
-					)).ServeHTTP(res, req)
+				HandleExternalError(&models.APIError{
+					InternalError: fmt.Errorf("parse failed"),
+					StatusCode:    http.StatusInternalServerError,
+				}).ServeHTTP(res, req)
 				return
 			}
 

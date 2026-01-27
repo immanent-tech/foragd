@@ -5,10 +5,12 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/oauth2"
@@ -19,18 +21,27 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+type Login struct {
+	template templ.Component
+}
+
+func (p *Login) FullResponse(w http.ResponseWriter, r *http.Request) {
+	templ.Handler(p.template).ServeHTTP(w, r)
+}
+
+func (p *Login) PartialResponse(w http.ResponseWriter, r *http.Request) {
+	templ.Handler(p.template, templ.WithFragments(templates.BodyFragment)).ServeHTTP(w, r)
+}
+
 // Login handles login requests.
-func Login(res http.ResponseWriter, req *http.Request) {
+func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	// Init the authenticator backend.
 	if err := auth0.InitAuthenticator(req.Context()); err != nil {
-		slogctx.FromCtx(req.Context()).Error("Unable to initialise authenticator backend.",
-			slog.Any("error", err),
-		)
-		renderPage(
-			templates.NewPage(
-				templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Can't contact auth backend")),
-			),
-		).ServeHTTP(res, req)
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("init authenticator: %w", err),
+			StatusCode:    http.StatusInternalServerError,
+		}).ServeHTTP(res, req)
+		return
 	}
 
 	// Retrieve existing stored state or generate new state.
@@ -40,14 +51,11 @@ func Login(res http.ResponseWriter, req *http.Request) {
 		slogctx.FromCtx(req.Context()).Debug("No existing or invalid previous state. Using new state.")
 		state, err = auth0.GenerateRandomState()
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
-				slog.Any("error", err),
-			)
-			renderPage(
-				templates.NewPage(
-					templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Invalid state")),
-				),
-			).ServeHTTP(res, req)
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("restore state: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
+			return
 		}
 	}
 
@@ -71,78 +79,54 @@ func Login(res http.ResponseWriter, req *http.Request) {
 	http.Redirect(res, req, authURL, http.StatusTemporaryRedirect)
 }
 
-// LoginCallback handles processing the response from a login provider.
-func LoginCallback(res http.ResponseWriter, req *http.Request) {
+// HandleLoginCallback handles processing the response from a login provider.
+func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	state, err := session.Restore[string](req.Context(), "state")
 	if err != nil {
-		slogctx.FromCtx(req.Context()).Error("Restore state from session failed.",
-			slog.Any("error", err),
-		)
-		renderPage(
-			templates.NewPage(
-				templates.ErrorMessage(
-					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
-				),
-			),
-		).ServeHTTP(res, req)
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("restore state: %w", err),
+			StatusCode:    http.StatusInternalServerError,
+		}).ServeHTTP(res, req)
+		return
 	}
 	if req.FormValue("state") != state {
-		slogctx.FromCtx(req.Context()).Error("Invalid state.")
-		renderPage(
-			templates.NewPage(
-				templates.ErrorMessage(
-					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
-				),
-			),
-		).ServeHTTP(res, req)
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("invalid state"),
+			StatusCode:    http.StatusInternalServerError,
+		}).ServeHTTP(res, req)
+		return
 	}
 
 	// Exchange an authorization code for a token.
 	token, err := auth0.AuthClient.Exchange(req.Context(), req.FormValue("code"))
 	if err != nil {
-		slogctx.FromCtx(req.Context()).Error("Unable to exchange auth token.",
-			slog.Any("error", err),
-		)
-		renderPage(
-			templates.NewPage(
-				templates.ErrorMessage(
-					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
-				),
-			),
-		).ServeHTTP(res, req)
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("exchange auth token: %w", err),
+			StatusCode:    http.StatusInternalServerError,
+		}).ServeHTTP(res, req)
+		return
 	}
 
 	// Verify token.
 	idToken, err := auth0.AuthClient.VerifyIDToken(req.Context(), token)
 	if err != nil {
-		slogctx.FromCtx(req.Context()).Error("Unable to verify token.",
-			slog.Any("error", err),
-		)
-		renderPage(
-			templates.NewPage(
-				templates.ErrorMessage(
-					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
-				),
-			),
-		).ServeHTTP(res, req)
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("verify id token: %w", err),
+			StatusCode:    http.StatusInternalServerError,
+		}).ServeHTTP(res, req)
+		return
 	}
 	// Save token details to session
 	session.Save(req.Context(), "token", *token)
 
 	// Extract user profile.
 	var profile auth0.UserProfile
-	err = idToken.Claims(&profile)
-	if err != nil {
-		slogctx.FromCtx(req.Context()).Error("Invalid authorization data.",
-			slog.Any("error", err),
-		)
-		renderPage(
-			templates.NewPage(
-				templates.ErrorMessage(
-					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
-				),
-			),
-		).ServeHTTP(res, req)
+	if err = idToken.Claims(&profile); err != nil {
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("extract claims: %w", err),
+			StatusCode:    http.StatusInternalServerError,
+		}).ServeHTTP(res, req)
+		return
 	}
 	// Save profile to session.
 	session.Save(req.Context(), "profile", profile)
@@ -155,27 +139,18 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 		var err error
 		user, err = models.CreateUser(req.Context(), profile.GetID(), profile.GetEmail())
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Unable to create new local user.",
-				slog.Any("error", err),
-			)
-			renderPage(
-				templates.NewPage(
-					templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Account creation failed")),
-				),
-			).ServeHTTP(res, req)
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("create user: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
+			return
 		}
 	case err != nil: // Backend error.
-		slogctx.FromCtx(req.Context()).Error("Unable to find a local user match.",
-			slog.String("external_user_id", profile.GetID()),
-			slog.Any("error", err),
-		)
-		renderPage(
-			templates.NewPage(
-				templates.ErrorMessage(
-					models.NewErrorMessage("Unable to log in.", "This might be a temporary error, please try again."),
-				),
-			),
-		).ServeHTTP(res, req)
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("get user: %w", err),
+			StatusCode:    http.StatusForbidden,
+		}).ServeHTTP(res, req)
+		return
 	default: // Existing user.
 		// Sync user data from the backend.
 		syncLocalUser(req.Context(), user, profile)
@@ -232,19 +207,18 @@ func LoginCallback(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// LoginError handles login errors, including invalid login callback URL, missing parameters, expired password reset
+// HandleLoginError handles login errors, including invalid login callback URL, missing parameters, expired password reset
 // links.
-func LoginError(res http.ResponseWriter, req *http.Request) {
+func HandleLoginError(res http.ResponseWriter, req *http.Request) {
 	slogctx.FromCtx(req.Context()).Error("Auth0 reported a login error.",
 		slog.String("client_id", req.URL.Query().Get("client_id")),
 		slog.String("error_code", req.URL.Query().Get("error")),
 		slog.String("error_description", req.URL.Query().Get("error_description")),
 	)
-	renderPage(
-		templates.NewPage(
-			templates.ErrorMessage(models.NewErrorMessage("Unable to log in.", "Auth backend reported an error")),
-		),
-	).ServeHTTP(res, req)
+	HandleExternalError(&models.APIError{
+		InternalError: fmt.Errorf("login failed"),
+		StatusCode:    http.StatusForbidden,
+	}).ServeHTTP(res, req)
 }
 
 // syncLocalUser tries to sync relevant user data from the auth backend to the local data.

@@ -142,7 +142,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	)
 
 	// Error handling.
-	router.NotFound(handlers.NotFound())
+	router.NotFound(handlers.HandleNotFound())
 	// Static content.
 	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	router.Handle("/robots.txt", handlers.RobotsHandler())
@@ -165,7 +165,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.Use(
 			middlewares.Etag,
 		)
-		r.Get("/", handlers.Landing())
+		r.Get("/", handlers.HandleLandingPage())
 		r.Get("/about", handlers.About())
 		r.Get("/viewer", handlers.Viewer())
 		r.Get("/help", handlers.DocumentationHandler())
@@ -179,14 +179,14 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			session.LoadAndSave,
 		)
 		if !cfg.BlockSignup {
-			r.Get("/signup", handlers.Login)
+			r.Get("/signup", handlers.HandleLogin)
 		} else {
 			slogctx.FromCtx(ctx).Warn("Signups have been BLOCKED by configuration.")
 		}
 		if !cfg.BlockLogin {
-			r.Get("/login", handlers.Login)
-			r.Get("/login/callback", handlers.LoginCallback)
-			r.Get("/login/error", handlers.LoginError)
+			r.Get("/login", handlers.HandleLogin)
+			r.Get("/login/callback", handlers.HandleLoginCallback)
+			r.Get("/login/error", handlers.HandleLoginError)
 		} else {
 			slogctx.FromCtx(ctx).Warn("Logins have been BLOCKED by configuration.")
 		}
@@ -215,7 +215,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.Get("/choose-plan", handlers.UserChooseSubscriptionPlan())
 			r.Post("/", handlers.UserSubscriptionPlanCheckout())
 			r.Get("/success", handlers.UserAccountSuccess())
-			r.Get("/cancel", handlers.Landing())
+			r.Get("/cancel", handlers.HandleLandingPage())
 		})
 		r.Get("/home", handlers.Home())
 		r.Get("/home/updates", handlers.WatchHome())
@@ -233,9 +233,9 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues())
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
-			r.Get("/", handlers.ListSubscriptions())
-			r.With(middlewares.RequireHTMX).Post("/", handlers.ListSubscriptions())
-			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateSubscriptions())
+			r.Get("/", handlers.HandleListSubscriptions())
+			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleListSubscriptions())
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandlePaginateSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkSubscriptions())
 			r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
@@ -258,7 +258,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.Route("/list/articles", func(r chi.Router) {
 			r.Get("/", handlers.ListArticles())
 			r.Post("/", handlers.ListArticles())
-			r.With(middlewares.RequireHTMX).Post("/", handlers.ListArticles())
+			// r.With(middlewares.RequireHTMX).Post("/", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())
 			r.Get("/updates", handlers.WatchList())

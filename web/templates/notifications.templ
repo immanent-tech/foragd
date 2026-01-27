@@ -99,31 +99,6 @@ templ UpdatesToast() {
 	</div>
 }
 
-// ErrorMessage displays a user-facing error message in a prominent way on a page, with navigation links for returning
-// home or emailing support.
-templ ErrorMessage(msg *models.UserMessage) {
-	<div class="ui-container">
-		@userMessage("Whoops 😿", msg) {
-			<div class="mt-10 flex items-center justify-center gap-x-6">
-				@NewLink(
-					WithAttribute("role", "button"),
-					WithAttribute("href", "/home"),
-					WithClasses("btn", "btn-primary"),
-				) {
-					Go Back Home
-				}
-				@NewLink(
-					WithAttribute("role", "button"),
-					WithAttribute("href", "mailto:support@immanent.tech&subject=Foragd Issue"),
-					WithClasses("btn", "btn-ghost"),
-				) {
-					Email Support <span aria-hidden="true">&rarr;</span>
-				}
-			</div>
-		}
-	</div>
-}
-
 // userMessage displays a UserMessage in a center-aligned element, with the given title.
 templ userMessage(title string, msg *models.UserMessage) {
 	<div class="text-center">

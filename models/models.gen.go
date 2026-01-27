@@ -635,6 +635,9 @@ type ListSubscriptionsResponse struct {
 	// Pagination contains data for paginating through results.
 	Pagination    Pagination    `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
 	Subscriptions Subscriptions `json:"subscriptions"`
+
+	// User is a user of the application.
+	User User `json:"user"`
 }
 
 // Mark applies the given mark action to objects.

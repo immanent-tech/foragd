@@ -541,17 +541,10 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Unable to get user data.",
-				slog.Any("error", err),
-			)
-			renderPage(
-				templates.NewPage(
-					templates.ErrorMessage(models.NewErrorMessage(
-						"Unable to process checkout",
-						"This might be a temporary error, please try again.",
-					)),
-				),
-			).ServeHTTP(res, req)
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("get user: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
 			return
 		}
 		// Try to find a selected plan id if it exists, from either the request query params or current session data.
@@ -561,17 +554,10 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 		} else if p, err := session.Restore[string](req.Context(), models.ParamPlanID); err != nil {
 			planID = p
 		} else {
-			slogctx.FromCtx(req.Context()).Error("Unable to process checkout.",
-				slog.Any("error", err),
-			)
-			renderPage(
-				templates.NewPage(
-					templates.ErrorMessage(models.NewErrorMessage(
-						"Unable to process checkout",
-						"This might be a temporary error, please try again.",
-					)),
-				),
-			).ServeHTTP(res, req)
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("process checkout: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
 			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
@@ -591,34 +577,20 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 		// Fetch the user details from context.
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Unable to get user data.",
-				slog.Any("error", err),
-			)
-			renderPage(
-				templates.NewPage(
-					templates.ErrorMessage(models.NewErrorMessage(
-						"Unable to process checkout",
-						"This might be a temporary error, please try again.",
-					)),
-				),
-			).ServeHTTP(res, req)
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("get user: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
 			return
 		}
 
 		// Retrieve the plan id from the session data.
 		planID := req.FormValue(models.ParamPlanID)
 		if planID == "" {
-			slogctx.FromCtx(req.Context()).Error("User checkout session: unable to retrieve plan id from session.",
-				slog.Any("error", ErrInvalidRequestParams),
-			)
-			renderPage(
-				templates.NewPage(
-					templates.ErrorMessage(models.NewErrorMessage(
-						"Unable to process checkout",
-						"This might be a temporary error, please try again.",
-					)),
-				),
-			).ServeHTTP(res, req)
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("no plan"),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
 			return
 		}
 
@@ -626,17 +598,10 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 		var session *stripe.Checkout
 		session, err = stripe.NewCheckoutSession(user, planID)
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Unable to create new checkout session.",
-				slog.Any("error", err),
-			)
-			renderPage(
-				templates.NewPage(
-					templates.ErrorMessage(models.NewErrorMessage(
-						"Unable to process checkout",
-						"This might be a temporary error, please try again.",
-					)),
-				),
-			).ServeHTTP(res, req)
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("create checkout session: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
 			return
 		}
 
@@ -675,33 +640,19 @@ func UserManageAccountSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		sessionID := req.FormValue("session_id")
 		if sessionID == "" {
-			slogctx.FromCtx(req.Context()).Error("Unable to manage subscription",
-				slog.Any("error", stripe.ErrInvalidSubscription),
-			)
-			renderPage(
-				templates.NewPage(
-					wrapContent(req, templates.ErrorMessage(models.NewErrorMessage(
-						"Unable to process checkout",
-						"This might be a temporary error, please try again.",
-					))),
-				),
-			).ServeHTTP(res, req)
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("no session id"),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
 			return
 		}
 
 		portalSession, err := stripe.NewPortalSession(sessionID)
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Unable to create new portal session.",
-				slog.Any("error", err),
-			)
-			renderPage(
-				templates.NewPage(
-					wrapContent(req, templates.ErrorMessage(models.NewErrorMessage(
-						"Unable to process checkout",
-						"This might be a temporary error, please try again.",
-					))),
-				),
-			).ServeHTTP(res, req)
+			HandleExternalError(&models.APIError{
+				InternalError: fmt.Errorf("new portal session: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
 			return
 		}
 

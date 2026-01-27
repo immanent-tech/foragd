@@ -1,0 +1,48 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import "github.com/immanent-tech/foragd/models"
+
+var ErrorFragment = nameFragmentKey{}
+
+templ InternalError(user *models.User, msg *models.UserMessage) {
+	@header(user)
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8">
+		@templ.Fragment(ErrorFragment) {
+			<div class="ui-container">
+				@userMessage("Whoops 😿", msg) {
+					<div class="mt-10 flex items-center justify-center gap-x-6">
+						<a href="/home" role="button" class="btn btn-primary">
+							Go Back Home
+						</a>
+						<a href="mailto:support@immanent.tech&subject=Foragd Issue" role="button" class="btn btn-primary">
+							Email Support <span aria-hidden="true">&rarr;</span>
+						</a>
+					</div>
+				}
+			</div>
+		}
+	</main>
+	@Dock("/list/subscriptions", nil)
+}
+
+templ ExternalError(user *models.User, msg *models.UserMessage) {
+	@header(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8">
+		@templ.Fragment(ErrorFragment) {
+			<div class="ui-container">
+				@userMessage("Whoops 😿", msg) {
+					<div class="mt-10 flex items-center justify-center gap-x-6">
+						<a href="mailto:support@immanent.tech&subject=Foragd Issue" role="button" class="btn btn-primary">
+							Email Support <span aria-hidden="true">&rarr;</span>
+						</a>
+					</div>
+				}
+			</div>
+		}
+	</main>
+	@footer()
+}
