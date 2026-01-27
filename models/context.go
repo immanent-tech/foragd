@@ -13,7 +13,6 @@ import (
 const (
 	userCtxKey          contextKey = "user"
 	filtersCtxKey       contextKey = "filters_"
-	csrfTokenCtxKey     contextKey = "csrfToken"
 	pathCtxKey          contextKey = "req_path"
 	subscriptionsCtxKey contextKey = "subscriptions"
 )
@@ -37,19 +36,6 @@ func UserFromCtx(ctx context.Context) (*User, error) {
 		return nil, fmt.Errorf("get user from context: %w", ErrCtxValueNotFound)
 	}
 	return user, nil
-}
-
-// CSRFTokenToCtx stores the current valid CSRF token in the context.
-func CSRFTokenToCtx(ctx context.Context, token string) context.Context {
-	return context.WithValue(ctx, csrfTokenCtxKey, token)
-}
-
-// CSRFTokenFromCtx retrieves the current valid CSRF token from the context.
-func CSRFTokenFromCtx(ctx context.Context) string {
-	if token, ok := ctx.Value(csrfTokenCtxKey).(string); ok {
-		return token
-	}
-	return ""
 }
 
 // PageFiltersToCtx stores the current page display filters in the context.

@@ -29,7 +29,6 @@ templ ReportPageIssue(details *models.ReportIssueRequest) {
 				hx-target={ ContentID.Target() }
 				hx-target-error={ ContentID.Target() }
 				hx-indicator="#processing"
-				hx-include="[name='csrf_token']"
 				hx-encoding="multipart/form-data"
 			>
 				<input type="hidden" name="page_url" value={ details.PageUrl }/>
@@ -111,7 +110,6 @@ templ ReportObjectIssues(objectType, id string, details *models.ReportObjectIssu
 				hx-target={ ContentID.Target() }
 				hx-target-error={ ContentID.Target() }
 				hx-indicator="#processing"
-				hx-include="[name='csrf_token']"
 				hx-encoding="multipart/form-data"
 			>
 				<input type="hidden" name="id" value={ details.ObjectID }/>

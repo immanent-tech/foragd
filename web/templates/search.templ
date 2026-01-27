@@ -18,7 +18,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 		<form
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
-			hx-include="[name='csrf_token'],#search-filters,[id='timezone']"
+			hx-include="#search-filters,[id='timezone']"
 			hx-push-url="true"
 			hx-trigger="click, keydown['Enter']"
 			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions"
@@ -193,7 +193,7 @@ templ SearchResultsGrid(results *models.SearchResults) {
 						<a
 							hx-post="/list/articles/mark/read"
 							hx-target={ ContentID.Target() }
-							hx-include="#grid-objects,[name='csrf_token']"
+							hx-include="#grid-objects"
 							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
 						>
 							@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
@@ -208,7 +208,7 @@ templ SearchResultsGrid(results *models.SearchResults) {
 						<a
 							hx-post="/list/articles/mark/unread"
 							hx-target={ ContentID.Target() }
-							hx-include="#grid-objects,[name='csrf_token']"
+							hx-include="#grid-objects"
 							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
 						>
 							@tabler.MailFilled(i.Props{Class: "size-4"})
@@ -273,7 +273,6 @@ templ SearchResults(results *models.SearchResults) {
 		<form
 			hx-post="/search/paginate"
 			hx-vals={ templ.JSONString(results.Search) }
-			hx-include="[name='csrf_token']"
 			hx-trigger="intersect once"
 			hx-target="#grid-objects"
 			hx-swap="beforeend transition:false"
@@ -297,7 +296,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
-			hx-include="[name='csrf_token'],[id='timezone']"
+			hx-include="[id='timezone']"
 		>
 			<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
 				// Full text search filter.
@@ -361,8 +360,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 								hx-post="/search/subscription/suggestions"
 								hx-trigger="input changed delay:500ms,consume"
 								hx-target="#search-subscriptions-options"
-								hx-params="subscription-text,csrf_token"
-								hx-include="[name='csrf_token']"
+								hx-params="subscription-text"
 								hx-push-url="false"
 							/>
 						</label>
@@ -539,8 +537,7 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 			WithHXMethod(http.MethodPost, "/search/subscription"),
 			WithHXSwap("beforeend"),
 			WithHXVals(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}),
-			WithHXInclude("[name='csrf_token']"),
-			WithHXParams("subscription_id,subscription_name,csrf_token,subscriptions-input-name"),
+			WithHXParams("subscription_id,subscription_name,subscriptions-input-name"),
 			WithHXPushURL(false),
 			WithClasses("btn-sm hover:btn-success"),
 			WithAttribute("_", "on htmx:afterRequest(successful) remove me"),

@@ -58,7 +58,6 @@ func (s *Subscription) ViewArticlesAttributes() templ.Attributes {
 		attrs["hx-get"] = "/list/articles"
 	case models.SubscriptionTypeSearch:
 		attrs["hx-post"] = "/search"
-		attrs["hx-include"] = "[name='csrf_token']"
 		s.SearchData.Search.SubscriptionID = s.GetID()
 		attrs["hx-vals"] = s.SearchData.Search.HXVals()
 	}
@@ -70,7 +69,6 @@ func (s *Subscription) MarkAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
 	switch s.GetSubscriptionType() {
 	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail, models.SubscriptionTypeGroup:
-		attrs["hx-include"] = "[name='csrf_token']"
 		attrs["hx-target"] = models.ElementID(s.GetID()).Target()
 		attrs["hx-trigger"] = "click consume"
 		if s.GetStats().IsUnread() {
@@ -176,7 +174,6 @@ templ (s *Subscription) Card() {
 						<label class="swap" _="on click halt the event's bubbling">
 							<input
 								hx-post={ "/favorite/subscription/" + s.GetID() }
-								hx-include="[name='csrf_token']"
 								hx-swap="none"
 								id={ s.GetID() + "-favorite-state" }
 								type="checkbox"
@@ -205,7 +202,6 @@ templ (s *Subscription) Card() {
 							<label class="swap" _="on click halt the event's bubbling">
 								<input
 									hx-post={ "/mark/subscription/" + s.GetID() }
-									hx-include="[name='csrf_token']"
 									hx-swap="none"
 									id={ s.GetID() + "-read-state" }
 									type="checkbox"
@@ -265,7 +261,6 @@ templ (s *Subscription) Card() {
 										class="link link-hover"
 										hx-post={ "/remove/subscription/" + s.GetID() }
 										hx-target={ partials.ModalContainerID.Target() }
-										hx-include="[name='csrf_token']"
 										hx-trigger="click consume"
 									>
 										@tabler.TrashFilled(i.Props{Class: "size-4"})
@@ -345,7 +340,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								<a
 									hx-post={ markURL }
 									hx-target={ ContentID.Target() }
-									hx-include="[name='csrf_token'],[name='displayed_subscriptions']"
+									hx-include="[name='displayed_subscriptions']"
 									class="link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
 								>
 									@markIcon
@@ -409,7 +404,6 @@ templ PaginateSubscriptions(response *models.ListSubscriptionsResponse) {
 		<form
 			class="invisible"
 			hx-post="/list/subscriptions/paginate"
-			hx-include="[name='csrf_token']"
 			hx-vals={ generateHXVals(response.Filters.Values()) }
 			hx-trigger="intersect once"
 			hx-target="#grid-objects"
@@ -444,7 +438,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			<form
 				id="edit-subscription"
 				hx-post={ "/edit/subscription/" + request.GetID() }
-				hx-include="#current-categories,[name='csrf_token']"
+				hx-include="#current-categories"
 				hx-swap="none"
 				hx-indicator="#processing"
 				hx-encoding="multipart/form-data"
@@ -620,7 +614,7 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 				id="add-subscription"
 				hx-post="/user/subscription/add/feed"
 				hx-swap="none"
-				hx-include="[name='user_categories'],[name='csrf_token']"
+				hx-include="[name='user_categories']"
 				hx-indicator="#processing"
 				hx-on::after-request="if(event.detail.successful) this.reset()"
 			>
@@ -732,7 +726,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					hx-post={ "/edit/subscription/" + request.Search.SubscriptionID }
 				}
 				hx-swap="none"
-				hx-include="[name='customisation.categories'],[name='csrf_token']"
+				hx-include="[name='customisation.categories']"
 				hx-params="not subscription-text"
 				hx-vals="js:{'search.timezone': Intl.DateTimeFormat().resolvedOptions().timeZone}"
 				hx-indicator="#processing"
@@ -810,8 +804,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 									hx-trigger="input changed delay:500ms,consume"
 									hx-target="#subscription-filter-subscriptions-options"
 									hx-swap="innerHTML show:window:top transition:true"
-									hx-params="subscription-text,csrf_token"
-									hx-include="[name='csrf_token']"
+									hx-params="subscription-text"
 									hx-push-url="false"
 								/>
 							</label>
@@ -1026,7 +1019,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 					hx-post={ "/edit/subscription/" + request.SubscriptionID }
 				}
 				hx-swap="none"
-				hx-include="[name='customisation.categories'],[name='csrf_token']"
+				hx-include="[name='customisation.categories']"
 				hx-params="not subscription-text"
 				hx-indicator="#processing"
 				hx-encoding="multipart/form-data"
@@ -1050,8 +1043,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 									hx-trigger="input changed delay:500ms,consume"
 									hx-target="#subscription-filter-subscriptions-options"
 									hx-swap="innerHTML show:window:top transition:true"
-									hx-params="subscription-text,csrf_token"
-									hx-include="[name='csrf_token']"
+									hx-params="subscription-text"
 									hx-push-url="false"
 								/>
 							</label>
@@ -1150,7 +1142,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 				id="manage-email-subscription"
 				hx-post={ "/edit/subscription/" + request.SubscriptionID }
 				hx-swap="none"
-				hx-include="[name='customisation.categories'],[name='csrf_token']"
+				hx-include="[name='customisation.categories']"
 				hx-params="not subscription-text"
 				hx-indicator="#processing"
 				hx-encoding="multipart/form-data"
@@ -1231,7 +1223,6 @@ templ ImportSubscriptions() {
 				hx-encoding="multipart/form-data"
 				hx-post="/user/import"
 				hx-target="#import-results"
-				hx-include="[name='csrf_token']"
 				hx-indicator="#processing"
 			>
 				<div class="grid max-w-7xl grid-cols-1 items-center gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
@@ -1370,7 +1361,6 @@ templ ExportSubscriptions() {
 			<div class="mt-6 flex items-center justify-end gap-x-6">
 				@partials.ButtonBack()
 				<form method="post">
-					<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 					<button type="submit" class="btn btn-primary">Export</button>
 				</form>
 			</div>
@@ -1401,7 +1391,6 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 			<form
 				hx-post={ "/remove/subscription/" + string(request.SubscriptionID) }
 				hx-target={ "#" + request.SubscriptionID }
-				hx-include="[name='csrf_token']"
 				hx-swap="delete transition:true"
 				_={ "on htmx:afterRequest(successful) if successful remove #" + id }
 				class="flex"

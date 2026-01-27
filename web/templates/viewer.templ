@@ -31,7 +31,6 @@ templ Viewer() {
 			<form
 				id="viewer-form"
 				hx-post="/viewer"
-				hx-include="[name='csrf_token']"
 				hx-target="#viewer-results"
 				hx-swap="innerHTML transition:true"
 				hx-indicator="#processing"

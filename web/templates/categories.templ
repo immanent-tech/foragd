@@ -28,7 +28,7 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 						id="add-categories"
 						hx-post={ path }
 						hx-on::after-request="if(event.detail.successful) this.reset()"
-						hx-include="[name='csrf_token'],[name='categories']"
+						hx-include="[name='categories']"
 						hx-push-url="false"
 						hx-target="#current-categories"
 						hx-swap="beforeend"
@@ -49,7 +49,7 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 					id="add-categories"
 					hx-post={ path }
 					hx-on::after-request="if(event.detail.successful) this.reset()"
-					hx-include="[name='csrf_token'],[name='categories']"
+					hx-include="[name='categories']"
 					hx-vals={ templ.JSONString(map[string]any{"inputName": inputName}) }
 					hx-push-url="false"
 					hx-target="#current-categories"
@@ -91,13 +91,11 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 
 // AddCategory renders a new category item to the list of categories of a subscription.
 templ AddCategory(path, inputName string, category models.Category) {
-	{{ csrf_token := models.CSRFTokenFromCtx(ctx) }}
 	<button
 		hx-delete={ path }
 		hx-push-url="false"
 		hx-target="closest button"
 		hx-swap="delete"
-		hx-headers={ `{"X-CSRF-Token": "` + csrf_token + `"}` }
 	>
 		<input type="hidden" name={ inputName } value={ category }/>
 		<div class="flex gap-2 text-sm capitalize">

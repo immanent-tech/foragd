@@ -29,7 +29,6 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 					<div class="mt-8">
 						if user, err := models.UserFromCtx(ctx); err != nil && user != nil {
 							<form action={ action } method={ method }>
-								<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 								<input type="hidden" name={ models.ParamPlanID } value="TheOne-85297d6"/>
 								<button aria-label="Start a free trial on the One plan" id="checkout-theone" type="submit" class="btn btn-accent btn-block">Start a free trial</button>
 							</form>

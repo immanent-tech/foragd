@@ -13,15 +13,6 @@ import (
 	"time"
 )
 
-var csrfHandle = templ.NewOnceHandle()
-
-// UpdateCSRFToken renders an input with the csrf token taken from the context.
-templ updateCSRFToken() {
-	@csrfHandle.Once() {
-		<input id="csrf_token" hx-swap-oob="true" hx-swap="outerHTML" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
-	}
-}
-
 templ UpdateHead(update templ.Component) {
 	<head>
 		@update
@@ -82,7 +73,6 @@ templ (p *Page) FullTemplate() {
 templ (p *Page) PartialTemplate() {
 	@p.Component
 	<title>{ p.Title }</title>
-	@updateCSRFToken()
 }
 
 // Head renders the `<head>` html element. If the title is blank, a default title is used.
@@ -150,7 +140,6 @@ templ (p *Page) renderBody() {
 		hx-target-404={ ContentID.Target() }
 	>
 		<input id="page-theme" type="checkbox" value={ models.GetUserTheme(ctx) } class="toggle theme-controller hidden" checked="checked"/>
-		<input id="csrf_token" type="hidden" name="csrf_token" value={ models.CSRFTokenFromCtx(ctx) }/>
 		<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>
 		<div id={ partials.ModalContainerID.String() } hx-target-error="#modal-errors"></div>
 		@p.Component
@@ -170,5 +159,4 @@ func NewPartial(template templ.Component) *Partial {
 
 templ (p *Partial) PartialTemplate() {
 	@p.Component
-	@updateCSRFToken()
 }

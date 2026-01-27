@@ -16,7 +16,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/justinas/nosurf"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -54,14 +53,10 @@ func Start(logger *slog.Logger) error {
 
 	// Set up routes.
 	router := setupRoutes(ctx)
-	csrfRouter := nosurf.New(router)
-	csrfRouter.SetFailureHandler(handlers.CSRFError())
-	csrfRouter.ExemptPath("/checkout/webhooks")
-	csrfRouter.ExemptPath("/mail/webhooks")
 
 	h2s := &http2.Server{}
 	svr := &http.Server{
-		Handler:      h2c.NewHandler(csrfRouter, h2s),
+		Handler:      h2c.NewHandler(router, h2s),
 		Addr:         net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
 		ReadTimeout:  cfg.ReadTimeout.Duration(),
 		WriteTimeout: cfg.WriteTimeout.Duration(),
@@ -139,7 +134,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		middlewares.CrossOriginProtection,
 		middlewares.ContentSecurityPolicy,
 		middlewares.GeneralSecurity,
-		middlewares.SaveCSRFToken,
+		middlewares.PreventCSRF,
 		middlewares.RateLimit(rateLimiter),
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
 		middleware.Compress(defaultCompressionLevel, compressMimetypes...),

@@ -271,7 +271,6 @@ templ viewFilter(path, id string, view models.View, filters *models.ListFilters)
 		@NewLink(
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
-			WithHXInclude("[name='csrf_token']"),
 			WithHXReplaceURL(true),
 			WithHXSwap("innerHTML transition:true"),
 			WithClasses("link-hover", "block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
@@ -329,7 +328,6 @@ templ categoryFilter(path, id string, category models.CategoryCount, filters *mo
 		@NewLink(
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
-			WithHXInclude("[name='csrf_token']"),
 			WithHXReplaceURL(true),
 			WithHXSwap("innerHTML transition:true"),
 			WithID(id),
@@ -351,7 +349,6 @@ templ clearCategoryFilters(path, id string, filters *models.ListFilters) {
 		@NewLink(
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
-			WithHXInclude("[name='csrf_token']"),
 			WithHXReplaceURL(true),
 			WithHXSwap("innerHTML transition:true"),
 			WithClasses("link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize"),
@@ -375,7 +372,6 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 				@NewLink(
 					WithHXMethod(http.MethodPost, path),
 					WithHXTarget(ContentID.Target()),
-					WithHXInclude("[name='csrf_token']"),
 					WithHXReplaceURL(true),
 					WithHXSwap("innerHTML transition:true"),
 					WithClasses("link-hover"),
@@ -405,7 +401,6 @@ templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
 		@NewLink(
 			WithHXMethod(http.MethodPost, path),
 			WithHXTarget(ContentID.Target()),
-			WithHXInclude("[name='csrf_token']"),
 			WithHXReplaceURL(true),
 			WithHXSwap("innerHTML transition:true"),
 			WithClasses("link-hover", "flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),

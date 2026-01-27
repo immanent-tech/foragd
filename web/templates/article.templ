@@ -132,7 +132,6 @@ templ (a *Article) Card() {
 					<label class="swap" _="on click halt the event's bubbling">
 						<input
 							hx-post={ "/favorite/article/" + a.GetID() }
-							hx-include="[name='csrf_token']"
 							hx-swap="none"
 							id={ a.GetID() + "-favorite-state" }
 							type="checkbox"
@@ -160,7 +159,6 @@ templ (a *Article) Card() {
 					<label class="swap" _="on click halt the event's bubbling">
 						<input
 							hx-post={ "/mark/article/" + a.GetID() }
-							hx-include="[name='csrf_token']"
 							hx-swap="none"
 							id={ a.GetID() + "-read-state" }
 							type="checkbox"
@@ -227,7 +225,6 @@ templ (a *Article) Card() {
 										class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden"
 										hx-post={ "/share/article/" + a.GetID() }
 										hx-target={ partials.ModalContainerID.Target() }
-										hx-include="[name='csrf_token']"
 										hx-trigger="click consume"
 									>
 										@tabler.Share(i.Props{Class: "size-4"})
@@ -282,7 +279,6 @@ templ (a *Article) Content() {
 					<a
 						hx-post="/list/articles"
 						hx-target={ ContentID.Target() }
-						hx-include="[name='csrf_token']"
 						hx-push-url="true"
 						hx-swap="innerHTML show:window:top transition:true"
 						class="link link-hover focus:text-primary focus:outline-hidden"
@@ -313,7 +309,6 @@ templ (a *Article) Content() {
 					<label class="swap" _="on click halt the event's bubbling">
 						<input
 							hx-post={ "/favorite/article/" + a.GetID() }
-							hx-include="[name='csrf_token']"
 							hx-swap="none"
 							id={ a.GetID() + "-favorite-state" }
 							type="checkbox"
@@ -341,7 +336,6 @@ templ (a *Article) Content() {
 					<label class="swap" _="on click halt the event's bubbling">
 						<input
 							hx-post={ "/mark/article/" + a.GetID() }
-							hx-include="[name='csrf_token']"
 							hx-swap="none"
 							id={ a.GetID() + "-read-state" }
 							type="checkbox"
@@ -464,7 +458,6 @@ templ (a *Article) Content() {
 					class="btn btn-primary"
 					hx-post={ "/share/article/" + a.GetID() }
 					hx-target={ partials.ModalContainerID.Target() }
-					hx-include="[name='csrf_token']"
 					hx-trigger="click consume"
 				>
 					@tabler.Share()
@@ -482,7 +475,6 @@ templ (a *Article) Content() {
 			hx-target="#auto-mark-read"
 			hx-post={ "/mark/article/" + a.GetID() }
 			hx-swap="delete transition:false"
-			hx-include="[name='csrf_token']"
 			hx-trigger="intersect once delay:5s,load delay:5s"
 			aria-hidden="true"
 			_={ "on htmx:afterRequest(successful) toggle @checked on #" + a.GetID() + "-read-state" }
@@ -554,7 +546,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 												hx-post="/list/articles/mark/unread"
 											}
 											hx-target={ ContentID.Target() }
-											hx-include="[name='displayed_articles'],[name='csrf_token']"
+											hx-include="[name='displayed_articles']"
 										>
 											if response.Filters.GetView() == models.ViewUnread {
 												@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
@@ -593,7 +585,6 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										}
 										<a
 											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-											hx-include="[name='csrf_token']"
 											class="link link-hover px-4 py-2 focus:text-primary focus:outline-hidden"
 										>
 											@markIcon
@@ -641,7 +632,6 @@ templ PaginateArticles(response *models.ListArticlesResponse) {
 		<form
 			class="invisible"
 			hx-post="/list/articles/paginate"
-			hx-include="[name='csrf_token']"
 			hx-vals={ generateHXVals(response.Filters.Values()) }
 			hx-trigger="intersect once"
 			hx-target="#grid-objects"

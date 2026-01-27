@@ -22,11 +22,9 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-resty/resty/v2"
 	"github.com/justinas/alice"
 	"github.com/russross/blackfriday/v2"
-	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
@@ -75,36 +73,6 @@ func Landing() http.HandlerFunc {
 func NotFound() http.HandlerFunc {
 	return alice.New().Then(
 		renderPage(templates.NewPage(templates.NotFound()))).ServeHTTP
-}
-
-// CSRFError handles CSRF error conditions. It will log details about the request then show an error page to the user.
-func CSRFError() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		params := make(map[string]string)
-		if chi.RouteContext(req.Context()) != nil {
-			if len(chi.RouteContext(req.Context()).URLParams.Keys) > 0 {
-				for i, k := range chi.RouteContext(req.Context()).URLParams.Keys {
-					params[k] = chi.RouteContext(req.Context()).URLParams.Values[i]
-				}
-			}
-		}
-		slogctx.FromCtx(req.Context()).Error("CSRF check failed",
-			slog.String("method", req.Method),
-			slog.String("host", req.Host),
-			slog.String("path", req.URL.Path),
-			slog.String("query", req.URL.RawQuery),
-			slog.Any("params", params),
-			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
-			slog.String("ip", req.RemoteAddr),
-			slog.String("referer", req.Referer()),
-			slog.String(slogchi.RequestIDKey, middleware.GetReqID(req.Context())),
-		)
-		renderPage(
-			templates.NewPage(
-				templates.ErrorMessage(models.NewErrorMessage("CSRF Check Failed", "Cannot complete your request.")),
-			))
-		res.WriteHeader(http.StatusBadRequest)
-	}).ServeHTTP
 }
 
 // StaticFileHandler handles serving content from the embedded filesystem containing static assets (i.e., images,
@@ -326,7 +294,7 @@ func setRedirect(res http.ResponseWriter, request htmxext.HXLocationRequest) err
 }
 
 // renderPage will render the given template either as a full page or as partial content. For partial content, it will
-// also update the page title (if one is given) and CSRF token.
+// also update the page title (if one is given).
 func renderPage(page *templates.Page) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if page.PartialTemplate() == nil {

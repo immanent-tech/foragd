@@ -37,7 +37,7 @@ templ header(user *models.User) {
 							<input
 								hx-post="/search/suggestions"
 								hx-target="#global-search-suggestions"
-								hx-include="[name='csrf_token'],#search-filters,[id='timezone']"
+								hx-include="#search-filters,[id='timezone']"
 								hx-trigger="keyup changed delay:300ms"
 								id="global-search"
 								type="search"
