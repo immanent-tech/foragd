@@ -6,6 +6,7 @@
 # . or absolute path, please note that the directories following must be under root.
 root = "."
 tmp_dir = "tmp"
+env_files = [".devcontainer/.env", ".env.development"]
 
 [build]
 # Add additional arguments when running binary (bin/full_bin). Will run './tmp/main hello world'.
@@ -19,9 +20,9 @@ cmd = 'go build -ldflags="-X github.com/immanent-tech/foragd/config.Version=$(gi
 # Binary file yields from 'cmd', will be deprecated soon, recommend using entrypoint.
 bin = "tmp/foragd"
 # Entrypoint binary relative to root. First item is the executable, more items are default arguments.
-# entrypoint = ["./tmp/main"]
+entrypoint = ["./tmp/foragd"]
 # Customize binary, can setup environment variables when run your app.
-full_bin = "bunx dotenv-cli -e .env.development -- tmp/foragd"
+full_bin = "./tmp/foragd"
 # Ignore these filename extensions or directories.
 exclude_dir = [
   "bin",
@@ -48,8 +49,8 @@ include_ext = ["go", "templ", "html", "json", "js", "ts", "css", "scss", "md"]
 log = "air.log"
 # Array of commands to run before each build
 pre_cmd = [
-  "bun run build:css",
-  "bun run build:js",
+  "npm run build:css",
+  "npm run build:js",
   "go run github.com/a-h/templ/cmd/templ@latest generate -path web",
 ]
 # Array of commands to run after ^C

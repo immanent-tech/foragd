@@ -14,14 +14,11 @@ WORKDIR /build
 # Copy go from official image.
 # https://hub.docker.com/_/golang
 COPY --from=docker.io/golang:1.25.5-alpine@sha256:ac09a5f469f307e5da71e766b0bd59c9c49ea460a528cc3e6686513d64a6f1fb /usr/local/go/ /usr/local/go/
-# Copy bun from official image
-# https://hub.docker.com/r/oven/bun
-COPY --from=docker.io/oven/bun:1.3.5-alpine@sha256:245ea34e0fe836d0fa113065d2a2da7bbc77f6b5a3240df8b1f64e6c19f8dabc /usr/local/bin/bun /usr/local/bin/bun
 # Update $PATH.
 ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
 
 # Install tools.
-RUN apk add libstdc++ upx
+RUN apk add libstdc++ upx npm
 
 # Copy and download dependency using go mod.
 COPY go.mod go.sum ./
@@ -35,9 +32,9 @@ COPY . .
 
 # install and build/bundle frontend assets
 RUN <<EOF
-bun install
-bun build ./web/assets/scripts.js --outdir=./web/content/ --target browser --splitting --minify
-bun x tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify
+npm install
+npm run build:js
+npm run build:css
 EOF
 
 # Set necessary environment variables and build your project.

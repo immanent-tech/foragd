@@ -6,8 +6,8 @@
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "type": "module",
   "scripts": {
-    "build:js": "bun build ./web/assets/scripts.js --outdir=./web/content/ --target browser --splitting --sourcemap=linked",
-    "build:css": "bunx tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
+    "build:js": "esbuild --bundle --minify --sourcemap ./web/assets/scripts.js --outdir=./web/content/",
+    "build:css": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
   },
   "dependencies": {
     "daisyui": "^5.5.14",
@@ -28,12 +28,12 @@
     "@tailwindcss/cli": "^4.1.18",
     "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
     "@tailwindcss/typography": "^0.5.19",
+    "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "prettier-plugin-tailwindcss-extra": "^0.2.0",
     "release-please": "^17.2.0"
   }
 }

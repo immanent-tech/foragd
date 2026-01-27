@@ -23,9 +23,6 @@ RUN addgroup --gid $USER_GID $USER_NAME \
 
 USER $USER_NAME
 
-# Install bun
-RUN curl -fsSL https://bun.com/install | bash
-
 # Install Go tools.
 RUN <<EOF
     export PATH="$HOME/go/bin":/go/bin:/usr/local/go/bin:$PATH
@@ -36,8 +33,7 @@ EOF
 # Set up fish shell.
 RUN <<EOF
     mkdir -p ~/.config/fish
-    echo 'set --export BUN_INSTALL "$HOME/.bun"' >> ~/.config/fish/config.fish
-    echo 'set --export PATH $BUN_INSTALL/bin $PATH' >> ~/.config/fish/config.fish
+    echo 'set --export PATH "/workspace/node_modules/.bin" $PATH' >> ~/.config/fish/config.fish
     echo 'set --export PATH "$HOME/go/bin" /go/bin /usr/local/go/bin $PATH' >> ~/.config/fish/config.fish
 EOF
 

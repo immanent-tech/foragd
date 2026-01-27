@@ -12,7 +12,7 @@ echo 'eval "$(starship init bash)"' >>~/.bashrc
 cd /workspace
 
 # Update JS packages with bun.
-bun update || exit -1
+npm update || exit -1
 
 # Install Go packages.
 go mod tidy
