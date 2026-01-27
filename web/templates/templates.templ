@@ -13,9 +13,9 @@ import (
 	"time"
 )
 
-type nameFragmentKey struct{}
+type templFragmentKey string
 
-var BodyFragment = nameFragmentKey{}
+const BodyFragment templFragmentKey = "body"
 
 templ CreatePage(template templ.Component, options ...PageOption) {
 	{{

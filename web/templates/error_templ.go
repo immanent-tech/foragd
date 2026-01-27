@@ -14,7 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/immanent-tech/foragd/models"
 
-var ErrorFragment = nameFragmentKey{}
+const ErrorFragment templFragmentKey = "error"
 
 func InternalError(user *models.User, msg *models.UserMessage) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {

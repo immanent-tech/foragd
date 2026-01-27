@@ -5,7 +5,7 @@ package templates
 
 import "github.com/immanent-tech/foragd/models"
 
-var ErrorFragment = nameFragmentKey{}
+const ErrorFragment templFragmentKey = "error"
 
 templ InternalError(user *models.User, msg *models.UserMessage) {
 	@header(user)

@@ -22,9 +22,9 @@ import (
 	"time"
 )
 
-type nameFragmentKey struct{}
+type templFragmentKey string
 
-var BodyFragment = nameFragmentKey{}
+const BodyFragment templFragmentKey = "body"
 
 func CreatePage(template templ.Component, options ...PageOption) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
