@@ -30,16 +30,17 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/forms"
-	"github.com/immanent-tech/foragd/validation"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+// ListSubscriptions holds data for generating the subscriptions list page.
 type ListSubscriptions struct {
 	title    string
 	template templ.Component
 }
 
+// FullResponse renders a full page (headers, footers and list of subscriptions).
 func (p *ListSubscriptions) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(
 		templates.CreatePage(p.template,
@@ -47,13 +48,21 @@ func (p *ListSubscriptions) FullResponse(res http.ResponseWriter, req *http.Requ
 		)).ServeHTTP(res, req)
 }
 
+// PartialResponse will either render the list of subscriptions, the controls and update the title/dock/sidebar or, when
+// paginating, just the list of subscriptions.
 func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(p.template, templ.WithFragments(templates.ListSubscriptionsFragment)).ServeHTTP(res, req)
-	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
-	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
-	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	switch req.URL.Path {
+	case "/list/subscriptions":
+		templ.Handler(p.template, templ.WithFragments(templates.ListSubscriptionsFragment)).ServeHTTP(res, req)
+		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+		templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	case "/list/subscriptions/paginate":
+		templ.Handler(p.template, templ.WithFragments(templates.PaginateSubscriptionsFragment)).ServeHTTP(res, req)
+	}
 }
 
+// HandleListSubscriptions handles displaying a list of subscriptions.
 func HandleListSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user, err := models.UserFromCtx(req.Context())
@@ -79,12 +88,15 @@ func HandleListSubscriptions() http.HandlerFunc {
 		}
 
 		// Redirect to include query parameters in address bar.
-		switch {
-		case htmx.IsHTMX(req):
-			res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+request.Filters.QueryString())
-		case len(req.URL.Query()) == 0:
-			http.Redirect(res, req, req.URL.Path+"?"+request.Filters.QueryString(), http.StatusSeeOther)
+		if req.URL.Path != "/list/subscriptions/paginate" {
+			switch {
+			case htmx.IsHTMX(req):
+				res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+request.Filters.QueryString())
+			case len(req.URL.Query()) == 0:
+				http.Redirect(res, req, req.URL.Path+"?"+request.Filters.QueryString(), http.StatusSeeOther)
+			}
 		}
+
 		var (
 			subscriptions models.Subscriptions
 		)
@@ -123,70 +135,6 @@ func HandleListSubscriptions() http.HandlerFunc {
 		case http.MethodPost:
 			RenderPartial(page).ServeHTTP(res, req)
 		}
-	}).ServeHTTP
-}
-
-type PaginateSubscriptions struct {
-	template templ.Component
-}
-
-func (p *PaginateSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(p.template).ServeHTTP(res, req)
-}
-
-func HandlePaginateSubscriptions() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Generate request object.
-		request := &models.ListRequest{
-			Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
-			Pagination: req.FormValue(models.ParamPagination),
-		}
-		if err := validation.Validate.Struct(request); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-				StatusCode:    http.StatusUnprocessableEntity,
-				UserMessage: models.NewErrorMessage(
-					"Could not list more subscriptions",
-					"This might be temporary, please try again.",
-				),
-			}).ServeHTTP(res, req)
-			return
-		}
-
-		// Get subscriptions matching filters.
-		var (
-			subscriptions models.Subscriptions
-			err           error
-		)
-		subscriptions, request.Pagination, err = models.FilterSubscriptions(req.Context(), request)
-		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Could not list more subscriptions",
-					"This might be temporary, please try again.",
-				),
-			}).ServeHTTP(res, req)
-			return
-		}
-
-		// Build response object.
-		response := &models.ListSubscriptionsResponse{
-			Filters:       request.Filters,
-			Pagination:    request.Pagination,
-			Subscriptions: subscriptions,
-		}
-
-		// Render appropriate content.
-		if len(subscriptions) > 0 {
-			RenderPartial(
-				&PaginateSubscriptions{template: templates.PaginateSubscriptions(response)},
-			).ServeHTTP(res, req)
-		} else {
-			res.WriteHeader(http.StatusNoContent)
-		}
-
 	}).ServeHTTP
 }
 

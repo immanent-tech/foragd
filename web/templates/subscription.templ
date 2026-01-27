@@ -281,7 +281,8 @@ templ (s *Subscription) Card() {
 	</article>
 }
 
-var ListSubscriptionsFragment = nameFragmentKey{}
+const ListSubscriptionsFragment templFragmentKey = "listSubscriptions"
+const PaginateSubscriptionsFragment templFragmentKey = "paginateSubscriptions"
 
 // ListSubscriptions renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
@@ -390,7 +391,29 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				<section class="mt-4">
 					if len(response.Subscriptions) > 0 {
 						<div id="grid-objects" class="ui-grid">
-							@PaginateSubscriptions(response)
+							@templ.Fragment(PaginateSubscriptionsFragment) {
+								for subscription := range slices.Values(response.Subscriptions) {
+									@NewSubscriptionView(subscription).Card()
+								}
+								if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
+									<form
+										class="invisible"
+										hx-post="/list/subscriptions/paginate"
+										hx-vals={ generateHXVals(response.Filters.Values()) }
+										hx-trigger="intersect once"
+										hx-target="#grid-objects"
+										hx-swap="beforeend transition:false"
+										hx-indicator="#content-loading"
+										hx-push-url="false"
+										preload
+										preload-images="true"
+										_="on htmx:afterRequest remove me"
+									>
+										<input type="hidden" name={ models.ParamPagination } value={ response.Pagination }/>
+									</form>
+								}
+								// @PaginateSubscriptions(response)
+							}
 						</div>
 						@partials.ButtonBackToTop()
 					} else {
@@ -405,31 +428,6 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 		<p class="text-lg/loose font-semibold">Loading content...</p>
 	</div>
 	@Dock(nil)
-}
-
-// PaginateSubscriptions renders the given list of subscriptions as cards with an optional element to trigger pagination
-// to load more.
-templ PaginateSubscriptions(response *models.ListSubscriptionsResponse) {
-	for subscription := range slices.Values(response.Subscriptions) {
-		@NewSubscriptionView(subscription).Card()
-	}
-	if response.Pagination != "" && len(response.Subscriptions) == response.Filters.GetCount() {
-		<form
-			class="invisible"
-			hx-post="/list/subscriptions/paginate"
-			hx-vals={ generateHXVals(response.Filters.Values()) }
-			hx-trigger="intersect once"
-			hx-target="#grid-objects"
-			hx-swap="beforeend transition:false"
-			hx-indicator="#content-loading"
-			hx-push-url="false"
-			preload
-			preload-images="true"
-			_="on htmx:afterRequest remove me"
-		>
-			<input type="hidden" name={ models.ParamPagination } value={ response.Pagination }/>
-		</form>
-	}
 }
 
 templ EditSubscription(request *models.EditSubscriptionRequest) {

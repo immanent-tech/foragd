@@ -233,7 +233,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.Route("/list/subscriptions", func(r chi.Router) {
 			r.Get("/", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleListSubscriptions())
-			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandlePaginateSubscriptions())
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkSubscriptions())
 			r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
