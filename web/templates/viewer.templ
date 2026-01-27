@@ -17,17 +17,17 @@ templ Viewer() {
 	@header(nil)
 	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
 		<section id="viewer">
-			@h2("Feed Viewer")
-			@p() {
+			<h2>Feed Viewer</h2>
+			<p>
 				Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
 				The feed content, if found, will be displayed below.
-			}
-			@p() {
+			</p>
+			<p>
 				Feed Viewer is powered by open-source! Check out the <a
 	class="link"
 	href="https://github.com/immanent-tech/go-syndication"
 >go-syndication</a> library on GitHub.
-			}
+			</p>
 			<form
 				id="viewer-form"
 				hx-post="/viewer"

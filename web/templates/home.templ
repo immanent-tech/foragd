@@ -242,9 +242,9 @@ templ homePageHeadline(article *models.Article) {
 			WithClasses("link-hover"),
 		) {
 			if article.GetTitle() != "" {
-				@h3(article.GetTitle())
+				<h3>{ article.GetTitle() }</h3>
 			} else {
-				@h3("(no title)")
+				<h3>(no title)</h3>
 			}
 		}
 	</li>
@@ -268,10 +268,10 @@ templ homePageCategoryBadge(category *models.CategoryCount) {
 
 templ NewUserHome() {
 	<div class="ui-container">
-		@h2("Welcome to " + config.AppName)
+		<h2>{ "Welcome to " + config.AppName }</h2>
 		<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
 		<div class="py-4">
-			@h3("Add/Import Subscriptions")
+			<h3>Add/Import Subscriptions</h3>
 			<p class="py-2">Import your subscriptions from an external service or start fresh.</p>
 			<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content max-w-prose">
 				<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
@@ -315,7 +315,7 @@ templ NewUserHome() {
 			</div>
 		</div>
 		<div class="py-4">
-			@h3("Start With Curated Subscription Sets")
+			<h3>Start With Curated Subscription Sets</h3>
 			<p class="py-2">Or try one or more curated starter sets (you can also add these later in settings).</p>
 			<form
 				hx-post="/user/feedset"
@@ -370,7 +370,7 @@ templ NewUserHome() {
 			</form>
 		</div>
 		<div class="py-4">
-			@h3("Get to know Foragd")
+			<h3>Get to know Foragd</h3>
 			<p class="py-2">Read the documentation/help to get familiar with the app.</p>
 			<ul class="list-disc list-inside">
 				<li><a class="link" href="/help/index">Documentation Home</a></li>

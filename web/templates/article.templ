@@ -263,10 +263,10 @@ templ (a *Article) Content() {
 						rel="noopener"
 						class="link link-hover focus:text-primary focus:outline-hidden"
 					>
-						@h2(a.GetTitle())
+						<h2>{ a.GetTitle() }</h2>
 					</a>
 				} else {
-					@h2(a.GetTitle())
+					<h2>{ a.GetTitle() }</h2>
 				}
 			</div>
 			// Subscription link.
@@ -513,11 +513,11 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				} else {
 					{{ title = "Articles" }}
 				}
-				@h2(title)
+				<h2>{ title }</h2>
 			</div>
 			<div class="mt-4 flex md:mt-0 md:ml-4 space-x-4">
-				@h3(response.Filters.GetView())
-				@h3(response.Filters.GetSort().String())
+				<h3>{ response.Filters.GetView() }</h3>
+				<h3>{ response.Filters.GetSort().String() }</h3>
 			</div>
 		</div>
 		<div

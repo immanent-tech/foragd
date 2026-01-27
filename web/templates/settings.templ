@@ -308,7 +308,7 @@ templ DisplaySettings(user *models.User) {
 		// Display settings.
 		<div id="behaviour-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div>
-				@h3("Behaviour")
+				<h3>Behaviour</h3>
 				<p class="mt-1 text-sm/6">Settings that control the display behaviour in the app.</p>
 			</div>
 			<form
@@ -396,7 +396,7 @@ templ DisplaySettings(user *models.User) {
 		// Theme settings.
 		<div id="theme-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div class="md:col-span-full">
-				@h3("Theme")
+				<h3>Theme</h3>
 				<p class="mt-1 text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
 			</div>
 			// * Changing themes here also requires updating the list in styles.css.
