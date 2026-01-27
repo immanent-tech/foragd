@@ -196,16 +196,20 @@
 
 /* For formatting email newsletters. */
 @utility prose-email {
-  :where(p) > p {
-    @apply prose my-2;
+  :where(p) {
+    @apply prose mt-4 mb-6;
   }
 
   :where(h1) {
-    @apply my-4 text-xl font-bold;
+    @apply mt-4 text-2xl font-semibold tracking-tight text-balance capitalize;
   }
 
-  :where(h2, h3, h4, h5, h6) {
-    @apply my-4 text-lg font-semibold;
+  :where(h2) {
+    @apply text-lg font-bold tracking-tight capitalize;
+  }
+
+  :where(h3, h4, h5, h6) {
+    @apply text-lg font-medium capitalize;
   }
 
   :where(img) {
