@@ -13,7 +13,7 @@ import (
 templ Document(data []byte) {
 	@header(nil)
 	<div class="ui-container">
-		<article class="prose sm:prose-lg prose-img:shadow-md my-4">
+		<article class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">
 			@templ.Raw(string(data))
 		</article>
 		@partials.ButtonBackToTop()
