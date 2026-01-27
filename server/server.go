@@ -139,38 +139,38 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
 		middleware.Compress(defaultCompressionLevel, compressMimetypes...),
 		middleware.StripSlashes,
+		middlewares.Etag,
 	)
 
+	// Public facing routes.
 	// Error handling.
 	router.NotFound(handlers.HandleNotFound())
-	// Static content.
-	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
-	router.Handle("/robots.txt", handlers.RobotsHandler())
-	// Policy documents (i.e., terms of service, privacy).
-	router.Get("/policies/*", handlers.PolicyDocsHandler())
-	// Posts/Blog.
-	router.Get("/posts", handlers.PostsHandler())
-	router.Get("/posts/*", handlers.PostsHandler())
 	// Image proxy.
 	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgProxy.BaseURL))
+	// Robots.
+	router.Handle("/robots.txt", handlers.RobotsHandler())
+	// Static content.
+	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	// Avatars
 	router.Get("/img/avatar/*", handlers.LoadCachedImage)
 	// User custom subscription images
 	router.Get("/img/subscription/*", handlers.LoadCachedImage)
 	// User uploaded screenshots
 	router.Get("/img/screenshots/*", handlers.LoadCachedImage)
-
-	// Public facing routes.
-	router.Group(func(r chi.Router) {
-		r.Use(
-			middlewares.Etag,
-		)
-		r.Get("/", handlers.HandleLandingPage())
-		r.Get("/about", handlers.About())
-		r.Get("/viewer", handlers.Viewer())
-		r.Get("/help", handlers.DocumentationHandler())
-		r.With(middlewares.RequireHTMX).Post("/viewer", handlers.Viewer())
-	})
+	// Landing.
+	router.Get("/", handlers.HandleLandingPage())
+	// About.
+	router.Get("/about", handlers.About())
+	// Feed Viewer.
+	router.Get("/viewer", handlers.HandleViewer())
+	router.With(middlewares.RequireHTMX).Post("/viewer", handlers.HandleViewer())
+	// Help documentation.
+	router.Get("/help", handlers.DocumentationHandler())
+	// Policy documentation (i.e., terms of service, privacy).
+	router.Get("/policies/*", handlers.PolicyDocsHandler())
+	// Posts/Blog.
+	router.Get("/posts", handlers.PostsHandler())
+	router.Get("/posts/*", handlers.PostsHandler())
 
 	// Sign-up/Login routes.
 	router.Group(func(r chi.Router) {
@@ -201,8 +201,6 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {
 		r.Use(
-			middlewares.Etag,
-			middlewares.CrossOriginProtection,
 			middlewares.SetupHTMX,
 			session.LoadAndSave,
 			middlewares.RequireUserAuth,

@@ -15,7 +15,7 @@ import (
 
 templ Viewer() {
 	@header(nil)
-	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
+	<div class="ui-container h-full">
 		<section id="viewer">
 			<h2 class="ui-h2">Feed Viewer</h2>
 			<p class="ui-p">
@@ -48,7 +48,7 @@ templ Viewer() {
 		<div id="processing" class="htmx-indicator my-4 flex justify-center mx-auto">
 			<span class="flex loading loading-dots loading-lg"></span>
 		</div>
-		<section id="viewer-results" class="mt-8"></section>
+		<section id="viewer-results" class="mt-8 mb-24"></section>
 	</div>
 	@footer()
 }
@@ -135,6 +135,17 @@ templ ViewerResults(feed *feeds.Feed) {
 		</div>
 		@partials.ButtonBackToTop()
 	}
+}
+
+templ ViewerError(msg *models.UserMessage) {
+	<div class="ui-container">
+		<div class="text-center">
+			<h2 class="ui-h2">{ msg.Summary }</h2>
+			if msg.HasDetails() {
+				<p class="ui-p">{ msg.Details }</p>
+			}
+		</div>
+	</div>
 }
 
 // inspectorItemCard renders a feed item in a card.
