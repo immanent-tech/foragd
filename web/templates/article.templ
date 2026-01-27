@@ -121,10 +121,10 @@ templ (a *Article) Card() {
 			<div class="card-actions mt-auto justify-between items-center">
 				// Timestamp.
 				<div class="flex flex-1 gap-x-2">
-					<p class="text-xs/4 capitalize">
+					<span class="label text-xs/4 capitalize">
 						Updated&nbsp;
 						@showTimestamp(a.GetUpdatedDate())
-					</p>
+					</span>
 				</div>
 				<form>
 					<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
