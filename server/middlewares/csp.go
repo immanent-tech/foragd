@@ -183,8 +183,8 @@ func ContentSecurityPolicy(next http.Handler) http.Handler {
 			)
 			return
 		}
-		csp.StyleSrc = append(csp.StyleSrc, "'nonce-"+currentNonce+"'")
-		csp.ScriptSrc = append(csp.ScriptSrc, "'nonce-"+currentNonce+"'")
+		// csp.StyleSrc = append(csp.StyleSrc, "'nonce-"+currentNonce+"'")
+		// csp.ScriptSrc = append(csp.ScriptSrc, "'nonce-"+currentNonce+"'")
 		// Write header.
 		res.Header().Add("Content-Security-Policy", csp.String())
 		// }
