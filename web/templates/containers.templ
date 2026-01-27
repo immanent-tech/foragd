@@ -12,7 +12,7 @@ import (
 // (i.e., privacy policy, terms of service, etc.)
 templ Document(data []byte) {
 	@header(nil)
-	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
+	<div class="ui-container">
 		<article class="prose sm:prose-lg prose-img:shadow-md my-4">
 			@templ.Raw(string(data))
 		</article>
