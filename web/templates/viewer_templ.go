@@ -47,7 +47,7 @@ func Viewer() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8\"><section id=\"viewer\"><h2>Feed Viewer</h2><p>Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site. The feed content, if found, will be displayed below.</p><p>Feed Viewer is powered by open-source! Check out the <a class=\"link\" href=\"https://github.com/immanent-tech/go-syndication\">go-syndication</a> library on GitHub.</p><form id=\"viewer-form\" hx-post=\"/viewer\" hx-target=\"#viewer-results\" hx-swap=\"innerHTML transition:true\" hx-indicator=\"#processing\"><fieldset class=\"fieldset bg-base-200 border-base-300 rounded-box border p-4 w-full\"><legend class=\"fieldset-legend\">URL</legend><div class=\"join\"><input type=\"text\" name=\"url\" class=\"input w-full\" placeholder=\"https://some.site\"> <button class=\"btn join-item\">View</button></div><p class=\"label\">Enter a URL of a site to inspect for feeds</p></fieldset></form></section><div id=\"processing\" class=\"htmx-indicator my-4 flex justify-center mx-auto\"><span class=\"flex loading loading-dots loading-lg\"></span></div><section id=\"viewer-results\" class=\"mt-8\"></section></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8\"><section id=\"viewer\"><h2 class=\"ui-h2\">Feed Viewer</h2><p class=\"ui-p\">Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site. The feed content, if found, will be displayed below.</p><p class=\"ui-p\">Feed Viewer is powered by open-source! Check out the <a class=\"link\" href=\"https://github.com/immanent-tech/go-syndication\">go-syndication</a> library on GitHub.</p><form id=\"viewer-form\" hx-post=\"/viewer\" hx-target=\"#viewer-results\" hx-swap=\"innerHTML transition:true\" hx-indicator=\"#processing\"><fieldset class=\"fieldset bg-base-200 border-base-300 rounded-box border p-4 w-full\"><legend class=\"fieldset-legend\">URL</legend><div class=\"join\"><input type=\"text\" name=\"url\" class=\"input w-full\" placeholder=\"https://some.site\"> <button class=\"btn join-item\">View</button></div><p class=\"label\">Enter a URL of a site to inspect for feeds</p></fieldset></form></section><div id=\"processing\" class=\"htmx-indicator my-4 flex justify-center mx-auto\"><span class=\"flex loading loading-dots loading-lg\"></span></div><section id=\"viewer-results\" class=\"mt-8\"></section></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -335,20 +335,20 @@ func viewerItemCard(item feeds.Item) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"card-body\"><h2 class=\"card-title\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"card-body\"><div class=\"card-title\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(item.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 161, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/viewer.templ`, Line: 161, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</h2><div class=\"flex-1 inline-grid\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div><div class=\"flex-1 inline-grid\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

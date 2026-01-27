@@ -14,7 +14,7 @@ templ ReportPageIssue(details *models.ReportIssueRequest) {
 		<div class="mx-auto max-w-3xl">
 			<div class="md:flex md:items-center md:justify-between">
 				<div class="min-w-0 flex-1">
-					<h2>Report An Issue</h2>
+					<h2 class="ui-h2">Report An Issue</h2>
 				</div>
 			</div>
 			<p class="mt-2 max-w-4xl text-sm text-base-content/80">
@@ -94,7 +94,7 @@ templ ReportObjectIssues(objectType, id string, details *models.ReportObjectIssu
 		<div class="mx-auto max-w-3xl">
 			<div class="md:flex md:items-center md:justify-between">
 				<div class="min-w-0 flex-1">
-					<h2>Report An Issue</h2>
+					<h2 class="ui-h2">Report An Issue</h2>
 				</div>
 			</div>
 			<p class="mt-2 max-w-4xl text-sm text-base-content/80">
@@ -224,7 +224,7 @@ templ IssueReportedConfirmation(msg *models.UserMessage) {
 	<div class="ui-container">
 		<div class="md:flex md:items-center md:justify-between">
 			<div class="min-w-0 flex-1">
-				<h2>{ msg.Summary }</h2>
+				<h2 class="ui-h2">{ msg.Summary }</h2>
 			</div>
 		</div>
 		<p class="mt-2 max-w-4xl text-sm text-base-content/80">

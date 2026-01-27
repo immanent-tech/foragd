@@ -21,7 +21,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
 				<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl">
 					<div class="flex items-center justify-between px-4">
-						<h3>Filters</h3>
+						<h3 class="ui-h3">Filters</h3>
 						<button
 							type="button"
 							command="close"
@@ -35,7 +35,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 					</div>
 					// Category Filters.
 					<div class="border-t border-base-content/10 px-4 py-6">
-						<h3 class="-mx-2 -my-3 flow-root">
+						<h3 class="ui-h3 -mx-2 -my-3 flow-root">
 							<button
 								id="filters-mobile-disclosure"
 								type="button"
@@ -65,7 +65,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 					</div>
 					// View Filters (mobile).
 					<div class="mt-4 border-t border-base-content/10 px-4 py-6">
-						<h3 class="-mx-2 -my-3 flow-root">
+						<h3 class="ui-h3 -mx-2 -my-3 flow-root">
 							<button
 								type="button"
 								command="--toggle"
@@ -91,7 +91,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 					</div>
 					// Sorting (mobile).
 					<div class="mt-4 border-t border-base-content/10 px-4 py-6">
-						<h3 class="-mx-2 -my-3 flow-root">
+						<h3 class="ui-h3 -mx-2 -my-3 flow-root">
 							<button
 								type="button"
 								command="--toggle"
@@ -196,7 +196,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 		if (path == "/list/subscriptions" && filters.OnlyFavorites) || len(filters.GetCategories()) > 0 {
 			<div>
 				<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
-					<h3 class="text-sm font-medium">
+					<h3 class="ui-h3">
 						Filtered By
 					</h3>
 					<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>

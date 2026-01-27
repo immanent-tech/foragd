@@ -43,7 +43,7 @@ func PostsIndex(posts *models.DocsDirectory) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 bg-base-100 h-full\"><div class=\"mx-auto max-w-2xl lg:mx-0\"><h2>Posts</h2><p>Posts from the Foragd team.</p></div><div class=\"mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-neutral pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 bg-base-100 h-full\"><div class=\"mx-auto max-w-2xl lg:mx-0\"><h2 class=\"ui-h2\">Posts</h2><p class=\"ui-p\">Posts from the Foragd team.</p></div><div class=\"mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-neutral pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -74,7 +74,7 @@ func PostsIndex(posts *models.DocsDirectory) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</time></div><div class=\"group relative grow\"><h3 class=\"mt-3 text-lg/6 font-semibold \"><a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</time></div><div class=\"group relative grow\"><h3 class=\"ui-h3 mt-3 text-lg/6 font-semibold \"><a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -31,7 +31,7 @@ templ (page *Home) Template() {
 		} else {
 			if len(page.LatestArticles) > 0 {
 				<div class="flex w-full mb-4">
-					<h2 class="flex flex-1 justify-start">Latest Articles</h2>
+					<h2 class="ui-h2 flex flex-1 justify-start">Latest Articles</h2>
 				</div>
 				// Grid of latest articles on large displays.
 				<div class="hidden sm:ui-grid">
@@ -57,7 +57,7 @@ templ (page *Home) Template() {
 			}
 			if len(page.TopCategories) > 0 {
 				<div class="flex w-full my-4">
-					<h2 class="flex flex-1 justify-start">Top Categories</h2>
+					<h2 class="ui-h2 flex flex-1 justify-start">Top Categories</h2>
 				</div>
 				<div class="flex justify-center gap-2 p-2 m-2">
 					<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
@@ -123,133 +123,6 @@ templ (page *Home) Template() {
 	</div>
 }
 
-templ homePageLatestArticle(article *models.Article) {
-	<article
-		hx-get={ "/view/article/" + article.GetID() }
-		hx-target={ ContentID.Target() }
-		hx-push-url="true"
-		hx-swap="innerHTML show:window:top"
-		hx-trigger="click"
-		id={ article.GetID() }
-		class="card overflow-hidden max-w-400 bg-base-200 shadow-md"
-	>
-		// Article image.
-		if img := article.GetImage(); img != nil {
-			<figure>
-				@NewProxiedImage(img, "rs:auto:400:266/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
-					WithAttribute("width", "400"),
-					WithAttribute("height", "266"),
-				)
-			</figure>
-		}
-		<div class="card-body">
-			// Article title.
-			<h2 class="card-title text-pretty line-clamp-3 tracking-tight">
-				if article.GetTitle() != "" {
-					{ article.GetTitle() }
-				} else {
-					(no title)
-				}
-			</h2>
-			<div class="grid grid-flow-row justify-between mt-2">
-				// Timestamp.
-				<p class="flex text-xs/tight">
-					Updated&nbsp;
-					@showTimestamp(article.GetUpdatedDate())
-				</p>
-				// Subscription.
-				<p class="flex text-xs/tight truncate">
-					<a
-						hx-get="/list/articles"
-						hx-target={ ContentID.Target() }
-						hx-push-url="true"
-						hx-swap="innerHTML show:window:top transition:true"
-						hx-trigger="click consume"
-						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: article.GetSubscriptionID()}) }
-						class="link link-hover truncate"
-					>
-						{ article.GetFeedTitle() }
-					</a>
-				</p>
-			</div>
-			// Content summary.
-			<div data-disable-scripting class="prose-summary">
-				@templ.Raw(article.GetContent())
-			</div>
-		</div>
-	</article>
-}
-
-templ homePageTopCategoryArticle(article *models.Article) {
-	<article
-		hx-get={ "/view/article/" + article.GetID() }
-		hx-target={ ContentID.Target() }
-		hx-push-url="true"
-		hx-swap="innerHTML show:window:top"
-		hx-trigger="click"
-		id={ article.GetID() }
-		class="card card-side card-link bg-base-200 shadow-md"
-	>
-		// Article image.
-		if img := article.GetImage(); img != nil {
-			<figure>
-				@NewProxiedImage(img, "rs:auto:100:100/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1")
-				// WithAttribute("width", "200"),
-				// WithAttribute("height", "125"),
-			</figure>
-		}
-		<div class="card-body">
-			// Article title.
-			<h2 class="card-title text-pretty line-clamp-3 tracking-tight">
-				if article.GetTitle() != "" {
-					{ article.GetTitle() }
-				} else {
-					(no title)
-				}
-			</h2>
-			<div class="grid grid-flow-row justify-between mt-2">
-				// Timestamp.
-				<p class="flex text-xs/tight">
-					Updated&nbsp;
-					@showTimestamp(article.GetUpdatedDate())
-				</p>
-				// Subscription.
-				<p class="flex text-xs/tight truncate">
-					<a
-						hx-get="/list/articles"
-						hx-target={ ContentID.Target() }
-						hx-push-url="true"
-						hx-swap="innerHTML show:window:top transition:true"
-						hx-trigger="click consume"
-						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: article.GetSubscriptionID()}) }
-						class="link link-hover truncate"
-					>
-						{ article.GetFeedTitle() }
-					</a>
-				</p>
-			</div>
-		</div>
-	</article>
-}
-
-templ homePageHeadline(article *models.Article) {
-	<li class="py-4 w-full max-h-96 overflow-hidden">
-		@NewLink(
-			WithHXMethod(http.MethodGet, "/view/article/"+article.GetID()),
-			WithHXTarget(ContentID.Target()),
-			WithHXPushURL(true),
-			WithHXSwap("innerHTML show:window:top"),
-			WithClasses("link-hover"),
-		) {
-			if article.GetTitle() != "" {
-				<h3>{ article.GetTitle() }</h3>
-			} else {
-				<h3>(no title)</h3>
-			}
-		}
-	</li>
-}
-
 templ homePageCategoryBadge(category *models.CategoryCount) {
 	{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
 	{{ params[models.ParamCategories] = category.Category }}
@@ -268,17 +141,17 @@ templ homePageCategoryBadge(category *models.CategoryCount) {
 
 templ NewUserHome() {
 	<div class="ui-container">
-		<h2>{ "Welcome to " + config.AppName }</h2>
+		<h2 class="ui-h2">{ "Welcome to " + config.AppName }</h2>
 		<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
 		<div class="py-4">
-			<h3>Add/Import Subscriptions</h3>
+			<h3 class="ui-h3">Add/Import Subscriptions</h3>
 			<p class="py-2">Import your subscriptions from an external service or start fresh.</p>
 			<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content max-w-prose">
 				<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
 					@tabler.Plus(i.Props{Class: "size-6 text-secondary-content"})
 				</div>
 				<div>
-					<h3 class="text-sm font-medium ">
+					<h4 class="text-sm font-medium ">
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
 							WithHXTarget(ContentID.Target()),
@@ -289,7 +162,7 @@ templ NewUserHome() {
 							<span>Add a feed subscription</span>
 							<span aria-hidden="true">&rarr;</span>
 						}
-					</h3>
+					</h4>
 					<p class="mt-1 text-sm text-base-content">Add a single subscription from a URL or webpage.</p>
 				</div>
 			</div>
@@ -298,7 +171,7 @@ templ NewUserHome() {
 					@tabler.CloudDownload(i.Props{Class: "size-6 text-secondary-content"})
 				</div>
 				<div>
-					<h3 class="text-sm font-medium">
+					<h4 class="text-sm font-medium">
 						@NewLink(
 							WithHXMethod(http.MethodGet, "/user/import"),
 							WithHXTarget(ContentID.Target()),
@@ -309,13 +182,13 @@ templ NewUserHome() {
 							<span>Import subscriptions</span>
 							<span aria-hidden="true">&rarr;</span>
 						}
-					</h3>
+					</h4>
 					<p class="mt-1 text-sm text-base-content">Import multiple subscriptions using an OPML file.</p>
 				</div>
 			</div>
 		</div>
 		<div class="py-4">
-			<h3>Start With Curated Subscription Sets</h3>
+			<h3 class="ui-h3">Start With Curated Subscription Sets</h3>
 			<p class="py-2">Or try one or more curated starter sets (you can also add these later in settings).</p>
 			<form
 				hx-post="/user/feedset"
@@ -369,7 +242,7 @@ templ NewUserHome() {
 			</form>
 		</div>
 		<div class="py-4">
-			<h3>Get to know Foragd</h3>
+			<h3 class="ui-h3">Get to know Foragd</h3>
 			<p class="py-2">Read the documentation/help to get familiar with the app.</p>
 			<ul class="list-disc list-inside">
 				<li><a class="link" href="/help/index">Documentation Home</a></li>

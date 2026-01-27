@@ -46,7 +46,7 @@ templ SettingsPage() {
 templ AccountSettings(user *models.User) {
 	<div id="account-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 		<div>
-			<h3 class="text-base/7 font-semibold">Subscription Plan</h3>
+			<h3 class="ui-h3">Subscription Plan</h3>
 			<p class="mt-1 text-sm/6">
 				if trial, endDate := user.OnTrial(); trial {
 					{ user.GetSubscriptionPlan() +" (trial, ending on "+endDate.Format(time.DateOnly)+")" }
@@ -76,7 +76,7 @@ templ AccountSettings(user *models.User) {
 			</div>
 		</div>
 		<div>
-			<h3 class="text-base/7 font-semibold">Import/Export</h3>
+			<h3 class="ui-h3">Import/Export</h3>
 			<p class="mt-1 text-sm/6">Import or Export your subscriptions.</p>
 		</div>
 		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
@@ -99,7 +99,7 @@ templ AccountSettings(user *models.User) {
 		</div>
 		if !strings.HasPrefix(user.GetExternalID(),"auth0|") {
 			<div class="col-span-full">
-				<h3 class="text-base/7 font-semibold">Edit Account</h3>
+				<h3 class="ui-h3">Edit Account</h3>
 				<p class="mt-1 text-sm/6 text-neutral">
 					Your account is provided by an external service provider such as Google or Facebook, please log in to your account on the external service to make changes to your nickname, email, avatar or password.
 				</p>
@@ -107,7 +107,7 @@ templ AccountSettings(user *models.User) {
 		} else {
 			// Account customisation.
 			<div>
-				<h3 class="text-base/7 font-semibold">Edit Account</h3>
+				<h3 class="ui-h3">Edit Account</h3>
 				<p class="mt-1 text-sm/6">Use an email address that can receive messages.</p>
 			</div>
 			<form
@@ -173,7 +173,7 @@ templ AccountSettings(user *models.User) {
 			</form>
 			// Change password.
 			<div>
-				<h3 class="text-base/7 font-semibold">Change Password</h3>
+				<h3 class="ui-h3">Change Password</h3>
 				<p class="mt-1 text-sm/6">Update your password associated with your account.</p>
 			</div>
 			<form
@@ -206,7 +206,7 @@ templ AccountSettings(user *models.User) {
 		}
 		// Subscription Email
 		<div>
-			<h3 class="text-base/7 font-semibold">Subcribe to Email Newsletters</h3>
+			<h3 class="ui-h3">Subcribe to Email Newsletters</h3>
 			<p class="mt-1 text-sm/6">Use or generate an email for subscribing to email newsletters</p>
 		</div>
 		<div id="subscription-email" class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
@@ -233,7 +233,7 @@ templ AccountSettings(user *models.User) {
 		</div>
 		if cancelled, _ := user.Cancelled(); cancelled {
 			<div>
-				<h3 class="text-base/7 font-semibold">Cancel deactivation</h3>
+				<h3 class="ui-h3">Cancel deactivation</h3>
 				<p class="mt-1 text-sm/6">
 					Change of mind? You can cancel the deactivation of your account and restore it to full functionality. You'll continue to get billed at the start of your next billing cycle.
 				</p>
@@ -254,7 +254,7 @@ templ AccountSettings(user *models.User) {
 		} else if user.Active() {
 			// Show action to deactivate account.
 			<div>
-				<h3 class="text-base/7 font-semibold">Deactivate Account</h3>
+				<h3 class="ui-h3">Deactivate Account</h3>
 				<p class="mt-1 text-sm/6">
 					No longer want to use our service? You can deactivate your account here.
 				</p>
@@ -304,7 +304,7 @@ templ DisplaySettings(user *models.User) {
 		// Display settings.
 		<div id="behaviour-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div>
-				<h3>Behaviour</h3>
+				<h3 class="ui-h3">Behaviour</h3>
 				<p class="mt-1 text-sm/6">Settings that control the display behaviour in the app.</p>
 			</div>
 			<form
@@ -391,7 +391,7 @@ templ DisplaySettings(user *models.User) {
 		// Theme settings.
 		<div id="theme-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div class="md:col-span-full">
-				<h3>Theme</h3>
+				<h3 class="ui-h3">Theme</h3>
 				<p class="mt-1 text-sm/6">Choose a theme from the selection below. It will be applied instantly.</p>
 			</div>
 			// * Changing themes here also requires updating the list in styles.css.

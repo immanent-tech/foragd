@@ -45,7 +45,7 @@ func FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles)
 			return templ_7745c5c3_Err
 		}
 		if len(subscriptions) > 0 || len(articles) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div id=\"top\" class=\"flex items-center justify-between mt-4\"><div class=\"min-w-0 flex-1\"><h2>Favorites</h2></div></div> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div id=\"top\" class=\"flex items-center justify-between mt-4\"><div class=\"min-w-0 flex-1\"><h2 class=\"ui-h2\">Favorites</h2></div></div> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -60,7 +60,7 @@ func FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles)
 				return templ_7745c5c3_Err
 			}
 			if len(subscriptions) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<section id=\"subscriptions\" class=\"mt-4\"><div class=\"pb-5\"><h3>Subscriptions</h3></div><div id=\"grid-objects\" class=\"ui-grid\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<section id=\"subscriptions\" class=\"mt-4\"><div class=\"pb-5\"><h3 class=\"ui-h3\">Subscriptions</h3></div><div id=\"grid-objects\" class=\"ui-grid\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -88,7 +88,7 @@ func FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles)
 				return templ_7745c5c3_Err
 			}
 			if len(articles) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<section id=\"articles\" class=\"mt-4\"><div class=\"pb-5\"><h3>Articles</h3></div><div id=\"grid-objects\" class=\"ui-grid\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<section id=\"articles\" class=\"mt-4\"><div class=\"pb-5\"><h3 class=\"ui-h3\">Articles</h3></div><div id=\"grid-objects\" class=\"ui-grid\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

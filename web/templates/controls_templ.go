@@ -43,7 +43,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<el-dialog id=\"content-filters-mobile\"><dialog id=\"mobile-filters-menu\" class=\"overflow-hidden sm:hidden\"><el-dialog-backdrop></el-dialog-backdrop><div tabindex=\"0\" class=\"fixed inset-0 flex focus:outline-none\"><el-dialog-panel class=\"relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl\"><div class=\"flex items-center justify-between px-4\"><h3>Filters</h3><button type=\"button\" command=\"close\" commandfor=\"mobile-filters-menu\" class=\"relative -mr-2 flex size-10 items-center justify-center rounded-md  p-2\"><span class=\"absolute -inset-0.5\"></span> <span class=\"sr-only\">Close menu</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<el-dialog id=\"content-filters-mobile\"><dialog id=\"mobile-filters-menu\" class=\"overflow-hidden sm:hidden\"><el-dialog-backdrop></el-dialog-backdrop><div tabindex=\"0\" class=\"fixed inset-0 flex focus:outline-none\"><el-dialog-panel class=\"relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl\"><div class=\"flex items-center justify-between px-4\"><h3 class=\"ui-h3\">Filters</h3><button type=\"button\" command=\"close\" commandfor=\"mobile-filters-menu\" class=\"relative -mr-2 flex size-10 items-center justify-center rounded-md  p-2\"><span class=\"absolute -inset-0.5\"></span> <span class=\"sr-only\">Close menu</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -51,7 +51,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button></div><div class=\"border-t border-base-content/10 px-4 py-6\"><h3 class=\"-mx-2 -my-3 flow-root\"><button id=\"filters-mobile-disclosure\" type=\"button\" command=\"--toggle\" commandfor=\"filter-section-category\" class=\"flex w-full items-center justify-between px-2 py-3 text-sm\"><span class=\"font-medium\">Category</span> <span class=\"ml-6 flex items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button></div><div class=\"border-t border-base-content/10 px-4 py-6\"><h3 class=\"ui-h3 -mx-2 -my-3 flow-root\"><button id=\"filters-mobile-disclosure\" type=\"button\" command=\"--toggle\" commandfor=\"filter-section-category\" class=\"flex w-full items-center justify-between px-2 py-3 text-sm\"><span class=\"font-medium\">Category</span> <span class=\"ml-6 flex items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -85,7 +85,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-trigger=\"click from:#filters-mobile-disclosure\" hx-indicator=\"#load-categories-mobile\"><span id=\"load-categories-mobile\" class=\"loading loading-spinner loading-sm\"></span></div></el-disclosure></div><div class=\"mt-4 border-t border-base-content/10 px-4 py-6\"><h3 class=\"-mx-2 -my-3 flow-root\"><button type=\"button\" command=\"--toggle\" commandfor=\"filter-section-view\" class=\"flex w-full items-center justify-between px-2 py-3 text-sm\"><span class=\"font-medium\">View</span> <span class=\"ml-6 flex items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-trigger=\"click from:#filters-mobile-disclosure\" hx-indicator=\"#load-categories-mobile\"><span id=\"load-categories-mobile\" class=\"loading loading-spinner loading-sm\"></span></div></el-disclosure></div><div class=\"mt-4 border-t border-base-content/10 px-4 py-6\"><h3 class=\"ui-h3 -mx-2 -my-3 flow-root\"><button type=\"button\" command=\"--toggle\" commandfor=\"filter-section-view\" class=\"flex w-full items-center justify-between px-2 py-3 text-sm\"><span class=\"font-medium\">View</span> <span class=\"ml-6 flex items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -115,7 +115,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></el-disclosure></div><div class=\"mt-4 border-t border-base-content/10 px-4 py-6\"><h3 class=\"-mx-2 -my-3 flow-root\"><button type=\"button\" command=\"--toggle\" commandfor=\"filter-section-sort\" class=\"flex w-full items-center justify-between px-2 py-3 text-sm\"><span class=\"font-medium\">Sort</span> <span class=\"ml-6 flex items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></el-disclosure></div><div class=\"mt-4 border-t border-base-content/10 px-4 py-6\"><h3 class=\"ui-h3 -mx-2 -my-3 flow-root\"><button type=\"button\" command=\"--toggle\" commandfor=\"filter-section-sort\" class=\"flex w-full items-center justify-between px-2 py-3 text-sm\"><span class=\"font-medium\">Sort</span> <span class=\"ml-6 flex items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -260,7 +260,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if (path == "/list/subscriptions" && filters.OnlyFavorites) || len(filters.GetCategories()) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div><div class=\"mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8\"><h3 class=\"text-sm font-medium\">Filtered By</h3><div aria-hidden=\"true\" class=\"hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block\"></div><div class=\"mt-2 sm:mt-0 sm:ml-4\"><div id=\"active-filters\" class=\"-m-1 flex flex-wrap items-center\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div><div class=\"mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8\"><h3 class=\"ui-h3\">Filtered By</h3><div aria-hidden=\"true\" class=\"hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block\"></div><div class=\"mt-2 sm:mt-0 sm:ml-4\"><div id=\"active-filters\" class=\"-m-1 flex flex-wrap items-center\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

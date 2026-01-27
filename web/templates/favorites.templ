@@ -16,7 +16,7 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 		if len(subscriptions) > 0 || len(articles) > 0 {
 			<div id="top" class="flex items-center justify-between mt-4">
 				<div class="min-w-0 flex-1">
-					<h2>Favorites</h2>
+					<h2 class="ui-h2">Favorites</h2>
 				</div>
 			</div>
 			// Show jump to links for quick access when there are both subscriptions and articles.
@@ -36,7 +36,7 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 			if len(subscriptions) > 0 {
 				<section id="subscriptions" class="mt-4">
 					<div class="pb-5">
-						<h3>Subscriptions</h3>
+						<h3 class="ui-h3">Subscriptions</h3>
 					</div>
 					<div id="grid-objects" class="ui-grid">
 						for subscription := range slices.Values(subscriptions) {
@@ -50,7 +50,7 @@ templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles
 			if len(articles) > 0 {
 				<section id="articles" class="mt-4">
 					<div class="pb-5">
-						<h3>Articles</h3>
+						<h3 class="ui-h3">Articles</h3>
 					</div>
 					<div id="grid-objects" class="ui-grid">
 						for article := range slices.Values(articles) {

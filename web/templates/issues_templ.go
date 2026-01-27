@@ -39,7 +39,7 @@ func ReportPageIssue(details *models.ReportIssueRequest) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"ui-container\"><div class=\"mx-auto max-w-3xl\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2>Report An Issue</h2></div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.</p><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Alternatively, you can <a class=\"link\" href=\"mailto:feedback@immanent.tech&subject=Foragd Feedback\">email us</a> instead.</p><form id=\"report-app-issue\" hx-post=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"ui-container\"><div class=\"mx-auto max-w-3xl\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2 class=\"ui-h2\">Report An Issue</h2></div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.</p><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Alternatively, you can <a class=\"link\" href=\"mailto:feedback@immanent.tech&subject=Foragd Feedback\">email us</a> instead.</p><form id=\"report-app-issue\" hx-post=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -164,7 +164,7 @@ func ReportObjectIssues(objectType, id string, details *models.ReportObjectIssue
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"ui-container\"><div class=\"mx-auto max-w-3xl\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2>Report An Issue</h2></div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.</p><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Alternatively, you can <a class=\"link\" href=\"mailto:feedback@immanent.tech&subject=Foragd Feedback\">email us</a> instead.</p><form id=\"report-subscription-issue\" hx-post=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"ui-container\"><div class=\"mx-auto max-w-3xl\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2 class=\"ui-h2\">Report An Issue</h2></div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.</p><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Alternatively, you can <a class=\"link\" href=\"mailto:feedback@immanent.tech&subject=Foragd Feedback\">email us</a> instead.</p><form id=\"report-subscription-issue\" hx-post=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -346,14 +346,14 @@ func IssueReportedConfirmation(msg *models.UserMessage) templ.Component {
 			templ_7745c5c3_Var17 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"ui-container\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"ui-container\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2 class=\"ui-h2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(msg.Summary)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 227, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 227, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {

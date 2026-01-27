@@ -331,7 +331,7 @@ func SearchResultsGrid(results *models.SearchResults) templ.Component {
 			templ_7745c5c3_Var12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<div class=\"ui-container\"><div id=\"search-results\" class=\"flex items-center justify-between mt-4\"><div class=\"min-w-0 flex-1\"><h2>Search Results</h2></div><el-dropdown class=\"inline-block flex-none\"><button class=\"inline-flex flex-col items-center\"><span class=\"sr-only\">Articles Actions</span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<div class=\"ui-container\"><div id=\"search-results\" class=\"flex items-center justify-between mt-4\"><div class=\"min-w-0 flex-1\"><h2 class=\"ui-h2\">Search Results</h2></div><el-dropdown class=\"inline-block flex-none\"><button class=\"inline-flex flex-col items-center\"><span class=\"sr-only\">Articles Actions</span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1216,7 +1216,7 @@ func SimilarArticles(articles models.Articles) templ.Component {
 			templ_7745c5c3_Var49 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "<div class=\"ui-container\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2>Similar Articles</h2></div></div><section class=\"mt-4\"><div id=\"grid-objects\" class=\"ui-grid\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 106, "<div class=\"ui-container\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h2 class=\"ui-h2\">Similar Articles</h2></div></div><section class=\"mt-4\"><div id=\"grid-objects\" class=\"ui-grid\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1264,7 +1264,7 @@ func NoSearchResults() templ.Component {
 			templ_7745c5c3_Var50 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "<div class=\"ui-container\"><div class=\"min-w-0 flex flex-1\"><h2>Search Results</h2></div><div class=\"text-center mt-4\"><h3 class=\"text-xl/7 font-bold sm:truncate sm:text-2xl sm:tracking-tight\">Nothing found 😕</h3><p class=\"text-base font-semibold\">Looks like there are no matches for that search.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 109, "<div class=\"ui-container\"><div class=\"min-w-0 flex flex-1\"><h2 class=\"ui-h2\">Search Results</h2></div><div class=\"text-center mt-4\"><h3 class=\"text-xl/7 font-bold sm:truncate sm:text-2xl sm:tracking-tight\">Nothing found 😕</h3><p class=\"text-base font-semibold\">Looks like there are no matches for that search.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
