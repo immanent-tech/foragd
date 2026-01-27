@@ -122,16 +122,16 @@ templ (s *Subscription) Card() {
 				<div class="mr-4 shrink-0 self-center">
 					@subscriptionThumbnail(s.Subscription.GetImage(), s.Subscription.GetTitle())
 				</div>
-				<h2 class="text-pretty line-clamp-3 tracking-tight">{ s.Subscription.GetTitle() }</h2>
+				<div class="text-pretty line-clamp-3 tracking-tight">{ s.Subscription.GetTitle() }</div>
 			</div>
-			<p class="text-xs/4 italic truncate">
+			<div class="label text-sm">
 				Last update
 				if !s.Subscription.GetUpdatedDate().IsZero() {
 					@showTimestamp(s.Subscription.GetUpdatedDate())
 				} else {
 					unknown
 				}
-			</p>
+			</div>
 			// Display up to 5 of the subscription categories.
 			if len(s.Subscription.GetCategories(0)) > 0 {
 				<div class="flex justify-start my-2">
@@ -156,62 +156,63 @@ templ (s *Subscription) Card() {
 			}
 			<div class="card-actions mt-auto items-center">
 				// Show stats if user requested.
-				<div class="inline-flex flex-1 flex-col text-xs/4">
+				<div class="label inline-grid grid-flow-row text-xs justify-items-start">
 					if s.Subscription.Settings.ShowSubscriptionStats {
 						if s.Subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
-							<p>
+							<span class="col-span-full justify-start">
 								{ s.Subscription.GetStats().UpdateFrequency() }
-							</p>
+							</span>
 						}
-						<p>
+						<span class="col-span-full justify-start">
 							{ s.Subscription.GetStats().UnreadTotal() }
 							Unread
-						</p>
+						</span>
 					}
 				</div>
 				// Favorite action.
-				<form>
-					<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
-					<label class="swap" _="on click halt the event's bubbling">
-						<input
-							hx-post={ "/favorite/subscription/" + s.GetID() }
-							hx-include="[name='csrf_token']"
-							hx-swap="none"
-							id={ s.GetID() + "-favorite-state" }
-							type="checkbox"
-							if s.IsFavorite() {
-								checked
-							}
-							_="on htmx:afterRequest(failed) toggle @checked on me"
-						/>
-						@tabler.HeartFilled(i.Props{Class: "size-5 text-primary swap-on"})
-						@tabler.Heart(i.Props{Class: "size-5 text-primary swap-off"})
-					</label>
-				</form>
-				// Mark action.
-				if s.GetSubscriptionType() != models.SubscriptionTypeSearch {
+				<div class="flex flex-1 space-x-2 items-center justify-end">
 					<form>
 						<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
-						<input
-							type="hidden"
-							name={ models.ParamMark }
-							if s.GetStats().IsUnread() {
-								value={ models.MarkRead }
-							} else {
-								value={ models.MarkUnread }
-							}
-						/>
 						<label class="swap" _="on click halt the event's bubbling">
 							<input
-								hx-post={ "/mark/subscription/" + s.GetID() }
+								hx-post={ "/favorite/subscription/" + s.GetID() }
 								hx-include="[name='csrf_token']"
 								hx-swap="none"
-								id={ s.GetID() + "-read-state" }
+								id={ s.GetID() + "-favorite-state" }
 								type="checkbox"
-								if !s.GetStats().IsUnread() {
+								if s.IsFavorite() {
 									checked
 								}
-								_="
+								_="on htmx:afterRequest(failed) toggle @checked on me"
+							/>
+							@tabler.HeartFilled(i.Props{Class: "size-5 text-primary swap-on"})
+							@tabler.Heart(i.Props{Class: "size-5 text-primary swap-off"})
+						</label>
+					</form>
+					// Mark action.
+					if s.GetSubscriptionType() != models.SubscriptionTypeSearch {
+						<form>
+							<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
+							<input
+								type="hidden"
+								name={ models.ParamMark }
+								if s.GetStats().IsUnread() {
+									value={ models.MarkRead }
+								} else {
+									value={ models.MarkUnread }
+								}
+							/>
+							<label class="swap" _="on click halt the event's bubbling">
+								<input
+									hx-post={ "/mark/subscription/" + s.GetID() }
+									hx-include="[name='csrf_token']"
+									hx-swap="none"
+									id={ s.GetID() + "-read-state" }
+									type="checkbox"
+									if !s.GetStats().IsUnread() {
+										checked
+									}
+									_="
 					on htmx:afterRequest(successful)
 					tell the previous <input />
 						get your value
@@ -222,62 +223,63 @@ templ (s *Subscription) Card() {
 						end
 					on htmx:afterRequest(failed) toggle @checked on me
 					"
-							/>
-							@tabler.MailOpened(i.Props{Class: "size-5 text-primary swap-on"})
-							@tabler.MailFilled(i.Props{Class: "size-5 text-primary swap-off"})
-						</label>
-					</form>
-				}
-				// Context menu actions.
-				<div class="flex flex-none">
-					<el-dropdown class="relative" _="on click halt the event's bubbling">
-						<button
-							id={ "btn-" + s.GetID() + "-actions" }
-							class="btn btn-sm btn-ghost"
-						>
-							<span class="sr-only">s.GetTitle() + " Actions"</span>
-							@tabler.Menu2(i.Props{Class: "size-5"})
-						</button>
-						<el-menu
-							id={ "menu-" + s.GetID() + "-actions" }
-							anchor="bottom end"
-							popover
-							_="on htmx:afterRequest(successful) hidePopover() on me"
-						>
-							// View action.
-							if len(s.ViewOriginAttributes()) > 0 {
-								<a class="link link-hover" { s.ViewOriginAttributes()... }>
-									@tabler.ExternalLink(i.Props{Class: "size-4"})
-									Feed Website
+								/>
+								@tabler.MailOpened(i.Props{Class: "size-5 text-primary swap-on"})
+								@tabler.MailFilled(i.Props{Class: "size-5 text-primary swap-off"})
+							</label>
+						</form>
+					}
+					// Context menu actions.
+					<div class="flex flex-none">
+						<el-dropdown class="relative" _="on click halt the event's bubbling">
+							<button
+								id={ "btn-" + s.GetID() + "-actions" }
+								class="btn btn-sm btn-ghost"
+							>
+								<span class="sr-only">s.GetTitle() + " Actions"</span>
+								@tabler.Menu2(i.Props{Class: "size-5"})
+							</button>
+							<el-menu
+								id={ "menu-" + s.GetID() + "-actions" }
+								anchor="bottom end"
+								popover
+								_="on htmx:afterRequest(successful) hidePopover() on me"
+							>
+								// View action.
+								if len(s.ViewOriginAttributes()) > 0 {
+									<a class="link link-hover" { s.ViewOriginAttributes()... }>
+										@tabler.ExternalLink(i.Props{Class: "size-4"})
+										Feed Website
+									</a>
+								}
+								// Edit action.
+								<a class="link link-hover" { s.EditAttributes()... }>
+									@tabler.Edit(i.Props{Class: "size-4"})
+									Edit Subscription
 								</a>
-							}
-							// Edit action.
-							<a class="link link-hover" { s.EditAttributes()... }>
-								@tabler.Edit(i.Props{Class: "size-4"})
-								Edit Subscription
-							</a>
-							// Unsubscribe action.
-							<form>
-								<input type="hidden" name="nickname" value={ s.GetTitle() }/>
-								<input type="hidden" name="confirmed" value="false"/>
-								<a
-									class="link link-hover"
-									hx-post={ "/remove/subscription/" + s.GetID() }
-									hx-target={ partials.ModalContainerID.Target() }
-									hx-include="[name='csrf_token']"
-									hx-trigger="click consume"
-								>
-									@tabler.TrashFilled(i.Props{Class: "size-4"})
-									Remove Subscription
+								// Unsubscribe action.
+								<form>
+									<input type="hidden" name="nickname" value={ s.GetTitle() }/>
+									<input type="hidden" name="confirmed" value="false"/>
+									<a
+										class="link link-hover"
+										hx-post={ "/remove/subscription/" + s.GetID() }
+										hx-target={ partials.ModalContainerID.Target() }
+										hx-include="[name='csrf_token']"
+										hx-trigger="click consume"
+									>
+										@tabler.TrashFilled(i.Props{Class: "size-4"})
+										Remove Subscription
+									</a>
+								</form>
+								// Report issue action.
+								<a class="link link-hover" { s.ReportIssueAttributes()... }>
+									@tabler.FlagFilled(i.Props{Class: "size-4"})
+									Report an issue
 								</a>
-							</form>
-							// Report issue action.
-							<a class="link link-hover" { s.ReportIssueAttributes()... }>
-								@tabler.FlagFilled(i.Props{Class: "size-4"})
-								Report an issue
-							</a>
-						</el-menu>
-					</el-dropdown>
+							</el-menu>
+						</el-dropdown>
+					</div>
 				</div>
 			</div>
 		</div>
