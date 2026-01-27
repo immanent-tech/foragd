@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.35.0](https://github.com/immanent-tech/foragd/compare/v0.34.1...v0.35.0) (2026-01-27)
+
+
+### Features
+
+* **schema:** :sparkles: add a case-insentive keyword sub-field on categories ([8ae8554](https://github.com/immanent-tech/foragd/commit/8ae8554bab2baa0b50680a678ce85edf849e75d7))
+* **templates:** :sparkles: new simpler home page layout ([6075479](https://github.com/immanent-tech/foragd/commit/6075479cc17d8c327befba2a3187e68bfc5982b7))
+
+
+### Bug Fixes
+
+* **auth0:** :bug: improve logic around refreshing tokens ([d5fb968](https://github.com/immanent-tech/foragd/commit/d5fb968db6b45f730c3ca2ac21478824d1e0305f))
+
 ## [0.34.1](https://github.com/immanent-tech/foragd/compare/v0.34.0...v0.34.1) (2026-01-23)
 
 
