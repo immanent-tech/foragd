@@ -1679,6 +1679,18 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             toml: "description"
+        created_at:
+          description: >
+            is when the post was created.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'created_at'
+        updated_at:
+          description: >
+            is when the post was updated.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'updated_at'
       x-oapi-codegen-extra-tags:
         toml: "doc_metadata"
     DocsDirectory:

@@ -311,6 +311,9 @@ type DeletedAt = time.Time
 
 // DocMetadata contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
 type DocMetadata struct {
+	// CreatedAt is when the post was created.
+	CreatedAt string `json:"created_at,omitempty,omitzero" toml:"created_at"`
+
 	// Description is a description of the document, used in metadata headers of the page.
 	Description string `json:"description,omitempty,omitzero" toml:"description"`
 
@@ -322,6 +325,9 @@ type DocMetadata struct {
 
 	// Title is the title to display for the document.
 	Title string `json:"title" toml:"title"`
+
+	// UpdatedAt is when the post was updated.
+	UpdatedAt string `json:"updated_at,omitempty,omitzero" toml:"updated_at"`
 }
 
 // DocsDirectory contains metadata for documentation pages under a given path.

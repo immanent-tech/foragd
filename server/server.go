@@ -148,6 +148,9 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	router.Handle("/robots.txt", handlers.RobotsHandler())
 	// Policy documents (i.e., terms of service, privacy).
 	router.Get("/policies/*", handlers.PolicyDocsHandler())
+	// Posts/Blog.
+	router.Get("/posts", handlers.PostsHandler())
+	router.Get("/posts/*", handlers.PostsHandler())
 	// Image proxy.
 	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgProxy.BaseURL))
 	// Avatars
