@@ -483,18 +483,27 @@ func watchForUpdates(watch query.Option) http.Handler {
 		defer keepAliveTicker.Stop()
 		slogctx.FromCtx(req.Context()).Debug("Checking for updates...",
 			slog.Duration("interval", user.GetUpdatesFrequency()),
+			slog.Group("request",
+				slog.String("path", req.URL.Path),
+			),
 		)
 
 		// Watch for updates.
 		for {
 			select {
 			case <-req.Context().Done():
-				slogctx.FromCtx(req.Context()).Debug("Closing SSE connection.")
-				res.Header().Set("Connection", "close")
+				slogctx.FromCtx(req.Context()).Debug("Closing SSE connection.",
+					slog.Group("request",
+						slog.String("path", req.URL.Path),
+					),
+				)
 				res.WriteHeader(http.StatusOK)
+				res.Header().Set("Connection", "close")
 				if f, ok := res.(http.Flusher); ok {
 					f.Flush()
 				}
+				keepAliveTicker.Stop()
+				updatesTicker.Stop()
 				return
 			case <-updatesTicker.C:
 				currentCount, err = models.CountItems(req.Context(), watch)
@@ -537,10 +546,18 @@ func watchForUpdates(watch query.Option) http.Handler {
 				slogctx.FromCtx(req.Context()).Debug("No updates")
 				prevCount = currentCount
 			case <-keepAliveTicker.C:
-				slogctx.FromCtx(req.Context()).Debug("Sending keep-alive message on SSE stream.")
+				slogctx.FromCtx(req.Context()).Debug("Sending keep-alive message on SSE stream.",
+					slog.Group("request",
+						slog.String("path", req.URL.Path),
+					),
+				)
 				if _, err = fmt.Fprint(res, ": keep-alive\n\n"); err != nil {
 					slogctx.FromCtx(req.Context()).Error("Failed to send keep-alive SSE message.",
-						slog.Any("error", err))
+						slog.Any("error", err),
+						slog.Group("request",
+							slog.String("path", req.URL.Path),
+						),
+					)
 				}
 				if f, ok := res.(http.Flusher); ok {
 					f.Flush()
