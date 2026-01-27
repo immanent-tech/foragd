@@ -404,7 +404,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 		<span class="loading loading-bars loading-xl"></span>
 		<p class="text-lg/loose font-semibold">Loading content...</p>
 	</div>
-	@Dock("/list/subscriptions", nil)
+	@Dock(nil)
 }
 
 // PaginateSubscriptions renders the given list of subscriptions as cards with an optional element to trigger pagination

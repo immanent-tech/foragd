@@ -26,7 +26,7 @@ templ InternalError(user *models.User, msg *models.UserMessage) {
 			</div>
 		}
 	</main>
-	@Dock("/list/subscriptions", nil)
+	@Dock(nil)
 }
 
 templ ExternalError(user *models.User, msg *models.UserMessage) {

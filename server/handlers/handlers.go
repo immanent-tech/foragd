@@ -348,7 +348,7 @@ func wrapContent(req *http.Request, template templ.Component) templ.Component {
 	default: // HTMX request renders partial content.
 		return templ.Join(template,
 			templates.SideBar(templ.Attributes{"hx-swap-oob": "true"}),
-			templates.Dock(req.URL.Path, templ.Attributes{"hx-swap-oob": "true"}),
+			templates.Dock(templ.Attributes{"hx-swap-oob": "true"}),
 		)
 	}
 }
