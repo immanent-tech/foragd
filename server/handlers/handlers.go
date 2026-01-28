@@ -52,6 +52,8 @@ var defaultHandlerChain = alice.New(
 	pushCriticalAssets,
 )
 
+var listHandlerChain = defaultHandlerChain.Append(parseFilters)
+
 var loadHTTPClient = sync.OnceValue(func() *resty.Client {
 	return resty.New().SetHeader("User-Agent", config.AppName+"/"+config.Version)
 })

@@ -64,7 +64,7 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 
 // HandleListSubscriptions handles displaying a list of subscriptions.
 func HandleListSubscriptions() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return listHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user, err := models.UserFromCtx(req.Context())
 		if err != nil {
 			HandleInternalError(&models.APIError{
@@ -140,30 +140,32 @@ func HandleListSubscriptions() http.HandlerFunc {
 
 // MarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
 func MarkSubscription() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request parameters.
 		request, _, err := forms.DecodeForm[*models.MarkSubscriptionRequest](req)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode mark subscriptions request: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark articles.",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		// Mark subscription.
 		if err := models.MarkSubscriptions(req.Context(), request.Mark, request.SubscriptionID); err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("mark subscriptions: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		// Do extra processing based on the current url.
@@ -181,34 +183,35 @@ func MarkSubscription() http.HandlerFunc {
 		}
 
 		res.WriteHeader(http.StatusOK)
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
 // MarkSubscriptions handles marking a list of subscriptions.
 func MarkSubscriptions() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request parameters.
 		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode mark subscription request: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		if !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("validate mark subscription request: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		// Determine what mark to apply from view and where to redirect.
@@ -231,31 +234,31 @@ func MarkSubscriptions() http.HandlerFunc {
 			})
 		}
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("set redirect: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		// Mark subscriptions.
 		err = models.MarkSubscriptions(req.Context(), request.Mark, request.Subscriptions...)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("mark subscriptions: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
 		}
 		res.WriteHeader(http.StatusOK)
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
 // FavoriteSubscription handles managing a favorite subscription for a user.
