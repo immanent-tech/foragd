@@ -15,7 +15,7 @@ type NotFoundPage struct{}
 
 // NotFound handles showing a page for a 404 response.
 func HandleNotFound() http.HandlerFunc {
-	return RenderPage(&NotFoundPage{})
+	return RenderInternalPage(&NotFoundPage{})
 }
 
 func (p *NotFoundPage) FullResponse(w http.ResponseWriter, r *http.Request) {

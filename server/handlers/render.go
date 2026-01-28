@@ -14,11 +14,15 @@ type PartialResponseHandler interface {
 }
 
 type FullResponseHandler interface {
-	PartialResponseHandler
 	FullResponse(w http.ResponseWriter, r *http.Request)
 }
 
-func RenderPage(content FullResponseHandler) http.HandlerFunc {
+type InternalPage interface {
+	PartialResponseHandler
+	FullResponseHandler
+}
+
+func RenderInternalPage(content InternalPage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if content == nil {
 			// If there is no response, return 204: No Content.
@@ -34,6 +38,21 @@ func RenderPage(content FullResponseHandler) http.HandlerFunc {
 		default: // HTMX request renders partial content.
 			content.PartialResponse(res, req)
 		}
+	}
+}
+
+type ExternalPage interface {
+	FullResponseHandler
+}
+
+func RenderExternalPage(content ExternalPage) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		if content == nil {
+			// If there is no response, return 204: No Content.
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		content.FullResponse(res, req)
 	}
 }
 

@@ -31,7 +31,7 @@ func HandleInternalError(err error) http.HandlerFunc {
 			page := &InternalError{
 				err: apiErr,
 			}
-			RenderPage(page).ServeHTTP(res, req)
+			RenderInternalPage(page).ServeHTTP(res, req)
 		} else {
 			apiErr = &models.APIError{
 				StatusCode:    http.StatusInternalServerError,
@@ -42,11 +42,11 @@ func HandleInternalError(err error) http.HandlerFunc {
 				),
 			}
 			apiErr.WriteLog(req.Context())
+			res.WriteHeader(apiErr.HTTPStatus())
 			page := &InternalError{
 				err: apiErr,
 			}
-			res.WriteHeader(apiErr.HTTPStatus())
-			RenderPage(page).ServeHTTP(res, req)
+			RenderInternalPage(page).ServeHTTP(res, req)
 		}
 	}
 }
@@ -87,7 +87,7 @@ func HandleExternalError(err error) http.HandlerFunc {
 			page := &ExternalError{
 				template: templates.ExternalError(user, apiErr.GetUserMessage()),
 			}
-			RenderPage(page).ServeHTTP(res, req)
+			RenderExternalPage(page).ServeHTTP(res, req)
 		} else {
 			slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
 				slog.Any("error", err),
@@ -101,9 +101,4 @@ func HandleExternalError(err error) http.HandlerFunc {
 // FullResponse renders the error on a full page.
 func (p *ExternalError) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(templates.CreatePage(p.template)).ServeHTTP(res, req)
-}
-
-// PartialResponse renders the error message itself.
-func (p *ExternalError) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.WriteHeader(http.StatusNoContent)
 }

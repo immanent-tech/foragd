@@ -619,7 +619,7 @@ func UserAccountSuccess() http.HandlerFunc {
 }
 
 func UserAccountCancel() http.HandlerFunc {
-	return Landing()
+	return HandleLanding()
 }
 
 // UserAccountIssue handles showing a page with a message indicating the user needs to contact support, as there is a

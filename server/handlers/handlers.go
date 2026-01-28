@@ -45,11 +45,7 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
-var defaultHandlerChain = alice.New(
-	storePath,
-	pushCriticalAssets,
-)
-
+var defaultHandlerChain = alice.New(storePath, pushCriticalAssets)
 var listHandlerChain = defaultHandlerChain.Append(parseFilters)
 
 var loadHTTPClient = sync.OnceValue(func() *resty.Client {
@@ -60,19 +56,6 @@ var bufPool = sync.Pool{
 	New: func() any {
 		return new(bytes.Buffer)
 	},
-}
-
-// Landing handles displaying the landing page.
-func Landing() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		renderPage(templates.NewPage(templates.Landing())).ServeHTTP(res, req)
-	}
-}
-
-// NotFound handles showing a page for a 404 response.
-func NotFound() http.HandlerFunc {
-	return alice.New().Then(
-		renderPage(templates.NewPage(templates.NotFound()))).ServeHTTP
 }
 
 // StaticFileHandler handles serving content from the embedded filesystem containing static assets (i.e., images,
@@ -212,18 +195,12 @@ func PolicyDocsHandler() http.HandlerFunc {
 
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
-		template := templates.NewPage(
+		template := templates.CreatePage(
 			templates.Document(output),
 			templates.WithPageTitle(metadata.Title),
 			templates.WithPageDescription(metadata.Description),
-		).FullTemplate()
-		err = template.Render(req.Context(), res)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Could not render policy document.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-		}
+		)
+		templ.Handler(template).ServeHTTP(res, req)
 	}
 }
 
@@ -242,12 +219,11 @@ func DocumentationHandler() http.HandlerFunc {
 		}
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
-		renderPage(
-			templates.NewPage(
-				templates.Document(output),
-				templates.WithPageTitle("Documentation"),
-			),
-		).ServeHTTP(res, req)
+		template := templates.CreatePage(
+			templates.Document(output),
+			templates.WithPageTitle("Documentation"),
+		)
+		templ.Handler(template).ServeHTTP(res, req)
 	}
 }
 

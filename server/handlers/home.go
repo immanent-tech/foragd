@@ -83,7 +83,7 @@ func HandleHome() http.HandlerFunc {
 				data:  data,
 			}
 
-			RenderPage(page).ServeHTTP(res, req)
+			RenderInternalPage(page).ServeHTTP(res, req)
 		}).
 		ServeHTTP
 }

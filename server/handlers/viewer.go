@@ -14,10 +14,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/opengraph"
 )
 
-// Viewer holds data for the feed viewer page.
-type Viewer struct {
-	feed *feeds.Feed
-}
+type Viewer struct{}
 
 // FullResponse renders the full viewer page.
 func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
@@ -38,9 +35,13 @@ func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
 	).ServeHTTP(res, req)
 }
 
+type ViewerResponse struct {
+	feed *feeds.Feed
+}
+
 // PartialResponse returns no content for the viewer as partials are unsupported.
-func (p *Viewer) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.WriteHeader(http.StatusNoContent)
+func (p *ViewerResponse) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(templates.ViewerResults(p.feed)).ServeHTTP(res, req)
 }
 
 // ViewerError holds an error when the viewer failed to parse a url.
@@ -58,7 +59,7 @@ func HandleViewer() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
-			RenderPage(&Viewer{}).ServeHTTP(res, req)
+			RenderExternalPage(&Viewer{}).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get the submitted URL.
 			url := req.FormValue("url")
@@ -71,7 +72,7 @@ func HandleViewer() http.HandlerFunc {
 				return
 			}
 
-			RenderPartial(&Viewer{feed: feed}).ServeHTTP(res, req)
+			RenderPartial(&ViewerResponse{feed: feed}).ServeHTTP(res, req)
 		}
 	}
 }

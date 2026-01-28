@@ -11,21 +11,17 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-type LandingPage struct {
+type Landing struct {
 	template templ.Component
 }
 
-func HandleLandingPage() http.HandlerFunc {
-	page := &LandingPage{
+func HandleLanding() http.HandlerFunc {
+	page := &Landing{
 		template: templates.CreatePage(templates.Landing()),
 	}
-	return RenderPage(page)
+	return RenderExternalPage(page)
 }
 
-func (p *LandingPage) FullResponse(w http.ResponseWriter, r *http.Request) {
+func (p *Landing) FullResponse(w http.ResponseWriter, r *http.Request) {
 	templ.Handler(p.template).ServeHTTP(w, r)
-}
-
-func (p *LandingPage) PartialResponse(w http.ResponseWriter, r *http.Request) {
-	templ.Handler(p.template, templ.WithFragments(templates.BodyFragment)).ServeHTTP(w, r)
 }

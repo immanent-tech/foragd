@@ -131,7 +131,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 		}
 		switch req.Method {
 		case http.MethodGet:
-			RenderPage(page).ServeHTTP(res, req)
+			RenderInternalPage(page).ServeHTTP(res, req)
 		case http.MethodPost:
 			RenderPartial(page).ServeHTTP(res, req)
 		}

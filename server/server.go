@@ -160,7 +160,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	// User uploaded screenshots
 	router.Get("/img/screenshots/*", handlers.LoadCachedImage)
 	// Landing.
-	router.Get("/", handlers.HandleLandingPage())
+	router.Get("/", handlers.HandleLanding())
 	// About.
 	router.Get("/about", handlers.About())
 	// Feed Viewer.
@@ -210,7 +210,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.Get("/choose-plan", handlers.UserChooseSubscriptionPlan())
 			r.Post("/", handlers.UserSubscriptionPlanCheckout())
 			r.Get("/success", handlers.UserAccountSuccess())
-			r.Get("/cancel", handlers.HandleLandingPage())
+			r.Get("/cancel", handlers.HandleLanding())
 		})
 		r.Get("/home", handlers.HandleHome())
 		r.Get("/home/updates", handlers.WatchHome())
