@@ -155,34 +155,34 @@ func getHomePageObjects(ctx context.Context, user *models.User) (models.Subscrip
 	if err != nil {
 		return nil, nil, fmt.Errorf("get subscriptions: %w", err)
 	}
-	subscriptions = subscriptions.FilterByView(filters.GetView())
+	subscriptions = subscriptions.FilterByView(filters.GetView()).Sort(models.SortNewestFirst)
 
-	// Fetch articles for unread subscriptions.
-	if len(subscriptions) > 0 {
-		articleQuery := query.Bool(
-			query.Filter(
-				query.Terms("feed_id", subscriptions.GetFeedIDs()...),
-				query.Terms("categories.raw", filters.GetCategories()...),
-				query.Bool(
-					query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
-				),
-			),
-		)
+	// // Fetch articles for unread subscriptions.
+	// if len(subscriptions) > 0 {
+	// 	articleQuery := query.Bool(
+	// 		query.Filter(
+	// 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+	// 			query.Terms("categories.raw", filters.GetCategories()...),
+	// 			query.Bool(
+	// 				query.Should(models.BuildItemQueries(user, filters.GetView(), subscriptions)...),
+	// 			),
+	// 		),
+	// 	)
 
-		sort := filters.GetSort()
+	// 	sort := filters.GetSort()
 
-		// Find items matching filters.
-		items, _, err := models.SearchItems(ctx, articleQuery, filters.GetCount(), &sort, "")
-		if err != nil {
-			return nil, nil, fmt.Errorf("get items: %w", err)
-		}
+	// 	// Find items matching filters.
+	// 	items, _, err := models.SearchItems(ctx, articleQuery, filters.GetCount(), &sort, "")
+	// 	if err != nil {
+	// 		return nil, nil, fmt.Errorf("get items: %w", err)
+	// 	}
 
-		// Generate articles.
-		articles, err = models.GenerateArticles(ctx, items)
-		if err != nil {
-			return nil, nil, fmt.Errorf("generate articles: %w", err)
-		}
-	}
+	// 	// Generate articles.
+	// 	articles, err = models.GenerateArticles(ctx, items)
+	// 	if err != nil {
+	// 		return nil, nil, fmt.Errorf("generate articles: %w", err)
+	// 	}
+	// }
 
 	return subscriptions, articles, nil
 }
@@ -193,9 +193,10 @@ func performHomePageAggs(ctx context.Context, user *models.User, data *models.Ho
 	termsField := "categories.raw"
 	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
 	sampleField := "feed_id"
-	defaultMaxDocsPerValue := 20
+	defaultMaxDocsPerValue := 1
 	shardSize := 200
-	topHitsCount := 3
+	topCategoryHitsCount := 3
+	topSampleHitsCount := 6
 	maxDocCount := int64(3)
 	aggs := aggregations.Aggs{
 		// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
@@ -216,7 +217,7 @@ func performHomePageAggs(ctx context.Context, user *models.User, data *models.Ho
 					Aggregations: map[string]types.Aggregations{
 						"top_article_hits": {
 							TopHits: &types.TopHitsAggregation{
-								Size: &topHitsCount,
+								Size: &topCategoryHitsCount,
 							},
 						},
 						// top_articles: the top scoring article for each top category.
@@ -234,6 +235,11 @@ func performHomePageAggs(ctx context.Context, user *models.User, data *models.Ho
 						// 		},
 						// 	},
 						// },
+					},
+				},
+				"latest_articles_sample": {
+					TopHits: &types.TopHitsAggregation{
+						Size: &topSampleHitsCount,
 					},
 				},
 			},
@@ -297,6 +303,20 @@ func performHomePageAggs(ctx context.Context, user *models.User, data *models.Ho
 				// 	return strings.Compare(a.GetID(), b.GetID())
 				// })
 			}
+		}
+		var latestArticlesSampleAgg *types.TopHitsAggregate
+		if latestArticlesSampleAgg, ok = topCategoriesSamplerAgg.Aggregations["latest_articles_sample"].(*types.TopHitsAggregate); ok {
+			var items models.Items
+			if items, _, err = results.ExtractSourceFromHits[*models.Item](
+				latestArticlesSampleAgg.Hits.Hits,
+			); err != nil {
+				slog.Info("could not extract items")
+			}
+			var articles models.Articles
+			if articles, err = models.GenerateArticles(ctx, items); err != nil {
+				slog.Info("could not generate articles")
+			}
+			data.LatestArticles = articles
 		}
 	}
 	// Get the rare categories.
