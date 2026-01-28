@@ -216,7 +216,7 @@
 }
 
 @utility ui-grid {
-  @apply grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 xl:grid-cols-3;
+  @apply grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12;
 }
 
 @utility ui-card {
@@ -224,19 +224,19 @@
 }
 
 @utility ui-h1 {
-  @apply mt-4 text-5xl font-semibold tracking-tight text-balance capitalize sm:text-7xl;
+  @apply mt-12 mb-4 text-5xl font-semibold tracking-tight text-balance capitalize sm:text-7xl;
 }
 
 @utility ui-h2 {
-  @apply text-2xl/7 font-bold tracking-tight capitalize sm:text-3xl;
+  @apply mt-12 mb-4 text-2xl/7 font-bold tracking-tight capitalize sm:text-3xl;
 }
 
 @utility ui-h3 {
-  @apply text-lg font-medium capitalize;
+  @apply mt-12 mb-4 text-lg font-medium capitalize;
 }
 
 @utility ui-p {
-  @apply mt-1 text-sm/6;
+  @apply mt-4 text-sm/6;
 }
 
 /* Change cursor to indicate card is a link. */
