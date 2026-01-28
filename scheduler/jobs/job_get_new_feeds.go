@@ -120,23 +120,14 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 		wg.Go(func() {
 			jobKey := job.generateJobKey(feed.GetID(), job.JobType)
 			existingJob, err := schedulerAPI.GetScheduledJob(jobKey)
-			if err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound) {
+			switch {
+			case err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound):
 				// If we cannot ascertain if there is an existing scheduled job, skip this feed.
 				slogctx.FromCtx(feedCtx).Warn("Unable to check for existing scheduled job.",
 					slog.String("feed_id", feed.GetID()),
 					slog.Any("error", err),
 				)
-				return
-			}
-			if existingJob != nil {
-				slogctx.FromCtx(feedCtx).Debug("Existing job found, ignoring.",
-					slog.String("job_id", existingJob.JobDetail().JobKey().String()),
-					slog.String("feed_id", feed.GetID()),
-					slog.Any("error", err),
-				)
-				return
-			}
-			if !errors.Is(err, quartz.ErrJobNotFound) {
+			case !errors.Is(err, quartz.ErrJobNotFound):
 				// Determine and set the feed update interval.
 				if err := feed.SetUpdateInterval(feedCtx); err != nil {
 					slogctx.FromCtx(feedCtx).Warn("Unable to set an update interval for feed.",
@@ -177,14 +168,18 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 						slog.Any("error", err),
 					)
 				}
-				return
+			case existingJob != nil:
+				slogctx.FromCtx(feedCtx).Debug("Existing job found, ignoring.",
+					slog.String("job_id", existingJob.JobDetail().JobKey().String()),
+					slog.String("feed_id", feed.GetID()),
+					slog.Any("error", err),
+				)
+			default:
+				slogctx.FromCtx(feedCtx).Debug("Unhandled result.",
+					slog.String("feed_id", feed.GetID()),
+					slog.Any("error", err),
+				)
 			}
-			slogctx.FromCtx(feedCtx).Error("Existing update feed job.",
-				slog.String("feed_id", feed.GetID()),
-				slog.String("job_id", existingJob.JobDetail().JobKey().String()),
-				slog.String("job_schedule", existingJob.Trigger().Description()),
-				slog.Any("error", err),
-			)
 		})
 	}
 
