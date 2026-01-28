@@ -71,9 +71,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 					// Don't swap on no content.
 					{Code: "204",Swap: false},
 					// Swap all ok responses.
-					{Code:"[2]..",Swap: true},
-					// Don't swap on redirects.
-					{Code:"[3]..",Swap: false},
+					{Code:"[23]..",Swap: true},
 					// Swap for unprocessable inputs.
 					{Code:"422",Swap: true},
 					// Swap on errors.
