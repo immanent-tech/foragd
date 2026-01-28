@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.36.0](https://github.com/immanent-tech/foragd/compare/v0.35.0...v0.36.0) (2026-01-28)
+
+
+### Features
+
+* :sparkles: add posts (blog) ([310f94f](https://github.com/immanent-tech/foragd/commit/310f94fee6ddeebea5d39ada9335d67bcedc0e92))
+* :sparkles: customise user-agent for fetching content and publish a doc about how content is fetched ([bb58af0](https://github.com/immanent-tech/foragd/commit/bb58af094e05ae139aa6a071d675be820de2bd67))
+* **handlers:** :sparkles: internal errors can now be rendered in page or as notification depending on request method ([afc6136](https://github.com/immanent-tech/foragd/commit/afc6136abf68df96064ccecd1ac835691ce28a0a))
+
+
+### Bug Fixes
+
+* :bug: viewer is now made of self-contained templates ([001abbd](https://github.com/immanent-tech/foragd/commit/001abbde1f29b4ee9e390a2e51b7f41811ed3f4d))
+* **handlers:** :bug: oob update dock/sidebar on partial response for list subscriptions ([947faaf](https://github.com/immanent-tech/foragd/commit/947faaf60c3b548098e9db2ff1ac40ba0252aa3b))
+* **scheduler:** :wrench: fix user-agent string ([0f78dfa](https://github.com/immanent-tech/foragd/commit/0f78dfa5121ebdf3933f25c2ab1c565d69ec0819))
+* **templates:** :bug: ensure unique templ fragment keys ([4dfb4a3](https://github.com/immanent-tech/foragd/commit/4dfb4a34f6c61268837e6733eb6bc4734b2e9c82))
+* **templates:** :bug: fix footer positioning ([3d24375](https://github.com/immanent-tech/foragd/commit/3d2437532d9fc81f7af92c7b319b02b1d2931cea))
+* **templates:** :lipstick: fix bottom margin on about page ([b04a77e](https://github.com/immanent-tech/foragd/commit/b04a77e9037e820559ab831a1e62236694f77e70))
+* **templates:** :lipstick: make sure docs are centered on page ([b114196](https://github.com/immanent-tech/foragd/commit/b1141965524445eba05070cb333cadd44d71954d))
+
 ## [0.35.0](https://github.com/immanent-tech/foragd/compare/v0.34.1...v0.35.0) (2026-01-27)
 
 
