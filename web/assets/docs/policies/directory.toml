@@ -15,3 +15,9 @@ path = "acceptable-use"
 file = "acceptable-use.md"
 title = "Acceptable Use Policy"
 description = "Acceptable Use terms of Foragd"
+
+[[docs]]
+path = "bot"
+file = "bot.md"
+title = "Foragd Bot"
+description = "Foragd Bot Information"
