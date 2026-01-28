@@ -55,15 +55,13 @@ var HTMXResponseHeaders = []string{
 	htmx.HeaderTrigger,
 }
 
-var corsOptions cors.Options
-
-var loadCORS = sync.OnceValue(func() error {
+var loadCORS = sync.OnceValues(func() (*cors.Cors, error) {
 	corsSettings, err := config.Load[CORS](config.ConfigEnvPrefix + "CORS_")
 	if err != nil {
-		return fmt.Errorf("load cors config: %w", err)
+		return nil, fmt.Errorf("load cors config: %w", err)
 	}
 
-	corsOptions = cors.Options{
+	corsOptions := cors.Options{
 		AllowCredentials:    true,
 		MaxAge:              corsSettings.MaxAge,
 		AllowPrivateNetwork: true,
@@ -80,12 +78,13 @@ var loadCORS = sync.OnceValue(func() error {
 		AllowedOrigins: corsSettings.AllowedOrigins,
 	}
 
-	return nil
+	return cors.New(corsOptions), nil
 })
 
 // SetupCORS handles adding the appropriate headers for CORS to the request.
 func SetupCORS(next http.Handler) http.Handler {
-	if err := loadCORS(); err != nil {
+	cors, err := loadCORS()
+	if err != nil {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			slogctx.FromCtx(req.Context()).Error("Cannot load CORS config.",
 				slog.Any("error", err),
@@ -93,5 +92,5 @@ func SetupCORS(next http.Handler) http.Handler {
 			res.WriteHeader(http.StatusInternalServerError)
 		})
 	}
-	return cors.New(corsOptions).Handler(next)
+	return cors.Handler(next)
 }
