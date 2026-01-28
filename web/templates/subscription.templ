@@ -137,17 +137,17 @@ templ (s *Subscription) Card() {
 						for category := range slices.Values(s.Subscription.GetCategories(5)) {
 							{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
 							{{ filters[models.ParamCategories] = category }}
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/list/subscriptions"),
-								WithHXTarget(ContentID.Target()),
-								WithHXPushURL(true),
-								WithHXVals(filters),
-								WithClasses("link-hover"),
-							) {
-								<div class="flex gap-2 capitalize">
-									@NewCategoryBadge(category).Render("badge-outline")
-								</div>
-							}
+							<a
+								hx-get="/list/subscriptions"
+								hx-target={ ContentID.Target() }
+								hx-push-url="true"
+								hx-vals={ templ.JSONString(filters) }
+								hx-trigger="click consume"
+								hx-params="not subscriptions"
+								class="link link-hover"
+							>
+								<span class="badge badge-sm badge-outline">{ category }</span>
+							</a>
 						}
 					</div>
 				</div>
