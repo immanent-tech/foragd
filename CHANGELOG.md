@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.0](https://github.com/immanent-tech/foragd/compare/v0.36.0...v0.37.0) (2026-01-28)
+
+
+### Features
+
+* :sparkles: add sitemap ([fe19ed1](https://github.com/immanent-tech/foragd/commit/fe19ed1baaf8da44f1348bcfca3541eea3837b97))
+
 ## [0.36.0](https://github.com/immanent-tech/foragd/compare/v0.35.0...v0.36.0) (2026-01-28)
 
 
