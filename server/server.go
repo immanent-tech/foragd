@@ -147,8 +147,10 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	router.NotFound(handlers.HandleNotFound())
 	// Image proxy.
 	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgProxy.BaseURL))
-	// Robots.
-	router.Handle("/robots.txt", handlers.RobotsHandler())
+	// robots.txt.
+	router.Handle("/robots.txt", handlers.HandleRobots())
+	// sitemap.xml.
+	router.Handle("/sitemap.xml", handlers.HandleSitemap())
 	// Static content.
 	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	// Avatars
@@ -171,11 +173,9 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	// Posts/Blog.
 	router.Get("/posts", handlers.PostsHandler())
 	router.Get("/posts/*", handlers.PostsHandler())
-
 	// Sign-up/Login routes.
 	router.Group(func(r chi.Router) {
 		r.Use(
-			middlewares.Etag,
 			session.LoadAndSave,
 		)
 		if !cfg.BlockSignup {
@@ -191,13 +191,10 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			slogctx.FromCtx(ctx).Warn("Logins have been BLOCKED by configuration.")
 		}
 	})
-
 	// Handle incoming webhook requests from Stripe.
 	router.Post("/checkout/webhooks", stripe.HandleWebhook)
-
 	// Handle incoming webhook requests from Resend
 	router.Post("/mail/webhooks", resend.HandleWebhook)
-
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {
 		r.Use(

@@ -45,8 +45,6 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
-var robotsTxt []byte
-
 var defaultHandlerChain = alice.New(
 	storePath,
 	pushCriticalAssets,
@@ -114,20 +112,20 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 	})
 }
 
-var loadRobotsTxt = sync.OnceValue(func() error {
-	var err error
-	robotsTxt, err = web.StaticContentFS.ReadFile("content/robots.txt")
+var loadRobotsTxt = sync.OnceValues(func() ([]byte, error) {
+	robotsTxt, err := web.StaticContentFS.ReadFile("content/robots.txt")
 	if err != nil {
-		return fmt.Errorf("read robots.txt: %w", err)
+		return nil, fmt.Errorf("read robots.txt: %w", err)
 	}
-	return nil
+	return robotsTxt, nil
 })
 
 // RobotsHandler handles requests for robots.txt. In the future, it may handle more requests from non natural human
 // clients...
-func RobotsHandler() http.Handler {
+func HandleRobots() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if err := loadRobotsTxt(); err != nil {
+		robotsTxt, err := loadRobotsTxt()
+		if err != nil {
 			http.NotFound(res, req)
 			return
 		}
@@ -135,6 +133,33 @@ func RobotsHandler() http.Handler {
 		res.WriteHeader(http.StatusOK)
 		if _, err := res.Write(robotsTxt); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Unable to send robots.txt response.",
+				slog.Any("error", err),
+			)
+		}
+	})
+}
+
+var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
+	robotsTxt, err := web.StaticContentFS.ReadFile("content/sitemap.xml")
+	if err != nil {
+		return nil, fmt.Errorf("read sitemap.xml: %w", err)
+	}
+	return robotsTxt, nil
+})
+
+// HandleSitemap handles requests for sitemap.xml. In the future, it may handle more requests from non natural human
+// clients...
+func HandleSitemap() http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		sitemap, err := loadSitemapXML()
+		if err != nil {
+			http.NotFound(res, req)
+			return
+		}
+		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200, must-revalidate")
+		res.WriteHeader(http.StatusOK)
+		if _, err := res.Write(sitemap); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Unable to send sitemap.xml response.",
 				slog.Any("error", err),
 			)
 		}
