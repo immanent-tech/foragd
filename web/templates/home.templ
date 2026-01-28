@@ -9,244 +9,204 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"maps"
 	"net/http"
 	"slices"
 	"strconv"
 )
 
-type Home struct {
-	User           *models.User
-	Subscriptions  models.Subscriptions
-	LatestArticles models.Articles
-	TopCategories  map[models.CategoryCount]models.Articles
-	RareCategories models.CategoryCounts
-}
+const UserHomeFragment templFragmentKey = "userhome"
 
 // content renders the home page content.
-templ (page *Home) Template() {
-	<div class="ui-container">
-		if len(page.LatestArticles) == 0 {
-			@emptyContent()
-		} else {
-			if len(page.LatestArticles) > 0 {
-				<div class="flex w-full mb-4">
-					<h2 class="ui-h2 flex flex-1 justify-start">Latest Articles</h2>
-				</div>
-				// Grid of latest articles on large displays.
-				<div class="hidden sm:ui-grid">
-					for article := range slices.Values(page.LatestArticles) {
-						@NewArticleView(article).Card()
-					}
-				</div>
-				// Carousel of latest articles on small displays.
-				<div class="sm:hidden w-full">
-					<div class="carousel w-full">
-						for article := range slices.Values(page.LatestArticles) {
-							<div id={ article.GetID() + "-carousel" } class="carousel-item w-full">
+templ UserHome(data *models.HomeResponse) {
+	@header(&data.User)
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(UserHomeFragment) {
+			<div class="ui-container">
+				if len(data.LatestArticles) == 0 {
+					@emptyContent()
+				} else {
+					<div
+						id="update-notifications"
+						sse-connect="/home/updates"
+						sse-swap="updates"
+						class="toast toast-center z-50"
+					></div>
+					if len(data.LatestArticles) > 0 {
+						<div class="flex w-full mb-4">
+							<h2 class="ui-h2 flex flex-1 justify-start">Latest Articles</h2>
+						</div>
+						// Grid of latest articles on large displays.
+						<div class="hidden sm:ui-grid">
+							for article := range slices.Values(data.LatestArticles) {
 								@NewArticleView(article).Card()
+							}
+						</div>
+						// Carousel of latest articles on small displays.
+						<div class="sm:hidden w-full">
+							<div class="carousel w-full">
+								for article := range slices.Values(data.LatestArticles) {
+									<div id={ article.GetID() + "-carousel" } class="carousel-item w-full">
+										@NewArticleView(article).Card()
+									</div>
+								}
 							</div>
-						}
-					</div>
-					<div class="flex w-full justify-center gap-2 py-2">
-						for idx, article := range page.LatestArticles {
-							<a href={ "#" + article.GetID() + "-carousel" } class="btn btn-xs">{ strconv.Itoa(idx+1) }</a>
-						}
-					</div>
-				</div>
-			}
-			if len(page.TopCategories) > 0 {
-				<div class="flex w-full my-4">
-					<h2 class="ui-h2 flex flex-1 justify-start">Top Categories</h2>
-				</div>
-				<div class="flex justify-center gap-2 p-2 m-2">
-					<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-						for category := range maps.Keys(page.TopCategories) {
-							@homePageCategoryBadge(&category)
-						}
-					</div>
-				</div>
-			}
+							<div class="flex w-full justify-center gap-2 py-2">
+								for idx, article := range data.LatestArticles {
+									<a href={ "#" + article.GetID() + "-carousel" } class="btn btn-xs">{ strconv.Itoa(idx+1) }</a>
+								}
+							</div>
+						</div>
+					}
+					if len(data.TopCategories) > 0 {
+						<div class="flex w-full my-4">
+							<h2 class="ui-h2 flex flex-1 justify-start">Top Categories</h2>
+						</div>
+						<div class="flex justify-center gap-2 p-2 m-2">
+							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+								for category := range data.TopCategories {
+									{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
+									{{ params[models.ParamCategories] = category.Category }}
+									<a
+										hx-get="/list/articles"
+										hx-target={ ContentID.Target() }
+										hx-push-url="true"
+										hx-vals={ templ.JSONString(params) }
+										class="link link-hover"
+									>
+										<span class="badge badge-secondary line-clamp-1">
+											{ category.Category }
+										</span>
+									</a>
+								}
+							</div>
+						</div>
+					}
+				}
+				@partials.ButtonBackToTop()
+			</div>
 		}
-		// 		// Right column.
-		// 		<aside class="xl:flex xl:flex-col xl:w-96">
-		// 			if len(page.TopCategories) > 0 {
-		// 				<div class="border-b border-base-content/80 pb-5 mt-8">
-		// 					@h3("Most Common Categories")
-		// 				</div>
-		// 				<div class="flex justify-center gap-2 p-2 m-2">
-		// 					<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-		// 						for category := range maps.Keys(page.TopCategories) {
-		// 							@homePageCategoryBadge(&category)
-		// 						}
-		// 					</div>
-		// 				</div>
-		// 			}
-		// 			// Show top articles (if found).
-		// 			for category, articles := range page.TopCategories {
-		// 				<div class="border-b border-base-content/80 pb-5 mt-8">
-		// 					@h3(category.Category)
-		// 				</div>
-		// 				<div class="grid grid-flow-row">
-		// 					for article := range slices.Values(articles) {
-		// 						@homePageTopCategoryArticle(article)
-		// 					}
-		// 				</div>
-		// 			}
-		// 			// Interesting Picks section: rare/semantic categories and articles.
-		// 			if len(page.RareCategories) > 0 {
-		// 				if page.RareCategories != nil {
-		// 					<div class="border-b border-base-content/80 pb-5 mt-8">
-		// 						@h3("Interesting Categories")
-		// 					</div>
-		// 					<div class="mt-8">
-		// 						<div class="flex justify-center gap-2 p-4 m-4">
-		// 							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-		// 								for category := range slices.Values(page.RareCategories) {
-		// 									@homePageCategoryBadge(&category)
-		// 								}
-		// 							</div>
-		// 						</div>
-		// 					</div>
-		// 				}
-		// 			}
-		// 		</aside>
-		// 	</div>
-		// }
-		@partials.ButtonBackToTop()
-		<div
-			id="update-notifications"
-			sse-connect="/home/updates"
-			sse-swap="updates"
-			class="toast toast-center z-50"
-		></div>
-	</div>
+	</main>
+	@Dock(nil)
 }
 
-templ homePageCategoryBadge(category *models.CategoryCount) {
-	{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
-	{{ params[models.ParamCategories] = category.Category }}
-	@NewLink(
-		WithHXMethod(http.MethodGet, "/list/articles"),
-		WithHXTarget(ContentID.Target()),
-		WithHXSwap("innerHTML show:window:top transition:true"),
-		WithHXVals(params),
-		WithHXPushURL(true),
-	) {
-		<div class="block gap-2 text-sm capitalize line-clamp-1 truncate">
-			@NewCategoryBadge(category.Category).Render("badge-secondary")
-		</div>
-	}
-}
+const NewUserHomeFragment templFragmentKey = "newUserHome"
 
-templ NewUserHome() {
-	<div class="ui-container">
-		<h2 class="ui-h2">{ "Welcome to " + config.AppName }</h2>
-		<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
-		<div class="py-4">
-			<h3 class="ui-h3">Add/Import Subscriptions</h3>
-			<p class="py-2">Import your subscriptions from an external service or start fresh.</p>
-			<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content max-w-prose">
-				<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
-					@tabler.Plus(i.Props{Class: "size-6 text-secondary-content"})
-				</div>
-				<div>
-					<h4 class="text-sm font-medium ">
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(true),
-							WithClasses("focus:outline-hidden"),
-						) {
-							<span aria-hidden="true" class="absolute inset-0"></span>
-							<span>Add a feed subscription</span>
-							<span aria-hidden="true">&rarr;</span>
-						}
-					</h4>
-					<p class="mt-1 text-sm text-base-content">Add a single subscription from a URL or webpage.</p>
-				</div>
-			</div>
-			<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content max-w-prose">
-				<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary">
-					@tabler.CloudDownload(i.Props{Class: "size-6 text-secondary-content"})
-				</div>
-				<div>
-					<h4 class="text-sm font-medium">
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/user/import"),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(true),
-							WithClasses("focus:outline-hidden"),
-						) {
-							<span aria-hidden="true" class="absolute inset-0"></span>
-							<span>Import subscriptions</span>
-							<span aria-hidden="true">&rarr;</span>
-						}
-					</h4>
-					<p class="mt-1 text-sm text-base-content">Import multiple subscriptions using an OPML file.</p>
-				</div>
-			</div>
-		</div>
-		<div class="py-4">
-			<h3 class="ui-h3">Start With Curated Subscription Sets</h3>
-			<p class="py-2">Or try one or more curated starter sets (you can also add these later in settings).</p>
-			<form
-				hx-post="/user/feedset"
-				hx-swap="none"
-				hx-indicator="#processing"
-			>
-				<fieldset>
-					<div class="mt-6 space-y-6">
-						<div class="flex gap-3">
-							<div class="flex h-6 shrink-0 items-center">
-								<div class="group grid size-4 grid-cols-1">
-									<input id="informed" type="checkbox" name="feedset" value="informed" aria-describedby="informed-description" class="checkbox checkbox-sm checkbox-primary"/>
-								</div>
-							</div>
-							<div class="text-sm/6">
-								<label for="informed" class="font-medium">Informed</label>
-								<p id="inspired-description" class="text-base-content/80">News and information sites.</p>
-							</div>
+templ NewUserHome(user *models.User) {
+	@header(user)
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(NewUserHomeFragment) {
+			<div class="ui-container">
+				<h2 class="ui-h2">{ "Welcome to " + config.AppName }</h2>
+				<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
+				<div class="py-4">
+					<h3 class="ui-h3">Add/Import Subscriptions</h3>
+					<p class="py-2">Import your subscriptions from an external service or start fresh.</p>
+					<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content max-w-prose">
+						<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
+							@tabler.Plus(i.Props{Class: "size-6 text-secondary-content"})
 						</div>
-						<div class="flex gap-3">
-							<div class="flex h-6 shrink-0 items-center">
-								<div class="group grid size-4 grid-cols-1">
-									<input id="inspired" type="checkbox" name="feedset" value="inspired" aria-describedby="inspired-description" class="checkbox checkbox-sm checkbox-primary"/>
-								</div>
-							</div>
-							<div class="text-sm/6">
-								<label for="inspired" class="font-medium">Inspired</label>
-								<p id="inspired-description" class="text-base-content/80">Digital art and other oddities.</p>
-							</div>
-						</div>
-						<div class="flex gap-3">
-							<div class="flex h-6 shrink-0 items-center">
-								<div class="group grid size-4 grid-cols-1">
-									<input id="enlightened" type="checkbox" name="feedset" value="enlightened" aria-describedby="enlightened-description" class="checkbox checkbox-sm checkbox-primary"/>
-								</div>
-							</div>
-							<div class="text-sm/6">
-								<label for="enlightened" class="font-medium">Enlightened</label>
-								<p id="enlightened-description" class="text-base-content/80">Alternative and fringe sites.</p>
-							</div>
+						<div>
+							<h4 class="text-sm font-medium ">
+								@NewLink(
+									WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
+									WithHXTarget(ContentID.Target()),
+									WithHXPushURL(true),
+									WithClasses("focus:outline-hidden"),
+								) {
+									<span aria-hidden="true" class="absolute inset-0"></span>
+									<span>Add a feed subscription</span>
+									<span aria-hidden="true">&rarr;</span>
+								}
+							</h4>
+							<p class="mt-1 text-sm text-base-content">Add a single subscription from a URL or webpage.</p>
 						</div>
 					</div>
-				</fieldset>
-				<div class="mt-6 flex items-center justify-end gap-x-6 max-w-prose">
-					<div id="processing" class="htmx-indicator">
-						Processing...
-						<span class="loading loading-spinner loading-md"></span>
+					<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content max-w-prose">
+						<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary">
+							@tabler.CloudDownload(i.Props{Class: "size-6 text-secondary-content"})
+						</div>
+						<div>
+							<h4 class="text-sm font-medium">
+								@NewLink(
+									WithHXMethod(http.MethodGet, "/user/import"),
+									WithHXTarget(ContentID.Target()),
+									WithHXPushURL(true),
+									WithClasses("focus:outline-hidden"),
+								) {
+									<span aria-hidden="true" class="absolute inset-0"></span>
+									<span>Import subscriptions</span>
+									<span aria-hidden="true">&rarr;</span>
+								}
+							</h4>
+							<p class="mt-1 text-sm text-base-content">Import multiple subscriptions using an OPML file.</p>
+						</div>
 					</div>
-					<button type="submit" class="btn btn-primary">Add sets</button>
 				</div>
-			</form>
-		</div>
-		<div class="py-4">
-			<h3 class="ui-h3">Get to know Foragd</h3>
-			<p class="py-2">Read the documentation/help to get familiar with the app.</p>
-			<ul class="list-disc list-inside">
-				<li><a class="link" href="/help/index">Documentation Home</a></li>
-			</ul>
-		</div>
-	</div>
+				<div class="py-4">
+					<h3 class="ui-h3">Start With Curated Subscription Sets</h3>
+					<p class="py-2">Or try one or more curated starter sets (you can also add these later in settings).</p>
+					<form
+						hx-post="/user/feedset"
+						hx-swap="none"
+						hx-indicator="#processing"
+					>
+						<fieldset>
+							<div class="mt-6 space-y-6">
+								<div class="flex gap-3">
+									<div class="flex h-6 shrink-0 items-center">
+										<div class="group grid size-4 grid-cols-1">
+											<input id="informed" type="checkbox" name="feedset" value="informed" aria-describedby="informed-description" class="checkbox checkbox-sm checkbox-primary"/>
+										</div>
+									</div>
+									<div class="text-sm/6">
+										<label for="informed" class="font-medium">Informed</label>
+										<p id="inspired-description" class="text-base-content/80">News and information sites.</p>
+									</div>
+								</div>
+								<div class="flex gap-3">
+									<div class="flex h-6 shrink-0 items-center">
+										<div class="group grid size-4 grid-cols-1">
+											<input id="inspired" type="checkbox" name="feedset" value="inspired" aria-describedby="inspired-description" class="checkbox checkbox-sm checkbox-primary"/>
+										</div>
+									</div>
+									<div class="text-sm/6">
+										<label for="inspired" class="font-medium">Inspired</label>
+										<p id="inspired-description" class="text-base-content/80">Digital art and other oddities.</p>
+									</div>
+								</div>
+								<div class="flex gap-3">
+									<div class="flex h-6 shrink-0 items-center">
+										<div class="group grid size-4 grid-cols-1">
+											<input id="enlightened" type="checkbox" name="feedset" value="enlightened" aria-describedby="enlightened-description" class="checkbox checkbox-sm checkbox-primary"/>
+										</div>
+									</div>
+									<div class="text-sm/6">
+										<label for="enlightened" class="font-medium">Enlightened</label>
+										<p id="enlightened-description" class="text-base-content/80">Alternative and fringe sites.</p>
+									</div>
+								</div>
+							</div>
+						</fieldset>
+						<div class="mt-6 flex items-center justify-end gap-x-6 max-w-prose">
+							<div id="processing" class="htmx-indicator">
+								Processing...
+								<span class="loading loading-spinner loading-md"></span>
+							</div>
+							<button type="submit" class="btn btn-primary">Add sets</button>
+						</div>
+					</form>
+				</div>
+				<div class="py-4">
+					<h3 class="ui-h3">Get to know Foragd</h3>
+					<p class="py-2">Read the documentation/help to get familiar with the app.</p>
+					<ul class="list-disc list-inside">
+						<li><a class="link" href="/help/index">Documentation Home</a></li>
+					</ul>
+				</div>
+			</div>
+		}
+	</main>
+	@Dock(nil)
 }

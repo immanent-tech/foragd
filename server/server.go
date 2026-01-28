@@ -212,7 +212,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.Get("/success", handlers.UserAccountSuccess())
 			r.Get("/cancel", handlers.HandleLandingPage())
 		})
-		r.Get("/home", handlers.Home())
+		r.Get("/home", handlers.HandleHome())
 		r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
 		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.GetSearchSuggestions())

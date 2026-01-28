@@ -518,6 +518,17 @@ type GroupSubscriptionRequest struct {
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
 }
 
+// HomeResponse contains the data for displaying the home page.
+type HomeResponse struct {
+	LatestArticles Articles                   `json:"latest_articles,omitempty,omitzero"`
+	RareCategories CategoryCounts             `json:"rare_categories,omitempty,omitzero"`
+	Subscriptions  Subscriptions              `json:"subscriptions,omitempty,omitzero"`
+	TopCategories  map[CategoryCount]Articles `json:"top_categories,omitempty,omitzero"`
+
+	// User is a user of the application.
+	User User `json:"user,omitempty,omitzero"`
+}
+
 // Item defines model for Item.
 type Item struct {
 	// Timestamp is when the document was created.

@@ -1311,6 +1311,21 @@ components:
           properties:
             mark:
               $ref: '#/components/schemas/Mark'
+    HomeResponse:
+      description: >
+        contains the data for displaying the home page.
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        subscriptions:
+          x-go-type: 'Subscriptions'
+        latest_articles:
+          x-go-type: 'Articles'
+        top_categories:
+          x-go-type: 'map[CategoryCount]Articles'
+        rare_categories:
+          x-go-type: 'CategoryCounts'
     ListRequest:
       description: >
         contains the parameters needed for listing subscriptions or articles.

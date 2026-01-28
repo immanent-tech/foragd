@@ -9,10 +9,9 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -22,50 +21,70 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-// Home handles displaying the user's home page.
-func Home() http.HandlerFunc {
-	return defaultHandlerChain.
-		ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
-			user, err := models.UserFromCtx(req.Context())
-			if err != nil {
-				return &models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Could not display home page",
-						"This might be temporary, please try again.",
-					),
-				}
-			}
-			if user.GetSettings().ShowOnboarding {
-				renderPage(
-					templates.NewPage(
-						wrapContent(req, templates.NewUserHome()),
-						templates.WithPageTitle("Home"),
-					),
-				).ServeHTTP(res, req)
-				return nil
-			}
+// Home contains data for generating a user home page
+type Home struct {
+	title string
+	data  *models.HomeResponse
+}
 
+// FullResponse renders a full page (headers, footers and data).
+func (p *Home) FullResponse(res http.ResponseWriter, req *http.Request) {
+	switch p.data.User.GetSettings().ShowOnboarding {
+	case true:
+		templ.Handler(
+			templates.CreatePage(templates.NewUserHome(&p.data.User),
+				templates.WithPageTitle(p.title),
+			)).ServeHTTP(res, req)
+	case false:
+		templ.Handler(
+			templates.CreatePage(templates.UserHome(p.data),
+				templates.WithPageTitle(p.title),
+			)).ServeHTTP(res, req)
+	}
+}
+
+// PartialResponse will render just the data.
+func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	switch p.data.User.GetSettings().ShowOnboarding {
+	case true:
+		templ.Handler(
+			templates.NewUserHome(&p.data.User),
+			templ.WithFragments(templates.NewUserHomeFragment),
+		).ServeHTTP(res, req)
+	case false:
+		templ.Handler(
+			templates.UserHome(p.data),
+			templ.WithFragments(templates.UserHomeFragment),
+		).ServeHTTP(res, req)
+	}
+	// Update title, dock/sidebar.
+	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+}
+
+// HandleHome handles displaying the user's home page.
+func HandleHome() http.HandlerFunc {
+	return defaultHandlerChain.
+		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			data, err := getHomePageData(req.Context())
 			if err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("run data collection: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Could not display home page",
 						"This might be temporary, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
 			}
-			renderPage(
-				templates.NewPage(
-					wrapContent(req, data.Template()),
-					templates.WithPageTitle("Home"),
-				),
-			).ServeHTTP(res, req)
-			return nil
-		})).
+			page := &Home{
+				title: "Home",
+				data:  data,
+			}
+
+			RenderPage(page).ServeHTTP(res, req)
+		}).
 		ServeHTTP
 }
 
@@ -86,8 +105,8 @@ func WatchHome() http.HandlerFunc {
 }
 
 // getHomePageData retrieves the data required to construct the homepage content.
-func getHomePageData(ctx context.Context) (*templates.Home, error) {
-	data := &templates.Home{
+func getHomePageData(ctx context.Context) (*models.HomeResponse, error) {
+	data := &models.HomeResponse{
 		TopCategories: make(map[models.CategoryCount]models.Articles),
 	}
 	// Retrieve user object.
@@ -95,7 +114,7 @@ func getHomePageData(ctx context.Context) (*templates.Home, error) {
 	if err != nil {
 		return data, fmt.Errorf("unable to retrieve user: %w", err)
 	}
-	data.User = user
+	data.User = *user
 
 	// Retrieve unread subscriptions and articles.
 	subscriptions, articles, err := getHomePageObjects(ctx, user)
@@ -169,12 +188,12 @@ func getHomePageObjects(ctx context.Context, user *models.User) (models.Subscrip
 }
 
 // performHomePageAggs performs aggregations to get statistics and samples of the top unread subscriptions and articles.
-func performHomePageAggs(ctx context.Context, user *models.User, data *templates.Home) error {
+func performHomePageAggs(ctx context.Context, user *models.User, data *models.HomeResponse) error {
 	// Fetch aggregation data.
-	termsField := "categories.raw_nocase"
+	termsField := "categories.raw"
 	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
 	sampleField := "feed_id"
-	defaultMaxDocsPerValue := 1
+	defaultMaxDocsPerValue := 20
 	shardSize := 200
 	topHitsCount := 3
 	maxDocCount := int64(3)
@@ -231,11 +250,11 @@ func performHomePageAggs(ctx context.Context, user *models.User, data *templates
 
 	// Perform the request.
 	filters := models.NewListDisplayFilters()
+	filters.View = models.ViewUnread
 	queryResult, err := models.ItemsAggregation(ctx, query.Bool(
 		query.Filter(
 			// Must match any of the given categories.
 			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()...),
-			query.Terms("categories.raw", filters.GetCategories()...),
 			query.Bool(
 				query.Should(models.BuildItemQueries(user, filters.GetView(), data.Subscriptions)...),
 			),
@@ -257,8 +276,6 @@ func performHomePageAggs(ctx context.Context, user *models.User, data *templates
 					if value, ok = category.Key.(string); !ok {
 						continue
 					}
-					value = strings.ToLower(value)
-					godump.Dump(value)
 					// Get top articles.
 					var topHitsAgg *types.TopHitsAggregate
 					if topHitsAgg, ok = category.Aggregations["top_article_hits"].(*types.TopHitsAggregate); !ok {
