@@ -6,7 +6,7 @@
     {
       "label": "run: server",
       "type": "shell",
-      "command": "air -c .air.toml",
+      "command": "air -c server.air.toml",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -20,7 +20,7 @@
     {
       "label": "run: scheduler",
       "type": "shell",
-      "command": "bunx dotenv-cli -e .env.development -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file --profile='heapprofile=deployments/scheduler-heap.prof;cpuprofile=deployments/scheduler-cpu.prof;webui=true' scheduler run",
+      "command": "air -c scheduler.air.toml",
       "problemMatcher": [],
       "presentation": {
         "echo": true,

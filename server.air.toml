@@ -1,7 +1,5 @@
 #:schema https://json.schemastore.org/any.json
 
-# Config file for [Air](https://github.com/air-verse/air) in TOML format
-
 # Working directory
 # . or absolute path, please note that the directories following must be under root.
 root = "."
@@ -25,17 +23,14 @@ entrypoint = ["./tmp/foragd"]
 full_bin = "./tmp/foragd"
 # Ignore these filename extensions or directories.
 exclude_dir = [
-  "bin",
-  "dist",
+  "deployments",
+  "magefiles",
   "node_modules",
   "tmp",
-  "tests",
   "test",
-  "vendor",
   "web/content",
-  "schema",
-  "deploy",
-  "build",
+  "models/generate",
+  "scheduler",
 ]
 # Exclude specific regular expressions.
 exclude_regex = ["_test\\.go", "_templ\\.go"]
@@ -44,9 +39,9 @@ exclude_unchanged = true
 # Follow symlink for directories
 follow_symlink = true
 # Watch these filename extensions.
-include_ext = ["go", "templ", "html", "json", "js", "ts", "css", "scss", "md"]
+include_ext = ["go", "templ", "html", "json", "js", "ts", "css", "scss"]
 # This log file is placed in your tmp_dir.
-log = "air.log"
+log = "server.air.log"
 # Array of commands to run before each build
 pre_cmd = [
   "npm run build:css",
