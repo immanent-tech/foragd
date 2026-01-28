@@ -122,7 +122,7 @@ func NewManager(ctx context.Context) error {
 	}
 
 	// Set the User-Agent string to be used for underlying requests to fetch feeds and content.
-	feeds.UserAgent = config.AppName + "/" + config.Version + " (+mailto:support@immanent.tech)"
+	feeds.UserAgent = config.AppName + "/" + config.Version + " (+https://foragd.app/policies/bot)"
 
 	Manager = &manager{
 		Scheduler: scheduler,
