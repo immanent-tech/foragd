@@ -14,47 +14,51 @@ import (
 )
 
 templ Viewer() {
-	@header(nil)
-	<div class="ui-container h-full">
-		<section id="viewer">
-			<h2 class="ui-h2">Feed Viewer</h2>
-			<p class="ui-p">
-				Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
-				The feed content, if found, will be displayed below.
-			</p>
-			<p class="ui-p">
-				Feed Viewer is powered by open-source! Check out the <a
+	<div class="bg-base-100">
+		@header(nil)
+		<div class="ui-container">
+			<section id="viewer">
+				<h2 class="ui-h2">Feed Viewer</h2>
+				<p class="ui-p">
+					Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
+					The feed content, if found, will be displayed below.
+				</p>
+				<p class="ui-p">
+					Feed Viewer is powered by open-source! Check out the <a
 	class="link"
 	href="https://github.com/immanent-tech/go-syndication"
 >go-syndication</a> library on GitHub.
-			</p>
-			<form
-				id="viewer-form"
-				hx-post="/viewer"
-				hx-target="#viewer-results"
-				hx-swap="innerHTML transition:true"
-				hx-indicator="#processing"
-			>
-				<fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-4 w-full">
-					<legend class="fieldset-legend">URL</legend>
-					<div class="join">
-						<input type="text" name="url" class="input w-full" placeholder="https://some.site"/>
-						<button class="btn join-item">View</button>
-					</div>
-					<p class="label">Enter a URL of a site to inspect for feeds</p>
-				</fieldset>
-			</form>
-		</section>
-		<div id="processing" class="htmx-indicator my-4 flex justify-center mx-auto">
-			<span class="flex loading loading-dots loading-lg"></span>
+				</p>
+				<form
+					id="viewer-form"
+					hx-post="/viewer"
+					hx-target="#viewer-results"
+					hx-swap="innerHTML transition:true"
+					hx-indicator="#processing"
+				>
+					<fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-4 w-full">
+						<legend class="fieldset-legend">URL</legend>
+						<div class="join">
+							<input type="text" name="url" class="input w-full" placeholder="https://some.site"/>
+							<button class="btn join-item">View</button>
+						</div>
+						<p class="label">Enter a URL of a site to inspect for feeds</p>
+					</fieldset>
+				</form>
+			</section>
 		</div>
-		<section id="viewer-results" class="mt-8 mb-24"></section>
+		<div class="ui-container">
+			<div id="processing" class="htmx-indicator my-4 flex justify-center mx-auto">
+				<span class="flex loading loading-dots loading-lg"></span>
+			</div>
+			<section id="viewer-results" class="mt-8 mb-24 min-h-128 overflow-y-auto"></section>
+		</div>
+		@footer()
 	</div>
-	@footer()
 }
 
 templ ViewerResults(feed *feeds.Feed) {
-	<div class="overflow-hidden">
+	<div>
 		<h2 id="profile-overview-title" class="sr-only">Feed Overview</h2>
 		<div class="p-6">
 			<div class="sm:flex sm:items-center sm:justify-between">
