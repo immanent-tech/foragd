@@ -14,7 +14,6 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	"github.com/russross/blackfriday/v2"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -47,8 +46,6 @@ func PostsHandler() http.HandlerFunc {
 			)
 			http.NotFound(res, req)
 		}
-
-		godump.Dump(posts)
 
 		// Show index when no specific post has been requested.
 		if doc == "" {
