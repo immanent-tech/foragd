@@ -171,121 +171,135 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 	}
 }
 
-// SearchResultsGrid renders the given articles returned from the given search in a grid layout with an actions menu.
-templ SearchResultsGrid(results *models.SearchResults) {
-	<div class="ui-container">
-		<div id="search-results" class="flex items-center justify-between mt-4">
-			// Page title.
-			<div class="min-w-0 flex-1">
-				<h2 class="ui-h2">Search Results</h2>
-			</div>
-			// Actions menu.
-			<el-dropdown class="inline-block flex-none">
-				<button class="inline-flex flex-col items-center">
-					<span class="sr-only">Articles Actions</span>
-					@tabler.DotsVertical(i.Props{Class: "size-6"})
-				</button>
-				<el-menu anchor="bottom end" popover>
-					// Mark all read action.
-					<form>
-						<input type="hidden" name={ models.ParamView } value={ models.ViewUnread }/>
-						<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-						<a
-							hx-post="/list/articles/mark/read"
-							hx-target={ ContentID.Target() }
-							hx-include="#grid-objects"
-							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
-						>
-							@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-							<span class="sr-only">Mark All Read</span>
-							Mark all Read
-						</a>
-					</form>
-					// Mark all unread action.
-					<form>
-						<input type="hidden" name={ models.ParamView } value={ models.ViewRead }/>
-						<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
-						<a
-							hx-post="/list/articles/mark/unread"
-							hx-target={ ContentID.Target() }
-							hx-include="#grid-objects"
-							class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
-						>
-							@tabler.Mail(i.Props{Class: "size-4"})
-							<span class="sr-only">Mark All Unread</span>
-							Mark all Unread
-						</a>
-					</form>
-					if results.Search.SubscriptionID != "" {
-						<div class="py-1">
-							// Edit action.
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/edit/subscription/"+results.Search.SubscriptionID),
-								WithHXTarget(ContentID.Target()),
-								WithHXSwap("innerHTML show:window:top transition:true"),
-								WithHXPushURL(true),
-							) {
-								@tabler.Edit(i.Props{Class: "size-4"})
-								Edit Subscription
-							}
-						</div>
-					} else {
-						<div class="py-1">
-							@NewLink(
-								WithHXMethod(http.MethodGet, "/user/subscription/add/search"),
-								WithHXTarget(ContentID.Target()),
-								WithHXInclude("#search-filters"),
-								WithHXPushURL(true),
-								WithClasses("group/item", "flex", "items-center", "px-4", "py-2", "text-sm", "space-x-2", "focus:text-primary", "focus:outline-hidden"),
-							) {
-								@tabler.Plus(i.Props{Class: "size-4"})
-								Add Subscription
-							}
-						</div>
-					}
-				</el-menu>
-			</el-dropdown>
-		</div>
-		// Watch for updates.
-		<div
-			id="update-notifications"
-			sse-connect={ "/search/updates?" + results.Search.Query() }
-			sse-swap="updates"
-			class="toast toast-center z-50"
-		></div>
-		// Articles grid.
-		<section class="mt-4">
-			<div id="grid-objects" class="ui-grid">
-				@SearchResults(results)
-				@partials.ButtonBackToTop()
-			</div>
-		</section>
-	</div>
-}
+const PaginateSearchFragment templFragmentKey = "paginateSearch"
 
-// SearchResults renders the list of articles as cards with an optional element to trigger pagination for loading more.
+// SearchResults renders the given articles returned from the given search in a grid layout with an actions menu.
 templ SearchResults(results *models.SearchResults) {
-	for article := range slices.Values(results.Articles) {
-		<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
-		@NewArticleView(article).Card()
-	}
-	if results.Pagination != "" && len(results.Articles) == 15 {
-		<form
-			hx-post="/search/paginate"
-			hx-vals={ templ.JSONString(results.Search) }
-			hx-trigger="intersect once"
-			hx-target="#grid-objects"
-			hx-swap="beforeend transition:false"
-			hx-indicator="#content-loading"
-			hx-push-url="false"
-			preload
-			preload-images="true"
-			_="on htmx:afterRequest remove me"
-			class="invisible"
-		>
-			<input type="hidden" name="pagination" value={ results.Pagination }/>
-		</form>
-	}
+	@header(models.UserFromCtx(ctx))
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(ContentFragment) {
+			<div class="ui-container">
+				<div id="header" class="flex items-center justify-between mt-4">
+					// Page title.
+					<div class="min-w-0 flex-1">
+						<h2 class="ui-h2">Search Results</h2>
+					</div>
+					// Actions menu.
+					<el-dropdown class="inline-block flex-none">
+						<button class="inline-flex flex-col items-center">
+							<span class="sr-only">Articles Actions</span>
+							@tabler.DotsVertical(i.Props{Class: "size-6"})
+						</button>
+						<el-menu anchor="bottom end" popover>
+							// Mark all read action.
+							<form>
+								<input type="hidden" name={ models.ParamView } value={ models.ViewUnread }/>
+								<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+								<a
+									hx-post="/list/articles/mark/read"
+									hx-target={ ContentID.Target() }
+									hx-include="#grid-objects"
+									class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
+								>
+									@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+									<span class="sr-only">Mark All Read</span>
+									Mark all Read
+								</a>
+							</form>
+							// Mark all unread action.
+							<form>
+								<input type="hidden" name={ models.ParamView } value={ models.ViewRead }/>
+								<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+								<a
+									hx-post="/list/articles/mark/unread"
+									hx-target={ ContentID.Target() }
+									hx-include="#grid-objects"
+									class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
+								>
+									@tabler.Mail(i.Props{Class: "size-4"})
+									<span class="sr-only">Mark All Unread</span>
+									Mark all Unread
+								</a>
+							</form>
+							if results.Search.SubscriptionID != "" {
+								<div class="py-1">
+									// Edit action.
+									<a
+										hx-get={ "/edit/subscription/" + results.Search.SubscriptionID }
+										hx-target={ ContentID.Target() }
+										hx-push-url="true"
+										hx-swap="innerHTML show:window:top transition:true"
+										class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
+									>
+										@tabler.Edit(i.Props{Class: "size-4"})
+										Edit Subscription
+									</a>
+								</div>
+							} else {
+								<div class="py-1">
+									<a
+										hx-get="/user/subscription/add/search"
+										hx-target={ ContentID.Target() }
+										hx-include="#search-filters"
+										hx-push-url="true"
+										class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
+									>
+										@tabler.Plus(i.Props{Class: "size-4"})
+										Add Subscription
+									</a>
+								</div>
+							}
+						</el-menu>
+					</el-dropdown>
+				</div>
+				if len(results.Articles) == 0 {
+					<div class="text-center mt-4">
+						<h2 class="ui-h2">Nothing found 😕</h2>
+						<p class="ui-p">Looks like there are no matches for that search.</p>
+					</div>
+				} else {
+					// Watch for updates.
+					<div
+						id="update-notifications"
+						sse-connect={ "/search/updates?" + results.Search.Query() }
+						sse-swap="updates"
+						class="toast toast-center z-50"
+					></div>
+					// Articles grid.
+					<section class="mt-4">
+						<div id="grid-objects" class="ui-grid">
+							@templ.Fragment(PaginateSearchFragment) {
+								for article := range slices.Values(results.Articles) {
+									<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
+									@NewArticleView(article).Card()
+								}
+								if results.Pagination != "" && len(results.Articles) == 15 {
+									<form
+										hx-post="/search/paginate"
+										hx-vals={ templ.JSONString(results.Search) }
+										hx-trigger="intersect once"
+										hx-target="#grid-objects"
+										hx-swap="beforeend transition:false"
+										hx-indicator="#content-loading"
+										hx-push-url="false"
+										preload
+										preload-images="true"
+										_="on htmx:afterRequest remove me"
+										class="invisible"
+									>
+										<input type="hidden" name="pagination" value={ results.Pagination }/>
+									</form>
+								}
+							}
+							@partials.ButtonBackToTop()
+						</div>
+					</section>
+				}
+			</div>
+		}
+	</main>
+	@Dock(nil)
 }
 
 templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) {
@@ -563,44 +577,35 @@ templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequ
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
-	<div class="ui-container">
-		// Show a page header.
-		<div class="md:flex md:items-center md:justify-between">
-			<div class="min-w-0 flex-1">
-				<h2 class="ui-h2">Similar Articles</h2>
-			</div>
-		</div>
-		// Show results.
-		<section class="mt-4">
-			<div id="grid-objects" class="ui-grid">
-				for article := range slices.Values(articles) {
-					@NewArticleView(article).Card()
+	@header(models.UserFromCtx(ctx))
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(ContentFragment) {
+			<div class="ui-container">
+				// Show a page header.
+				<div class="md:flex md:items-center md:justify-between">
+					<div class="min-w-0 flex-1">
+						<h2 class="ui-h2">Similar Articles</h2>
+					</div>
+				</div>
+				if len(articles) == 0 {
+					<div class="text-center mt-4">
+						<h2 class="ui-h2">Nothing found 😕</h2>
+						<p class="ui-p">Looks like there are no matches for that search.</p>
+					</div>
+				} else {
+					// Show results.
+					<section class="mt-4">
+						<div id="grid-objects" class="ui-grid">
+							for article := range slices.Values(articles) {
+								@NewArticleView(article).Card()
+							}
+						</div>
+						@partials.ButtonBackToTop()
+					</section>
 				}
 			</div>
-			@partials.ButtonBackToTop()
-		</section>
-	</div>
-}
-
-// NoSearchResults renders an informational message for when no search results were returned.
-templ NoSearchResults() {
-	<div class="ui-container">
-		// Page title.
-		<div class="min-w-0 flex flex-1">
-			<h2 class="ui-h2">Search Results</h2>
-		</div>
-		<div class="text-center mt-4">
-			<h3 class="text-xl/7 font-bold sm:truncate sm:text-2xl sm:tracking-tight">Nothing found 😕</h3>
-			<p class="text-base font-semibold">Looks like there are no matches for that search.</p>
-			<div class="mt-10 flex items-center justify-center gap-x-6">
-				@NewLink(
-					WithAttribute("role", "button"),
-					WithAttribute("href", "/home"),
-					WithClasses("btn", "btn-primary"),
-				) {
-					Go Back Home
-				}
-			</div>
-		</div>
-	</div>
+		}
+	</main>
+	@Dock(nil)
 }

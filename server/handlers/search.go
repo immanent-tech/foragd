@@ -8,11 +8,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
@@ -29,8 +27,16 @@ const (
 	defaultArticleResultsCount          = 15
 )
 
-// GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
-func GetSearchSuggestions() http.HandlerFunc {
+type SearchSuggestions struct {
+	template templ.Component
+}
+
+func (h *SearchSuggestions) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(h.template).ServeHTTP(res, req)
+}
+
+// HandleSearchSuggestions performs a search with the user input and presents suggestions back to the user.
+func HandleSearchSuggestions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode search.
 		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
@@ -121,32 +127,67 @@ func GetSearchSuggestions() http.HandlerFunc {
 		}
 
 		// Generate search suggestions object.
-		suggestions := &models.SearchResults{
-			Search:        *search,
-			Subscriptions: subscriptions,
-			Articles:      articles,
-		}
-
-		renderPartial(
-			templates.NewPartial(templates.SearchSuggestions(suggestions)),
-		).ServeHTTP(res, req)
+		RenderPartial(&SearchSuggestions{
+			template: templates.SearchSuggestions(&models.SearchResults{
+				Search:        *search,
+				Subscriptions: subscriptions,
+				Articles:      articles,
+			}),
+		}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
-// GetSearchResults performs a search with the user input and renders a page with the search results.
-func GetSearchResults() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
+type SearchResults struct {
+	results *models.SearchResults
+}
+
+func (h *SearchResults) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(templates.SearchResults(h.results),
+			templates.WithPageTitle("Search Results"),
+		)).ServeHTTP(res, req)
+}
+
+func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	res.Header().Add(htmx.HeaderPushURL, "/search?"+h.results.Search.Query())
+	switch req.URL.Path {
+	case "/search":
+		template := templates.SearchResults(h.results)
+		if len(h.results.Articles) > 0 {
+			// Also update the search filters element.
+			template = templ.Join(
+				template,
+				templates.SearchFilters(&h.results.Search, templ.Attributes{"hx-swap-oob": "true"}),
+			)
+		}
+		templ.Handler(template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
+		templ.Handler(templates.UpdateTitle("Search Results")).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+		templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	case "/search/paginate":
+		if len(h.results.Articles) == 0 {
+			res.WriteHeader(http.StatusNoContent)
+		} else {
+			templ.Handler(templates.SearchResults(h.results), templ.WithFragments(templates.PaginateSearchFragment)).ServeHTTP(res, req)
+		}
+	}
+}
+
+// HandleSearchResults performs a search with the user input and renders a page with the search results.
+func HandleSearchResults() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Extract the search search.
 		search, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Invalid search request",
 					"Please check the search request data and try again",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		ctx := req.Context()
@@ -159,10 +200,11 @@ func GetSearchResults() http.HandlerFunc {
 				models.GetSubscriptionsDynamicInfo(true),
 			)
 			if err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("get subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 		}
@@ -170,29 +212,31 @@ func GetSearchResults() http.HandlerFunc {
 		// Retrieve the user object.
 		user := models.UserFromCtx(ctx)
 		if user == nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		// Retrieve pagination.
 		pagination := req.FormValue(models.ParamPagination)
 		if err := validation.Validate.Var(pagination, "omitempty,url_encoded"); err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get pagination: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
-			}
+			}).ServeHTTP(res, req)
 		}
 
 		// Find articles that match search request.
 		var articles models.Articles
 		query, err := models.BuildSearchResultsQuery(ctx, user, search, models.SearchResultsClause(search))
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("build search query: %w", err),
 				StatusCode:    http.StatusInternalServerError,
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		itemResults, pagination, err := models.SearchItems(
 			ctx,
@@ -202,63 +246,31 @@ func GetSearchResults() http.HandlerFunc {
 			pagination,
 		)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("search items: %w", err),
 				StatusCode:    http.StatusInternalServerError,
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		if len(itemResults) > 0 {
 			articles, err = models.GenerateArticles(ctx, itemResults)
 			if err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("generate articles: %w", err),
 					StatusCode:    http.StatusInternalServerError,
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
 		}
 
-		// Generate results object.
-		results := &models.SearchResults{
-			Search:     *search,
-			Articles:   articles,
-			Pagination: pagination,
-		}
-
-		if strings.HasSuffix(chi.RouteContext(ctx).RoutePattern(), "/paginate") {
-			if len(articles) > 0 {
-				renderPartial(
-					templates.NewPartial(
-						templates.SearchResults(results),
-					),
-				).ServeHTTP(res, req.WithContext(ctx))
-			} else {
-				res.WriteHeader(http.StatusNoContent)
-			}
-			return nil
-		}
-		var template templ.Component
-		if len(articles) > 0 {
-			// Pagination request, just display next set of results.
-			template = templates.SearchResultsGrid(results)
-		} else {
-			template = templates.NoSearchResults()
-		}
-		if htmx.IsHTMX(req) {
-			template = templ.Join(
-				template,
-				templates.SearchFilters(&results.Search, templ.Attributes{"hx-swap-oob": "true"}),
-			)
-		}
-		res.Header().Add(htmx.HeaderPushURL, "/search?"+search.Query())
-		renderPage(
-			templates.NewPage(
-				wrapContent(req, template),
-				templates.WithPageTitle("Search Results"),
-			),
-		).ServeHTTP(res, req)
-
-		return nil
-	})).ServeHTTP
+		RenderInternalPage(&SearchResults{
+			results: &models.SearchResults{
+				Search:     *search,
+				Articles:   articles,
+				Pagination: pagination,
+			},
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
 // WatchSearchResults handles watching the search results for any updates and rendering a notification to the user to refresh the page.

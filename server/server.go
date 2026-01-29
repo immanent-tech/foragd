@@ -215,13 +215,13 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.Get("/home", handlers.HandleHome())
 		r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
-		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.GetSearchSuggestions())
-		r.With(middlewares.RequireHTMX).Post("/search", handlers.GetSearchResults())
-		r.With(middlewares.RequireHTMX).Post("/search/paginate", handlers.GetSearchResults())
+		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.HandleSearchSuggestions())
+		r.With(middlewares.RequireHTMX).Post("/search", handlers.HandleSearchResults())
+		r.With(middlewares.RequireHTMX).Post("/search/paginate", handlers.HandleSearchResults())
 		r.With(middlewares.RequireHTMX).
 			Post("/search/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions())
 		r.With(middlewares.RequireHTMX).Post("/search/subscription", handlers.AddSubscriptionFilter())
-		r.Get("/search", handlers.GetSearchResults())
+		r.Get("/search", handlers.HandleSearchResults())
 		r.Get("/search/updates", handlers.WatchSearchResults())
 		// Issues.
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues())
@@ -263,7 +263,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/favorite/article/{item_id}", handlers.FavoriteArticle())
 		r.With(middlewares.RequireHTMX).Post("/share/article/{item_id}", handlers.ShareArticle())
 		r.Get("/view/article/{item_id}", handlers.ViewArticle())
-		r.Get("/view/article/{item_id}/similar", handlers.FindSimilarArticles())
+		r.Get("/view/article/{item_id}/similar", handlers.HandleFindSimilarArticles())
 		// General.
 		r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues())
 		r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues())

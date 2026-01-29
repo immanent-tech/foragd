@@ -181,49 +181,62 @@ func PaginateArticles() http.HandlerFunc {
 		ServeHTTP
 }
 
-// FindSimilarArticles handles finding articles similar to the given article and showing the results.
-func FindSimilarArticles() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+type SimilarArticles struct {
+	template templ.Component
+}
+
+// FullResponse renders a full page (headers, footers and list of subscriptions).
+func (h *SimilarArticles) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(h.template,
+			templates.WithPageTitle("Similar Articles"),
+		)).ServeHTTP(res, req)
+}
+
+// PartialResponse will either render the list of subscriptions, the controls and update the title/dock/sidebar or, when
+// paginating, just the list of subscriptions.
+func (h *SimilarArticles) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle("Similar Articles")).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+}
+
+// HandleFindSimilarArticles handles finding articles similar to the given article and showing the results.
+func HandleFindSimilarArticles() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// TODO: wrap id and count in a request object.
 		const similarArticlesCount = 15
 		// Extract request parameters.
 		itemID := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode request: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to find similar",
 					"There was a problem with the request. Please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		articles, err := models.FindSimilarArticles(req.Context(), similarArticlesCount, itemID)
-		if err != nil {
-			return &models.APIError{
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("find similar articles: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to find similar",
 					"There was a problem with the request. Please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		// Show results.
-		var template templ.Component
-		if len(articles) > 0 {
-			template = templates.SimilarArticles(articles)
-		} else {
-			template = templates.NoSearchResults()
-		}
-		renderPage(
-			templates.NewPage(
-				wrapContent(req, template),
-				templates.WithPageTitle("Similar Articles"),
-			),
-		).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+		RenderInternalPage(&SimilarArticles{
+			template: templates.SimilarArticles(articles),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
 // ViewArticle handles showing an article's content.
