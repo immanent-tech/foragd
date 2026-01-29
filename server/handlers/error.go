@@ -63,10 +63,11 @@ func (p *InternalError) PartialResponse(res http.ResponseWriter, req *http.Reque
 		res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
 		templ.Handler(templates.InternalError(models.UserFromCtx(req.Context()), p.err.UserMessage), templ.WithFragments(templates.ErrorFragment)).
 			ServeHTTP(res, req)
-		return
 	} else {
 		res.Header().Set(htmx.HeaderReswap, "none")
-		templ.Handler(templates.Notification(p.err.UserMessage, 0)).ServeHTTP(res, req)
+		RenderPartial(&Notification{
+			msg: p.err.UserMessage,
+		}).ServeHTTP(res, req)
 	}
 }
 

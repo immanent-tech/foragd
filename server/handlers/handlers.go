@@ -103,7 +103,7 @@ var loadRobotsTxt = sync.OnceValues(func() ([]byte, error) {
 	return robotsTxt, nil
 })
 
-// RobotsHandler handles requests for robots.txt. In the future, it may handle more requests from non natural human
+// HandleRobots handles requests for robots.txt. In the future, it may handle more requests from non natural human
 // clients...
 func HandleRobots() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
