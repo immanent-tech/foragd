@@ -178,7 +178,9 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
-		if avatar.GetSize() > 1000000 {
+		// Maximum size of an avatar image is 1MB.
+		const maxAvatarSizeBytes = 1000000
+		if avatar.GetSize() > maxAvatarSizeBytes {
 			HandleInternalError(&models.APIError{
 				InternalError: models.ErrFileTooLarge,
 				StatusCode:    http.StatusUnprocessableEntity,
