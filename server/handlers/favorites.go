@@ -14,27 +14,47 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-// ListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.
-func ListFavorites() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters).
-		ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
+type Favorites struct {
+	template templ.Component
+}
+
+// FullResponse renders a full page (headers, footers and list of subscriptions).
+func (p *Favorites) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(p.template,
+			templates.WithPageTitle("Favorites"),
+		)).ServeHTTP(res, req)
+}
+
+// PartialResponse will either render the list of subscriptions, the controls and update the title/dock/sidebar or, when
+// paginating, just the list of subscriptions.
+func (p *Favorites) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(p.template, templ.WithFragments(templates.FavoritesFragment)).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle("Favorites")).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+}
+
+// HandleListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.
+func HandleListFavorites() http.HandlerFunc {
+	return listHandlerChain.Append(parseFilters).
+		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			var (
 				articles      models.Articles
 				subscriptions models.Subscriptions
-				template      templ.Component
 				err           error
 			)
 
 			user, err := models.UserFromCtx(req.Context())
 			if err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("get user data: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Could not list favorites",
 						"This might be temporary, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
 			}
 
 			wg, jobCtx := errgroup.WithContext(req.Context())
@@ -66,32 +86,27 @@ func ListFavorites() http.HandlerFunc {
 			})
 
 			if err := wg.Wait(); err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("run data collection: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Could not list favorites",
 						"This might be temporary, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
 			}
 
 			// Render appropriate content.
-			template = templates.FavoritesGrid(subscriptions, articles)
-
-			// Choose rendering method based on method (get = page, post = partial).
-			switch req.Method {
-			case http.MethodGet:
-				renderPage(
-					templates.NewPage(
-						wrapContent(req, template),
-						templates.WithPageTitle("Favorites"),
-					),
-				).ServeHTTP(res, req)
-			case http.MethodPost:
-				renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
+			response := &models.ListFavoritesResponse{
+				User:          *user,
+				Subscriptions: subscriptions,
+				Articles:      articles,
 			}
-			return nil
-		})).
+			page := &Favorites{
+				template: templates.ListFavorites(response),
+			}
+
+			RenderInternalPage(page).ServeHTTP(res, req)
+		}).
 		ServeHTTP
 }

@@ -269,7 +269,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues())
 		// Favorite specific.
 		r.Route("/list/favorites", func(r chi.Router) {
-			r.Get("/", handlers.ListFavorites())
+			r.Get("/", handlers.HandleListFavorites())
 		})
 
 		// User routes.

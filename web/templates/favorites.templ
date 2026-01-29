@@ -10,54 +10,62 @@ import (
 	"slices"
 )
 
-// FavoritesGrid renders subscription and article favorites in a grid layout.
-templ FavoritesGrid(subscriptions models.Subscriptions, articles models.Articles) {
-	<div id="top" class="ui-container">
-		if len(subscriptions) > 0 || len(articles) > 0 {
-			// Show jump to links for quick access when there are both subscriptions and articles.
-			if len(subscriptions) > 0 && len(articles) > 0 {
-				<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8 text-sm">
-					<p class="font-medium text-primary">
-						Jump To:
-					</p>
-					<div class="flex items-center px-2">
-						<a href="#subscriptions" class="link link-hover">Subscriptions</a>
-						<div aria-hidden="true" class="h-5 w-px bg-base-content/40 m-4 block"></div>
-						<a href="#articles" class="link link-hover">Articles</a>
-					</div>
-				</div>
-			}
-			// Favorite subscriptions.
-			if len(subscriptions) > 0 {
-				<section id="subscriptions" class="mt-4">
-					<div class="pb-5">
-						<h2 class="ui-h2">Subscriptions</h2>
-					</div>
-					<div id="grid-objects" class="ui-grid">
-						for subscription := range slices.Values(subscriptions) {
-							@NewSubscriptionView(subscription).Card()
-						}
-					</div>
+const FavoritesFragment templFragmentKey = "favorites"
+
+// ListFavorites renders subscription and article favorites in a grid layout.
+templ ListFavorites(response *models.ListFavoritesResponse) {
+	@header(&response.User)
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(FavoritesFragment) {
+			<div id="top" class="ui-container">
+				if len(response.Subscriptions) > 0 || len(response.Articles) > 0 {
+					// Show jump to links for quick access when there are both subscriptions and articles.
+					if len(response.Subscriptions) > 0 && len(response.Articles) > 0 {
+						<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8 text-sm">
+							<p class="font-medium text-primary">
+								Jump To:
+							</p>
+							<div class="flex items-center px-2">
+								<a href="#subscriptions" class="link link-hover">Subscriptions</a>
+								<div aria-hidden="true" class="h-5 w-px bg-base-content/40 m-4 block"></div>
+								<a href="#articles" class="link link-hover">Articles</a>
+							</div>
+						</div>
+					}
+					// Favorite subscriptions.
+					if len(response.Subscriptions) > 0 {
+						<section id="subscriptions" class="mt-4">
+							<div class="pb-5">
+								<h2 class="ui-h2">Subscriptions</h2>
+							</div>
+							<div id="grid-objects" class="ui-grid">
+								for subscription := range slices.Values(response.Subscriptions) {
+									@NewSubscriptionView(subscription).Card()
+								}
+							</div>
+							@partials.ButtonBackToTop()
+						</section>
+					}
+					// Favorite articles.
+					if len(response.Articles) > 0 {
+						<section id="articles" class="mt-4">
+							<div class="pb-5">
+								<h2 class="ui-h2">Articles</h2>
+							</div>
+							<div id="grid-objects" class="ui-grid">
+								for article := range slices.Values(response.Articles) {
+									@NewArticleView(article).Card()
+								}
+							</div>
+							@partials.ButtonBackToTop()
+						</section>
+					}
 					@partials.ButtonBackToTop()
-				</section>
-			}
-			// Favorite articles.
-			if len(articles) > 0 {
-				<section id="articles" class="mt-4">
-					<div class="pb-5">
-						<h2 class="ui-h2">Articles</h2>
-					</div>
-					<div id="grid-objects" class="ui-grid">
-						for article := range slices.Values(articles) {
-							@NewArticleView(article).Card()
-						}
-					</div>
-					@partials.ButtonBackToTop()
-				</section>
-			}
-			@partials.ButtonBackToTop()
-		} else {
-			@emptyContent()
+				} else {
+					@emptyContent()
+				}
+			</div>
 		}
-	</div>
+	</main>
 }

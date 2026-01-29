@@ -1326,6 +1326,17 @@ components:
           x-go-type: 'map[CategoryCount]Articles'
         rare_categories:
           x-go-type: 'CategoryCounts'
+    ListFavoritesResponse:
+      description: >
+        contains the data for displaying the favorites page.
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        subscriptions:
+          x-go-type: 'Subscriptions'
+        articles:
+          x-go-type: 'Articles'
     ListRequest:
       description: >
         contains the parameters needed for listing subscriptions or articles.
