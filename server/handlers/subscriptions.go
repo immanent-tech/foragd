@@ -338,7 +338,11 @@ func HandleRemoveSubscription() http.HandlerFunc {
 		}
 		switch req.FormValue("confirmed") {
 		case "false":
-			renderPartial(templates.NewPartial(templates.RemoveSubscriptionModal(request))).ServeHTTP(res, req)
+			RenderPartial(
+				&Modal{
+					template: templates.RemoveSubscriptionModal(request),
+				},
+			).ServeHTTP(res, req)
 		case "true":
 			if err := models.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
 				HandleInternalError(&models.APIError{
@@ -883,6 +887,14 @@ func (h *ImportSubscriptions) PartialResponse(res http.ResponseWriter, req *http
 	templ.Handler(templates.UpdateTitle("Import Subscriptions")).ServeHTTP(res, req)
 }
 
+type ImportSubscriptionsResults struct {
+	template templ.Component
+}
+
+func (h *ImportSubscriptionsResults) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(h.template).ServeHTTP(res, req)
+}
+
 // HandleImportSubscriptions handles assisting the user with importing subscriptions from an external source.
 func HandleImportSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -965,15 +977,16 @@ func HandleImportSubscriptions() http.HandlerFunc {
 				return
 			}
 			// Display all results.
-			msg := models.NewSuccessMessage(
-				"OPML import complete.",
-				"Please consult the results and check for any issues.",
-			)
-			template := templ.Join(
-				templates.ImportResults(results),
-				templates.Notification(msg, templates.DefaultNotificationTimeout),
-			)
-			renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
+			RenderPartial(&ImportSubscriptionsResults{
+				template: templates.ImportResults(results),
+			}).ServeHTTP(res, req)
+			// Display notification.
+			RenderPartial(&Notification{
+				msg: models.NewSuccessMessage(
+					"OPML import complete.",
+					"Please consult the results and check for any issues.",
+				),
+			}).ServeHTTP(res, req)
 		}
 	}).ServeHTTP
 }

@@ -26,3 +26,11 @@ func (n *Notification) PartialResponse(res http.ResponseWriter, req *http.Reques
 	}
 	templ.Handler(templates.Notification(n.msg, n.timeout)).ServeHTTP(res, req)
 }
+
+type Modal struct {
+	template templ.Component
+}
+
+func (m *Modal) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(m.template).ServeHTTP(res, req)
+}
