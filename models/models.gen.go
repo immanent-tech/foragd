@@ -109,20 +109,11 @@ type AddFeedSubscriptionRequest struct {
 	// URL is the URL of the feed data.
 	URL string `form:"url" json:"URL" validate:"required,url"`
 
-	// URLErr is an error associated with the URL field.
-	URLErr error `form:"-" json:"-"`
-
 	// Categories a list custom categories for the subscription. Combined with the feed's own categories.
 	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero"`
 
-	// CategoriesErr is an error associated with the categories field.
-	CategoriesErr error `form:"-" json:"-"`
-
 	// Nickname a custom name for the subscription. Overrides the feed name.
 	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero"`
-
-	// NicknameErr is an error associated with the nickname field.
-	NicknameErr error `form:"-" json:"-"`
 }
 
 // AddFeedSubscriptionResult contains the result of adding/importing a subscription from a request.
@@ -343,9 +334,6 @@ type EditEmailSubscriptionRequest struct {
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-
-	// User is a user of the application.
-	User User `json:"user"`
 }
 
 // EditSubscriptionRequest defines model for EditSubscriptionRequest.
@@ -373,9 +361,6 @@ type EditSubscriptionRequest struct {
 
 	// SuggestedCategories is a list of suggested categories for the subscription.
 	SuggestedCategories []Category `form:"-" json:"-"`
-
-	// User is a user of the application.
-	User User `json:"user"`
 }
 
 // EditUserRequest contains account fields that a user can customize.
@@ -513,9 +498,6 @@ type GroupSubscriptionRequest struct {
 
 	// Subscriptions is the list of subscription IDs belonging to the group.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
-
-	// User is a user of the application.
-	User User `json:"user"`
 }
 
 // HomeResponse contains the data for displaying the home page.
@@ -524,9 +506,6 @@ type HomeResponse struct {
 	RareCategories CategoryCounts             `json:"rare_categories,omitempty,omitzero"`
 	Subscriptions  Subscriptions              `json:"subscriptions,omitempty,omitzero"`
 	TopCategories  map[CategoryCount]Articles `json:"top_categories,omitempty,omitzero"`
-
-	// User is a user of the application.
-	User User `json:"user,omitempty,omitzero"`
 }
 
 // Item defines model for Item.
@@ -606,9 +585,6 @@ type ListArticlesResponse struct {
 type ListFavoritesResponse struct {
 	Articles      Articles      `json:"articles,omitempty,omitzero"`
 	Subscriptions Subscriptions `json:"subscriptions,omitempty,omitzero"`
-
-	// User is a user of the application.
-	User User `json:"user,omitempty,omitzero"`
 }
 
 // ListFilters contains filters for altering the display of objects.
@@ -655,9 +631,6 @@ type ListSubscriptionsResponse struct {
 	// Pagination contains data for paginating through results.
 	Pagination    Pagination    `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
 	Subscriptions Subscriptions `json:"subscriptions"`
-
-	// User is a user of the application.
-	User User `json:"user"`
 }
 
 // Mark applies the given mark action to objects.
@@ -882,9 +855,6 @@ type SearchSubscriptionRequest struct {
 	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`
 	Search        SearchRequest             `form:"search" json:"search"`
 	Settings      SubscriptionSettings      `form:"settings" json:"settings,omitempty,omitzero"`
-
-	// User is a user of the application.
-	User User `json:"user"`
 }
 
 // ShareArticleRequest contains parameters for sharing an article.

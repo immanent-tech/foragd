@@ -83,8 +83,8 @@ func ListCategories() http.HandlerFunc {
 					},
 				)
 			case strings.HasPrefix(req.URL.Path, "/list/articles"):
-				user, err := models.UserFromCtx(req.Context())
-				if err != nil {
+				user := models.UserFromCtx(req.Context())
+				if user == nil {
 					slogctx.FromCtx(req.Context()).Warn("Could not get user data.",
 						slog.Any("error", err),
 					)

@@ -1218,7 +1218,7 @@ func categoryFilter(path, id string, category models.CategoryCount, filters *mod
 			WithHXReplaceURL(true),
 			WithHXSwap("innerHTML transition:true"),
 			WithID(id),
-			WithClasses("link-hover", "block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
+			WithClasses("link-hover", "block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", class),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var60), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

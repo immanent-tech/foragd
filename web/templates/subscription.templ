@@ -221,7 +221,7 @@ templ (s *Subscription) Card() {
 					"
 								/>
 								@tabler.MailOpened(i.Props{Class: "size-5 text-primary swap-on"})
-								@tabler.MailFilled(i.Props{Class: "size-5 text-primary swap-off"})
+								@tabler.Mail(i.Props{Class: "size-5 text-primary swap-off"})
 							</label>
 						</form>
 					}
@@ -233,7 +233,7 @@ templ (s *Subscription) Card() {
 								class="btn btn-sm btn-ghost"
 							>
 								<span class="sr-only">s.GetTitle() + " Actions"</span>
-								@tabler.Menu2(i.Props{Class: "size-5"})
+								@tabler.Menu2(i.Props{Class: "size-5 text-primary"})
 							</button>
 							<el-menu
 								id={ "menu-" + s.GetID() + "-actions" }
@@ -286,7 +286,7 @@ const PaginateSubscriptionsFragment templFragmentKey = "paginateSubscriptions"
 
 // ListSubscriptions renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
-	@header(&response.User)
+	@header(models.UserFromCtx(ctx))
 	@SideBar(nil)
 	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
 		@templ.Fragment(ListSubscriptionsFragment) {
@@ -433,7 +433,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 const EditSubscriptionFragment templFragmentKey = "editSubscription"
 
 templ EditSubscription(request *models.EditSubscriptionRequest) {
-	@header(&request.User)
+	@header(models.UserFromCtx(ctx))
 	@SideBar(nil)
 	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
 		@templ.Fragment(EditSubscriptionFragment) {
@@ -603,91 +603,84 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 	@Dock(nil)
 }
 
+const AddSubscriptionFragment templFragmentKey = "addSubscription"
+
 // AddFeedSubscription is a page for adding a new subscription to a feed.
 templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
-	<div class="ui-container">
-		<div class="min-w-0 flex-1 pb-8">
-			<h2 class="ui-h2">Add A Subscription</h2>
-		</div>
-		if request.HasError() {
-			<div role="alert" class="alert alert-error alert-outline mt-12">
-				<div class="px-4 py-5 sm:p-6 space-y-4">
-					<span class="gap-y-2">
-						<p class="font-semibold text-base">Invalid Details</p>
-						<p class="text-sm">There is a problem with the details. Please check and try again.</p>
-					</span>
+	@header(models.UserFromCtx(ctx))
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(AddSubscriptionFragment) {
+			<div class="ui-container">
+				<div class="min-w-0 flex-1 pb-8">
+					<h2 class="ui-h2">Add A Subscription</h2>
+				</div>
+				<div class="space-y-8">
+					<form
+						id="add-subscription"
+						hx-post="/user/subscription/add/feed"
+						hx-swap="none"
+						hx-include="[name='user_categories']"
+						hx-indicator="#processing"
+						hx-on::after-request="if(event.detail.successful) this.reset()"
+					>
+						// URL.
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<h3 class="ui-h3">Feed Website or URL</h3>
+								<p class="mt-1 text-sm/6 ">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2">
+									<input
+										id="url"
+										required
+										type="url"
+										name="url"
+										value={ request.URL }
+										placeholder="https://my-favorite-site/feed"
+										class="input input-primary bg-base-content/10 w-full"
+									/>
+								</div>
+							</div>
+						</div>
+						// Nickname.
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<h3 class="ui-h3">Feed Nickname</h3>
+								<p class="mt-1 text-sm/6 ">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="sm:col-span-4 mt-2">
+									<input
+										id="nickname"
+										type="text"
+										name="nickname"
+										value={ request.Nickname }
+										placeholder="My cool subscription"
+										class="input input-primary bg-base-content/10"
+									/>
+								</div>
+							</div>
+						</div>
+					</form>
+					// Categories
+					{{ categoryMgmtPath := "/user/subscription/category" }}
+					@CategoryManagement(categoryMgmtPath, "categories", nil, request.Categories)
+					// Action buttons.
+					<div class="flex flex-1 items-center justify-end gap-x-6">
+						<div id="processing" class="htmx-indicator">
+							Processing...
+							<span class="loading loading-spinner loading-md"></span>
+						</div>
+						@partials.ButtonBack()
+						<button type="submit" class="btn btn-primary" form="add-subscription">Add</button>
+					</div>
 				</div>
 			</div>
 		}
-		<div class="space-y-8">
-			<form
-				id="add-subscription"
-				hx-post="/user/subscription/add/feed"
-				hx-swap="none"
-				hx-include="[name='user_categories']"
-				hx-indicator="#processing"
-				hx-on::after-request="if(event.detail.successful) this.reset()"
-			>
-				// URL.
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<h3 class="ui-h3">Feed Website or URL</h3>
-						<p class="mt-1 text-sm/6 ">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2">
-							<input
-								id="url"
-								required
-								type="url"
-								name="url"
-								value={ request.URL }
-								placeholder="https://my-favorite-site/feed"
-								class="input input-primary bg-base-content/10 w-full"
-							/>
-							if request.URLErr != nil {
-								<p class="text-error py-2 text-xs/4 font-semibold">Error: { request.URLErr.Error() }</p>
-							}
-						</div>
-					</div>
-				</div>
-				// Nickname.
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<h3 class="ui-h3">Feed Nickname</h3>
-						<p class="mt-1 text-sm/6 ">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="sm:col-span-4 mt-2">
-							<input
-								id="nickname"
-								type="text"
-								name="nickname"
-								value={ request.Nickname }
-								placeholder="My cool subscription"
-								class={ templ.KV("input input-primary bg-base-content/10",request.NicknameErr == nil), templ.KV("input input-error bg-base-content/10",request.NicknameErr !=nil) }
-							/>
-							if request.NicknameErr != nil {
-								<p class="text-error py-2 text-xs/4 font-semibold">{ request.NicknameErr.Error() }</p>
-							}
-						</div>
-					</div>
-				</div>
-			</form>
-			// Categories
-			{{ categoryMgmtPath := "/user/subscription/category" }}
-			@CategoryManagement(categoryMgmtPath, "categories", nil, request.Categories)
-			// Action buttons.
-			<div class="flex flex-1 items-center justify-end gap-x-6">
-				<div id="processing" class="htmx-indicator">
-					Processing...
-					<span class="loading loading-spinner loading-md"></span>
-				</div>
-				@partials.ButtonBack()
-				<button type="submit" class="btn btn-primary" form="add-subscription">Add</button>
-			</div>
-		</div>
-	</div>
+	</main>
+	@Dock(nil)
 }
 
 // AddSearchSubscription is a page for adding a new search subscription.
@@ -701,7 +694,7 @@ templ EditSearchSubscription(request *models.SearchSubscriptionRequest) {
 }
 
 templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action string) {
-	@header(&request.User)
+	@header(models.UserFromCtx(ctx))
 	@SideBar(nil)
 	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
 		@templ.Fragment(EditSubscriptionFragment) {
@@ -1017,7 +1010,7 @@ templ EditGroupSubscription(request *models.GroupSubscriptionRequest) {
 }
 
 templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action string) {
-	@header(&request.User)
+	@header(models.UserFromCtx(ctx))
 	@SideBar(nil)
 	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
 		@templ.Fragment(EditSubscriptionFragment) {
@@ -1157,7 +1150,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 }
 
 templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
-	@header(&request.User)
+	@header(models.UserFromCtx(ctx))
 	@SideBar(nil)
 	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
 		@templ.Fragment(EditSubscriptionFragment) {
@@ -1239,47 +1232,54 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 
 // ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
 templ ImportSubscriptions() {
-	<div class="ui-container">
-		<div class="mx-auto max-w-3xl">
-			<div class="min-w-0 flex-1 pb-8">
-				<h2 class="ui-h2">Import Subscriptions</h2>
-			</div>
-			<div class="md:flex md:items-center md:justify-between">
-				<p class="mt-2 max-w-4xl text-sm text-base-content/80">
-					You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.
-				</p>
-			</div>
-			<form
-				id="import-subscriptions-form"
-				hx-encoding="multipart/form-data"
-				hx-post="/user/import"
-				hx-target="#import-results"
-				hx-indicator="#processing"
-			>
-				<div class="grid max-w-7xl grid-cols-1 items-center gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-					<div>
-						<h3 class="ui-h3">OPML File</h3>
+	@header(models.UserFromCtx(ctx))
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(ContentFragment) {
+			<div class="ui-container">
+				<div class="mx-auto max-w-3xl">
+					<div class="min-w-0 flex-1 pb-8">
+						<h2 class="ui-h2">Import Subscriptions</h2>
 					</div>
-					<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:place-items-center sm:grid-cols-6 md:col-span-2">
-						<div class="sm:col-span-full w-full">
-							<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10 w-full"/>
-						</div>
+					<div class="md:flex md:items-center md:justify-between">
+						<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+							You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.
+						</p>
 					</div>
-					<div class="grid col-span-full justify-end">
-						<div class="flex gap-x-2 items-center">
-							<div id="processing" class="htmx-indicator">
-								Processing...
-								<span class="loading loading-spinner loading-md"></span>
+					<form
+						id="import-subscriptions-form"
+						hx-encoding="multipart/form-data"
+						hx-post="/user/import"
+						hx-target="#import-results"
+						hx-indicator="#processing"
+					>
+						<div class="grid max-w-7xl grid-cols-1 items-center gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+							<div>
+								<h3 class="ui-h3">OPML File</h3>
 							</div>
-							@partials.ButtonBack()
-							<button type="submit" class="btn btn-primary">Import</button>
+							<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:place-items-center sm:grid-cols-6 md:col-span-2">
+								<div class="sm:col-span-full w-full">
+									<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10 w-full"/>
+								</div>
+							</div>
+							<div class="grid col-span-full justify-end">
+								<div class="flex gap-x-2 items-center">
+									<div id="processing" class="htmx-indicator">
+										Processing...
+										<span class="loading loading-spinner loading-md"></span>
+									</div>
+									@partials.ButtonBack()
+									<button type="submit" class="btn btn-primary">Import</button>
+								</div>
+							</div>
 						</div>
-					</div>
+					</form>
+					<div id="import-results" class="space-y-4"></div>
 				</div>
-			</form>
-			<div id="import-results" class="space-y-4"></div>
-		</div>
-	</div>
+			</div>
+		}
+	</main>
+	@Dock(nil)
 }
 
 // ImportResults is a partial template that displays the results of an import.
@@ -1379,28 +1379,35 @@ func filterUnsuccessfulResults(results []*models.AddFeedSubscriptionResult) []*m
 
 // ExportSubscriptions renders a form for exporting all subscriptions as an OPML file.
 templ ExportSubscriptions() {
-	<div class="ui-container">
-		<div class="md:flex md:items-center md:justify-between mt-8">
-			<div class="min-w-0 flex-1">
-				<h2 class="ui-h2">Export Subscriptions</h2>
+	@header(models.UserFromCtx(ctx))
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(ContentFragment) {
+			<div class="ui-container">
+				<div class="md:flex md:items-center md:justify-between mt-8">
+					<div class="min-w-0 flex-1">
+						<h2 class="ui-h2">Export Subscriptions</h2>
+					</div>
+				</div>
+				<p class="mt-2 max-w-4xl text-sm text-base-content/80">
+					You can export your current subscription to an OPML file, which all good feed readers can import.
+				</p>
+				<div class="mt-10 space-y-8">
+					<div class="mt-6 flex items-center justify-end gap-x-6">
+						@partials.ButtonBack()
+						<form method="post">
+							<button type="submit" class="btn btn-primary">Export</button>
+						</form>
+					</div>
+				</div>
+				<center id="processing" class="htmx-indicator">
+					Processing, this could take a few minutes...
+					<span class="loading loading-spinner loading-md"></span>
+				</center>
 			</div>
-		</div>
-		<p class="mt-2 max-w-4xl text-sm text-base-content/80">
-			You can export your current subscription to an OPML file, which all good feed readers can import.
-		</p>
-		<div class="mt-10 space-y-8">
-			<div class="mt-6 flex items-center justify-end gap-x-6">
-				@partials.ButtonBack()
-				<form method="post">
-					<button type="submit" class="btn btn-primary">Export</button>
-				</form>
-			</div>
-		</div>
-		<center id="processing" class="htmx-indicator">
-			Processing, this could take a few minutes...
-			<span class="loading loading-spinner loading-md"></span>
-		</center>
-	</div>
+		}
+	</main>
+	@Dock(nil)
 }
 
 // RemoveObjectModal renders a modal that will action an unsubscribe request when the user has confirmed.

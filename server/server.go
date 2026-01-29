@@ -245,9 +245,9 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			Delete("/remove/subscription/{subscription_id}", handlers.HandleRemoveSubscription())
 		r.Route("/edit/subscription/{subscription_id}", func(r chi.Router) {
 			r.Get("/", handlers.HandleEditSubscription())
-			r.With(middlewares.RequireHTMX).Post("/", handlers.SaveSubscription())
-			r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
-			r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
+			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleSaveSubscription())
+			r.With(middlewares.RequireHTMX).Post("/category", handlers.HandleSubscriptionCategories())
+			r.With(middlewares.RequireHTMX).Delete("/category", handlers.HandleSubscriptionCategories())
 		})
 		// Article specific.
 		r.Route("/list/articles", func(r chi.Router) {
@@ -278,24 +278,24 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
 				// Add feed subscription.
-				r.Get("/add/feed", handlers.AddFeedSubscription())
-				r.With(middlewares.RequireHTMX).Post("/add/feed", handlers.AddFeedSubscription())
+				r.Get("/add/feed", handlers.HandleAddFeedSubscription())
+				r.With(middlewares.RequireHTMX).Post("/add/feed", handlers.HandleAddFeedSubscription())
 				// Add search subscription.
-				r.Get("/add/search", handlers.AddSearchSubscription())
-				r.With(middlewares.RequireHTMX).Post("/add/search", handlers.AddSearchSubscription())
+				r.Get("/add/search", handlers.HandleAddSearchSubscription())
+				r.With(middlewares.RequireHTMX).Post("/add/search", handlers.HandleAddSearchSubscription())
 				// Add group subscription.
-				r.Get("/add/group", handlers.AddGroupSubscription())
-				r.With(middlewares.RequireHTMX).Post("/add/group", handlers.AddGroupSubscription())
+				r.Get("/add/group", handlers.HandleAddGroupSubscription())
+				r.With(middlewares.RequireHTMX).Post("/add/group", handlers.HandleAddGroupSubscription())
 				// Category management for add/edit subscription.
-				r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
-				r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())
+				r.With(middlewares.RequireHTMX).Post("/category", handlers.HandleSubscriptionCategories())
+				r.With(middlewares.RequireHTMX).Delete("/category", handlers.HandleSubscriptionCategories())
 			})
 			r.Post("/feedset", handlers.AddFeedset(web.StaticContentFS))
 			// Import/export.
-			r.Get("/import", handlers.ImportSubscriptions())
-			r.With(middlewares.RequireHTMX).Post("/import", handlers.ImportSubscriptions())
-			r.Get("/export", handlers.ExportSubscriptions())
-			r.Post("/export", handlers.ExportSubscriptions())
+			r.Get("/import", handlers.HandleImportSubscriptions())
+			r.With(middlewares.RequireHTMX).Post("/import", handlers.HandleImportSubscriptions())
+			r.Get("/export", handlers.HandleExportSubscriptions())
+			r.Post("/export", handlers.HandleExportSubscriptions())
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handlers.ShowSettings())

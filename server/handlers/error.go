@@ -53,16 +53,15 @@ func HandleInternalError(err error) http.HandlerFunc {
 
 // FullResponse renders the error message on a full page.
 func (p *InternalError) FullResponse(res http.ResponseWriter, req *http.Request) {
-	user, _ := models.UserFromCtx(req.Context())
-	templ.Handler(templates.CreatePage(templates.InternalError(user, p.err.UserMessage))).ServeHTTP(res, req)
+	templ.Handler(templates.CreatePage(templates.InternalError(models.UserFromCtx(req.Context()), p.err.UserMessage))).
+		ServeHTTP(res, req)
 }
 
 // PartialResponse will render the error in the content area for GET requests, as a notification otherwise.
 func (p *InternalError) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	if req.Method == http.MethodGet {
-		user, _ := models.UserFromCtx(req.Context())
 		res.Header().Set(htmx.HeaderRetarget, templates.ContentID.Target())
-		templ.Handler(templates.InternalError(user, p.err.UserMessage), templ.WithFragments(templates.ErrorFragment)).
+		templ.Handler(templates.InternalError(models.UserFromCtx(req.Context()), p.err.UserMessage), templ.WithFragments(templates.ErrorFragment)).
 			ServeHTTP(res, req)
 		return
 	} else {
@@ -81,11 +80,10 @@ func HandleExternalError(err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		var apiErr *models.APIError
 		if errors.As(err, &apiErr) {
-			user, _ := models.UserFromCtx(req.Context())
 			apiErr.WriteLog(req.Context())
 			res.WriteHeader(apiErr.HTTPStatus())
 			page := &ExternalError{
-				template: templates.ExternalError(user, apiErr.GetUserMessage()),
+				template: templates.ExternalError(models.UserFromCtx(req.Context()), apiErr.GetUserMessage()),
 			}
 			RenderExternalPage(page).ServeHTTP(res, req)
 		} else {

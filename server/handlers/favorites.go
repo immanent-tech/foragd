@@ -45,8 +45,8 @@ func HandleListFavorites() http.HandlerFunc {
 				err           error
 			)
 
-			user, err := models.UserFromCtx(req.Context())
-			if err != nil {
+			user := models.UserFromCtx(req.Context())
+			if user == nil {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("get user data: %w", err),
 					StatusCode:    http.StatusInternalServerError,
@@ -100,7 +100,6 @@ func HandleListFavorites() http.HandlerFunc {
 
 			// Render appropriate content.
 			response := &models.ListFavoritesResponse{
-				User:          *user,
 				Subscriptions: subscriptions,
 				Articles:      articles,
 			}

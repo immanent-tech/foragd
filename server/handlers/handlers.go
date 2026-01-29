@@ -266,7 +266,7 @@ func showOnError(f func(http.ResponseWriter, *http.Request) error) http.HandlerF
 		if err := f(res, req); err != nil {
 			var apiErr *models.APIError
 			if errors.As(err, &apiErr) {
-				user, _ := models.UserFromCtx(req.Context())
+				user := models.UserFromCtx(req.Context())
 				apiErr.WriteLog(req.Context())
 				res.WriteHeader(apiErr.HTTPStatus())
 				renderPage(
@@ -336,8 +336,8 @@ func renderPartial(partial *templates.Partial) http.Handler {
 func wrapContent(req *http.Request, template templ.Component) templ.Component {
 	switch {
 	case !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return templates.InternalError(
 				user,
 				models.NewErrorMessage("Invalid request", "This might be a temporary error, please try again."),
@@ -442,11 +442,11 @@ func WatchList() http.HandlerFunc {
 //nolint:gocognit
 func watchForUpdates(watch query.Option) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			res.WriteHeader(http.StatusNoContent)
 			slogctx.FromCtx(req.Context()).Error("Unable to watch for updates.",
-				slog.Any("error", err),
+				slog.Any("error", models.ErrCtxValueNotFound),
 			)
 			return
 		}
@@ -468,6 +468,7 @@ func watchForUpdates(watch query.Option) http.Handler {
 		var (
 			currentCount int64
 			prevCount    int64
+			err          error
 		)
 
 		// Get an initial count.

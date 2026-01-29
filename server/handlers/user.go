@@ -47,10 +47,10 @@ func ShowSettings() http.HandlerFunc {
 // ShowDisplaySettings handles showing the settings related to the application display.
 func ShowDisplaySettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to show display settings",
@@ -66,13 +66,13 @@ func ShowDisplaySettings() http.HandlerFunc {
 // ShowAccountSettings handles showing the settings related to user accounts.
 func ShowAccountSettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
-					"Unable to show display settings",
+					"Unable to show account settings",
 					"This might be a temporary error, please try again.",
 				),
 			}
@@ -98,10 +98,10 @@ func SaveDisplaySettings() http.HandlerFunc {
 			}
 		}
 		// Get user object
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
@@ -167,10 +167,10 @@ func SaveAccountSettings() http.HandlerFunc {
 		}
 
 		// Get user object
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
@@ -304,10 +304,10 @@ func ChangePassword() http.HandlerFunc {
 func SetTheme() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		theme := chi.URLParam(req, "theme")
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to set theme",
@@ -344,10 +344,10 @@ func UserDeactivateAccount() http.HandlerFunc {
 			renderPartial(templates.NewPartial(templates.DeactivateAccountModal())).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get user account details.
-			user, err := models.UserFromCtx(req.Context())
-			if err != nil {
+			user := models.UserFromCtx(req.Context())
+			if user == nil {
 				return &models.APIError{
-					InternalError: fmt.Errorf("get user data: %w", err),
+					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Unable to deactivate account",
@@ -386,10 +386,10 @@ func UserDeactivateAccount() http.HandlerFunc {
 func UserCancelDeactivation() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user account details.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to reactivate account",
@@ -539,10 +539,10 @@ func AddFeedset(static embed.FS) http.HandlerFunc {
 // UserChooseSubscriptionPlan handles displaying a page on which the user can choose a subscription plan for purchase.
 func UserChooseSubscriptionPlan() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user: %w", err),
+				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 			}).ServeHTTP(res, req)
 			return
@@ -575,10 +575,10 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 func UserSubscriptionPlanCheckout() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Fetch the user details from context.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			HandleExternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user: %w", err),
+				InternalError: fmt.Errorf("get user: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 			}).ServeHTTP(res, req)
 			return
@@ -596,6 +596,7 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 
 		// Create a new strip checkout session.
 		var session *stripe.Checkout
+		var err error
 		session, err = stripe.NewCheckoutSession(user, planID)
 		if err != nil {
 			HandleExternalError(&models.APIError{
@@ -664,9 +665,9 @@ func UserManageAccountSubscription() http.HandlerFunc {
 func GenerateSubscriptionEmail() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Fetch the user details from context.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
-			return fmt.Errorf("unable to get user data: %w", err)
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
+			return fmt.Errorf("unable to get user data: %w", models.ErrCtxValueNotFound)
 		}
 
 		settings := user.GetSettings()

@@ -436,8 +436,8 @@ func FavoriteArticle() http.HandlerFunc {
 			}
 		}
 
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return &models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", err),
 				StatusCode:    http.StatusInternalServerError,

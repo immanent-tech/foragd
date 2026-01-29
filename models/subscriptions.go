@@ -37,9 +37,9 @@ import (
 
 // GetSubscriptionsForItems returns the subscriptions that the list of items belong to.
 func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 	// Get user subscription details for the feeds the items belong to.
 	subscriptions, _, err := elastic.Search[*Subscription](
@@ -64,9 +64,9 @@ func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, 
 
 func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...SubscriptionID) (CategoryCounts, error) {
 	// Retrieve user object.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 
 	// Build query.
@@ -140,9 +140,9 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 // GetSubscriptionCategories retrieves a map of categories from user subscriptions by count.
 func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions) (CategoryCounts, error) {
 	// Retrieve user object.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 
 	// Build query.
@@ -316,9 +316,9 @@ func GetSubscription(
 	}
 
 	// Get user data.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 
 	// Find matching subscription.
@@ -363,9 +363,9 @@ func GetSubscriptions(
 	}
 
 	// Get user data.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 
 	// Build query optional parts.
@@ -417,9 +417,9 @@ func GetSubscriptionByFeedID(
 		option(req)
 	}
 
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 	subscriptions, _, err := SearchSubscriptions(ctx,
 		query.Bool(
@@ -468,9 +468,9 @@ func GetSubscriptionSuggestions(
 	}
 
 	// Get subscriptions by ID.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 
 	sort := SortMostRelevant
@@ -561,9 +561,9 @@ func FilterSubscriptions(
 	request *ListRequest,
 ) (Subscriptions, Pagination, error) {
 	// Get subscriptions by ID.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, "", fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, "", fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 	subscriptionQuery := query.Bool(
 		query.Filter(
@@ -748,9 +748,9 @@ func ProcessSubscriptionRequest(
 
 // AddSubscriptions adds the given subscriptions to a user.
 func AddSubscriptions(ctx context.Context, subscriptions ...*Subscription) error {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 	if _, err := UpdateSubscriptions(ctx, subscriptions...); err != nil {
 		return fmt.Errorf("update subscriptions: %w", err)
@@ -770,9 +770,9 @@ func AddSubscriptions(ctx context.Context, subscriptions ...*Subscription) error
 
 // RemoveSubscriptions removes subscriptions with the given ID from a user.
 func RemoveSubscriptions(ctx context.Context, ids ...SubscriptionID) error {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW,
 		query.Bool(
@@ -824,9 +824,9 @@ func MarkSubscriptions(
 	mark Mark,
 	subscriptionIDs ...SubscriptionID,
 ) error {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("mark subscriptions: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 
 	subscriptions, err := GetSubscriptions(ctx,
@@ -923,9 +923,9 @@ func CreateSearchSubscriptions(ctx context.Context, requests ...*SearchSubscript
 //
 //nolint:gocognit,funlen
 func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions) error {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("add subscription dynamic info: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 
 	var extraIDs []SubscriptionID
@@ -1881,11 +1881,6 @@ func (r *AddFeedSubscriptionRequest) GetNickname() string {
 	return ""
 }
 
-// HasError wil return true if the subscription request has errors associated with any of its fields.
-func (r *AddFeedSubscriptionRequest) HasError() bool {
-	return r.NicknameErr != nil || r.CategoriesErr != nil || r.URLErr != nil
-}
-
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
 func (r *SearchSubscriptionRequest) Valid() error {
@@ -2061,9 +2056,9 @@ func newSubscription(
 	settings SubscriptionSettings,
 	data any,
 ) (*Subscription, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 	ts := time.Now().UTC()
 	subscription := &Subscription{

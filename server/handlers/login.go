@@ -204,7 +204,6 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 			http.Redirect(res, req.WithContext(ctx), redirectURL, http.StatusTemporaryRedirect)
 		}
 	}
-
 }
 
 // HandleLoginError handles login errors, including invalid login callback URL, missing parameters, expired password reset

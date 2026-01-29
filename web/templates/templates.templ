@@ -15,7 +15,11 @@ import (
 
 type templFragmentKey string
 
+// BodyFragment is a fragment key pointing to tbe body section of a page.
 const BodyFragment templFragmentKey = "body"
+
+// ContentFragment is a fragment key pointing to the main content of a page.
+const ContentFragment templFragmentKey = "content"
 
 templ CreatePage(template templ.Component, options ...PageOption) {
 	{{

@@ -55,9 +55,9 @@ func FilterArticles(
 	ctx context.Context,
 	request *ListRequest,
 ) (Articles, Pagination, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, "", fmt.Errorf("filter articles: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, "", fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 
 	// Get all user subscriptions.
@@ -105,9 +105,9 @@ func FilterArticles(
 // FindSimilarArticles performs a "more like this" search to find other Articles that are similar to the Items with the
 // given IDs.
 func FindSimilarArticles(ctx context.Context, count int, itemIDs ...ItemID) (Articles, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("find similar articles: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 	subscriptions, err := GetSubscriptions(ctx)
 	switch {
@@ -155,9 +155,9 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...ItemID) (Art
 // GenerateArticles takes a slice of items and creates articles from them, grabbing the necessary data from the user
 // object.
 func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("generate articles: get user data: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 
 	// Get the subscriptions associated with the items.

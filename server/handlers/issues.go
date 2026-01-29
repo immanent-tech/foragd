@@ -26,10 +26,10 @@ import (
 func GetPageIssues() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user data.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to generate issues form",
@@ -142,10 +142,10 @@ func GetObjectIssues() http.HandlerFunc {
 			}
 		}
 		// Get user data.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to generate issues form",

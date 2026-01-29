@@ -48,10 +48,10 @@ func GetSearchSuggestions() http.HandlerFunc {
 		}
 
 		// Retrieve the user object.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			slogctx.FromCtx(req.Context()).Debug("Get user data failed.",
-				slog.Any("error", err))
+				slog.Any("error", models.ErrCtxValueNotFound))
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -168,10 +168,10 @@ func GetSearchResults() http.HandlerFunc {
 		}
 
 		// Retrieve the user object.
-		user, err := models.UserFromCtx(ctx)
-		if err != nil {
+		user := models.UserFromCtx(ctx)
+		if user == nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 			}
 		}
@@ -265,10 +265,10 @@ func GetSearchResults() http.HandlerFunc {
 func WatchSearchResults() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
 		// Get user data.
-		user, err := models.UserFromCtx(req.Context())
-		if err != nil {
+		user := models.UserFromCtx(req.Context())
+		if user == nil {
 			return &models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", err),
+				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage:   models.NewErrorMessage("Unable to watch for search results updates", ""),
 			}

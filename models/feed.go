@@ -50,10 +50,11 @@ func getFeedUnreadCounts(
 	subscriptions Subscriptions,
 ) (map[FeedID]int64, error) {
 	// Retrieve user object.
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get subscription unread counts: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
+
 	// Generate unread count query.
 	subscriptionQueries := make([]query.Option, 0, len(subscriptions))
 	for subscription := range slices.Values(subscriptions) {

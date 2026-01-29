@@ -825,26 +825,11 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'url'
             validate: 'required,url'
-        URLErr:
-          description: >
-            is an error associated with the URL field.
-          x-go-name: URLErr
-          x-go-type: error
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
         nickname:
           description: a custom name for the subscription. Overrides the feed name.
           type: string
           x-oapi-codegen-extra-tags:
             form: 'user_nickname'
-        nicknameErr:
-          description: >
-            is an error associated with the nickname field.
-          x-go-type: error
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
         categories:
           description: a list custom categories for the subscription. Combined with the feed's own categories.
           type: array
@@ -853,13 +838,6 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             form: 'user_categories'
-        categoriesErr:
-          description: >
-            is an error associated with the categories field.
-          x-go-type: error
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
     AddFeedSubscriptionResult:
       description: >
         contains the result of adding/importing a subscription from a request.
@@ -882,11 +860,8 @@ components:
         represents a request to create a search subscription.
       type: object
       required:
-        - user
         - search
       properties:
-        user:
-          $ref: '#/components/schemas/User'
         search:
           allOf:
             - $ref: '#/components/schemas/SearchRequest'
@@ -907,11 +882,8 @@ components:
         represents a request to create a group subscription.
       type: object
       required:
-        - user
         - subscriptions
       properties:
-        user:
-          $ref: '#/components/schemas/User'
         subscription_id:
           description: >
             will be a subscription ID if the user is editing an existing group subscription.
@@ -946,11 +918,8 @@ components:
         represents a request to create an email subscription.
       type: object
       required:
-        - user
         - subscription_id
       properties:
-        user:
-          $ref: '#/components/schemas/User'
         subscription_id:
           $ref: '#/components/schemas/SubscriptionID'
         customisation:
@@ -972,11 +941,8 @@ components:
         - $ref: '#/components/schemas/SubscriptionSettings'
         - type: object
           required:
-            - user
             - subscription_id
           properties:
-            user:
-              $ref: '#/components/schemas/User'
             subscription_id:
               $ref: '#/components/schemas/SubscriptionID'
             suggestedCategories:
@@ -1307,8 +1273,6 @@ components:
         contains the data for displaying the home page.
       type: object
       properties:
-        user:
-          $ref: '#/components/schemas/User'
         subscriptions:
           x-go-type: 'Subscriptions'
         latest_articles:
@@ -1322,8 +1286,6 @@ components:
         contains the data for displaying the favorites page.
       type: object
       properties:
-        user:
-          $ref: '#/components/schemas/User'
         subscriptions:
           x-go-type: 'Subscriptions'
         articles:
@@ -1342,7 +1304,6 @@ components:
         contains the data retrieved and relevant for listing subscriptions.
       type: object
       required:
-        - user
         - subscriptions
         - filters
         - pagination
@@ -1355,8 +1316,6 @@ components:
           # items:
           #   $ref: '#/components/schemas/Subscription'
           # x-go-type-skip-optional-pointer: true
-        user:
-          $ref: '#/components/schemas/User'
         filters:
           $ref: '#/components/schemas/ListFilters'
         pagination:

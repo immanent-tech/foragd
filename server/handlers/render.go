@@ -1,6 +1,7 @@
 // Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+//nolint:iface // duplication is more for readability than simplicity.
 package handlers
 
 import (
@@ -9,19 +10,24 @@ import (
 	"github.com/angelofallars/htmx-go"
 )
 
+// PartialResponseHandler is a handler that handles partial responses.
 type PartialResponseHandler interface {
 	PartialResponse(w http.ResponseWriter, r *http.Request)
 }
 
+// FullResponseHandler is a handler that handles full responses.
 type FullResponseHandler interface {
 	FullResponse(w http.ResponseWriter, r *http.Request)
 }
 
+// InternalPage is a handler for internal pages. Internal pages support rendering either full or partial responses.
 type InternalPage interface {
 	PartialResponseHandler
 	FullResponseHandler
 }
 
+// RenderInternalPage is a handler that chooses the appropriate rendering for an internal page (full or partial), based
+// on the request.
 func RenderInternalPage(content InternalPage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if content == nil {
@@ -41,10 +47,12 @@ func RenderInternalPage(content InternalPage) http.HandlerFunc {
 	}
 }
 
+// ExternalPage is a handler for external pages. External pages only support rendering full responses.
 type ExternalPage interface {
 	FullResponseHandler
 }
 
+// RenderExternalPage is a handler that renders a full external page.
 func RenderExternalPage(content ExternalPage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if content == nil {
@@ -56,6 +64,7 @@ func RenderExternalPage(content ExternalPage) http.HandlerFunc {
 	}
 }
 
+// RenderPartial is a handler that renders a partial response.
 func RenderPartial(content PartialResponseHandler) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		if content == nil {

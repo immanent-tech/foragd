@@ -18,7 +18,7 @@ const UserHomeFragment templFragmentKey = "userhome"
 
 // content renders the home page content.
 templ UserHome(data *models.HomeResponse) {
-	@header(&data.User)
+	@header(models.UserFromCtx(ctx))
 	@SideBar(nil)
 	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
 		@templ.Fragment(UserHomeFragment) {
@@ -114,8 +114,8 @@ templ UserHome(data *models.HomeResponse) {
 
 const NewUserHomeFragment templFragmentKey = "newUserHome"
 
-templ NewUserHome(user *models.User) {
-	@header(user)
+templ NewUserHome() {
+	@header(models.UserFromCtx(ctx))
 	@SideBar(nil)
 	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
 		@templ.Fragment(NewUserHomeFragment) {

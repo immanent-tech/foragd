@@ -88,9 +88,9 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 	if err := LoadManagementAPI(); err != nil {
 		return fmt.Errorf("load management API: %w", err)
 	}
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("get user data: %w", err)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 	// If the user changed their email, end a new verification email.
 	var verifyEmail bool
@@ -116,9 +116,9 @@ func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordReque
 	if err := LoadManagementAPI(); err != nil {
 		return fmt.Errorf("load management API: %w", err)
 	}
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return fmt.Errorf("get user data: %w", err)
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 	// Create update object.
 	updates := &management.User{

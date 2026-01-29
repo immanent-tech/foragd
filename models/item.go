@@ -133,9 +133,9 @@ func BuildItemsQuery(
 	filters Filters,
 	subscriptionIDs ...SubscriptionID,
 ) (query.Option, error) {
-	user, err := UserFromCtx(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build items query: %w", err)
+	user := UserFromCtx(ctx)
+	if user == nil {
+		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 
 	subscriptions, err := GetSubscriptions(ctx,

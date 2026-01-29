@@ -6,7 +6,6 @@ package models
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 )
 
@@ -21,7 +20,7 @@ type contextKey string
 
 var ErrCtxValueNotFound = &APIError{
 	InternalError: errors.New("context value not found"),
-	StatusCode:    http.StatusNotFound,
+	StatusCode:    http.StatusInternalServerError,
 }
 
 // UserToCtx stores a user in the context.
@@ -30,12 +29,12 @@ func UserToCtx(ctx context.Context, user *User) context.Context {
 }
 
 // UserFromCtx retrieves a user from the context, if any.
-func UserFromCtx(ctx context.Context) (*User, error) {
+func UserFromCtx(ctx context.Context) *User {
 	user, found := ctx.Value(userCtxKey).(*User)
 	if !found {
-		return nil, fmt.Errorf("get user from context: %w", ErrCtxValueNotFound)
+		return nil
 	}
-	return user, nil
+	return user
 }
 
 // PageFiltersToCtx stores the current page display filters in the context.

@@ -29,10 +29,23 @@ type Home struct {
 
 // FullResponse renders a full page (headers, footers and data).
 func (p *Home) FullResponse(res http.ResponseWriter, req *http.Request) {
-	switch p.data.User.GetSettings().ShowOnboarding {
+	user := models.UserFromCtx(req.Context())
+	if user == nil {
+		HandleInternalError(&models.APIError{
+			InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+			StatusCode:    http.StatusInternalServerError,
+			UserMessage: models.NewErrorMessage(
+				"Cannot show home.",
+				"The backend produced an error. This might be temporary, please try again.",
+			),
+		}).ServeHTTP(res, req)
+		return
+	}
+
+	switch user.GetSettings().ShowOnboarding {
 	case true:
 		templ.Handler(
-			templates.CreatePage(templates.NewUserHome(&p.data.User),
+			templates.CreatePage(templates.NewUserHome(),
 				templates.WithPageTitle(p.title),
 			)).ServeHTTP(res, req)
 	case false:
@@ -45,10 +58,23 @@ func (p *Home) FullResponse(res http.ResponseWriter, req *http.Request) {
 
 // PartialResponse will render just the data.
 func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	switch p.data.User.GetSettings().ShowOnboarding {
+	user := models.UserFromCtx(req.Context())
+	if user == nil {
+		HandleInternalError(&models.APIError{
+			InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
+			StatusCode:    http.StatusInternalServerError,
+			UserMessage: models.NewErrorMessage(
+				"Cannot show home.",
+				"The backend produced an error. This might be temporary, please try again.",
+			),
+		}).ServeHTTP(res, req)
+		return
+	}
+
+	switch user.GetSettings().ShowOnboarding {
 	case true:
 		templ.Handler(
-			templates.NewUserHome(&p.data.User),
+			templates.NewUserHome(),
 			templ.WithFragments(templates.NewUserHomeFragment),
 		).ServeHTTP(res, req)
 	case false:
@@ -109,15 +135,9 @@ func getHomePageData(ctx context.Context) (*models.HomeResponse, error) {
 	data := &models.HomeResponse{
 		TopCategories: make(map[models.CategoryCount]models.Articles),
 	}
-	// Retrieve user object.
-	user, err := models.UserFromCtx(ctx)
-	if err != nil {
-		return data, fmt.Errorf("unable to retrieve user: %w", err)
-	}
-	data.User = *user
 
 	// Retrieve unread subscriptions and articles.
-	subscriptions, articles, err := getHomePageObjects(ctx, user)
+	subscriptions, articles, err := getHomePageObjects(ctx)
 	if err != nil {
 		return data, fmt.Errorf("unable to retrieve subscriptions and/or articles: %w", err)
 	}
@@ -127,7 +147,7 @@ func getHomePageData(ctx context.Context) (*models.HomeResponse, error) {
 
 	if len(data.Subscriptions) > 0 {
 		// Retrieve statistics.
-		if err := performHomePageAggs(ctx, user, data); err != nil {
+		if err := performHomePageAggs(ctx, data); err != nil {
 			return data, fmt.Errorf("unable to perform aggregations: %w", err)
 		}
 	}
@@ -136,7 +156,12 @@ func getHomePageData(ctx context.Context) (*models.HomeResponse, error) {
 }
 
 // getHomePageObjects retrieves all unread subscriptions and the latest (max 10) unread articles.
-func getHomePageObjects(ctx context.Context, user *models.User) (models.Subscriptions, models.Articles, error) {
+func getHomePageObjects(ctx context.Context) (models.Subscriptions, models.Articles, error) {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return nil, nil, fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
 	// Use default filters.
 	filters := models.NewListDisplayFilters()
 	// Get up to 6 latest articles.
@@ -188,7 +213,12 @@ func getHomePageObjects(ctx context.Context, user *models.User) (models.Subscrip
 }
 
 // performHomePageAggs performs aggregations to get statistics and samples of the top unread subscriptions and articles.
-func performHomePageAggs(ctx context.Context, user *models.User, data *models.HomeResponse) error {
+func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+
 	// Fetch aggregation data.
 	termsField := "categories.raw"
 	// Aggregation definition for fetching the top 10 item categories across all subscriptions.

@@ -13,11 +13,13 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+// Notification contains a message that will be displayed to the user as a notification.
 type Notification struct {
 	msg     *models.UserMessage
 	timeout time.Duration
 }
 
+// PartialResponse renders the notification into the notification container on the page as an OOB response.
 func (n *Notification) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	if n.timeout == 0 {
 		n.timeout = templates.DefaultNotificationTimeout

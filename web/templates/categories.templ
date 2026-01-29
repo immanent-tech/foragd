@@ -37,7 +37,7 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 						<select class="select select-primary bg-base-content/10" name="category">
 							<option disabled selected>Suggested Categories</option>
 							for category := range slices.Values(suggested) {
-								<option class="text-sm/6 capitalize" value={ category }>{ category }</option>
+								<option class="text-sm/6" value={ category }>{ category }</option>
 							}
 						</select>
 					</form>
@@ -98,7 +98,7 @@ templ AddCategory(path, inputName string, category models.Category) {
 		hx-swap="delete"
 	>
 		<input type="hidden" name={ inputName } value={ category }/>
-		<div class="flex gap-2 text-sm capitalize">
+		<div class="flex gap-2 text-sm">
 			@NewCategoryBadge(category).Render("badge-outline") {
 				@tabler.X(i.Props{Class: "size-4"})
 			}
