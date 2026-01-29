@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.38.0](https://github.com/immanent-tech/foragd/compare/v0.37.0...v0.38.0) (2026-01-29)
+
+
+### Features
+
+* :sparkles: get a diverse sample of latest articles to display on home page ([c6406bb](https://github.com/immanent-tech/foragd/commit/c6406bbd9d7c9764768b94c1ea32785bd93eb26b))
+* **handlers:** :sparkles: split rendering internal vs external pages ([22288b0](https://github.com/immanent-tech/foragd/commit/22288b0501fa75f5e2593807c4ec4a8871635e0d))
+
+
+### Bug Fixes
+
+* **templates:** :bug: fix handling of 3xx response with htmx ([59a1d26](https://github.com/immanent-tech/foragd/commit/59a1d26741eb7fd8da114233c6c6c160f126067b))
+* **templates:** :bug: fix viewer footer positioning ([19b285f](https://github.com/immanent-tech/foragd/commit/19b285ff6d66724b35b94f19ea6f21b1474ce1a3))
+
 ## [0.37.0](https://github.com/immanent-tech/foragd/compare/v0.36.0...v0.37.0) (2026-01-28)
 
 
