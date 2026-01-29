@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -27,12 +26,12 @@ func ListCategories() http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("Unable to parse list categories request",
 					slog.Any("error", err),
 				)
-				renderPartial(
-					templates.NewPartial(templates.ListCategoryFilters(&models.CategoryFilters{}))).ServeHTTP(res, req)
+				RenderPartial(&PartialTemplate{
+					template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+				}).ServeHTTP(res, req)
 				return
 			}
 
-			var template templ.Component
 			switch {
 			case strings.HasPrefix(req.URL.Path, "/list/subscriptions"):
 				// Parse the list of displayed subscriptions.
@@ -41,22 +40,18 @@ func ListCategories() http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Warn("Unable to parse list categories request",
 						slog.Any("error", err),
 					)
-					renderPartial(
-						templates.NewPartial(
-							templates.ListCategoryFilters(&models.CategoryFilters{}),
-						),
-					).ServeHTTP(res, req)
+					RenderPartial(&PartialTemplate{
+						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+					}).ServeHTTP(res, req)
 					return
 				}
 				if !valid {
 					slogctx.FromCtx(req.Context()).Warn("Invalid list categories request",
 						slog.Any("error", err),
 					)
-					renderPartial(
-						templates.NewPartial(
-							templates.ListCategoryFilters(&models.CategoryFilters{}),
-						),
-					).ServeHTTP(res, req)
+					RenderPartial(&PartialTemplate{
+						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+					}).ServeHTTP(res, req)
 					return
 				}
 
@@ -66,33 +61,29 @@ func ListCategories() http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Warn("Could not get all subscription categories.",
 						slog.Any("error", err),
 					)
-					renderPartial(
-						templates.NewPartial(
-							templates.ListCategoryFilters(&models.CategoryFilters{}),
-						),
-					).ServeHTTP(res, req)
+					RenderPartial(&PartialTemplate{
+						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+					}).ServeHTTP(res, req)
 					return
 				}
 
 				// Generate the categories list template.
-				template = templates.ListCategoryFilters(
-					&models.CategoryFilters{
-						Categories: counts,
-						Path:       "/list/subscriptions",
-						Filters:    *filters,
-					},
-				)
+				RenderPartial(&PartialTemplate{
+					template: templates.ListCategoryFilters(
+						&models.CategoryFilters{
+							Categories: counts,
+							Path:       "/list/subscriptions",
+							Filters:    *filters,
+						},
+					),
+				}).ServeHTTP(res, req)
 			case strings.HasPrefix(req.URL.Path, "/list/articles"):
 				user := models.UserFromCtx(req.Context())
 				if user == nil {
-					slogctx.FromCtx(req.Context()).Warn("Could not get user data.",
-						slog.Any("error", err),
-					)
-					renderPartial(
-						templates.NewPartial(
-							templates.ListCategoryFilters(&models.CategoryFilters{}),
-						),
-					).ServeHTTP(res, req)
+					slogctx.FromCtx(req.Context()).Warn("Could not get user data.")
+					RenderPartial(&PartialTemplate{
+						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+					}).ServeHTTP(res, req)
 					return
 				}
 				// Get subscriptions based on filters.
@@ -103,11 +94,9 @@ func ListCategories() http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Warn("Could not list subscriptions.",
 						slog.Any("error", err),
 					)
-					renderPartial(
-						templates.NewPartial(
-							templates.ListCategoryFilters(&models.CategoryFilters{}),
-						),
-					).ServeHTTP(res, req)
+					RenderPartial(&PartialTemplate{
+						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+					}).ServeHTTP(res, req)
 					return
 				}
 
@@ -122,26 +111,24 @@ func ListCategories() http.HandlerFunc {
 					slogctx.FromCtx(req.Context()).Warn("Could not get item categories.",
 						slog.Any("error", err),
 					)
-					renderPartial(
-						templates.NewPartial(
-							templates.ListCategoryFilters(&models.CategoryFilters{}),
-						),
-					).ServeHTTP(res, req)
+					RenderPartial(&PartialTemplate{
+						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+					}).ServeHTTP(res, req)
 					return
 				}
-				// Generate the categories list template.
-				template = templates.ListCategoryFilters(
-					&models.CategoryFilters{
-						Categories: counts,
-						Path:       "/list/articles",
-						Filters:    *filters,
-					},
-				)
-			}
 
-			// Render the list of categories.
-			renderPartial(
-				templates.NewPartial(template),
-			).ServeHTTP(res, req)
+				// Generate the categories list template.
+				RenderPartial(&PartialTemplate{
+					template: templates.ListCategoryFilters(
+						&models.CategoryFilters{
+							Categories: counts,
+							Path:       "/list/articles",
+							Filters:    *filters,
+						},
+					),
+				}).ServeHTTP(res, req)
+			default:
+				res.WriteHeader(http.StatusNotAcceptable)
+			}
 		}).ServeHTTP
 }

@@ -13,7 +13,6 @@ import (
 	"os"
 	"slices"
 	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/a-h/templ"
@@ -32,178 +31,206 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+// UserSettings contains the data for rendering the user settings page.
+type UserSettings struct{}
+
+// FullResponse renders a full page (headers, footers and content).
+func (t *UserSettings) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(templates.UserSettings(),
+			templates.WithPageTitle("Settings"),
+		)).ServeHTTP(res, req)
+}
+
+// PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
+func (t *UserSettings) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(templates.UserSettings(), templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle("Settings")).ServeHTTP(res, req)
+}
+
 // ShowSettings handles retrieving and rendering the user settings page.
 func ShowSettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		renderPage(
-			templates.NewPage(
-				wrapContent(req, templates.SettingsPage()),
-				templates.WithPageTitle("Settings"),
-			),
-		).ServeHTTP(res, req)
+		RenderInternalPage(&UserSettings{}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
-// ShowDisplaySettings handles showing the settings related to the application display.
-func ShowDisplaySettings() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+// HandleShowDisplaySettings handles showing the settings related to the application display.
+func HandleShowDisplaySettings() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to show display settings",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
-		renderPartial(templates.NewPartial(templates.DisplaySettings(user))).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+		RenderPartial(&PartialTemplate{
+			template: templates.DisplaySettings(user),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
-// ShowAccountSettings handles showing the settings related to user accounts.
-func ShowAccountSettings() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+// HandleShowAccountSettings handles showing the settings related to user accounts.
+func HandleShowAccountSettings() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to show account settings",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
-		renderPartial(templates.NewPartial(templates.AccountSettings(user))).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+		RenderPartial(&PartialTemplate{
+			template: templates.AccountSettings(user),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
-// SaveDisplaySettings handles saving user settings after user submitted changes.
-func SaveDisplaySettings() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+// HandleSaveDisplaySettings handles saving user settings after user submitted changes.
+func HandleSaveDisplaySettings() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request.
 		request, valid, err := forms.DecodeForm[*models.UserSettings](req)
 		if err != nil || !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode user settings: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		// Update local user object.
 		err = models.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": request})
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update data: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		// Report success.
-		msg := models.NewSuccessMessage("Account edits saved!", "")
-		template := templates.Notification(msg, 0)
-		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+		RenderPartial(&Notification{
+			msg: models.NewSuccessMessage("Account edits saved!", ""),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
-// SaveAccountSettings handles processing and saving new account settings.
-func SaveAccountSettings() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+// HandleSaveAccountSettings handles processing and saving new account settings.
+//
+//nolint:funlen
+func HandleSaveAccountSettings() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request.
 		request, valid, err := forms.DecodeForm[*models.EditUserRequest](req)
 		if err != nil || !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode edit user request: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
 					"One or more of the inputs is invalid. Please check and try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		avatar, err := forms.DecodeMultipartFile(req, "avatar")
 		if err != nil && !errors.Is(err, http.ErrMissingFile) {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode avatar: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
 					"Unable to read uploaded avatar data. Please check the file and try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		if avatar.GetSize() > 1000000 {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: models.ErrFileTooLarge,
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
 					"Uploaded avatar image is too large (> 1MB).",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		// If the user uploaded a new avatar, process it.
 		if avatar != nil {
 			if err := loadAvatarCache(); err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("load server cache: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
 					UserMessage: models.NewErrorMessage(
 						"Unable to save settings",
 						"This might be a temporary error, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
 			// Generate a unique ID for the avatar image in the cache using the user ID.
 			avatarFileID := strconv.FormatUint(xxhash.Sum64String(user.GetID()+"avatar"), 10)
 			// Read the uploaded data and store in the cache.
 			avatarData, err := io.ReadAll(avatar.Data)
 			if err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("read avatar: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
 					UserMessage: models.NewErrorMessage(
 						"Unable to save settings",
 						"This might be a temporary error, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
 			avatarCache.Set(req.Context(), avatarFileID, avatarData)
 			// Construct a new full URL to the uploaded avatar on the local server.
@@ -228,215 +255,216 @@ func SaveAccountSettings() http.HandlerFunc {
 		// If no updates are necessary, bail early.
 		if len(updates) == 0 {
 			res.WriteHeader(http.StatusNoContent)
-			return nil
+			return
 		}
 		// Update on backend.
 		err = auth0.UpdateUser(req.Context(), request)
 		if err != nil || !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update user in auth0: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		// Update local user object.
 		err = models.UpdateUser(req.Context(), user.GetID(), updates)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update local user: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to save settings",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		// Report success.
-		template := templ.Join(
-			templates.Notification(
-				models.NewSuccessMessage("Account edits saved!", ""), templates.DefaultNotificationTimeout,
-			),
-			templates.UserAvatar(user, templ.Attributes{"hx-swap-oob": "true"}),
-		)
-		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+		RenderPartial(&Notification{
+			msg: models.NewSuccessMessage("Account edits saved!", ""),
+		}).ServeHTTP(res, req)
+		// Update the avatar (in case it changed).
+		RenderPartial(&PartialTemplate{
+			template: templates.UserAvatar(user, templ.Attributes{"hx-swap-oob": "true"}),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
-// ChangePassword handles a change password request from the user.
-func ChangePassword() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+// HandleChangePassword handles a change password request from the user.
+func HandleChangePassword() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.ChangePasswordRequest](req)
 		if err != nil || !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode change password request: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to change password",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		// Update on backend.
 		err = auth0.ChangeUserPassword(req.Context(), request)
 		if err != nil || !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("change password in auth0: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to change password",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		// Report success.
-		msg := models.NewSuccessMessage("Password changed!", "Logout and log back in to use the new password.")
-		template := templates.Notification(msg, 0)
-		renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+		RenderPartial(&Notification{
+			msg: models.NewSuccessMessage("Password changed!", "Logout and log back in to use the new password."),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
-// SetTheme handles setting a theme selected by the user.
-func SetTheme() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+// HandleSetTheme handles setting a theme selected by the user.
+func HandleSetTheme() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		theme := chi.URLParam(req, "theme")
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to set theme",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
 		if err := models.UpdateUser(req.Context(), user.GetID(), map[string]any{
 			"settings": settings,
 		}); err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update user: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to set theme",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
-		renderPartial(templates.NewPartial(templates.DisplaySettings(user))).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+		RenderPartial(&PartialTemplate{
+			template: templates.DisplaySettings(user),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
-// UserDeactivateAccount handles a user request to deactivate their account. Their subscription in Stripe will be cancelled at
+// HandleDeactivateAccount handles a user request to deactivate their account. Their subscription in Stripe will be cancelled at
 // the end of the current billing period. They can continue to log in and use the service during the current billing
 // period, after which a scheduled job will delete their account.
-func UserDeactivateAccount() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+func HandleDeactivateAccount() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
-			renderPartial(templates.NewPartial(templates.DeactivateAccountModal())).ServeHTTP(res, req)
+			RenderPartial(&Modal{
+				template: templates.DeactivateAccountModal(),
+			}).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get user account details.
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Unable to deactivate account",
 						"This might be a temporary error, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
 			// Delete Stripe subscription.
 			if err := stripe.CancelSubscription(user); err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("cancel subscription: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Unable to deactivate account",
 						"This might be a temporary error, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
+			// Show notification.
+			RenderPartial(&Notification{
+				msg: models.NewInfoMessage("Account cancelled", ""),
+			}).ServeHTTP(res, req)
 			// Refresh the page
 			res.Header().Set(htmx.HeaderRefresh, "true")
-			renderPartial(
-				templates.NewPartial(
-					templates.Notification(
-						models.NewInfoMessage("Account cancelled", ""),
-						templates.DefaultNotificationTimeout,
-					),
-				),
-			).ServeHTTP(res, req)
 		}
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
-// UserCancelDeactivation handles a user request to stop the pending deactivation of their account. The cancellation
+// HandleCancelDeactivation handles a user request to stop the pending deactivation of their account. The cancellation
 // will be reversed in Stripe and full account functionality restored.
-func UserCancelDeactivation() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+func HandleCancelDeactivation() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get user account details.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to reactivate account",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		// Delete Stripe subscription.
 		if err := stripe.StopPendingCancellation(user); err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("cancel pending cancellation: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to reactivate account",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
+		RenderPartial(&Notification{
+			msg: models.NewSuccessMessage("Stopped account deactivation", ""),
+		}).ServeHTTP(res, req)
 		// Refresh the page
 		res.Header().Set(htmx.HeaderRefresh, "true")
-		renderPartial(
-			templates.NewPartial(
-				templates.Notification(
-					models.NewSuccessMessage("Stopped account deactivation", ""),
-					templates.DefaultNotificationTimeout,
-				),
-			),
-		).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
-// AddFeedset handles adding a feedset as subscriptions.
-func AddFeedset(static embed.FS) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+// HandleAddFeedset handles adding a feedset as subscriptions.
+func HandleAddFeedset(static embed.FS) http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Ignore submission without any feedset selected.
 		if req.FormValue("feedset") == "" {
 			res.WriteHeader(http.StatusNoContent)
-			return nil
+			return
 		}
 		request, valid, err := forms.DecodeForm[*models.AddFeedsetRequest](req)
 		if err != nil || !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage:   models.NewErrorMessage("Unable to add feedset", "Data is invalid."),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		// Process requested feedsets and generate subscription requests.
 		var subscriptionRequests []*models.AddFeedSubscriptionRequest
@@ -455,25 +483,27 @@ func AddFeedset(static embed.FS) http.HandlerFunc {
 				continue
 			}
 			if err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("read feedset: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
 					UserMessage: models.NewErrorMessage(
 						"Unable to add feedset",
 						"This might be a temporary issue, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
 			opmlImport, err := opml.NewOPMLFromBytes(data)
 			if err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("create opml: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
 					UserMessage: models.NewErrorMessage(
 						"Unable to add feedset",
 						"This might be a temporary issue, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
 			subscriptionRequests = append(
 				subscriptionRequests,
@@ -512,32 +542,46 @@ func AddFeedset(static embed.FS) http.HandlerFunc {
 			} else {
 				err = models.CreateFeedSubscriptions(req.Context(), &result)
 				if err != nil {
-					return &models.APIError{
+					HandleInternalError(&models.APIError{
 						InternalError: fmt.Errorf("create subscription: %w", err),
 						StatusCode:    http.StatusInternalServerError,
 						UserMessage: models.NewErrorMessage(
 							"Unable to add feedset",
 							"This might be a temporary issue, please try again.",
 						),
-					}
+					}).ServeHTTP(res, req)
+					return
 				}
 			}
 		}
-		renderPartial(
-			templates.NewPartial(
-				templates.Notification(
-					models.NewSuccessMessage(
-						"Added feedsets "+strings.Join(request.Feedset, ", "), "",
-					),
-					templates.DefaultNotificationTimeout,
-				)),
-		).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+		// Show notification.
+		for feedset := range slices.Values(request.Feedset) {
+			RenderPartial(&Notification{
+				msg: models.NewSuccessMessage(
+					"Added feedset "+feedset, "",
+				),
+			}).ServeHTTP(res, req)
+		}
+	}).ServeHTTP
 }
 
-// UserChooseSubscriptionPlan handles displaying a page on which the user can choose a subscription plan for purchase.
-func UserChooseSubscriptionPlan() http.HandlerFunc {
+// ChooseSubscriptionPlan contains data for rendering a page to present the user with subscription plan options.
+type ChooseSubscriptionPlan struct {
+	user *models.User
+	plan string
+}
+
+// FullResponse renders the page for the user to choose a subscription plan.
+func (t *ChooseSubscriptionPlan) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(
+			templates.UserChooseSubscriptionPlan(t.user, t.plan),
+			templates.WithPageTitle("Choose Subscription Plan"),
+		)).ServeHTTP(res, req)
+}
+
+// HandleChooseSubscriptionPlan handles displaying a page on which the user can choose a subscription plan for purchase.
+func HandleChooseSubscriptionPlan() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -561,18 +605,16 @@ func UserChooseSubscriptionPlan() http.HandlerFunc {
 			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("Presenting user with subscription plan options.")
-		renderPage(
-			templates.NewPage(
-				templates.UserChooseSubscriptionPlan(user, planID),
-				templates.WithPageTitle("Choose Subscription Plan"),
-			),
-		).ServeHTTP(res, req)
+		RenderExternalPage(&ChooseSubscriptionPlan{
+			user: user,
+			plan: planID,
+		}).ServeHTTP(res, req)
 	}
 }
 
-// UserSubscriptionPlanCheckout handles processing the user's choice of subscription plan and redirecting to the payment
+// HandleSubscriptionPlanCheckout handles processing the user's choice of subscription plan and redirecting to the payment
 // processor.
-func UserSubscriptionPlanCheckout() http.HandlerFunc {
+func HandleSubscriptionPlanCheckout() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Fetch the user details from context.
 		user := models.UserFromCtx(req.Context())
@@ -612,32 +654,39 @@ func UserSubscriptionPlanCheckout() http.HandlerFunc {
 	}
 }
 
-func UserAccountSuccess() http.HandlerFunc {
+func HandleAccountSuccess() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// stripeSessionID := req.FormValue("session_id")
 		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
 	}
 }
 
-func UserAccountCancel() http.HandlerFunc {
+func HandleAccountCancel() http.HandlerFunc {
 	return HandleLanding()
 }
 
-// UserAccountIssue handles showing a page with a message indicating the user needs to contact support, as there is a
+// AccountIssue contains data for rendering a page to present the user when there is an issue with their account.
+type AccountIssue struct{}
+
+// FullResponse renders the page for the user to choose a subscription plan.
+func (t *AccountIssue) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(
+			templates.UserAccountIssue(),
+			templates.WithPageTitle("Account Issue"),
+		)).ServeHTTP(res, req)
+}
+
+// HandleAccountIssue handles showing a page with a message indicating the user needs to contact support, as there is a
 // critical issue with their account blocking access to the service.
-func UserAccountIssue() http.HandlerFunc {
+func HandleAccountIssue() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// stripeSessionID := req.FormValue("session_id")
-		renderPage(
-			templates.NewPage(
-				templates.UserAccountIssue(),
-				templates.WithPageTitle("Account Issue"),
-			),
-		).ServeHTTP(res, req)
+		RenderExternalPage(&AccountIssue{}).ServeHTTP(res, req)
 	}
 }
 
-func UserManageAccountSubscription() http.HandlerFunc {
+func HandleManageAccountSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		sessionID := req.FormValue("session_id")
 		if sessionID == "" {
@@ -662,12 +711,20 @@ func UserManageAccountSubscription() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-func GenerateSubscriptionEmail() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+func HandleGenerateSubscriptionEmail() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Fetch the user details from context.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			return fmt.Errorf("unable to get user data: %w", models.ErrCtxValueNotFound)
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("unable to get user data: %w", models.ErrCtxValueNotFound),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to generate email",
+					"This might be a temporary problem, please try again.",
+				),
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		settings := user.GetSettings()
@@ -677,14 +734,19 @@ func GenerateSubscriptionEmail() http.HandlerFunc {
 		) + "@foragd.app"
 
 		if err := models.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": settings}); err != nil {
-			return fmt.Errorf("unable to add subscription email to user: %w", err)
-
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("update user: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+				UserMessage: models.NewErrorMessage(
+					"Unable to generate email",
+					"This might be a temporary problem, please try again.",
+				),
+			}).ServeHTTP(res, req)
+			return
 		}
 
-		renderPartial(
-			templates.NewPartial(templates.ShowSubscriptionEmail(settings.SubscriptionEmail)),
-		).ServeHTTP(res, req)
-
-		return nil
-	})).ServeHTTP
+		RenderPartial(&PartialTemplate{
+			template: templates.ShowSubscriptionEmail(settings.SubscriptionEmail),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }

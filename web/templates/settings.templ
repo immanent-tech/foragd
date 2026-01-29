@@ -13,34 +13,41 @@ import (
 	"time"
 )
 
-templ SettingsPage() {
-	<div class="ui-container">
-		<div
-			class="tabs tabs-box mt-8"
-			hx-trigger="load once"
-			hx-get="/user/settings/display"
-			hx-target="#current-settings"
-		>
-			<input
-				type="radio"
-				name="settings_tabs"
-				class="tab"
-				aria-label="Display"
-				checked="checked"
-				hx-get="/user/settings/display"
-				hx-target="#current-settings"
-			/>
-			<input
-				type="radio"
-				name="settings_tabs"
-				class="tab"
-				aria-label="Account"
-				hx-get="/user/settings/account"
-				hx-target="#current-settings"
-			/>
-		</div>
-		<section id="current-settings"></section>
-	</div>
+templ UserSettings() {
+	@header(models.UserFromCtx(ctx))
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(ContentFragment) {
+			<div class="ui-container">
+				<div
+					class="tabs tabs-box mt-8"
+					hx-trigger="load once"
+					hx-get="/user/settings/display"
+					hx-target="#current-settings"
+				>
+					<input
+						type="radio"
+						name="settings_tabs"
+						class="tab"
+						aria-label="Display"
+						checked="checked"
+						hx-get="/user/settings/display"
+						hx-target="#current-settings"
+					/>
+					<input
+						type="radio"
+						name="settings_tabs"
+						class="tab"
+						aria-label="Account"
+						hx-get="/user/settings/account"
+						hx-target="#current-settings"
+					/>
+				</div>
+				<section id="current-settings"></section>
+			</div>
+		}
+	</main>
+	@Dock(nil)
 }
 
 templ AccountSettings(user *models.User) {

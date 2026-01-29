@@ -7,7 +7,10 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+
+	"github.com/immanent-tech/foragd/web/templates"
 )
 
 // PartialResponseHandler is a handler that handles partial responses.
@@ -79,5 +82,40 @@ func RenderPartial(content PartialResponseHandler) http.HandlerFunc {
 		}
 
 		content.PartialResponse(res, req)
+	}
+}
+
+// PartialTemplate is a template that only supports being rendered in a partial response.
+type PartialTemplate struct {
+	template templ.Component
+}
+
+// PartialResponse renders the template.
+func (t *PartialTemplate) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(t.template).ServeHTTP(res, req)
+}
+
+// FullInternalTemplate is a template for an internal page that supports being rendered as a full page or partial.
+type FullInternalTemplate struct {
+	title      string
+	template   templ.Component
+	partialKey templates.FragmentKey
+}
+
+// FullResponse renders a full page (headers, footers and content).
+func (t *FullInternalTemplate) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(t.template,
+			templates.WithPageTitle(t.title),
+		)).ServeHTTP(res, req)
+}
+
+// PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
+func (t *FullInternalTemplate) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(t.template, templ.WithFragments(t.partialKey)).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	if t.title != "" {
+		templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
 	}
 }

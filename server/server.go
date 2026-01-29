@@ -207,9 +207,9 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		)
 		// Payment routes (Stripe).
 		r.Route("/checkout", func(r chi.Router) {
-			r.Get("/choose-plan", handlers.UserChooseSubscriptionPlan())
-			r.Post("/", handlers.UserSubscriptionPlanCheckout())
-			r.Get("/success", handlers.UserAccountSuccess())
+			r.Get("/choose-plan", handlers.HandleChooseSubscriptionPlan())
+			r.Post("/", handlers.HandleSubscriptionPlanCheckout())
+			r.Get("/success", handlers.HandleAccountSuccess())
 			r.Get("/cancel", handlers.HandleLanding())
 		})
 		r.Get("/home", handlers.HandleHome())
@@ -274,7 +274,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
-			r.Get("/account-issue", handlers.UserAccountIssue())
+			r.Get("/account-issue", handlers.HandleAccountIssue())
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
 				// Add feed subscription.
@@ -290,7 +290,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 				r.With(middlewares.RequireHTMX).Post("/category", handlers.HandleSubscriptionCategories())
 				r.With(middlewares.RequireHTMX).Delete("/category", handlers.HandleSubscriptionCategories())
 			})
-			r.Post("/feedset", handlers.AddFeedset(web.StaticContentFS))
+			r.Post("/feedset", handlers.HandleAddFeedset(web.StaticContentFS))
 			// Import/export.
 			r.Get("/import", handlers.HandleImportSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/import", handlers.HandleImportSubscriptions())
@@ -299,20 +299,20 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handlers.ShowSettings())
-				r.With(middlewares.RequireHTMX).Get("/display", handlers.ShowDisplaySettings())
-				r.With(middlewares.RequireHTMX).Post("/display", handlers.SaveDisplaySettings())
-				r.With(middlewares.RequireHTMX).Get("/account", handlers.ShowAccountSettings())
-				r.With(middlewares.RequireHTMX).Post("/account", handlers.SaveAccountSettings())
-				r.Get("/subscription", handlers.UserManageAccountSubscription())
-				r.With(middlewares.RequireHTMX).Post("/password", handlers.ChangePassword())
+				r.With(middlewares.RequireHTMX).Get("/display", handlers.HandleShowDisplaySettings())
+				r.With(middlewares.RequireHTMX).Post("/display", handlers.HandleSaveDisplaySettings())
+				r.With(middlewares.RequireHTMX).Get("/account", handlers.HandleShowAccountSettings())
+				r.With(middlewares.RequireHTMX).Post("/account", handlers.HandleSaveAccountSettings())
+				r.Get("/subscription", handlers.HandleManageAccountSubscription())
+				r.With(middlewares.RequireHTMX).Post("/password", handlers.HandleChangePassword())
 				r.Route("/theme", func(r chi.Router) {
-					r.With(middlewares.RequireHTMX).Put("/{theme}", handlers.SetTheme())
+					r.With(middlewares.RequireHTMX).Put("/{theme}", handlers.HandleSetTheme())
 				})
-				r.With(middlewares.RequireHTMX).Post("/subscriptionemail", handlers.GenerateSubscriptionEmail())
+				r.With(middlewares.RequireHTMX).Post("/subscriptionemail", handlers.HandleGenerateSubscriptionEmail())
 			})
-			r.With(middlewares.RequireHTMX).Get("/deactivate", handlers.UserDeactivateAccount())
-			r.With(middlewares.RequireHTMX).Post("/deactivate", handlers.UserDeactivateAccount())
-			r.With(middlewares.RequireHTMX).Post("/deactivate/cancel", handlers.UserCancelDeactivation())
+			r.With(middlewares.RequireHTMX).Get("/deactivate", handlers.HandleDeactivateAccount())
+			r.With(middlewares.RequireHTMX).Post("/deactivate", handlers.HandleDeactivateAccount())
+			r.With(middlewares.RequireHTMX).Post("/deactivate/cancel", handlers.HandleCancelDeactivation())
 		})
 		r.Get("/logout", handlers.Logout)
 	})

@@ -311,21 +311,22 @@ func WatchSearchResults() http.HandlerFunc {
 
 // AddSubscriptionFilter handles adding a subscription as a search filter.
 func AddSubscriptionFilter() http.HandlerFunc {
-	return alice.New().ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		subscription, valid, err := forms.DecodeForm[*models.AddSubscriptionSearchFilterRequest](req)
 		if err != nil || !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Invalid search request",
 					"Please check the search request data and try again",
 				),
-			}
+			}).ServeHTTP(res, req)
 		}
-		renderPartial(templates.NewPartial(templates.AddSearchSubscriptionFilter(subscription))).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+		RenderPartial(&PartialTemplate{
+			template: templates.AddSearchSubscriptionFilter(subscription),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
 // GetSubscriptionFilterSuggestions handles showing a list of subscriptions as suggestions when building a search query.
@@ -352,8 +353,8 @@ func GetSubscriptionFilterSuggestions() http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		renderPartial(
-			templates.NewPartial(templates.SearchSubscriptionFilterSuggestions(subscriptions)),
-		).ServeHTTP(res, req)
+		RenderPartial(&PartialTemplate{
+			template: templates.SearchSubscriptionFilterSuggestions(subscriptions),
+		}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
