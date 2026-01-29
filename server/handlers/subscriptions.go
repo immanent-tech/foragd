@@ -23,7 +23,6 @@ import (
 	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
-	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
@@ -125,21 +124,23 @@ func HandleListSubscriptions() http.HandlerFunc {
 		}
 
 		// Choose rendering method based on method (get = page, post = partial).
-		page := &ListSubscriptions{
-			title:    "Subscriptions",
-			template: templates.ListSubscriptions(response),
-		}
 		switch req.Method {
 		case http.MethodGet:
-			RenderInternalPage(page).ServeHTTP(res, req)
+			RenderInternalPage(&ListSubscriptions{
+				title:    "Subscriptions",
+				template: templates.ListSubscriptions(response),
+			}).ServeHTTP(res, req)
 		case http.MethodPost:
-			RenderPartial(page).ServeHTTP(res, req)
+			RenderPartial(&ListSubscriptions{
+				title:    "Subscriptions",
+				template: templates.ListSubscriptions(response),
+			}).ServeHTTP(res, req)
 		}
 	}).ServeHTTP
 }
 
-// MarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
-func MarkSubscription() http.HandlerFunc {
+// HandleMarkSubscription handles marking a subscription as read/unread and updates the UI accordingly.
+func HandleMarkSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request parameters.
 		request, _, err := forms.DecodeForm[*models.MarkSubscriptionRequest](req)
@@ -186,8 +187,8 @@ func MarkSubscription() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// MarkSubscriptions handles marking a list of subscriptions.
-func MarkSubscriptions() http.HandlerFunc {
+// HandleMarkSubscriptions handles marking a list of subscriptions.
+func HandleMarkSubscriptions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request parameters.
 		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
@@ -256,46 +257,50 @@ func MarkSubscriptions() http.HandlerFunc {
 					"This might be a temporary issue, please try again.",
 				),
 			}).ServeHTTP(res, req)
+			return
 		}
 		res.WriteHeader(http.StatusOK)
 	}).ServeHTTP
 }
 
-// FavoriteSubscription handles managing a favorite subscription for a user.
-func FavoriteSubscription() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+// HandleFavoriteSubscription handles managing a favorite subscription for a user.
+func HandleFavoriteSubscription() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.FavoriteSubscriptionRequest](req)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to favorite subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		if !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to favorite subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		subscription, err := models.GetSubscription(req.Context(), request.SubscriptionID)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get subscription: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to favorite subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		var favorite bool
@@ -307,82 +312,107 @@ func FavoriteSubscription() http.HandlerFunc {
 
 		// Get the subscription state.
 		if err := models.UpdateFavoriteSubscription(req.Context(), request.SubscriptionID, favorite); err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update favorite subscription: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to add favorite subscription",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
 		}
 
 		res.WriteHeader(http.StatusOK)
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
-// RemoveSubscription handles removing (unsubscribing) from a subscription.
-func RemoveSubscription() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+// HandleRemoveSubscription handles removing (unsubscribing) from a subscription.
+func HandleRemoveSubscription() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request := &models.RemoveSubscriptionRequest{
 			SubscriptionID: chi.URLParam(req, models.ParamSubscriptionID),
 			Nickname:       req.FormValue("nickname"),
 		}
 		if err := request.Valid(); err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("validate remove subscription request: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to remove subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		switch req.FormValue("confirmed") {
 		case "false":
 			renderPartial(templates.NewPartial(templates.RemoveSubscriptionModal(request))).ServeHTTP(res, req)
 		case "true":
 			if err := models.RemoveSubscriptions(req.Context(), request.SubscriptionID); err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("remove subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Unable to remove subscription",
 						"This might be a temporary issue, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
 			// Show success notification.
-			renderPartial(
-				templates.NewPartial(
-					templates.Notification(
-						models.NewSuccessMessage("Unsubscribed from "+request.Nickname, ""),
-						templates.DefaultNotificationTimeout,
-					),
-				),
+			RenderPartial(
+				&Notification{
+					msg: models.NewSuccessMessage("Unsubscribed from "+request.Nickname, ""),
+				},
 			).ServeHTTP(res, req)
 		}
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
-// EditSubscription handles presenting the user with a form for editing a subscription.
-func EditSubscription() http.HandlerFunc {
-	return alice.New().ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+// EditSubscription contains the data for rendering a page for editing a subscription.
+type EditSubscription struct {
+	title    string
+	template templ.Component
+}
+
+func (p *EditSubscription) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(p.template,
+			templates.WithPageTitle(p.title),
+		)).ServeHTTP(res, req)
+}
+
+func (p *EditSubscription) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(p.template, templ.WithFragments(templates.EditSubscriptionFragment)).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
+}
+
+// HandleEditSubscription handles presenting the user with a form for editing a subscription.
+func HandleEditSubscription() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user, err := models.UserFromCtx(req.Context())
+		if err != nil {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+			}).ServeHTTP(res, req)
+			return
+		}
+
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.ParamSubscriptionID)
 		// Get the subscription.
 		subscription, err := models.GetSubscription(req.Context(), id)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get subscription: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to edit subscription",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		var template templ.Component
 		var pageTitle string
@@ -391,6 +421,7 @@ func EditSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeFeed:
 			// Convert metadata into edit request data.
 			request := &models.EditSubscriptionRequest{
+				User:                   *user,
 				SubscriptionID:         id,
 				Nickname:               subscription.GetTitle(),
 				Categories:             subscription.Customisation.Categories,
@@ -409,6 +440,7 @@ func EditSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeSearch:
 			// Editing SearchSubscription.
 			request := &models.SearchSubscriptionRequest{
+				User:          *user,
 				Customisation: subscription.Customisation,
 				Settings:      subscription.Settings,
 				Search:        subscription.SearchData.Search,
@@ -420,14 +452,15 @@ func EditSubscription() http.HandlerFunc {
 					models.GetSubscriptionsByIDs(request.Search.Subscriptions...),
 				)
 				if err != nil {
-					return &models.APIError{
+					HandleInternalError(&models.APIError{
 						InternalError: fmt.Errorf("get subscription: %w", err),
 						StatusCode:    http.StatusInternalServerError,
 						UserMessage: models.NewErrorMessage(
 							"Unable to edit subscription",
 							"This might be a temporary issue, please try again.",
 						),
-					}
+					}).ServeHTTP(res, req)
+					return
 				}
 				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
@@ -437,6 +470,7 @@ func EditSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeGroup:
 			// Editing SearchSubscription.
 			request := &models.GroupSubscriptionRequest{
+				User:           *user,
 				Customisation:  subscription.Customisation,
 				Settings:       subscription.Settings,
 				Subscriptions:  subscription.GroupData.Subscriptions,
@@ -446,14 +480,15 @@ func EditSubscription() http.HandlerFunc {
 				models.GetSubscriptionsByIDs(request.Subscriptions...),
 			)
 			if err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("get subscription: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Unable to edit subscription",
 						"This might be a temporary issue, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			// Generate page template.
@@ -462,6 +497,7 @@ func EditSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeEmail:
 			// Editing SearchSubscription.
 			request := &models.EditEmailSubscriptionRequest{
+				User:           *user,
 				Customisation:  subscription.Customisation,
 				Settings:       subscription.Settings,
 				SubscriptionID: subscription.GetID(),
@@ -469,14 +505,14 @@ func EditSubscription() http.HandlerFunc {
 			template = templates.EditEmailSubscription(request)
 			pageTitle = "Editing " + request.Customisation.Nickname
 		}
-		renderPage(
-			templates.NewPage(
-				wrapContent(req.WithContext(ctx), template),
-				templates.WithPageTitle(pageTitle),
-			),
+		// Render the page.
+		RenderInternalPage(
+			&EditSubscription{
+				title:    pageTitle,
+				template: template,
+			},
 		).ServeHTTP(res, req.WithContext(ctx))
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
 // SaveSubscription handles saving the edits made by a user to a subscription.

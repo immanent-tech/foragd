@@ -343,6 +343,9 @@ type EditEmailSubscriptionRequest struct {
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// User is a user of the application.
+	User User `json:"user"`
 }
 
 // EditSubscriptionRequest defines model for EditSubscriptionRequest.
@@ -353,20 +356,11 @@ type EditSubscriptionRequest struct {
 	// Categories is a custom list of categories for an object.
 	Categories []Category `form:"categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
 
-	// CategoriesErr is an error associated with the categories field.
-	CategoriesErr error `form:"-" json:"-"`
-
-	// ImageErr is an error associated with the image field.
-	ImageErr error `form:"-" json:"-"`
-
 	// ImageURL is a custom image to represent the object.
 	ImageURL string `json:"image_url,omitempty,omitzero" validate:"omitempty,url"`
 
 	// Nickname is an optional alias or label for an object.
 	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero" validate:"required"`
-
-	// NicknameErr is an error associated with the nickname field.
-	NicknameErr error `form:"-" json:"-"`
 
 	// ShowFullArticleContent toggles whether articles in the subscription should be always displayed with remote content.
 	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content"`
@@ -379,6 +373,9 @@ type EditSubscriptionRequest struct {
 
 	// SuggestedCategories is a list of suggested categories for the subscription.
 	SuggestedCategories []Category `form:"-" json:"-"`
+
+	// User is a user of the application.
+	User User `json:"user"`
 }
 
 // EditUserRequest contains account fields that a user can customize.
@@ -516,6 +513,9 @@ type GroupSubscriptionRequest struct {
 
 	// Subscriptions is the list of subscription IDs belonging to the group.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
+
+	// User is a user of the application.
+	User User `json:"user"`
 }
 
 // HomeResponse contains the data for displaying the home page.
@@ -882,6 +882,9 @@ type SearchSubscriptionRequest struct {
 	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`
 	Search        SearchRequest             `form:"search" json:"search"`
 	Settings      SubscriptionSettings      `form:"settings" json:"settings,omitempty,omitzero"`
+
+	// User is a user of the application.
+	User User `json:"user"`
 }
 
 // ShareArticleRequest contains parameters for sharing an article.

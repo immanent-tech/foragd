@@ -882,8 +882,11 @@ components:
         represents a request to create a search subscription.
       type: object
       required:
+        - user
         - search
       properties:
+        user:
+          $ref: '#/components/schemas/User'
         search:
           allOf:
             - $ref: '#/components/schemas/SearchRequest'
@@ -904,8 +907,11 @@ components:
         represents a request to create a group subscription.
       type: object
       required:
+        - user
         - subscriptions
       properties:
+        user:
+          $ref: '#/components/schemas/User'
         subscription_id:
           description: >
             will be a subscription ID if the user is editing an existing group subscription.
@@ -940,8 +946,11 @@ components:
         represents a request to create an email subscription.
       type: object
       required:
+        - user
         - subscription_id
       properties:
+        user:
+          $ref: '#/components/schemas/User'
         subscription_id:
           $ref: '#/components/schemas/SubscriptionID'
         customisation:
@@ -963,31 +972,13 @@ components:
         - $ref: '#/components/schemas/SubscriptionSettings'
         - type: object
           required:
+            - user
             - subscription_id
           properties:
+            user:
+              $ref: '#/components/schemas/User'
             subscription_id:
               $ref: '#/components/schemas/SubscriptionID'
-            nicknameErr:
-              description: >
-                is an error associated with the nickname field.
-              x-go-type: error
-              x-oapi-codegen-extra-tags:
-                form: '-'
-                json: '-'
-            categoriesErr:
-              description: >
-                is an error associated with the categories field.
-              x-go-type: error
-              x-oapi-codegen-extra-tags:
-                form: '-'
-                json: '-'
-            imageErr:
-              description: >
-                is an error associated with the image field.
-              x-go-type: error
-              x-oapi-codegen-extra-tags:
-                form: '-'
-                json: '-'
             suggestedCategories:
               description: >
                 is a list of suggested categories for the subscription.

@@ -231,20 +231,20 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.Get("/", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
-			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkSubscriptions())
+			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.HandleMarkSubscriptions())
 			r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).
-			Post("/mark/subscription/{subscription_id}", handlers.MarkSubscription())
+			Post("/mark/subscription/{subscription_id}", handlers.HandleMarkSubscription())
 		r.With(middlewares.RequireHTMX).
-			Post("/favorite/subscription/{subscription_id}", handlers.FavoriteSubscription())
+			Post("/favorite/subscription/{subscription_id}", handlers.HandleFavoriteSubscription())
 		r.With(middlewares.RequireHTMX).
-			Post("/remove/subscription/{subscription_id}", handlers.RemoveSubscription())
+			Post("/remove/subscription/{subscription_id}", handlers.HandleRemoveSubscription())
 		r.With(middlewares.RequireHTMX).
-			Delete("/remove/subscription/{subscription_id}", handlers.RemoveSubscription())
+			Delete("/remove/subscription/{subscription_id}", handlers.HandleRemoveSubscription())
 		r.Route("/edit/subscription/{subscription_id}", func(r chi.Router) {
-			r.Get("/", handlers.EditSubscription())
+			r.Get("/", handlers.HandleEditSubscription())
 			r.With(middlewares.RequireHTMX).Post("/", handlers.SaveSubscription())
 			r.With(middlewares.RequireHTMX).Post("/category", handlers.AdjustSubscriptionCategories())
 			r.With(middlewares.RequireHTMX).Delete("/category", handlers.AdjustSubscriptionCategories())

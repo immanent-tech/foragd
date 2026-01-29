@@ -1974,11 +1974,6 @@ func (s *EditSubscriptionRequest) Sanitise() error {
 	return nil
 }
 
-// HasError wil return true if the subscription request has errors associated with any of its fields.
-func (s *EditSubscriptionRequest) HasError() bool {
-	return s.NicknameErr != nil || s.CategoriesErr != nil || s.ImageErr != nil
-}
-
 // Valid checks that the MarkSubscriptionRequest contains valid data.
 func (s *MarkSubscriptionRequest) Valid() error {
 	if err := validation.Validate.Struct(s); err != nil {

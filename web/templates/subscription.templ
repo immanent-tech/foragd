@@ -430,178 +430,177 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	@Dock(nil)
 }
 
+const EditSubscriptionFragment templFragmentKey = "editSubscription"
+
 templ EditSubscription(request *models.EditSubscriptionRequest) {
-	<div class="ui-container">
-		<div class="min-w-0 flex-1 pb-8">
-			<h2 class="ui-h2">{ "Editing " + request.Nickname }</h2>
-		</div>
-		if request.HasError() {
-			<div role="alert" class="alert alert-error alert-outline mt-12">
-				<div class="px-4 py-5 sm:p-6 space-y-4">
-					<span class="gap-y-2">
-						<p class="font-semibold text-base">Invalid Details</p>
-						<p class="text-sm">There is a problem with the details. Please check and try again.</p>
-					</span>
+	@header(&request.User)
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(EditSubscriptionFragment) {
+			<div class="ui-container">
+				<div class="min-w-0 flex-1 pb-8">
+					<h2 class="ui-h2">{ "Editing " + request.Nickname }</h2>
+				</div>
+				<div class="space-y-8">
+					<form
+						id="edit-subscription"
+						hx-post={ "/edit/subscription/" + request.GetID() }
+						hx-include="#current-categories"
+						hx-swap="none"
+						hx-indicator="#processing"
+						hx-encoding="multipart/form-data"
+					>
+						<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
+						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
+						// Nickname.
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="nickname" class="text-base/7 font-semibold">Nickname</label>
+								<p class="mt-1 text-sm/6 ">A friendly name for this subscription.</p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2">
+									<input
+										id="nickname"
+										required
+										type="text"
+										name="nickname"
+										value={ request.GetNickname() }
+										placeholder="My Subscription"
+										class="input input-primary bg-base-content/10"
+									/>
+								</div>
+							</div>
+						</div>
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="thumbnail" class="text-base/7 font-semibold">Thumbnail</label>
+								<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2 flex items-center gap-x-2">
+									@subscriptionThumbnail(request.ImageURL, request.Nickname)
+									<input
+										id="thumbnail"
+										type="file"
+										class="flex file-input file-input-primary bg-base-content/10"
+										name={ models.ParamThumbnail }
+										accept=".jpg,.png,.webp"
+									/>
+								</div>
+							</div>
+						</div>
+						// Filtering.
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<h3 class="ui-h3">Filtering</h3>
+								<div class="flex items-center">
+									<p class="mt-1 text-sm/6 ">Filter articles by keywords/text in fields.</p>
+									@HelpPopover("subscription-filters-help", "top end") {
+										<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+											<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+											<p>+ signifies AND operation (i.e., food AND beverages)</p>
+											<p>| signifies OR operation (i.e., food OR beverages)</p>
+											<p>- negates a the word (i.e., NOT alcoholic)</p>
+											<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
+											<p>* at thez end of indicates a prefix match (i.e., match bird, birding and birds)</p>
+										</div>
+									}
+								</div>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="sm:col-span-full mt-2">
+									<div class="input input-primary bg-base-content/10 w-full">
+										<label for="article_text_filters" class="block text-xs font-medium">Text:</label>
+										<input
+											id="article_text_filters"
+											type="text"
+											name="article_filters.text"
+											value={ request.ArticleFilters.Text }
+											placeholder="Text..."
+											class="block w-full"
+											spellcheck="false"
+										/>
+									</div>
+								</div>
+								<div class="sm:col-span-full mt-2">
+									<div class="input input-primary bg-base-content/10 w-full">
+										<label for="article_category_filters" class="block text-xs font-medium">Categories:</label>
+										<input
+											id="article_category_filters"
+											type="text"
+											name="article_filters.categories"
+											value={ request.ArticleFilters.Categories }
+											placeholder="Categories..."
+											class="block w-full"
+											spellcheck="false"
+										/>
+									</div>
+								</div>
+								<div class="sm:col-span-full mt-2">
+									<div class="input input-primary bg-base-content/10 w-full">
+										<label for="article_author_filters" class="block text-xs font-medium">Authors:</label>
+										<input
+											id="article_author_filters"
+											type="text"
+											name="article_filters.authors"
+											value={ request.ArticleFilters.Authors }
+											placeholder="Authors..."
+											class="block w-full"
+											spellcheck="false"
+										/>
+									</div>
+								</div>
+							</div>
+						</div>
+						// Full article content toggle.
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="show-full-article-content" class="text-base/7 font-semibold">Always Show Full Article Content</label>
+								<div class="flex items-center">
+									<p class="mt-1 text-sm/6 ">
+										Always fetch and show article content from original site.
+									</p>
+									@HelpPopover("show-full-article-help", "top end") {
+										<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+											<p>If articles in the subscription are only showing a summary, set this toggle to attempt to fetch the full content from the website.</p>
+											<p>Note: fetching full content is based on a heuristic that tries to locate the article content on the page. It does not always produce optimal results.</p>
+										</div>
+									}
+								</div>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2">
+									<input
+										id="show-full-article-content"
+										type="checkbox"
+										if request.ShowFullArticleContent {
+											checked="checked"
+										}
+										name="show_full_article_content"
+										class="toggle toggle-sm toggle-primary"
+									/>
+								</div>
+							</div>
+						</div>
+					</form>
+					// Categories
+					{{ categoryMgmtPath := "/user/subscription/category" }}
+					@CategoryManagement(categoryMgmtPath, "categories", nil, request.Categories)
+					// Action buttons.
+					<div class="flex flex-1 items-center justify-end gap-x-6">
+						<div id="processing" class="htmx-indicator">
+							Processing...
+							<span class="loading loading-spinner loading-md"></span>
+						</div>
+						@partials.ButtonBack()
+						<button type="submit" class="btn btn-primary" form="edit-subscription">Save</button>
+					</div>
 				</div>
 			</div>
 		}
-		<div class="space-y-8">
-			<form
-				id="edit-subscription"
-				hx-post={ "/edit/subscription/" + request.GetID() }
-				hx-include="#current-categories"
-				hx-swap="none"
-				hx-indicator="#processing"
-				hx-encoding="multipart/form-data"
-			>
-				<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
-				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
-				// Nickname.
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="nickname" class="text-base/7 font-semibold">Nickname</label>
-						<p class="mt-1 text-sm/6 ">A friendly name for this subscription.</p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2">
-							<input
-								id="nickname"
-								required
-								type="text"
-								name="nickname"
-								value={ request.GetNickname() }
-								placeholder="My Subscription"
-								class="input input-primary bg-base-content/10"
-							/>
-						</div>
-					</div>
-				</div>
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="thumbnail" class="text-base/7 font-semibold">Thumbnail</label>
-						<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2 flex items-center gap-x-2">
-							@subscriptionThumbnail(request.ImageURL, request.Nickname)
-							<input
-								id="thumbnail"
-								type="file"
-								class="flex file-input file-input-primary bg-base-content/10"
-								name={ models.ParamThumbnail }
-								accept=".jpg,.png,.webp"
-							/>
-						</div>
-					</div>
-				</div>
-				// Filtering.
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<h3 class="ui-h3">Filtering</h3>
-						<div class="flex items-center">
-							<p class="mt-1 text-sm/6 ">Filter articles by keywords/text in fields.</p>
-							@HelpPopover("subscription-filters-help", "top end") {
-								<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
-									<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-									<p>+ signifies AND operation (i.e., food AND beverages)</p>
-									<p>| signifies OR operation (i.e., food OR beverages)</p>
-									<p>- negates a the word (i.e., NOT alcoholic)</p>
-									<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
-									<p>* at thez end of indicates a prefix match (i.e., match bird, birding and birds)</p>
-								</div>
-							}
-						</div>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="sm:col-span-full mt-2">
-							<div class="input input-primary bg-base-content/10 w-full">
-								<label for="article_text_filters" class="block text-xs font-medium">Text:</label>
-								<input
-									id="article_text_filters"
-									type="text"
-									name="article_filters.text"
-									value={ request.ArticleFilters.Text }
-									placeholder="Text..."
-									class="block w-full"
-									spellcheck="false"
-								/>
-							</div>
-						</div>
-						<div class="sm:col-span-full mt-2">
-							<div class="input input-primary bg-base-content/10 w-full">
-								<label for="article_category_filters" class="block text-xs font-medium">Categories:</label>
-								<input
-									id="article_category_filters"
-									type="text"
-									name="article_filters.categories"
-									value={ request.ArticleFilters.Categories }
-									placeholder="Categories..."
-									class="block w-full"
-									spellcheck="false"
-								/>
-							</div>
-						</div>
-						<div class="sm:col-span-full mt-2">
-							<div class="input input-primary bg-base-content/10 w-full">
-								<label for="article_author_filters" class="block text-xs font-medium">Authors:</label>
-								<input
-									id="article_author_filters"
-									type="text"
-									name="article_filters.authors"
-									value={ request.ArticleFilters.Authors }
-									placeholder="Authors..."
-									class="block w-full"
-									spellcheck="false"
-								/>
-							</div>
-						</div>
-					</div>
-				</div>
-				// Full article content toggle.
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="show-full-article-content" class="text-base/7 font-semibold">Always Show Full Article Content</label>
-						<div class="flex items-center">
-							<p class="mt-1 text-sm/6 ">
-								Always fetch and show article content from original site.
-							</p>
-							@HelpPopover("show-full-article-help", "top end") {
-								<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
-									<p>If articles in the subscription are only showing a summary, set this toggle to attempt to fetch the full content from the website.</p>
-									<p>Note: fetching full content is based on a heuristic that tries to locate the article content on the page. It does not always produce optimal results.</p>
-								</div>
-							}
-						</div>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2">
-							<input
-								id="show-full-article-content"
-								type="checkbox"
-								if request.ShowFullArticleContent {
-									checked="checked"
-								}
-								name="show_full_article_content"
-								class="toggle toggle-sm toggle-primary"
-							/>
-						</div>
-					</div>
-				</div>
-			</form>
-			// Categories
-			{{ categoryMgmtPath := "/user/subscription/category" }}
-			@CategoryManagement(categoryMgmtPath, "categories", nil, request.Categories)
-			// Action buttons.
-			<div class="flex flex-1 items-center justify-end gap-x-6">
-				<div id="processing" class="htmx-indicator">
-					Processing...
-					<span class="loading loading-spinner loading-md"></span>
-				</div>
-				@partials.ButtonBack()
-				<button type="submit" class="btn btn-primary" form="edit-subscription">Save</button>
-			</div>
-		</div>
-	</div>
+	</main>
+	@Dock(nil)
 }
 
 // AddFeedSubscription is a page for adding a new subscription to a feed.
@@ -702,302 +701,309 @@ templ EditSearchSubscription(request *models.SearchSubscriptionRequest) {
 }
 
 templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action string) {
-	<div class="ui-container">
-		<div class="min-w-0 flex-1 pb-8">
-			switch action {
-				case "add":
-					<h2 class="ui-h2">Add A Search Subscription</h2>
-				case "edit":
-					<h2 class="ui-h2">{ "Editing " + request.Customisation.Nickname }</h2>
-			}
-		</div>
-		<div class="flex items-center border-b border-base-content/60">
-			<h3 class="ui-h3">Search Filters</h3>
-			// Help dialog.
-			<div class="ml-4">
-				@HelpPopover("subscription-filter-operators-help", "bottom end") {
-					<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
-						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-						<p>+ signifies AND operation (i.e., food AND beverages)</p>
-						<p>| signifies OR operation (i.e., food OR beverages)</p>
-						<p>- negates a the word (i.e., NOT alcoholic)</p>
-						<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
-						<p>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</p>
-					</div>
-				}
-			</div>
-		</div>
-		<div class="space-y-8">
-			// hx-on::after-request="if(event.detail.successful) this.reset()"
-			<form
-				id="manage-search-subscription"
-				if action == "add" {
-					hx-post="/user/subscription/add/search"
-				} else {
-					hx-post={ "/edit/subscription/" + request.Search.SubscriptionID }
-				}
-				hx-swap="none"
-				hx-include="[name='customisation.categories']"
-				hx-params="not subscription-text"
-				hx-vals="js:{'search.timezone': Intl.DateTimeFormat().resolvedOptions().timeZone}"
-				hx-indicator="#processing"
-				hx-encoding="multipart/form-data"
-			>
-				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeSearch) }/>
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="subscription-filter-text" class="text-base/7 font-semibold">Includes the words</label>
-						// <p class="mt-1 text-sm/6 "></p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2">
-							<input
-								id="subscription-filter-text"
-								type="text"
-								name="search.text"
-								value={ request.Search.Text }
-								placeholder={ `e.g., "Breaking News" | Live` }
-								class="input input-primary bg-base-content/10 w-full"
-							/>
-						</div>
+	@header(&request.User)
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(EditSubscriptionFragment) {
+			<div class="ui-container">
+				<div class="min-w-0 flex-1 pb-8">
+					switch action {
+						case "add":
+							<h2 class="ui-h2">Add A Search Subscription</h2>
+						case "edit":
+							<h2 class="ui-h2">{ "Editing " + request.Customisation.Nickname }</h2>
+					}
+				</div>
+				<div class="flex items-center border-b border-base-content/60">
+					<h3 class="ui-h3">Search Filters</h3>
+					// Help dialog.
+					<div class="ml-4">
+						@HelpPopover("subscription-filter-operators-help", "bottom end") {
+							<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+								<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+								<p>+ signifies AND operation (i.e., food AND beverages)</p>
+								<p>| signifies OR operation (i.e., food OR beverages)</p>
+								<p>- negates a the word (i.e., NOT alcoholic)</p>
+								<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
+								<p>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</p>
+							</div>
+						}
 					</div>
 				</div>
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="subscription-filter-categories" class="text-base/7 font-semibold">Article Category Filters</label>
-						// <p class="mt-1 text-sm/6 "></p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2">
-							<input
-								id="subscription-filter-categories"
-								type="text"
-								name="search.categories"
-								value={ request.Search.Categories }
-								placeholder="e.g., drinks + mediation"
-								class="input input-primary bg-base-content/10 w-full"
-							/>
+				<div class="space-y-8">
+					// hx-on::after-request="if(event.detail.successful) this.reset()"
+					<form
+						id="manage-search-subscription"
+						if action == "add" {
+							hx-post="/user/subscription/add/search"
+						} else {
+							hx-post={ "/edit/subscription/" + request.Search.SubscriptionID }
+						}
+						hx-swap="none"
+						hx-include="[name='customisation.categories']"
+						hx-params="not subscription-text"
+						hx-vals="js:{'search.timezone': Intl.DateTimeFormat().resolvedOptions().timeZone}"
+						hx-indicator="#processing"
+						hx-encoding="multipart/form-data"
+					>
+						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeSearch) }/>
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="subscription-filter-text" class="text-base/7 font-semibold">Includes the words</label>
+								// <p class="mt-1 text-sm/6 "></p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2">
+									<input
+										id="subscription-filter-text"
+										type="text"
+										name="search.text"
+										value={ request.Search.Text }
+										placeholder={ `e.g., "Breaking News" | Live` }
+										class="input input-primary bg-base-content/10 w-full"
+									/>
+								</div>
+							</div>
 						</div>
-					</div>
-				</div>
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="subscription-filter-authors" class="text-base/7 font-semibold">Article Author Filters</label>
-						// <p class="mt-1 text-sm/6 "></p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2">
-							<input
-								id="subscription-filter-authors"
-								type="text"
-								name="search.authors"
-								value={ request.Search.Authors }
-								placeholder={ `e.g., -"John Smith"` }
-								class="input input-primary bg-base-content/10 w-full"
-							/>
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="subscription-filter-categories" class="text-base/7 font-semibold">Article Category Filters</label>
+								// <p class="mt-1 text-sm/6 "></p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2">
+									<input
+										id="subscription-filter-categories"
+										type="text"
+										name="search.categories"
+										value={ request.Search.Categories }
+										placeholder="e.g., drinks + mediation"
+										class="input input-primary bg-base-content/10 w-full"
+									/>
+								</div>
+							</div>
 						</div>
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="subscription-filter-authors" class="text-base/7 font-semibold">Article Author Filters</label>
+								// <p class="mt-1 text-sm/6 "></p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2">
+									<input
+										id="subscription-filter-authors"
+										type="text"
+										name="search.authors"
+										value={ request.Search.Authors }
+										placeholder={ `e.g., -"John Smith"` }
+										class="input input-primary bg-base-content/10 w-full"
+									/>
+								</div>
+							</div>
+						</div>
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="subscription-filter-subscriptions-search" class="text-base/7 font-semibold">In Subscriptions</label>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2">
+									<label class="input input-primary bg-base-content/10 w-full">
+										@tabler.Search(i.Props{Class: "size-5"})
+										<input
+											id="subscription-filter-subscriptions-search"
+											name="subscription-text"
+											placeholder="Search subscriptions..."
+											autocomplete="off"
+											hx-post="/search/subscription/suggestions"
+											hx-trigger="input changed delay:500ms,consume"
+											hx-target="#subscription-filter-subscriptions-options"
+											hx-swap="innerHTML show:window:top transition:true"
+											hx-params="subscription-text"
+											hx-push-url="false"
+										/>
+									</label>
+									<div
+										class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+										id="subscription-filter-subscriptions-options"
+										hx-target="#subscription-filter-subscriptions"
+										hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "search.subscriptions"}) }
+										_="on htmx:afterRequest set #subscription-filter-subscriptions-search.value to ''"
+									></div>
+									<div
+										id="subscription-filter-subscriptions"
+										class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+									>
+										for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
+											@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
+												InputName:        "search.subscriptions",
+												SubscriptionID:   subscription.GetID(),
+												SubscriptionName: subscription.GetTitle(),
+											})
+										}
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="subscription-filter-published-within" class="text-base/7 font-semibold">Published Within</label>
+								// <p class="mt-1 text-sm/6 "></p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full">
+									<select id="subscription-filter-published-within" name="search.published_within" class="select select-primary my-2 bg-base-300">
+										<option
+											value="last_hour"
+										>Last hour</option>
+										<option
+											value="last_half_day"
+										>Last 12 hours</option>
+										<option
+											value="last_day"
+										>Last day</option>
+										<option
+											value="last_week"
+											selected
+										>Last week</option>
+										<option
+											value="last_month"
+										>Last month</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="subscription-filter-view" class="text-base/7 font-semibold">View</label>
+								// <p class="mt-1 text-sm/6 "></p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full">
+									<select id="subscription-filter-view" name="search.view" class="select select-primary my-2 bg-base-300">
+										<option
+											value={ string(models.ViewUnread) }
+											if request.Search.View == models.ViewUnread {
+												selected
+											}
+										>
+											Unread
+										</option>
+										<option
+											value={ string(models.ViewRead) }
+											if request.Search.View == models.ViewRead {
+												selected
+											}
+										>Read</option>
+										<option
+											value={ string(models.ViewAll) }
+											if request.Search.View == models.ViewAll {
+												selected
+											}
+										>All</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="subscription-filter-sort" class="text-base/7 font-semibold">Sort By</label>
+								// <p class="mt-1 text-sm/6 "></p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full">
+									<select id="subscription-filter-sort" name="search.sort" class="select select-primary my-2 bg-base-300">
+										<option
+											value={ string(models.SortMostRelevant) }
+											if request.Search.Sort == models.SortMostRelevant {
+												selected
+											}
+										>
+											Most Relevant
+										</option>
+										<option
+											value={ string(models.SortNewestFirst) }
+											if request.Search.Sort == models.SortNewestFirst {
+												selected
+											}
+										>Newest First</option>
+										<option
+											value={ string(models.SortOldestFirst) }
+											if request.Search.Sort == models.SortOldestFirst {
+												selected
+											}
+										>Oldest First</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					</form>
+					<div class="border-b border-base-content/60">
+						<h3 class="ui-h3">Subscription Info</h3>
 					</div>
-				</div>
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="subscription-filter-subscriptions-search" class="text-base/7 font-semibold">In Subscriptions</label>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2">
-							<label class="input input-primary bg-base-content/10 w-full">
-								@tabler.Search(i.Props{Class: "size-5"})
+					// Nickname.
+					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+						<div>
+							<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
+							// <p class="mt-1 text-sm/6 "></p>
+						</div>
+						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+							<div class="col-span-full mt-2">
 								<input
-									id="subscription-filter-subscriptions-search"
-									name="subscription-text"
-									placeholder="Search subscriptions..."
+									id="subscription-nickname"
+									type="text"
+									required
+									name="customisation.nickname"
+									value={ request.Customisation.Nickname }
+									placeholder="My Search Subscription"
+									class="input input-primary bg-base-content/10 w-full"
+									form="manage-search-subscription"
 									autocomplete="off"
-									hx-post="/search/subscription/suggestions"
-									hx-trigger="input changed delay:500ms,consume"
-									hx-target="#subscription-filter-subscriptions-options"
-									hx-swap="innerHTML show:window:top transition:true"
-									hx-params="subscription-text"
-									hx-push-url="false"
 								/>
-							</label>
-							<div
-								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-								id="subscription-filter-subscriptions-options"
-								hx-target="#subscription-filter-subscriptions"
-								hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "search.subscriptions"}) }
-								_="on htmx:afterRequest set #subscription-filter-subscriptions-search.value to ''"
-							></div>
-							<div
-								id="subscription-filter-subscriptions"
-								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-							>
-								for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
-									@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
-										InputName:        "search.subscriptions",
-										SubscriptionID:   subscription.GetID(),
-										SubscriptionName: subscription.GetTitle(),
-									})
-								}
 							</div>
 						</div>
 					</div>
-				</div>
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="subscription-filter-published-within" class="text-base/7 font-semibold">Published Within</label>
-						// <p class="mt-1 text-sm/6 "></p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full">
-							<select id="subscription-filter-published-within" name="search.published_within" class="select select-primary my-2 bg-base-300">
-								<option
-									value="last_hour"
-								>Last hour</option>
-								<option
-									value="last_half_day"
-								>Last 12 hours</option>
-								<option
-									value="last_day"
-								>Last day</option>
-								<option
-									value="last_week"
-									selected
-								>Last week</option>
-								<option
-									value="last_month"
-								>Last month</option>
-							</select>
+					// Image.
+					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+						<div>
+							<label for="image" class="text-base/7 font-semibold">Image</label>
+							<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
+						</div>
+						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+							<div class="col-span-full mt-2 flex items-center gap-x-2">
+								@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
+								<input
+									id="image"
+									type="file"
+									class="flex file-input file-input-primary bg-base-content/10"
+									name="image"
+									accept=".jpg,.png,.webp"
+								/>
+							</div>
 						</div>
 					</div>
-				</div>
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="subscription-filter-view" class="text-base/7 font-semibold">View</label>
-						// <p class="mt-1 text-sm/6 "></p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full">
-							<select id="subscription-filter-view" name="search.view" class="select select-primary my-2 bg-base-300">
-								<option
-									value={ string(models.ViewUnread) }
-									if request.Search.View == models.ViewUnread {
-										selected
-									}
-								>
-									Unread
-								</option>
-								<option
-									value={ string(models.ViewRead) }
-									if request.Search.View == models.ViewRead {
-										selected
-									}
-								>Read</option>
-								<option
-									value={ string(models.ViewAll) }
-									if request.Search.View == models.ViewAll {
-										selected
-									}
-								>All</option>
-							</select>
+					// Categories
+					{{ categoryMgmtPath := "/user/subscription/category" }}
+					@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
+					// Action buttons.
+					<div class="flex flex-1 items-center justify-end gap-x-6">
+						<div id="processing" class="htmx-indicator">
+							Processing...
+							<span class="loading loading-spinner loading-md"></span>
 						</div>
-					</div>
-				</div>
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="subscription-filter-sort" class="text-base/7 font-semibold">Sort By</label>
-						// <p class="mt-1 text-sm/6 "></p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full">
-							<select id="subscription-filter-sort" name="search.sort" class="select select-primary my-2 bg-base-300">
-								<option
-									value={ string(models.SortMostRelevant) }
-									if request.Search.Sort == models.SortMostRelevant {
-										selected
-									}
-								>
-									Most Relevant
-								</option>
-								<option
-									value={ string(models.SortNewestFirst) }
-									if request.Search.Sort == models.SortNewestFirst {
-										selected
-									}
-								>Newest First</option>
-								<option
-									value={ string(models.SortOldestFirst) }
-									if request.Search.Sort == models.SortOldestFirst {
-										selected
-									}
-								>Oldest First</option>
-							</select>
-						</div>
-					</div>
-				</div>
-			</form>
-			<div class="border-b border-base-content/60">
-				<h3 class="ui-h3">Subscription Info</h3>
-			</div>
-			// Nickname.
-			<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-				<div>
-					<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
-					// <p class="mt-1 text-sm/6 "></p>
-				</div>
-				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-					<div class="col-span-full mt-2">
-						<input
-							id="subscription-nickname"
-							type="text"
-							required
-							name="customisation.nickname"
-							value={ request.Customisation.Nickname }
-							placeholder="My Search Subscription"
-							class="input input-primary bg-base-content/10 w-full"
-							form="manage-search-subscription"
-							autocomplete="off"
-						/>
+						@partials.ButtonBack()
+						<button type="submit" class="btn btn-primary" form="manage-search-subscription">
+							if action == "add" {
+								Add
+							} else {
+								Save
+							}
+						</button>
 					</div>
 				</div>
 			</div>
-			// Image.
-			<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-				<div>
-					<label for="image" class="text-base/7 font-semibold">Image</label>
-					<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
-				</div>
-				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-					<div class="col-span-full mt-2 flex items-center gap-x-2">
-						@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
-						<input
-							id="image"
-							type="file"
-							class="flex file-input file-input-primary bg-base-content/10"
-							name="image"
-							accept=".jpg,.png,.webp"
-						/>
-					</div>
-				</div>
-			</div>
-			// Categories
-			{{ categoryMgmtPath := "/user/subscription/category" }}
-			@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
-			// Action buttons.
-			<div class="flex flex-1 items-center justify-end gap-x-6">
-				<div id="processing" class="htmx-indicator">
-					Processing...
-					<span class="loading loading-spinner loading-md"></span>
-				</div>
-				@partials.ButtonBack()
-				<button type="submit" class="btn btn-primary" form="manage-search-subscription">
-					if action == "add" {
-						Add
-					} else {
-						Save
-					}
-				</button>
-			</div>
-		</div>
-	</div>
+		}
+	</main>
+	@Dock(nil)
 }
 
 // AddGroupSubscription is a page for adding a new group subscription.
@@ -1011,210 +1017,224 @@ templ EditGroupSubscription(request *models.GroupSubscriptionRequest) {
 }
 
 templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action string) {
-	<div class="ui-container">
-		<div class="min-w-0 flex-1 pb-8">
-			switch action {
-				case "add":
-					<h2 class="ui-h2">Add A Group Subscription</h2>
-				case "edit":
-					<h2 class="ui-h2">{ "Editing " + request.Customisation.Nickname }</h2>
-			}
-		</div>
-		<div class="space-y-8">
-			// hx-on::after-request="if(event.detail.successful) this.reset()"
-			<form
-				id="manage-group-subscription"
-				if action == "add" {
-					hx-post="/user/subscription/add/group"
-				} else {
-					hx-post={ "/edit/subscription/" + request.SubscriptionID }
-				}
-				hx-swap="none"
-				hx-include="[name='customisation.categories']"
-				hx-params="not subscription-text"
-				hx-indicator="#processing"
-				hx-encoding="multipart/form-data"
-			>
-				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
-				// Subscriptions.
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="subscriptions-filter-subscriptions-search" class="text-base/7 font-semibold">In Subscriptions</label>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2">
-							<label class="input input-primary bg-base-content/10 w-full">
-								@tabler.Search(i.Props{Class: "size-5"})
+	@header(&request.User)
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(EditSubscriptionFragment) {
+			<div class="ui-container">
+				<div class="min-w-0 flex-1 pb-8">
+					switch action {
+						case "add":
+							<h2 class="ui-h2">Add A Group Subscription</h2>
+						case "edit":
+							<h2 class="ui-h2">{ "Editing " + request.Customisation.Nickname }</h2>
+					}
+				</div>
+				<div class="space-y-8">
+					// hx-on::after-request="if(event.detail.successful) this.reset()"
+					<form
+						id="manage-group-subscription"
+						if action == "add" {
+							hx-post="/user/subscription/add/group"
+						} else {
+							hx-post={ "/edit/subscription/" + request.SubscriptionID }
+						}
+						hx-swap="none"
+						hx-include="[name='customisation.categories']"
+						hx-params="not subscription-text"
+						hx-indicator="#processing"
+						hx-encoding="multipart/form-data"
+					>
+						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
+						// Subscriptions.
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="subscriptions-filter-subscriptions-search" class="text-base/7 font-semibold">In Subscriptions</label>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2">
+									<label class="input input-primary bg-base-content/10 w-full">
+										@tabler.Search(i.Props{Class: "size-5"})
+										<input
+											id="subscription-filter-subscriptions-search"
+											name="subscription-text"
+											placeholder="Search subscriptions..."
+											autocomplete="off"
+											hx-post="/search/subscription/suggestions"
+											hx-trigger="input changed delay:500ms,consume"
+											hx-target="#subscription-filter-subscriptions-options"
+											hx-swap="innerHTML show:window:top transition:true"
+											hx-params="subscription-text"
+											hx-push-url="false"
+										/>
+									</label>
+									<div
+										class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+										id="subscription-filter-subscriptions-options"
+										hx-target="#subscription-filter-subscriptions"
+										hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
+										_="on htmx:afterRequest set #subscription-filter-subscriptions-search.value to ''"
+									></div>
+									<div
+										id="subscription-filter-subscriptions"
+										class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+									>
+										for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
+											@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
+												InputName:        "subscriptions",
+												SubscriptionID:   subscription.GetID(),
+												SubscriptionName: subscription.GetTitle(),
+											})
+										}
+									</div>
+								</div>
+							</div>
+						</div>
+						// Nickname.
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
+								// <p class="mt-1 text-sm/6 "></p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2">
+									<input
+										id="subscription-nickname"
+										type="text"
+										required
+										name="customisation.nickname"
+										value={ request.Customisation.Nickname }
+										placeholder="My Search Subscription"
+										class="input input-primary bg-base-content/10 w-full"
+										autocomplete="off"
+									/>
+								</div>
+							</div>
+						</div>
+					</form>
+					// Image.
+					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+						<div>
+							<label for="image" class="text-base/7 font-semibold">Image</label>
+							<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
+						</div>
+						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+							<div class="col-span-full mt-2 flex items-center gap-x-2">
+								@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
 								<input
-									id="subscription-filter-subscriptions-search"
-									name="subscription-text"
-									placeholder="Search subscriptions..."
-									autocomplete="off"
-									hx-post="/search/subscription/suggestions"
-									hx-trigger="input changed delay:500ms,consume"
-									hx-target="#subscription-filter-subscriptions-options"
-									hx-swap="innerHTML show:window:top transition:true"
-									hx-params="subscription-text"
-									hx-push-url="false"
+									id="image"
+									type="file"
+									class="flex file-input file-input-primary bg-base-content/10"
+									name="image"
+									accept=".jpg,.png,.webp"
 								/>
-							</label>
-							<div
-								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-								id="subscription-filter-subscriptions-options"
-								hx-target="#subscription-filter-subscriptions"
-								hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
-								_="on htmx:afterRequest set #subscription-filter-subscriptions-search.value to ''"
-							></div>
-							<div
-								id="subscription-filter-subscriptions"
-								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-							>
-								for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
-									@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
-										InputName:        "subscriptions",
-										SubscriptionID:   subscription.GetID(),
-										SubscriptionName: subscription.GetTitle(),
-									})
-								}
 							</div>
 						</div>
 					</div>
-				</div>
-				// Nickname.
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
-						// <p class="mt-1 text-sm/6 "></p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2">
-							<input
-								id="subscription-nickname"
-								type="text"
-								required
-								name="customisation.nickname"
-								value={ request.Customisation.Nickname }
-								placeholder="My Search Subscription"
-								class="input input-primary bg-base-content/10 w-full"
-								autocomplete="off"
-							/>
+					// Categories
+					{{ categoryMgmtPath := "/user/subscription/category" }}
+					@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
+					// Action buttons.
+					<div class="flex flex-1 items-center justify-end gap-x-6">
+						<div id="processing" class="htmx-indicator">
+							Processing...
+							<span class="loading loading-spinner loading-md"></span>
 						</div>
-					</div>
-				</div>
-			</form>
-			// Image.
-			<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-				<div>
-					<label for="image" class="text-base/7 font-semibold">Image</label>
-					<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
-				</div>
-				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-					<div class="col-span-full mt-2 flex items-center gap-x-2">
-						@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
-						<input
-							id="image"
-							type="file"
-							class="flex file-input file-input-primary bg-base-content/10"
-							name="image"
-							accept=".jpg,.png,.webp"
-						/>
+						@partials.ButtonBack()
+						<button type="submit" class="btn btn-primary" form="manage-group-subscription">
+							if action == "add" {
+								Add
+							} else {
+								Save
+							}
+						</button>
 					</div>
 				</div>
 			</div>
-			// Categories
-			{{ categoryMgmtPath := "/user/subscription/category" }}
-			@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
-			// Action buttons.
-			<div class="flex flex-1 items-center justify-end gap-x-6">
-				<div id="processing" class="htmx-indicator">
-					Processing...
-					<span class="loading loading-spinner loading-md"></span>
-				</div>
-				@partials.ButtonBack()
-				<button type="submit" class="btn btn-primary" form="manage-group-subscription">
-					if action == "add" {
-						Add
-					} else {
-						Save
-					}
-				</button>
-			</div>
-		</div>
-	</div>
+		}
+	</main>
+	@Dock(nil)
 }
 
 templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
-	<div class="ui-container">
-		<div class="min-w-0 flex-1 pb-8">
-			<h2 class="ui-h2">{ "Editing " + request.Customisation.Nickname }</h2>
-		</div>
-		<div class="space-y-8">
-			<form
-				id="manage-email-subscription"
-				hx-post={ "/edit/subscription/" + request.SubscriptionID }
-				hx-swap="none"
-				hx-include="[name='customisation.categories']"
-				hx-params="not subscription-text"
-				hx-indicator="#processing"
-				hx-encoding="multipart/form-data"
-			>
-				<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeEmail) }/>
-				<input type="hidden" name="subscription_id" value={ request.SubscriptionID }/>
-				// Nickname.
-				<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-					<div>
-						<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
-						// <p class="mt-1 text-sm/6 "></p>
-					</div>
-					<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						<div class="col-span-full mt-2">
-							<input
-								id="subscription-nickname"
-								type="text"
-								required
-								name="customisation.nickname"
-								value={ request.Customisation.Nickname }
-								placeholder="My Email Subscription"
-								class="input input-primary bg-base-content/10 w-full"
-								autocomplete="off"
-							/>
+	@header(&request.User)
+	@SideBar(nil)
+	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+		@templ.Fragment(EditSubscriptionFragment) {
+			<div class="ui-container">
+				<div class="min-w-0 flex-1 pb-8">
+					<h2 class="ui-h2">{ "Editing " + request.Customisation.Nickname }</h2>
+				</div>
+				<div class="space-y-8">
+					<form
+						id="manage-email-subscription"
+						hx-post={ "/edit/subscription/" + request.SubscriptionID }
+						hx-swap="none"
+						hx-include="[name='customisation.categories']"
+						hx-params="not subscription-text"
+						hx-indicator="#processing"
+						hx-encoding="multipart/form-data"
+					>
+						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeEmail) }/>
+						<input type="hidden" name="subscription_id" value={ request.SubscriptionID }/>
+						// Nickname.
+						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+							<div>
+								<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
+								// <p class="mt-1 text-sm/6 "></p>
+							</div>
+							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+								<div class="col-span-full mt-2">
+									<input
+										id="subscription-nickname"
+										type="text"
+										required
+										name="customisation.nickname"
+										value={ request.Customisation.Nickname }
+										placeholder="My Email Subscription"
+										class="input input-primary bg-base-content/10 w-full"
+										autocomplete="off"
+									/>
+								</div>
+							</div>
+						</div>
+					</form>
+					// Image.
+					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+						<div>
+							<label for="image" class="text-base/7 font-semibold">Image</label>
+							<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
+						</div>
+						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+							<div class="col-span-full mt-2 flex items-center gap-x-2">
+								@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
+								<input
+									id="image"
+									type="file"
+									class="flex file-input file-input-primary bg-base-content/10"
+									name="image"
+									accept=".jpg,.png,.webp"
+								/>
+							</div>
 						</div>
 					</div>
-				</div>
-			</form>
-			// Image.
-			<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-				<div>
-					<label for="image" class="text-base/7 font-semibold">Image</label>
-					<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
-				</div>
-				<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-					<div class="col-span-full mt-2 flex items-center gap-x-2">
-						@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
-						<input
-							id="image"
-							type="file"
-							class="flex file-input file-input-primary bg-base-content/10"
-							name="image"
-							accept=".jpg,.png,.webp"
-						/>
+					// Categories
+					{{ categoryMgmtPath := "/user/subscription/category" }}
+					@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
+					// Action buttons.
+					<div class="flex flex-1 items-center justify-end gap-x-6">
+						<div id="processing" class="htmx-indicator">
+							Processing...
+							<span class="loading loading-spinner loading-md"></span>
+						</div>
+						@partials.ButtonBack()
+						<button type="submit" class="btn btn-primary" form="manage-email-subscription">Save</button>
 					</div>
 				</div>
 			</div>
-			// Categories
-			{{ categoryMgmtPath := "/user/subscription/category" }}
-			@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
-			// Action buttons.
-			<div class="flex flex-1 items-center justify-end gap-x-6">
-				<div id="processing" class="htmx-indicator">
-					Processing...
-					<span class="loading loading-spinner loading-md"></span>
-				</div>
-				@partials.ButtonBack()
-				<button type="submit" class="btn btn-primary" form="manage-email-subscription">Save</button>
-			</div>
-		</div>
-	</div>
+		}
+	</main>
+	@Dock(nil)
 }
 
 // ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).

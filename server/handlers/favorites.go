@@ -55,6 +55,7 @@ func HandleListFavorites() http.HandlerFunc {
 						"This might be temporary, please try again.",
 					),
 				}).ServeHTTP(res, req)
+				return
 			}
 
 			wg, jobCtx := errgroup.WithContext(req.Context())
@@ -94,6 +95,7 @@ func HandleListFavorites() http.HandlerFunc {
 						"This might be temporary, please try again.",
 					),
 				}).ServeHTTP(res, req)
+				return
 			}
 
 			// Render appropriate content.

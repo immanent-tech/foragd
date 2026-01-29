@@ -13,7 +13,7 @@ import (
 
 type NotFoundPage struct{}
 
-// NotFound handles showing a page for a 404 response.
+// HandleNotFound handles showing a page for a 404 response.
 func HandleNotFound() http.HandlerFunc {
 	return RenderInternalPage(&NotFoundPage{})
 }
