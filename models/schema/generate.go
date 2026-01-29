@@ -1,6 +1,6 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package generate
+package schema
 
 //go:generate go tool oapi-codegen -config models-cfg.yaml models.yaml

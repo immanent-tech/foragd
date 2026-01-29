@@ -515,7 +515,7 @@ type Options struct {
 
 // CreateSchemas performs all requested schema migrations.
 //
-//nolint:funlen,maintidx // will not reduce size
+//nolint:maintidx // will not reduce size
 func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
