@@ -178,7 +178,7 @@ templ (a *Article) Card() {
 					"
 						/>
 						@tabler.MailOpened(i.Props{Class: "size-5 text-primary swap-on"})
-						@tabler.MailFilled(i.Props{Class: "size-5 text-primary swap-off"})
+						@tabler.Mail(i.Props{Class: "size-5 text-primary swap-off"})
 					</label>
 				</form>
 				// Actions menu.
@@ -186,7 +186,7 @@ templ (a *Article) Card() {
 					<el-dropdown class="relative ml-auto" _="on click halt the event's bubbling">
 						<button id={ a.GetID() + "-actions-button" } class="btn btn-sm btn-ghost btn-square">
 							<span class="sr-only">a.GetTitle() + " Actions"</span>
-							@tabler.Menu2(i.Props{Class: "size-5"})
+							@tabler.Menu2(i.Props{Class: "size-5 text-primary"})
 						</button>
 						<el-menu
 							id={ a.GetID() + "-actions-menu" }
@@ -355,7 +355,7 @@ templ (a *Article) Content() {
 					"
 						/>
 						@tabler.MailOpened(i.Props{Class: "size-6 swap-on"})
-						@tabler.MailFilled(i.Props{Class: "size-6 swap-off"})
+						@tabler.Mail(i.Props{Class: "size-6 swap-off"})
 					</label>
 				</form>
 				<div class="flex items-center justify-end">
@@ -554,7 +554,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 												Mark Articles Read
 												<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 											} else {
-												@tabler.MailFilled(i.Props{Class: "size-4"})
+												@tabler.Mail(i.Props{Class: "size-4"})
 												<span class="sr-only">Mark All Unread</span>
 												Mark Articles Unread
 												<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
