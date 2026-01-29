@@ -16,10 +16,9 @@ type Landing struct {
 }
 
 func HandleLanding() http.HandlerFunc {
-	page := &Landing{
+	return RenderExternalPage(&Landing{
 		template: templates.CreatePage(templates.Landing()),
-	}
-	return RenderExternalPage(page)
+	})
 }
 
 func (p *Landing) FullResponse(w http.ResponseWriter, r *http.Request) {

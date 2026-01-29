@@ -162,7 +162,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	// Landing.
 	router.Get("/", handlers.HandleLanding())
 	// About.
-	router.Get("/about", handlers.About())
+	router.Get("/about", handlers.HandleAbout())
 	// Feed Viewer.
 	router.Get("/viewer", handlers.HandleViewer())
 	router.With(middlewares.RequireHTMX).Post("/viewer", handlers.HandleViewer())

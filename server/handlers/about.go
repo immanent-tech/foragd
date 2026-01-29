@@ -6,25 +6,33 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/a-h/templ"
+
 	"github.com/immanent-tech/foragd/web/templates"
 	"github.com/immanent-tech/foragd/web/templates/opengraph"
 )
 
-func About() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		title := "About | Foragd"
-		description := "Learn about Foragd, a beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop. Understand the design and features of Foragd."
-		renderPage(
-			templates.NewPage(templates.About(),
-				templates.WithPageTitle(title),
-				templates.WithPageDescription(description),
-				templates.WithOGMetadata(
-					opengraph.NewMetadata(
-						opengraph.WithTitle(title, nil),
-						opengraph.WithDescription(description, nil),
-					),
+type About struct {
+	template templ.Component
+}
+
+func (p *About) FullResponse(w http.ResponseWriter, r *http.Request) {
+	templ.Handler(p.template).ServeHTTP(w, r)
+}
+
+func HandleAbout() http.HandlerFunc {
+	title := "About | Foragd"
+	description := "Learn about Foragd, a beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop. Understand the design and features of Foragd."
+	return RenderExternalPage(&About{
+		template: templates.CreatePage(templates.About(),
+			templates.WithPageTitle(title),
+			templates.WithPageDescription(description),
+			templates.WithOGMetadata(
+				opengraph.NewMetadata(
+					opengraph.WithTitle(title, nil),
+					opengraph.WithDescription(description, nil),
 				),
 			),
-		).ServeHTTP(res, req)
-	}
+		),
+	})
 }
