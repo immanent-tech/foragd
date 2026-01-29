@@ -107,24 +107,25 @@ func HandleListSubscriptions() http.HandlerFunc {
 			return
 		}
 
-		// Build response object.
-		response := &models.ListSubscriptionsResponse{
-			Filters:       request.Filters,
-			Pagination:    request.Pagination,
-			Subscriptions: subscriptions,
-		}
-
 		// Choose rendering method based on method (get = page, post = partial).
 		switch req.Method {
 		case http.MethodGet:
 			RenderInternalPage(&ListSubscriptions{
-				title:    "Subscriptions",
-				template: templates.ListSubscriptions(response),
+				title: "Subscriptions",
+				template: templates.ListSubscriptions(&models.ListSubscriptionsResponse{
+					Filters:       request.Filters,
+					Pagination:    request.Pagination,
+					Subscriptions: subscriptions,
+				}),
 			}).ServeHTTP(res, req)
 		case http.MethodPost:
 			RenderPartial(&ListSubscriptions{
-				title:    "Subscriptions",
-				template: templates.ListSubscriptions(response),
+				title: "Subscriptions",
+				template: templates.ListSubscriptions(&models.ListSubscriptionsResponse{
+					Filters:       request.Filters,
+					Pagination:    request.Pagination,
+					Subscriptions: subscriptions,
+				}),
 			}).ServeHTTP(res, req)
 		}
 	}).ServeHTTP
