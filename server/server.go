@@ -171,8 +171,8 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	// Policy documentation (i.e., terms of service, privacy).
 	router.Get("/policies/*", handlers.PolicyDocsHandler())
 	// Posts/Blog.
-	router.Get("/posts", handlers.PostsHandler())
-	router.Get("/posts/*", handlers.PostsHandler())
+	router.Get("/posts", handlers.HandlePosts())
+	router.Get("/posts/*", handlers.HandlePosts())
 	// Sign-up/Login routes.
 	router.Group(func(r chi.Router) {
 		r.Use(

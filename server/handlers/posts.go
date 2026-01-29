@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/toml"
+	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	"github.com/russross/blackfriday/v2"
 	slogctx "github.com/veqryn/slog-context"
@@ -32,8 +33,39 @@ var getPosts = sync.OnceValues(func() (*models.DocsDirectory, error) {
 	return &posts, nil
 })
 
-// PostsHandler handles showing posts.
-func PostsHandler() http.HandlerFunc {
+// PostsIndex is the index of all posts.
+type PostsIndex struct {
+	posts *models.DocsDirectory
+}
+
+// FullResponse renders the posts index.
+func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(templates.CreatePage(
+		templates.PostsIndex(p.posts),
+		templates.WithPageTitle("Posts from the Foragd Team"),
+		templates.WithPageDescription("Comparisons, opinions and other content from the Foragd team"),
+	),
+	).ServeHTTP(res, req)
+}
+
+// Post is an individual post.
+type Post struct {
+	content  []byte
+	metadata *models.DocMetadata
+}
+
+// FullResponse renders an individual post.
+func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(templates.CreatePage(
+		templates.Document(p.content),
+		templates.WithPageTitle(p.metadata.Title),
+		templates.WithPageDescription(p.metadata.Description),
+	),
+	).ServeHTTP(res, req)
+}
+
+// HandlePosts handles showing the posts index or individual posts.
+func HandlePosts() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		doc := chi.URLParam(req, "*")
 		// Check, if the requested file is existing.
@@ -49,7 +81,9 @@ func PostsHandler() http.HandlerFunc {
 
 		// Show index when no specific post has been requested.
 		if doc == "" {
-			renderPage(templates.NewPage(templates.PostsIndex(posts))).ServeHTTP(res, req)
+			RenderExternalPage(&PostsIndex{
+				posts: posts,
+			}).ServeHTTP(res, req)
 			return
 		}
 
@@ -76,17 +110,9 @@ func PostsHandler() http.HandlerFunc {
 
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
-		template := templates.NewPage(
-			templates.Document(output),
-			templates.WithPageTitle(metadata.Title),
-			templates.WithPageDescription(metadata.Description),
-		).FullTemplate()
-		err = template.Render(req.Context(), res)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Could not render post.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-		}
+		RenderExternalPage(&Post{
+			content:  output,
+			metadata: &metadata,
+		}).ServeHTTP(res, req)
 	}
 }
