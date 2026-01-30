@@ -48,7 +48,7 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
-var defaultHandlerChain = alice.New(storePath, pushCriticalAssets)
+var defaultHandlerChain = alice.New(storePath)
 var listHandlerChain = defaultHandlerChain.Append(parseFilters)
 
 var loadHTTPClient = sync.OnceValue(func() *resty.Client {
@@ -311,31 +311,6 @@ func storePath(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := models.PathToCtx(req.Context(), req.URL.Path)
 		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-// pushCriticalAssets will optimistically send our custom script/css bundles to a client before it asks for them, which
-// hopefully will speed up first page load.
-func pushCriticalAssets(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if pusher, ok := res.(http.Pusher); ok {
-			if err := pusher.Push("/content/scripts.js?v="+config.Version, nil); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Push scripts failed.",
-					slog.Any("error", err),
-				)
-			}
-			if err := pusher.Push("/content/styles.css?v="+config.Version, nil); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Push styles failed.",
-					slog.Any("error", err),
-				)
-			}
-			if err := pusher.Push("/content/inter.css?v="+config.Version, nil); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Push styles failed.",
-					slog.Any("error", err),
-				)
-			}
-		}
-		next.ServeHTTP(res, req)
 	})
 }
 

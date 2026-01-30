@@ -4,20 +4,44 @@
 package middlewares
 
 import (
+	"log/slog"
 	"net/http"
+
+	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/foragd/config"
 )
 
 // SetCacheControl sets an appropriate Cache-Control header for user content based on the user's update frequency
 // setting.
 func SetCacheControl(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// user, err := models.UserFromCtx(req.Context())
-		// if err != nil {
-		// 	return
-		// }
-		// updateFreq := strconv.FormatFloat(user.GetUpdatesFrequency().Seconds(), 'f', 0, 64)
-		// res.Header().Set("Cache-Control", "private, max-age="+updateFreq+", must-revalidate")
 		res.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
+		next.ServeHTTP(res, req)
+	})
+}
+
+// PushCriticalAssets will optimistically send our custom script/css bundles to a client before it asks for them, which
+// hopefully will speed up first page load.
+func PushCriticalAssets(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if pusher, ok := res.(http.Pusher); ok {
+			if err := pusher.Push("/content/scripts.js?v="+config.Version, nil); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Push scripts failed.",
+					slog.Any("error", err),
+				)
+			}
+			if err := pusher.Push("/content/styles.css?v="+config.Version, nil); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Push styles failed.",
+					slog.Any("error", err),
+				)
+			}
+			if err := pusher.Push("/content/inter.css?v="+config.Version, nil); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Push styles failed.",
+					slog.Any("error", err),
+				)
+			}
+		}
 		next.ServeHTTP(res, req)
 	})
 }

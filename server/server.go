@@ -139,6 +139,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
 		middleware.Compress(defaultCompressionLevel, compressMimetypes...),
 		middleware.StripSlashes,
+		middlewares.PushCriticalAssets,
 		middlewares.Etag,
 	)
 
