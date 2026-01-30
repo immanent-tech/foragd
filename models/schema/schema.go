@@ -476,6 +476,7 @@ var (
 			templates.NewTemplate(
 				templates.WithTemplateMapping(
 					templates.WithProperties(
+						templates.WithDatetimeMapping("updated_at"),
 						templates.WithDatetimeMapping("expiry"),
 						templates.WithKeywordMapping("token"),
 						templates.WithBinaryMapping("data"),
@@ -696,6 +697,8 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 			err = migrateIndexData(ctx, api, feedsIndexPrefix, nil)
 		case "subscriptions":
 			err = migrateIndexData(ctx, api, subscriptionsSchemaPrefix, nil)
+		case "sessions":
+			err = migrateIndexData(ctx, api, sessionsSchemaPrefix, nil)
 		}
 		if err != nil {
 			return fmt.Errorf("could not migrate users: %w", err)
