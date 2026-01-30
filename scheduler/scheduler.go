@@ -176,6 +176,22 @@ func RunStartupTasks(ctx context.Context) error {
 		return nil
 	})
 
+	startupTasks.Go(func() error {
+		// Setup clear expired sessions job.
+		clearExpiredSessionsJob, err := jobs.NewClearExpiredSessionsJob()
+		if err != nil {
+			return fmt.Errorf("create get new feeds job: %w", err)
+		}
+		_, err = Manager.GetScheduledJob(clearExpiredSessionsJob.JobDetail().JobKey())
+		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
+			err = Manager.ScheduleJob(clearExpiredSessionsJob.JobDetail(), clearExpiredSessionsJob.Trigger())
+			if err != nil {
+				return fmt.Errorf("check get new feeds job: %w", err)
+			}
+		}
+		return nil
+	})
+
 	if err := startupTasks.Wait(); err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}

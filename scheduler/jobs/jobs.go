@@ -33,9 +33,10 @@ var (
 const (
 	defaultJobTimeout = 60 * time.Second
 
-	jobTypeUpdateFeed        = "update_feed"
-	jobTypeGetNewFeeds       = "get_new_feeds"
-	jobTypeClearDeletedFeeds = "clear_deleted_feeds"
+	jobTypeUpdateFeed           = "update_feed"
+	jobTypeGetNewFeeds          = "get_new_feeds"
+	jobTypeClearDeletedFeeds    = "clear_deleted_feeds"
+	jobTypeClearExpiredSessions = "clear_expired_sessions"
 
 	jobTriggerTypeCron = "cron"
 	jobTriggerTypePoll = "poll"
@@ -106,6 +107,8 @@ func (job *ScheduledJob) Execute(ctx context.Context) error {
 		err = executeUpdateFeedJob(ctx, job)
 	case jobTypeClearDeletedFeeds:
 		err = executeClearDeletedFeeds(ctx, job)
+	case jobTypeClearExpiredSessions:
+		err = executeClearExpiredSessions(ctx)
 	}
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
@@ -136,6 +139,8 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 		return quartz.NewJobDetail(job, job.generateJobKey(data.FeedID, job.JobType))
 	case jobTypeClearDeletedFeeds:
 		return quartz.NewJobDetail(job, job.generateJobKey("clear_delete_feeds", ""))
+	case jobTypeClearExpiredSessions:
+		return quartz.NewJobDetail(job, job.generateJobKey("clear_expired_sessions", ""))
 	}
 	return nil
 }
