@@ -224,8 +224,8 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.Get("/search", handlers.HandleSearchResults())
 		r.Get("/search/updates", handlers.WatchSearchResults())
 		// Issues.
-		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.GetObjectIssues())
-		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.SubmitObjectIssues())
+		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.HandleReportObjectIssue())
+		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.HandleSubmitObjectIssue())
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
 			r.Get("/", handlers.HandleListSubscriptions())
@@ -251,10 +251,9 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		})
 		// Article specific.
 		r.Route("/list/articles", func(r chi.Router) {
-			r.Get("/", handlers.ListArticles())
-			r.Post("/", handlers.ListArticles())
-			// r.With(middlewares.RequireHTMX).Post("/", handlers.HandleListArticles())
-			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.PaginateArticles())
+			r.Get("/", handlers.HandleListArticles())
+			r.Post("/", handlers.HandleListArticles())
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())
 			r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
@@ -262,11 +261,11 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}", handlers.MarkArticle())
 		r.With(middlewares.RequireHTMX).Post("/favorite/article/{item_id}", handlers.FavoriteArticle())
 		r.With(middlewares.RequireHTMX).Post("/share/article/{item_id}", handlers.ShareArticle())
-		r.Get("/view/article/{item_id}", handlers.ViewArticle())
+		r.Get("/view/article/{item_id}", handlers.HandleViewArticle())
 		r.Get("/view/article/{item_id}/similar", handlers.HandleFindSimilarArticles())
 		// General.
-		r.With(middlewares.RequireHTMX).Get("/issue", handlers.GetPageIssues())
-		r.With(middlewares.RequireHTMX).Post("/issue", handlers.SubmitPageIssues())
+		r.With(middlewares.RequireHTMX).Get("/issue", handlers.HandleReportPageIssue())
+		r.With(middlewares.RequireHTMX).Post("/issue", handlers.HandleSubmitPageIssue())
 		// Favorite specific.
 		r.Route("/list/favorites", func(r chi.Router) {
 			r.Get("/", handlers.HandleListFavorites())

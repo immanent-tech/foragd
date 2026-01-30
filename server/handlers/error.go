@@ -28,6 +28,13 @@ func HandleInternalError(err error) http.HandlerFunc {
 		if errors.As(err, &apiErr) {
 			apiErr.WriteLog(req.Context())
 			res.WriteHeader(apiErr.HTTPStatus())
+			if apiErr.UserMessage == nil {
+				// Add a generic user message if one isn't already set.
+				apiErr.UserMessage = models.NewErrorMessage(
+					"A backend error occurred",
+					"This might be temporary, please try again.",
+				)
+			}
 			page := &InternalError{
 				err: apiErr,
 			}

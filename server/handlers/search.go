@@ -275,38 +275,37 @@ func HandleSearchResults() http.HandlerFunc {
 
 // WatchSearchResults handles watching the search results for any updates and rendering a notification to the user to refresh the page.
 func WatchSearchResults() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage:   models.NewErrorMessage("Unable to watch for search results updates", ""),
-			}
+			}).ServeHTTP(res, req)
 		}
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode search request: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage:   models.NewErrorMessage("Unable to watch for search results updates", ""),
-			}
+			}).ServeHTTP(res, req)
 		}
 		// Build query.
 		query, err := models.BuildSearchResultsQuery(req.Context(), user, request, models.SearchResultsClause(request))
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("build search query: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage:   models.NewErrorMessage("Unable to watch for search results updates", ""),
-			}
+			}).ServeHTTP(res, req)
 		}
 		// Watch for updates to search results.
 		watchForUpdates(query).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
 // AddSubscriptionFilter handles adding a subscription as a search filter.

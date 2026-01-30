@@ -28,157 +28,124 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-// ListArticles handles fetching articles based on the given page filters and displaying them.
-func ListArticles() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters).
-		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-			list := func(res http.ResponseWriter, req *http.Request) error {
-				// Build request object.
-				request := &models.ListRequest{
-					Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
-					Pagination: req.FormValue(models.ParamPagination),
-				}
-				if err := request.Valid(); err != nil {
-					return &models.APIError{
-						InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
-						StatusCode:    http.StatusUnprocessableEntity,
-					}
-				}
+// ListArticles holds data for generating the articles list page.
+type ListArticles struct {
+	title    string
+	template templ.Component
+}
 
-				// Redirect to include query parameters in address bar.
-				if len(req.URL.Query()) == 0 {
-					if htmx.IsHTMX(req) {
-						res.Header().Set(htmx.HeaderPushURL, req.URL.Path+"?"+request.Filters.QueryString())
-					} else {
-						http.Redirect(res, req, req.URL.Path+"?"+request.Filters.QueryString(), http.StatusSeeOther)
-					}
-				}
+// FullResponse renders a full page (headers, footers and list of articles).
+func (p *ListArticles) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(p.template,
+			templates.WithPageTitle(p.title),
+		)).ServeHTTP(res, req)
+}
 
-				var (
-					articles     models.Articles
-					subscription *models.Subscription
-					err          error
-					template     templ.Component
-				)
+// PartialResponse will either render the list of articles, the controls and update the title/dock/sidebar or, when
+// paginating, just the list of articles.
+func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	switch req.URL.Path {
+	case "/list/articles":
+		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
+		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
+		templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+		templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	case "/list/articles/paginate":
+		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
+	}
+}
 
-				// Get articles matching filters.
-				articles, request.Pagination, err = models.FilterArticles(req.Context(), request)
-				if err != nil && !errors.Is(err, models.ErrNotFound) {
-					return &models.APIError{
-						InternalError: fmt.Errorf("filter articles: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-					}
-				}
+// HandleListArticles handles fetching articles based on the given page filters and displaying them.
+func HandleListArticles() http.HandlerFunc {
+	return listHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Build request object.
+		request := &models.ListRequest{
+			Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
+			Pagination: req.FormValue(models.ParamPagination),
+		}
+		if err := request.Valid(); err != nil {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+			}).ServeHTTP(res, req)
+			return
+		}
 
-				// Get the subscription details if the list is for a specific subscription.
-				if len(articles.GetSubscriptionIDs()) == 1 {
-					subscription, err = models.GetSubscription(
-						req.Context(),
-						articles.GetSubscriptionIDs()[0],
-						models.GetSubscriptionsDynamicInfo(true),
-					)
-					if err != nil {
-						return &models.APIError{
-							InternalError: fmt.Errorf("filter articles: %w", err),
-							StatusCode:    http.StatusInternalServerError,
-						}
-					}
-				}
+		// Redirect to include query parameters in address bar.
+		if req.URL.Path != "/list/articles/paginate" {
+			switch {
+			case htmx.IsHTMX(req):
+				res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+request.Filters.QueryString())
+			case len(req.URL.Query()) == 0:
+				http.Redirect(res, req, req.URL.Path+"?"+request.Filters.QueryString(), http.StatusSeeOther)
+			}
+		}
 
-				// Generate response object.
-				response := &models.ListArticlesResponse{
+		var (
+			articles     models.Articles
+			subscription *models.Subscription
+			err          error
+		)
+
+		// Get articles matching filters.
+		articles, request.Pagination, err = models.FilterArticles(req.Context(), request)
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("filter articles: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
+			return
+		}
+
+		// Get the subscription details if the list is for a specific subscription.
+		if len(articles.GetSubscriptionIDs()) == 1 {
+			subscription, err = models.GetSubscription(
+				req.Context(),
+				articles.GetSubscriptionIDs()[0],
+				models.GetSubscriptionsDynamicInfo(true),
+			)
+			if err != nil {
+				HandleInternalError(&models.APIError{
+					InternalError: fmt.Errorf("filter articles: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+				}).ServeHTTP(res, req)
+				return
+			}
+		}
+
+		// If the list of articles is from a single subscription, update the page tile to include the subscription
+		// name.
+		var title string
+		if len(articles) > 0 && subscription != nil {
+			title = subscription.GetTitle() + " | Articles"
+		} else {
+			title = "Articles"
+		}
+		// Choose rendering method based on method (get = page, post = partial).
+		switch req.Method {
+		case http.MethodGet:
+			RenderInternalPage(&ListArticles{
+				title: title,
+				template: templates.ListArticles(&models.ListArticlesResponse{
 					Subscription: subscription,
 					Articles:     articles,
 					Filters:      request.Filters,
 					Pagination:   request.Pagination,
-				}
-
-				// Render appropriate content.
-				// If the list of articles is from a single subscription, update the page tile to include the subscription
-				// name.
-				var title string
-				if len(articles) > 0 && response.Subscription != nil {
-					title = subscription.GetTitle() + " | Articles"
-				} else {
-					title = "Articles"
-				}
-				template = templates.ListArticles(response)
-				// Choose rendering method based on method (get = page, post = partial).
-				switch req.Method {
-				case http.MethodGet:
-					renderPage(
-						templates.NewPage(
-							wrapContent(req, template),
-							templates.WithPageTitle(title),
-						),
-					).ServeHTTP(res, req)
-				case http.MethodPost:
-					renderPartial(templates.NewPartial(template)).ServeHTTP(res, req)
-				}
-				return nil
-			}
-			switch req.Method {
-			case http.MethodGet:
-				showOnError(list).ServeHTTP(res, req)
-			case http.MethodPost:
-				notifyOnError(list).ServeHTTP(res, req)
-			}
-		}).ServeHTTP
-}
-
-// PaginateArticles handles a request to list more articles.
-func PaginateArticles() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters).
-		ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
-			// Build request object.
-			request := &models.ListRequest{
-				Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
-				Pagination: req.FormValue(models.ParamPagination),
-			}
-			if err := request.Valid(); err != nil {
-				return &models.APIError{
-					InternalError: fmt.Errorf("unable to list articles: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Could not list more articles",
-						"This might be temporary, please try again.",
-					),
-				}
-			}
-
-			// Get articles matching filters.
-			var (
-				articles models.Articles
-				err      error
-			)
-			articles, request.Pagination, err = models.FilterArticles(req.Context(), request)
-			if err != nil && !errors.Is(err, elastic.ErrNotFound) {
-				return &models.APIError{
-					InternalError: fmt.Errorf("unable to list articles: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Could not list more articles",
-						"This might be temporary, please try again.",
-					),
-				}
-			}
-
-			// If there are articles to show, render the articles. Else, return StatusNoContent.
-			if len(articles) > 0 {
-				// Generate response object.
-				response := &models.ListArticlesResponse{
-					Articles:   articles,
-					Filters:    request.Filters,
-					Pagination: request.Pagination,
-				}
-				renderPartial(templates.NewPartial(templates.PaginateArticles(response))).ServeHTTP(res, req)
-			} else {
-				res.WriteHeader(http.StatusNoContent)
-				return nil
-			}
-			return nil
-		})).
-		ServeHTTP
+				}),
+			}).ServeHTTP(res, req)
+		case http.MethodPost:
+			RenderPartial(&ListArticles{
+				title: title,
+				template: templates.ListArticles(&models.ListArticlesResponse{
+					Subscription: subscription,
+					Articles:     articles,
+					Filters:      request.Filters,
+					Pagination:   request.Pagination,
+				}),
+			}).ServeHTTP(res, req)
+		}
+	}).ServeHTTP
 }
 
 type SimilarArticles struct {
@@ -239,33 +206,60 @@ func HandleFindSimilarArticles() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// ViewArticle handles showing an article's content.
-func ViewArticle() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(showOnError(func(res http.ResponseWriter, req *http.Request) error {
+// ArticleContent contains the data to view article content.
+type ArticleContent struct {
+	title    string
+	template templ.Component
+}
+
+// FullResponse renders a full page (headers, footers and content).
+func (t *ArticleContent) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(t.template,
+			templates.WithPageTitle(t.title),
+		)).ServeHTTP(res, req)
+}
+
+// PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
+func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(t.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle(t.title)).ServeHTTP(res, req)
+}
+
+// HandleViewArticle handles showing an article's content.
+func HandleViewArticle() http.HandlerFunc {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Extract request parameters.
 		itemID := chi.URLParam(req, models.ParamItemID)
 		if err := validation.Validate.Var(itemID, "required,startswith=item_"); err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode request: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to find similar",
 					"There was a problem with the request. Please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
+
+		// Fetch article.
 		articles, err := models.GetArticles(req.Context(), itemID)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get article content: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to view object",
 					"There was a problem with the request. Please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		article := articles[0]
+
 		// Get the "show_full_content" value and override the article value.
 		if fullContent, err := strconv.ParseBool(req.FormValue(models.ParamFullArticleContent)); err != nil ||
 			!fullContent {
@@ -273,125 +267,128 @@ func ViewArticle() http.HandlerFunc {
 		} else if fullContent {
 			article.ShowFullContent = fullContent
 		}
-		var remoteContentErrMsg templ.Component
+
 		// Fetch and set remote content if required.
 		if article.ShowFullContent {
-			if content, err := extractArticleFromURL(article.GetLink()); err != nil {
+			content, err := extractArticleFromURL(article.GetLink())
+			switch {
+			case err != nil:
 				// Couldn't fetch remote article content, show an error message.
-				remoteContentErrMsg = templates.Notification(
-					models.NewErrorMessage("Unable to fetch article remote content", ""), 0,
-				)
+				res.Header().Set(htmx.HeaderReswap, "none")
+				RenderPartial(&Notification{
+					msg: models.NewErrorMessage(
+						"Cannot display remote content",
+						"Cannot fetch article content from remote.",
+					),
+				}).ServeHTTP(res, req)
 				article.ShowFullContent = false
-			} else {
-				if content == article.Content {
-					// Remote article content is the same as feed content, show an info message.
-					remoteContentErrMsg = templates.Notification(
-						models.NewInfoMessage(
-							"No remote content available",
-							"Page returned existing content.",
-						),
-						templates.DefaultNotificationTimeout,
-					)
-				}
+				return
+			case content == article.Content:
+				// Remote content is same as feed content.
+				res.Header().Set(htmx.HeaderReswap, "none")
+				RenderPartial(&Notification{
+					msg: models.NewErrorMessage("No remote content", "Remote content is same as feed."),
+				}).ServeHTTP(res, req)
+				article.ShowFullContent = false
+				return
+			case content != article.Content:
+				// Got remote content.
 				article.Content = content
 			}
 		}
-		// Render appropriate content.
-		var template templ.Component
-		if remoteContentErrMsg != nil {
-			template = templ.Join(templates.NewArticleView(article).Content(), remoteContentErrMsg)
-		} else {
-			template = templates.NewArticleView(article).Content()
-		}
-		renderPage(
-			templates.NewPage(
-				wrapContent(req, template),
-				templates.WithPageTitle(article.GetTitle()+" | "+article.GetFeedTitle()),
-			),
-		).ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
+
+		// Render article content.
+		RenderInternalPage(&ArticleContent{
+			title:    article.GetTitle() + " | " + article.GetFeedTitle(),
+			template: templates.NewArticleView(article).Content(),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
 // MarkArticle handles marking an article as read/unread and updates the UI accordingly.
 func MarkArticle() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.MarkArticleRequest](req)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark article",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		if !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark article",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		// Mark the article.
 		if err := markArticles(req.Context(), request.Mark, request.SubscriptionID, request.ItemID); err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("unable to mark article: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark article",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		res.WriteHeader(http.StatusOK)
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
 // MarkArticles handles marking multiple articles as read/unread and updating the UI appropriately.
 func MarkArticles() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request parameters.
 		request, valid, err := forms.DecodeForm[*models.MarkArticlesRequest](req)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode mark articles request: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark articles.",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		if !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("validate mark articles request: %w", err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark articles.",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		// Mark Articles.
 		for subscriptionID, itemIDs := range request.DisplayedArticles {
 			if err = markArticles(req.Context(), request.Mark, subscriptionID, itemIDs...); err != nil {
-				return &models.APIError{
+				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("mark subscriptions: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Unable to mark articles.",
 						"This might be a temporary error, please try again.",
 					),
-				}
+				}).ServeHTTP(res, req)
+				return
 			}
 		}
 
@@ -409,56 +406,59 @@ func MarkArticles() http.HandlerFunc {
 			})
 		}
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("mark subscriptions: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to mark articles.",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		res.WriteHeader(http.StatusOK)
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
 // FavoriteArticle handles adding an article favorite.
 func FavoriteArticle() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.FavoriteArticleRequest](req)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to favorite article",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 		if !valid {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusUnprocessableEntity,
 				UserMessage: models.NewErrorMessage(
 					"Unable to favorite article",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get user data: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to add favorite article",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		var favorite bool
@@ -469,42 +469,40 @@ func FavoriteArticle() http.HandlerFunc {
 		}
 
 		if err := updateFavoriteArticle(req.Context(), user, request.ItemID, favorite); err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update favorite article: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable favorite article",
 					"This might be a temporary error, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		res.WriteHeader(http.StatusOK)
-		return nil
-	})).ServeHTTP
+	}).ServeHTTP
 }
 
 // ShareArticle handles sharing an article.
 func ShareArticle() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(notifyOnError(func(res http.ResponseWriter, req *http.Request) error {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, _, err := forms.DecodeForm[*models.ShareArticleRequest](req)
 		if err != nil {
-			return &models.APIError{
+			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
 				StatusCode:    http.StatusInternalServerError,
 				UserMessage: models.NewErrorMessage(
 					"Unable to favorite article",
 					"This might be a temporary issue, please try again.",
 				),
-			}
+			}).ServeHTTP(res, req)
 		}
 
-		renderPartial(templates.NewPartial(
-			templates.ShareArticleModal(request),
-		)).ServeHTTP(res, req)
-
-		return nil
-	})).ServeHTTP
+		RenderPartial(&Modal{
+			template: templates.ShareArticleModal(request),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
 func markArticles(

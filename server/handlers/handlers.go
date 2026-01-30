@@ -259,63 +259,6 @@ func DocumentationHandler() http.HandlerFunc {
 	}
 }
 
-// notifyOnError handles showing a notification to the user when an error occurs while handling the request. It should
-// only be used for HTMX requests.
-func notifyOnError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		if err := f(res, req); err != nil {
-			var apiErr *models.APIError
-			if errors.As(err, &apiErr) {
-				apiErr.WriteLog(req.Context())
-				switch {
-				case htmx.IsHTMX(req): // show notification.
-					res.WriteHeader(apiErr.HTTPStatus())
-					res.Header().Add(htmx.HeaderReswap, "none")
-					renderPartial(
-						templates.NewPartial(
-							templates.Notification(apiErr.GetUserMessage(), templates.DefaultNotificationTimeout),
-						),
-					).ServeHTTP(res, req)
-				default: // called with non-HTMX request. Show plain error and log problem.
-					slogctx.FromCtx(req.Context()).Debug("notifyOnError called in non-HTMX request.")
-					http.Error(res, apiErr.GetUserMessage().String(), apiErr.HTTPStatus())
-				}
-			} else {
-				slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
-					slog.Any("error", err),
-				)
-				res.WriteHeader(http.StatusInternalServerError)
-			}
-		}
-	}
-}
-
-// showOnError handles either rendering an error page or partial to the user when an error occurs while handling the
-// request. It can be used to handle both HTMX and non-HTMX requests. For non-HTMX requests, a full page with the error
-// message will be shown. For HTMX requests, the error message will be rendered in place of the main content.
-func showOnError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		if err := f(res, req); err != nil {
-			var apiErr *models.APIError
-			if errors.As(err, &apiErr) {
-				user := models.UserFromCtx(req.Context())
-				apiErr.WriteLog(req.Context())
-				res.WriteHeader(apiErr.HTTPStatus())
-				renderPage(
-					templates.NewPage(
-						wrapContent(req, templates.InternalError(user, apiErr.GetUserMessage())),
-					),
-				).ServeHTTP(res, req)
-			} else {
-				slogctx.FromCtx(req.Context()).Error("Unknown error occurred.",
-					slog.Any("error", err),
-				)
-				res.WriteHeader(http.StatusInternalServerError)
-			}
-		}
-	}
-}
-
 // setRedirect adds the HX-Location header with the given values to the response, which triggers a client side
 // redirection without reloading the whole page.
 //
@@ -327,65 +270,6 @@ func setRedirect(res http.ResponseWriter, request htmxext.HXLocationRequest) err
 	}
 	res.Header().Set(htmx.HeaderLocation, string(requestJSON))
 	return nil
-}
-
-// renderPage will render the given template either as a full page or as partial content. For partial content, it will
-// also update the page title (if one is given).
-func renderPage(page *templates.Page) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if page.PartialTemplate() == nil {
-			// If there is no response, return 204: No Content.
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
-		switch {
-		case !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
-			if htmx.IsHistoryRestoreRequest(req) {
-				res.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
-			}
-			templ.Handler(page.FullTemplate()).ServeHTTP(res, req)
-			return
-		default: // HTMX request renders partial content.
-			template := page.PartialTemplate()
-			// Render template (or template fragment).
-			if target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget)); target != "" &&
-				target != templates.FragmentContent {
-				templ.Handler(template, templ.WithFragments(target)).ServeHTTP(res, req)
-			} else {
-				templ.Handler(template).ServeHTTP(res, req)
-			}
-		}
-	})
-}
-
-// renderPartial will render the given template only as a partial update.
-func renderPartial(partial *templates.Partial) http.Handler {
-	return templ.Handler(partial.PartialTemplate())
-}
-
-// wrapContent will wrap the given template with additional structure suitable for replacing the content target on a
-// page. The additional structure will place a header, footer/sidebar around the content.
-func wrapContent(req *http.Request, template templ.Component) templ.Component {
-	switch {
-	case !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req): // Non-HTMX or HistoryRestoreRequests render a full-page.
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			return templates.InternalError(
-				user,
-				models.NewErrorMessage("Invalid request", "This might be a temporary error, please try again."),
-			)
-		}
-		return templates.Content(&models.ViewComponent{
-			URL:       req.URL,
-			User:      *user,
-			Component: template,
-		})
-	default: // HTMX request renders partial content.
-		return templ.Join(template,
-			templates.SideBar(templ.Attributes{"hx-swap-oob": "true"}),
-			templates.Dock(templ.Attributes{"hx-swap-oob": "true"}),
-		)
-	}
 }
 
 func parseFilters(next http.Handler) http.Handler {

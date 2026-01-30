@@ -21,6 +21,9 @@ const BodyFragment templFragmentKey = "body"
 // ContentFragment is a fragment key pointing to the main content of a page.
 const ContentFragment templFragmentKey = "content"
 
+// PaginateFragment is a fragment key pointing to the content to render when paginating.
+const PaginateFragment templFragmentKey = "paginate"
+
 templ CreatePage(template templ.Component, options ...PageOption) {
 	{{
 		p := &Page{
