@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.39.0](https://github.com/immanent-tech/foragd/compare/v0.38.0...v0.39.0) (2026-01-30)
+
+
+### Features
+
+* :sparkles: redo landing page screenshots ([a45765c](https://github.com/immanent-tech/foragd/commit/a45765ce30b154b3966eb8cc0f08ef3d9d45de48))
+* **handlers:** :sparkles: automatically generate sitemap ([80b9b27](https://github.com/immanent-tech/foragd/commit/80b9b273370347bd181f74135a399b57344db61d))
+
+
+### Bug Fixes
+
+* **handlers:** :recycle: re-use notification handler in internal error handler ([3c777ae](https://github.com/immanent-tech/foragd/commit/3c777aed2a3a1e3afa83145ab5a0612168c2a44c))
+* **templates:** :bug: correct CSS selector used for selecting all subscriptions/articles to mark on list pages ([e0ee248](https://github.com/immanent-tech/foragd/commit/e0ee248d8e658dcef1d215bd6ecd3b5d781d66ce))
+* **templates:** :lipstick: make sure search suggestions is not bigger than visible screen ([3950290](https://github.com/immanent-tech/foragd/commit/39502908638f31d67696c8527182a8dfdef17345))
+
 ## [0.38.0](https://github.com/immanent-tech/foragd/compare/v0.37.0...v0.38.0) (2026-01-29)
 
 
