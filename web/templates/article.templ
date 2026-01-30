@@ -546,7 +546,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 												hx-post="/list/articles/mark/unread"
 											}
 											hx-target={ ContentID.Target() }
-											hx-include="[name='displayed_articles']"
+											hx-include="article > input"
 										>
 											if response.Filters.GetView() == models.ViewUnread {
 												@tabler.MailOpenedFilled(i.Props{Class: "size-4"})

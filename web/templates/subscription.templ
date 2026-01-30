@@ -347,7 +347,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										<a
 											hx-post={ markURL }
 											hx-target={ ContentID.Target() }
-											hx-include="[name='displayed_subscriptions']"
+											hx-include="article > input"
 											class="link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
 										>
 											@markIcon
