@@ -65,7 +65,8 @@
     "parser",
     "stripe",
     "google",
-    "resend"
+    "resend",
+    "sitemap"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

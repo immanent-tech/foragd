@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -26,6 +27,8 @@ import (
 	"github.com/justinas/alice"
 	"github.com/russross/blackfriday/v2"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/immanent-tech/go-syndication/sitemap"
 
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 
@@ -123,17 +126,46 @@ func HandleRobots() http.Handler {
 }
 
 var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
-	robotsTxt, err := web.StaticContentFS.ReadFile("content/sitemap.xml")
+	// Set up default URLs.
+	site := sitemap.NewURLSet(
+		sitemap.URL{
+			Loc:      "https://foragd.app",
+			Priority: 1.0,
+		},
+		sitemap.URL{
+			Loc:      "https://foragd.app/viewer",
+			Priority: 0.9,
+		},
+		sitemap.URL{
+			Loc:      "https://foragd.app/about",
+			Priority: 0.75,
+		},
+	)
+	// Add all posts.
+	posts, err := getPosts()
 	if err != nil {
-		return nil, fmt.Errorf("read sitemap.xml: %w", err)
+		return nil, fmt.Errorf("generate sitemap.xml: %w", err)
 	}
-	return robotsTxt, nil
+	for post := range slices.Values(posts.Docs) {
+		site.URLs = append(site.URLs,
+			sitemap.URL{
+				Loc:      sitemap.LOC("https://foragd.app/posts/" + post.Path),
+				Priority: 0.5,
+			})
+	}
+
+	data, err := xml.Marshal(site)
+	if err != nil {
+		return nil, fmt.Errorf("generate sitemap.xml: %w", err)
+	}
+	return []byte(xml.Header + string(data)), nil
 })
 
 // HandleSitemap handles requests for sitemap.xml. In the future, it may handle more requests from non natural human
 // clients...
 func HandleSitemap() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+
 		sitemap, err := loadSitemapXML()
 		if err != nil {
 			http.NotFound(res, req)
