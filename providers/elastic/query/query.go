@@ -203,6 +203,28 @@ func Since(field string, since time.Time) Option {
 	}
 }
 
+// Before adds a "Range" query to find documents older than the given time.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
+func Before(field string, before time.Time) Option {
+	return func(query *types.Query) {
+		var beforeStr string
+		if before.IsZero() {
+			return
+		}
+		beforeStr = before.UTC().Format(time.RFC3339Nano)
+
+		name := "before-" + field
+
+		query.Range = map[string]types.RangeQuery{
+			field: types.DateRangeQuery{
+				Lte:        &beforeStr,
+				QueryName_: &name,
+			},
+		}
+	}
+}
+
 // Between adds a "Range" query to find documents between (or equal to) the given times.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
