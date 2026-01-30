@@ -71,8 +71,6 @@
   - [:handshake: Contact](#handshake-contact)
   - [:gem: Acknowledgements](#gem-acknowledgements)
 
-
-
 <!-- About the Project -->
 ## :star2: About the Project
 
@@ -88,8 +86,7 @@ Foragd is an online, web-based feed reader for all syndication formats (RSS, Ato
 ### :camera: Screenshots
 
 <div align="center">
-  <img src="/web/content/screenshots/screenshot-card.png" alt="Article summary in a card layout" />
-  <img src="/web/content/screenshots/screenshot-article-content-mobile.png" alt="Article content display on mobile" />
+  <img src="/web/content/screenshots/home-desktop-mobile.png" alt="Home page on desktop and mobile" />
 </div>
 
 <!-- TechStack -->

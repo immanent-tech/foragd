@@ -224,15 +224,15 @@
 }
 
 @utility ui-h1 {
-  @apply mt-8 mb-4 text-5xl font-semibold tracking-tight text-balance capitalize sm:mt-12 sm:text-7xl;
+  @apply mt-4 mb-2 text-5xl font-semibold tracking-tight text-balance capitalize sm:mt-8 sm:mb-4 sm:text-7xl;
 }
 
 @utility ui-h2 {
-  @apply mt-8 mb-4 text-2xl/7 font-bold tracking-tight capitalize sm:mt-12 sm:text-3xl;
+  @apply mt-4 mb-2 text-2xl/7 font-bold tracking-tight capitalize sm:mt-8 sm:mb-4 sm:text-3xl;
 }
 
 @utility ui-h3 {
-  @apply mt-8 mb-4 text-lg font-medium capitalize sm:mt-12;
+  @apply mt-4 mb-2 text-lg font-medium capitalize sm:mt-8 sm:mb-4;
 }
 
 @utility ui-p {
