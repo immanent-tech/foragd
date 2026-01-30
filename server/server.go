@@ -139,11 +139,9 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
 		middleware.Compress(defaultCompressionLevel, compressMimetypes...),
 		middleware.StripSlashes,
-		middlewares.PushCriticalAssets,
 		middlewares.Etag,
 	)
 
-	// Public facing routes.
 	// Error handling.
 	router.NotFound(handlers.HandleNotFound())
 	// Image proxy.
@@ -160,42 +158,48 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	router.Get("/img/subscription/*", handlers.LoadCachedImage)
 	// User uploaded screenshots
 	router.Get("/img/screenshots/*", handlers.LoadCachedImage)
-	// Landing.
-	router.Get("/", handlers.HandleLanding())
-	// About.
-	router.Get("/about", handlers.HandleAbout())
-	// Feed Viewer.
-	router.Get("/viewer", handlers.HandleViewer())
-	router.With(middlewares.RequireHTMX).Post("/viewer", handlers.HandleViewer())
-	// Help documentation.
-	router.Get("/help", handlers.DocumentationHandler())
-	// Policy documentation (i.e., terms of service, privacy).
-	router.Get("/policies/*", handlers.PolicyDocsHandler())
-	// Posts/Blog.
-	router.Get("/posts", handlers.HandlePosts())
-	router.Get("/posts/*", handlers.HandlePosts())
-	// Sign-up/Login routes.
-	router.Group(func(r chi.Router) {
-		r.Use(
-			session.LoadAndSave,
-		)
-		if !cfg.BlockSignup {
-			r.Get("/signup", handlers.HandleLogin)
-		} else {
-			slogctx.FromCtx(ctx).Warn("Signups have been BLOCKED by configuration.")
-		}
-		if !cfg.BlockLogin {
-			r.Get("/login", handlers.HandleLogin)
-			r.Get("/login/callback", handlers.HandleLoginCallback)
-			r.Get("/login/error", handlers.HandleLoginError)
-		} else {
-			slogctx.FromCtx(ctx).Warn("Logins have been BLOCKED by configuration.")
-		}
-	})
 	// Handle incoming webhook requests from Stripe.
 	router.Post("/checkout/webhooks", stripe.HandleWebhook)
 	// Handle incoming webhook requests from Resend
 	router.Post("/mail/webhooks", resend.HandleWebhook)
+
+	// External Pages.
+	router.Group(func(r chi.Router) {
+		r.Use(middlewares.PushCriticalAssets)
+		// Landing.
+		r.Get("/", handlers.HandleLanding())
+		// About.
+		r.Get("/about", handlers.HandleAbout())
+		// Feed Viewer.
+		r.Get("/viewer", handlers.HandleViewer())
+		r.With(middlewares.RequireHTMX).Post("/viewer", handlers.HandleViewer())
+		// Help documentation.
+		r.Get("/help", handlers.DocumentationHandler())
+		// Policy documentation (i.e., terms of service, privacy).
+		r.Get("/policies/*", handlers.PolicyDocsHandler())
+		// Posts/Blog.
+		r.Get("/posts", handlers.HandlePosts())
+		r.Get("/posts/*", handlers.HandlePosts())
+		// Sign-up/Login routes.
+		r.Group(func(r chi.Router) {
+			r.Use(
+				session.LoadAndSave,
+			)
+			if !cfg.BlockSignup {
+				r.Get("/signup", handlers.HandleLogin)
+			} else {
+				slogctx.FromCtx(ctx).Warn("Signups have been BLOCKED by configuration.")
+			}
+			if !cfg.BlockLogin {
+				r.Get("/login", handlers.HandleLogin)
+				r.Get("/login/callback", handlers.HandleLoginCallback)
+				r.Get("/login/error", handlers.HandleLoginError)
+			} else {
+				slogctx.FromCtx(ctx).Warn("Logins have been BLOCKED by configuration.")
+			}
+		})
+	})
+
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {
 		r.Use(
@@ -204,7 +208,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			middlewares.RequireUserAuth,
 			middlewares.RefreshTokenIfNeeded,
 			middlewares.SetCacheControl,
-			// middleware.NoCache,
+			middlewares.PushCriticalAssets,
 		)
 		// Payment routes (Stripe).
 		r.Route("/checkout", func(r chi.Router) {
