@@ -23,8 +23,6 @@ type contextKey string
 var (
 	// ContentID points to the element containing the main content of the page.
 	ContentID = models.ElementID("content")
-	// ErrorID points to an element that can be used to display error messages to the user.
-	ErrorID = models.ElementID("error")
 	// NotificationsID points to an element that can be used for displaying notifications to the user.
 	NotificationsID = models.ElementID("notifications")
 )
@@ -40,34 +38,45 @@ const (
 	PaginateFragment templFragmentKey = "paginate"
 )
 
+// Page contains data for rendering a full HTML page.
 type Page struct {
-	Component   templ.Component
-	Title       string
+	// Component is the main body content of the page.
+	Component templ.Component
+	// Title is a string for the (browser) titlebar.
+	Title string
+	// Description adds a meta tag with the given text.
 	Description string
-	OGMetadata  *opengraph.Metadata
+	// OGMetadata contains the Opengraph metadata for the page.
+	OGMetadata *opengraph.Metadata
 }
 
+// PageOption is a functional option applied to a page.
 type PageOption func(*Page)
 
+// WithPageTitle option sets the page title (displayed in the browser titlebar).
 func WithPageTitle(title string) PageOption {
 	return func(p *Page) {
 		p.Title = title + " | " + config.AppName
 	}
 }
 
+// WithPageDescription option sets a description meta tag in the page header.
 func WithPageDescription(desc string) PageOption {
 	return func(p *Page) {
 		p.Description = desc
 	}
 }
 
+// WithOGMetadata option sets the given metadata as appropriate Opengraph tags in the page header.
 func WithOGMetadata(metadata *opengraph.Metadata) PageOption {
 	return func(p *Page) {
 		p.OGMetadata = metadata
 	}
 }
 
+// CreatePage creates a new page with the given body template and additional options.
 templ CreatePage(template templ.Component, options ...PageOption) {
+	// Build page with specified options.
 	{{
 		p := &Page{
 			Component:   template,
@@ -80,12 +89,12 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			option(p)
 		}
 	}}
+	// Render page.
 	<!DOCTYPE html>
 	<html lang="en" class="h-full">
 		<head>
 			<meta charset="UTF-8" hx-preserve="true"/>
 			<meta name="description" content={ p.Description } hx-preserve="true"/>
-			// https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Viewport_meta_element#interactive-widget
 			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual" hx-preserve="true"/>
 			<meta http-equiv="X-UA-Compatible" content="ie=edge" hx-preserve="true"/>
 			<meta http-equiv="Accept-CH" content="DPR, Viewport-Width, Width" hx-preserve="true"/>
@@ -140,16 +149,21 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<title>{ p.Title }</title>
 		</head>
 		<body
-			class="h-full"
+			class="h-full bg-base-100"
 			hx-ext="preload,sse"
 			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
 		>
+			// Hidden input controller for theme.
 			<input id="page-theme" type="checkbox" value={ models.GetUserTheme(ctx) } class="toggle theme-controller hidden" checked="checked"/>
+			// Hidden input to get and store user timezone from browser.
 			<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>
+			// Container for modals.
 			<div id={ partials.ModalContainerID.String() }></div>
+			// Main page content.
 			@templ.Fragment(BodyFragment) {
 				@p.Component
 			}
+			// Notifications.
 			<div aria-live="assertive" class="pointer-events-none fixed inset-0 flex items-end sm:items-start z-999">
 				<div id={ NotificationsID.String() } class="flex w-full flex-col items-center space-y-4 m-4 sm:items-end"></div>
 			</div>
