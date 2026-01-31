@@ -184,12 +184,11 @@ templ (a *Article) Card() {
 				// Actions menu.
 				<div class="flex flex-none">
 					<el-dropdown class="relative ml-auto" _="on click halt the event's bubbling">
-						<button id={ a.GetID() + "-actions-button" } class="btn btn-sm btn-ghost btn-square">
+						<button class="btn btn-sm btn-ghost btn-square">
 							<span class="sr-only">a.GetTitle() + " Actions"</span>
 							@tabler.Menu2(i.Props{Class: "size-5 text-primary"})
 						</button>
 						<el-menu
-							id={ a.GetID() + "-actions-menu" }
 							anchor="bottom end"
 							popover
 							_="on htmx:afterRequest(successful) hidePopover() on me"
@@ -365,14 +364,12 @@ templ (a *Article) Content() {
 						<div class="flex items-center justify-end">
 							<el-dropdown>
 								<button
-									id="btn-article-actions"
 									class="btn btn-ghost btn-square"
 								>
 									<span class="sr-only">Article Actions</span>
 									@tabler.Menu2(i.Props{Class: "size-6"})
 								</button>
 								<el-menu
-									id="menu-article-actions"
 									anchor="bottom end"
 									popover
 									_="on htmx:afterRequest(successful) hidePopover() on me"
