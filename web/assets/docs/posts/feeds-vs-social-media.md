@@ -1,4 +1,4 @@
-# RSS, Atom and Social Media - A Comparison of Feeds
+# RSS & Atom vs Social Media - A Comparison of Feeds
 
 **Social Media dominates where we source our content from. But RSS and Atom feeds offer compelling freedom and control over the content that Social Media cannot.**
 
