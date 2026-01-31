@@ -3,10 +3,8 @@
 
 package templates
 
-import (
-	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates/partials"
-)
+import "github.com/immanent-tech/foragd/web/templates/partials"
+import "github.com/immanent-tech/foragd/models"
 
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
@@ -21,17 +19,26 @@ templ Document(data []byte) {
 	@footer()
 }
 
-// Content renders the given template wrapped with appropriate header/footer navigation. Used for most user content
-// pages.
-templ Content(data *models.ViewComponent) {
-	@header(&data.User)
+// content renders children wrapped with appropriate header/footer navigation.
+templ content() {
+	@header(models.UserFromCtx(ctx))
 	@SideBar(nil)
 	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
-		@data.Component
+		{ children... }
 	</main>
+	@Dock(nil)
+}
+
+// container constrains children to a nominal width and adds some padding.
+templ container() {
+	<div class="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+		{ children... }
+	</div>
+}
+
+templ contentLoading() {
 	<div id="content-loading" class="mt-8 flex mx-auto justify-center items-center space-x-2 htmx-indicator">
 		<span class="loading loading-bars loading-xl"></span>
 		<p class="text-lg/loose font-semibold">Loading content...</p>
 	</div>
-	@Dock(nil)
 }
