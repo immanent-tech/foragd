@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.40.1](https://github.com/immanent-tech/foragd/compare/v0.40.0...v0.40.1) (2026-01-31)
+
+
+### Bug Fixes
+
+* **docs:** :bug: fix spelling and formatting ([d728818](https://github.com/immanent-tech/foragd/commit/d728818dee0839333a623dbcb649fae3a5421a84))
+* **posts:** :bug: improve title wording ([d6c0cbe](https://github.com/immanent-tech/foragd/commit/d6c0cbe8f2581117c96b02382974dd2b3147e507))
+
 ## [0.40.0](https://github.com/immanent-tech/foragd/compare/v0.39.0...v0.40.0) (2026-01-31)
 
 
