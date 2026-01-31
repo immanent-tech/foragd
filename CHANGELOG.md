@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.40.2](https://github.com/immanent-tech/foragd/compare/v0.40.1...v0.40.2) (2026-01-31)
+
+
+### Bug Fixes
+
+* **scheduler:** :bug: get new feeds job fixes ([d80026a](https://github.com/immanent-tech/foragd/commit/d80026afc5001669400230a53c1cc55437ed3f62))
+* **server:** :bug: set user-agent string (same as scheduler) for underlying go-syndication fetcher/parser ([ee21e47](https://github.com/immanent-tech/foragd/commit/ee21e477e8b54f3a36e987993d90e4438b8ca749))
+
 ## [0.40.1](https://github.com/immanent-tech/foragd/compare/v0.40.0...v0.40.1) (2026-01-31)
 
 
