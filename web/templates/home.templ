@@ -11,7 +11,6 @@ import (
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 	"slices"
-	"strconv"
 )
 
 const UserHomeFragment templFragmentKey = "userhome"
@@ -66,18 +65,46 @@ templ UserHome(data *models.HomeResponse) {
 						</div>
 						// Carousel of latest articles on small displays.
 						<div class="sm:hidden w-full">
-							<div class="carousel w-full">
+							<div class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth">
 								for article := range slices.Values(data.LatestArticles) {
-									<div id={ article.GetID() + "-carousel" } class="carousel-item w-full">
+									<div id={ article.GetID() + "-slide" } class="relative snap-start flex shrink-0 w-full h-full origin-center transition-transform duration-500">
 										@NewArticleView(article).Card()
 									</div>
 								}
 							</div>
-							<div class="flex w-full justify-center gap-2 py-2">
-								for idx, article := range data.LatestArticles {
-									<a href={ "#" + article.GetID() + "-carousel" } class="btn btn-xs">{ strconv.Itoa(idx+1) }</a>
+							<div
+								class="flex w-full justify-center gap-2 py-2"
+							>
+								for article := range slices.Values(data.LatestArticles) {
+									<a
+										href={ "#" + article.GetID() + "-slide" }
+										class="text-neutral"
+										_="on click remove .ui-carousel-active-link from <a/> in closest parent <div/> then add .ui-carousel-active-link to me"
+									>
+										@tabler.PointFilled()
+									</a>
 								}
 							</div>
+							// <div class="carousel w-full">
+							// 	for article := range slices.Values(data.LatestArticles) {
+							// 		<div id={ article.GetID() + "-carousel" } class="carousel-item w-full">
+							// 			@NewArticleView(article).Card()
+							// 		</div>
+							// 	}
+							// </div>
+							// <div
+							// 	class="flex w-full justify-center gap-2 py-2"
+							// >
+							// 	for article := range slices.Values(data.LatestArticles) {
+							// 		<a
+							// 			href={ "#" + article.GetID() + "-carousel" }
+							// 			class="text-neutral"
+							// 			_="on click remove .ui-carousel-active-link from <a/> in closest parent <div/> then add .ui-carousel-active-link to me"
+							// 		>
+							// 			@tabler.PointFilled()
+							// 		</a>
+							// 	}
+							// </div>
 						</div>
 					}
 					if len(data.TopCategories) > 0 {
