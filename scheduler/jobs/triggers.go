@@ -16,7 +16,6 @@ const (
 	defaultPollInterval   = time.Minute
 	defaultPollJitter     = 5 * time.Second
 	pollTriggerID         = "PollTrigger"
-	cronTriggerID         = "CronTrigger"
 )
 
 // Verify PollTrigger satisfies the Trigger interface.
@@ -40,23 +39,6 @@ func (t *pollTrigger) NextFireTime(prev int64) (int64, error) {
 // Description returns the description of the PollTriggerWithJitter.
 func (t *pollTrigger) Description() string {
 	return strings.Join([]string{pollTriggerID, t.Interval.String(), t.Jitter.String()}, quartz.Sep)
-}
-
-// parseTrigger will attempt to parse the given trigger interface into its concrete trigger type. If the interface value
-// cannot be parsed, a default polling trigger will be returned.
-func parseTrigger(trigger quartz.Trigger) any {
-	desc := trigger.Description()
-	switch {
-	case strings.HasPrefix(desc, pollTriggerID):
-		triggerOpts := strings.Split(desc, quartz.Sep)
-		if len(triggerOpts) != 3 { //nolint:mnd // this is a very specific check.
-			return newPollTrigger(defaultPollInterval, defaultPollJitter)
-		}
-		return newPollTrigger(triggerOpts[1], triggerOpts[2])
-	case strings.HasPrefix(desc, cronTriggerID):
-		return &cronTrigger{Schedule: strings.Split(desc, quartz.Sep)[1]}
-	}
-	return newPollTrigger(defaultPollInterval, defaultPollJitter)
 }
 
 // asDuration will attempt to parse the given input value as a duration. If the value cannot be parsed, the given

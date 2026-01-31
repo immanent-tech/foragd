@@ -34,7 +34,6 @@ const (
 	defaultJobTimeout = 60 * time.Second
 
 	jobTypeUpdateFeed           = "update_feed"
-	jobTypeGetNewFeeds          = "get_new_feeds"
 	jobTypeClearDeletedFeeds    = "clear_deleted_feeds"
 	jobTypeClearExpiredSessions = "clear_expired_sessions"
 
@@ -125,9 +124,9 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 			return nil
 		}
 		if job.JobOptions != nil {
-			return quartz.NewJobDetailWithOptions(job, job.generateJobKey("get_new_feeds", ""), job.JobOptions)
+			return quartz.NewJobDetailWithOptions(job, job.generateJobKey(jobTypeGetNewFeeds, ""), job.JobOptions)
 		}
-		return quartz.NewJobDetail(job, job.generateJobKey("get_new_feeds", ""))
+		return quartz.NewJobDetail(job, job.generateJobKey(jobTypeGetNewFeeds, ""))
 	case jobTypeUpdateFeed:
 		var data UpdateFeedJobData
 		if err := json.Unmarshal(job.JobData, &data); err != nil {

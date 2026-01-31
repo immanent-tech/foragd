@@ -23,7 +23,10 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-const jobGetNewFeedsStateID = "get_new_feeds_state"
+const (
+	jobStateGetNewFeeds = "get_new_feeds_state"
+	jobTypeGetNewFeeds  = "get_new_feeds"
+)
 
 // GetNewFeedsJobData contains the data required by the GetNewFeeds job.
 type GetNewFeedsJobData struct {
@@ -89,15 +92,14 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 		slog.Time("since", state.Checkpoint),
 	)
 
-	// Find new allFeeds. We detect new allFeeds by those where the last_fetched value equals Unix Epoch, indicating they
-	// don't have a job scheduled for updating their items.
+	// Find new feeds created since last checkpoint of job.
 	var (
 		allFeeds models.Feeds
 	)
 	allFeeds, err = elastic.SearchAll[*models.Feed](
 		ctx,
 		schema.FeedsIndexRO,
-		query.Term("last_fetched", models.UnixEpoch),
+		query.Since("created_at", state.Checkpoint),
 		defaultPaginationSize,
 	)
 	if err != nil {
@@ -127,7 +129,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 					slog.String("feed_id", feed.GetID()),
 					slog.Any("error", err),
 				)
-			case !errors.Is(err, quartz.ErrJobNotFound):
+			case errors.Is(err, quartz.ErrJobNotFound):
 				// Determine and set the feed update interval.
 				if err := feed.SetUpdateInterval(feedCtx); err != nil {
 					slogctx.FromCtx(feedCtx).Warn("Unable to set an update interval for feed.",
@@ -169,15 +171,15 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 					)
 				}
 			case existingJob != nil:
+				// Existing job found, ignore.
 				slogctx.FromCtx(feedCtx).Debug("Existing job found, ignoring.",
 					slog.String("job_id", existingJob.JobDetail().JobKey().String()),
 					slog.String("feed_id", feed.GetID()),
-					slog.Any("error", err),
 				)
 			default:
+				// Unhandled result.
 				slogctx.FromCtx(feedCtx).Debug("Unhandled result.",
 					slog.String("feed_id", feed.GetID()),
-					slog.Any("error", err),
 				)
 			}
 		})
@@ -187,7 +189,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 
 	// Update the checkpoint.
 	state.Checkpoint = time.Now().UTC()
-	if err = schedulerAPI.UpdateJobState(ctx, jobGetNewFeedsStateID, map[string]any{
+	if err = schedulerAPI.UpdateJobState(ctx, jobStateGetNewFeeds, map[string]any{
 		"job_data": state,
 	}); err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
@@ -203,13 +205,13 @@ func fetchGetNewFeedsJobState(ctx context.Context) (*GetNewFeedsJobState, error)
 	}
 
 	state := &GetNewFeedsJobState{}
-	if lastState, err := schedulerAPI.GetJobState(ctx, jobGetNewFeedsStateID); err != nil {
+	if lastState, err := schedulerAPI.GetJobState(ctx, jobStateGetNewFeeds); err != nil {
 		if !errors.Is(err, elastic.ErrNotFound) {
 			return nil, fmt.Errorf("get existing job state: %w", err)
 		}
 		slogctx.FromCtx(ctx).Debug("No existing job state. Creating new.")
 		state.Checkpoint = time.Time{}
-		if err = schedulerAPI.UpdateJobState(ctx, jobGetNewFeedsStateID, map[string]any{
+		if err = schedulerAPI.UpdateJobState(ctx, jobStateGetNewFeeds, map[string]any{
 			"job_data": state,
 		}); err != nil {
 			return nil, fmt.Errorf("create job state: %w", err)
