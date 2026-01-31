@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.40.0](https://github.com/immanent-tech/foragd/compare/v0.39.0...v0.40.0) (2026-01-31)
+
+
+### Features
+
+* **elastic:** :sparkles: add a "Before" query option to query docs with a date field "before" (i.e. older) than a given timestamp ([3a2a28b](https://github.com/immanent-tech/foragd/commit/3a2a28b2b7e954d86ca533c80d432d7562843b09))
+* **scheduler:** :sparkles: add job to remove expired sessions from the session index ([524240c](https://github.com/immanent-tech/foragd/commit/524240c6f807a6b4f8019b2157753b82417fac2a))
+* **templates:** :lipstick: improve home styling ([28cfd72](https://github.com/immanent-tech/foragd/commit/28cfd72e349f5ffc8245cc7bdb5e8efa51bb9169))
+* **templates:** :recycle: switch to pure tailwind css slideshow for latest articles on mobile displays on home ([b7b6f6c](https://github.com/immanent-tech/foragd/commit/b7b6f6c2e58938cec6d41620c3a9b2d5c291bc91))
+* **templates:** :sparkles: add partial templates for styling headers and paragraphs ([32186b7](https://github.com/immanent-tech/foragd/commit/32186b76aa93d31285e73bbdace8b62ddf56c825))
+* **templates:** :sparkles: add partial templates for various containers used on content pages ([b130a27](https://github.com/immanent-tech/foragd/commit/b130a27ecaf2e35abaebd30b13aa06a4e8f6bbc0))
+
+
+### Bug Fixes
+
+* **templates:** :bug: fix article actions menu not opening in slideshow on home page ([71743b5](https://github.com/immanent-tech/foragd/commit/71743b54d37614bbe3329cbfb1235d214d9fd243))
+* **templates:** :lipstick: dock adjustments ([1cdd2be](https://github.com/immanent-tech/foragd/commit/1cdd2be81f57c0c4c50d8a48d8e43654dd3a6402))
+
+
+### Performance Improvements
+
+* **server:** :zap: improve push critical assets middleware and usage ([80bdb7e](https://github.com/immanent-tech/foragd/commit/80bdb7e301c4f772e1fc9f15781831aec02c0ce9))
+
+
+### Reverts
+
+* **templates:** :recycle: switch back to daisyui carousel on mobile displays for home and fix color of indicator for active item ([17f492b](https://github.com/immanent-tech/foragd/commit/17f492bbfef98a9c149317907d75a0cf762eb5ff))
+
 ## [0.39.0](https://github.com/immanent-tech/foragd/compare/v0.38.0...v0.39.0) (2026-01-30)
 
 
