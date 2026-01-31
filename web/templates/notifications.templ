@@ -4,7 +4,6 @@
 package templates
 
 import (
-	"context"
 	"github.com/cespare/xxhash/v2"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
@@ -13,20 +12,12 @@ import (
 	"time"
 )
 
-const notificationIDCtxKey partialsCtxKey = "notificationID"
 const DefaultNotificationTimeout = 5 * time.Second
-
-func GetNotificationIDFromCtx(ctx context.Context) string {
-	id, _ := ctx.Value(notificationIDCtxKey).(string)
-	return id
-}
 
 // Notification renders a notification with the given user message.
 templ Notification(msg *models.UserMessage, timeout time.Duration) {
 	// Generate a random id for this notification (to allow hyperscript to remove by id).
 	{{ id := "notification-" + strconv.FormatUint(xxhash.Sum64String(msg.Summary), 10) }}
-	// Add the id to the context to allow children to know this notification's id.
-	{{ ctx = context.WithValue(ctx, notificationIDCtxKey, id) }}
 	<div hx-swap-oob={ "beforeend:" + NotificationsID.Target() }>
 		<div
 			id={ id }

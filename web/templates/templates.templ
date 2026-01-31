@@ -13,16 +13,59 @@ import (
 	"time"
 )
 
+const (
+	ImgProxyKey  contextKey = "imgproxy_key"
+	ImgProxySalt contextKey = "imgproxy_salt"
+)
+
+type contextKey string
+
+var (
+	// ContentID points to the element containing the main content of the page.
+	ContentID = models.ElementID("content")
+	// ErrorID points to an element that can be used to display error messages to the user.
+	ErrorID = models.ElementID("error")
+	// NotificationsID points to an element that can be used for displaying notifications to the user.
+	NotificationsID = models.ElementID("notifications")
+)
+
 type templFragmentKey string
 
-// BodyFragment is a fragment key pointing to tbe body section of a page.
-const BodyFragment templFragmentKey = "body"
+const (
+	// BodyFragment is a fragment key pointing to tbe body section of a page.
+	BodyFragment templFragmentKey = "body"
+	// ContentFragment is a fragment key pointing to the main content of a page.
+	ContentFragment templFragmentKey = "content"
+	// PaginateFragment is a fragment key pointing to the content to render when paginating.
+	PaginateFragment templFragmentKey = "paginate"
+)
 
-// ContentFragment is a fragment key pointing to the main content of a page.
-const ContentFragment templFragmentKey = "content"
+type Page struct {
+	Component   templ.Component
+	Title       string
+	Description string
+	OGMetadata  *opengraph.Metadata
+}
 
-// PaginateFragment is a fragment key pointing to the content to render when paginating.
-const PaginateFragment templFragmentKey = "paginate"
+type PageOption func(*Page)
+
+func WithPageTitle(title string) PageOption {
+	return func(p *Page) {
+		p.Title = title + " | " + config.AppName
+	}
+}
+
+func WithPageDescription(desc string) PageOption {
+	return func(p *Page) {
+		p.Description = desc
+	}
+}
+
+func WithOGMetadata(metadata *opengraph.Metadata) PageOption {
+	return func(p *Page) {
+		p.OGMetadata = metadata
+	}
+}
 
 templ CreatePage(template templ.Component, options ...PageOption) {
 	{{
