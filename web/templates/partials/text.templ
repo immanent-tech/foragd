@@ -1,0 +1,31 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+templ Heading1(text string) {
+	<h1 class="mt-4 mb-2 text-5xl font-semibold tracking-tight text-balance capitalize sm:mt-8 sm:mb-4 sm:text-7xl">
+		{ text }
+		{ children... }
+	</h1>
+}
+
+templ Heading2(text string) {
+	<h2 class="mt-4 mb-2 text-2xl/7 font-bold tracking-tight capitalize sm:mt-8 sm:mb-4 sm:text-3xl">
+		{ text }
+		{ children... }
+	</h2>
+}
+
+templ Heading3(text string) {
+	<h3 class="mt-4 mb-2 text-lg font-medium capitalize sm:mt-8 sm:mb-4">
+		{ text }
+		{ children... }
+	</h3>
+}
+
+templ Paragraph() {
+	<p class="mt-4 text-sm/6 text-pretty">
+		{ children... }
+	</p>
+}
