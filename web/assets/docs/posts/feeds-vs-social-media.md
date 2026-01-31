@@ -1,4 +1,4 @@
-# RSS & Atom vs Social Media - A Comparison of Feeds
+# RSS & Atom vs Social Media — A Comparison of Feeds
 
 **Social Media dominates where we source our content from. But RSS and Atom feeds offer compelling freedom and control over the content that Social Media cannot.**
 
@@ -8,11 +8,11 @@ Most of us spend a lot of time on Social Media services like Facebook, X/Twitter
 
 <img src="/content/images/posts/rss-atom-social-media-trends.png"/>
 
-While interest in RSS and Atom has waned from the turn of the century, it still has immense (IMHO) value. Claims that these feeds are dead or dying are greatly exaggerated. What is more likely, is that the information we see is driven by market forces that favour Social Media platforms [1](https://disa.org/dominance-of-major-technology-companies-over-information-access-fuels-critical-discussions-at-the-2025-internet-governance-forum-in-norway/),[2](https://www.dw.com/en/how-tech-giants-are-hijacking-the-internet/a-67037639). Feeds are still out there, waiting to be found. In this post, we’ll take a look at what RSS and Atom can offer and compare that to Social Media.
+While interest in RSS and Atom has waned from the turn of the century, it still has immense (IMHO) value. Claims that these feeds are dead or dying are greatly exaggerated. What is more likely, is that the information we see is driven by market forces that favor Social Media platforms [1](https://disa.org/dominance-of-major-technology-companies-over-information-access-fuels-critical-discussions-at-the-2025-internet-governance-forum-in-norway/),[2](https://www.dw.com/en/how-tech-giants-are-hijacking-the-internet/a-67037639). Feeds are still out there, waiting to be found. In this post, we’ll take a look at what RSS and Atom can offer and compare that to Social Media.
 
 ## What Is RSS and Atom?
 
-There is a lot of similarities between RSS, Atom, and Social Media. Both are based on posts of content from different people. Those posts are usually some kind of list (the “feed”), with recent posts at the top. With extensions, RSS and Atom can provide some similar features to Social Media, such as easy commenting and sharing.
+There are a lot of similarities between RSS, Atom, and Social Media. Both are based on posts of content from different people. Those posts are usually some kind of list (the “feed”), with recent posts at the top. With extensions, RSS and Atom can provide some similar features to Social Media, such as easy commenting and sharing.
 
 RSS and Atom are essentially files that contain the list of articles/posts in a machine-readable format. You put the file up on your website, then special software reads the file and formats it into something a human can view. When a new article or post is created, you edit the file and upload it again. [Here is an example](https://feeds.arstechnica.com/arstechnica/index). When you click on that, without a proper feed viewer, it’ll probably look pretty ugly. A feed viewer on the other hand, can turn all that code into a beautiful list of articles. In fact, you can take that file and choose from a number of different feed viewers depending on your taste.
 
@@ -20,7 +20,7 @@ Social Media is usually accessed through an app or website. There is no file tho
 
 ## Finding Content
 
-The biggest difference comes from how the content is curated or found. With Social Media services, you are restricted to only following the people and topics within service, such as specific forum, topic, handle, or accounts. With RSS and Atom, there is no central control, its completely distributed; and you pick and choose the content to follow from all over the web. RSS and Atom have no central repository, they are sourced directly from the publisher or producer of the content. One disadvantage of this is it can be hard to find RSS/Atom feeds without a central search functionality as offered on most Social Media services. However, websites with feeds usually advertise their RSS/Atom feeds visibly and most good feed viewers can find a feed for a website for you.
+The biggest difference comes from how the content is curated or found. With Social Media services, you are restricted to only following the people and topics within service, such as specific forum, topic, handle, or accounts. With RSS and Atom, there is no central control, its completely distributed; and you pick and decide the content to follow from all over the web. RSS and Atom have no central repository, they are sourced directly from the publisher or producer of the content. One disadvantage of this is it can be hard to find RSS/Atom feeds without a central search functionality as offered on most Social Media services. However, websites with feeds usually advertise their RSS/Atom feeds visibly and, most good feed viewers can find a feed for a website for you.
 
 Additionally, RSS and Atom aren’t just for blog posts, witty observations or cat pictures. These formats are extendable and adaptable to any kind of content, generated by both a human or machine. There are RSS and Atom feeds for weather updates, software releases, and even emergency incidents, including precise geographical coordinates of where such events are happening.
 
@@ -30,13 +30,13 @@ Further to this point, Social Media services may also promote content based on a
 
 ## Filters and Controls
 
-Social Media services often have controls that may allow some degree of filtering of content. Usually however, this will only allow the user-generated content to be filtered, not the promoted content. Most good feed readers, like Foragd, provide controls that allow you to filter **any** content, promoted or otherwise.
+Social Media services often have controls that may allow some degree of filtering of content. Usually however, this will only allow the user-generated content to be filtered, not the promoted content. Most good feed readers, like [Foragd](https://foragd.app), provide controls that allow you to filter **any** content, promoted or otherwise.
 
-## Centralisation
+## Centralization
 
 The most popular Social Media services are run by companies and companies don’t like working together. As such, Social Media is fractured, and you most likely have multiple accounts across different services to track all the content you are interested in.
 
-Feeds, while sourced from many places, can be collated into a single location, your feed reader. As such, its much easier to gather and group the content, and view it all in one place, without needing to switch apps or websites. You get a consistent and familiar interface for all content.
+Feeds, while sourced from many places, can be collated into a single location, your feed reader. As such, it's much easier to gather and group the content, and view it all in one place, without needing to switch apps or websites. You get a consistent and familiar interface for all content.
 
 ## Portability
 

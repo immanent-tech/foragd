@@ -67,7 +67,8 @@
     "google",
     "resend",
     "sitemap",
-    "posts"
+    "posts",
+    "docs"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
