@@ -109,16 +109,19 @@
     "ui.semanticTokens": true
   },
   "languageToolLinter.external.url": "http://host.containers.internal:8010",
+  "languageToolLinter.languageTool.ignoredWordsInWorkspace": [
+    "foragd",
+    "jsonfeed",
+    "podman"
+  ],
   "languageToolLinter.languageTool.language": "auto",
   "languageToolLinter.languageTool.level": "picky",
+  "languageToolLinter.languageTool.motherTongue": "en-US",
   "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
   "licenser.license": "AGPLv3",
   "licenser.useSPDXLicenseFormat": true,
-  "ltex.language": "en-AU",
   "prettier.bracketSameLine": true,
   "prettier.singleAttributePerLine": true,
-  // "editor.wordWrap": "wordWrapColumn",
-  // "editor.wordWrapColumn": 120,
   "rewrap.wrappingColumn": 120,
   "tailwindCSS.emmetCompletions": true,
   "tailwindCSS.includeLanguages": {
@@ -128,11 +131,5 @@
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000,
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
-  "xmlTools.splitAttributesOnFormat": true,
-  "languageToolLinter.languageTool.ignoredWordsInWorkspace": [
-    "foragd",
-    "jsonfeed",
-    "podman"
-  ],
-  "languageToolLinter.languageTool.motherTongue": "en-US"
+  "xmlTools.splitAttributesOnFormat": true
 }
