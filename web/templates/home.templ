@@ -9,22 +9,36 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"net/http"
 	"slices"
 )
 
-const UserHomeFragment templFragmentKey = "userhome"
-
-// content renders the home page content.
+// UserHome is the default user home page.
 templ UserHome(data *models.HomeResponse) {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8 mb-12" hx-indicator="#content-loading">
-		@templ.Fragment(UserHomeFragment) {
-			<div class="ui-container">
+	@content() {
+		@templ.Fragment(ContentFragment) {
+			@container() {
 				if len(data.LatestArticles) == 0 {
-					@emptyContent()
+					// User has no unread content, show a message and link to favorites.
+					<div class="text-center">
+						@tabler.Confetti(i.Props{Class: "mx-auto text-accent size-12"})
+						@partials.Heading3("All caught up!")
+						@partials.Paragraph() {
+							Congratulations, you've read everything!
+						}
+						<div class="mt-6">
+							<button
+								hx-get="/list/favorites"
+								hx-target={ ContentID.Target() }
+								hx-push-url="true"
+								hx-swap="innerHTML show:window:top transition:true"
+								class="btn btn-accent"
+							>
+								View favorites
+							</button>
+						</div>
+					</div>
 				} else {
+					// Show some useful sections for unread content.
 					<div
 						id="update-notifications"
 						sse-connect="/home/updates"
@@ -113,20 +127,16 @@ templ UserHome(data *models.HomeResponse) {
 					}
 				}
 				@partials.ButtonBackToTop()
-			</div>
+			}
 		}
-	</main>
-	@Dock(nil)
+	}
 }
 
-const NewUserHomeFragment templFragmentKey = "newUserHome"
-
+// NewUserHome is a home page displayed for new users, with some instructions and actions to help them set up the app.
 templ NewUserHome() {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
-		@templ.Fragment(NewUserHomeFragment) {
-			<div class="ui-container">
+	@content() {
+		@templ.Fragment(ContentFragment) {
+			@container() {
 				<h2 class="ui-h2">{ "Welcome to " + config.AppName }</h2>
 				<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
 				<div class="py-4">
@@ -138,16 +148,17 @@ templ NewUserHome() {
 						</div>
 						<div>
 							<h4 class="text-sm font-medium ">
-								@NewLink(
-									WithHXMethod(http.MethodGet, "/user/subscription/add/feed"),
-									WithHXTarget(ContentID.Target()),
-									WithHXPushURL(true),
-									WithClasses("focus:outline-hidden"),
-								) {
+								<a
+									hx-get="/user/subscription/add/feed"
+									hx-target={ ContentID.Target() }
+									hx-push-url="true"
+									hx-swap="innerHTML show:window:top transition:true"
+									class="focus:outline-hidden"
+								>
 									<span aria-hidden="true" class="absolute inset-0"></span>
 									<span>Add a feed subscription</span>
 									<span aria-hidden="true">&rarr;</span>
-								}
+								</a>
 							</h4>
 							<p class="mt-1 text-sm text-base-content">Add a single subscription from a URL or webpage.</p>
 						</div>
@@ -158,16 +169,17 @@ templ NewUserHome() {
 						</div>
 						<div>
 							<h4 class="text-sm font-medium">
-								@NewLink(
-									WithHXMethod(http.MethodGet, "/user/import"),
-									WithHXTarget(ContentID.Target()),
-									WithHXPushURL(true),
-									WithClasses("focus:outline-hidden"),
-								) {
+								<a
+									hx-get="/user/import"
+									hx-target={ ContentID.Target() }
+									hx-push-url="true"
+									hx-swap="innerHTML show:window:top transition:true"
+									class="focus:outline-hidden"
+								>
 									<span aria-hidden="true" class="absolute inset-0"></span>
 									<span>Import subscriptions</span>
 									<span aria-hidden="true">&rarr;</span>
-								}
+								</a>
 							</h4>
 							<p class="mt-1 text-sm text-base-content">Import multiple subscriptions using an OPML file.</p>
 						</div>
@@ -234,8 +246,7 @@ templ NewUserHome() {
 						<li><a class="link" href="/help/index">Documentation Home</a></li>
 					</ul>
 				</div>
-			</div>
+			}
 		}
-	</main>
-	@Dock(nil)
+	}
 }

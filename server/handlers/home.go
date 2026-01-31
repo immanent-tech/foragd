@@ -21,7 +21,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-// Home contains data for generating a user home page
+// Home contains data for generating a user home page.
 type Home struct {
 	title string
 	data  *models.HomeResponse
@@ -75,12 +75,12 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	case true:
 		templ.Handler(
 			templates.NewUserHome(),
-			templ.WithFragments(templates.NewUserHomeFragment),
+			templ.WithFragments(templates.ContentFragment),
 		).ServeHTTP(res, req)
 	case false:
 		templ.Handler(
 			templates.UserHome(p.data),
-			templ.WithFragments(templates.UserHomeFragment),
+			templ.WithFragments(templates.ContentFragment),
 		).ServeHTTP(res, req)
 	}
 	// Update title, dock/sidebar.
