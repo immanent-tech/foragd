@@ -10,15 +10,11 @@ import (
 	"slices"
 )
 
-const FavoritesFragment templFragmentKey = "favorites"
-
 // ListFavorites renders subscription and article favorites in a grid layout.
 templ ListFavorites(response *models.ListFavoritesResponse) {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
-		@templ.Fragment(FavoritesFragment) {
-			<div id="top" class="ui-container">
+	@content() {
+		@templ.Fragment(ContentFragment) {
+			@container() {
 				if len(response.Subscriptions) > 0 || len(response.Articles) > 0 {
 					// Show jump to links for quick access when there are both subscriptions and articles.
 					if len(response.Subscriptions) > 0 && len(response.Articles) > 0 {
@@ -65,7 +61,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 				} else {
 					@emptyContent()
 				}
-			</div>
+			}
 		}
-	</main>
+	}
 }

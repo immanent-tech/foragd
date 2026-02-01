@@ -31,7 +31,7 @@ func (p *Favorites) FullResponse(res http.ResponseWriter, req *http.Request) {
 // paginating, just the list of subscriptions.
 func (p *Favorites) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(p.template, templ.WithFragments(templates.FavoritesFragment)).ServeHTTP(res, req)
+	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle("Favorites")).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
