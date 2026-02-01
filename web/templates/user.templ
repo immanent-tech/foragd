@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
@@ -26,9 +27,7 @@ templ UserChooseSubscriptionPlan(user *models.User, planID string) {
 				} else {
 					<a
 						role="button"
-						href={ BuildMailTo("support@immanent.tech",
-					WithMailtoSubject("Foragd Subscription Question"),
-					) }
+						href={ mailto.Build("support@immanent.tech", mailto.WithSubject("Foragd Subscription Question")) }
 						class="btn btn-primary"
 					>
 						Email support to manage your subscription
@@ -60,9 +59,7 @@ templ UserAccountIssue() {
 				@partials.ButtonBack()
 				<a
 					role="button"
-					href={ BuildMailTo("support@immanent.tech",
-					WithMailtoSubject("Foragd Subscription Question"),
-					) }
+					href={ mailto.Build("support@immanent.tech", mailto.WithSubject("Foragd Account Issue")) }
 					class="btn btn-ghost"
 				>
 					Email Support <span aria-hidden="true">&rarr;</span>

@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -71,9 +72,7 @@ templ AccountSettings(user *models.User) {
 				} else {
 					<a
 						role="button"
-						href={ BuildMailTo("support@immanent.tech",
-					WithMailtoSubject("Foragd Subscription Question"),
-					) }
+						href={ mailto.Build("support@immanent.tech", mailto.WithSubject("Foragd Subscription Question")) }
 						class="btn btn-primary"
 					>
 						Email support to manage your subscription

@@ -20,50 +20,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/immanent-tech/go-syndication/types"
-	"html"
 	"slices"
-	"strings"
 )
-
-// MailtoLink represents a link that will open the user's mail client, with optionall pre-filled details).
-type MailtoLink struct {
-	to    string
-	parts []string
-}
-
-// NewMailtoLink creates a new html link with a `mailto:` href attribute.
-func BuildMailTo(to string, options ...MailtoOption) string {
-	mtl := &MailtoLink{}
-	for option := range slices.Values(options) {
-		option(mtl)
-	}
-	var builder strings.Builder
-	builder.WriteString("mailto:")
-	builder.WriteString(mtl.to)
-	if len(mtl.parts) > 0 {
-		builder.WriteString("?")
-		builder.WriteString(strings.Join(mtl.parts, "&"))
-	}
-
-	return builder.String()
-}
-
-// MailtoOption is a functional option to apply to a mailto: link object.
-type MailtoOption func(*MailtoLink)
-
-// WithMailtoSubject option adds a subject to the mailto: link.
-func WithMailtoSubject(subject string) MailtoOption {
-	return func(mtl *MailtoLink) {
-		mtl.parts = append(mtl.parts, "subject="+html.EscapeString(subject))
-	}
-}
-
-// WithMailtoBody option adds body text to the mailto: link.
-func WithMailtoBody(body string) MailtoOption {
-	return func(mtl *MailtoLink) {
-		mtl.parts = append(mtl.parts, "body="+html.EscapeString(body))
-	}
-}
 
 type ProxiedImage struct {
 	*Element
@@ -109,7 +67,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...ElementOptio
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(elem.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 73, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 31, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -127,7 +85,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...ElementOptio
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(generateImageProxyURL(ctx, img.GetURL(), props))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 75, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 33, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -140,7 +98,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...ElementOptio
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 76, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 34, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
