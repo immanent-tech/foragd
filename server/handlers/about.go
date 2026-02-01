@@ -9,7 +9,7 @@ import (
 	"github.com/a-h/templ"
 
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/opengraph"
+	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 )
 
 type About struct {

@@ -11,7 +11,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/opengraph"
+	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 )
 
 type Viewer struct{}

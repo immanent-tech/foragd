@@ -16,7 +16,7 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/htmx"
-	"github.com/immanent-tech/foragd/web/templates/opengraph"
+	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"maps"
 	"slices"
