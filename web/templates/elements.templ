@@ -23,7 +23,6 @@ templ NewProxiedImage(img *types.ImageInfo, props string, options ...ElementOpti
 	for option := range slices.Values(options) {
 		{{ option(elem.Element) }}
 	}
-	{{ elem.SetAttribute("class", elem.GetClasses()) }}
 	{{ elem.SetAttribute("loading", "lazy") }}
 	{{ elem.SetAttribute("decoding", "async") }}
 	<img
@@ -32,6 +31,7 @@ templ NewProxiedImage(img *types.ImageInfo, props string, options ...ElementOpti
 		}
 		src={ generateImageProxyURL(ctx, img.GetURL(), props) }
 		alt={ img.GetTitle() }
+		class={ templ.KV(elem.GetClasses(), elem.GetClasses() != "") }
 		{ elem.GetAttributes()... }
 	/>
 	// src={ generateImageProxyURL(ctx, img.GetURL(), props) }
