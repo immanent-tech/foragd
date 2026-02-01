@@ -12,24 +12,53 @@ import (
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
 templ Document(data []byte) {
-	@header(nil)
-	<div class="ui-container">
-		<article class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">
-			@templ.Raw(string(data))
-		</article>
-		@partials.ButtonBackToTop()
-	</div>
-	@footer()
+	@content() {
+		@container() {
+			<article class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">
+				@templ.Raw(string(data))
+			</article>
+			@partials.ButtonBackToTop()
+		}
+	}
 }
 
 // content renders children wrapped with appropriate header/footer navigation.
-templ content() {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+templ content(options ...ElementOption) {
+	{{
+		e := NewElement()
+		for option := range slices.Values(options) {
+			option(e)
+		}
+		user := models.UserFromCtx(ctx)
+	}}
+	// Header.
+	@header(user)
+	if user != nil {
+		// Navigation sidebar (on large displays) for logged in user.
+		@SideBar(nil)
+	}
+	// Main content.
+	<main
+		id={ ContentID.String() }
+		aria-label="Main Content"
+		class={ "scroll-mt-16 pb-24 sm:pb-8", templ.KV("lg:pl-36",user!=nil),  templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
+		hx-indicator="#content-loading"
+		{ e.GetAttributes()... }
+	>
 		{ children... }
 	</main>
-	@Dock(nil)
+	// Content loading indicator.
+	<div id="content-loading" class="flex my-auto mx-auto justify-center items-center space-x-2 htmx-indicator">
+		<span class="loading loading-bars loading-xl"></span>
+		<p class="text-lg/loose font-semibold">Loading content...</p>
+	</div>
+	if user != nil {
+		// Bottom navigation dock (on small displays) for logged in user.
+		@Dock(nil)
+	} else {
+		// Footer for non logged in user (external) pages.
+		@footer()
+	}
 }
 
 // container constrains children to a nominal width and adds some padding.
@@ -41,16 +70,9 @@ templ container(options ...ElementOption) {
 		}
 	}}
 	<div
-		class={ "mx-auto max-w-7xl px-4 pt-8 pb-24 sm:px-6 lg:px-8", templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
+		class={ "mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8", templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
 		{ e.GetAttributes()... }
 	>
 		{ children... }
-	</div>
-}
-
-templ contentLoading() {
-	<div id="content-loading" class="mt-8 flex mx-auto justify-center items-center space-x-2 htmx-indicator">
-		<span class="loading loading-bars loading-xl"></span>
-		<p class="text-lg/loose font-semibold">Loading content...</p>
 	</div>
 }
