@@ -20,7 +20,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
 				<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl">
 					<div class="flex items-center justify-between px-4">
-						<h3 class="ui-h3">Filters</h3>
+						<h3 class="text-lg font-medium">Filters</h3>
 						<button
 							type="button"
 							command="close"
@@ -34,7 +34,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 					</div>
 					// Category Filters.
 					<div class="border-t border-base-content/10 px-4 py-6">
-						<h3 class="ui-h3 -mx-2 -my-3 flow-root">
+						<h4 class="text-lg font-medium -mx-2 -my-3 flow-root">
 							<button
 								id="filters-mobile-disclosure"
 								type="button"
@@ -47,8 +47,8 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
 								</span>
 							</button>
-						</h3>
-						<el-disclosure id="filter-section-category" hidden class="pt-6 flex flex-col">
+						</h4>
+						<el-disclosure id="filter-section-category" hidden class="pt-4 flex flex-col">
 							<div
 								id="category-filters-mobile"
 								class="flex flex-col"
@@ -64,7 +64,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 					</div>
 					// View Filters (mobile).
 					<div class="mt-4 border-t border-base-content/10 px-4 py-6">
-						<h3 class="ui-h3 -mx-2 -my-3 flow-root">
+						<h4 class="text-lg font-medium -mx-2 -my-3 flow-root">
 							<button
 								type="button"
 								command="--toggle"
@@ -76,21 +76,29 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
 								</span>
 							</button>
-						</h3>
-						<el-disclosure id="filter-section-view" hidden class="block pt-6">
-							<div class="space-y-6">
-								@viewFilter(path, "filter-mobile-view-unread", models.ViewUnread, filters)
-								@viewFilter(path, "filter-mobile-view-read", models.ViewRead, filters)
-								@viewFilter(path, "filter-mobile-view-all", models.ViewAll, filters)
+						</h4>
+						<el-disclosure id="filter-section-view" hidden class="block pt-4">
+							<ul>
+								<li>
+									@viewFilter(path, "filter-mobile-view-unread", models.ViewUnread, filters)
+								</li>
+								<li>
+									@viewFilter(path, "filter-mobile-view-read", models.ViewRead, filters)
+								</li>
+								<li>
+									@viewFilter(path, "filter-mobile-view-all", models.ViewAll, filters)
+								</li>
 								if path == "/list/subscriptions" {
-									@viewFilterOnlyFavorites(path, "filter-mobile-only-favorites", filters)
+									<li>
+										@viewFilterOnlyFavorites(path, "filter-mobile-only-favorites", filters)
+									</li>
 								}
-							</div>
+							</ul>
 						</el-disclosure>
 					</div>
 					// Sorting (mobile).
 					<div class="mt-4 border-t border-base-content/10 px-4 py-6">
-						<h3 class="ui-h3 -mx-2 -my-3 flow-root">
+						<h4 class="text-lg font-medium -mx-2 -my-3 flow-root">
 							<button
 								type="button"
 								command="--toggle"
@@ -102,16 +110,24 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
 								</span>
 							</button>
-						</h3>
-						<el-disclosure id="filter-section-sort" hidden class="block pt-6">
-							<div class="space-y-6">
-								@sortOption(path, models.SortNewestFirst, filters)
-								@sortOption(path, models.SortOldestFirst, filters)
+						</h4>
+						<el-disclosure id="filter-section-sort" hidden class="block pt-4">
+							<ul>
+								<li>
+									@sortOption(path, models.SortNewestFirst, filters)
+								</li>
+								<li>
+									@sortOption(path, models.SortOldestFirst, filters)
+								</li>
 								if path == "/list/subscriptions" {
-									@sortOption(path, models.SortMostUnread, filters)
-									@sortOption(path, models.SortLeastUnread, filters)
+									<li>
+										@sortOption(path, models.SortMostUnread, filters)
+									</li>
+									<li>
+										@sortOption(path, models.SortLeastUnread, filters)
+									</li>
 								}
-							</div>
+							</ul>
 						</el-disclosure>
 					</div>
 				</el-dialog-panel>
@@ -264,9 +280,19 @@ templ viewFilter(path, id string, view models.View, filters *models.ListFilters)
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
-			class={ "link link-hover block px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize", templ.KV("text-primary font-semibold",view==filters.GetView()) }
+			class={ "link link-hover flex px-4 py-2 text-sm capitalize items-center", templ.KV("text-primary font-semibold",view==filters.GetView()) }
 		>
-			{ view }
+			switch view {
+				case models.ViewUnread:
+					@tabler.Mail()
+				case models.ViewRead:
+					@tabler.MailOpened()
+				case models.ViewAll:
+					@tabler.Inbox()
+			}
+			<span class="ml-2">
+				{ view }
+			</span>
 		</a>
 	</form>
 }
@@ -288,10 +314,13 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
 			hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
-			class={ "link link-hover block px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize",
-			templ.KV(filters.OnlyFavorites,"text-primrary font-semibold") }
+			class={ "link link-hover flex px-4 py-2 text-sm capitalize items-center",
+			templ.KV(filters.OnlyFavorites,"text-primary font-semibold") }
 		>
-			Only Favorites
+			@tabler.Heart()
+			<span class="ml-2">
+				Only Favorites
+			</span>
 		</a>
 	</form>
 }
@@ -312,10 +341,13 @@ templ categoryFilter(path, id string, category models.CategoryCount, filters *mo
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
-			class={ "link link-hover block px-4 py-2 text-sm focus:text-primary focus:outline-hidden",
+			class={ "link link-hover flex px-4 py-2 text-sm items-center",
 			templ.KV("text-primary font-semibold",filters.GetCategories().HasCategory(category.Category)) }
 		>
-			{ category.Category }
+			@tabler.Category()
+			<span class="ml-2">
+				{ category.Category }
+			</span>
 		</a>
 	</form>
 }
@@ -333,10 +365,13 @@ templ clearCategoryFilters(path, id string, filters *models.ListFilters) {
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
-			class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize"
+			hx-params="not categories"
+			class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm capitalize"
 		>
-			@tabler.X(i.Props{Class: "size-4"})
-			Clear
+			@tabler.X()
+			<span class="ml-2">
+				Clear
+			</span>
 		</a>
 	</form>
 }
@@ -356,6 +391,7 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 					hx-target={ ContentID.Target() }
 					hx-replace-url="true"
 					hx-swap="innerHTML transition:true"
+					hx-params="not categories"
 					class="link link-hover"
 				>
 					@tabler.X(i.Props{Class: "size-4"})
@@ -381,20 +417,22 @@ templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
 			hx-swap="innerHTML transition:true"
-			class={ "link-hover flex items-center gap-x-2 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize",
+			class={ "link-hover flex items-center px-4 py-2 text-sm capitalize",
 	templ.KV("text-primary font-semibold",sort==filters.GetSort()) }
 		>
 			switch sort {
 				case models.SortNewestFirst:
-					@tabler.SortDescending2(i.Props{Class: "size-4"})
+					@tabler.SortDescending2()
 				case models.SortOldestFirst:
-					@tabler.SortAscending2(i.Props{Class: "size-4"})
+					@tabler.SortAscending2()
 				case models.SortMostUnread:
-					@tabler.SortDescendingNumbers(i.Props{Class: "size-4"})
+					@tabler.SortDescendingNumbers()
 				case models.SortLeastUnread:
-					@tabler.SortAscendingNumbers(i.Props{Class: "size-4"})
+					@tabler.SortAscendingNumbers()
 			}
-			{ sort.String() }
+			<span class="ml-2">
+				{ sort.String() }
+			</span>
 		</a>
 	</form>
 }
