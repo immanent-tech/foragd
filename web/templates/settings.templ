@@ -92,14 +92,12 @@ templ AccountSettings(user *models.User) {
 					class="btn btn-primary"
 					hx-get="/user/import"
 					hx-target={ ContentID.Target() }
-					hx-push-url="true"
 				>Import</button>
 				<button
 					type="button"
 					class="btn btn-primary"
 					hx-get="/user/export"
 					hx-target={ ContentID.Target() }
-					hx-push-url="true"
 				>Export</button>
 			</div>
 		</div>

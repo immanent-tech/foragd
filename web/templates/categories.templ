@@ -29,7 +29,6 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 						hx-post={ path }
 						hx-on::after-request="if(event.detail.successful) this.reset()"
 						hx-include="[name='categories']"
-						hx-push-url="false"
 						hx-target="#current-categories"
 						hx-swap="beforeend"
 						hx-trigger="change"
@@ -51,7 +50,6 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 					hx-on::after-request="if(event.detail.successful) this.reset()"
 					hx-include="[name='categories']"
 					hx-vals={ templ.JSONString(map[string]any{"inputName": inputName}) }
-					hx-push-url="false"
 					hx-target="#current-categories"
 					hx-swap="beforeend"
 				>
@@ -93,7 +91,6 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 templ AddCategory(path, inputName string, category models.Category) {
 	<button
 		hx-delete={ path }
-		hx-push-url="false"
 		hx-target="closest button"
 		hx-swap="delete"
 	>

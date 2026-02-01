@@ -24,7 +24,6 @@ templ SideBar(attributes templ.Attributes) {
 							hx-get="/home"
 							hx-target={ ContentID.Target() }
 							hx-swap="innerHTML show:window:top transition:true"
-							hx-push-url="true"
 							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
 							_="on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"
 						>
@@ -40,7 +39,6 @@ templ SideBar(attributes templ.Attributes) {
 							hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
 							hx-target={ ContentID.Target() }
 							hx-swap="innerHTML show:window:top transition:true"
-							hx-push-url="true"
 							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
 							_="on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions"
 						>
@@ -56,7 +54,6 @@ templ SideBar(attributes templ.Attributes) {
 							hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/articles").Values()) }
 							hx-target={ ContentID.Target() }
 							hx-swap="innerHTML show:window:top transition:true"
-							hx-push-url="true"
 							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
 							_="on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles"
 						>
@@ -71,7 +68,6 @@ templ SideBar(attributes templ.Attributes) {
 							hx-get="/list/favorites"
 							hx-target={ ContentID.Target() }
 							hx-swap="innerHTML show:window:top transition:true"
-							hx-push-url="true"
 							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
 							_="on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites"
 						>

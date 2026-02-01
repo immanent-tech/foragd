@@ -47,6 +47,10 @@ type Config struct {
 	GlobalViewTransitions bool `json:"globalViewTransitions"`
 	// ResponseHandling configures how to handle various HTTP response codes.
 	ResponseHandling []*ResponseHandling `json:"responseHandling,omitzero"`
+	// Number of entries to cache in history. Defaults to 10.
+	HistoryCacheSize int `json:"historyCacheSize"`
+	// Whether to issue a full page refresh on history misses rather than use an AJAX request. Defaults to false.
+	RefreshOnHistoryMiss bool `json:"refreshOnHistoryMiss"`
 }
 
 // HXLocationRequest defines the value of the HX-Location header.

@@ -11,6 +11,7 @@ import (
 	"slices"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -70,6 +71,8 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 		}).ServeHTTP(res, req)
 		return
 	}
+
+	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 
 	switch user.GetSettings().ShowOnboarding {
 	case true:

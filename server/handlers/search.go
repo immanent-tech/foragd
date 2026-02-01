@@ -149,9 +149,9 @@ func (h *SearchResults) FullResponse(res http.ResponseWriter, req *http.Request)
 }
 
 func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	res.Header().Add(htmx.HeaderPushURL, "/search?"+h.results.Search.Query())
 	switch req.URL.Path {
 	case "/search":
+		res.Header().Add(htmx.HeaderPushURL, "/search?"+h.results.Search.Query())
 		template := templates.SearchResults(h.results)
 		if len(h.results.Articles) > 0 {
 			// Also update the search filters element.

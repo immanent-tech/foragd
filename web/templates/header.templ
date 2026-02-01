@@ -38,7 +38,6 @@ templ header(user *models.User) {
 								id="global-search"
 								type="search"
 								name="text"
-								hx-push-url="false"
 								placeholder="Search..."
 								spellcheck="false"
 								autocomplete="off"
@@ -83,7 +82,6 @@ templ header(user *models.User) {
 						<a
 							hx-get="/user/settings"
 							hx-target={ ContentID.Target() }
-							hx-push-url="true"
 							_="on click remove @open from #header-menu"
 							class="link link-hover hover:text-primary"
 						>

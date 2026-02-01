@@ -17,7 +17,6 @@ templ Dock(attributes templ.Attributes) {
 			hx-get="/home"
 			hx-trigger="click,globalShortcutHome"
 			hx-target={ ContentID.Target() }
-			hx-push-url="true"
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/home")) }
 			_="on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"
@@ -31,7 +30,6 @@ templ Dock(attributes templ.Attributes) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
 			hx-params={ "not " + models.ParamSubscriptions }
-			hx-push-url="true"
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/list/subscriptions")) }
 		>
@@ -44,7 +42,6 @@ templ Dock(attributes templ.Attributes) {
 			hx-get="/list/articles"
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(filters.Values()) }
-			hx-push-url="true"
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/list/articles")) }
 			if strings.HasPrefix(pageURL, "/view/article") {
@@ -58,7 +55,6 @@ templ Dock(attributes templ.Attributes) {
 		<button
 			hx-get="/list/favorites"
 			hx-target={ ContentID.Target() }
-			hx-push-url="true"
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/list/favorites")) }
 		>

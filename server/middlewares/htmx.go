@@ -12,8 +12,8 @@ import (
 // SetupHTMX middleware performs general setup for serving htmx-powered content.
 func SetupHTMX(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Add("Vary", "HX-Request")
-		res.Header().Add("Vary", "HX-History-Restore-Request")
+		res.Header().Add("Vary", htmx.HeaderRequest)
+		res.Header().Add("Vary", htmx.HeaderHistoryRestoreRequest)
 		next.ServeHTTP(res, req)
 	})
 }

@@ -52,6 +52,7 @@ func (p *ListSubscriptions) FullResponse(res http.ResponseWriter, req *http.Requ
 func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	switch req.URL.Path {
 	case "/list/subscriptions":
+		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		templ.Handler(p.template, templ.WithFragments(templates.ListSubscriptionsFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 		templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
@@ -379,6 +380,7 @@ func (p *EditSubscription) FullResponse(res http.ResponseWriter, req *http.Reque
 }
 
 func (p *EditSubscription) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(p.template, templ.WithFragments(templates.EditSubscriptionFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 }
@@ -649,6 +651,7 @@ func HandleAddFeedSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
+			res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 			RenderInternalPage(
 				&AddSubscription{
 					title:    "Add Feed Subscription",
@@ -892,6 +895,7 @@ type ImportSubscriptionsResults struct {
 }
 
 func (h *ImportSubscriptionsResults) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(h.template).ServeHTTP(res, req)
 }
 
@@ -1004,6 +1008,7 @@ func (h *ExportSubscriptions) FullResponse(res http.ResponseWriter, req *http.Re
 }
 
 func (h *ExportSubscriptions) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle("Import Subscriptions")).ServeHTTP(res, req)
 }

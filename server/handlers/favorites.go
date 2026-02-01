@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/models"
@@ -29,6 +30,7 @@ func (p *Favorites) FullResponse(res http.ResponseWriter, req *http.Request) {
 // PartialResponse will either render the list of subscriptions, the controls and update the title/dock/sidebar or, when
 // paginating, just the list of subscriptions.
 func (p *Favorites) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(p.template, templ.WithFragments(templates.FavoritesFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle("Favorites")).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)

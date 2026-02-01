@@ -125,6 +125,7 @@ func HandleRobots() http.Handler {
 	})
 }
 
+//nolint:mnd // thes are individual page priorities.
 var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
 	// Set up default URLs.
 	site := sitemap.NewURLSet(
@@ -317,7 +318,9 @@ func storePath(next http.Handler) http.Handler {
 // WatchList handles watching a list of object for any updates and rendering a notification to the user to refresh the page.
 func WatchList() http.HandlerFunc {
 	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Retrieve current filters.
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+		// Create a query to find new items.
 		query, err := models.BuildItemsQuery(req.Context(), filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",

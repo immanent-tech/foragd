@@ -18,7 +18,6 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
 			hx-include="#search-filters,[id='timezone']"
-			hx-push-url="true"
 			hx-trigger="click, keydown['Enter']"
 			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions"
 		>
@@ -92,7 +91,6 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			href="#"
 			hx-get="/user/subscription/add/feed"
 			hx-target={ ContentID.Target() }
-			hx-push-url="true"
 			hidden
 			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
@@ -105,7 +103,6 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			href="#"
 			hx-get="/user/subscription/add/search"
 			hx-target={ ContentID.Target() }
-			hx-push-url="true"
 			hx-include="#search-filters"
 			hidden
 			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
@@ -119,7 +116,6 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			href="#"
 			hx-get="/user/subscription/add/group"
 			hx-target={ ContentID.Target() }
-			hx-push-url="true"
 			hidden
 			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
@@ -156,7 +152,6 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					href="#"
 					hx-get={ "/view/article/" + article.GetID() }
 					hx-target={ ContentID.Target() }
-					hx-push-url="true"
 					hidden
 					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 					_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
@@ -227,7 +222,6 @@ templ SearchResults(results *models.SearchResults) {
 									<a
 										hx-get={ "/edit/subscription/" + results.Search.SubscriptionID }
 										hx-target={ ContentID.Target() }
-										hx-push-url="true"
 										hx-swap="innerHTML show:window:top transition:true"
 										class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
 									>
@@ -241,7 +235,6 @@ templ SearchResults(results *models.SearchResults) {
 										hx-get="/user/subscription/add/search"
 										hx-target={ ContentID.Target() }
 										hx-include="#search-filters"
-										hx-push-url="true"
 										class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
 									>
 										@tabler.Plus(i.Props{Class: "size-4"})
@@ -281,7 +274,6 @@ templ SearchResults(results *models.SearchResults) {
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
 										hx-indicator="#content-loading"
-										hx-push-url="false"
 										preload
 										preload-images="true"
 										_="on htmx:afterRequest remove me"
@@ -308,7 +300,6 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			id="search-results"
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
-			hx-push-url="true"
 			hx-include="[id='timezone']"
 			hx-disinherit="*"
 		>
@@ -376,7 +367,6 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 								hx-target="#search-subscriptions-options"
 								hx-params="subscription-text"
 								hx-swap="innerHTML"
-								hx-push-url="false"
 							/>
 						</label>
 						<div

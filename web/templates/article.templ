@@ -40,7 +40,6 @@ func (a *Article) ViewAttributes() templ.Attributes {
 	attrs["hx-get"] = "/view/article/" + a.GetID()
 	attrs["hx-target"] = ContentID.Target()
 	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
-	attrs["hx-push-url"] = "true"
 	attrs["hx-trigger"] = "click"
 	return attrs
 }
@@ -49,7 +48,6 @@ func (a *Article) SimilarArticlesAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
 	attrs["hx-get"] = "/view/article/" + a.GetID() + "/similar"
 	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-push-url"] = "true"
 	attrs["hx-trigger"] = "click consume"
 	return attrs
 }
@@ -108,7 +106,6 @@ templ (a *Article) Card() {
 					<a
 						hx-get="/list/articles"
 						hx-target={ ContentID.Target() }
-						hx-push-url="true"
 						hx-swap="innerHTML show:window:top transition:true"
 						hx-trigger="click consume"
 						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: a.GetSubscriptionID()}) }
@@ -282,7 +279,6 @@ templ (a *Article) Content() {
 							<a
 								hx-post="/list/articles"
 								hx-target={ ContentID.Target() }
-								hx-push-url="true"
 								hx-swap="innerHTML show:window:top transition:true"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
@@ -604,7 +600,6 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										<a
 											hx-get={ "/edit/subscription/" + response.Subscription.GetID() }
 											hx-target={ ContentID.Target() }
-											hx-push-url="true"
 											class="link link-hover px-4 py-2 flex items-center focus:text-primary focus:outline-hidden"
 										>
 											@tabler.Edit(i.Props{Class: "size-4"})
@@ -633,7 +628,6 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
 										hx-indicator="#content-loading"
-										hx-push-url="false"
 										preload
 										preload-images="true"
 										_="on htmx:afterRequest remove me"

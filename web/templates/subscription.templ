@@ -40,7 +40,6 @@ func (s *Subscription) ViewArticlesAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
 	attrs["hx-target"] = ContentID.Target()
 	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
-	attrs["hx-push-url"] = "true"
 	attrs["hx-trigger"] = "click consume"
 	switch s.GetSubscriptionType() {
 	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail, models.SubscriptionTypeGroup:
@@ -85,7 +84,6 @@ func (s *Subscription) EditAttributes() templ.Attributes {
 	attrs["hx-get"] = "/edit/subscription/" + s.GetID()
 	attrs["hx-target"] = ContentID.Target()
 	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
-	attrs["hx-push-url"] = "true"
 	attrs["hx-trigger"] = "click consume"
 	return attrs
 }
@@ -135,7 +133,6 @@ templ (s *Subscription) Card() {
 							<a
 								hx-get="/list/subscriptions"
 								hx-target={ ContentID.Target() }
-								hx-push-url="true"
 								hx-vals={ templ.JSONString(filters) }
 								hx-trigger="click consume"
 								hx-params="not subscriptions"
@@ -354,7 +351,6 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								<a
 									hx-get="/user/subscription/add/feed"
 									hx-target={ ContentID.Target() }
-									hx-push-url="true"
 									class="flex items-center link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
 								>
 									@tabler.Plus(i.Props{Class: "size-4"})
@@ -364,7 +360,6 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									hx-get="/user/subscription/add/search"
 									hx-target={ ContentID.Target() }
 									hx-include="#search-filters"
-									hx-push-url="true"
 									class="flex items-center link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
 								>
 									@tabler.Plus(i.Props{Class: "size-4"})
@@ -373,7 +368,6 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								<a
 									hx-get="/user/subscription/add/group"
 									hx-target={ ContentID.Target() }
-									hx-push-url="true"
 									class="flex items-center link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
 								>
 									@tabler.Plus(i.Props{Class: "size-4"})
@@ -399,7 +393,6 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
 										hx-indicator="#content-loading"
-										hx-push-url="false"
 										preload
 										preload-images="true"
 										_="on htmx:afterRequest remove me"
@@ -807,7 +800,6 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 											hx-target="#subscription-filter-subscriptions-options"
 											hx-swap="innerHTML show:window:top transition:true"
 											hx-params="subscription-text"
-											hx-push-url="false"
 										/>
 									</label>
 									<div
@@ -1053,7 +1045,6 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 											hx-target="#subscription-filter-subscriptions-options"
 											hx-swap="innerHTML show:window:top transition:true"
 											hx-params="subscription-text"
-											hx-push-url="false"
 										/>
 									</label>
 									<div

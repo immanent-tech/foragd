@@ -44,6 +44,7 @@ func (t *UserSettings) FullResponse(res http.ResponseWriter, req *http.Request) 
 
 // PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
 func (t *UserSettings) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(templates.UserSettings(), templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)

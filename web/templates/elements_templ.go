@@ -25,175 +25,6 @@ import (
 	"strings"
 )
 
-// // Option is a generic type for functional options.
-// type Option[T any] func(T)
-
-// type HTMLElement struct {
-// 	sync.Mutex
-// 	attributes templ.Attributes
-// 	classes    []string
-// 	id         models.ElementID
-// }
-
-// func NewHTMLElement() HTMLElement {
-// 	return HTMLElement{
-// 		attributes: make(templ.Attributes),
-// 		classes:    make([]string, 0),
-// 	}
-// }
-
-// func (e *HTMLElement) GetID() string {
-// 	return e.id.String()
-// }
-
-// func (e *HTMLElement) GetTarget() string {
-// 	return e.id.Target()
-// }
-
-// func (e *HTMLElement) SetID(id string) {
-// 	e.id = models.ElementID(id)
-// }
-
-// func (e *HTMLElement) SetAttribute(key string, value any) {
-// 	e.Lock()
-// 	defer e.Unlock()
-// 	e.attributes[key] = value
-// }
-
-// func (e *HTMLElement) MergeAttributes(attributes templ.Attributes) {
-// 	e.Lock()
-// 	defer e.Unlock()
-// 	maps.Copy(attributes, e.attributes)
-// }
-
-// func (e *HTMLElement) HasAttribute(key string) bool {
-// 	e.Lock()
-// 	defer e.Unlock()
-// 	_, ok := e.attributes[key]
-// 	return ok
-// }
-
-// func (e *HTMLElement) AddClasses(classes ...string) {
-// 	e.Lock()
-// 	defer e.Unlock()
-// 	e.classes = append(e.classes, classes...)
-// }
-
-// func (e *HTMLElement) GetClasses() string {
-// 	return strings.Join(e.classes, " ")
-// }
-
-// type element interface {
-// 	SetID(id string)
-// 	GetID() string
-// 	GetTarget() string
-// 	SetAttribute(key string, value any)
-// 	MergeAttributes(attributes templ.Attributes)
-// 	AddClasses(classes ...string)
-// 	GetClasses() string
-// }
-
-// func WithID(id string) Option[element] {
-// 	return func(e element) {
-// 		e.SetID(id)
-// 	}
-// }
-
-// func WithHXMethod(method, path string) Option[element] {
-// 	return func(e element) {
-// 		switch method {
-// 		case http.MethodGet:
-// 			e.SetAttribute("hx-get", path)
-// 		case http.MethodPost:
-// 			e.SetAttribute("hx-post", path)
-// 		case http.MethodPut:
-// 			e.SetAttribute("hx-put", path)
-// 		case http.MethodDelete:
-// 			e.SetAttribute("hx-delete", path)
-// 		}
-// 	}
-// }
-
-// func WithHXTarget(value string) Option[element] {
-// 	return func(e element) {
-// 		e.SetAttribute("hx-target", value)
-// 	}
-// }
-
-// func WithHXSwap(value string) Option[element] {
-// 	return func(e element) {
-// 		e.SetAttribute("hx-swap", value)
-// 	}
-// }
-
-// func WithHXInclude(value string) Option[element] {
-// 	return func(e element) {
-// 		if value != "" {
-// 			e.SetAttribute("hx-include", value)
-// 		}
-// 	}
-// }
-
-// func WithHXVals(vals map[string]any) Option[element] {
-// 	return func(e element) {
-// 		if len(vals) > 0 {
-// 			e.SetAttribute("hx-vals", generateHXVals(vals))
-// 		}
-// 	}
-// }
-
-// func WithHXValsJS(val string) Option[element] {
-// 	return func(e element) {
-// 		e.SetAttribute("hx-vals", val)
-// 	}
-// }
-
-// func WithHXParams(params string) Option[element] {
-// 	return func(e element) {
-// 		if params != "" {
-// 			e.SetAttribute("hx-params", params)
-// 		}
-// 	}
-// }
-
-// func WithHXTrigger(trigger string) Option[element] {
-// 	return func(e element) {
-// 		e.SetAttribute("hx-trigger", trigger)
-// 	}
-// }
-
-// func WithHXPushURL(value bool) Option[element] {
-// 	return func(e element) {
-// 		e.SetAttribute("hx-push-url", strconv.FormatBool(value))
-// 	}
-// }
-
-// func WithHXReplaceURL(value bool) Option[element] {
-// 	return func(e element) {
-// 		e.SetAttribute("hx-replace-url", strconv.FormatBool(value))
-// 	}
-// }
-
-// func WithClasses(classes ...string) Option[element] {
-// 	return func(e element) {
-// 		e.AddClasses(classes...)
-// 	}
-// }
-
-// func WithAttribute(key string, value any) Option[element] {
-// 	return func(e element) {
-// 		e.SetAttribute(key, value)
-// 	}
-// }
-
-// func WithAttributes(attributes templ.Attributes) Option[element] {
-// 	return func(e element) {
-// 		if attributes != nil {
-// 			e.MergeAttributes(attributes)
-// 		}
-// 	}
-// }
-
 // MailtoLink represents a link that will open the user's mail client, with optionall pre-filled details).
 type MailtoLink struct {
 	to    string
@@ -278,7 +109,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...ElementOptio
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(elem.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 242, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 73, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -296,7 +127,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...ElementOptio
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(generateImageProxyURL(ctx, img.GetURL(), props))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 244, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 75, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -309,7 +140,7 @@ func NewProxiedImage(img *types.ImageInfo, props string, options ...ElementOptio
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 245, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 76, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {

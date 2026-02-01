@@ -47,6 +47,7 @@ func (p *ListArticles) FullResponse(res http.ResponseWriter, req *http.Request) 
 func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	switch req.URL.Path {
 	case "/list/articles":
+		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 		templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
@@ -163,6 +164,7 @@ func (h *SimilarArticles) FullResponse(res http.ResponseWriter, req *http.Reques
 // PartialResponse will either render the list of subscriptions, the controls and update the title/dock/sidebar or, when
 // paginating, just the list of subscriptions.
 func (h *SimilarArticles) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle("Similar Articles")).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
@@ -222,6 +224,7 @@ func (t *ArticleContent) FullResponse(res http.ResponseWriter, req *http.Request
 
 // PartialResponse renders just the content and performs OOB swaps to update the title (if set) and sidebar/dock.
 func (t *ArticleContent) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 	templ.Handler(t.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
 	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
