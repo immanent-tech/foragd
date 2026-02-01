@@ -162,7 +162,7 @@ func container(options ...ElementOption) templ.Component {
 		for option := range slices.Values(options) {
 			option(e)
 		}
-		var templ_7745c5c3_Var5 = []any{"mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8", templ.KV(e.GetClasses(), len(e.GetClasses()) > 0)}
+		var templ_7745c5c3_Var5 = []any{"mx-auto max-w-7xl px-4 pt-8 pb-24 sm:px-6 lg:px-8", templ.KV(e.GetClasses(), len(e.GetClasses()) > 0)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
