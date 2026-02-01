@@ -88,7 +88,7 @@ templ header(user *models.User) {
 							class="link link-hover hover:text-primary"
 						>
 							<div class="flex flex-1 items-center gap-x-2">
-								@tabler.SettingsFilled(i.Props{Class: "size-4"})
+								@tabler.SettingsFilled()
 								Settings
 							</div>
 						</a>
@@ -101,7 +101,7 @@ templ header(user *models.User) {
 							_="on click remove @open from #header-menu"
 						>
 							<div class="flex flex-1 items-center gap-x-2">
-								@tabler.Help(i.Props{Class: "size-4"})
+								@tabler.Help()
 								Help/Documentation
 							</div>
 						</a>
@@ -114,7 +114,7 @@ templ header(user *models.User) {
 							_="on click remove @open from #header-menu"
 						>
 							<div class="flex flex-1 items-center gap-x-2">
-								@tabler.FlagFilled(i.Props{Class: "size-4"})
+								@tabler.FlagFilled()
 								Report an issue
 							</div>
 						</a>
@@ -122,10 +122,10 @@ templ header(user *models.User) {
 						<a
 							href="/logout"
 							class="link link-hover hover:text-primary"
-							_="on click remove @open from #header-menu"
+							_="on click remove @open from #header-menu then call window.sessionStorage.removeItem('htmx-history-cache')"
 						>
 							<div class="flex flex-1 items-center gap-x-2">
-								@tabler.Logout(i.Props{Class: "size-4"})
+								@tabler.Logout()
 								Log out
 							</div>
 						</a>
