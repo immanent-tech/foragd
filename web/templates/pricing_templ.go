@@ -43,7 +43,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if selectedID == "TheOne-85297d6" {
+		if selectedID == "TheOne-85297d6" && selectedText != "" {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<span class=\"badge badge-xs badge-primary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -62,7 +62,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-8 flex items-center gap-4\"><div class=\"text-5xl font-semibold\">$7</div><div class=\"text-sm\"><p>USD</p><p>per month</p></div></div><div class=\"mt-8\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-8 flex items-center gap-4\"><div class=\"text-5xl font-semibold\">$7</div><div class=\"text-sm\"><p>USD</p><p>per month (on launch)</p></div></div><div class=\"mt-8\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

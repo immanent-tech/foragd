@@ -15,7 +15,7 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 			<div class="grid grid-cols-1 rounded-4xl p-2 shadow-md shadow-black/5">
 				<div class="rounded-3xl bg-base-200 p-10 pb-9 shadow-2xl">
 					<h2 class="text-lg/7 font-semibold text-primary">The One <span class="sr-only">plan</span></h2>
-					if selectedID == "TheOne-85297d6" {
+					if selectedID == "TheOne-85297d6" && selectedText != "" {
 						<span class="badge badge-xs badge-primary">{ selectedText }</span>
 					}
 					<p class="mt-2 text-sm/6 text-pretty text-neutral">Single plan, all features, generous inclusions.</p>
@@ -23,7 +23,7 @@ templ pricingGrid(action, method, selectedID, selectedText string) {
 						<div class="text-5xl font-semibold">$7</div>
 						<div class="text-sm">
 							<p>USD</p>
-							<p>per month</p>
+							<p>per month (on launch)</p>
 						</div>
 					</div>
 					<div class="mt-8">
