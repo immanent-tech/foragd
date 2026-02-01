@@ -14,9 +14,8 @@ import (
 )
 
 templ Viewer() {
-	<div class="bg-base-100">
-		@header(nil)
-		<div class="ui-container">
+	@content() {
+		@container() {
 			<section id="viewer">
 				<h2 class="ui-h2">Feed Viewer</h2>
 				<p class="ui-p">
@@ -46,15 +45,12 @@ templ Viewer() {
 					</fieldset>
 				</form>
 			</section>
-		</div>
-		<div class="ui-container">
 			<div id="processing" class="htmx-indicator my-4 flex justify-center mx-auto">
 				<span class="flex loading loading-dots loading-lg"></span>
 			</div>
 			<section id="viewer-results" class="mt-8 mb-24 min-h-128 overflow-y-auto"></section>
-		</div>
-		@footer()
-	</div>
+		}
+	}
 }
 
 templ ViewerResults(feed *feeds.Feed) {
