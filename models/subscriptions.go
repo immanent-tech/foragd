@@ -478,6 +478,12 @@ func GetSubscriptionSuggestions(
 		query.Bool(
 			query.Filter(
 				query.Term("user_id", user.GetID()),
+				query.Bool(
+					query.Should(
+						query.Term("type", SubscriptionTypeEmail),
+						query.Term("type", SubscriptionTypeFeed),
+					),
+				),
 			),
 			query.Must(
 				query.Bool(
@@ -1735,9 +1741,9 @@ func (s Subscriptions) FilterByFavorites(value bool) Subscriptions {
 }
 
 // FilterByType returns a slice containing subscriptions of the specified type.
-func (s Subscriptions) FilterByType(t SubscriptionType) Subscriptions {
+func (s Subscriptions) FilterByType(t ...SubscriptionType) Subscriptions {
 	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
-		return subscription.GetSubscriptionType() == t
+		return slices.Contains(t, subscription.GetSubscriptionType())
 	}))
 }
 
