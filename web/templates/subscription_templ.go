@@ -788,7 +788,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</button> <el-menu id=\"subscriptions-actions-menu\" anchor=\"bottom end\" popover _=\"on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me\" class=\"w-fit\"><div class=\"py-1\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "</button> <el-menu id=\"subscriptions-actions-menu\" anchor=\"bottom start\" popover _=\"on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me\" class=\"w-fit\"><div class=\"py-1\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

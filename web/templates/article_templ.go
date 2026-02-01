@@ -94,7 +94,7 @@ func (a *Article) Card() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var2 = []any{"card bg-base-200 mx-auto h-full w-full max-w-prose shadow-md", "card-link",
+		var templ_7745c5c3_Var2 = []any{"card bg-base-200 mx-auto h-full w-full max-w-prose shadow-md cursor-pointer",
 			templ.KV("row-span-1", a.GetImage() == nil),
 			templ.KV("row-span-2", a.GetImage() != nil),
 		}
@@ -1891,7 +1891,7 @@ func ListArticles(response *models.ListArticlesResponse) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "</button> <el-menu id=\"articles-actions-menu\" anchor=\"bottom end\" popover _=\"\n\t\t\t\t\t\ton keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me end\n\t\t\t\t\t\ton htmx:afterRequest(successful) hidePopover() on me\n\t\t\t\t\t\t\" class=\"w-fit\"><div class=\"py-1\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 165, "</button> <el-menu id=\"articles-actions-menu\" anchor=\"bottom start\" popover _=\"\n\t\t\t\t\t\ton keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me end\n\t\t\t\t\t\ton htmx:afterRequest(successful) hidePopover() on me\n\t\t\t\t\t\t\" class=\"w-fit\"><div class=\"py-1\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

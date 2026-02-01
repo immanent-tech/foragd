@@ -68,7 +68,7 @@ templ (a *Article) Card() {
 	<article
 		id={ a.GetID() }
 		class={
-			"card bg-base-200 mx-auto h-full w-full max-w-prose shadow-md", "card-link",
+			"card bg-base-200 mx-auto h-full w-full max-w-prose shadow-md cursor-pointer",
 			templ.KV("row-span-1", a.GetImage() == nil),
 			templ.KV("row-span-2", a.GetImage() != nil),
 		}
@@ -533,7 +533,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							</button>
 							<el-menu
 								id="articles-actions-menu"
-								anchor="bottom end"
+								anchor="bottom start"
 								popover
 								_="
 						on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me end

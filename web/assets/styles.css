@@ -45,9 +45,9 @@
 
 @layer base {
   el-menu {
-    @apply bg-base-300 outline-base-content/15 origin-top-right rounded-md py-2 shadow-lg outline-1 -outline-offset-1 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
+    @apply origin-top-right rounded-md bg-base-300 py-2 shadow-lg outline-1 -outline-offset-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
     a {
-      @apply focus:text-primary flex items-center gap-4 px-4 py-2 text-sm no-underline hover:underline focus:outline-hidden;
+      @apply flex items-center gap-4 px-4 py-2 text-sm no-underline hover:underline focus:text-primary focus:outline-hidden;
     }
   }
 
@@ -56,7 +56,7 @@
   }
 
   el-dialog-backdrop {
-    @apply bg-base-100/25 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0;
+    @apply fixed inset-0 bg-base-100/25 transition-opacity duration-300 ease-linear data-closed:opacity-0;
   }
 
   el-dialog-panel {
@@ -155,7 +155,7 @@
 
 /* For formatting articles.  */
 @utility prose-article {
-  @apply prose sm:prose-lg text-base-content dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box max-w-none;
+  @apply prose max-w-none text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box;
   pre {
     overflow-x: auto;
   }
@@ -166,7 +166,7 @@
 
 /* For formatting a short summary of article content. */
 @utility prose-summary {
-  @apply prose-article prose-sm sm:prose prose-img:hidden prose-figure:hidden prose-video:hidden prose-table:hidden line-clamp-3;
+  @apply prose-article prose-sm line-clamp-3 sm:prose prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
   img {
     @apply hidden;
   }
@@ -197,7 +197,7 @@
   }
 
   :where(img) {
-    @apply rounded-box h-auto w-auto max-w-full;
+    @apply h-auto w-auto max-w-full rounded-box;
   }
 
   :where(a) {
@@ -219,10 +219,6 @@
   @apply grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12;
 }
 
-@utility ui-card {
-  @apply card bg-base-200 mx-auto h-full w-full max-w-prose shadow-md;
-}
-
 @utility ui-h1 {
   @apply mt-4 mb-2 text-5xl font-semibold tracking-tight text-balance capitalize sm:mt-8 sm:mb-4 sm:text-7xl;
 }
@@ -237,21 +233,4 @@
 
 @utility ui-p {
   @apply mt-4 text-sm/6;
-}
-
-/* Change cursor to indicate card is a link. */
-@utility card-link {
-  @apply cursor-pointer;
-  &:focus {
-    --tw-outline-style: none;
-    outline-style: none;
-    @media (forced-colors: active) {
-      outline: 2px solid transparent;
-      outline-offset: 2px;
-    }
-  }
-  &:focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 2px;
-  }
 }
