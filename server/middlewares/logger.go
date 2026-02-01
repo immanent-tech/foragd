@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/angelofallars/htmx-go"
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -37,6 +38,15 @@ func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		cfg := configureLogging()
 
-		slogchi.NewWithConfig(slogctx.FromCtx(req.Context()), cfg)(next).ServeHTTP(res, req)
+		logger := slogctx.FromCtx(req.Context()).With(
+			slog.Group("request",
+				slog.Group("htmx",
+					slog.Bool("is_htmx", htmx.IsHTMX(req)),
+					slog.Bool("is_history_restore_request", htmx.IsHistoryRestoreRequest(req)),
+				),
+			),
+		)
+
+		slogchi.NewWithConfig(logger, cfg)(next).ServeHTTP(res, req)
 	})
 }
