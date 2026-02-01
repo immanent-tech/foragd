@@ -7,7 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"net/http"
 	"slices"
 )
 
@@ -311,6 +310,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			hx-target={ ContentID.Target() }
 			hx-push-url="true"
 			hx-include="[id='timezone']"
+			hx-disinherit="*"
 		>
 			<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
 				// Full text search filter.
@@ -375,6 +375,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 								hx-trigger="input changed delay:500ms,consume"
 								hx-target="#search-subscriptions-options"
 								hx-params="subscription-text"
+								hx-swap="innerHTML"
 								hx-push-url="false"
 							/>
 						</label>
@@ -547,32 +548,29 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 
 templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 	for subscription := range slices.Values(subscriptions) {
-		@NewButton(
-			WithHXMethod(http.MethodPost, "/search/subscription"),
-			WithHXSwap("beforeend"),
-			WithHXVals(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}),
-			WithHXParams("subscription_id,subscription_name,subscriptions-input-name"),
-			WithHXPushURL(false),
-			WithClasses("btn-sm hover:btn-success"),
-			WithAttribute("_", "on htmx:afterRequest(successful) remove me"),
-			// then set the previous #subscriptions-filter-select value to ''
-		) {
+		<button
+			hx-post="/search/subscription"
+			hx-swap="beforeend"
+			hx-vals={ templ.JSONString(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}) }
+			hx-params="subscription_id,subscription_name,subscriptions-input-name"
+			class="btn-sm btn-primary hover:btn-success flex items-center"
+			_="on htmx:afterRequest(successful) remove me"
+		>
 			{ subscription.GetTitle() }
 			@tabler.Plus(i.Props{Class: "size-5"})
-		}
+		</button>
 	}
 }
 
 templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequest) {
-	@NewButton(
-		WithAttribute("type", "button"),
-		WithAttribute("_", "on click remove me then halt"),
-		WithClasses("btn-sm hover:btn-error"),
-	) {
+	<button
+		class="btn btn-sm hover:btn-error"
+		_="on click remove me then halt"
+	>
 		<input type="hidden" name={ filter.InputName } value={ filter.SubscriptionID }/>
 		{ filter.SubscriptionName }
 		@tabler.X(i.Props{Class: "size-5"})
-	}
+	</button>
 }
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.

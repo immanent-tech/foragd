@@ -7,7 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"net/http"
 )
 
 type SideBarComponent struct {
@@ -20,66 +19,66 @@ templ SideBar(attributes templ.Attributes) {
 			<div aria-label="Sidebar Navigation" class="flex flex-1 flex-col place-items-center">
 				<ul role="list" class="flex flex-1 flex-col py-16 gap-y-8 my-auto">
 					<li>
-						@NewLink(
-							WithHXTrigger("click,globalShortcutHome"),
-							WithHXMethod(http.MethodGet, models.RouteHome),
-							WithHXTarget(ContentID.Target()),
-							WithHXSwap("innerHTML show:window:top transition:true"),
-							WithHXPushURL(true),
-							WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithAttribute("_", "on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"),
-						) {
+						<a
+							hx-trigger="click,globalShortcutHome"
+							hx-get="/home"
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML show:window:top transition:true"
+							hx-push-url="true"
+							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
+							_="on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"
+						>
 							<span class="sr-only">Go to Home Page</span>
 							@tabler.HomeFilled(i.Props{Class: "size-10 shrink-0 text-primary"})
 							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",models.PathFromCtx(ctx) == models.RouteHome) }>Home</span>
-						}
+						</a>
 					</li>
 					<li>
-						@NewLink(
-							WithHXTrigger("click,globalShortcutSubscriptions"),
-							WithHXMethod(http.MethodGet, models.RouteListSubscriptions),
-							WithHXTarget(ContentID.Target()),
-							WithHXSwap("innerHTML show:window:top transition:true"),
-							WithHXPushURL(true),
-							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
-							WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithAttribute("_", "on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions"),
-						) {
+						<a
+							hx-trigger="click,globalShortcutSubscriptions"
+							hx-get="/list/subscriptions"
+							hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML show:window:top transition:true"
+							hx-push-url="true"
+							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
+							_="on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions"
+						>
 							<span class="sr-only">Go to Subscriptions</span>
 							@tabler.Rss(i.Props{Class: "size-10 shrink-0 text-primary"})
 							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",models.PathFromCtx(ctx) == models.RouteListSubscriptions) }>Subscriptions</span>
-						}
+						</a>
 					</li>
 					<li>
-						@NewLink(
-							WithHXTrigger("click,globalShortcutArticles"),
-							WithHXMethod(http.MethodGet, models.RouteListArticles),
-							WithHXTarget(ContentID.Target()),
-							WithHXSwap("innerHTML show:window:top transition:true"),
-							WithHXPushURL(true),
-							WithHXVals(models.PageFiltersFromCtx(ctx, "/list/articles").Values()),
-							WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithAttribute("_", "on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles"),
-						) {
+						<a
+							hx-trigger="click,globalShortcutArticles"
+							hx-get="/list/articles"
+							hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/articles").Values()) }
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML show:window:top transition:true"
+							hx-push-url="true"
+							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
+							_="on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles"
+						>
 							<span class="sr-only">Go to Articles</span>
 							@tabler.FileRssFilled(i.Props{Class: "size-10 shrink-0 text-primary"})
 							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",models.PathFromCtx(ctx) == models.RouteListArticles) }>Articles</span>
-						}
+						</a>
 					</li>
 					<li>
-						@NewLink(
-							WithHXTrigger("click,globalShortcutFavorites"),
-							WithHXMethod(http.MethodGet, models.RouteListFavorites),
-							WithHXTarget(ContentID.Target()),
-							WithHXSwap("innerHTML show:window:top transition:true"),
-							WithHXPushURL(true),
-							WithClasses("group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"),
-							WithAttribute("_", "on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites"),
-						) {
+						<a
+							hx-trigger="click,globalShortcutFavorites"
+							hx-get="/list/favorites"
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML show:window:top transition:true"
+							hx-push-url="true"
+							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
+							_="on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites"
+						>
 							<span class="sr-only">Go to Favorites</span>
 							@tabler.HeartFilled(i.Props{Class: "size-10 shrink-0 text-primary"})
 							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",models.PathFromCtx(ctx) == models.RouteListFavorites) }>Favorites</span>
-						}
+						</a>
 					</li>
 				</ul>
 			</div>

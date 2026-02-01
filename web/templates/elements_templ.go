@@ -19,191 +19,226 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/go-syndication/types"
 	"html"
-	"maps"
-	"net/http"
 	"slices"
-	"strconv"
 	"strings"
-	"sync"
 )
 
-// Option is a generic type for functional options.
-type Option[T any] func(T)
+// // Option is a generic type for functional options.
+// type Option[T any] func(T)
 
-type HTMLElement struct {
-	sync.Mutex
-	attributes templ.Attributes
-	classes    []string
-	id         models.ElementID
+// type HTMLElement struct {
+// 	sync.Mutex
+// 	attributes templ.Attributes
+// 	classes    []string
+// 	id         models.ElementID
+// }
+
+// func NewHTMLElement() HTMLElement {
+// 	return HTMLElement{
+// 		attributes: make(templ.Attributes),
+// 		classes:    make([]string, 0),
+// 	}
+// }
+
+// func (e *HTMLElement) GetID() string {
+// 	return e.id.String()
+// }
+
+// func (e *HTMLElement) GetTarget() string {
+// 	return e.id.Target()
+// }
+
+// func (e *HTMLElement) SetID(id string) {
+// 	e.id = models.ElementID(id)
+// }
+
+// func (e *HTMLElement) SetAttribute(key string, value any) {
+// 	e.Lock()
+// 	defer e.Unlock()
+// 	e.attributes[key] = value
+// }
+
+// func (e *HTMLElement) MergeAttributes(attributes templ.Attributes) {
+// 	e.Lock()
+// 	defer e.Unlock()
+// 	maps.Copy(attributes, e.attributes)
+// }
+
+// func (e *HTMLElement) HasAttribute(key string) bool {
+// 	e.Lock()
+// 	defer e.Unlock()
+// 	_, ok := e.attributes[key]
+// 	return ok
+// }
+
+// func (e *HTMLElement) AddClasses(classes ...string) {
+// 	e.Lock()
+// 	defer e.Unlock()
+// 	e.classes = append(e.classes, classes...)
+// }
+
+// func (e *HTMLElement) GetClasses() string {
+// 	return strings.Join(e.classes, " ")
+// }
+
+// type element interface {
+// 	SetID(id string)
+// 	GetID() string
+// 	GetTarget() string
+// 	SetAttribute(key string, value any)
+// 	MergeAttributes(attributes templ.Attributes)
+// 	AddClasses(classes ...string)
+// 	GetClasses() string
+// }
+
+// func WithID(id string) Option[element] {
+// 	return func(e element) {
+// 		e.SetID(id)
+// 	}
+// }
+
+// func WithHXMethod(method, path string) Option[element] {
+// 	return func(e element) {
+// 		switch method {
+// 		case http.MethodGet:
+// 			e.SetAttribute("hx-get", path)
+// 		case http.MethodPost:
+// 			e.SetAttribute("hx-post", path)
+// 		case http.MethodPut:
+// 			e.SetAttribute("hx-put", path)
+// 		case http.MethodDelete:
+// 			e.SetAttribute("hx-delete", path)
+// 		}
+// 	}
+// }
+
+// func WithHXTarget(value string) Option[element] {
+// 	return func(e element) {
+// 		e.SetAttribute("hx-target", value)
+// 	}
+// }
+
+// func WithHXSwap(value string) Option[element] {
+// 	return func(e element) {
+// 		e.SetAttribute("hx-swap", value)
+// 	}
+// }
+
+// func WithHXInclude(value string) Option[element] {
+// 	return func(e element) {
+// 		if value != "" {
+// 			e.SetAttribute("hx-include", value)
+// 		}
+// 	}
+// }
+
+// func WithHXVals(vals map[string]any) Option[element] {
+// 	return func(e element) {
+// 		if len(vals) > 0 {
+// 			e.SetAttribute("hx-vals", generateHXVals(vals))
+// 		}
+// 	}
+// }
+
+// func WithHXValsJS(val string) Option[element] {
+// 	return func(e element) {
+// 		e.SetAttribute("hx-vals", val)
+// 	}
+// }
+
+// func WithHXParams(params string) Option[element] {
+// 	return func(e element) {
+// 		if params != "" {
+// 			e.SetAttribute("hx-params", params)
+// 		}
+// 	}
+// }
+
+// func WithHXTrigger(trigger string) Option[element] {
+// 	return func(e element) {
+// 		e.SetAttribute("hx-trigger", trigger)
+// 	}
+// }
+
+// func WithHXPushURL(value bool) Option[element] {
+// 	return func(e element) {
+// 		e.SetAttribute("hx-push-url", strconv.FormatBool(value))
+// 	}
+// }
+
+// func WithHXReplaceURL(value bool) Option[element] {
+// 	return func(e element) {
+// 		e.SetAttribute("hx-replace-url", strconv.FormatBool(value))
+// 	}
+// }
+
+// func WithClasses(classes ...string) Option[element] {
+// 	return func(e element) {
+// 		e.AddClasses(classes...)
+// 	}
+// }
+
+// func WithAttribute(key string, value any) Option[element] {
+// 	return func(e element) {
+// 		e.SetAttribute(key, value)
+// 	}
+// }
+
+// func WithAttributes(attributes templ.Attributes) Option[element] {
+// 	return func(e element) {
+// 		if attributes != nil {
+// 			e.MergeAttributes(attributes)
+// 		}
+// 	}
+// }
+
+// MailtoLink represents a link that will open the user's mail client, with optionall pre-filled details).
+type MailtoLink struct {
+	to    string
+	parts []string
 }
 
-func NewHTMLElement() HTMLElement {
-	return HTMLElement{
-		attributes: make(templ.Attributes),
-		classes:    make([]string, 0),
+// NewMailtoLink creates a new html link with a `mailto:` href attribute.
+func BuildMailTo(to string, options ...MailtoOption) string {
+	mtl := &MailtoLink{}
+	for option := range slices.Values(options) {
+		option(mtl)
+	}
+	var builder strings.Builder
+	builder.WriteString("mailto:")
+	builder.WriteString(mtl.to)
+	if len(mtl.parts) > 0 {
+		builder.WriteString("?")
+		builder.WriteString(strings.Join(mtl.parts, "&"))
+	}
+
+	return builder.String()
+}
+
+// MailtoOption is a functional option to apply to a mailto: link object.
+type MailtoOption func(*MailtoLink)
+
+// WithMailtoSubject option adds a subject to the mailto: link.
+func WithMailtoSubject(subject string) MailtoOption {
+	return func(mtl *MailtoLink) {
+		mtl.parts = append(mtl.parts, "subject="+html.EscapeString(subject))
 	}
 }
 
-func (e *HTMLElement) GetID() string {
-	return e.id.String()
-}
-
-func (e *HTMLElement) GetTarget() string {
-	return e.id.Target()
-}
-
-func (e *HTMLElement) SetID(id string) {
-	e.id = models.ElementID(id)
-}
-
-func (e *HTMLElement) SetAttribute(key string, value any) {
-	e.Lock()
-	defer e.Unlock()
-	e.attributes[key] = value
-}
-
-func (e *HTMLElement) MergeAttributes(attributes templ.Attributes) {
-	e.Lock()
-	defer e.Unlock()
-	maps.Copy(attributes, e.attributes)
-}
-
-func (e *HTMLElement) HasAttribute(key string) bool {
-	e.Lock()
-	defer e.Unlock()
-	_, ok := e.attributes[key]
-	return ok
-}
-
-func (e *HTMLElement) AddClasses(classes ...string) {
-	e.Lock()
-	defer e.Unlock()
-	e.classes = append(e.classes, classes...)
-}
-
-func (e *HTMLElement) GetClasses() []string {
-	return e.classes
-}
-
-type element interface {
-	SetID(id string)
-	GetID() string
-	GetTarget() string
-	SetAttribute(key string, value any)
-	MergeAttributes(attributes templ.Attributes)
-	AddClasses(classes ...string)
-	GetClasses() []string
-}
-
-func WithID(id string) Option[element] {
-	return func(e element) {
-		e.SetID(id)
+// WithMailtoBody option adds body text to the mailto: link.
+func WithMailtoBody(body string) MailtoOption {
+	return func(mtl *MailtoLink) {
+		mtl.parts = append(mtl.parts, "body="+html.EscapeString(body))
 	}
 }
 
-func WithHXMethod(method, path string) Option[element] {
-	return func(e element) {
-		switch method {
-		case http.MethodGet:
-			e.SetAttribute("hx-get", path)
-		case http.MethodPost:
-			e.SetAttribute("hx-post", path)
-		case http.MethodPut:
-			e.SetAttribute("hx-put", path)
-		case http.MethodDelete:
-			e.SetAttribute("hx-delete", path)
-		}
-	}
+type ProxiedImage struct {
+	*Element
 }
 
-func WithHXTarget(value string) Option[element] {
-	return func(e element) {
-		e.SetAttribute("hx-target", value)
-	}
-}
-
-func WithHXSwap(value string) Option[element] {
-	return func(e element) {
-		e.SetAttribute("hx-swap", value)
-	}
-}
-
-func WithHXInclude(value string) Option[element] {
-	return func(e element) {
-		if value != "" {
-			e.SetAttribute("hx-include", value)
-		}
-	}
-}
-
-func WithHXVals(vals map[string]any) Option[element] {
-	return func(e element) {
-		if len(vals) > 0 {
-			e.SetAttribute("hx-vals", generateHXVals(vals))
-		}
-	}
-}
-
-func WithHXValsJS(val string) Option[element] {
-	return func(e element) {
-		e.SetAttribute("hx-vals", val)
-	}
-}
-
-func WithHXParams(params string) Option[element] {
-	return func(e element) {
-		if params != "" {
-			e.SetAttribute("hx-params", params)
-		}
-	}
-}
-
-func WithHXTrigger(trigger string) Option[element] {
-	return func(e element) {
-		e.SetAttribute("hx-trigger", trigger)
-	}
-}
-
-func WithHXPushURL(value bool) Option[element] {
-	return func(e element) {
-		e.SetAttribute("hx-push-url", strconv.FormatBool(value))
-	}
-}
-
-func WithHXReplaceURL(value bool) Option[element] {
-	return func(e element) {
-		e.SetAttribute("hx-replace-url", strconv.FormatBool(value))
-	}
-}
-
-func WithClasses(classes ...string) Option[element] {
-	return func(e element) {
-		e.AddClasses(classes...)
-	}
-}
-
-func WithAttribute(key string, value any) Option[element] {
-	return func(e element) {
-		e.SetAttribute(key, value)
-	}
-}
-
-func WithAttributes(attributes templ.Attributes) Option[element] {
-	return func(e element) {
-		if attributes != nil {
-			e.MergeAttributes(attributes)
-		}
-	}
-}
-
-type Link struct {
-	HTMLElement
-}
-
-func NewLink(options ...Option[element]) templ.Component {
+func NewProxiedImage(img *types.ImageInfo, props string, options ...ElementOption) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -224,25 +259,26 @@ func NewLink(options ...Option[element]) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		link := &Link{HTMLElement: NewHTMLElement()}
-		WithClasses("link")(link)
+		elem := &ProxiedImage{Element: NewElement()}
 		for option := range slices.Values(options) {
-			option(link)
+			option(elem.Element)
 		}
-		link.SetAttribute("class", strings.Join(link.GetClasses(), " "))
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a")
+		elem.SetAttribute("class", elem.GetClasses())
+		elem.SetAttribute("loading", "lazy")
+		elem.SetAttribute("decoding", "async")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<img")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if link.GetID() != "" {
+		if elem.GetID() != "" {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " id=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(link.GetID())
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(elem.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 209, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 242, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -253,390 +289,41 @@ func NewLink(options ...Option[element]) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " tabindex=\"0\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, link.attributes)
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(generateImageProxyURL(ctx, img.GetURL(), props))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 244, Col: 55}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, ">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" alt=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var1.Render(ctx, templ_7745c5c3_Buffer)
+		var templ_7745c5c3_Var4 string
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 245, Col: 22}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</a>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		return nil
-	})
-}
-
-// MailtoLink represents a link that will open the user's mail client, with optionall pre-filled details).
-type MailtoLink struct {
-	to          string
-	parts       []string
-	linkOptions []Option[element]
-	link        *Link
-}
-
-// MailtoOption is a functional option to apply to a mailto: link object.
-type MailtoOption func(*MailtoLink)
-
-// WithMailtoSubject option adds a subject to the mailto: link.
-func WithMailtoSubject(subject string) MailtoOption {
-	return func(mtl *MailtoLink) {
-		mtl.parts = append(mtl.parts, "subject="+html.EscapeString(subject))
-	}
-}
-
-// WithMailtoBody option adds body text to the mailto: link.
-func WithMailtoBody(body string) MailtoOption {
-	return func(mtl *MailtoLink) {
-		mtl.parts = append(mtl.parts, "body="+html.EscapeString(body))
-	}
-}
-
-// WithLinkOptions option passes the given options to the underlying link object. It can be used for further
-// customisation of the link.
-func WithLinkOptions(options ...Option[element]) MailtoOption {
-	return func(mtl *MailtoLink) {
-		mtl.linkOptions = append(mtl.linkOptions, options...)
-	}
-}
-
-// NewMailtoLink creates a new html link with a `mailto:` href attribute.
-func NewMailtoLink(to string, options ...MailtoOption) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var3 == nil {
-			templ_7745c5c3_Var3 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		mailto := &MailtoLink{
-			link: &Link{HTMLElement: NewHTMLElement()},
-		}
-		for mtOption := range slices.Values(options) {
-			mtOption(mailto)
-		}
-		var builder strings.Builder
-		builder.WriteString("mailto:")
-		builder.WriteString(mailto.to)
-		if len(mailto.parts) > 0 {
-			builder.WriteString("?")
-			builder.WriteString(strings.Join(mailto.parts, "&"))
-		}
-		WithAttribute("href", builder.String())(mailto.link)
-		for linkOption := range slices.Values(mailto.linkOptions) {
-			linkOption(mailto.link)
-		}
-		WithClasses("link", "link-hover")(mailto.link)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<a")
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, elem.GetAttributes())
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if mailto.link.GetID() != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(mailto.link.GetID())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 277, Col: 27}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " tabindex=\"0\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, mailto.link.attributes)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, ">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var3.Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</a>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-type Button struct {
-	HTMLElement
-}
-
-func NewButton(options ...Option[element]) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var5 == nil {
-			templ_7745c5c3_Var5 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		btn := &Button{HTMLElement: NewHTMLElement()}
-		WithClasses("btn")(btn)
-		for option := range slices.Values(options) {
-			option(btn)
-		}
-		btn.SetAttribute("class", strings.Join(btn.GetClasses(), " "))
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<button")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if btn.GetID() != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var6 string
-			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(btn.GetID())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 299, Col: 19}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, " tabindex=\"0\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, btn.attributes)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, ">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var5.Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</button>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-type Div struct {
-	HTMLElement
-}
-
-func NewDiv(options ...Option[element]) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var7 == nil {
-			templ_7745c5c3_Var7 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		div := &Div{HTMLElement: NewHTMLElement()}
-		for option := range slices.Values(options) {
-			option(div)
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if div.GetID() != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, " id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(div.GetID())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 319, Col: 19}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, div.attributes)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, ">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var7.Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return nil
-	})
-}
-
-type ProxiedImage struct {
-	HTMLElement
-}
-
-func NewProxiedImage(img *types.ImageInfo, props string, options ...Option[element]) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var9 == nil {
-			templ_7745c5c3_Var9 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		elem := &ProxiedImage{HTMLElement: NewHTMLElement()}
-		for option := range slices.Values(options) {
-			option(elem)
-		}
-		elem.SetAttribute("class", strings.Join(elem.GetClasses(), " "))
-		elem.SetAttribute("loading", "lazy")
-		elem.SetAttribute("decoding", "async")
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<img")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if elem.GetID() != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " id=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(elem.GetID())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 341, Col: 20}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " src=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(generateImageProxyURL(ctx, img.GetURL(), props))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 343, Col: 55}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" alt=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var12 string
-		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/elements.templ`, Line: 344, Col: 22}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, elem.attributes)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, ">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, ">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

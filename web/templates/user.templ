@@ -24,16 +24,15 @@ templ UserChooseSubscriptionPlan(user *models.User, planID string) {
 				if mgmtLink := os.Getenv("FORAGD_STRIPE_SUBCRIPTIONMGMTURL"); mgmtLink != "" {
 					<a role="button" class="btn btn-primary" href={ mgmtLink }>Manage Subscription Plan</a>
 				} else {
-					@NewMailtoLink(
-						"support@immanent.tech",
-						WithMailtoSubject("Foragd Subscription Question"),
-						WithLinkOptions(
-							WithAttribute("role", "button"),
-							WithClasses("btn", "btn-primary"),
-						),
-					) {
+					<a
+						role="button"
+						href={ BuildMailTo("support@immanent.tech",
+					WithMailtoSubject("Foragd Subscription Question"),
+					) }
+						class="btn btn-primary"
+					>
 						Email support to manage your subscription
-					}
+					</a>
 				}
 			</div>
 		} else {
@@ -58,23 +57,16 @@ templ UserAccountIssue() {
 			<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">We cannot log you in as there is a problem with your account details.</p>
 			<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">Please contact us to resolve all issues.</p>
 			<div class="mt-10 flex items-center justify-center gap-x-6">
-				@NewLink(
-					WithAttribute("role", "button"),
-					WithAttribute("href", "/"),
-					WithClasses("btn", "btn-primary"),
-				) {
-					Go Back
-				}
-				@NewMailtoLink(
-					"support@immanent.tech",
-					WithMailtoSubject("Foragd Account Issue"),
-					WithLinkOptions(
-						WithAttribute("role", "button"),
-						WithClasses("btn", "btn-ghost"),
-					),
-				) {
+				@partials.ButtonBack()
+				<a
+					role="button"
+					href={ BuildMailTo("support@immanent.tech",
+					WithMailtoSubject("Foragd Subscription Question"),
+					) }
+					class="btn btn-ghost"
+				>
 					Email Support <span aria-hidden="true">&rarr;</span>
-				}
+				</a>
 			</div>
 		</div>
 	</div>
@@ -112,10 +104,10 @@ templ DeactivateAccountModal() {
 
 templ UserAvatar(user *models.User, attributes templ.Attributes) {
 	@NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "Avatar for user " + user.GetNickname()},
-		"rs:auto:48:48/sh:0.5/ext:webp",
+		"rs:auto:32:32/sh:0.5/ext:webp",
 		WithClasses("flex rounded-full outline -outline-offset-1 outline-base-content/10"),
-		WithAttribute("width", "48"),
-		WithAttribute("height", "48"),
+		WithAttribute("width", "32"),
+		WithAttribute("height", "32"),
 		WithID("user-avatar"),
 		WithAttributes(attributes),
 	)

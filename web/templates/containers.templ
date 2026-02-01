@@ -3,8 +3,11 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/web/templates/partials"
-import "github.com/immanent-tech/foragd/models"
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+	"slices"
+)
 
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
 // (i.e., privacy policy, terms of service, etc.)
@@ -30,8 +33,17 @@ templ content() {
 }
 
 // container constrains children to a nominal width and adds some padding.
-templ container() {
-	<div class="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+templ container(options ...ElementOption) {
+	{{
+		e := NewElement()
+		for option := range slices.Values(options) {
+			option(e)
+		}
+	}}
+	<div
+		class={ "mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8", templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
+		{ e.GetAttributes()... }
+	>
 		{ children... }
 	</div>
 }

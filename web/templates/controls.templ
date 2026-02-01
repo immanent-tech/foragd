@@ -7,7 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"net/http"
 	"slices"
 	"strconv"
 	"strings"
@@ -194,42 +193,38 @@ templ FilterControls(path string, filters *models.ListFilters) {
 		</div>
 		// Active Filters.
 		if (path == "/list/subscriptions" && filters.OnlyFavorites) || len(filters.GetCategories()) > 0 {
-			<div>
-				<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
-					<h3 class="ui-h3">
-						Filtered By
-					</h3>
-					<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>
-					<div class="mt-2 sm:mt-0 sm:ml-4">
-						<div id="active-filters" class="-m-1 flex flex-wrap items-center">
-							// Add favorites filter badge if listing subscriptions and favorites filter is active.
-							if path == "/list/subscriptions" && filters.OnlyFavorites {
-								<form id="filter-clear-only-favorites" class="flex items-center">
-									<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-									<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-									<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-									for subscription := range slices.Values(filters.GetSubscriptions()) {
-										<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-									}
-									for category := range slices.Values(filters.GetCategories()) {
-										<input type="hidden" name={ models.ParamCategories } value={ category }/>
-									}
-									@NewCategoryBadge("Favorites").Render("badge-secondary", "m-1") {
-										<button
-											hx-get={ models.PathFromCtx(ctx) }
-											hx-replace-url="true"
-											hx-target={ ContentID.Target() }
-											hx-vals={ `{"only_favorites": "false"}` }
-										>
-											@tabler.X(i.Props{Class: "size-4"})
-										</button>
-									}
-								</form>
-							}
-							if len(filters.GetCategories()) > 0 {
-								@activeCategoryFilterBadge(path, filters.GetCategories()[0], filters)
-							}
-						</div>
+			<div class="mx-auto max-w-7xl px-4 py-3 sm:flex sm:items-center sm:px-6 lg:px-8">
+				<span class="text-lg font-medium">Filtered By</span>
+				<div aria-hidden="true" class="hidden h-5 w-px bg-base-content/40 sm:ml-4 sm:block"></div>
+				<div class="mt-2 sm:mt-0 sm:ml-4">
+					<div id="active-filters" class="-m-1 flex flex-wrap items-center">
+						// Add favorites filter badge if listing subscriptions and favorites filter is active.
+						if path == "/list/subscriptions" && filters.OnlyFavorites {
+							<form id="filter-clear-only-favorites" class="flex items-center">
+								<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+								<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+								<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+								for subscription := range slices.Values(filters.GetSubscriptions()) {
+									<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+								}
+								for category := range slices.Values(filters.GetCategories()) {
+									<input type="hidden" name={ models.ParamCategories } value={ category }/>
+								}
+								@NewCategoryBadge("Favorites").Render("badge-secondary", "m-1") {
+									<button
+										hx-get={ models.PathFromCtx(ctx) }
+										hx-replace-url="true"
+										hx-target={ ContentID.Target() }
+										hx-vals={ `{"only_favorites": "false"}` }
+									>
+										@tabler.X(i.Props{Class: "size-4"})
+									</button>
+								}
+							</form>
+						}
+						if len(filters.GetCategories()) > 0 {
+							@activeCategoryFilterBadge(path, filters.GetCategories()[0], filters)
+						}
 					</div>
 				</div>
 			</div>
@@ -254,10 +249,6 @@ templ ListCategoryFilters(filters *models.CategoryFilters) {
 
 // viewFilter renders a checkbox for a view filter.
 templ viewFilter(path, id string, view models.View, filters *models.ListFilters) {
-	{{ var class string }}
-	if view == filters.GetView() {
-		{{ class = "text-primary font-semibold" }}
-	}
 	<form id={ "view-filter-" + view }>
 		<input type="hidden" name={ models.ParamView } value={ view }/>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
@@ -268,25 +259,19 @@ templ viewFilter(path, id string, view models.View, filters *models.ListFilters)
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		@NewLink(
-			WithHXMethod(http.MethodPost, path),
-			WithHXTarget(ContentID.Target()),
-			WithHXReplaceURL(true),
-			WithHXSwap("innerHTML transition:true"),
-			WithClasses("link-hover", "block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
-		) {
-			{ string(view) }
-		}
+		<a
+			hx-post={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			class={ "link link-hover block px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize", templ.KV("text-primary font-semibold",view==filters.GetView()) }
+		>
+			{ view }
+		</a>
 	</form>
 }
 
 templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
-	{{ var onlyFavoritesActiveClass string }}
-	{{ overrides := make(map[string]any) }}
-	if filters.OnlyFavorites {
-		{{ onlyFavoritesActiveClass = "text-primary font-semibold" }}
-		{{ overrides[models.ParamOnlyFavorites] = "false" }}
-	}
 	<form id={ id }>
 		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
@@ -297,26 +282,22 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		@NewLink(
-			WithHXMethod(http.MethodGet, path),
-			WithHXTarget(ContentID.Target()),
-			WithHXVals(overrides),
-			WithHXReplaceURL(true),
-			WithHXSwap("innerHTML transition:true"),
-			WithHXVals(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}),
-			WithClasses("link-hover", "block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", onlyFavoritesActiveClass),
-		) {
+		<a
+			hx-post={ path }
+			hx-target={ ContentID.Target() }
+			hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			class={ "link link-hover block px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize",
+			templ.KV(filters.OnlyFavorites,"text-primrary font-semibold") }
+		>
 			Only Favorites
-		}
+		</a>
 	</form>
 }
 
 // categoryFilter renders a checkbox for a category filter.
 templ categoryFilter(path, id string, category models.CategoryCount, filters *models.ListFilters) {
-	{{ var class string }}
-	if filters.GetCategories().HasCategory(category.Category) {
-		{{ class = "text-primary font-semibold" }}
-	}
 	<form id={ "filter-category-" + strings.ToLower(strings.ReplaceAll(category.Category, " ", "_")) }>
 		<input type="hidden" name={ models.ParamCategories } value={ category.Category }/>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
@@ -325,16 +306,17 @@ templ categoryFilter(path, id string, category models.CategoryCount, filters *mo
 		for subscription := range slices.Values(filters.GetSubscriptions()) {
 			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 		}
-		@NewLink(
-			WithHXMethod(http.MethodPost, path),
-			WithHXTarget(ContentID.Target()),
-			WithHXReplaceURL(true),
-			WithHXSwap("innerHTML transition:true"),
-			WithID(id),
-			WithClasses("link-hover", "block", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", class),
-		) {
-			{ string(category.Category) }
-		}
+		<a
+			id={ id }
+			hx-post={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			class={ "link link-hover block px-4 py-2 text-sm focus:text-primary focus:outline-hidden",
+			templ.KV("text-primary font-semibold",filters.GetCategories().HasCategory(category.Category)) }
+		>
+			{ category.Category }
+		</a>
 	</form>
 }
 
@@ -346,16 +328,16 @@ templ clearCategoryFilters(path, id string, filters *models.ListFilters) {
 		for subscription := range slices.Values(filters.GetSubscriptions()) {
 			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 		}
-		@NewLink(
-			WithHXMethod(http.MethodPost, path),
-			WithHXTarget(ContentID.Target()),
-			WithHXReplaceURL(true),
-			WithHXSwap("innerHTML transition:true"),
-			WithClasses("link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize"),
-		) {
+		<a
+			hx-post={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize"
+		>
 			@tabler.X(i.Props{Class: "size-4"})
 			Clear
-		}
+		</a>
 	</form>
 }
 
@@ -369,25 +351,21 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 				for subscription := range slices.Values(filters.GetSubscriptions()) {
 					<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 				}
-				@NewLink(
-					WithHXMethod(http.MethodPost, path),
-					WithHXTarget(ContentID.Target()),
-					WithHXReplaceURL(true),
-					WithHXSwap("innerHTML transition:true"),
-					WithClasses("link-hover"),
-				) {
+				<a
+					hx-post={ path }
+					hx-target={ ContentID.Target() }
+					hx-replace-url="true"
+					hx-swap="innerHTML transition:true"
+					class="link link-hover"
+				>
 					@tabler.X(i.Props{Class: "size-4"})
-				}
+				</a>
 			</form>
 		}
 	</div>
 }
 
 templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
-	{{ var class string }}
-	if sort == filters.GetSort() {
-		{{ class = "text-primary font-semibold" }}
-	}
 	<form id={ "sort-" + string(sort) }>
 		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
@@ -398,13 +376,14 @@ templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		@NewLink(
-			WithHXMethod(http.MethodPost, path),
-			WithHXTarget(ContentID.Target()),
-			WithHXReplaceURL(true),
-			WithHXSwap("innerHTML transition:true"),
-			WithClasses("link-hover", "flex", "items-center", "gap-x-2", "px-4", "py-2", "text-sm", "focus:text-primary", "focus:outline-hidden", "capitalize", class),
-		) {
+		<a
+			hx-post={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			class={ "link-hover flex items-center gap-x-2 px-4 py-2 text-sm focus:text-primary focus:outline-hidden capitalize",
+	templ.KV("text-primary font-semibold",sort==filters.GetSort()) }
+		>
 			switch sort {
 				case models.SortNewestFirst:
 					@tabler.SortDescending2(i.Props{Class: "size-4"})
@@ -416,6 +395,6 @@ templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
 					@tabler.SortAscendingNumbers(i.Props{Class: "size-4"})
 			}
 			{ sort.String() }
-		}
+		</a>
 	</form>
 }

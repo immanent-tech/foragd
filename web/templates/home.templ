@@ -21,7 +21,9 @@ templ UserHome(data *models.HomeResponse) {
 					// User has no unread content, show a message and link to favorites.
 					<div class="text-center">
 						@tabler.Confetti(i.Props{Class: "mx-auto text-accent size-12"})
-						@partials.Heading3("All caught up!")
+						@partials.Heading3() {
+							All caught up!
+						}
 						@partials.Paragraph() {
 							Congratulations, you've read everything!
 						}

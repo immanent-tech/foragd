@@ -101,16 +101,16 @@ templ ViewerResults(feed *feeds.Feed) {
 					</div>
 				</div>
 				<div class="mt-5 flex justify-center sm:mt-0">
-					@NewLink(
-						WithAttribute("href", feed.GetLink()),
-						WithAttribute("target", "_blank"),
-						WithAttribute("rel", "noopener"),
-						WithAttribute("role", "button"),
-						WithClasses("btn", "btn-primary", "link-hover"),
-					) {
+					<a
+						href={ feed.GetLink() }
+						target="_blank"
+						rel="noopener"
+						role="button"
+						class="btn btn-primary link link-hover flex items-center"
+					>
 						View Website
 						@tabler.ExternalLink()
-					}
+					</a>
 				</div>
 			</div>
 		</div>
@@ -195,16 +195,16 @@ templ viewerItemCard(item feeds.Item) {
 				}
 			</div>
 			<div class="card-actions justify-end">
-				@NewLink(
-					WithAttribute("href", item.GetLink()),
-					WithAttribute("target", "_blank"),
-					WithAttribute("rel", "noopener"),
-					WithAttribute("role", "button"),
-					WithClasses("btn", "btn-primary", "link-hover"),
-				) {
+				<a
+					href={ item.GetLink() }
+					target="_blank"
+					rel="noopener"
+					role="button"
+					class="btn btn-primary link link-hover flex items-center"
+				>
 					View
 					@tabler.ExternalLink()
-				}
+				</a>
 			</div>
 		</div>
 	</div>

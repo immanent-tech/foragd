@@ -69,16 +69,15 @@ templ AccountSettings(user *models.User) {
 				if mgmtLink := os.Getenv("FORAGD_STRIPE_SUBCRIPTIONMGMTURL"); mgmtLink != "" {
 					<a role="button" class="btn btn-primary" href={ mgmtLink }>Manage Subscription Plan</a>
 				} else {
-					@NewMailtoLink(
-						"support@immanent.tech",
-						WithMailtoSubject("Foragd Subscription Question"),
-						WithLinkOptions(
-							WithAttribute("role", "button"),
-							WithClasses("btn", "btn-primary"),
-						),
-					) {
+					<a
+						role="button"
+						href={ BuildMailTo("support@immanent.tech",
+					WithMailtoSubject("Foragd Subscription Question"),
+					) }
+						class="btn btn-primary"
+					>
 						Email support to manage your subscription
-					}
+					</a>
 				}
 			</div>
 		</div>
@@ -420,15 +419,13 @@ templ ShowSubscriptionEmail(email string) {
 	<p class="mt-1 text-sm/6 col-span-full">This is your unique subscription email. Use it in place of your own email to subscribe to email newsletters.</p>
 	<div class="join join-vertical sm:join-horizontal col-span-full">
 		<input type="text" class="input input-primary join-item" value={ email } readonly/>
-		@NewButton(
-			WithAttribute("_",
-				"on click set currentValue to (my innerHTML) then writeText('"+email+"') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me",
-			),
-			WithClasses("join-item"),
-		) {
+		<button
+			class="join-item"
+			_={ "on click set currentValue to (my innerHTML) then writeText('" + email + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
+		>
 			@tabler.Copy(i.Props{Class: "size-4"})
 			<span class="sr-only">Copy</span>
-		}
+		</button>
 	</div>
 	// <el-copyable id="subscription-email">{ email }</el-copyable>
 	// <button command="--copy" commandfor="subscription-email" class="btn btn-primary">

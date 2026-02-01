@@ -9,7 +9,6 @@ import (
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"net/http"
 	"slices"
 	"strconv"
 )
@@ -1312,14 +1311,14 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 		}
 	</ul>
 	<div class="py-4">
-		@NewButton(
-			WithHXMethod(http.MethodGet, "/list/subscriptions"),
-			WithHXTarget(ContentID.Target()),
-			WithHXVals(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()),
-			WithClasses("btn-primary"),
-		) {
+		<button
+			hx-get="/list/subscriptions"
+			hx-target={ ContentID.Target() }
+			hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
+			class="btn-primary"
+		>
 			Go to your subscriptions
-		}
+		</button>
 	</div>
 	<div class="py-4 space-y-8">
 		<ul class="list">

@@ -7,7 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"net/http"
 )
 
 templ header(user *models.User) {
@@ -15,15 +14,12 @@ templ header(user *models.User) {
 		aria-label="Header"
 		class="sticky w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30"
 	>
-		@NewLink(
-			WithAttribute("href", "/home"),
-			WithClasses("link-hover"),
-		) {
+		<a href="/home" class="link link-hover">
 			<div class="flex flex-row shrink-0 p-2 items-center text-primary">
 				@LogoSmall("flex size-8")
 				<p class="font-bold hidden lg:flex">Foragd</p>
 			</div>
-		}
+		</a>
 		if user != nil {
 			// Global search bar.
 			<div class="flex flex-1 justify-center">
@@ -75,64 +71,64 @@ templ header(user *models.User) {
 				</el-dialog>
 			</div>
 			// User settings menu.
-			<div class="flex items-center justify-end mx-2 sm:mr-4">
+			<div class="flex items-center justify-end mx-2 sm:mr-4 space-x-2">
 				<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10"></div>
 				<el-dropdown id="header-user-menu" class="relative">
-					@NewButton(
-						WithID("header-menu-button"),
-						WithClasses("btn-ghost btn-square"),
-					) {
+					<button class="btn-ghost btn-square">
 						<span class="sr-only">Open settings menu</span>
 						@UserAvatar(user, nil)
-					}
+					</button>
 					<el-menu id="header-menu" anchor="bottom end" popover>
 						// Open settings menu.
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/user/settings"),
-							WithHXTarget(ContentID.Target()),
-							WithHXPushURL(true),
-							WithAttribute("_", "on click remove @open from #header-menu"),
-							WithClasses("link-hover"),
-						) {
+						<a
+							hx-get="/user/settings"
+							hx-target={ ContentID.Target() }
+							hx-push-url="true"
+							_="on click remove @open from #header-menu"
+							class="link link-hover hover:text-primary"
+						>
 							<div class="flex flex-1 items-center gap-x-2">
 								@tabler.SettingsFilled(i.Props{Class: "size-4"})
 								Settings
 							</div>
-						}
+						</a>
 						// Help documentation.
-						@NewLink(
-							WithAttribute("href", "/help"),
-							WithAttribute("rel", "noopener"),
-							WithAttribute("target", "_blank"),
-							WithClasses("link-hover"),
-						) {
+						<a
+							href="/help"
+							rel="noopener"
+							target="_blank"
+							class="link link-hover hover:text-primary"
+							_="on click remove @open from #header-menu"
+						>
 							<div class="flex flex-1 items-center gap-x-2">
 								@tabler.Help(i.Props{Class: "size-4"})
 								Help/Documentation
 							</div>
-						}
+						</a>
 						// Report issue.
-						@NewLink(
-							WithHXMethod(http.MethodGet, "/issue"),
-							WithHXTarget(ContentID.Target()),
-							WithHXReplaceURL(true),
-							WithClasses("link-hover"),
-						) {
+						<a
+							hx-get="/issue"
+							hx-target={ ContentID.Target() }
+							hx-replace-url="true"
+							class="link link-hover hover:text-primary"
+							_="on click remove @open from #header-menu"
+						>
 							<div class="flex flex-1 items-center gap-x-2">
 								@tabler.FlagFilled(i.Props{Class: "size-4"})
 								Report an issue
 							</div>
-						}
+						</a>
 						// Logout
-						@NewLink(
-							WithAttribute("href", "/logout"),
-							WithClasses("link-hover"),
-						) {
+						<a
+							href="/logout"
+							class="link link-hover hover:text-primary"
+							_="on click remove @open from #header-menu"
+						>
 							<div class="flex flex-1 items-center gap-x-2">
 								@tabler.Logout(i.Props{Class: "size-4"})
 								Log out
 							</div>
-						}
+						</a>
 					</el-menu>
 				</el-dropdown>
 			</div>
