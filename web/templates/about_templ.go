@@ -34,71 +34,73 @@ func About() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-base-100\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = header(nil).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<main class=\"relative isolate mb-24\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-4 -z-10 flex transform-gpu justify-center\n\t\t\toverflow-hidden blur-3xl\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%,\n\t\t\t\t\t60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6%\n\t\t\t\t\t76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5\n\t\t\t\t\t-translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30\n\t\t\t\t\tsm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20\"></div></div><div class=\"px-6 pt-14 lg:px-8\"><div class=\"mx-auto max-w-2xl pt-24 text-center sm:pt-40\"><h1 class=\"text-5xl font-semibold tracking-tight text-primary\">Reading Feeds Shouldn't Be a Chore</h1><p class=\"mt-8 text-lg font-medium text-pretty sm:text-xl/8\">Foragd is a new generation feed aggregator and reader for RSS, Atom, JSONFeed syndication formats.</p></div></div><div class=\"mx-auto mt-20 max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl lg:mx-0 lg:max-w-none\"><div class=\"grid max-w-xl grid-cols-1 gap-8 text-base/7 lg:max-w-none lg:grid-cols-2\"><div><p>I’m unsure where the concept of RSS/Atom feeds being synonymous to your email came from, but I sure am tired of it.</p><p class=\"mt-8\">Why are a lot of apps designed around, what is ultimately a business-orientated, task-based UI? Why do I need unread counts of my feeds? I can barely keep up with my email and unread counts are ultimately meaningless when they are in the hundreds, if not thousands, as most of us are probably facing.</p></div><div><p>Then there is the organisation. Folders don’t align how I think about organising content. Often, something is both this <b>and</b> that.</p><p class=\"mt-8\">Remember magazines? What about Social Media? They don’t have unread counts and folders. That’s moon-man business talk. These formats do one thing right; they have text that flows and a UI that’s less about organisation and more about showing off the content. I don’t want to be pressured into reading until the count is zero, I just want to read what I want to read, when I want.</p></div></div><p class=\"mt-8 text-lg text-center font-semibold text-pretty sm:text-xl/8\">Foragd is different.</p></div></div><div class=\"mx-auto mt-32 max-w-7xl px-6 sm:mt-40 lg:px-8\"><div class=\"mx-auto max-w-2xl lg:mx-0\"><h2 class=\"text-4xl font-semibold tracking-tight text-pretty sm:text-5xl text-primary\">Foragd Design</h2><p class=\"mt-6 text-lg/8\">Make reading and discovering content fun again.</p></div><dl class=\"mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-16\"><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.AlertCircleOff(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "No pressure.</dt><dd class=\"inline\">No unread counts by default.</dd></div><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Category(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Flexible organisation.</dt><dd class=\"inline\">Organising content with categories should be natural, not rigid.</dd></div><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Map(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Exploration encouraged.</dt><dd class=\"inline\">No algorithms or recommendations.</dd></div><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Search(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "Search first.</dt><dd class=\"inline\">Make search powerful, functional and first-class.</dd></div><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Typeface(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "Content focused.</dt><dd class=\"inline\">Use beautiful typography and make reading content online pleasurable.</dd></div><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Heart(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "1000 true fans.</dt><dd class=\"inline\">Make something for people, not for profit.</dd></div></dl></div><div class=\"relative -z-10 mt-32 px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl text-primary\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"/#pricing\" role=\"button\" class=\"btn btn-primary\">Start a free trial</a></div></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-16 -z-10 flex transform-gpu justify-center\n\t\t\t\toverflow-hidden blur-3xl\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20\"></div></div></main>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = footer().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div>")
+		templ_7745c5c3_Var2 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<main class=\"relative isolate mb-24\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-4 -z-10 flex transform-gpu justify-center\n\t\t\toverflow-hidden blur-3xl\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%,\n\t\t\t\t\t60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6%\n\t\t\t\t\t76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5\n\t\t\t\t\t-translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30\n\t\t\t\t\tsm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20\"></div></div><div class=\"px-6 pt-14 lg:px-8\"><div class=\"mx-auto max-w-2xl pt-24 text-center sm:pt-40\"><h1 class=\"text-5xl font-semibold tracking-tight text-primary\">Reading Feeds Shouldn't Be a Chore</h1><p class=\"mt-8 text-lg font-medium text-pretty sm:text-xl/8\">Foragd is a new generation feed aggregator and reader for RSS, Atom, JSONFeed syndication formats.</p></div></div><div class=\"mx-auto mt-20 max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl lg:mx-0 lg:max-w-none\"><div class=\"grid max-w-xl grid-cols-1 gap-8 text-base/7 lg:max-w-none lg:grid-cols-2\"><div><p>I’m unsure where the concept of RSS/Atom feeds being synonymous to your email came from, but I sure am tired of it.</p><p class=\"mt-8\">Why are a lot of apps designed around, what is ultimately a business-orientated, task-based UI? Why do I need unread counts of my feeds? I can barely keep up with my email and unread counts are ultimately meaningless when they are in the hundreds, if not thousands, as most of us are probably facing.</p></div><div><p>Then there is the organisation. Folders don’t align how I think about organising content. Often, something is both this <b>and</b> that.</p><p class=\"mt-8\">Remember magazines? What about Social Media? They don’t have unread counts and folders. That’s moon-man business talk. These formats do one thing right; they have text that flows and a UI that’s less about organisation and more about showing off the content. I don’t want to be pressured into reading until the count is zero, I just want to read what I want to read, when I want.</p></div></div><p class=\"mt-8 text-lg text-center font-semibold text-pretty sm:text-xl/8\">Foragd is different.</p></div></div><div class=\"mx-auto mt-32 max-w-7xl px-6 sm:mt-40 lg:px-8\"><div class=\"mx-auto max-w-2xl lg:mx-0\"><h2 class=\"text-4xl font-semibold tracking-tight text-pretty sm:text-5xl text-primary\">Foragd Design</h2><p class=\"mt-6 text-lg/8\">Make reading and discovering content fun again.</p></div><dl class=\"mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-16\"><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tabler.AlertCircleOff(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "No pressure.</dt><dd class=\"inline\">No unread counts by default.</dd></div><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tabler.Category(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "Flexible organisation.</dt><dd class=\"inline\">Organising content with categories should be natural, not rigid.</dd></div><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tabler.Map(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "Exploration encouraged.</dt><dd class=\"inline\">No algorithms or recommendations.</dd></div><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tabler.Search(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "Search first.</dt><dd class=\"inline\">Make search powerful, functional and first-class.</dd></div><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tabler.Typeface(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "Content focused.</dt><dd class=\"inline\">Use beautiful typography and make reading content online pleasurable.</dd></div><div class=\"relative pl-9 space-x-2\"><dt class=\"inline font-semibold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = tabler.Heart(i.Props{Class: "absolute top-1 left-1"}).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "1000 true fans.</dt><dd class=\"inline\">Make something for people, not for profit.</dd></div></dl></div><div class=\"relative -z-10 mt-32 px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl text-primary\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"/#pricing\" role=\"button\" class=\"btn btn-primary\">Start a free trial</a></div></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-16 -z-10 flex transform-gpu justify-center\n\t\t\t\toverflow-hidden blur-3xl\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20\"></div></div></main>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = content().Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

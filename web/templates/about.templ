@@ -6,8 +6,7 @@ import "github.com/sebasvil20/templicons/tabler"
 import "github.com/sebasvil20/templicons/i"
 
 templ About() {
-	<div class="bg-base-100">
-		@header(nil)
+	@content() {
 		<main class="relative isolate mb-24">
 			<div
 				aria-hidden="true"
@@ -154,6 +153,5 @@ templ About() {
 				></div>
 			</div>
 		</main>
-		@footer()
-	</div>
+	}
 }
