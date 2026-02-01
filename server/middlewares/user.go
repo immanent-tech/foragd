@@ -6,6 +6,7 @@ package middlewares
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/angelofallars/htmx-go"
@@ -27,6 +28,10 @@ func RequireUserAuth(next http.Handler) http.Handler {
 			slogctx.FromCtx(req.Context()).Error("Invalid session token.",
 				slog.Any("error", err),
 			)
+			if strings.HasSuffix(req.URL.Path, "/updates") {
+				res.WriteHeader(http.StatusForbidden)
+				return
+			}
 			// Generate new state and save url for redirection after login.
 			if state, err := auth0.GenerateRandomState(); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
