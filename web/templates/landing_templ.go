@@ -96,11 +96,11 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "Cloud sync.&nbsp;</dt><dd class=\"inline\">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</dd></div></dl></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><p class=\"text-lg/8 text-base-content/80 font-semibold\">And more features planned, such as email newsletters to RSS, semantic search (i.e., show me all articles about android)...</p></div></div></div></div><div class=\"py-24 sm:pt-48\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><h2 id=\"pricing\" class=\"text-base/7 font-semibold text-primary\">Subscriptions and Pricing.</h2><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Keep up to date without breaking the bank</p></div><p class=\"mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">All subscription plans come with a 14-day free trial. Cancel any time.</p><div class=\"mt-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "Cloud sync.&nbsp;</dt><dd class=\"inline\">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</dd></div></dl></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><p class=\"text-lg/8 text-base-content/80 font-semibold\">And more features planned, such as email newsletters to RSS, semantic search (i.e., show me all articles about android)...</p></div></div></div></div><div class=\"py-24 sm:pt-48\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><h2 id=\"pricing\" class=\"text-base/7 font-semibold text-primary\">Subscriptions and Pricing.</h2><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Keep up to date without breaking the bank</p></div><div class=\"mx-auto my-8 card bg-base-300 max-w-96 shadow-sm\"><div class=\"card-body\"><h2 class=\"card-title\">📢 Beta Now Open</h2><p>Sign up during the beta period pay nothing now, provide feedback, and get a year free when we launch! 🎉 🎉 🎉</p></div></div><div class=\"mt-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = pricingGrid(models.RouteSignup, "get", "Collector-07ad4d0", "Recommended").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = pricingGrid(models.RouteSignup, "get", "TheOne-85297d6", "").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
