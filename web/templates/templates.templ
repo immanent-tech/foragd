@@ -146,6 +146,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				IncludeIndicatorStyles: true,
 				HistoryRestoreAsHxRequest: false,
 				GlobalViewTransitions: true,
+				HistoryCacheSize: 0,
+				RefreshOnHistoryMiss: true,
 			}) }
 				hx-preserve="true"
 			/>
