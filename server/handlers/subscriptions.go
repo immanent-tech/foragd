@@ -53,12 +53,12 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 	switch req.URL.Path {
 	case "/list/subscriptions":
 		res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-		templ.Handler(p.template, templ.WithFragments(templates.ListSubscriptionsFragment)).ServeHTTP(res, req)
+		templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 		templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 		templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
 		templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
 	case "/list/subscriptions/paginate":
-		templ.Handler(p.template, templ.WithFragments(templates.PaginateSubscriptionsFragment)).ServeHTTP(res, req)
+		templ.Handler(p.template, templ.WithFragments(templates.PaginateFragment)).ServeHTTP(res, req)
 	}
 }
 
@@ -381,7 +381,7 @@ func (p *EditSubscription) FullResponse(res http.ResponseWriter, req *http.Reque
 
 func (p *EditSubscription) PartialResponse(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
-	templ.Handler(p.template, templ.WithFragments(templates.EditSubscriptionFragment)).ServeHTTP(res, req)
+	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(p.title)).ServeHTTP(res, req)
 }
 
@@ -642,7 +642,7 @@ func (h *AddSubscription) FullResponse(res http.ResponseWriter, req *http.Reques
 }
 
 func (h *AddSubscription) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(h.template, templ.WithFragments(templates.AddSubscriptionFragment)).ServeHTTP(res, req)
+	templ.Handler(h.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
 	templ.Handler(templates.UpdateTitle(h.title)).ServeHTTP(res, req)
 }
 

@@ -15,11 +15,9 @@ import (
 )
 
 templ UserSettings() {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+	@content() {
 		@templ.Fragment(ContentFragment) {
-			<div class="ui-container">
+			@container() {
 				<div
 					class="tabs tabs-box mt-8"
 					hx-trigger="load once"
@@ -45,10 +43,9 @@ templ UserSettings() {
 					/>
 				</div>
 				<section id="current-settings"></section>
-			</div>
+			}
 		}
-	</main>
-	@Dock(nil)
+	}
 }
 
 templ AccountSettings(user *models.User) {

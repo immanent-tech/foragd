@@ -242,105 +242,104 @@ templ (a *Article) Card() {
 
 // ArticleContent renders the complete content of an article.
 templ (a *Article) Content() {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+	@content() {
 		@templ.Fragment(ContentFragment) {
-			// Add the subscription ID as a hidden input that htmx can use for actions.
-			<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
-			<div class="ui-container">
-				<article id={ a.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
-					// Article title.
-					<div class="flex flex-1 pb-2">
-						if a.SourceType != models.SourceTypeEmail {
-							<a
-								href={ a.GetLink() }
-								target="_blank"
-								rel="noopener"
-								class="link link-hover focus:text-primary focus:outline-hidden"
-							>
-								<h2 class="ui-h2">{ a.GetTitle() }</h2>
-							</a>
-						} else {
-							<h2 class="ui-h2">{ a.GetTitle() }</h2>
-						}
-					</div>
-					// Subscription link.
-					<div class="flex flex-1 pb-4">
-						<form>
-							{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
-							<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-							<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-							<input type="hidden" name={ models.ParamSort } value={ filters.GetSort() }/>
-							<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
-							<input type="hidden" name={ models.ParamSubscriptionName } value={ a.GetFeedTitle() }/>
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-							<a
-								hx-post="/list/articles"
-								hx-target={ ContentID.Target() }
-								hx-swap="innerHTML show:window:top transition:true"
-								class="link link-hover focus:text-primary focus:outline-hidden"
-							>
-								<h3 class="ui-h3">{ a.GetFeedTitle() }</h3>
-							</a>
-						</form>
-					</div>
-					<div class="flex items-center">
-						<div class="flex-1 inline-grid">
+			@container() {
+				// Add the subscription ID as a hidden input that htmx can use for actions.
+				<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
+				<div class="ui-container">
+					<article id={ a.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
+						// Article title.
+						<div class="flex flex-1 pb-2">
 							if a.SourceType != models.SourceTypeEmail {
-								// Show authors if found.
-								if len(a.GetAuthors()) > 0 {
-									<p class="col-span-full text-sm/6 italic truncate">
-										{ strings.Join(a.GetAuthors(),",") }
-									</p>
-								}
+								<a
+									href={ a.GetLink() }
+									target="_blank"
+									rel="noopener"
+									class="link link-hover focus:text-primary focus:outline-hidden"
+								>
+									<h2 class="ui-h2">{ a.GetTitle() }</h2>
+								</a>
+							} else {
+								<h2 class="ui-h2">{ a.GetTitle() }</h2>
 							}
-							// Show updated date.
-							<p class="col-span-full text-sm/6 capitalize">
-								Updated&nbsp;
-								@showTimestamp(a.GetUpdatedDate())
-							</p>
 						</div>
-						<form class="p-2">
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-							<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
-							<label class="swap" _="on click halt the event's bubbling">
-								<input
-									hx-post={ "/favorite/article/" + a.GetID() }
-									hx-swap="none"
-									id={ a.GetID() + "-favorite-state" }
-									type="checkbox"
-									if a.IsFavorite() {
-										checked
+						// Subscription link.
+						<div class="flex flex-1 pb-4">
+							<form>
+								{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
+								<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+								<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+								<input type="hidden" name={ models.ParamSort } value={ filters.GetSort() }/>
+								<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
+								<input type="hidden" name={ models.ParamSubscriptionName } value={ a.GetFeedTitle() }/>
+								<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
+								<a
+									hx-post="/list/articles"
+									hx-target={ ContentID.Target() }
+									hx-swap="innerHTML show:window:top transition:true"
+									class="link link-hover focus:text-primary focus:outline-hidden"
+								>
+									<h3 class="ui-h3">{ a.GetFeedTitle() }</h3>
+								</a>
+							</form>
+						</div>
+						<div class="flex items-center">
+							<div class="flex-1 inline-grid">
+								if a.SourceType != models.SourceTypeEmail {
+									// Show authors if found.
+									if len(a.GetAuthors()) > 0 {
+										<p class="col-span-full text-sm/6 italic truncate">
+											{ strings.Join(a.GetAuthors(),",") }
+										</p>
 									}
-									_="on htmx:afterRequest(failed) toggle @checked on me"
-								/>
-								@tabler.HeartFilled(i.Props{Class: "size-5 swap-on"})
-								@tabler.Heart(i.Props{Class: "size-5 swap-off"})
-							</label>
-						</form>
-						<form class="p-2">
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-							<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
-							<input
-								type="hidden"
-								name={ models.ParamMark }
-								if a.IsUnread() {
-									value={ models.MarkRead }
-								} else {
-									value={ models.MarkUnread }
 								}
-							/>
-							<label class="swap" _="on click halt the event's bubbling">
+								// Show updated date.
+								<p class="col-span-full text-sm/6 capitalize">
+									Updated&nbsp;
+									@showTimestamp(a.GetUpdatedDate())
+								</p>
+							</div>
+							<form class="p-2">
+								<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
+								<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
+								<label class="swap" _="on click halt the event's bubbling">
+									<input
+										hx-post={ "/favorite/article/" + a.GetID() }
+										hx-swap="none"
+										id={ a.GetID() + "-favorite-state" }
+										type="checkbox"
+										if a.IsFavorite() {
+											checked
+										}
+										_="on htmx:afterRequest(failed) toggle @checked on me"
+									/>
+									@tabler.HeartFilled(i.Props{Class: "size-5 swap-on"})
+									@tabler.Heart(i.Props{Class: "size-5 swap-off"})
+								</label>
+							</form>
+							<form class="p-2">
+								<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
+								<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
 								<input
-									hx-post={ "/mark/article/" + a.GetID() }
-									hx-swap="none"
-									id={ a.GetID() + "-read-state" }
-									type="checkbox"
-									if !a.IsUnread() {
-										checked
+									type="hidden"
+									name={ models.ParamMark }
+									if a.IsUnread() {
+										value={ models.MarkRead }
+									} else {
+										value={ models.MarkUnread }
 									}
-									_="
+								/>
+								<label class="swap" _="on click halt the event's bubbling">
+									<input
+										hx-post={ "/mark/article/" + a.GetID() }
+										hx-swap="none"
+										id={ a.GetID() + "-read-state" }
+										type="checkbox"
+										if !a.IsUnread() {
+											checked
+										}
+										_="
 					on htmx:afterRequest(successful)
 					tell the previous <input />
 						get your value
@@ -351,147 +350,145 @@ templ (a *Article) Content() {
 						end
 					on htmx:afterRequest(failed) toggle @checked on me
 					"
-								/>
-								@tabler.MailOpened(i.Props{Class: "size-6 swap-on"})
-								@tabler.Mail(i.Props{Class: "size-6 swap-off"})
-							</label>
-						</form>
-						<div class="flex items-center justify-end">
-							<el-dropdown>
-								<button
-									class="btn btn-ghost btn-square"
-								>
-									<span class="sr-only">Article Actions</span>
-									@tabler.Menu2(i.Props{Class: "size-6"})
-								</button>
-								<el-menu
-									anchor="bottom end"
-									popover
-									_="on htmx:afterRequest(successful) hidePopover() on me"
-									class="w-fit"
-								>
-									<div class="py-1">
-										// Find similar action.
-										<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.SimilarArticlesAttributes()... }>
-											@tabler.FileSearch(i.Props{Class: "size-4"})
-											Find similar...
-										</a>
-										// Report article issue action.
-										<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ReportIssueAttributes()... }>
-											@tabler.FlagFilled(i.Props{Class: "size-4"})
-											Report an issue
-										</a>
-									</div>
-								</el-menu>
-							</el-dropdown>
-						</div>
-					</div>
-					// Content.
-					if a.SourceType == models.SourceTypeEmail {
-						<div class="prose-email" data-disable-scripting hx-disable>
-							@templ.Raw(a.GetContent())
-						</div>
-					} else {
-						if a.GetContent() != "" || a.GetDescription() != "" {
-							<div data-disable-scripting hx-disable class="prose-article forced-width">
-								switch  {
-									case a.GetContent() != "":
-										@templ.Raw(a.GetContent())
-									case a.GetDescription() != "":
-										@templ.Raw(a.GetDescription())
-								}
+									/>
+									@tabler.MailOpened(i.Props{Class: "size-6 swap-on"})
+									@tabler.Mail(i.Props{Class: "size-6 swap-off"})
+								</label>
+							</form>
+							<div class="flex items-center justify-end">
+								<el-dropdown>
+									<button
+										class="btn btn-ghost btn-square"
+									>
+										<span class="sr-only">Article Actions</span>
+										@tabler.Menu2(i.Props{Class: "size-6"})
+									</button>
+									<el-menu
+										anchor="bottom end"
+										popover
+										_="on htmx:afterRequest(successful) hidePopover() on me"
+										class="w-fit"
+									>
+										<div class="py-1">
+											// Find similar action.
+											<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.SimilarArticlesAttributes()... }>
+												@tabler.FileSearch(i.Props{Class: "size-4"})
+												Find similar...
+											</a>
+											// Report article issue action.
+											<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ReportIssueAttributes()... }>
+												@tabler.FlagFilled(i.Props{Class: "size-4"})
+												Report an issue
+											</a>
+										</div>
+									</el-menu>
+								</el-dropdown>
 							</div>
-						}
-					}
-				</article>
-			</div>
-			if a.SourceType != models.SourceTypeEmail {
-				<nav class="my-16 flex flex-col sm:flex-row gap-2 items-center justify-center text-sm">
-					// Show a toggle for fetching full content where it appears the feed content is only a summary
-					// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
-					<a
-						role="button"
-						class="btn btn-primary"
-						hx-get={ "/view/article/" + a.GetID() }
-						hx-target={ ContentID.Target() }
-						hx-swap="innerHTML transition:true"
-						hx-replace-url="true"
-						hx-trigger="click"
-						hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
-					>
-						if a.IsRemoteContent() {
-							@tabler.FileRss()
-							Show Feed Content
+						</div>
+						// Content.
+						if a.SourceType == models.SourceTypeEmail {
+							<div class="prose-email" data-disable-scripting hx-disable>
+								@templ.Raw(a.GetContent())
+							</div>
 						} else {
-							@tabler.FileDownload()
-							Get Remote Content
+							if a.GetContent() != "" || a.GetDescription() != "" {
+								<div data-disable-scripting hx-disable class="prose-article forced-width">
+									switch  {
+										case a.GetContent() != "":
+											@templ.Raw(a.GetContent())
+										case a.GetDescription() != "":
+											@templ.Raw(a.GetDescription())
+									}
+								</div>
+							}
 						}
-					</a>
-					// }
-					// View original article action.
-					<a role="button" class="btn btn-primary" { a.ViewRemoteAttributes()... }>
-						@tabler.ExternalLink()
-						View Remote
-					</a>
-					// Mobile share action via navigator API.
-					<div _="init if not navigator.share then hide me">
+					</article>
+				</div>
+				if a.SourceType != models.SourceTypeEmail {
+					<nav class="my-16 flex flex-col sm:flex-row gap-2 items-center justify-center text-sm">
+						// Show a toggle for fetching full content where it appears the feed content is only a summary
+						// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
 						<a
 							role="button"
 							class="btn btn-primary"
-							_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
+							hx-get={ "/view/article/" + a.GetID() }
+							hx-target={ ContentID.Target() }
+							hx-swap="innerHTML transition:true"
+							hx-replace-url="true"
+							hx-trigger="click"
+							hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
 						>
-							@tabler.Share()
-							Share
+							if a.IsRemoteContent() {
+								@tabler.FileRss()
+								Show Feed Content
+							} else {
+								@tabler.FileDownload()
+								Get Remote Content
+							}
 						</a>
-					</div>
-					// Desktop share action with modal and options.
-					<form _="init if navigator.share then hide me">
-						<input type="hidden" name="item_id" value={ a.GetID() }/>
-						<input type="hidden" name="title" value={ a.GetTitle() }/>
-						<input type="hidden" name="link" value={ a.GetLink() }/>
-						<a
-							role="button"
-							class="btn btn-primary"
-							hx-post={ "/share/article/" + a.GetID() }
-							hx-target={ partials.ModalContainerID.Target() }
-							hx-trigger="click consume"
-						>
-							@tabler.Share()
-							Share
+						// }
+						// View original article action.
+						<a role="button" class="btn btn-primary" { a.ViewRemoteAttributes()... }>
+							@tabler.ExternalLink()
+							View Remote
 						</a>
+						// Mobile share action via navigator API.
+						<div _="init if not navigator.share then hide me">
+							<a
+								role="button"
+								class="btn btn-primary"
+								_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
+							>
+								@tabler.Share()
+								Share
+							</a>
+						</div>
+						// Desktop share action with modal and options.
+						<form _="init if navigator.share then hide me">
+							<input type="hidden" name="item_id" value={ a.GetID() }/>
+							<input type="hidden" name="title" value={ a.GetTitle() }/>
+							<input type="hidden" name="link" value={ a.GetLink() }/>
+							<a
+								role="button"
+								class="btn btn-primary"
+								hx-post={ "/share/article/" + a.GetID() }
+								hx-target={ partials.ModalContainerID.Target() }
+								hx-trigger="click consume"
+							>
+								@tabler.Share()
+								Share
+							</a>
+						</form>
+					</nav>
+				}
+				@partials.ButtonBackToTop()
+				// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
+				// read and mark it so (when the user has set this option).
+				if a.IsUnread() && a.MarkArticleReadOnView {
+					<form
+						id="auto-mark-read"
+						hx-target="#auto-mark-read"
+						hx-post={ "/mark/article/" + a.GetID() }
+						hx-swap="delete transition:false"
+						hx-trigger="intersect once delay:5s,load delay:5s"
+						aria-hidden="true"
+						_={ "on htmx:afterRequest(successful) toggle @checked on #" + a.GetID() + "-read-state" }
+					>
+						<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
+						<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
+						<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 					</form>
-				</nav>
-			}
-			@partials.ButtonBackToTop()
-			// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
-			// read and mark it so (when the user has set this option).
-			if a.IsUnread() && a.MarkArticleReadOnView {
-				<form
-					id="auto-mark-read"
-					hx-target="#auto-mark-read"
-					hx-post={ "/mark/article/" + a.GetID() }
-					hx-swap="delete transition:false"
-					hx-trigger="intersect once delay:5s,load delay:5s"
-					aria-hidden="true"
-					_={ "on htmx:afterRequest(successful) toggle @checked on #" + a.GetID() + "-read-state" }
-				>
-					<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
-					<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-					<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-				</form>
+				}
 			}
 		}
-	</main>
-	@Dock(nil)
+	}
 }
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ListArticles(response *models.ListArticlesResponse) {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+	@content() {
 		@templ.Fragment(ContentFragment) {
-			<div class="ui-container">
+			@container() {
 				// Watch for updates.
 				<div
 					id="update-notifications"
@@ -642,10 +639,9 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						@emptyContent()
 					}
 				</section>
-			</div>
+			}
 		}
-	</main>
-	@Dock(nil)
+	}
 }
 
 templ ShareArticleModal(request *models.ShareArticleRequest) {

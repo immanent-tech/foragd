@@ -169,11 +169,9 @@ const PaginateSearchFragment templFragmentKey = "paginateSearch"
 
 // SearchResults renders the given articles returned from the given search in a grid layout with an actions menu.
 templ SearchResults(results *models.SearchResults) {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+	@content() {
 		@templ.Fragment(ContentFragment) {
-			<div class="ui-container">
+			@container() {
 				<div id="header" class="flex items-center justify-between mt-4">
 					// Page title.
 					<div class="min-w-0 flex-1">
@@ -287,10 +285,9 @@ templ SearchResults(results *models.SearchResults) {
 						</div>
 					</section>
 				}
-			</div>
+			}
 		}
-	</main>
-	@Dock(nil)
+	}
 }
 
 templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) {
@@ -565,11 +562,9 @@ templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequ
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+	@content() {
 		@templ.Fragment(ContentFragment) {
-			<div class="ui-container">
+			@container() {
 				// Show a page header.
 				<div class="md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
@@ -592,8 +587,7 @@ templ SimilarArticles(articles models.Articles) {
 						@partials.ButtonBackToTop()
 					</section>
 				}
-			</div>
+			}
 		}
-	</main>
-	@Dock(nil)
+	}
 }

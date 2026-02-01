@@ -10,11 +10,9 @@ import (
 
 // ReportPageIssue renders a form for reporting issues with the app.
 templ ReportPageIssue(details *models.ReportIssueRequest) {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+	@content() {
 		@templ.Fragment(ContentFragment) {
-			<div class="ui-container">
+			@container() {
 				<div class="mx-auto max-w-3xl">
 					<div class="md:flex md:items-center md:justify-between">
 						<div class="min-w-0 flex-1">
@@ -90,18 +88,15 @@ templ ReportPageIssue(details *models.ReportIssueRequest) {
 						</div>
 					</form>
 				</div>
-			</div>
+			}
 		}
-	</main>
-	@Dock(nil)
+	}
 }
 
 templ ReportObjectIssues(objectType, id string, details *models.ReportObjectIssueRequest) {
-	@header(models.UserFromCtx(ctx))
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8" hx-indicator="#content-loading">
+	@content() {
 		@templ.Fragment(ContentFragment) {
-			<div class="ui-container">
+			@container() {
 				<div class="mx-auto max-w-3xl">
 					<div class="md:flex md:items-center md:justify-between">
 						<div class="min-w-0 flex-1">
@@ -227,8 +222,7 @@ templ ReportObjectIssues(objectType, id string, details *models.ReportObjectIssu
 						</div>
 					</form>
 				</div>
-			</div>
+			}
 		}
-	</main>
-	@Dock(nil)
+	}
 }

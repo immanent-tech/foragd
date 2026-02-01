@@ -8,11 +8,9 @@ import "github.com/immanent-tech/foragd/models"
 const ErrorFragment templFragmentKey = "error"
 
 templ InternalError(user *models.User, msg *models.UserMessage) {
-	@header(user)
-	@SideBar(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8">
+	@content() {
 		@templ.Fragment(ErrorFragment) {
-			<div class="ui-container">
+			@container() {
 				@userMessage("Whoops 😿", msg) {
 					<div class="mt-10 flex items-center justify-center gap-x-6">
 						<a href="/home" role="button" class="btn btn-primary">
@@ -23,17 +21,15 @@ templ InternalError(user *models.User, msg *models.UserMessage) {
 						</a>
 					</div>
 				}
-			</div>
+			}
 		}
-	</main>
-	@Dock(nil)
+	}
 }
 
 templ ExternalError(user *models.User, msg *models.UserMessage) {
-	@header(nil)
-	<main id={ ContentID.String() } aria-label="Main Content" class="lg:pl-36 scroll-mt-16 pb-20 sm:pb-8">
+	@content() {
 		@templ.Fragment(ErrorFragment) {
-			<div class="ui-container">
+			@container() {
 				@userMessage("Whoops 😿", msg) {
 					<div class="mt-10 flex items-center justify-center gap-x-6">
 						<a href="mailto:support@immanent.tech&subject=Foragd Issue" role="button" class="btn btn-primary">
@@ -41,8 +37,7 @@ templ ExternalError(user *models.User, msg *models.UserMessage) {
 						</a>
 					</div>
 				}
-			</div>
+			}
 		}
-	</main>
-	@footer()
+	}
 }
