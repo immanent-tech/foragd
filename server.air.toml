@@ -39,7 +39,18 @@ exclude_unchanged = true
 # Follow symlink for directories
 follow_symlink = true
 # Watch these filename extensions.
-include_ext = ["go", "templ", "html", "json", "js", "ts", "css", "scss"]
+include_ext = [
+  "go",
+  "templ",
+  "html",
+  "json",
+  "js",
+  "ts",
+  "css",
+  "scss",
+  "md",
+  "toml",
+]
 # This log file is placed in your tmp_dir.
 log = "server.air.log"
 # Array of commands to run before each build
