@@ -783,7 +783,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<ul class=\"list-disc list-inside\"><li><a class=\"link\" href=\"/help/index\">Documentation Home</a></li></ul></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 52, "<ul class=\"list-disc list-inside\"><li><a class=\"link\" href=\"/help\">Documentation Home</a></li></ul></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
