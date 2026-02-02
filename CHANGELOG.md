@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.43.0](https://github.com/immanent-tech/foragd/compare/v0.42.0...v0.43.0) (2026-02-02)
+
+
+### Features
+
+* **templates:** :sparkles: specific empty content templates for different pages ([d66d7a5](https://github.com/immanent-tech/foragd/commit/d66d7a595b678443fcbf6386609e17875bce2ad2))
+
+
+### Performance Improvements
+
+* **assets:** :zap: optmise screenshots for landing page ([5e98ced](https://github.com/immanent-tech/foragd/commit/5e98ced4f71ba214d719b73a03defc0bf86e3508))
+
+
+### Reverts
+
+* :rewind: switch back to using history snapshot feature ([cee0ec0](https://github.com/immanent-tech/foragd/commit/cee0ec0e41002e7e5289b12efae970d4effa3dc6))
+* :rewind: switch back to using history snapshot feature ([ebae759](https://github.com/immanent-tech/foragd/commit/ebae759aaa4cb432d6bbb1548d54538923f777da))
+
 ## [0.42.0](https://github.com/immanent-tech/foragd/compare/v0.41.0...v0.42.0) (2026-02-02)
 
 
