@@ -9,8 +9,8 @@
   "start_url": ".",
   "icons": [
     {
-      "src": "manifest-touch-icon.svg",
-      "type": "image/svg+xml",
+      "src": "manifest-touch-icon.png",
+      "type": "image/png",
       "sizes": "any"
     }
   ],
@@ -18,14 +18,14 @@
     {
       "src": "manifest-desktop-screenshot.png",
       "sizes": "1280x720",
-      "type": "image/jpeg",
+      "type": "image/png",
       "form_factor": "wide",
       "label": "Desktop homescreen of Foragd"
     },
     {
       "src": "manifest-mobile-screenshot.png",
       "sizes": "720x1280",
-      "type": "image/jpeg",
+      "type": "image/png",
       "form_factor": "narrow",
       "label": "Mobile homescreen of Foragd"
     }

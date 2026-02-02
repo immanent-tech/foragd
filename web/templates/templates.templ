@@ -108,8 +108,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="manifest" href="/content/manifest.json" hx-preserve="true"/>
 			<link rel="apple-touch-icon" href="/content/apple-touch-icon.png" hx-preserve="true"/>
 			<link rel="icon" href="/content/favicon.svg" type="image/svg+xml" hx-preserve="true"/>
-			<link rel="icon" href="/content/favicon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)" hx-preserve="true"/>
-			<link rel="icon" href="/content/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" hx-preserve="true"/>
+			<link rel="icon" href="/content/favicon.png" type="image/svg+xml" hx-preserve="true"/>
 			<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon" hx-preserve="true"/>
 			<link href={ "/content/fonts/inter/inter.css?v=" + config.Version } rel="stylesheet" hx-preserve="true"/>
 			if config.CurrentEnvironment == config.EnvProduction {
