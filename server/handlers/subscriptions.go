@@ -27,7 +27,6 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/server/forms"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -100,7 +99,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 
 		// Get subscriptions matching filters.
 		subscriptions, request.Pagination, err = models.FilterSubscriptions(req.Context(), request)
-		if err != nil && !errors.Is(err, elastic.ErrNotFound) {
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
 				StatusCode:    http.StatusInternalServerError,
