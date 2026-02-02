@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.44.0](https://github.com/immanent-tech/foragd/compare/v0.43.0...v0.44.0) (2026-02-02)
+
+
+### Features
+
+* **auth0:** :sparkles: switch all code to use v2 api sdk ([573c22e](https://github.com/immanent-tech/foragd/commit/573c22eb66d8b2c4830e0f8339cc3e832aaea649))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: correct check for not found error ([1fb4d3c](https://github.com/immanent-tech/foragd/commit/1fb4d3c38911694e4f3e66cd695d456770877ab9))
+* **handlers:** :bug: don't show error on no subscriptions on new user home (that is expected) ([262f78c](https://github.com/immanent-tech/foragd/commit/262f78cad8210065c309cee1fe48df30739c64e5))
+
 ## [0.43.0](https://github.com/immanent-tech/foragd/compare/v0.42.0...v0.43.0) (2026-02-02)
 
 
