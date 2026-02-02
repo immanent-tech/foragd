@@ -42,7 +42,7 @@
     {
       "label": "run: update schema(s)",
       "type": "shell",
-      "command": "bunx dotenv-cli -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file schema update ${input:schemas}",
+      "command": "dotenv -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file schema update ${input:schemas}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -64,7 +64,7 @@
     {
       "label": "run: migrate schema(s)",
       "type": "shell",
-      "command": "bunx dotenv-cli -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file schema migrate ${input:schemas}",
+      "command": "dotenv -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file schema migrate ${input:schemas}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
