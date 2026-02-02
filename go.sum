@@ -78,8 +78,8 @@ github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hC
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310 h1:BUAU3CGlLvorLI26FmByPp2eC2qla6E1Tw+scpcg/to=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
-github.com/auth0/go-auth0 v1.32.1 h1:AAXQqaNaFZWkRm2bg5mVVXpqDLmusv7v238uIaxuFpo=
-github.com/auth0/go-auth0 v1.32.1/go.mod h1:32sQB1uAn+99fJo6N819EniKq8h785p0ag0lMWhiTaE=
+github.com/auth0/go-auth0 v1.33.0 h1:7qx0UCA6Tn2udnEVA35xzKsseh/R9559f+nnGcUI0Ss=
+github.com/auth0/go-auth0 v1.33.0/go.mod h1:32sQB1uAn+99fJo6N819EniKq8h785p0ag0lMWhiTaE=
 github.com/auth0/go-auth0/v2 v2.3.0 h1:Gkw6mAxkCh2aot2Re3Zde7I5/RkTF9lkB3JRtFZtleI=
 github.com/auth0/go-auth0/v2 v2.3.0/go.mod h1:4GvvYxDvjiOoglqYngCUOUZWzE4iXNczLID5NDA2tYg=
 github.com/aybabtme/iocontrol v0.0.0-20150809002002-ad15bcfc95a0 h1:0NmehRCgyk5rljDQLKUO+cRJCnduDyn11+zGZIc9Z48=
