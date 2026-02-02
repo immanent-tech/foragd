@@ -195,7 +195,7 @@ require (
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
 	github.com/stripe/stripe-go v70.15.0+incompatible
-	github.com/veqryn/slog-context v0.8.0
+	github.com/veqryn/slog-context v0.9.0
 	github.com/veqryn/slog-json v0.5.0
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	github.com/yuin/goldmark v1.7.16
