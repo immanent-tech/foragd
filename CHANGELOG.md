@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.42.0](https://github.com/immanent-tech/foragd/compare/v0.41.0...v0.42.0) (2026-02-02)
+
+
+### Features
+
+* **assets:** :sparkles: adjust icon colors and optimise size ([3a4d044](https://github.com/immanent-tech/foragd/commit/3a4d0444c308af5d92fe8e7621a7ecfe12928be3))
+
+
+### Bug Fixes
+
+* **assets:** :bug: fix small favicon color ([fcd5941](https://github.com/immanent-tech/foragd/commit/fcd594165cd1b3c9820ace63bd2b41448cddbb62))
+* **handlers:** :bug: correctly return favicon when requested ([617830a](https://github.com/immanent-tech/foragd/commit/617830ac2cde6622ac4ed9c7b2413b50cde89500))
+
 ## [0.41.0](https://github.com/immanent-tech/foragd/compare/v0.40.2...v0.41.0) (2026-02-02)
 
 
