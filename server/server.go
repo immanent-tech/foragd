@@ -152,11 +152,11 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 	router.NotFound(handlers.HandleNotFound())
 	// Image proxy.
 	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgProxy.BaseURL))
-	// robots.txt.
-	router.Handle("/robots.txt", handlers.HandleRobots())
 	// sitemap.xml.
 	router.Handle("/sitemap.xml", handlers.HandleSitemap())
 	// Static content.
+	router.Handle("/robots.txt", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
+	router.Handle("/favicon.ico", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	// Avatars
 	router.Get("/img/avatar/*", handlers.LoadCachedImage)

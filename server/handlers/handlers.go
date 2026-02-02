@@ -80,12 +80,29 @@ var bufPool = sync.Pool{
 // etc.).
 func StaticFileHandler(fs http.FileSystem) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Extract the file as the URL param.
+		file := chi.URLParam(req, "*")
+		if file == "" {
+			// If no URL param, treat the last path element as a file.
+			file = filepath.Base(req.URL.Path)
+		}
+
+		// Recreate the path to the file in the virtual FS.
+		file = filepath.Join("/content", file)
+
 		// Check, if the requested file is existing.
-		if _, err := fs.Open(req.URL.Path); err != nil {
+		if _, err := fs.Open(file); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Invalid static content request",
+				slog.String("file", file),
+			)
 			// If file is not found, return HTTP 404 error.
 			http.NotFound(res, req)
 			return
 		}
+
+		// Replace the request path with the validated file path.
+		req.URL.Path = file
+
 		switch {
 		case strings.HasSuffix(req.URL.Path, "js"):
 			// JS files are cached for 1 week.
@@ -110,33 +127,6 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 		}
 		// File is found, return to standard http.FileServer.
 		http.FileServer(fs).ServeHTTP(res, req)
-	})
-}
-
-var loadRobotsTxt = sync.OnceValues(func() ([]byte, error) {
-	robotsTxt, err := web.StaticContentFS.ReadFile("content/robots.txt")
-	if err != nil {
-		return nil, fmt.Errorf("read robots.txt: %w", err)
-	}
-	return robotsTxt, nil
-})
-
-// HandleRobots handles requests for robots.txt. In the future, it may handle more requests from non natural human
-// clients...
-func HandleRobots() http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		robotsTxt, err := loadRobotsTxt()
-		if err != nil {
-			http.NotFound(res, req)
-			return
-		}
-		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
-		res.WriteHeader(http.StatusOK)
-		if _, err := res.Write(robotsTxt); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Unable to send robots.txt response.",
-				slog.Any("error", err),
-			)
-		}
 	})
 }
 
