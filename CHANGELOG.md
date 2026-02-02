@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.41.0](https://github.com/immanent-tech/foragd/compare/v0.40.2...v0.41.0) (2026-02-02)
+
+
+### Features
+
+* **assets:** :sparkles: add a better placeholder image ([8bdcbf7](https://github.com/immanent-tech/foragd/commit/8bdcbf79e6888fda29eca8da2be6bfef5acffdd6))
+* **handlers:** :sparkles: switch from blackfriday to goldmark for markdown to HTML conversions ([c5302d4](https://github.com/immanent-tech/foragd/commit/c5302d4567dc5666de0185ace4a0da7b9f1d21f2))
+* **middlewares:** :loud_sound: log some useful htmx-related values on requests ([d37a32f](https://github.com/immanent-tech/foragd/commit/d37a32f20ccdb3771d4e4563a039856b46b1a549))
+* **posts:** :sparkles: add a post about finding feeds ([a157a33](https://github.com/immanent-tech/foragd/commit/a157a33b935d4f5d182c3bb081f57db103ce0be3))
+* **templates:** :sparkles: abstract mailto link creation to package ([d9f0239](https://github.com/immanent-tech/foragd/commit/d9f0239d0ea9b6bbaf28db97f8b785be71a81b95))
+* **templates:** :sparkles: make container flexible for internal and external page ([b58ed0c](https://github.com/immanent-tech/foragd/commit/b58ed0c9da4ab5f87eb5ce5382a7e380068b99aa))
+
+
+### Bug Fixes
+
+* :bug: fix missing dock on favorites page for full page load ([b835693](https://github.com/immanent-tech/foragd/commit/b835693f5095cc91a57fb9de24f55378ae5fa8d2))
+* **assets:** :bug: fix loading of htmx variable ([4f8836c](https://github.com/immanent-tech/foragd/commit/4f8836ca91d090e98c3ab1d377860c5f05431ae8))
+* **handlers:** :bug: allow unsafe html (i.e. image links) with markdown renderer ([8840ba6](https://github.com/immanent-tech/foragd/commit/8840ba66cf73bd8a057b49eea6d82a61b2a143f6))
+* **middlewares:** :bug: do not generate new state for restoration on invalid token for list/search updates requests ([d48e98f](https://github.com/immanent-tech/foragd/commit/d48e98fb3d60d96eed4975d3137dfeabdcee7702))
+* **models:** :bug: only suggest feed or email subscriptions as filters for searches ([b17077d](https://github.com/immanent-tech/foragd/commit/b17077d46a3f550b1a51c8a446fd5b9305932f78))
+* **posts:** :bug: fix title in directory ([5de964e](https://github.com/immanent-tech/foragd/commit/5de964e421120d168c2a0d94e469f74c8c56a004))
+* **posts:** :memo: shorten feeds vs social media title ([985681e](https://github.com/immanent-tech/foragd/commit/985681ed933e96b4639f78b2864760f3ab1906b6))
+* **templates:** :bug: add notification and mention beta program and offer on landing ([3d39334](https://github.com/immanent-tech/foragd/commit/3d39334f547abb22c2f0514f98f8fbf846cdd66a))
+* **templates:** :bug: control style and functionality fixes ([1f8768d](https://github.com/immanent-tech/foragd/commit/1f8768d23171f543b3985450e88007ad49ea17f7))
+* **templates:** :bug: don't pass text as value to Heading2 template, pass as child ([0c20905](https://github.com/immanent-tech/foragd/commit/0c209050669cc96e95dd7a8a80ad3ae853c782df))
+* **templates:** :bug: explicitly mention pricing is post-launch ([d405454](https://github.com/immanent-tech/foragd/commit/d405454ce7ad2fbfdf411abf254b9c2d2578a3e6))
+* **templates:** :bug: use templ.KV for defining extra classes on proxied image ([4367ed1](https://github.com/immanent-tech/foragd/commit/4367ed122b51923f91e890313c67c7f0a94f050d))
+* **templates:** :lipstick: add padding to bottom of containers ([cf69996](https://github.com/immanent-tech/foragd/commit/cf6999600e7b26c51d4fcff5b0a79479a40a4526))
+* **templates:** :lipstick: even size subscription cards ([00706ea](https://github.com/immanent-tech/foragd/commit/00706ea39679297255535e006d4f8332a98cfb8a))
+* **templates:** :lipstick: header should be fixed not sticky ([f5f8362](https://github.com/immanent-tech/foragd/commit/f5f836247cf819a743344115c29f0c400d86475b))
+* **templates:** :lipstick: improved footer positioning ([69b80b4](https://github.com/immanent-tech/foragd/commit/69b80b46b93b49df1241ce0b9c884417a8c3a032))
+
+
+### Performance Improvements
+
+* :zap: force refresh on back button every time ([b2d6ee5](https://github.com/immanent-tech/foragd/commit/b2d6ee58aaa93e9906dbc3cff389793d49264416))
+
 ## [0.40.2](https://github.com/immanent-tech/foragd/compare/v0.40.1...v0.40.2) (2026-01-31)
 
 
