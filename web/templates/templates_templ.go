@@ -253,7 +253,7 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 			},
 			// InlineStyleNonce: templ.GetNonce(ctx),
 			// InlineScriptNonce: templ.GetNonce(ctx),
-			IncludeIndicatorStyles:    true,
+			IncludeIndicatorStyles:    false,
 			HistoryRestoreAsHxRequest: false,
 			GlobalViewTransitions:     true,
 		}))
