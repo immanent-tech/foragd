@@ -137,13 +137,11 @@ templ ViewerResults(feed *feeds.Feed) {
 }
 
 templ ViewerError(msg *models.UserMessage) {
-	<div class="ui-container">
-		<div class="text-center">
-			<h2 class="ui-h2">{ msg.Summary }</h2>
-			if msg.HasDetails() {
-				<p class="ui-p">{ msg.Details }</p>
-			}
-		</div>
+	<div class="text-center">
+		<h2 class="ui-h2">{ msg.Summary }</h2>
+		if msg.HasDetails() {
+			<p class="ui-p">{ msg.Details }</p>
+		}
 	</div>
 }
 
