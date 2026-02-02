@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -97,7 +98,7 @@ func HandleHome() http.HandlerFunc {
 	return defaultHandlerChain.
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			data, err := getHomePageData(req.Context())
-			if err != nil {
+			if err != nil && !errors.Is(err, models.ErrNotFound) {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("run data collection: %w", err),
 					StatusCode:    http.StatusInternalServerError,
