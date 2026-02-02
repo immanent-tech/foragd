@@ -7,6 +7,8 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
 
@@ -59,7 +61,15 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					}
 					@partials.ButtonBackToTop()
 				} else {
-					@emptyContent()
+					<div class="text-center">
+						@tabler.MoodPuzzled(i.Props{Class: "mx-auto text-accent size-12"})
+						@partials.Heading3() {
+							Nothing here.
+						}
+						@partials.Paragraph() {
+							Add a favorite subscription or article and it will show up here.
+						}
+					</div>
 				}
 			}
 		}

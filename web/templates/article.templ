@@ -636,7 +636,25 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						@partials.ButtonBackToTop()
 					} else {
 						{{ response.Filters.Subscriptions = nil }}
-						@emptyContent()
+						<div class="text-center">
+							@tabler.Confetti(i.Props{Class: "mx-auto text-accent size-12"})
+							@partials.Heading3() {
+								All caught up!
+							}
+							@partials.Paragraph() {
+								Congratulations, you've read everything!
+							}
+							<div class="mt-6">
+								<button
+									hx-get="/list/favorites"
+									hx-target={ ContentID.Target() }
+									hx-swap="innerHTML show:window:top transition:true"
+									class="btn btn-accent"
+								>
+									View favorites
+								</button>
+							</div>
+						</div>
 					}
 				</section>
 			}

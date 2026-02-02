@@ -244,9 +244,14 @@ templ SearchResults(results *models.SearchResults) {
 					</el-dropdown>
 				</div>
 				if len(results.Articles) == 0 {
-					<div class="text-center mt-4">
-						<h2 class="ui-h2">Nothing found 😕</h2>
-						<p class="ui-p">Looks like there are no matches for that search.</p>
+					<div class="text-center">
+						@tabler.ZoomExclamation(i.Props{Class: "mx-auto text-accent size-12"})
+						@partials.Heading3() {
+							Nothing Found
+						}
+						@partials.Paragraph() {
+							Looks like there are no matches for that search
+						}
 					</div>
 				} else {
 					// Watch for updates.
