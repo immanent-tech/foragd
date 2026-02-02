@@ -8,6 +8,6 @@ created_at = "2026-01-27"
 [[docs]]
 path = "finding-feeds"
 file = "finding-feeds.md"
-title = "ow to Find RSS and Atom Feeds for any website"
+title = "How to Find RSS and Atom Feeds for any website"
 description = "RSS and Atom are formats that are “hiding in plain sight”. Lots of websites have them, but it might not be obvious how to get them."
 created_at = "2026-02-02"
