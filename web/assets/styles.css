@@ -72,46 +72,6 @@
     transition: opacity 1s ease-out;
   }
 
-  .logo-landing {
-    @apply fill-base-content stroke-base-content;
-    .leaf-left {
-      path {
-        @apply fill-primary;
-      }
-    }
-    .leaf-center {
-      path {
-        @apply fill-secondary;
-      }
-    }
-    .leaf-right {
-      path {
-        @apply fill-accent;
-      }
-    }
-    path {
-      @apply fill-base-content stroke-base-content;
-    }
-    ellipse {
-      @apply stroke-base-content;
-    }
-    circle {
-      @apply stroke-base-content;
-    }
-  }
-  .logo-drawer {
-    @apply fill-accent stroke-accent;
-    path {
-      @apply fill-accent stroke-accent;
-    }
-    ellipse {
-      @apply stroke-accent;
-    }
-    circle {
-      @apply stroke-accent;
-    }
-  }
-
   .toast {
     & > .alert {
       transition:
@@ -221,28 +181,4 @@
   :where(pre, code) {
     @apply w-full sm:max-w-prose;
   }
-}
-
-@utility ui-container {
-  @apply mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8;
-}
-
-@utility ui-grid {
-  @apply grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12;
-}
-
-@utility ui-h1 {
-  @apply mt-4 mb-2 text-5xl font-semibold tracking-tight text-balance capitalize sm:mt-8 sm:mb-4 sm:text-7xl;
-}
-
-@utility ui-h2 {
-  @apply mt-4 mb-2 text-2xl/7 font-bold tracking-tight capitalize sm:mt-8 sm:mb-4 sm:text-3xl;
-}
-
-@utility ui-h3 {
-  @apply mt-4 mb-2 text-lg font-medium capitalize sm:mt-8 sm:mb-4;
-}
-
-@utility ui-p {
-  @apply mt-4 text-sm/6;
 }

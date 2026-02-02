@@ -175,7 +175,9 @@ templ SearchResults(results *models.SearchResults) {
 				<div id="header" class="flex items-center justify-between mt-4">
 					// Page title.
 					<div class="min-w-0 flex-1">
-						<h2 class="ui-h2">Search Results</h2>
+						@partials.Heading2() {
+							Search Results
+						}
 					</div>
 					// Actions menu.
 					<el-dropdown class="inline-block flex-none">
@@ -263,7 +265,7 @@ templ SearchResults(results *models.SearchResults) {
 					></div>
 					// Articles grid.
 					<section class="mt-4">
-						<div id="grid-objects" class="ui-grid">
+						@grid() {
 							@templ.Fragment(PaginateSearchFragment) {
 								for article := range slices.Values(results.Articles) {
 									<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
@@ -287,7 +289,7 @@ templ SearchResults(results *models.SearchResults) {
 								}
 							}
 							@partials.ButtonBackToTop()
-						</div>
+						}
 					</section>
 				}
 			}
@@ -573,22 +575,29 @@ templ SimilarArticles(articles models.Articles) {
 				// Show a page header.
 				<div class="md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
-						<h2 class="ui-h2">Similar Articles</h2>
+						@partials.Heading2() {
+							Similar Articles
+						}
 					</div>
 				</div>
 				if len(articles) == 0 {
-					<div class="text-center mt-4">
-						<h2 class="ui-h2">Nothing found 😕</h2>
-						<p class="ui-p">Looks like there are no matches for that search.</p>
+					<div class="text-center">
+						@tabler.ZoomExclamation(i.Props{Class: "mx-auto text-accent size-12"})
+						@partials.Heading3() {
+							Nothing Found
+						}
+						@partials.Paragraph() {
+							Looks like there are no matches for that search
+						}
 					</div>
 				} else {
 					// Show results.
 					<section class="mt-4">
-						<div id="grid-objects" class="ui-grid">
+						@grid() {
 							for article := range slices.Values(articles) {
 								@NewArticleView(article).Card()
 							}
-						</div>
+						}
 						@partials.ButtonBackToTop()
 					</section>
 				}

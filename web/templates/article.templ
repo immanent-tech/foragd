@@ -257,10 +257,14 @@ templ (a *Article) Content() {
 								rel="noopener"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
-								<h2 class="ui-h2">{ a.GetTitle() }</h2>
+								@partials.Heading2() {
+									{ a.GetTitle() }
+								}
 							</a>
 						} else {
-							<h2 class="ui-h2">{ a.GetTitle() }</h2>
+							@partials.Heading2() {
+								{ a.GetTitle() }
+							}
 						}
 					</div>
 					// Subscription link.
@@ -279,7 +283,9 @@ templ (a *Article) Content() {
 								hx-swap="innerHTML show:window:top transition:true"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
-								<h3 class="ui-h3">{ a.GetFeedTitle() }</h3>
+								@partials.Heading3() {
+									{ a.GetFeedTitle() }
+								}
 							</a>
 						</form>
 					</div>
@@ -507,11 +513,13 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						} else {
 							{{ title = "Articles" }}
 						}
-						<h2 class="ui-h2">{ title }</h2>
+						@partials.Heading2() {
+							{ title }
+						}
 					</div>
 					<div class="mt-4 flex md:mt-0 md:ml-4 space-x-4">
-						<h3 class="ui-h3">{ response.Filters.GetView() }</h3>
-						<h3 class="ui-h3">{ response.Filters.GetSort().String() }</h3>
+						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
+						<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
 					</div>
 				</div>
 				<div
@@ -611,7 +619,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				</div>
 				<section class="mt-4">
 					if len(response.Articles) > 0 {
-						<div id="grid-objects" class="ui-grid">
+						@grid() {
 							@templ.Fragment(PaginateFragment) {
 								for article := range slices.Values(response.Articles) {
 									@NewArticleView(article).Card()
@@ -634,7 +642,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									</form>
 								}
 							}
-						</div>
+						}
 						@partials.ButtonBackToTop()
 					} else {
 						{{ response.Filters.Subscriptions = nil }}
@@ -673,7 +681,7 @@ templ ShareArticleModal(request *models.ShareArticleRequest) {
 				@tabler.Share(i.Props{Class: "size-12"})
 			</div>
 			<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-				<h3 id="dialog-title" class="ui-h3 text-base font-semibold">Share</h3>
+				<h3 id="dialog-title" class="text-base font-semibold">Share</h3>
 				<div class="mt-2">
 					<p class="text-sm">{ request.Title }</p>
 				</div>

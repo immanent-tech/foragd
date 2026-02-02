@@ -35,13 +35,15 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					if len(response.Subscriptions) > 0 {
 						<section id="subscriptions" class="mt-4">
 							<div class="pb-5">
-								<h2 class="ui-h2">Subscriptions</h2>
+								@partials.Heading2() {
+									Subscriptions
+								}
 							</div>
-							<div id="grid-objects" class="ui-grid">
+							@grid() {
 								for subscription := range slices.Values(response.Subscriptions) {
 									@NewSubscriptionView(subscription).Card()
 								}
-							</div>
+							}
 							@partials.ButtonBackToTop()
 						</section>
 					}
@@ -49,13 +51,15 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					if len(response.Articles) > 0 {
 						<section id="articles" class="mt-4">
 							<div class="pb-5">
-								<h2 class="ui-h2">Articles</h2>
+								@partials.Heading2() {
+									Articles
+								}
 							</div>
-							<div id="grid-objects" class="ui-grid">
+							@grid() {
 								for article := range slices.Values(response.Articles) {
 									@NewArticleView(article).Card()
 								}
-							</div>
+							}
 							@partials.ButtonBackToTop()
 						</section>
 					}

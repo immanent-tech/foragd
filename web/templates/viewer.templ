@@ -127,20 +127,24 @@ templ ViewerResults(feed *feeds.Feed) {
 		</div>
 	</div>
 	if len(feed.GetItems()) > 0 {
-		<div id="grid-objects" class="ui-grid">
+		@grid() {
 			for item := range slices.Values(feed.GetItems()) {
 				@viewerItemCard(item)
 			}
-		</div>
+		}
 		@partials.ButtonBackToTop()
 	}
 }
 
 templ ViewerError(msg *models.UserMessage) {
 	<div class="text-center">
-		<h2 class="ui-h2">{ msg.Summary }</h2>
+		@partials.Heading2() {
+			{ msg.Summary }
+		}
 		if msg.HasDetails() {
-			<p class="ui-p">{ msg.Details }</p>
+			@partials.Paragraph() {
+				{ msg.Details }
+			}
 		}
 	</div>
 }

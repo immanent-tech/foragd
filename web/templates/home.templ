@@ -48,9 +48,11 @@ templ UserHome(data *models.HomeResponse) {
 					></div>
 					if len(data.Subscriptions) > 0 {
 						<div class="flex w-full mb-4">
-							<h2 class="ui-h2 flex flex-1 justify-start">Recently Updated Subscriptions</h2>
+							@partials.Heading2() {
+								Recently Updated Subscriptions
+							}
 						</div>
-						<div class="ui-grid">
+						@grid() {
 							for idx, subscription := range data.Subscriptions {
 								if idx >= 3 {
 									{{ break }}
@@ -69,18 +71,20 @@ templ UserHome(data *models.HomeResponse) {
 									</div>
 								</div>
 							}
-						</div>
+						}
 					}
 					if len(data.LatestArticles) > 0 {
 						<div class="flex w-full mb-4">
-							<h2 class="ui-h2 flex flex-1 justify-start">Latest Articles</h2>
+							@partials.Heading2() {
+								Latest Articles
+							}
 						</div>
 						// Grid of latest articles on large displays.
-						<div class="hidden sm:ui-grid">
+						@grid(WithClasses("hidden sm:grid")) {
 							for article := range slices.Values(data.LatestArticles) {
 								@NewArticleView(article).Card()
 							}
-						</div>
+						}
 						// Carousel of latest articles on small displays.
 						<div class="sm:hidden w-full">
 							<div class="carousel w-full">
@@ -107,7 +111,9 @@ templ UserHome(data *models.HomeResponse) {
 					}
 					if len(data.TopCategories) > 0 {
 						<div class="flex w-full my-4">
-							<h2 class="ui-h2 flex flex-1 justify-start">Top Categories</h2>
+							@partials.Heading2() {
+								Top Categories
+							}
 						</div>
 						<div class="flex justify-center gap-2 p-2 m-2">
 							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
@@ -140,11 +146,20 @@ templ NewUserHome() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<h2 class="ui-h2">{ "Welcome to " + config.AppName }</h2>
-				<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
+				@partials.Heading2() {
+					{ "Welcome to " + config.AppName }
+				}
+				@partials.Paragraph() {
+					This is your home page, where you can find all your subscriptions. At the moment its a little bare!
+				}
+				<p class="py-2"></p>
 				<div class="py-4">
-					<h3 class="ui-h3">Add/Import Subscriptions</h3>
-					<p class="py-2">Import your subscriptions from an external service or start fresh.</p>
+					@partials.Heading3() {
+						Add/Import Subscriptions
+					}
+					@partials.Paragraph() {
+						Import your subscriptions from an external service or start fresh.
+					}
 					<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content max-w-prose">
 						<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
 							@tabler.Plus(i.Props{Class: "size-6 text-secondary-content"})
@@ -187,8 +202,12 @@ templ NewUserHome() {
 					</div>
 				</div>
 				<div class="py-4">
-					<h3 class="ui-h3">Start With Curated Subscription Sets</h3>
-					<p class="py-2">Or try one or more curated starter sets (you can also add these later in settings).</p>
+					@partials.Heading3() {
+						Start With Curated Subscription Sets
+					}
+					@partials.Paragraph() {
+						Or try one or more curated starter sets (you can also add these later in settings).
+					}
 					<form
 						hx-post="/user/feedset"
 						hx-swap="none"
@@ -241,8 +260,12 @@ templ NewUserHome() {
 					</form>
 				</div>
 				<div class="py-4">
-					<h3 class="ui-h3">Get to know Foragd</h3>
-					<p class="py-2">Read the documentation/help to get familiar with the app.</p>
+					@partials.Heading3() {
+						Get to know Foragd
+					}
+					@partials.Paragraph() {
+						Read the documentation/help to get familiar with the app.
+					}
 					<ul class="list-disc list-inside">
 						<li><a class="link" href="/help/index">Documentation Home</a></li>
 					</ul>

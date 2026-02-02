@@ -288,11 +288,13 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				// Show a page header.
 				<div class="md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
-						<h2 class="ui-h2">Subscriptions</h2>
+						@partials.Heading2() {
+							Subscriptions
+						}
 					</div>
 					<div class="mt-4 flex md:mt-0 md:ml-4 space-x-4">
-						<h3 class="ui-h3">{ response.Filters.GetView() }</h3>
-						<h3 class="ui-h3">{ response.Filters.GetSort().String() }</h3>
+						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
+						<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
 					</div>
 				</div>
 				@FilterControls("/list/subscriptions", &response.Filters) {
@@ -374,7 +376,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				}
 				<section class="mt-4">
 					if len(response.Subscriptions) > 0 {
-						<div id="grid-objects" class="ui-grid">
+						@grid() {
 							@templ.Fragment(PaginateFragment) {
 								for subscription := range slices.Values(response.Subscriptions) {
 									@NewSubscriptionView(subscription).Card()
@@ -397,7 +399,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								}
 								// @PaginateSubscriptions(response)
 							}
-						</div>
+						}
 						@partials.ButtonBackToTop()
 					} else {
 						<div class="text-center">
@@ -431,7 +433,9 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
-					<h2 class="ui-h2">{ "Editing " + request.Nickname }</h2>
+					@partials.Heading2() {
+						{ "Editing " + request.Nickname }
+					}
 				</div>
 				<div class="space-y-8">
 					<form
@@ -485,7 +489,9 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 						// Filtering.
 						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 							<div>
-								<h3 class="ui-h3">Filtering</h3>
+								@partials.Heading3() {
+									Filtering
+								}
 								<div class="flex items-center">
 									<p class="mt-1 text-sm/6 ">Filter articles by keywords/text in fields.</p>
 									@HelpPopover("subscription-filters-help", "top end") {
@@ -600,7 +606,9 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
-					<h2 class="ui-h2">Add A Subscription</h2>
+					@partials.Heading2() {
+						Add A Subscription
+					}
 				</div>
 				<div class="space-y-8">
 					<form
@@ -614,8 +622,12 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 						// URL.
 						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 							<div>
-								<h3 class="ui-h3">Feed Website or URL</h3>
-								<p class="mt-1 text-sm/6 ">Required. The feed's URL or website (feed detection from a website URL may or may not work).</p>
+								@partials.Heading3() {
+									Feed Website or URL
+								}
+								@partials.Paragraph() {
+									Required. The feed's URL or website (feed detection from a website URL may or may not work).
+								}
 							</div>
 							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 								<div class="col-span-full mt-2">
@@ -634,8 +646,12 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 						// Nickname.
 						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 							<div>
-								<h3 class="ui-h3">Feed Nickname</h3>
-								<p class="mt-1 text-sm/6 ">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</p>
+								@partials.Heading3() {
+									Feed Nickname
+								}
+								@partials.Paragraph() {
+									Optional. A Friendly name for the subscription. Will use the feed's name if not specified.
+								}
 							</div>
 							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 								<div class="sm:col-span-4 mt-2">
@@ -684,15 +700,19 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
-					switch action {
-						case "add":
-							<h2 class="ui-h2">Add A Search Subscription</h2>
-						case "edit":
-							<h2 class="ui-h2">{ "Editing " + request.Customisation.Nickname }</h2>
+					@partials.Heading2() {
+						switch action {
+							case "add":
+								Add A Search Subscription
+							case "edit":
+								{ "Editing " + request.Customisation.Nickname }
+						}
 					}
 				</div>
 				<div class="flex items-center border-b border-base-content/60">
-					<h3 class="ui-h3">Search Filters</h3>
+					@partials.Heading3() {
+						Search Filters
+					}
 					// Help dialog.
 					<div class="ml-4">
 						@HelpPopover("subscription-filter-operators-help", "bottom end") {
@@ -914,7 +934,9 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 						</div>
 					</form>
 					<div class="border-b border-base-content/60">
-						<h3 class="ui-h3">Subscription Info</h3>
+						@partials.Heading3() {
+							Subscription Info
+						}
 					</div>
 					// Nickname.
 					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
@@ -996,11 +1018,13 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
-					switch action {
-						case "add":
-							<h2 class="ui-h2">Add A Group Subscription</h2>
-						case "edit":
-							<h2 class="ui-h2">{ "Editing " + request.Customisation.Nickname }</h2>
+					@partials.Heading2() {
+						switch action {
+							case "add":
+								Add A Group Subscription
+							case "edit":
+								{ "Editing " + request.Customisation.Nickname }
+						}
 					}
 				</div>
 				<div class="space-y-8">
@@ -1132,7 +1156,9 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
-					<h2 class="ui-h2">{ "Editing " + request.Customisation.Nickname }</h2>
+					@partials.Heading2() {
+						{ "Editing " + request.Customisation.Nickname }
+					}
 				</div>
 				<div class="space-y-8">
 					<form
@@ -1212,7 +1238,9 @@ templ ImportSubscriptions() {
 			@container() {
 				<div class="mx-auto max-w-3xl">
 					<div class="min-w-0 flex-1 pb-8">
-						<h2 class="ui-h2">Import Subscriptions</h2>
+						@partials.Heading2() {
+							Import Subscriptions
+						}
 					</div>
 					<div class="md:flex md:items-center md:justify-between">
 						<p class="mt-2 max-w-4xl text-sm text-base-content/80">
@@ -1227,9 +1255,9 @@ templ ImportSubscriptions() {
 						hx-indicator="#processing"
 					>
 						<div class="grid max-w-7xl grid-cols-1 items-center gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-							<div>
-								<h3 class="ui-h3">OPML File</h3>
-							</div>
+							@partials.Heading3() {
+								OPML File
+							}
 							<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:place-items-center sm:grid-cols-6 md:col-span-2">
 								<div class="sm:col-span-full w-full">
 									<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10 w-full"/>
@@ -1260,7 +1288,9 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 	{{ failedResults := filterUnsuccessfulResults(results) }}
 	{{ warningResults := filterWarningResults(results) }}
 	<div class="min-w-0 flex-1">
-		<h2 class="ui-h2">Import Results</h2>
+		@partials.Heading2() {
+			Import Results
+		}
 	</div>
 	// Import results summary.
 	<ul class="py-4 space-y-8">
@@ -1356,7 +1386,9 @@ templ ExportSubscriptions() {
 			@container() {
 				<div class="md:flex md:items-center md:justify-between mt-8">
 					<div class="min-w-0 flex-1">
-						<h2 class="ui-h2">Export Subscriptions</h2>
+						@partials.Heading2() {
+							Export Subscriptions
+						}
 					</div>
 				</div>
 				<p class="mt-2 max-w-4xl text-sm text-base-content/80">
@@ -1388,7 +1420,7 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 				@tabler.AlertTriangle(i.Props{Class: "size-12"})
 			</div>
 			<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-				<h3 id="dialog-title" class="ui-h3">Unsubscribe confirmation</h3>
+				<h3 id="dialog-title" class="text-lg font-medium">Unsubscribe confirmation</h3>
 				<div class="mt-2">
 					<p class="text-sm">Are you sure you want to unsubscribe from { request.Nickname }?</p>
 				</div>
