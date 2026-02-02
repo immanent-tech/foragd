@@ -25,8 +25,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-resty/resty/v2"
 	"github.com/justinas/alice"
-	"github.com/russross/blackfriday/v2"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
 
 	"github.com/immanent-tech/go-syndication/sitemap"
 
@@ -53,6 +55,15 @@ var listHandlerChain = defaultHandlerChain.Append(parseFilters)
 
 var loadHTTPClient = sync.OnceValue(func() *resty.Client {
 	return resty.New().SetHeader("User-Agent", config.AppName+"/"+config.Version)
+})
+
+var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
+	return goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
+	)
 })
 
 var bufPool = sync.Pool{
@@ -226,10 +237,29 @@ func PolicyDocsHandler() http.HandlerFunc {
 			return
 		}
 
+		mdw := loadMarkdownWriter()
+
+		policyBuf, ok := bufPool.Get().(*bytes.Buffer)
+		if !ok {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Could not write policy.")
+			return
+		}
+		policyBuf.Reset()
+		defer bufPool.Put(policyBuf)
+
+		if err := mdw.Convert(contents, policyBuf); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Could not convert policy markdown.",
+				slog.String("doc", doc),
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
-		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
 		template := templates.CreatePage(
-			templates.Document(output),
+			templates.Document(policyBuf.Bytes()),
 			templates.WithPageTitle(metadata.Title),
 			templates.WithPageDescription(metadata.Description),
 		)
@@ -251,9 +281,28 @@ func DocumentationHandler() http.HandlerFunc {
 			http.NotFound(res, req)
 		}
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
-		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
+
+		mdw := loadMarkdownWriter()
+
+		docsBuf, ok := bufPool.Get().(*bytes.Buffer)
+		if !ok {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Could not write docs.")
+			return
+		}
+		docsBuf.Reset()
+		defer bufPool.Put(docsBuf)
+
+		if err := mdw.Convert(contents, docsBuf); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Could not convert docs markdown.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		template := templates.CreatePage(
-			templates.Document(output),
+			templates.Document(docsBuf.Bytes()),
 			templates.WithPageTitle("Documentation"),
 		)
 		templ.Handler(template).ServeHTTP(res, req)

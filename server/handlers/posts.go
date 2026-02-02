@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -15,7 +16,6 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/russross/blackfriday/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -109,9 +109,29 @@ func HandlePosts() http.HandlerFunc {
 		}
 
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
-		output := blackfriday.Run(contents, blackfriday.WithExtensions(blackfriday.AutoHeadingIDs))
+
+		mdw := loadMarkdownWriter()
+
+		postBuf, ok := bufPool.Get().(*bytes.Buffer)
+		if !ok {
+			res.WriteHeader(http.StatusInternalServerError)
+			slogctx.FromCtx(req.Context()).Error("Could not write post.")
+			return
+		}
+		postBuf.Reset()
+		defer bufPool.Put(postBuf)
+
+		if err := mdw.Convert(contents, postBuf); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Could not convert post markdown.",
+				slog.String("doc", doc),
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		RenderExternalPage(&Post{
-			content:  output,
+			content:  postBuf.Bytes(),
 			metadata: &metadata,
 		}).ServeHTTP(res, req)
 	}

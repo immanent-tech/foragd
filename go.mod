@@ -16,7 +16,6 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.30.1
-	github.com/goforj/godump v1.9.0
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/knadh/koanf/v2 v2.3.2
 	github.com/lmittmann/tint v1.1.2
@@ -192,7 +191,6 @@ require (
 	github.com/realclientip/realclientip-go v1.0.0
 	github.com/resend/resend-go/v3 v3.1.0
 	github.com/reugn/go-quartz v0.15.2
-	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/samber/lo v1.52.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
@@ -200,6 +198,7 @@ require (
 	github.com/veqryn/slog-context v0.8.0
 	github.com/veqryn/slog-json v0.5.0
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
+	github.com/yuin/goldmark v1.7.16
 	go.opentelemetry.io/otel v1.38.0 // indirect
 	go.opentelemetry.io/otel/metric v1.38.0 // indirect
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
