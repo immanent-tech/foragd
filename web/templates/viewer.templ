@@ -17,22 +17,21 @@ templ Viewer() {
 	@content() {
 		@container() {
 			<section id="viewer">
-				<h2 class="ui-h2">Feed Viewer</h2>
-				<p class="ui-p">
+				@partials.Heading2() {
+					Feed Viewer
+				}
+				@partials.Paragraph() {
 					Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
 					The feed content, if found, will be displayed below.
-				</p>
-				<p class="ui-p">
-					Feed Viewer is powered by open-source! Check out the <a
-	class="link"
-	href="https://github.com/immanent-tech/go-syndication"
->go-syndication</a> library on GitHub.
-				</p>
+				}
+				@partials.Paragraph() {
+					Feed Viewer is powered by open-source! Check out the <a class="link" href="https://github.com/immanent-tech/go-syndication">go-syndication</a> library on GitHub.
+				}
 				<form
 					id="viewer-form"
 					hx-post="/viewer"
 					hx-target="#viewer-results"
-					hx-swap="innerHTML transition:true"
+					hx-swap="innerHTML transition:true show:top"
 					hx-indicator="#processing"
 				>
 					<fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-4 w-full">
