@@ -10,7 +10,6 @@ require (
 	github.com/a-h/templ v0.3.977
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
-	github.com/auth0/go-auth0 v1.32.1
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/go-chi/chi/v5 v5.2.4
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e

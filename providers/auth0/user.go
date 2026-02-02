@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/auth0/go-auth0/management"
+	"github.com/auth0/go-auth0/v2/management"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -68,24 +68,27 @@ func (u *UserProfile) GetEmail() string {
 
 // DeleteUser will delete the given user from the Auth0 backend.
 func DeleteUser(ctx context.Context, id string) error {
-	if err := LoadManagementAPI(); err != nil {
+	mgmt, err := loadManagementAPI()
+	if err != nil {
 		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
 	}
 
 	// Delete the user's active sessions.
-	if err := mgmt.User.DeleteUserSessions(ctx, id); err != nil {
+	if err := mgmt.Users.Sessions.Delete(ctx, id); err != nil {
 		slogctx.FromCtx(ctx).Warn("Could not remove active sessions for user while deleting account.",
 			slog.Any("error", err),
 		)
 	}
-	if err := mgmt.User.Delete(ctx, id); err != nil {
+
+	if err := mgmt.Users.Delete(ctx, id); err != nil {
 		return fmt.Errorf("unable to delete user account on backend: %w", err)
 	}
 	return nil
 }
 
 func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
-	if err := LoadManagementAPI(); err != nil {
+	mgmt, err := loadManagementAPI()
+	if err != nil {
 		return fmt.Errorf("load management API: %w", err)
 	}
 	user := models.UserFromCtx(ctx)
@@ -98,14 +101,19 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 		verifyEmail = true
 	}
 	// Create update object.
-	updates := &management.User{
+	updates := &management.UpdateUserRequestContent{
 		Nickname:    &request.Nickname,
 		Email:       &request.Email,
 		Picture:     &request.AvatarURL,
 		VerifyEmail: &verifyEmail,
 	}
 	// Update the user.
-	if err := mgmt.User.Update(ctx, user.GetExternalID(), updates); err != nil {
+	_, err = mgmt.Users.Update(
+		ctx,
+		user.GetExternalID(),
+		updates,
+	)
+	if err != nil {
 		return fmt.Errorf("update user: %w", err)
 	}
 	return nil
@@ -113,7 +121,8 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 
 // ChangeUserPassword will perform a password change on behalf of a user.
 func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error {
-	if err := LoadManagementAPI(); err != nil {
+	mgmt, err := loadManagementAPI()
+	if err != nil {
 		return fmt.Errorf("load management API: %w", err)
 	}
 	user := models.UserFromCtx(ctx)
@@ -121,12 +130,17 @@ func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordReque
 		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
 	}
 	// Create update object.
-	updates := &management.User{
+	updates := &management.UpdateUserRequestContent{
 		Password: &request.NewPassword,
 	}
 	// Update the user.
-	if err := mgmt.User.Update(ctx, user.GetExternalID(), updates); err != nil {
-		return fmt.Errorf("update user: %w", err)
+	_, err = mgmt.Users.Update(
+		ctx,
+		user.GetExternalID(),
+		updates,
+	)
+	if err != nil {
+		return fmt.Errorf("change password: %w", err)
 	}
 	return nil
 }
