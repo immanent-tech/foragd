@@ -15,9 +15,9 @@ templ header(user *models.User) {
 		class="fixed w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30"
 	>
 		<a href="/home" class="link link-hover">
-			<div class="flex flex-row shrink-0 p-2 items-center text-primary">
-				@LogoSmall("flex size-8")
-				<p class="font-bold hidden lg:flex">Foragd</p>
+			<div class="flex flex-row shrink-0 p-2 items-center">
+				<img src="/content/favicon.svg" class="flex size-8" alt="Foragd Logo"/>
+				<p class="font-bold text-primary hidden lg:flex">Foragd</p>
 			</div>
 		</a>
 		if user != nil {
