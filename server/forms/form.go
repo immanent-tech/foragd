@@ -5,12 +5,10 @@
 package forms
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	"net/url"
 
 	"github.com/go-playground/form/v4"
 
@@ -32,7 +30,6 @@ var (
 
 var (
 	decoder = form.NewDecoder()
-	encoder = form.NewEncoder()
 )
 
 // defaultMaxSize for a multipart for submission is 32 MB.
@@ -49,58 +46,49 @@ type FormInput interface {
 // true if it is valid. If decoding the form submission fails, a non-nill error
 // is returned.
 func DecodeForm[T FormInput](req *http.Request) (T, bool, error) {
-	var obj T
-	// Parse form values in request.
-	err := req.ParseForm()
-	if err != nil {
+	var (
+		obj T
+		err error
+	)
+	if err := req.ParseForm(); err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
-	// Decode the form values.
-	err = decoder.Decode(&obj, req.Form)
+	obj, err = decodeObject(req, obj)
 	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
-	}
-	// Sanitise the object.
-	err = obj.Sanitise()
-	if err != nil {
-		return obj, false, fmt.Errorf("%w: %w", ErrSanitise, err)
-	}
-	// Validate the object.
-	err = obj.Valid()
-	if err != nil {
-		return obj, false, fmt.Errorf("%w: %w", ErrValidation, err)
 	}
 	return obj, true, nil
 }
 
-// DecodeCustom will decode submitted form contents into the passed in type,
-// using the passed function to decode url.Values into the defined type. It will also
-// will perform validation of the type and will return the type and a boolean
-// true if it is valid. If decoding the form submission fails, a non-nill error
-// is returned.
-func DecodeCustom[T FormInput](req *http.Request, decoderFunc func(params url.Values) (T, error)) (T, bool, error) {
-	var obj T
-	// Parse form values in request.
-	err := req.ParseForm()
-	if err != nil {
+func DecodeMultiPartForm[T FormInput](req *http.Request) (T, bool, error) {
+	var (
+		obj T
+		err error
+	)
+	if err := req.ParseMultipartForm(defaultMaxSize); err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
-	// Call the custom decoder function.
-	obj, err = decoderFunc(req.Form)
+	obj, err = decodeObject(req, obj)
 	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
-	}
-	// Sanitise the object.
-	err = obj.Sanitise()
-	if err != nil {
-		return obj, false, fmt.Errorf("%w: %w", ErrSanitise, err)
-	}
-	// Validate the object.
-	err = obj.Valid()
-	if err != nil {
-		return obj, false, fmt.Errorf("%w: %w", ErrValidation, err)
 	}
 	return obj, true, nil
+}
+
+func decodeObject[T FormInput](req *http.Request, obj T) (T, error) {
+	// Decode the form values.
+	if err := decoder.Decode(&obj, req.Form); err != nil {
+
+	}
+	// Sanitise the object.
+	if err := obj.Sanitise(); err != nil {
+		return obj, fmt.Errorf("%w: %w", ErrSanitise, err)
+	}
+	// Validate the object.
+	if err := obj.Valid(); err != nil {
+		return obj, fmt.Errorf("%w: %w", ErrValidation, err)
+	}
+	return obj, nil
 }
 
 // FileUpload represents file data uploaded through a mutlipart form.
@@ -145,40 +133,4 @@ func DecodeMultipartValue(req *http.Request, field string) (string, error) {
 	}
 	// Decode the form values.
 	return req.FormValue(field), nil
-}
-
-// DecodeRequest will decode a request body into the given type.
-func DecodeRequest[T any](req *http.Request) (T, error) {
-	var obj T
-	if err := json.NewDecoder(req.Body).Decode(&obj); err != nil {
-		return obj, errors.Join(ErrDecode, err)
-	}
-
-	// if ok, problems := obj.Valid(); !ok {
-	// 	return obj, problems, fmt.Errorf("invalid %T: %d problems", obj, len(problems))
-	// }
-
-	return obj, nil
-}
-
-// EncodeForm will encode the given object as url.Values, using the struct tags
-// where possible. It will perform validation of the object before attempting
-// encoding. If the object cannot be encoded or validation fails, a non-nil
-// error is returned.
-func EncodeForm[T FormInput](obj T) (url.Values, error) {
-	// Sanitise the object.
-	err := obj.Sanitise()
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrSanitise, err)
-	}
-	// Validate the object.
-	err = obj.Valid()
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrValidation, err)
-	}
-	values, err := encoder.Encode(&obj)
-	if err != nil {
-		return nil, errors.Join(ErrEncode, err)
-	}
-	return values, nil
 }

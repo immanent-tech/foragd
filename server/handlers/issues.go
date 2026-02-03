@@ -76,7 +76,7 @@ func HandleReportPageIssue() http.HandlerFunc {
 func HandleSubmitPageIssue() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
-		request, valid, err := forms.DecodeForm[*models.ReportIssueRequest](req)
+		request, valid, err := forms.DecodeMultiPartForm[*models.ReportIssueRequest](req)
 		if err != nil || !valid {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("%w: %w", ErrInvalidRequestParams, err),
@@ -205,7 +205,7 @@ func HandleReportObjectIssue() http.HandlerFunc {
 func HandleSubmitObjectIssue() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Extract the issue request details.
-		request, valid, err := forms.DecodeForm[*models.ReportObjectIssueRequest](req)
+		request, valid, err := forms.DecodeMultiPartForm[*models.ReportObjectIssueRequest](req)
 		if err != nil || !valid {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode object: %w", err),

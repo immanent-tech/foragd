@@ -116,6 +116,7 @@ func HandleSaveDisplaySettings() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
+
 		// Get user object
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -155,7 +156,7 @@ func HandleSaveDisplaySettings() http.HandlerFunc {
 func HandleSaveAccountSettings() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request.
-		request, valid, err := forms.DecodeForm[*models.EditUserRequest](req)
+		request, valid, err := forms.DecodeMultiPartForm[*models.EditUserRequest](req)
 		if err != nil || !valid {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode edit user request: %w", err),
@@ -167,6 +168,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
+
 		avatar, err := forms.DecodeMultipartFile(req, "avatar")
 		if err != nil && !errors.Is(err, http.ErrMissingFile) {
 			HandleInternalError(&models.APIError{

@@ -520,7 +520,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 		// Generate the appropriate subscription edit request.
 		switch models.SubscriptionType(req.FormValue("subscription_type")) {
 		case models.SubscriptionTypeFeed:
-			request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
+			request, valid, err := forms.DecodeMultiPartForm[*models.EditSubscriptionRequest](req)
 			if err != nil || !valid {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode subscription request: %w", err),
@@ -539,7 +539,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 			subscription.FeedData.ArticleFilters.Authors = request.ArticleFilters.Authors
 			subscription.FeedData.ArticleFilters.Categories = request.ArticleFilters.Categories
 		case models.SubscriptionTypeSearch:
-			request, valid, err := forms.DecodeForm[*models.SearchSubscriptionRequest](req)
+			request, valid, err := forms.DecodeMultiPartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode search subscription request: %w", err),
@@ -555,7 +555,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 			subscription.Settings = request.Settings
 			subscription.SearchData.Search = request.Search
 		case models.SubscriptionTypeGroup:
-			request, valid, err := forms.DecodeForm[*models.GroupSubscriptionRequest](req)
+			request, valid, err := forms.DecodeMultiPartForm[*models.GroupSubscriptionRequest](req)
 			if err != nil || !valid {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode group subscription request: %w", err),
@@ -571,7 +571,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 			subscription.Settings = request.Settings
 			subscription.GroupData.Subscriptions = request.Subscriptions
 		case models.SubscriptionTypeEmail:
-			request, valid, err := forms.DecodeForm[*models.EditEmailSubscriptionRequest](req)
+			request, valid, err := forms.DecodeMultiPartForm[*models.EditEmailSubscriptionRequest](req)
 			if err != nil || !valid {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode email subscription request: %w", err),
