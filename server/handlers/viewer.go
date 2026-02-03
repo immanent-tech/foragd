@@ -4,10 +4,12 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/a-h/templ"
 	feeds "github.com/immanent-tech/go-syndication"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -66,6 +68,9 @@ func HandleViewer() http.HandlerFunc {
 			// Parse the URL and find feed content.
 			feed, err := feeds.NewFeedFromURL(req.Context(), url)
 			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
+					slog.Any("error", err),
+				)
 				RenderPartial(&ViewerError{
 					msg: models.NewErrorMessage("Failed to parse as feed", ""),
 				}).ServeHTTP(res, req)
