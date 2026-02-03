@@ -139,7 +139,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/storage v1.59.1
+	cloud.google.com/go/storage v1.59.2
 	codeberg.org/readeck/go-readability/v2 v2.1.0
 	github.com/BurntSushi/toml v1.6.0
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
