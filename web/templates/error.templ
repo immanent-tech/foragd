@@ -3,7 +3,12 @@
 
 package templates
 
-import "github.com/immanent-tech/foragd/models"
+import (
+	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+)
 
 const ErrorFragment templFragmentKey = "error"
 
@@ -11,8 +16,20 @@ templ InternalError(user *models.User, msg *models.UserMessage) {
 	@content() {
 		@templ.Fragment(ErrorFragment) {
 			@container() {
-				@userMessage("Whoops 😿", msg) {
-					<div class="mt-10 flex items-center justify-center gap-x-6">
+				<div class="text-center">
+					@tabler.MoodConfuzed(i.Props{Class: "mx-auto text-accent size-12"})
+					@partials.Heading3() {
+						Whoops!
+					}
+					@partials.Paragraph() {
+						{ msg.Summary }
+					}
+					if msg.HasDetails() {
+						@partials.Paragraph() {
+							{ msg.Details }
+						}
+					}
+					<div class="mt-6">
 						<a href="/home" role="button" class="btn btn-primary">
 							Go Back Home
 						</a>
@@ -20,7 +37,7 @@ templ InternalError(user *models.User, msg *models.UserMessage) {
 							Email Support <span aria-hidden="true">&rarr;</span>
 						</a>
 					</div>
-				}
+				</div>
 			}
 		}
 	}
@@ -30,13 +47,25 @@ templ ExternalError(user *models.User, msg *models.UserMessage) {
 	@content() {
 		@templ.Fragment(ErrorFragment) {
 			@container() {
-				@userMessage("Whoops 😿", msg) {
-					<div class="mt-10 flex items-center justify-center gap-x-6">
+				<div class="text-center">
+					@tabler.MoodConfuzed(i.Props{Class: "mx-auto text-accent size-12"})
+					@partials.Heading3() {
+						Whoops!
+					}
+					@partials.Paragraph() {
+						{ msg.Summary }
+					}
+					if msg.HasDetails() {
+						@partials.Paragraph() {
+							{ msg.Details }
+						}
+					}
+					<div class="mt-6">
 						<a href="mailto:support@immanent.tech&subject=Foragd Issue" role="button" class="btn btn-primary">
 							Email Support <span aria-hidden="true">&rarr;</span>
 						</a>
 					</div>
-				}
+				</div>
 			}
 		}
 	}
