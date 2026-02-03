@@ -8,10 +8,10 @@ import (
 	"os"
 	"sync"
 
-	"github.com/immanent-tech/go-syndication/validation"
 	"github.com/stripe/stripe-go/v83"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/validation"
 )
 
 const (

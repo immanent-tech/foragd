@@ -8,9 +8,9 @@ import (
 	"net/mail"
 	"time"
 
-	"github.com/immanent-tech/go-syndication/sanitization"
-	"github.com/immanent-tech/go-syndication/validation"
 	"github.com/resend/resend-go/v3"
+
+	"github.com/immanent-tech/foragd/validation"
 )
 
 type ReceivedEmail struct {
@@ -30,15 +30,15 @@ func (e *ReceivedEmail) Timestamp() time.Time {
 }
 
 func (e *ReceivedEmail) GetSubject() string {
-	return sanitization.SanitizeString(e.Subject)
+	return validation.SanitizeString(e.Subject)
 }
 
 func (e *ReceivedEmail) GetBody() string {
 	switch {
 	case e.Html != "":
-		return sanitization.SanitizeString(e.Html)
+		return validation.SanitizeString(e.Html)
 	case e.Text != "":
-		return sanitization.SanitizeString(e.Text)
+		return validation.SanitizeString(e.Text)
 	default:
 		return ""
 	}
