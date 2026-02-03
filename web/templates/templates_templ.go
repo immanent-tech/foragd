@@ -251,8 +251,8 @@ func CreatePage(template templ.Component, options ...PageOption) templ.Component
 				// All other status should not swap.
 				{Code: "...", Swap: false},
 			},
-			// InlineStyleNonce: templ.GetNonce(ctx),
-			// InlineScriptNonce: templ.GetNonce(ctx),
+			InlineStyleNonce:          templ.GetNonce(ctx),
+			InlineScriptNonce:         templ.GetNonce(ctx),
 			IncludeIndicatorStyles:    false,
 			HistoryRestoreAsHxRequest: false,
 			GlobalViewTransitions:     true,
