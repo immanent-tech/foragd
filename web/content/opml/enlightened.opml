@@ -31,6 +31,18 @@
             title="The Pudding"
             type="rss"
             xmlUrl="https://pudding.cool/rss.xml"></outline>
+        <outline description="A regular(-ish) newsletterblogtypething all about stuff on the internet that its author finds interesting and thinks you might too."
+            htmlUrl="https://webcurios.co.uk/"
+            text="Web Curios"
+            title="Web Curios"
+            xmlUrl="https://webcurios.co.uk/feed/"></outline>
+        <outline description="Jason Kottke's weblog, home of fine hypertext products since 1998"
+            htmlUrl="https://kottke.org/"
+            text="kottke.org"
+            title="kottke.org"
+            type="rss"
+            xmlUrl="https://feeds.kottke.org/main"></outline>
+
     </body>
     <head>
         <dateCreated>2025-09-23T09:21:01.533444703+10:00</dateCreated>
