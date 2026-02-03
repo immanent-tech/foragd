@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.45.0](https://github.com/immanent-tech/foragd/compare/v0.44.0...v0.45.0) (2026-02-03)
+
+
+### Features
+
+* **assets:** :bento: add png versions of logo ([9dd1138](https://github.com/immanent-tech/foragd/commit/9dd11382b60d84831f2fef781524adc53aa09e2f))
+* **templates:** :sparkles: add link in footer to report security issues ([d248bdd](https://github.com/immanent-tech/foragd/commit/d248bdda0a2056ad40ddd048746dc82cb10ea74e))
+
+
+### Bug Fixes
+
+* :bug: define a method to properly decode multipart forms ([a0e5371](https://github.com/immanent-tech/foragd/commit/a0e5371f7a9f90c480a1e598beba39fb9d63ed7c))
+* **templates:** :bug: fix link to help on new user home ([1d520ba](https://github.com/immanent-tech/foragd/commit/1d520ba7793c1410b92e4ae39d924f6e81d352bb))
+
 ## [0.44.0](https://github.com/immanent-tech/foragd/compare/v0.43.0...v0.44.0) (2026-02-02)
 
 
