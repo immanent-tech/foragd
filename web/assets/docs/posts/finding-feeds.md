@@ -37,6 +37,7 @@ There are a few dedicated search engines for feeds and sites with quality feed l
 
 - [feedle.world](https://feedle.world/): A feed search engine and discovery site. Contains a lot of independent bloggers and sources. Try the [random search](https://feedle.world/random) feature 🎲.
 - [feedsearch.dev](https://feedsearch.dev/): While targeted for API usage (i.e., built into another app), the site itself will return a human-readable list of feeds for a given site.
+- [Feedspot](https://rss.feedspot.com/): A large database of RSS feeds. The categories are a bit dubious and IMO SEO-clickbaity but its possible to find some useful feed links among the lists.
 - [RSSHub](rsshub.app): Is both a search engine and tool you can self-host to provide feed links for sites, including generating feed links for sites that don't publish their own. There are [public instances](https://docs.rsshub.app/guide/instances) you use to [browse](https://docs.rsshub.app/routes/) all available feed links for different sites. Quality can be hit-and-miss, so YMMV.
 
 A little bit of search-fu might work if all else fails. In your favorite search engine, try a search like `site:my-favorite.site file:rss`. If you are lucky, the results may include the RSS link for the site.
