@@ -311,7 +311,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 				// Full text search filter.
 				<div class="col-span-full">
 					<label for="text" class="block text-sm/6 font-medium">Includes the words</label>
-					<div class="mt-2">
+					<label class="input input-sm input-primary w-full bg-base-content/10 mt-2">
 						<input
 							id="search-text"
 							type="text"
@@ -320,10 +320,17 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 								value={ request.Text }
 							}
 							placeholder="e.g. cat dog -mouse"
-							class="input input-sm input-primary w-full bg-base-content/10"
 							_="on change from #global-search set my value to #global-search.value"
 						/>
-					</div>
+						<button
+							id="clear-search-text"
+							type="button"
+							tabindex="0"
+							_="on click set #search-text.value to ''"
+						>
+							@tabler.CircleX(i.Props{Class: "flex-none text-primary"})
+						</button>
+					</label>
 				</div>
 				// Categories filter.
 				<div class="sm:col-span-3">
