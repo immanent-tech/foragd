@@ -17,6 +17,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/riandyrn/otelchi"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -38,6 +39,8 @@ const (
 )
 
 // Start will start the server.
+//
+//nolint:funlen
 func Start(logger *slog.Logger) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancelFunc()
@@ -89,6 +92,7 @@ func Start(logger *slog.Logger) error {
 		middleware.Compress(defaultCompressionLevel, compressMimetypes...),
 		middleware.StripSlashes,
 		middlewares.Etag,
+		otelchi.Middleware(config.AppName+"/"+config.Version),
 	)
 
 	// Error handling.
@@ -311,7 +315,7 @@ func Start(logger *slog.Logger) error {
 	}()
 
 	// Set the User-Agent string to be used for underlying requests to fetch feeds and content.
-	feeds.UserAgent = config.AppName + "/" + config.Version + " (+https://foragd.app/policies/bot)"
+	feeds.UserAgent = config.AppName + "/" + config.Version + " (+https://foragd.app/policies/bot)" //nolint:reassign
 
 	logger.Info("Starting server...",
 		slog.String("address", svr.Addr),
