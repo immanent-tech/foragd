@@ -424,8 +424,8 @@ type Feed struct {
 	Image    externalRef0.ImageInfo `json:"image,omitempty,omitzero" validate:"omitempty"`
 	Language string                 `json:"language,omitempty,omitzero"`
 
-	// LastFetched indicates when new items for the feed were last fetched.
-	LastFetched time.Time `json:"last_fetched"`
+	// LastFetched indicates when an object was last fetched.
+	LastFetched LastFetched `json:"last_fetched,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -451,6 +451,21 @@ type Feed struct {
 
 // FeedID is the unique ID of a feed.
 type FeedID = string
+
+// FeedStatus represents the status of fetching the feed.
+type FeedStatus struct {
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+
+	// StatusCode is the HTTP status code returned when fetching.
+	StatusCode int `json:"status_code"`
+
+	// StatusMessage is a message associated with the status code.
+	StatusMessage string `json:"status_message,omitempty,omitzero"`
+
+	// Timestamp is when the document was created.
+	Timestamp Timestamp `json:"@timestamp" validate:"required"`
+}
 
 // FeedSubscription represents a feed a user has subscribed to.
 type FeedSubscription struct {
@@ -568,6 +583,9 @@ type JobState struct {
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
+
+// LastFetched indicates when an object was last fetched.
+type LastFetched = time.Time
 
 // ListArticlesResponse contains the data retrieved and relevant for listing articles.
 type ListArticlesResponse struct {

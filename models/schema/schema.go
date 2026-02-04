@@ -30,6 +30,7 @@ import (
 
 const (
 	feedsIndexPrefix          = "feeds"
+	feedStatusIndexPrefix     = "feed_status"
 	itemsSchemaPrefix         = "items"
 	favoriteItemsSchemaPrefix = "favorite-items"
 	usersSchemaPrefix         = "users"
@@ -44,6 +45,10 @@ const (
 	FeedsIndexRO = feedsIndexPrefix + indexReadSuffix
 	// FeedsIndexRW is the index alias for read-write access to feeds.
 	FeedsIndexRW = feedsIndexPrefix + indexWriteSuffix
+	// FeedStatusIndexRO is the index alias for read-only access to feed status.
+	FeedStatusIndexRO = feedStatusIndexPrefix + indexReadSuffix
+	// FeedStatusIndexRW is the index alias for read-write access to feed status.
+	FeedStatusIndexRW = feedStatusIndexPrefix + indexWriteSuffix
 	// ItemsIndexRO is the index alias for read-only access to items.
 	ItemsIndexRO = itemsSchemaPrefix + indexReadSuffix
 	// ItemsIndexRW is the index alias for read-write access to items.
@@ -317,6 +322,62 @@ var (
 )
 
 var (
+	// feedStatusComponentTemplate contains the field mappings for FeedStatus.
+	feedStatusComponentTemplate = withComponentTemplatesMigration(
+		templates.NewComponentTemplate(
+			"feed_status_component_template",
+			templates.NewTemplate(
+				templates.WithTemplateMapping(
+					templates.WithProperties(
+						templates.WithDatetimeMapping("@timestamp"),
+						templates.WithKeywordMapping("feed_id"),
+						templates.WithInt64Mapping("status_code"),
+						templates.WithTextMapping("status_message", &types.TextProperty{
+							Type: "text",
+						}),
+					),
+					templates.WithDynamicProperties(false),
+				),
+				templates.WithTemplateSettings(
+					templates.WithLifecycle("feed_status_ilm_policy", FeedStatusIndexRW),
+					templates.WithMode("logsdb"),
+				),
+			),
+		),
+	)
+	// feedStatusIndexTemplate contains the settings for FeedStatus indices.
+	feedStatusIndexTemplate = withIndexTemplateMigration(
+		templates.NewIndexTemplate(
+			"feed_status_index_template",
+			templates.WithComponentTemplates("feed_status_component_template"),
+			templates.WithIndexPatterns(feedStatusIndexPrefix+"-*"),
+			templates.WithIndexTemplateMetadata(defaultMetadata),
+			templates.AsDatastream(true),
+			templates.WithPriority(101),
+		),
+	)
+	// feedStatusILMPolicy is the ILM policy for FeedStatus indices.
+	feedStatusILMPolicy = withILMPolicyMigration(
+		ilm.NewILMPolicy(
+			"feed_status_ilm_policy",
+			ilm.WithPhase("hot",
+				ilm.WithActions(ilm.WithRolloverMaxSize("50gb")),
+			),
+			ilm.WithPhase("warm",
+				ilm.WithActions(
+					ilm.WithShrinkToShards(1),
+					ilm.WithForceMergeSegments(1),
+				),
+			),
+			ilm.WithPhase("delete",
+				ilm.WithMinAge("30d"),
+				ilm.WithActions(ilm.WithDelete()),
+			),
+		),
+	)
+)
+
+var (
 	// usersComponentTemplate contains the field mappings for Users indicies.
 	usersComponentTemplate = withComponentTemplatesMigration(
 		templates.NewComponentTemplate(
@@ -506,12 +567,23 @@ var (
 	}
 )
 
+var allIndices = []string{
+	feedsIndexPrefix,
+	feedStatusIndexPrefix,
+	itemsSchemaPrefix,
+	favoriteItemsSchemaPrefix,
+	usersSchemaPrefix,
+	subscriptionsSchemaPrefix,
+	schedulerIndexPrefix,
+	sessionsSchemaPrefix,
+}
+
 // Option is a reusable generic function for applying options to a type.
 type Option[T any] func(T)
 
 // Options contains the options for performing schema migrations.
 type Options struct {
-	Indices []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
+	Indices []string `arg:"" default:"all" enum:"all,feeds,feed_status,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
 }
 
 // CreateSchemas performs all requested schema migrations.
@@ -520,7 +592,7 @@ type Options struct {
 func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
-		opts.Indices = []string{"users", "feeds", "items", "favorites", "scheduler", "sessions", "subscriptions"}
+		opts.Indices = allIndices
 	}
 
 	// Migrate Feed/Items common mappings component template.
@@ -530,7 +602,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 
 	for index := range slices.Values(opts.Indices) {
 		switch index {
-		case "items":
+		case itemsSchemaPrefix:
 			// Create Items schemas.
 			if err := migrateIndexTemplates(ctx, api,
 				itemsComponentTemplate,
@@ -539,7 +611,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			); err != nil {
 				return fmt.Errorf("could not migrate items: %w", err)
 			}
-		case "favorites":
+		case favoriteItemsSchemaPrefix:
 			// Create Favorites schemas.
 			if err := migrateIndexTemplates(ctx, api,
 				favoriteItemsComponentTemplate,
@@ -547,7 +619,7 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			); err != nil {
 				return fmt.Errorf("could not migrate favorite items: %w", err)
 			}
-		case "feeds":
+		case feedsIndexPrefix:
 			// Create Feeds schemas.
 			if err := migrateIndexTemplates(ctx, api,
 				feedsComponentTemplate,
@@ -555,28 +627,37 @@ func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			); err != nil {
 				return fmt.Errorf("could not migrate feeds: %w", err)
 			}
-		case "users":
+		case feedStatusIndexPrefix:
+			// Create FeedStatus schemas.
+			if err := migrateIndexTemplates(ctx, api,
+				feedStatusComponentTemplate,
+				feedStatusIndexTemplate,
+				feedStatusILMPolicy,
+			); err != nil {
+				return fmt.Errorf("could not migrate feeds: %w", err)
+			}
+		case usersSchemaPrefix:
 			if err := migrateIndexTemplates(ctx, api,
 				usersComponentTemplate,
 				usersIndexTemplate,
 			); err != nil {
 				return fmt.Errorf("could not migrate users: %w", err)
 			}
-		case "subscriptions":
+		case subscriptionsSchemaPrefix:
 			if err := migrateIndexTemplates(ctx, api,
 				subscriptionsComponentTemplate,
 				subscriptionsIndexTemplate,
 			); err != nil {
 				return fmt.Errorf("could not migrate users: %w", err)
 			}
-		case "scheduler":
+		case schedulerIndexPrefix:
 			if err := migrateIndexTemplates(ctx, api,
 				schedulerComponentTemplate,
 				schedulerIndexTemplate,
 			); err != nil {
 				return fmt.Errorf("could not migrate users: %w", err)
 			}
-		case "sessions":
+		case sessionsSchemaPrefix:
 			if err := migrateIndexTemplates(ctx, api,
 				sessionsComponentTemplate,
 				sessionsIndexTemplate,
@@ -667,15 +748,15 @@ func getStatusCode(err error) int {
 func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
-		opts.Indices = []string{"users", "feeds", "items", "favorites", "scheduler", "sessions", "subscriptions"}
+		opts.Indices = allIndices
 	}
 
 	for index := range slices.Values(opts.Indices) {
 		var err error
 		switch index {
-		case "items":
+		case itemsSchemaPrefix:
 			err = migrateIndexData(ctx, api, itemsSchemaPrefix, nil)
-		case "users":
+		case usersSchemaPrefix:
 			err = migrateIndexData(ctx, api, usersSchemaPrefix, nil)
 			// ingest.NewIngestPipeline(
 			// 	ingest.WithProcessor(types.ProcessorContainer{
@@ -691,13 +772,13 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 			// 		},
 			// 	}),
 			// ),
-		case "scheduler":
+		case schedulerIndexPrefix:
 			err = migrateIndexData(ctx, api, schedulerIndexPrefix, nil)
-		case "feeds":
+		case feedsIndexPrefix:
 			err = migrateIndexData(ctx, api, feedsIndexPrefix, nil)
-		case "subscriptions":
+		case subscriptionsSchemaPrefix:
 			err = migrateIndexData(ctx, api, subscriptionsSchemaPrefix, nil)
-		case "sessions":
+		case sessionsSchemaPrefix:
 			err = migrateIndexData(ctx, api, sessionsSchemaPrefix, nil)
 		}
 		if err != nil {
