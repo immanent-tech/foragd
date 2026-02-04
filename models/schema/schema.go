@@ -45,10 +45,6 @@ const (
 	FeedsIndexRO = feedsIndexPrefix + indexReadSuffix
 	// FeedsIndexRW is the index alias for read-write access to feeds.
 	FeedsIndexRW = feedsIndexPrefix + indexWriteSuffix
-	// FeedStatusIndexRO is the index alias for read-only access to feed status.
-	FeedStatusIndexRO = feedStatusIndexPrefix + indexReadSuffix
-	// FeedStatusIndexRW is the index alias for read-write access to feed status.
-	FeedStatusIndexRW = feedStatusIndexPrefix + indexWriteSuffix
 	// ItemsIndexRO is the index alias for read-only access to items.
 	ItemsIndexRO = itemsSchemaPrefix + indexReadSuffix
 	// ItemsIndexRW is the index alias for read-write access to items.
@@ -322,6 +318,7 @@ var (
 )
 
 var (
+	FeedStatusIndex = "logs-" + feedStatusIndexPrefix + "-" + config.Version
 	// feedStatusComponentTemplate contains the field mappings for FeedStatus.
 	feedStatusComponentTemplate = withComponentTemplatesMigration(
 		templates.NewComponentTemplate(
@@ -339,7 +336,7 @@ var (
 					templates.WithDynamicProperties(false),
 				),
 				templates.WithTemplateSettings(
-					templates.WithLifecycle("feed_status_ilm_policy", FeedStatusIndexRW),
+					templates.WithLifecycle("feed_status_ilm_policy", FeedStatusIndex),
 					templates.WithMode("logsdb"),
 				),
 			),
@@ -350,10 +347,10 @@ var (
 		templates.NewIndexTemplate(
 			"feed_status_index_template",
 			templates.WithComponentTemplates("feed_status_component_template"),
-			templates.WithIndexPatterns(feedStatusIndexPrefix+"-*"),
+			templates.WithIndexPatterns(FeedStatusIndex),
 			templates.WithIndexTemplateMetadata(defaultMetadata),
 			templates.AsDatastream(true),
-			templates.WithPriority(101),
+			templates.WithPriority(201),
 		),
 	)
 	// feedStatusILMPolicy is the ILM policy for FeedStatus indices.
@@ -733,6 +730,7 @@ func migrateIndexTemplates(
 			return fmt.Errorf("could not migrate ilm policy %s: %w", migration.ilmPolicy.Name, err)
 		}
 	}
+
 	return nil
 }
 
@@ -808,27 +806,15 @@ func migrateIndexData(
 	}
 
 	// Create index.
-	found, err := api.Indices.Exists(index).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not determine %s index state: %w", index, err)
+	if err := createIndexIfNotExists(ctx, api, prefix); err != nil {
+		return fmt.Errorf("could not create index %s: %w", index, err)
 	}
-	if !found {
-		_, err = api.Indices.Create(index).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("could not create index %s: %w", index, err)
-		}
-	}
-	slogctx.FromCtx(ctx).Info("New index created",
-		slog.String("name", index),
-	)
 	// Update the write alias.
-	err = updateAlias(ctx, api, writeAlias, index)
-	if err != nil {
+	if err := updateAlias(ctx, api, writeAlias, index); err != nil {
 		return fmt.Errorf("migration failed: %w", err)
 	}
 	// Reindex if requested.
-	found, err = api.Indices.Exists(readAlias).Do(ctx)
-	if err != nil || !found {
+	if found, err := api.Indices.Exists(readAlias).Do(ctx); err != nil || !found {
 		return fmt.Errorf("could not determine %s index state: %w", readAlias, err)
 	}
 	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index, pipelineName)).
@@ -855,8 +841,7 @@ func migrateIndexData(
 		)
 	}
 	// Update the read alias.
-	err = updateAlias(ctx, api, readAlias, index)
-	if err != nil {
+	if err = updateAlias(ctx, api, readAlias, index); err != nil {
 		return fmt.Errorf("migration failed: %w", err)
 	}
 	return nil
@@ -902,5 +887,28 @@ func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias stri
 		slog.String("index", index),
 		slog.Bool("is_write_index", writeIndex),
 	)
+	return nil
+}
+
+func createIndexIfNotExists(ctx context.Context, api *elasticsearch.TypedClient, prefix string) error {
+	index := strings.Join([]string{prefix, config.Version, time.Now().Format("20060102150405")}, "-")
+	// Create index.
+	found, err := api.Indices.Exists(index).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("could not determine %s index state: %w", index, err)
+	}
+	if !found {
+		_, err = api.Indices.Create(index).Do(ctx)
+		if err != nil {
+			return fmt.Errorf("could not create index %s: %w", index, err)
+		}
+		slogctx.FromCtx(ctx).Info("New index created.",
+			slog.String("name", index),
+		)
+	}
+	slogctx.FromCtx(ctx).Info("Index already exists.",
+		slog.String("name", index),
+	)
+
 	return nil
 }
