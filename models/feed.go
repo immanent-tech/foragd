@@ -45,6 +45,19 @@ func UpdateFeed(ctx context.Context, id FeedID, updates map[string]any) error {
 	return nil
 }
 
+// GetID retrieves (generates) a unique ID for a FeedStatus object.
+func (s *FeedStatus) GetID() string {
+	return strconv.FormatUint(xxhash.Sum64String(s.FeedID+s.Timestamp.String()), 10)
+}
+
+// AddFeedStatus adds a FeedStatus document to the index.
+func AddFeedStatus(ctx context.Context, status *FeedStatus) error {
+	if err := elastic.CreateDoc(ctx, schema.FeedStatusIndex, status.GetID(), status); err != nil {
+		return es2APIError("add feed status failed", err)
+	}
+	return nil
+}
+
 func getFeedUnreadCounts(
 	ctx context.Context,
 	subscriptions Subscriptions,

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"slices"
 	"sync"
 	"time"
@@ -96,18 +97,44 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	// Get new items since the last fetch.
 	feed, err := feeds.NewFeedFromURL(ctx, jobData.URLs[0])
 	if err != nil {
+		var httpErr feeds.HTTPError
+		status := &models.FeedStatus{
+			Timestamp: time.Now().UTC(),
+			FeedID:    details.GetID(),
+		}
+		if errors.Is(err, &httpErr) {
+			status.StatusCode = httpErr.Code
+			status.StatusMessage = httpErr.Message
+		} else {
+			status.StatusCode = http.StatusInternalServerError
+			status.StatusMessage = err.Error()
+		}
+		if err := models.AddFeedStatus(ctx, status); err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+				slog.Any("error", err),
+			)
+		}
 		return fmt.Errorf("fetch feed: %w", err)
 	}
+
+	// Create a new FeedStatus for this update.
+	status := &models.FeedStatus{
+		Timestamp: time.Now().UTC(),
+		FeedID:    details.GetID(),
+	}
+
+	// Extract Items from Feed.
 	items := make(models.Items, 0, len(feed.GetItems()))
 	for i := range slices.Values(feed.GetItems()) {
 		items = append(items, models.NewFeedItem(&i, details))
 	}
+
+	// Add any new items since the last feed update.
 	slogctx.FromCtx(ctx).Debug("Checking for new items.",
 		slog.Time("since", details.LastFetched),
 		slog.Int("total_items", len(items)),
 		slog.Duration("interval", time.Duration(details.UpdateInterval)),
 	)
-	// Add any new items since the last feed update.
 	if newItems := items.FilterSince(details.LastFetched); len(newItems) > 0 {
 		// Add any new items.
 		if err := models.AddItems(ctx, newItems...); err != nil {
@@ -123,7 +150,21 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		}); err != nil {
 			return fmt.Errorf("update feed last fetched: %w", err)
 		}
+		// Update FeedStatus.
+		status.StatusCode = http.StatusOK
+		status.StatusMessage = fmt.Sprintf("added %d new items", len(newItems))
+	} else {
+		// Update FeedStatus.
+		status.StatusCode = http.StatusNoContent
+		status.StatusMessage = "no new items"
 	}
+	// Index FeedStatus for this update.
+	if err := models.AddFeedStatus(ctx, status); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+			slog.Any("error", err),
+		)
+	}
+
 	return nil
 }
 
