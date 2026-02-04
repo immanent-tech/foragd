@@ -14,7 +14,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/riandyrn/otelchi"
@@ -25,7 +24,6 @@ import (
 	feeds "github.com/immanent-tech/go-syndication"
 
 	"github.com/immanent-tech/foragd/config"
-	"github.com/immanent-tech/foragd/providers/google/pubsub"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/handlers"
@@ -59,14 +57,14 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to set up session api: %w", err)
 	}
 
-	pubsub, err := pubsub.New(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to configure pubsub: %w", err)
-	}
+	// pubsub, err := pubsub.New(ctx)
+	// if err != nil {
+	// 	return fmt.Errorf("unable to configure pubsub: %w", err)
+	// }
 
-	marshaler := cqrs.JSONMarshaler{}
-	topic := marshaler.Name(handlers.UpdatesFound{})
-	updatesHandler := pubsub.AddSSEHandler(topic, &handlers.UpdatesStream{})
+	// marshaler := cqrs.JSONMarshaler{}
+	// topic := marshaler.Name(handlers.UpdatesFound{})
+	// updatesHandler := pubsub.AddSSEHandler(topic, &handlers.UpdatesStream{})
 
 	// Set up routes.
 	rateLimiter := middlewares.NewRateLimiter()
@@ -171,7 +169,7 @@ func Start(logger *slog.Logger) error {
 			r.Get("/cancel", handlers.HandleLanding())
 		})
 		r.Get("/home", handlers.HandleHome())
-		// r.Get("/home/updates", handlers.WatchHome())
+		r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
 		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.HandleSearchSuggestions())
 		r.With(middlewares.RequireHTMX).Post("/search", handlers.HandleSearchResults())
@@ -180,7 +178,7 @@ func Start(logger *slog.Logger) error {
 			Post("/search/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions())
 		r.With(middlewares.RequireHTMX).Post("/search/subscription", handlers.AddSubscriptionFilter())
 		r.Get("/search", handlers.HandleSearchResults())
-		// r.Get("/search/updates", handlers.WatchSearchResults())
+		r.Get("/search/updates", handlers.WatchSearchResults())
 		// Issues.
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.HandleReportObjectIssue())
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.HandleSubmitObjectIssue())
@@ -190,7 +188,7 @@ func Start(logger *slog.Logger) error {
 			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.HandleMarkSubscriptions())
-			// r.Get("/updates", handlers.WatchList())
+			r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).
@@ -213,7 +211,7 @@ func Start(logger *slog.Logger) error {
 			r.Post("/", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())
-			// r.Get("/updates", handlers.WatchList())
+			r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}", handlers.MarkArticle())
@@ -231,11 +229,11 @@ func Start(logger *slog.Logger) error {
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
-			r.Get("/updates", func(res http.ResponseWriter, req *http.Request) {
-				updater := &handlers.UpdatesHandler{}
-				updater.Handle(req)
-				updatesHandler(res, req)
-			})
+			// r.Get("/updates", func(res http.ResponseWriter, req *http.Request) {
+			// 	updater := &handlers.UpdatesHandler{}
+			// 	updater.Handle(req)
+			// 	updatesHandler(res, req)
+			// })
 			r.Get("/account-issue", handlers.HandleAccountIssue())
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
@@ -296,23 +294,23 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to configure server for H2C: %w", err)
 	}
 
-	go func() {
-		err := pubsub.StartEventsRouter(ctx)
-		if err != nil {
-			slogctx.FromCtx(ctx).Error("Unable to start pubsub events router",
-				slog.Any("error", err),
-			)
-		}
-	}()
+	// go func() {
+	// 	err := pubsub.StartEventsRouter(ctx)
+	// 	if err != nil {
+	// 		slogctx.FromCtx(ctx).Error("Unable to start pubsub events router",
+	// 			slog.Any("error", err),
+	// 		)
+	// 	}
+	// }()
 
-	go func() {
-		err := pubsub.StartSSERouter(ctx)
-		if err != nil {
-			slogctx.FromCtx(ctx).Error("Unable to start pubsub sse router",
-				slog.Any("error", err),
-			)
-		}
-	}()
+	// go func() {
+	// 	err := pubsub.StartSSERouter(ctx)
+	// 	if err != nil {
+	// 		slogctx.FromCtx(ctx).Error("Unable to start pubsub sse router",
+	// 			slog.Any("error", err),
+	// 		)
+	// 	}
+	// }()
 
 	// Set the User-Agent string to be used for underlying requests to fetch feeds and content.
 	feeds.UserAgent = config.AppName + "/" + config.Version + " (+https://foragd.app/policies/bot)" //nolint:reassign

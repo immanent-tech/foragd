@@ -498,12 +498,12 @@ templ ListArticles(response *models.ListArticlesResponse) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Watch for updates.
-				// <div
-				// 	id="update-notifications"
-				// 	sse-connect={ "/list/articles/updates?" + response.Filters.QueryString() }
-				// 	sse-swap="updates"
-				// 	class="toast toast-center z-50"
-				// ></div>
+				<div
+					id="update-notifications"
+					sse-connect={ "/list/articles/updates?" + response.Filters.QueryString() }
+					sse-swap="updates"
+					class="toast toast-center z-50"
+				></div>
 				// Show a page header.
 				<div class="md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
