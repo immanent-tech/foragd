@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
@@ -23,6 +24,7 @@ import (
 	feeds "github.com/immanent-tech/go-syndication"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/providers/google/pubsub"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/handlers"
@@ -54,75 +56,16 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to set up session api: %w", err)
 	}
 
-	// Set up routes.
-	router := setupRoutes(ctx)
-
-	h2s := &http2.Server{}
-	svr := &http.Server{
-		Handler:      h2c.NewHandler(router, h2s),
-		Addr:         net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
-		ReadTimeout:  cfg.ReadTimeout.Duration(),
-		WriteTimeout: cfg.WriteTimeout.Duration(),
-		IdleTimeout:  cfg.IdleTimeout.Duration(),
-		BaseContext: func(_ net.Listener) context.Context {
-			return ctx
-		},
-	}
-
-	err = http2.ConfigureServer(svr, h2s)
+	pubsub, err := pubsub.New(ctx)
 	if err != nil {
-		return fmt.Errorf("unable to configure server for H2C: %w", err)
+		return fmt.Errorf("unable to configure pubsub: %w", err)
 	}
 
-	// Set the User-Agent string to be used for underlying requests to fetch feeds and content.
-	feeds.UserAgent = config.AppName + "/" + config.Version + " (+https://foragd.app/policies/bot)"
+	marshaler := cqrs.JSONMarshaler{}
+	topic := marshaler.Name(handlers.UpdatesFound{})
+	updatesHandler := pubsub.AddSSEHandler(topic, &handlers.UpdatesStream{})
 
-	logger.Info("Starting server...",
-		slog.String("address", svr.Addr),
-		slog.Time("start_time", time.Now()),
-	)
-
-	// And we serve HTTP until the world ends.
-	go func() {
-		var err error
-		if cfg.CertFile != "" && cfg.KeyFile != "" {
-			logger.Info("Using https.",
-				slog.String("certificate file", cfg.CertFile),
-				slog.String("key file", cfg.KeyFile),
-			)
-			err = svr.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile)
-		} else {
-			logger.Info("Using http.")
-			err = svr.ListenAndServe()
-		}
-		if err != nil && err != http.ErrServerClosed {
-			logger.Error("Could not listen.",
-				slog.Any("error", err),
-			)
-		}
-	}()
-
-	<-ctx.Done()
-
-	// Create shutdown context with 30-second timeout
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
-	defer cancel()
-
-	// Trigger graceful shutdown
-	logger.Info("Shutting down server...")
-	if err := svr.Shutdown(shutdownCtx); err != nil {
-		logger.Error("Server failed to shutdown gracefully.",
-			slog.Any("error", err),
-		)
-	}
-
-	logger.Info("Server shutdown gracefully")
-
-	return nil
-}
-
-//nolint:funlen
-func setupRoutes(ctx context.Context) *chi.Mux {
+	// Set up routes.
 	rateLimiter := middlewares.NewRateLimiter()
 
 	// Set up a new chi router.
@@ -224,7 +167,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.Get("/cancel", handlers.HandleLanding())
 		})
 		r.Get("/home", handlers.HandleHome())
-		r.Get("/home/updates", handlers.WatchHome())
+		// r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
 		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.HandleSearchSuggestions())
 		r.With(middlewares.RequireHTMX).Post("/search", handlers.HandleSearchResults())
@@ -233,7 +176,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			Post("/search/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions())
 		r.With(middlewares.RequireHTMX).Post("/search/subscription", handlers.AddSubscriptionFilter())
 		r.Get("/search", handlers.HandleSearchResults())
-		r.Get("/search/updates", handlers.WatchSearchResults())
+		// r.Get("/search/updates", handlers.WatchSearchResults())
 		// Issues.
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.HandleReportObjectIssue())
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.HandleSubmitObjectIssue())
@@ -243,7 +186,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.HandleMarkSubscriptions())
-			r.Get("/updates", handlers.WatchList())
+			// r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).
@@ -266,7 +209,7 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 			r.Post("/", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())
-			r.Get("/updates", handlers.WatchList())
+			// r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}", handlers.MarkArticle())
@@ -284,6 +227,11 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
+			r.Get("/updates", func(res http.ResponseWriter, req *http.Request) {
+				updater := &handlers.UpdatesHandler{}
+				updater.Handle(req)
+				updatesHandler(res, req)
+			})
 			r.Get("/account-issue", handlers.HandleAccountIssue())
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
@@ -327,5 +275,84 @@ func setupRoutes(ctx context.Context) *chi.Mux {
 		r.Get("/logout", handlers.Logout)
 	})
 
-	return router
+	h2s := &http2.Server{}
+	svr := &http.Server{
+		Handler:      h2c.NewHandler(router, h2s),
+		Addr:         net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
+		ReadTimeout:  cfg.ReadTimeout.Duration(),
+		WriteTimeout: cfg.WriteTimeout.Duration(),
+		IdleTimeout:  cfg.IdleTimeout.Duration(),
+		BaseContext: func(_ net.Listener) context.Context {
+			return ctx
+		},
+	}
+
+	err = http2.ConfigureServer(svr, h2s)
+	if err != nil {
+		return fmt.Errorf("unable to configure server for H2C: %w", err)
+	}
+
+	go func() {
+		err := pubsub.StartEventsRouter(ctx)
+		if err != nil {
+			slogctx.FromCtx(ctx).Error("Unable to start pubsub events router",
+				slog.Any("error", err),
+			)
+		}
+	}()
+
+	go func() {
+		err := pubsub.StartSSERouter(ctx)
+		if err != nil {
+			slogctx.FromCtx(ctx).Error("Unable to start pubsub sse router",
+				slog.Any("error", err),
+			)
+		}
+	}()
+
+	// Set the User-Agent string to be used for underlying requests to fetch feeds and content.
+	feeds.UserAgent = config.AppName + "/" + config.Version + " (+https://foragd.app/policies/bot)"
+
+	logger.Info("Starting server...",
+		slog.String("address", svr.Addr),
+		slog.Time("start_time", time.Now()),
+	)
+
+	// And we serve HTTP until the world ends.
+	go func() {
+		var err error
+		if cfg.CertFile != "" && cfg.KeyFile != "" {
+			logger.Info("Using https.",
+				slog.String("certificate file", cfg.CertFile),
+				slog.String("key file", cfg.KeyFile),
+			)
+			err = svr.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile)
+		} else {
+			logger.Info("Using http.")
+			err = svr.ListenAndServe()
+		}
+		if err != nil && err != http.ErrServerClosed {
+			logger.Error("Could not listen.",
+				slog.Any("error", err),
+			)
+		}
+	}()
+
+	<-ctx.Done()
+
+	// Create shutdown context with 30-second timeout
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), gracefulShutdownTimeout)
+	defer cancel()
+
+	// Trigger graceful shutdown
+	logger.Info("Shutting down server...")
+	if err := svr.Shutdown(shutdownCtx); err != nil {
+		logger.Error("Server failed to shutdown gracefully.",
+			slog.Any("error", err),
+		)
+	}
+
+	logger.Info("Server shutdown gracefully")
+
+	return nil
 }

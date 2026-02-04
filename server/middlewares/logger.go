@@ -38,14 +38,19 @@ func Logger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		cfg := configureLogging()
 
-		logger := slogctx.FromCtx(req.Context()).With(
-			slog.Group("request",
-				slog.Group("htmx",
-					slog.Bool("is_htmx", htmx.IsHTMX(req)),
-					slog.Bool("is_history_restore_request", htmx.IsHistoryRestoreRequest(req)),
+		logger := slogctx.FromCtx(req.Context())
+		if htmx.IsHTMX(req) {
+			logger = logger.With(
+				slog.Group("request",
+					slog.Group("htmx",
+						slog.Bool("is_htmx", htmx.IsHTMX(req)),
+						slog.Bool("is_history_restore_request", htmx.IsHistoryRestoreRequest(req)),
+						slog.String("target", req.Header.Get(htmx.HeaderTarget)),
+						slog.String("trigger", req.Header.Get(htmx.HeaderTrigger)),
+					),
 				),
-			),
-		)
+			)
+		}
 
 		slogchi.NewWithConfig(logger, cfg)(next).ServeHTTP(res, req)
 	})

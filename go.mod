@@ -7,6 +7,7 @@ replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 replace github.com/immanent-tech/slog-elasticsearch v0.0.0 => ./pkg/slog-elasticsearch
 
 require (
+	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/a-h/templ v0.3.977
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
@@ -35,17 +36,21 @@ require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	cloud.google.com/go/iam v1.5.3 // indirect
 	cloud.google.com/go/monitoring v1.24.2 // indirect
+	cloud.google.com/go/pubsub/v2 v2.0.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.29.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.54.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.54.0 // indirect
 	github.com/Masterminds/semver v0.0.0-20190925130524-317e8cce5480 // indirect
 	github.com/Masterminds/vcs v1.13.3 // indirect
+	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
+	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
+	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20250501225837-2ac532fd4443 // indirect
@@ -55,11 +60,15 @@ require (
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/go-chi/chi v4.1.2+incompatible // indirect
+	github.com/go-chi/render v1.0.3 // indirect
 	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/go-pkgz/expirable-cache/v3 v3.0.0 // indirect
 	github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c // indirect
+	github.com/goforj/godump v1.9.0 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/golang/dep v0.5.4 // indirect
@@ -79,6 +88,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.0.4 // indirect
 	github.com/jmank88/nuts v0.4.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/magefile/mage v1.15.0 // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
@@ -90,6 +100,7 @@ require (
 	github.com/oapi-codegen/oapi-codegen/v2 v2.5.1 // indirect
 	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
+	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/onsi/gomega v1.34.1 // indirect
 	github.com/otiai10/copy v1.10.0 // indirect
 	github.com/package-url/packageurl-go v0.1.0 // indirect
@@ -104,6 +115,7 @@ require (
 	github.com/sirupsen/logrus v1.9.1 // indirect
 	github.com/sonatype-nexus-community/go-sona-types v0.1.6 // indirect
 	github.com/sonatype-nexus-community/nancy v1.0.51 // indirect
+	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/speakeasy-api/jsonpath v0.6.0 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
@@ -143,6 +155,8 @@ require (
 	codeberg.org/readeck/go-readability/v2 v2.1.0
 	github.com/BurntSushi/toml v1.6.0
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
+	github.com/ThreeDotsLabs/watermill-googlecloud/v2 v2.0.0
+	github.com/ThreeDotsLabs/watermill-http/v2 v2.3.1
 	github.com/alecthomas/kong v1.13.0
 	github.com/auth0/go-auth0/v2 v2.4.0
 	github.com/coreos/go-oidc/v3 v3.17.0

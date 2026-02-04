@@ -6,11 +6,12 @@ package pubsub
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sync"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-googlecloud/v2/pkg/googlecloud"
-	"github.com/ThreeDotsLabs/watermill-http/v2/pkg/http"
+	stream "github.com/ThreeDotsLabs/watermill-http/v2/pkg/http"
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
@@ -25,7 +26,7 @@ type PubSub struct {
 	eventsRouter   *message.Router
 	eventProcessor *cqrs.EventProcessor
 	subscriber     *googlecloud.Subscriber
-	sseRouter      http.SSERouter
+	sseRouter      stream.SSERouter
 }
 
 // New creates a new PubSub using GCP Pub/Sub as a backend.
@@ -106,10 +107,10 @@ func New(ctx context.Context) (*PubSub, error) {
 			return nil, fmt.Errorf("create subscriber: %w", err)
 		}
 
-		sseRouter, err := http.NewSSERouter(
-			http.SSERouterConfig{
+		sseRouter, err := stream.NewSSERouter(
+			stream.SSERouterConfig{
 				UpstreamSubscriber: subscriber,
-				Marshaler:          http.StringSSEMarshaler{},
+				Marshaler:          stream.StringSSEMarshaler{},
 			},
 			logger,
 		)
@@ -121,17 +122,22 @@ func New(ctx context.Context) (*PubSub, error) {
 			publisher:      publisher,
 			eventBus:       eventBus,
 			eventProcessor: eventProcessor,
+			eventsRouter:   router,
 			subscriber:     subscriber,
 			sseRouter:      sseRouter,
 		}, nil
 	})()
 }
 
-func (pb *PubSub) AddHandlers(handlers ...cqrs.EventHandler) error {
+func (pb *PubSub) AddEventHandlers(handlers ...cqrs.EventHandler) error {
 	if err := pb.eventProcessor.AddHandlers(handlers...); err != nil {
 		return fmt.Errorf("add event handlers: %w", err)
 	}
 	return nil
+}
+
+func (pb *PubSub) AddSSEHandler(topic string, handler stream.StreamAdapter) http.HandlerFunc {
+	return pb.sseRouter.AddHandler(topic, handler)
 }
 
 func (pb *PubSub) StartEventsRouter(ctx context.Context) error {
