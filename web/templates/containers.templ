@@ -38,14 +38,14 @@ templ content(options ...ElementOption) {
 		@SideBar(nil)
 	}
 	// Main content.
-	if user != nil {
-		<div
-			id="update-notifications"
-			sse-connect="/user/updates"
-			sse-swap="updates"
-			class="toast toast-center z-50"
-		></div>
-	}
+	// if user != nil {
+	// 	<div
+	// 		id="update-notifications"
+	// 		sse-connect="/user/updates"
+	// 		sse-swap="updates"
+	// 		class="toast toast-center z-50"
+	// 	></div>
+	// }
 	<main
 		id={ ContentID.String() }
 		aria-label="Main Content"
