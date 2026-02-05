@@ -30,14 +30,6 @@
         "showReuseMessage": true,
         "clear": false
       },
-      "options": {
-        "shell": {
-          "executable": "/bin/bash",
-          "args": [
-            "-c"
-          ]
-        }
-      }
     },
     {
       "label": "run: update schema(s)",
