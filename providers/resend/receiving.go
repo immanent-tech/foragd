@@ -60,10 +60,10 @@ func (e *ReceivedEmail) Valid() error {
 		return fmt.Errorf("%w: from: %w", ErrInvalidEmail, err)
 	}
 	if e.GetSubject() == "" {
-		return fmt.Errorf("%w: empty subject")
+		return fmt.Errorf("%w: empty subject", ErrInvalidEmail)
 	}
 	if e.GetBody() == "" {
-		return fmt.Errorf("%w: empty body")
+		return fmt.Errorf("%w: empty body", ErrInvalidEmail)
 	}
 	return nil
 }
