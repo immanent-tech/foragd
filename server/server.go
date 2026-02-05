@@ -5,6 +5,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -58,10 +59,15 @@ func Start(logger *slog.Logger) error {
 		return fmt.Errorf("unable to set up session api: %w", err)
 	}
 
-	otelCfg, err := otel.Create(ctx)
+	// Set up OpenTelemetry.
+	otelConfig, otelShutdown, err := otel.Setup(ctx)
 	if err != nil {
-		return fmt.Errorf("unable to setup otel: %w", err)
+		return fmt.Errorf("unable to set up open telemetry: %w", err)
 	}
+	// Handle shutdown properly so nothing leaks.
+	defer func() {
+		err = errors.Join(err, otelShutdown(context.Background()))
+	}()
 
 	// pubsub, err := pubsub.New(ctx)
 	// if err != nil {
@@ -96,7 +102,7 @@ func Start(logger *slog.Logger) error {
 		middleware.Compress(defaultCompressionLevel, compressMimetypes...),
 		middleware.StripSlashes,
 		middlewares.Etag,
-		otelchi.Middleware(config.AppName+"/"+config.Version, otelchi.WithTracerProvider(otelCfg.Tracer)),
+		otelchi.Middleware(config.AppName+"/"+config.Version, otelchi.WithTracerProvider(otelConfig.Tracer)),
 	)
 
 	// Error handling.
