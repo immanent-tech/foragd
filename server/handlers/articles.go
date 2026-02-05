@@ -278,6 +278,7 @@ func HandleViewArticle() http.HandlerFunc {
 			case err != nil:
 				// Couldn't fetch remote article content, show an error message.
 				res.Header().Set(htmx.HeaderReswap, "none")
+				res.Header().Set(htmx.HeaderReplaceUrl, "false")
 				RenderPartial(&Notification{
 					msg: models.NewErrorMessage(
 						"Cannot display remote content",
@@ -289,6 +290,7 @@ func HandleViewArticle() http.HandlerFunc {
 			case content == article.Content:
 				// Remote content is same as feed content.
 				res.Header().Set(htmx.HeaderReswap, "none")
+				res.Header().Set(htmx.HeaderReplaceUrl, "false")
 				RenderPartial(&Notification{
 					msg: models.NewErrorMessage("No remote content", "Remote content is same as feed."),
 				}).ServeHTTP(res, req)

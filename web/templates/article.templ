@@ -416,8 +416,7 @@ templ (a *Article) Content() {
 					<nav class="my-16 flex flex-col sm:flex-row gap-2 items-center justify-center text-sm">
 						// Show a toggle for fetching full content where it appears the feed content is only a summary
 						// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
-						<a
-							role="button"
+						<button
 							class="btn btn-primary"
 							hx-get={ "/view/article/" + a.GetID() }
 							hx-target={ ContentID.Target() }
@@ -426,6 +425,7 @@ templ (a *Article) Content() {
 							hx-trigger="click"
 							hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
 						>
+							// _="on htmx:afterResponse[detail.failed] add @disabled to me"
 							if a.IsRemoteContent() {
 								@tabler.FileRss()
 								Show Feed Content
@@ -433,31 +433,29 @@ templ (a *Article) Content() {
 								@tabler.FileDownload()
 								Get Remote Content
 							}
-						</a>
+						</button>
 						// }
 						// View original article action.
-						<a role="button" class="btn btn-primary" { a.ViewRemoteAttributes()... }>
+						<button class="btn btn-primary" { a.ViewRemoteAttributes()... }>
 							@tabler.ExternalLink()
 							View Remote
-						</a>
+						</button>
 						// Mobile share action via navigator API.
 						<div _="init if not navigator.share then hide me">
-							<a
-								role="button"
+							<button
 								class="btn btn-primary"
 								_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
 							>
 								@tabler.Share()
 								Share
-							</a>
+							</button>
 						</div>
 						// Desktop share action with modal and options.
 						<form _="init if navigator.share then hide me">
 							<input type="hidden" name="item_id" value={ a.GetID() }/>
 							<input type="hidden" name="title" value={ a.GetTitle() }/>
 							<input type="hidden" name="link" value={ a.GetLink() }/>
-							<a
-								role="button"
+							<button
 								class="btn btn-primary"
 								hx-post={ "/share/article/" + a.GetID() }
 								hx-target={ partials.ModalContainerID.Target() }
@@ -465,7 +463,7 @@ templ (a *Article) Content() {
 							>
 								@tabler.Share()
 								Share
-							</a>
+							</button>
 						</form>
 					</nav>
 				}
