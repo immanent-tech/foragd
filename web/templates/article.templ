@@ -24,26 +24,6 @@ func NewArticleView(a *models.Article) *Article {
 	return &Article{Article: a}
 }
 
-// ViewRemoteAttributes generates a templ.Attributes object containing htmx directives for viewing the article remote content.
-func (a *Article) ViewRemoteAttributes() templ.Attributes {
-	attrs := make(templ.Attributes)
-	attrs["href"] = a.GetLink()
-	attrs["target"] = "_blank"
-	attrs["rel"] = "noopener"
-	attrs["_"] = "on click halt the event's bubbling"
-	return attrs
-}
-
-// ViewAttributes generates a templ.Attributes object containing htmx directives for viewing the article content.
-func (a *Article) ViewAttributes() templ.Attributes {
-	attrs := make(templ.Attributes)
-	attrs["hx-get"] = "/view/article/" + a.GetID()
-	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
-	attrs["hx-trigger"] = "click"
-	return attrs
-}
-
 func (a *Article) SimilarArticlesAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
 	attrs["hx-get"] = "/view/article/" + a.GetID() + "/similar"
@@ -70,8 +50,11 @@ templ (a *Article) Card() {
 			templ.KV("row-span-1", a.GetImage() == nil),
 			templ.KV("row-span-2", a.GetImage() != nil),
 		}
+		hx-get={ "/view/article/" + a.GetID() }
+		hx-target={ ContentID.Target() }
+		hx-swap="innerHTML show:window:top transition:true"
+		hx-trigger="click"
 		hx-disinherit="*"
-		{ a.ViewAttributes()... }
 	>
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + a.GetSubscriptionID() + "]" } value={ a.GetID() }/>
@@ -192,7 +175,13 @@ templ (a *Article) Card() {
 						>
 							<div class="py-1">
 								// View original article action.
-								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ViewRemoteAttributes()... }>
+								<a
+									href={ a.GetLink() }
+									target="_blank"
+									rel="noopener"
+									_="on click halt the event's bubbling"
+									class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden"
+								>
 									@tabler.ExternalLink(i.Props{Class: "size-4"})
 									Go To Article
 								</a>
@@ -436,10 +425,17 @@ templ (a *Article) Content() {
 						</button>
 						// }
 						// View original article action.
-						<button class="btn btn-primary" { a.ViewRemoteAttributes()... }>
+						<a
+							role="button"
+							class="btn btn-primary"
+							href={ a.GetLink() }
+							target="_blank"
+							rel="noopener"
+							_="on click halt the event's bubbling"
+						>
 							@tabler.ExternalLink()
 							View Remote
-						</button>
+						</a>
 						// Mobile share action via navigator API.
 						<div _="init if not navigator.share then hide me">
 							<button
