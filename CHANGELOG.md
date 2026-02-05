@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.47.0](https://github.com/immanent-tech/foragd/compare/v0.46.0...v0.47.0) (2026-02-05)
+
+
+### Features
+
+* :sparkles: allow direct beta sign-ups ([abe489a](https://github.com/immanent-tech/foragd/commit/abe489a5beed4dcf3470d80457d928e7cbd5524a))
+* :sparkles: send beta welcome email on first login ([783d14d](https://github.com/immanent-tech/foragd/commit/783d14d0d1a061ac024b218bfa6adf971165e118))
+
+
+### Bug Fixes
+
+* :bug: don't update url for failed get remote content request ([c592f0b](https://github.com/immanent-tech/foragd/commit/c592f0b254803fe609a373095f4b5af09c685455))
+
 ## [0.46.0](https://github.com/immanent-tech/foragd/compare/v0.45.0...v0.46.0) (2026-02-04)
 
 
