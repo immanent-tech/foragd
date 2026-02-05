@@ -115,14 +115,6 @@ templ (s *Subscription) Card() {
 				</div>
 				<div class="text-pretty line-clamp-3 tracking-tight">{ s.Subscription.GetTitle() }</div>
 			</div>
-			<div class="label text-sm">
-				Last update
-				if !s.Subscription.GetUpdatedDate().IsZero() {
-					@showTimestamp(s.Subscription.GetUpdatedDate())
-				} else {
-					unknown
-				}
-			</div>
 			// Display up to 5 of the subscription categories.
 			if len(s.Subscription.GetCategories(0)) > 0 {
 				<div class="flex justify-start my-2">
@@ -145,6 +137,13 @@ templ (s *Subscription) Card() {
 				</div>
 			}
 			<div class="card-actions mt-auto items-center">
+				// Timestamp.
+				<div class="flex flex-1 gap-x-2">
+					<span class="label text-xs/4 capitalize">
+						Updated&nbsp;
+						@showTimestamp(s.Subscription.GetUpdatedDate())
+					</span>
+				</div>
 				// Show stats if user requested.
 				<div class="label inline-grid grid-flow-row text-xs justify-items-start">
 					if s.Subscription.Settings.ShowSubscriptionStats {
