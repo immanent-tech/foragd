@@ -28,6 +28,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/handlers"
 	"github.com/immanent-tech/foragd/server/middlewares"
+	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web"
 )
@@ -55,6 +56,11 @@ func Start(logger *slog.Logger) error {
 	// Set up the session manager.
 	if err := session.NewSessionManager(); err != nil {
 		return fmt.Errorf("unable to set up session api: %w", err)
+	}
+
+	otelCfg, err := otel.Create(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to setup otel: %w", err)
 	}
 
 	// pubsub, err := pubsub.New(ctx)
@@ -90,7 +96,7 @@ func Start(logger *slog.Logger) error {
 		middleware.Compress(defaultCompressionLevel, compressMimetypes...),
 		middleware.StripSlashes,
 		middlewares.Etag,
-		otelchi.Middleware(config.AppName+"/"+config.Version),
+		otelchi.Middleware(config.AppName+"/"+config.Version, otelchi.WithTracerProvider(otelCfg.Tracer)),
 	)
 
 	// Error handling.

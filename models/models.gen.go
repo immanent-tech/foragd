@@ -1126,6 +1126,9 @@ type UserMetadata struct {
 	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-status
 	PlanStatus stripe.SubscriptionStatus `json:"plan_status,omitempty,omitzero" validate:"required"`
 
+	// PoliciesAccepted indicates whether the user has accepted the app policies.
+	PoliciesAccepted bool `json:"policies_accepted" validate:"required"`
+
 	// StripeCustomerID is the stripe customer id of the user.
 	// https://docs.stripe.com/api/customers/object?api-version=2025-11-17.preview#customer_object-id
 	StripeCustomerID string `json:"stripe_customer_id,omitempty,omitzero" validate:"required"`

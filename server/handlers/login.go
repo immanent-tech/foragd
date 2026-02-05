@@ -4,7 +4,7 @@
 package handlers
 
 import (
-	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -33,7 +33,7 @@ func (p *Login) PartialResponse(w http.ResponseWriter, r *http.Request) {
 	templ.Handler(p.template, templ.WithFragments(templates.BodyFragment)).ServeHTTP(w, r)
 }
 
-// Login handles login requests.
+// HandleLogin handles user login or sign-up requests.
 func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	// Init the authenticator backend.
 	if err := auth0.InitAuthenticator(req.Context()); err != nil {
@@ -79,7 +79,7 @@ func HandleLogin(res http.ResponseWriter, req *http.Request) {
 	http.Redirect(res, req, authURL, http.StatusTemporaryRedirect)
 }
 
-// HandleLoginCallback handles processing the response from a login provider.
+// HandleLoginCallback handles processing the response from the login provider.
 func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	state, err := session.Restore[string](req.Context(), "state")
 	if err != nil {
@@ -153,7 +153,16 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 		return
 	default: // Existing user.
 		// Sync user data from the backend.
-		syncLocalUser(req.Context(), user, profile)
+		auth0.SyncUser(req.Context(), user)
+		if !user.Metadata.PoliciesAccepted {
+			// User has not accepted policies, redirect to page asking them to contact support.
+			slogctx.FromCtx(req.Context()).Error("User has not accepted policies.",
+				slog.String("user_id", user.GetID()),
+				slog.Any("error", err),
+			)
+			http.Redirect(res, req, models.RouteUserAccountIssue, http.StatusSeeOther)
+			return
+		}
 	}
 	ctx := models.UserToCtx(req.Context(), user)
 	// Redirect the user appropriately.
@@ -206,8 +215,8 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// HandleLoginError handles login errors, including invalid login callback URL, missing parameters, expired password reset
-// links.
+// HandleLoginError handles login errors, including invalid login callback URL, missing parameters, expired password
+// reset links.
 func HandleLoginError(res http.ResponseWriter, req *http.Request) {
 	slogctx.FromCtx(req.Context()).Error("Auth0 reported a login error.",
 		slog.String("client_id", req.URL.Query().Get("client_id")),
@@ -215,35 +224,7 @@ func HandleLoginError(res http.ResponseWriter, req *http.Request) {
 		slog.String("error_description", req.URL.Query().Get("error_description")),
 	)
 	HandleExternalError(&models.APIError{
-		InternalError: fmt.Errorf("login failed"),
+		InternalError: errors.New("login failed"),
 		StatusCode:    http.StatusForbidden,
 	}).ServeHTTP(res, req)
-}
-
-// syncLocalUser tries to sync relevant user data from the auth backend to the local data.
-func syncLocalUser(ctx context.Context, user *models.User, profile auth0.UserProfile) {
-	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
-	updates := make(map[string]any)
-	// Overwrite local avatar with remote avatar if different
-	if user.AvatarURL != profile.Picture {
-		updates["avatar_url"] = profile.Picture
-	}
-	// Overwrite local nickname with remote nickname if different
-	if user.Nickname != profile.Nickname {
-		updates["nickname"] = profile.Nickname
-	}
-	// Overwrite local email with remote email if different
-	if user.Email != profile.Email {
-		updates["email"] = profile.Email
-	}
-	// If no updates are necessary, bail early.
-	if len(updates) > 0 {
-		if err := models.UpdateUser(ctx, user.GetID(), updates); err != nil {
-			slogctx.FromCtx(ctx).Error("Could not sync user data.",
-				slog.String("user_id", user.GetID()),
-				slog.Any("error", err))
-			return
-		}
-		slogctx.FromCtx(ctx).Info("User data updated.")
-	}
 }

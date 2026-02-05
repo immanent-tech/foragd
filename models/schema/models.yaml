@@ -346,6 +346,14 @@ components:
           description: >
             is the date when the trial for the subscription ended.
           x-go-type: time.Time
+        policies_accepted:
+          description: >
+            indicates whether the user has accepted the app policies.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
     User:

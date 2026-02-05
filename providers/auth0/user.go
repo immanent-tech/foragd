@@ -21,23 +21,23 @@ import (
 // https://pkg.go.dev/github.com/coreos/go-oidc/v3@v3.15.0/oidc#IDToken
 type UserProfile struct {
 	// URL of the server which issued this token.
-	Issuer string `json:"iss"            validate:"required,url"`
+	Issuer string `json:"iss" validate:"required,url"`
 	// The client ID, or set of client IDs, that this token is issued for.
-	Audience string `json:"aud"            validate:"required"`
+	Audience string `json:"aud" validate:"required"`
 	// When the token was issued by the provider.
-	IssuedAt int64 `json:"iat"            validate:"required"`
+	IssuedAt int64 `json:"iat" validate:"required"`
 	// Expiry of the token.
-	Expiry int64 `json:"exp"            validate:"required"`
+	Expiry int64 `json:"exp" validate:"required"`
 	// A unique string which identifies the end user.
-	Subject string `json:"sub"            validate:"required"`
+	Subject string `json:"sub" validate:"required"`
 	// ID of the current session.
-	SessionID string `json:"sid"            validate:"required"`
+	SessionID string `json:"sid" validate:"required"`
 	// The user's email address.
-	Email string `json:"email"          validate:"email"`
+	Email string `json:"email" validate:"email"`
 	// Indicates whether the user has verified their email address.
 	EmailVerified bool `json:"email_verified"`
 	// URL pointing to the user's profile picture.
-	Picture string `json:"picture"        validate:"omitempty,url"`
+	Picture string `json:"picture" validate:"omitempty,url"`
 	// The user's family name.
 	FamilyName string `json:"family_name"`
 	// The user's family name.
@@ -50,10 +50,13 @@ type UserProfile struct {
 	UpdatedAt string `json:"updated_at"`
 	// LoginsCount is the number of times the user has logged in. If a user is blocked and logs in, the blocked session
 	// is still counted. For a new user, this will be 1 as creating the account is counted as the first login.
-	LoginsCount int64 `json:"logins_count"   validate:"omitempty,gt=1"`
+	LoginsCount int64 `json:"logins_count" validate:"omitempty,gt=1"`
 	// Blocked indicates whether the user has been blocked. Importing enables subscribers to ensure that users remain
 	// blocked when migrating to Auth0.
 	Blocked bool `json:"blocked"`
+	// Custom fields that store info about a user that influences the user’s access, such as support plan, security
+	// roles (if not using the Authorization Core feature set), or access control groups.
+	AppMetadata map[string]any `json:"app_metadata"`
 }
 
 // GetID returns a string that represents the ID of the external user.
@@ -64,6 +67,10 @@ func (u *UserProfile) GetID() string {
 // GetEmail returns the email address associated with the external user.
 func (u *UserProfile) GetEmail() string {
 	return u.Email
+}
+
+type UserData struct {
+	*management.GetUserResponseContent
 }
 
 // DeleteUser will delete the given user from the Auth0 backend.
@@ -119,6 +126,20 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 	return nil
 }
 
+// GetUser fetches the user with the given ID from Auth0.
+func GetUser(ctx context.Context, id string) (*UserData, error) {
+	mgmt, err := loadManagementAPI()
+	if err != nil {
+		return nil, fmt.Errorf("load management API: %w", err)
+	}
+	resp, err := mgmt.Users.Get(ctx, id, &management.GetUserRequestParameters{})
+	if err != nil {
+		return nil, fmt.Errorf("get user: %w", err)
+	}
+
+	return &UserData{GetUserResponseContent: resp}, nil
+}
+
 // ChangeUserPassword will perform a password change on behalf of a user.
 func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordRequest) error {
 	mgmt, err := loadManagementAPI()
@@ -143,4 +164,51 @@ func ChangeUserPassword(ctx context.Context, request *models.ChangePasswordReque
 		return fmt.Errorf("change password: %w", err)
 	}
 	return nil
+}
+
+// SyncUser tries to sync relevant user data from the auth backend to the local data.
+func SyncUser(ctx context.Context, localUser *models.User) {
+	auth0User, err := GetUser(ctx, localUser.GetExternalID())
+	if err != nil {
+		slogctx.FromCtx(ctx).Error("Could not sync user data.",
+			slog.String("user_id", localUser.GetID()),
+			slog.Any("error", err))
+		return
+	}
+
+	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
+	updates := make(map[string]any)
+	// Overwrite local avatar with remote avatar if different
+	if avatarURL := auth0User.GetPicture(); localUser.AvatarURL != avatarURL {
+		updates["avatar_url"] = avatarURL
+		localUser.AvatarURL = avatarURL
+	}
+	// Overwrite local nickname with remote nickname if different
+	if nickname := auth0User.GetNickname(); localUser.Nickname != nickname {
+		updates["nickname"] = nickname
+		localUser.Nickname = nickname
+	}
+	// Overwrite local email with remote email if different
+	if email := auth0User.GetEmail(); localUser.Email != email {
+		updates["email"] = email
+		localUser.Email = email
+	}
+	metadata := localUser.Metadata
+	if accepted, ok := auth0User.GetAppMetadata()["policies_accepted"].(bool); ok &&
+		metadata.PoliciesAccepted != accepted {
+		metadata.PoliciesAccepted = accepted
+		localUser.Metadata = metadata
+		updates["metadata"] = metadata
+	}
+
+	// If no updates are necessary, bail early.
+	if len(updates) > 0 {
+		if err := models.UpdateUser(ctx, localUser.GetID(), updates); err != nil {
+			slogctx.FromCtx(ctx).Error("Could not sync user data.",
+				slog.String("user_id", localUser.GetID()),
+				slog.Any("error", err))
+			return
+		}
+		slogctx.FromCtx(ctx).Info("User data updated.")
+	}
 }
