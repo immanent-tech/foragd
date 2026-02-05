@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.46.0](https://github.com/immanent-tech/foragd/compare/v0.45.0...v0.46.0) (2026-02-04)
+
+
+### Features
+
+* :sparkles: implement proper pub/sub for updates handling ([8fa7200](https://github.com/immanent-tech/foragd/commit/8fa720089d8df55c0dd24aad2b2375deececfa1f))
+* **assets:** :bento: add some more feeds to the enlightened feedset ([4976311](https://github.com/immanent-tech/foragd/commit/4976311f30192c8127c0bf3a9050a33036dce43e))
+* **models:** :sparkles: add feed status schema for tracking last fetched status of feeds ([95a0718](https://github.com/immanent-tech/foragd/commit/95a07181f7667a6736e230de0bc1b735b519e776))
+* **scheduler:** :sparkles: log status for feed on each update job run ([3ee2102](https://github.com/immanent-tech/foragd/commit/3ee2102d0ccaba0319fc7154ea87055b7f32b062))
+* **server:** :sparkles: add opentelemetry monitoring ([b33bbef](https://github.com/immanent-tech/foragd/commit/b33bbef4328401336e2cc357cd79411b0f982a96))
+* **templates:** :sparkles: add a few quality of life features to global search ([f57b68e](https://github.com/immanent-tech/foragd/commit/f57b68e3a5459275f9e13e7802f924b9452aed3c))
+
+
+### Bug Fixes
+
+* :recycle: use correct validation package ([a8048e4](https://github.com/immanent-tech/foragd/commit/a8048e47c6c2d90fe929b0ca03a8ac98a127328f))
+* **models:** :recycle: change feed status schema to use a datastream ([37e2da0](https://github.com/immanent-tech/foragd/commit/37e2da09485a533326ec121f93a5b7ed97fdf58b))
+* **templates:** :bug: disable pubsub updates polling ([832709f](https://github.com/immanent-tech/foragd/commit/832709fc2b07af25254b18f69aadb6c7b21f0478))
+
+
+### Reverts
+
+* :rewind: revert back to simpler SSE implementation for now ([e3b3f19](https://github.com/immanent-tech/foragd/commit/e3b3f190a63efe1ab1a15cb3fd1a6f30d2e6e44a))
+
 ## [0.45.0](https://github.com/immanent-tech/foragd/compare/v0.44.0...v0.45.0) (2026-02-03)
 
 
