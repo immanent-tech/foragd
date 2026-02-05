@@ -17,6 +17,7 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -144,6 +145,13 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 				StatusCode:    http.StatusInternalServerError,
 			}).ServeHTTP(res, req)
 			return
+		}
+
+		if err := resend.SendTemplatedEmail(user.GetEmail(), "beta-signup"); err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Unable to send welcome email.",
+				slog.String("user_id", user.GetID()),
+				slog.Any("error", err),
+			)
 		}
 	case err != nil: // Backend error.
 		HandleExternalError(&models.APIError{
