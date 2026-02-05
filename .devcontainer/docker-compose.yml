@@ -296,11 +296,10 @@ services:
     user: root
     volumes:
       - ../deployments/certs:/usr/share/metricbeat/config/certs
-      - ./metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
-      - /proc:/hostfs/proc,ro
-      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup,ro
+      - ./data/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - ${HOST_FILESYSTEM}:/hostfs:ro
       - /var/run/dbus/system_bus_socket,target=/hostfs/var/run/dbus/system_bus_socket:ro
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
+      - ${DOCKER_SOCK}:/var/run/docker.sock
     cgroup: host
     environment:
       - DBUS_SYSTEM_BUS_ADDRESS='unix:path=/hostfs/var/run/dbus/system_bus_socket'
@@ -317,15 +316,38 @@ services:
     user: root
     volumes:
       - ../deployments/certs:/usr/share/filebeat/config/certs
-      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - "../deployments/filebeat_ingest_data/:/usr/share/filebeat/ingest_data/"
+      - ./data/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./data:/usr/share/filebeat/ingest_data
       - "../../../.local/share/containers:/var/lib/docker/containers:ro"
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
+      - ${DOCKER_SOCK}:/var/run/docker.sock
     environment:
       - ELASTIC_USER=elastic
       - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
     command:
       - --strict.perms=false
+
+  otel-collector:
+    image: docker.io/elastic/elastic-agent:$ELASTIC_STACK_VERSION
+    container_name: otel-collector
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+    restart: unless-stopped
+    command: ["--config", "/etc/otelcol-config.yml"]
+    # network_mode: host
+    user: root
+    volumes:
+      - ../deployments/certs:/usr/share/elastic-agent/certs
+      - ${HOST_FILESYSTEM}:/hostfs:ro
+      - ${DOCKER_SOCK}:/var/run/docker.sock:ro
+      - ./data/otelcol-config.yml:/etc/otelcol-config.yml
+    environment:
+      - HOST_FILESYSTEM
+      - ELASTIC_AGENT_OTEL
+      - ELASTIC_API_KEY
+      - ELASTIC_ENDPOINT
+      - STORAGE_DIR=/usr/share/elastic-agent
 
   imgproxy:
     image: ghcr.io/imgproxy/imgproxy:$IMAGEPROXY_VERSION
