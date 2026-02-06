@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.48.0](https://github.com/immanent-tech/foragd/compare/v0.47.0...v0.48.0) (2026-02-06)
+
+
+### Features
+
+* **templates:** :lipstick: improved card layouts ([0412717](https://github.com/immanent-tech/foragd/commit/04127175592ab1eb15f79214cd3db8d850ee4d24))
+
+
+### Bug Fixes
+
+* **resend:** :bug: fix error message format for received email errors ([d85e059](https://github.com/immanent-tech/foragd/commit/d85e059829de5643e64b6d802042e1e310890c96))
+* **server:** :recycle: fix setup of open telemetry ([b0fc455](https://github.com/immanent-tech/foragd/commit/b0fc455477dc8d01634903404126c99e73092d8b))
+* **templates:** :bug: fix view remote button ([b97090a](https://github.com/immanent-tech/foragd/commit/b97090a1df8ce17efbbc7c5628e460dae7227177))
+* **templates:** :lipstick: display headings in summaries same size as other text ([f15425c](https://github.com/immanent-tech/foragd/commit/f15425cc8bea9c530b5c7fc416a7d9248a92c806))
+
 ## [0.47.0](https://github.com/immanent-tech/foragd/compare/v0.46.0...v0.47.0) (2026-02-05)
 
 
