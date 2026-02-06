@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
@@ -29,8 +30,18 @@ templ Landing() {
 							<h1 class="text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Foragd&nbsp;<sup class="text-sm uppercase">beta</sup></h1>
 							<p class="mt-8 text-lg font-medium text-pretty sm:text-xl/8">Collect. Curate. Consume.</p>
 							<div class="mt-10 flex items-center justify-center gap-x-6">
-								<a role="button" href="#features" class="btn btn-primary text-sm/6 font-semibold">See features</a>
-								<a role="button" href="#pricing" class="btn btn-primary text-sm/6 font-semibold">Start a free trial</a>
+								<button
+									class="btn btn-primary text-sm/6 font-semibold"
+									_="on click go to #features smoothly"
+								>
+									See features
+								</button>
+								<button
+									class="btn btn-primary text-sm/6 font-semibold"
+									_="on click go to #pricing smoothly"
+								>
+									Start a free trial
+								</button>
 							</div>
 							<div class="text-sm/6 font-semibold mt-5">
 								Already have an account?<a href="/login" class="link">&nbsp;Log in</a>
@@ -49,9 +60,9 @@ templ Landing() {
 			<div id="features" class="mt-32 sm:mt-56">
 				<div class="mx-auto max-w-7xl px-6 lg:px-8">
 					<div class="mx-auto max-w-4xl text-center">
-						<h2 class="text-base/7 font-semibold text-primary">
-							Collect, collate and consume.
-						</h2>
+						// <h2 class="text-base/7 font-semibold text-primary">
+						// 	Collect, collate and consume.
+						// </h2>
 						<p class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
 							A beautiful, web based, online feed reader.
 						</p>
@@ -61,15 +72,24 @@ templ Landing() {
 						</p>
 					</div>
 					<div class="mt-16 flow-root sm:mt-24">
-						<a href="/content/screenshots/home-desktop-mobile.png" rel="noopener" target="_blank">
-							<img width="1920" height="1200" decoding="async" src="/content/screenshots/home-desktop-mobile.png" alt="Home page of foragd.app on desktop and mobile" class="w-304 rounded-md shadow-xl"/>
-						</a>
+						@imagePopup(
+							"main-screenshot",
+							Image{
+								ImageInfo: &types.ImageInfo{
+									Title: "Home page of foragd.app on desktop and mobile",
+									URL:   "/content/screenshots/home-desktop-mobile.png",
+								},
+								Width:  1920,
+								Height: 1200,
+								Class:  "w-304 rounded-md shadow-xl",
+							},
+						)
 					</div>
 					<div class="mt-10 grid gap-4 sm:mt-16 lg:grid-cols-3 lg:grid-rows-2">
 						<div class="relative lg:row-span-2">
 							<div class="absolute inset-px rounded-lg bg-base-200 lg:rounded-l-4xl"></div>
 							<div class="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] lg:rounded-l-[calc(2rem+1px)]">
-								<div class="px-8 pt-8 pb-3 sm:px-10 sm:pt-10 sm:pb-24">
+								<div class="px-8 pt-8 pb-4 sm:px-10 sm:pt-10">
 									<p class="mt-2 text-lg font-medium tracking-tight max-lg:text-center">
 										Mobile and desktop friendly
 									</p>
@@ -77,18 +97,19 @@ templ Landing() {
 										Foragd is a web based online app. It has a responsive design that works in any browser on any device, anywhere.
 									</p>
 								</div>
-								<div class="@container relative min-h-120 sm:h-170 w-full max-lg:mx-auto max-lg:max-w-sm">
-									<a href="/content/screenshots/article-mobile.png" rel="noopener" target="_blank">
-										<img
-											src="/content/screenshots/article-mobile.png"
-											height="1300"
-											width="600"
-											alt="Screenshot of article content on a mobile device"
-											class="w-full min-h-120 sm:h-170 object-scale-down object-top"
-											loading="lazy"
-											decoding="async"
-										/>
-									</a>
+								<div class="@container relative min-h-120 sm:h-170 w-full max-lg:mx-auto max-lg:max-w-sm flex items-center justify-center">
+									@imagePopup(
+										"screenshot1",
+										Image{
+											ImageInfo: &types.ImageInfo{
+												Title: "Screenshot of article content on a mobile device",
+												URL:   "/content/screenshots/article-mobile.png",
+											},
+											Width:  1300,
+											Height: 600,
+											Class:  "w-full min-h-120 sm:h-170 object-scale-down object-top",
+										},
+									)
 								</div>
 							</div>
 							<div class="pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 lg:rounded-l-4xl dark:outline-white/15"></div>
@@ -96,25 +117,26 @@ templ Landing() {
 						<div class="relative max-lg:row-start-3 lg:col-start-2 lg:row-start-2 max-h-128">
 							<div class="absolute inset-px rounded-lg bg-base-200 max-lg:rounded-t-4xl"></div>
 							<div class="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-t-[calc(2rem+1px)]">
-								<div class="px-8 pt-8 pb-3 sm:px-10 sm:pt-10 sm:pb-24">
+								<div class="px-8 pt-8 pb-4 sm:px-10 sm:pt-10">
 									<p class="mt-2 text-lg font-medium tracking-tight max-lg:text-center">Powerful Search</p>
 									<p class="mt-2 max-w-lg text-sm/6 max-lg:text-center">
 										Full-text search across subscriptions and articles. Quickly access subscriptions and
 										perform actions from the search bar.
 									</p>
 								</div>
-								<div class="flex flex-1 items-center justify-center max-lg:pt-10 max-lg:pb-12 sm:px-10">
-									<a href="/content/screenshots/search-desktop.png" rel="noopener" target="_blank">
-										<img
-											src="/content/screenshots/search-desktop.png"
-											height="1100"
-											width="1700"
-											alt="Screenshot of search suggestions"
-											class="max-w-lg h-auto rounded-box max-lg:max-w-xs sm:px-10"
-											loading="lazy"
-											decoding="async"
-										/>
-									</a>
+								<div class="flex flex-1 items-center justify-center px-2">
+									@imagePopup(
+										"screenshot2",
+										Image{
+											ImageInfo: &types.ImageInfo{
+												Title: "Screenshot of search suggestions",
+												URL:   "/content/screenshots/search-desktop.png",
+											},
+											Width:  1700,
+											Height: 1100,
+											Class:  "h-auto rounded-box shadow-xl",
+										},
+									)
 								</div>
 							</div>
 							<div class="pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 dark:outline-white/15"></div>
@@ -122,7 +144,7 @@ templ Landing() {
 						<div class="relative max-lg:row-start-1 max-h-128">
 							<div class="absolute inset-px rounded-lg bg-base-200"></div>
 							<div class="relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)]">
-								<div class="px-8 pt-8 sm:px-10 sm:pt-10">
+								<div class="px-8 pt-8 pb-4 sm:px-10 sm:pt-10">
 									<p class="mt-2 text-lg font-medium tracking-tight max-lg:text-center">
 										Content Comes First
 									</p>
@@ -130,18 +152,19 @@ templ Landing() {
 										Simple UI. Big images. Beautiful typography. Let the content shine.
 									</p>
 								</div>
-								<div class="flex flex-1 items-center justify-center max-lg:pt-10 max-lg:pb-12 sm:px-10">
-									<a href="/content/screenshots/articles-desktop.png" rel="noopener" target="_blank">
-										<img
-											src="/content/screenshots/articles-desktop.png"
-											height="1100"
-											width="1700"
-											alt="Screenshot of list of articles in a grid of cards"
-											class="max-w-lg h-auto rounded-box max-lg:max-w-xs sm:px-10"
-											loading="lazy"
-											decoding="async"
-										/>
-									</a>
+								<div class="flex flex-1 items-center justify-center px-2">
+									@imagePopup(
+										"screenshot3",
+										Image{
+											ImageInfo: &types.ImageInfo{
+												Title: "Screenshot of list of articles in a grid of cards",
+												URL:   "/content/screenshots/articles-desktop.png",
+											},
+											Width:  1700,
+											Height: 1100,
+											Class:  "w-full h-auto rounded-box shadow-xl",
+										},
+									)
 								</div>
 							</div>
 							<div class="pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 max-lg:rounded-t-4xl dark:outline-white/15"></div>
@@ -149,7 +172,7 @@ templ Landing() {
 						<div class="relative lg:row-span-2">
 							<div class="absolute inset-px rounded-lg bg-base-200 max-lg:rounded-b-4xl lg:rounded-r-4xl"></div>
 							<div class="relative flex flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-b-[calc(2rem+1px)] lg:rounded-r-[calc(2rem+1px)]">
-								<div class="px-8 pt-8 sm:px-10 sm:pt-10">
+								<div class="px-8 pt-8 pb-4 sm:px-10 sm:pt-10">
 									<p class="mt-2 text-lg font-medium tracking-tight max-lg:text-center">
 										Customisation and Filtering
 									</p>
@@ -158,18 +181,19 @@ templ Landing() {
 										text/phrase, category or authors, with easy to use operators.
 									</p>
 								</div>
-								<div class="flex flex-1 items-center justify-center max-lg:pt-10 max-lg:pb-12">
-									<a href="/content/screenshots/subscription-edit-mobile.png" rel="noopener" target="_blank">
-										<img
-											src="/content/screenshots/subscription-edit-mobile.png"
-											alt="Screenshot of subscription editing with customisation and filtering shown"
-											width="700"
-											height="1300"
-											class="resposive-img rounded-box max-lg:max-w-xs"
-											loading="lazy"
-											decoding="async"
-										/>
-									</a>
+								<div class="flex flex-1 items-center justify-center px-2">
+									@imagePopup(
+										"screenshot4",
+										Image{
+											ImageInfo: &types.ImageInfo{
+												Title: "Screenshot of subscription editing with customisation and filtering shown",
+												URL:   "/content/screenshots/subscription-edit-mobile.png",
+											},
+											Width:  700,
+											Height: 1300,
+											Class:  "w-full h-auto rounded-box shadow-xl",
+										},
+									)
 								</div>
 							</div>
 							<div class="pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 dark:outline-white/15"></div>
@@ -186,16 +210,6 @@ templ Landing() {
 						<dl class="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									@tabler.Pencil(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-									Subscription customisation.&nbsp;
-								</dt>
-								<dd class="inline">
-									Set a nickname for your subscriptions. Add your own categories to easily group and find
-									similar content.
-								</dd>
-							</div>
-							<div class="relative pl-9">
-								<dt class="inline font-semibold">
 									@tabler.Heart(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 									Subscription and article favorites.&nbsp;
 								</dt>
@@ -209,9 +223,10 @@ templ Landing() {
 									Group subscriptions.&nbsp;
 								</dt>
 								<dd class="inline">
-									Combine multiple subscriptions to present a unified view of
-									articles from any of them. Make it easy to keep up with similar posts across different
-									sources.
+									Combine multiple feeds into a
+									<a href="/help#group-subscriptions" class="link">
+										group subscription
+									</a> to present a unified view of articles from any of them.
 								</dd>
 							</div>
 							<div class="relative pl-9">
@@ -220,9 +235,10 @@ templ Landing() {
 									Search subscriptions.&nbsp;
 								</dt>
 								<dd class="inline">
-									Use the powerful search to find what you need. Save the search terms as a search
-									subscription to always find new articles that match. Great for keeping track of news or
-									topics across multiple subscriptions.
+									Save the search terms as a
+									<a href="/help#search-subscriptions" class="link">
+										search subscription
+									</a> to always find new articles that match.
 								</dd>
 							</div>
 							<div class="relative pl-9">
@@ -232,6 +248,15 @@ templ Landing() {
 								</dt>
 								<dd class="inline">
 									Fetch the remote article content where the feed only shows a summary.
+								</dd>
+							</div>
+							<div class="relative pl-9">
+								<dt class="inline font-semibold">
+									@tabler.ColorSwatch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Themes.&nbsp;
+								</dt>
+								<dd class="inline">
+									Choose between a selection of dark and light themes to your preference.
 								</dd>
 							</div>
 							<div class="relative pl-9">
@@ -271,7 +296,7 @@ templ Landing() {
 					// </p>
 					<div class="mx-auto my-8 card card-xl bg-base-300 max-w-96 shadow-sm">
 						<div class="card-body">
-							<h2 class="card-title">📢 Beta Now Open</h2>
+							<h2 class="card-title mx-auto">📢 Beta Now Open</h2>
 							<p>Sign up during the beta period pay nothing now, provide feedback, and get a year free when we launch!</p>
 							<p class="mx-auto">🎉 🎉 🎉</p>
 						</div>
@@ -443,4 +468,47 @@ templ Landing() {
 		// Footer.
 	</div>
 	@footer()
+}
+
+type Image struct {
+	*types.ImageInfo
+	Width  int
+	Height int
+	Class  string
+}
+
+templ imagePopup(id string, img Image) {
+	<button command="show-modal" commandfor={ id } type="button">
+		<img
+			width={ img.Width }
+			height={ img.Height }
+			decoding="async"
+			src={ img.GetURL() }
+			alt={ img.GetTitle() }
+			class={ img.Class }
+		/>
+	</button>
+	<el-dialog>
+		<dialog id={ id } class="relative z-10 backdrop:bg-transparent">
+			<el-dialog-backdrop class="fixed inset-0 hidden bg-primary transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in md:block"></el-dialog-backdrop>
+			<div tabindex="0" class="fixed inset-0 z-10 w-screen overflow-y-auto focus:outline-none">
+				<div class="flex min-h-full items-stretch justify-center text-center md:items-center">
+					<span aria-hidden="true" class="hidden md:inline-block md:h-screen md:align-middle">&#8203;</span>
+					<el-dialog-panel
+						class="flex w-full transform text-left text-base transition data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:md:translate-y-0 data-closed:md:scale-95"
+						_="on click remove @open from  the closest <el-dialog/>"
+					>
+						<img
+							width={ img.Width }
+							height={ img.Height }
+							decoding="async"
+							src={ img.GetURL() }
+							alt={ img.GetTitle() }
+							class="w-full max-h-screen object-scale-down shadow-xl"
+						/>
+					</el-dialog-panel>
+				</div>
+			</div>
+		</dialog>
+	</el-dialog>
 }
