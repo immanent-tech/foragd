@@ -300,33 +300,6 @@ type CreatedAt = time.Time
 // DeletedAt records when the object was deleted.
 type DeletedAt = time.Time
 
-// DocMetadata contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
-type DocMetadata struct {
-	// CreatedAt is when the post was created.
-	CreatedAt string `json:"created_at,omitempty,omitzero" toml:"created_at"`
-
-	// Description is a description of the document, used in metadata headers of the page.
-	Description string `json:"description,omitempty,omitzero" toml:"description"`
-
-	// File is the path to the markdown file containing the document content.
-	File string `json:"file" toml:"file"`
-
-	// Path is the relative URL path under the documentation root from where this document should be served.
-	Path string `json:"path" toml:"path"`
-
-	// Title is the title to display for the document.
-	Title string `json:"title" toml:"title"`
-
-	// UpdatedAt is when the post was updated.
-	UpdatedAt string `json:"updated_at,omitempty,omitzero" toml:"updated_at"`
-}
-
-// DocsDirectory contains metadata for documentation pages under a given path.
-type DocsDirectory struct {
-	// Docs is a list of metadata for docs in this directory.
-	Docs []DocMetadata `json:"docs,omitempty,omitzero" toml:"docs"`
-}
-
 // EditEmailSubscriptionRequest represents a request to create an email subscription.
 type EditEmailSubscriptionRequest struct {
 	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`
@@ -480,6 +453,21 @@ type FeedSubscription struct {
 
 	// URL is a URL pointing to the original website that publishes the feed.
 	URL string `json:"url" validate:"required,url"`
+}
+
+// FileDetails contains a mapping of a file in an embedded FS to the URL path it is served from.
+type FileDetails struct {
+	// File is the path in an embedded FS to the file.
+	File string `json:"file" toml:"file"`
+
+	// Path is the relative URL path from where this document should be served.
+	Path string `json:"path" toml:"path"`
+}
+
+// FileIndex contains a listing of files in a directory of an embedded FS.
+type FileIndex struct {
+	// Files is a list of details for files.
+	Files []FileDetails `json:"files,omitempty,omitzero" toml:"file"`
 }
 
 // FileUpload represents a file upload by a user.
@@ -706,6 +694,32 @@ type MarkSubscriptionsRequest struct {
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`
+}
+
+// MarkdownFile contains the raw markdown file data and its frontmatter.
+type MarkdownFile struct {
+	Content []byte `json:"content,omitempty,omitzero"`
+
+	// Details contains a mapping of a file in an embedded FS to the URL path it is served from.
+	Details FileDetails `json:"details,omitempty,omitzero"`
+
+	// Frontmatter contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
+	Frontmatter MarkdownFrontMatter `json:"frontmatter,omitempty,omitzero" toml:"doc_metadata"`
+}
+
+// MarkdownFrontMatter contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
+type MarkdownFrontMatter struct {
+	// CreatedAt is when the post was created.
+	CreatedAt string `json:"created_at,omitempty,omitzero" toml:"created_at"`
+
+	// Description is a description of the document, used in metadata headers of the page.
+	Description string `json:"description,omitempty,omitzero" toml:"description"`
+
+	// Title is the title to display for the document.
+	Title string `json:"title" toml:"title"`
+
+	// UpdatedAt is when the post was updated.
+	UpdatedAt string `json:"updated_at,omitempty,omitzero" toml:"updated_at"`
 }
 
 // Nickname is an optional friendly name.

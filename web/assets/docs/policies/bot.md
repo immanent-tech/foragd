@@ -1,3 +1,8 @@
++++
+title = "Foragd Bot"
+description = "Foragd Bot Information"
++++
+
 # Foragd Bot Information
 
 [Foragd.app](https://foragd.app) is a web application service for where users can view RSS, Atom, and other syndication feeds they have subscribed to.

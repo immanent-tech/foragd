@@ -1,6 +1,13 @@
++++
+title = "How to Find RSS and Atom Feeds for any website"
+description = "RSS and Atom are formats that are “hiding in plain sight”. Lots of websites have them, but it might not be obvious how to get them."
+created_at = "2026-02-02"
+updated_at = "2026-02-06"
++++
+
 # How to Find RSS and Atom Feeds For Any Website
 
-RSS and Atom are formats that are “hiding in plain sight”. Lots of websites have them, but it might not be obvious how to find them.
+**RSS and Atom are formats that are “hiding in plain sight”. Lots of websites have them, but it might not be obvious how to find them.**
 
 Partly, this is due to the way the RSS specification suggests advertising feeds through an autodiscovery mechanism (see [here](https://www.rssboard.org/rss-autodiscovery) for the technical details). This process is less for humans and more for automation, like your browser, or your feed reader. That was a novel and useful approach back when browsers had integrated feed readers and RSS/Atom were more popular. Nowadays, it makes these formats harder to find and discover.
 
@@ -9,6 +16,8 @@ The good news however is that there are lots of other ways to find good feed sou
 ## Technique 1: Use Your Feed Reader
 
 A good feed reader, like [Foragd](https://foragd.app) can utilize the autodiscovery process, along with other sleuthing techniques to find feeds for your favorite sites. So in a lot of cases, it may be as simple as just providing the URL of the site to the feed reader and let it do its magic. No need to parse the site's HTML or scan the content or find a site directory; just enter the URL, and in most cases, 💥 you have your favorite site's content streaming to your feed reader.
+
+ℹ️ **You can use Foragd's [Feed Viewer](https://foragd.app/viewer) to find and parse the feed content of any website.**
 
 ## Technique 2: Where's Waldo
 

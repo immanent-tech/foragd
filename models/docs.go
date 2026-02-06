@@ -3,12 +3,12 @@
 
 package models
 
-func (m *DocMetadata) GetTimestamp() string {
+func (m *MarkdownFile) GetTimestamp() string {
 	switch {
-	case m.UpdatedAt != "":
-		return m.UpdatedAt
-	case m.CreatedAt != "":
-		return m.CreatedAt
+	case m.Frontmatter.UpdatedAt != "":
+		return m.Frontmatter.UpdatedAt
+	case m.Frontmatter.CreatedAt != "":
+		return m.Frontmatter.CreatedAt
 	default:
 		return "Unknown"
 	}

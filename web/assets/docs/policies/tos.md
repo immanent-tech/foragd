@@ -1,3 +1,8 @@
++++
+title = "Terms of Service"
+description = "Terms of Service for using Foragd"
++++
+
 # Terms of Service
 
 Thank you for using Foragd! We're happy you're here. Please read this Terms of Service agreement carefully before

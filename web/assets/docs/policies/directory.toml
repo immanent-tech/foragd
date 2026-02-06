@@ -1,23 +1,15 @@
-[[docs]]
+[[file]]
 path = "tos"
 file = "tos.md"
-title = "Terms of Service"
-description = "Terms of Service for using Foragd"
 
-[[docs]]
+[[file]]
 path = "privacy"
 file = "privacy.md"
-title = "Privacy Policy"
-description = "Privacy Policy for Foragd"
 
-[[docs]]
+[[file]]
 path = "acceptable-use"
 file = "acceptable-use.md"
-title = "Acceptable Use Policy"
-description = "Acceptable Use terms of Foragd"
 
-[[docs]]
+[[file]]
 path = "bot"
 file = "bot.md"
-title = "Foragd Bot"
-description = "Foragd Bot Information"

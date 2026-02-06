@@ -1,3 +1,8 @@
++++
+title = "Privacy Policy"
+description = "Privacy Policy for Foragd"
++++
+
 # Foragd Privacy Policy
 
 Immanent Tech and the authors of Foragd are committed to providing quality services to you and this policy outlines our

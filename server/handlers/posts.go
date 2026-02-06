@@ -17,6 +17,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/yuin/goldmark/parser"
+	"go.abhg.dev/goldmark/frontmatter"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web"
@@ -25,8 +27,8 @@ import (
 
 var postsPath = "assets/docs/posts"
 
-var getPosts = sync.OnceValues(func() (*models.DocsDirectory, error) {
-	var posts models.DocsDirectory
+var getPosts = sync.OnceValues(func() (*models.FileIndex, error) {
+	var posts models.FileIndex
 	if _, err := toml.DecodeFS(web.DocsFS, filepath.Join(postsPath, "directory.toml"), &posts); err != nil {
 		return nil, fmt.Errorf("read posts docs directory.toml: %w", err)
 	}
@@ -35,7 +37,7 @@ var getPosts = sync.OnceValues(func() (*models.DocsDirectory, error) {
 
 // PostsIndex is the index of all posts.
 type PostsIndex struct {
-	posts *models.DocsDirectory
+	posts []*models.MarkdownFile
 }
 
 // FullResponse renders the posts index.
@@ -50,16 +52,15 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 
 // Post is an individual post.
 type Post struct {
-	content  []byte
-	metadata *models.DocMetadata
+	*models.MarkdownFile
 }
 
 // FullResponse renders an individual post.
 func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(templates.CreatePage(
-		templates.Document(p.content),
-		templates.WithPageTitle(p.metadata.Title),
-		templates.WithPageDescription(p.metadata.Description),
+		templates.Document(p.Content),
+		templates.WithPageTitle(p.Frontmatter.Title),
+		templates.WithPageDescription(p.Frontmatter.Description),
 	),
 	).ServeHTTP(res, req)
 }
@@ -77,62 +78,82 @@ func HandlePosts() http.HandlerFunc {
 				slog.Any("error", err),
 			)
 			http.NotFound(res, req)
+			return
 		}
 
 		// Show index when no specific post has been requested.
-		if doc == "" {
-			RenderExternalPage(&PostsIndex{
-				posts: posts,
-			}).ServeHTTP(res, req)
-			return
+		switch doc {
+		case "":
+			// Posts index.
+			index := &PostsIndex{posts: make([]*models.MarkdownFile, 0, len(posts.Files))}
+			for file := range slices.Values(posts.Files) {
+				post, err := readPost(file)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Could not read post details.",
+						slog.String("file", file.File),
+						slog.Any("error", err),
+					)
+					continue
+				}
+				index.posts = append(index.posts, post)
+			}
+			RenderExternalPage(index).ServeHTTP(res, req)
+		default:
+			// Individual post.
+
+			idx := slices.IndexFunc(posts.Files, func(e models.FileDetails) bool {
+				return strings.HasPrefix(e.File, doc)
+			})
+			if idx == -1 {
+				res.WriteHeader(http.StatusNotFound)
+				return
+			}
+
+			res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
+
+			post, err := readPost(posts.Files[idx])
+			if err != nil {
+				// If file is not found, return HTTP 404 error.
+				slogctx.FromCtx(req.Context()).Error("Could not read post document.",
+					slog.String("doc", doc),
+					slog.Any("error", err),
+				)
+				res.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			RenderExternalPage(&Post{MarkdownFile: post}).ServeHTTP(res, req)
 		}
-
-		idx := slices.IndexFunc(posts.Docs, func(e models.DocMetadata) bool {
-			return strings.HasPrefix(e.File, doc)
-		})
-
-		if idx == -1 {
-			res.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-		metadata := posts.Docs[idx]
-		contents, err := web.DocsFS.ReadFile(filepath.Join(postsPath, metadata.File))
-		if err != nil {
-			// If file is not found, return HTTP 404 error.
-			slogctx.FromCtx(req.Context()).Error("Could not read post document.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
-
-		mdw := loadMarkdownWriter()
-
-		postBuf, ok := bufPool.Get().(*bytes.Buffer)
-		if !ok {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Could not write post.")
-			return
-		}
-		postBuf.Reset()
-		defer bufPool.Put(postBuf)
-
-		if err := mdw.Convert(contents, postBuf); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Could not convert post markdown.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		RenderExternalPage(&Post{
-			content:  postBuf.Bytes(),
-			metadata: &metadata,
-		}).ServeHTTP(res, req)
 	}
+}
+
+func readPost(details models.FileDetails) (*models.MarkdownFile, error) {
+	contents, err := web.DocsFS.ReadFile(filepath.Join(postsPath, details.File))
+	if err != nil {
+		return nil, fmt.Errorf("read file contents: %w", err)
+	}
+
+	mdw := loadMarkdownWriter()
+	postBuf, ok := bufPool.Get().(*bytes.Buffer)
+	if !ok {
+		return nil, fmt.Errorf("allocate buffer: %w", err)
+	}
+	postBuf.Reset()
+	defer bufPool.Put(postBuf)
+
+	parserCtx := parser.NewContext()
+	if err := mdw.Convert(contents, postBuf, parser.WithContext(parserCtx)); err != nil {
+		return nil, fmt.Errorf("convert markdown: %w", err)
+	}
+
+	d := frontmatter.Get(parserCtx)
+	var fm models.MarkdownFrontMatter
+	if err := d.Decode(&fm); err != nil {
+		return nil, fmt.Errorf("decode frontmatter: %w", err)
+	}
+
+	return &models.MarkdownFile{
+		Frontmatter: fm,
+		Details:     details,
+		Content:     postBuf.Bytes(),
+	}, nil
 }

@@ -1658,7 +1658,40 @@ components:
           description: >
             is the template that will be rendered in the view.
           x-go-type: 'templ.Component'
-    DocMetadata:
+    FileDetails:
+      description: >
+        contains a mapping of a file in an embedded FS to the URL path it is served from.
+      type: object
+      required:
+        - file
+        - path
+      properties:
+        file:
+          description: >
+            is the path in an embedded FS to the file.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: "file"
+        path:
+          description: >
+            is the relative URL path from where this document should be served.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: "path"
+    FileIndex:
+      description: >
+        contains a listing of files in a directory of an embedded FS.
+      type: object
+      properties:
+        files:
+          description: >
+            is a list of details for files.
+          type: array
+          items:
+            $ref: '#/components/schemas/FileDetails'
+          x-oapi-codegen-extra-tags:
+            toml: "file"
+    MarkdownFrontMatter:
       description: >
         contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
       type: object
@@ -1673,18 +1706,6 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             toml: "title"
-        file:
-          description: >
-            is the path to the markdown file containing the document content.
-          type: string
-          x-oapi-codegen-extra-tags:
-            toml: "file"
-        path:
-          description: >
-            is the relative URL path under the documentation root from where this document should be served.
-          type: string
-          x-oapi-codegen-extra-tags:
-            toml: "path"
         description:
           description: >
             is a description of the document, used in metadata headers of the page.
@@ -1705,17 +1726,14 @@ components:
             toml: 'updated_at'
       x-oapi-codegen-extra-tags:
         toml: "doc_metadata"
-    DocsDirectory:
+    MarkdownFile:
       description: >
-        contains metadata for documentation pages under a given path.
+        contains the raw markdown file data and its frontmatter.
       type: object
       properties:
-        docs:
-          description: >
-            is a list of metadata for docs in this directory.
-          type: array
-          items:
-            $ref: '#/components/schemas/DocMetadata'
-          x-oapi-codegen-extra-tags:
-            toml: "docs"
-
+        frontmatter:
+          $ref: '#/components/schemas/MarkdownFrontMatter'
+        details:
+          $ref: '#/components/schemas/FileDetails'
+        content:
+          x-go-type: '[]byte'

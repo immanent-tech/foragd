@@ -30,6 +30,7 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
+	"go.abhg.dev/goldmark/frontmatter"
 
 	"github.com/immanent-tech/go-syndication/sitemap"
 
@@ -60,7 +61,10 @@ var loadHTTPClient = sync.OnceValue(func() *resty.Client {
 
 var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
 	return goldmark.New(
-		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithExtensions(
+			extension.GFM,
+			&frontmatter.Extender{},
+		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
 		),
@@ -152,7 +156,7 @@ var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("generate sitemap.xml: %w", err)
 	}
-	for post := range slices.Values(posts.Docs) {
+	for post := range slices.Values(posts.Files) {
 		site.URLs = append(site.URLs,
 			sitemap.URL{
 				Loc:      sitemap.LOC("https://foragd.app/posts/" + post.Path),
@@ -187,8 +191,8 @@ func HandleSitemap() http.Handler {
 	})
 }
 
-var getPolicyDocs = sync.OnceValues(func() (*models.DocsDirectory, error) {
-	var policies models.DocsDirectory
+var getPolicyDocs = sync.OnceValues(func() (*models.FileIndex, error) {
+	var policies models.FileIndex
 	if _, err := toml.DecodeFS(web.DocsFS, "assets/docs/policies/directory.toml", &policies); err != nil {
 		return nil, fmt.Errorf("read policy docs directory.toml: %w", err)
 	}
@@ -210,16 +214,15 @@ func PolicyDocsHandler() http.HandlerFunc {
 			http.NotFound(res, req)
 		}
 
-		idx := slices.IndexFunc(polices.Docs, func(e models.DocMetadata) bool {
+		idx := slices.IndexFunc(polices.Files, func(e models.FileDetails) bool {
 			return strings.HasPrefix(e.File, doc)
 		})
-
 		if idx == -1 {
 			res.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		metadata := polices.Docs[idx]
+		metadata := polices.Files[idx]
 		contents, err := web.DocsFS.ReadFile(filepath.Join("assets/docs/policies", metadata.File))
 		if err != nil {
 			// If file is not found, return HTTP 404 error.
@@ -242,7 +245,19 @@ func PolicyDocsHandler() http.HandlerFunc {
 		policyBuf.Reset()
 		defer bufPool.Put(policyBuf)
 
-		if err := mdw.Convert(contents, policyBuf); err != nil {
+		parserCtx := parser.NewContext()
+		if err := mdw.Convert(contents, policyBuf, parser.WithContext(parserCtx)); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Could not convert policy markdown.",
+				slog.String("doc", doc),
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		d := frontmatter.Get(parserCtx)
+		var fm models.MarkdownFrontMatter
+		if err := d.Decode(&fm); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not convert policy markdown.",
 				slog.String("doc", doc),
 				slog.Any("error", err),
@@ -254,8 +269,8 @@ func PolicyDocsHandler() http.HandlerFunc {
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 		template := templates.CreatePage(
 			templates.Document(policyBuf.Bytes()),
-			templates.WithPageTitle(metadata.Title),
-			templates.WithPageDescription(metadata.Description),
+			templates.WithPageTitle(fm.Title),
+			templates.WithPageDescription(fm.Description),
 		)
 		templ.Handler(template).ServeHTTP(res, req)
 	}

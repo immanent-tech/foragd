@@ -1,3 +1,8 @@
++++
+title = "Acceptable Use Policy"
+description = "Acceptable Use terms of Foragd"
++++
+
 # Foragd Acceptable Use Policy
 
 **Short version:** _While using the Service, you must comply with our Acceptable Use Policies, which include some

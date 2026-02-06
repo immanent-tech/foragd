@@ -9,7 +9,7 @@ import (
 	"slices"
 )
 
-templ PostsIndex(posts *models.DocsDirectory) {
+templ PostsIndex(posts []*models.MarkdownFile) {
 	@content() {
 		@container() {
 			<div class="mx-auto max-w-2xl lg:mx-0">
@@ -20,13 +20,15 @@ templ PostsIndex(posts *models.DocsDirectory) {
 					Posts from the Foragd team.
 				}
 			</div>
-			<div class="mx-auto mt-10 min-h-svh grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-neutral pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-				for post := range slices.Values(posts.Docs) {
-					<a href={ "/posts/" + post.Path }>
+			@grid(
+				WithClasses("mt-8 place-items-start sm:min-h-svh"),
+			) {
+				for post := range slices.Values(posts) {
+					<a href={ "/posts/" + post.Details.Path }>
 						<article class="card card-border bg-base-200 max-w-prose h-fit cursor-pointer">
 							<div class="card-body">
-								<h2 class="card-title">{ post.Title }</h2>
-								<p>{ post.Description }</p>
+								<h2 class="card-title">{ post.Frontmatter.Title }</h2>
+								<p>{ post.Frontmatter.Description }</p>
 								<div class="card-actions justify-end">
 									<time datetime={ post.GetTimestamp() } class="label">{ post.GetTimestamp() }</time>
 								</div>
@@ -34,7 +36,7 @@ templ PostsIndex(posts *models.DocsDirectory) {
 						</article>
 					</a>
 				}
-			</div>
+			}
 			@partials.ButtonBackToTop()
 		}
 	}
