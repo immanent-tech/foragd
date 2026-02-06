@@ -23,6 +23,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 )
 
 var postsPath = "assets/docs/posts"
@@ -42,10 +43,16 @@ type PostsIndex struct {
 
 // FullResponse renders the posts index.
 func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
+	title := "Posts from the Foragd Team"
+	description := "Comparisons, opinions and other content from the Foragd team"
 	templ.Handler(templates.CreatePage(
 		templates.PostsIndex(p.posts),
-		templates.WithPageTitle("Posts from the Foragd Team"),
-		templates.WithPageDescription("Comparisons, opinions and other content from the Foragd team"),
+		templates.WithPageTitle(title),
+		templates.WithPageDescription(description),
+		templates.WithOGMetadata(opengraph.NewMetadata(
+			opengraph.WithTitle(title),
+			opengraph.WithDescription(description),
+		)),
 	),
 	).ServeHTTP(res, req)
 }
@@ -58,9 +65,17 @@ type Post struct {
 // FullResponse renders an individual post.
 func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 	templ.Handler(templates.CreatePage(
-		templates.Document(p.Content),
+		templates.Post(p.MarkdownFile),
 		templates.WithPageTitle(p.Frontmatter.Title),
 		templates.WithPageDescription(p.Frontmatter.Description),
+		templates.WithOGMetadata(opengraph.NewMetadata(
+			opengraph.WithTitle(p.Frontmatter.Title),
+			opengraph.WithDescription(p.Frontmatter.Description),
+			opengraph.WithType("article", map[string]string{
+				"article:published_time": p.Frontmatter.CreatedAt,
+				"article:modified_time":  p.Frontmatter.UpdatedAt,
+			}),
+		)),
 	),
 	).ServeHTTP(res, req)
 }

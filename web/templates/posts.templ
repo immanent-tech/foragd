@@ -30,13 +30,38 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 								<h2 class="card-title">{ post.Frontmatter.Title }</h2>
 								<p>{ post.Frontmatter.Description }</p>
 								<div class="card-actions justify-end">
-									<time datetime={ post.GetTimestamp() } class="label">{ post.GetTimestamp() }</time>
+									<time datetime={ post.Frontmatter.CreatedAt } class="label">{ post.Frontmatter.CreatedAt }</time>
 								</div>
 							</div>
 						</article>
 					</a>
 				}
 			}
+			@partials.ButtonBackToTop()
+		}
+	}
+}
+
+templ Post(post *models.MarkdownFile) {
+	@content() {
+		@container() {
+			<div class="breadcrumbs text-sm">
+				<ul>
+					<li><a href="/posts">Posts</a></li>
+					<li><a href="#">{ post.Frontmatter.Title }</a></li>
+				</ul>
+			</div>
+			<article class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">
+				<h1>{ post.Frontmatter.Title }</h1>
+				<p class="font-semibold">{ post.Frontmatter.Description }</p>
+				<div class="mx-auto flex flex-1 space-x-2 mb-4 text-sm">
+					<time datetime={ post.Frontmatter.CreatedAt } class="label">Published { post.Frontmatter.CreatedAt }</time>
+					if post.Frontmatter.UpdatedAt != "" {
+						<time datetime={ post.Frontmatter.UpdatedAt } class="label">Updated { post.Frontmatter.UpdatedAt }</time>
+					}
+				</div>
+				@templ.Raw(string(post.Content))
+			</article>
 			@partials.ButtonBackToTop()
 		}
 	}

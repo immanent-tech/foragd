@@ -35,6 +35,7 @@ import (
 	"github.com/immanent-tech/go-syndication/sitemap"
 
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
+	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -271,6 +272,12 @@ func PolicyDocsHandler() http.HandlerFunc {
 			templates.Document(policyBuf.Bytes()),
 			templates.WithPageTitle(fm.Title),
 			templates.WithPageDescription(fm.Description),
+			templates.WithOGMetadata(
+				opengraph.NewMetadata(
+					opengraph.WithTitle(fm.Title),
+					opengraph.WithDescription(fm.Description),
+				),
+			),
 		)
 		templ.Handler(template).ServeHTTP(res, req)
 	}

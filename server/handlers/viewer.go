@@ -29,8 +29,8 @@ func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
 			templates.WithPageDescription(description),
 			templates.WithOGMetadata(
 				opengraph.NewMetadata(
-					opengraph.WithTitle(title, nil),
-					opengraph.WithDescription(description, nil),
+					opengraph.WithTitle(title),
+					opengraph.WithDescription(description),
 				),
 			),
 		),

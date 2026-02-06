@@ -7,17 +7,15 @@ import (
 	"os"
 	"slices"
 
-	"github.com/a-h/templ"
-
 	"github.com/immanent-tech/foragd/config"
 )
 
 // Metadata represents the default opengraph metadata properties used by the app on pages.
 type Metadata struct {
-	Title       Property `validate:"required"`
-	ObjectType  Property `validate:"required"`
-	URL         Property `validate:"required"`
-	Image       Property `validate:"required"`
+	Title       Property   `validate:"required"`
+	ObjectType  ObjectType `validate:"required"`
+	URL         Property   `validate:"required"`
+	Image       Property   `validate:"required"`
 	Description Property
 }
 
@@ -28,8 +26,9 @@ func NewMetadata(options ...Option) *Metadata {
 		Title: Property{
 			Value: config.AppName,
 		},
-		ObjectType: Property{
-			Value: "website",
+		ObjectType: ObjectType{
+			Value:      "website",
+			Attributes: make(map[string]string),
 		},
 		URL: Property{
 			Value: os.Getenv("FORAGD_BASEURL"),
@@ -49,63 +48,55 @@ func NewMetadata(options ...Option) *Metadata {
 }
 
 type Property struct {
+	Value string
+}
+
+type ObjectType struct {
 	Value      string
-	Attributes templ.Attributes
+	Attributes map[string]string
 }
 
 type Option func(*Metadata)
 
 // WithTitle option sets a custom og:title property with optional element attributes. If this option is not used a
 // default title will be set.
-func WithTitle(title string, attrs templ.Attributes) Option {
+func WithTitle(title string) Option {
 	return func(m *Metadata) {
 		m.Title.Value = title
-		if attrs != nil {
-			m.Title.Attributes = attrs
-		}
 	}
 }
 
 // WithDescription option sets a custom og:desc property with optional element attributes. If this option is not used a
 // default description will be set.
-func WithDescription(desc string, attrs templ.Attributes) Option {
+func WithDescription(desc string) Option {
 	return func(m *Metadata) {
 		m.Description.Value = desc
-		if attrs != nil {
-			m.Description.Attributes = attrs
-		}
 	}
 }
 
 // WithType option sets a custom og:type property with optional element attributes. If this option is not used a
 // default type will be set.
-func WithType(objectType string, attrs templ.Attributes) Option {
+func WithType(objectType string, attributes map[string]string) Option {
 	return func(m *Metadata) {
 		m.ObjectType.Value = objectType
-		if attrs != nil {
-			m.ObjectType.Attributes = attrs
+		if attributes != nil {
+			m.ObjectType.Attributes = attributes
 		}
 	}
 }
 
 // WithURL option sets a custom og:url property with optional element attributes. If this option is not used a
 // default url will be set.
-func WithURL(url string, attrs templ.Attributes) Option {
+func WithURL(url string) Option {
 	return func(m *Metadata) {
 		m.URL.Value = url
-		if attrs != nil {
-			m.URL.Attributes = attrs
-		}
 	}
 }
 
 // WithImage option sets a custom og:image property with optional element attributes. If this option is not used a
 // default image will be set.
-func WithImage(image string, attrs templ.Attributes) Option {
+func WithImage(image string) Option {
 	return func(m *Metadata) {
 		m.Image.Value = image
-		if attrs != nil {
-			m.Image.Attributes = attrs
-		}
 	}
 }

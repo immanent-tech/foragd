@@ -39,12 +39,31 @@ func header(user *models.User) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header aria-label=\"Header\" class=\"fixed w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30\"><a href=\"/home\" class=\"link link-hover\"><div class=\"flex flex-row shrink-0 p-2 items-center\"><img src=\"/content/favicon.svg\" class=\"flex size-8\" alt=\"Foragd Logo\"><p class=\"font-bold text-primary hidden lg:flex\">Foragd</p></div></a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header aria-label=\"Header\" class=\"fixed w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if user != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " <div class=\"flex flex-1 justify-center\"><el-command-palette class=\"grid w-full sm:max-w-3xl\"><search><label for=\"global-search\" class=\"w-full sm:max-w-3xl input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10\">")
+		switch user {
+		case nil:
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a href=\"/\" class=\"link link-hover\"><div class=\"flex flex-row shrink-0 p-2 items-center\"><img src=\"/content/favicon.svg\" class=\"flex size-8\" alt=\"Foragd Logo\"><p class=\"font-bold text-primary hidden lg:flex\">Foragd</p></div></a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		default:
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<a hx-get=\"/home\" hx-target=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var2 string
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 28, Col: 35}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"link link-hover\"><div class=\"flex flex-row shrink-0 p-2 items-center\"><img src=\"/content/favicon.svg\" class=\"flex size-8\" alt=\"Foragd Logo\"><p class=\"font-bold text-primary hidden lg:flex\">Foragd</p></div></a> <div class=\"flex flex-1 justify-center\"><el-command-palette class=\"grid w-full sm:max-w-3xl\"><search><label for=\"global-search\" class=\"w-full sm:max-w-3xl input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -52,7 +71,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<input hx-post=\"/search/suggestions\" hx-target=\"#global-search-suggestions\" hx-include=\"#search-filters,[id='timezone']\" hx-trigger=\"keyup changed delay:300ms\" id=\"global-search\" type=\"search\" name=\"text\" placeholder=\"Search...\" spellcheck=\"false\" autocomplete=\"off\" _=\"\n\t\t\t\t\t\t\t\ton keydown from body if the event's key is 'k' and event.altKey then focus() me end\n\t\t\t\t\t\t\t\t\"><button id=\"clear-search-text\" type=\"button\" tabindex=\"0\" _=\"on click set #global-search.value to '' then add @hidden to #global-search-suggestions\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<input hx-post=\"/search/suggestions\" hx-target=\"#global-search-suggestions\" hx-include=\"#search-filters,[id='timezone']\" hx-trigger=\"keyup changed delay:300ms\" id=\"global-search\" type=\"search\" name=\"text\" placeholder=\"Search...\" spellcheck=\"false\" autocomplete=\"off\" _=\"\n\t\t\t\t\t\t\t\ton keydown from body if the event's key is 'k' and event.altKey then focus() me end\n\t\t\t\t\t\t\t\t\"><button id=\"clear-search-text\" type=\"button\" tabindex=\"0\" _=\"on click set #global-search.value to '' then add @hidden to #global-search-suggestions\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -60,7 +79,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button><button type=\"button\" command=\"show-modal\" commandfor=\"search-filters-dialog\" tabindex=\"0\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</button><button type=\"button\" command=\"show-modal\" commandfor=\"search-filters-dialog\" tabindex=\"0\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -68,7 +87,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</button></label></search> <el-command-list id=\"global-search-suggestions\" class=\"absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-128 sm:max-h-196 sm:h-fit scroll-py-2 overflow-y-auto p-2 rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10\" _=\"on keydown[key is 'Escape'] add .hidden\"></el-command-list></el-command-palette><el-dialog _=\"\n\t\t\t\t\ton open add @disabled to #global-search end\n\t\t\t\t\ton close remove @disabled from #global-search end\n\t\t\t\t\t\"><dialog id=\"search-filters-dialog\" class=\"mt-16 mb-auto mx-auto p-4 sm:p-6 w-full sm:max-w-3xl max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15\"><el-dialog-panel>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</button></label></search> <el-command-list id=\"global-search-suggestions\" class=\"absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-128 sm:max-h-196 sm:h-fit scroll-py-2 overflow-y-auto p-2 rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10\" _=\"on keydown[key is 'Escape'] add .hidden\"></el-command-list></el-command-palette><el-dialog _=\"\n\t\t\t\t\ton open add @disabled to #global-search end\n\t\t\t\t\ton close remove @disabled from #global-search end\n\t\t\t\t\t\"><dialog id=\"search-filters-dialog\" class=\"mt-16 mb-auto mx-auto p-4 sm:p-6 w-full sm:max-w-3xl max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15\"><el-dialog-panel>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -76,7 +95,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</el-dialog-panel></dialog></el-dialog></div> <div class=\"flex items-center justify-end mx-2 sm:mr-4 space-x-2\"><div aria-hidden=\"true\" class=\"hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10\"></div><el-dropdown id=\"header-user-menu\" class=\"relative\"><button class=\"btn-ghost btn-square\"><span class=\"sr-only\">Open settings menu</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</el-dialog-panel></dialog></el-dialog></div> <div class=\"flex items-center justify-end mx-2 sm:mr-4 space-x-2\"><div aria-hidden=\"true\" class=\"hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10\"></div><el-dropdown id=\"header-user-menu\" class=\"relative\"><button class=\"btn-ghost btn-square\"><span class=\"sr-only\">Open settings menu</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -84,20 +103,20 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</button> <el-menu id=\"header-menu\" anchor=\"bottom end\" popover><a hx-get=\"/user/settings\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</button> <el-menu id=\"header-menu\" anchor=\"bottom end\" popover><a hx-get=\"/user/settings\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
+			var templ_7745c5c3_Var3 string
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 101, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 114, Col: 38}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" _=\"on click remove @open from #header-menu\" class=\"link link-hover hover:text-primary\"><div class=\"flex flex-1 items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" _=\"on click remove @open from #header-menu\" class=\"link link-hover hover:text-primary\"><div class=\"flex flex-1 items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -105,7 +124,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "Settings</div></a><a href=\"/help\" rel=\"noopener\" target=\"_blank\" class=\"link link-hover hover:text-primary\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "Settings</div></a><a href=\"/help\" rel=\"noopener\" target=\"_blank\" class=\"link link-hover hover:text-primary\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -113,20 +132,20 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "Help/Documentation</div></a><a hx-get=\"/issue\" hx-target=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "Help/Documentation</div></a><a hx-get=\"/issue\" hx-target=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 126, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 139, Col: 38}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-replace-url=\"true\" class=\"link link-hover hover:text-primary\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-replace-url=\"true\" class=\"link link-hover hover:text-primary\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -134,7 +153,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "Report an issue</div></a><a href=\"/logout\" class=\"link link-hover hover:text-primary\" _=\"on click remove @open from #header-menu then call window.sessionStorage.removeItem('htmx-history-cache')\"><div class=\"flex flex-1 items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "Report an issue</div></a><a href=\"/logout\" class=\"link link-hover hover:text-primary\" _=\"on click remove @open from #header-menu then call window.sessionStorage.removeItem('htmx-history-cache')\"><div class=\"flex flex-1 items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -142,12 +161,12 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "Log out</div></a></el-menu></el-dropdown></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "Log out</div></a></el-menu></el-dropdown></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</header>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

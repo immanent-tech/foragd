@@ -4,9 +4,12 @@
 package opengraph
 
 templ (m *Metadata) Render() {
-	<meta property="og:title" content={ m.Title.Value } { m.Title.Attributes... }/>
-	<meta property="og:description" content={ m.Description.Value } { m.Description.Attributes... }/>
-	<meta property="og:type" content={ m.ObjectType.Value } { m.ObjectType.Attributes... }/>
-	<meta property="og:url" content={ m.URL.Value } { m.URL.Attributes... }/>
-	<meta property="og:image" content={ m.Image.Value } { m.Image.Attributes... }/>
+	<meta property="og:title" content={ m.Title.Value }/>
+	<meta property="og:description" content={ m.Description.Value }/>
+	<meta property="og:type" content={ m.ObjectType.Value }/>
+	for key, value := range m.ObjectType.Attributes {
+		<meta property={ key } content={ value }/>
+	}
+	<meta property="og:url" content={ m.URL.Value }/>
+	<meta property="og:image" content={ m.Image.Value }/>
 }

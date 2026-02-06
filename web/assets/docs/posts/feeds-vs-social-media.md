@@ -4,11 +4,6 @@ description = "Social Media dominates where we source our content from. But RSS 
 created_at = "2026-01-27"
 updated_at = "2026-02-06"
 +++
-
-# RSS & Atom vs Social Media
-
-**Social Media dominates where we source our content from. But RSS and Atom feeds offer compelling freedom and control over the content that Social Media cannot.**
-
 ## Are RSS and Atom Feeds Dead?
 
 Most of us spend a lot of time on Social Media services like Facebook, X/Twitter, Reddit and others. You might not spend much time looking at RSS and Atom feeds, even though they are very similar in a lot of ways. RSS and Atom pre-date most Social Media. But their usage and interest has declined over time as the web moved to be dominated by Social Media. [Google Trends](https://trends.google.com.au/trends/explore?date=all&q=%2Fm%2F0n5tx,%2Fm%2F0fch0p&hl=en-AU) doesn’t lie:

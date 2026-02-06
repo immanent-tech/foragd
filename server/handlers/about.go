@@ -29,8 +29,8 @@ func HandleAbout() http.HandlerFunc {
 			templates.WithPageDescription(description),
 			templates.WithOGMetadata(
 				opengraph.NewMetadata(
-					opengraph.WithTitle(title, nil),
-					opengraph.WithDescription(description, nil),
+					opengraph.WithTitle(title),
+					opengraph.WithDescription(description),
 				),
 			),
 		),

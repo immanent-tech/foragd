@@ -4,11 +4,6 @@ description = "RSS and Atom are formats that are “hiding in plain sight”. Lo
 created_at = "2026-02-02"
 updated_at = "2026-02-06"
 +++
-
-# How to Find RSS and Atom Feeds For Any Website
-
-**RSS and Atom are formats that are “hiding in plain sight”. Lots of websites have them, but it might not be obvious how to find them.**
-
 Partly, this is due to the way the RSS specification suggests advertising feeds through an autodiscovery mechanism (see [here](https://www.rssboard.org/rss-autodiscovery) for the technical details). This process is less for humans and more for automation, like your browser, or your feed reader. That was a novel and useful approach back when browsers had integrated feed readers and RSS/Atom were more popular. Nowadays, it makes these formats harder to find and discover.
 
 The good news however is that there are lots of other ways to find good feed sources. A few techniques are listed in this article.
