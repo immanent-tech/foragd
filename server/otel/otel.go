@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
@@ -106,12 +105,8 @@ func newTracerProvider(ctx context.Context) (*trace.TracerProvider, error) {
 		return nil, fmt.Errorf("new grpc tracer: %w", err)
 	}
 
-	// traceExporter, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
-
 	tracerProvider := trace.NewTracerProvider(
-		trace.WithBatcher(traceExporter,
-			// Default is 5s. Set to 1s for demonstrative purposes.
-			trace.WithBatchTimeout(time.Second)),
+		trace.WithBatcher(traceExporter),
 	)
 	return tracerProvider, nil
 }
