@@ -20,7 +20,8 @@
     "htmx-ext-sse": "^2.2.4",
     "htmx.org": "^2.0.8",
     "hyperscript.org": "^0.9.14",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "transition-style": "^0.1.4"
   },
   "devDependencies": {
     "@catppuccin/daisyui": "^2.1.1",

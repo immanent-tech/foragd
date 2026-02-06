@@ -112,6 +112,19 @@
     }
   }
 
+  @keyframes wipe-in-down {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  [transition-style='in:wipe:down'] {
+    animation: 1s cubic-bezier(0.25, 1, 0.3, 1) wipe-in-down both;
+  }
+
   .htmx-indicator {
     opacity: 0;
     visibility: hidden;

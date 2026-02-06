@@ -240,7 +240,10 @@ templ (a *Article) Card() {
 templ (a *Article) Content() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
-			@container() {
+			@container(
+				WithClasses("transform-gpu"),
+				WithAttribute("transition-style", "in:wipe:down"),
+			) {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
 				<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
 				<article id={ a.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
