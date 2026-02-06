@@ -138,7 +138,7 @@
 
 /* For formatting a short summary of article content. */
 @utility prose-summary {
-  @apply prose prose-sm line-clamp-3 sm:prose dark:prose-invert prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
+  @apply prose prose-sm line-clamp-3 dark:prose-invert prose-headings:text-sm prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
   img {
     @apply hidden;
   }
