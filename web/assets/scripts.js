@@ -16,3 +16,5 @@ _hyperscript.browserInit()
 
 // custom element for timestamps
 import './timestamps'
+
+import 'transition-style'
