@@ -391,7 +391,11 @@ templ (a *Article) Content() {
 					</div>
 					// Content.
 					if a.SourceType == models.SourceTypeEmail {
-						<div class="prose-email" data-disable-scripting hx-disable>
+						<div
+							class="prose-email mt-4"
+							data-disable-scripting
+							hx-disable
+						>
 							@templ.Raw(a.GetContent())
 						</div>
 					} else {
@@ -399,7 +403,7 @@ templ (a *Article) Content() {
 							<div
 								data-disable-scripting
 								hx-disable
-								class="prose-article forced-width"
+								class="prose-article mt-4 forced-width"
 							>
 								switch  {
 									case a.GetContent() != "":
