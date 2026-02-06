@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.49.0](https://github.com/immanent-tech/foragd/compare/v0.48.0...v0.49.0) (2026-02-06)
+
+
+### Features
+
+* **assets:** :sparkles: style broken images with placeholder ([fcc8743](https://github.com/immanent-tech/foragd/commit/fcc8743126830360728726dc2da3a1aeab76e284))
+* **templates:** :lipstick: "wipe in" article content when viewing ([ea058a8](https://github.com/immanent-tech/foragd/commit/ea058a8eab81b14d0c8dd3e1a0fe164689c68722))
+* **templates:** :sparkles: better opengraph metadata on pages ([559f0be](https://github.com/immanent-tech/foragd/commit/559f0be8095c29f487c34a27278791dbe4bb16eb))
+* **templates:** :sparkles: show updated timestamp on subscription cards on home ([ad22003](https://github.com/immanent-tech/foragd/commit/ad220035fbd7346b97d3cf247bd27a0c72d3019b))
+
+
+### Bug Fixes
+
+* :bug: update go.mod ([bae2d03](https://github.com/immanent-tech/foragd/commit/bae2d031b696eed4fe5dde7e9db506dc2b916ba3))
+* **assets:** :bento: match card image aspect ratio for placeholder image ([d8f1128](https://github.com/immanent-tech/foragd/commit/d8f1128c262b3a9690af84d9b00f5d60a0084a9a))
+
 ## [0.48.0](https://github.com/immanent-tech/foragd/compare/v0.47.0...v0.48.0) (2026-02-06)
 
 
