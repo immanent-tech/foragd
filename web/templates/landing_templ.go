@@ -41,7 +41,7 @@ func Landing() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-base-100\"><main class=\"isolate bg-base-100\"><div class=\"relative pt-14\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20\"></div></div><div class=\"lg:pb-40\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto flow-root\"><img src=\"/content/logo-color.svg\" class=\"mx-auto sm:size-96\" alt=\"Foragd Logo\"></div><div class=\"mx-auto max-w-2xl mt-16 sm:mt-24 text-center\"><h1 class=\"text-5xl font-semibold tracking-tight text-balance sm:text-7xl\">Foragd&nbsp;<sup class=\"text-sm uppercase\">beta</sup></h1><p class=\"mt-8 text-lg font-medium text-pretty sm:text-xl/8\">Collect. Curate. Consume.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><button class=\"btn btn-primary text-sm/6 font-semibold\" _=\"on click go to #features smoothly\">See features</button> <button class=\"btn btn-primary text-sm/6 font-semibold\" _=\"on click go to #pricing smoothly\">Start a free trial</button></div><div class=\"text-sm/6 font-semibold mt-5\">Already have an account?<a href=\"/login\" class=\"link\">&nbsp;Log in</a></div></div></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div style=\"clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)\" class=\"relative left-[calc(50%+3rem)] aspect-1155/678 w-144.5 -translate-x-1/2 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%+36rem)] sm:w-288.75 dark:opacity-20\"></div></div></div><div id=\"features\" class=\"mt-32 sm:mt-56\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">A beautiful, web based, online feed reader.</p><p class=\"mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop.</p></div><div class=\"mt-16 flow-root sm:mt-24\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-base-100\"><main class=\"isolate bg-base-100\"><div class=\"relative pt-14\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div class=\"soft-gradient-top\"></div></div><div class=\"lg:pb-40\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto flow-root\"><img src=\"/content/logo-color.svg\" class=\"mx-auto sm:size-96\" alt=\"Foragd Logo\"></div><div class=\"mx-auto max-w-2xl mt-16 sm:mt-24 text-center\"><h1 class=\"text-5xl font-semibold tracking-tight text-balance sm:text-7xl\">Foragd&nbsp;<sup class=\"text-sm uppercase\">beta</sup></h1><p class=\"mt-8 text-lg font-medium text-pretty sm:text-xl/8\">Collect. Curate. Consume.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><button class=\"btn btn-primary text-sm/6 font-semibold\" _=\"on click go to #features smoothly\">See features</button> <button class=\"btn btn-primary text-sm/6 font-semibold\" _=\"on click go to #pricing smoothly\">Start a free trial</button></div><div class=\"text-sm/6 font-semibold mt-5\">Already have an account?<a href=\"/login\" class=\"link\">&nbsp;Log in</a></div></div></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div class=\"soft-gradient-bottom\"></div></div></div><div id=\"features\" class=\"mt-32 sm:mt-56\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">A beautiful, web based, online feed reader.</p><p class=\"mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop.</p></div><div class=\"mt-16 flow-root sm:mt-24\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -299,7 +299,7 @@ func imagePopup(id string, img Image) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 481, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 475, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -321,7 +321,7 @@ func imagePopup(id string, img Image) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(img.Width)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 483, Col: 20}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 477, Col: 20}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -334,7 +334,7 @@ func imagePopup(id string, img Image) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(img.Height)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 484, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 478, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -347,7 +347,7 @@ func imagePopup(id string, img Image) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 486, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 480, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -360,7 +360,7 @@ func imagePopup(id string, img Image) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 487, Col: 23}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 481, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -386,7 +386,7 @@ func imagePopup(id string, img Image) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 492, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 486, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -399,7 +399,7 @@ func imagePopup(id string, img Image) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(img.Width)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 502, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 496, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -412,7 +412,7 @@ func imagePopup(id string, img Image) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(img.Height)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 503, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 497, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -425,7 +425,7 @@ func imagePopup(id string, img Image) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 505, Col: 25}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 499, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -438,7 +438,7 @@ func imagePopup(id string, img Image) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 506, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 500, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
