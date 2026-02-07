@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.50.0](https://github.com/immanent-tech/foragd/compare/v0.49.0...v0.50.0) (2026-02-07)
+
+
+### Features
+
+* **templates:** :sparkles: landing page improvements ([f18ac5e](https://github.com/immanent-tech/foragd/commit/f18ac5e2b18da886ecd6fc32ee452b5098ef5f24))
+
+
+### Bug Fixes
+
+* **assets:** :bug: add transition-style package ([3e15675](https://github.com/immanent-tech/foragd/commit/3e156750be3efb161ffd9c2f8a5cf07f607e0536))
+* **docs:** :memo: fix formatting in policy documents ([dddd0f0](https://github.com/immanent-tech/foragd/commit/dddd0f0719512343956ae827a091b7d86ce887e6))
+* **templates:** :bug: change element on which new transition for view article is applied ([19a9a3f](https://github.com/immanent-tech/foragd/commit/19a9a3fcf18a065dc068c42680f260436b8c58be))
+* **templates:** :bug: remove blocked (by CSP) inline-style usage ([f75a64f](https://github.com/immanent-tech/foragd/commit/f75a64f603a1f0f610f778706e52bbf7bed466b8))
+
 ## [0.49.0](https://github.com/immanent-tech/foragd/compare/v0.48.0...v0.49.0) (2026-02-06)
 
 
