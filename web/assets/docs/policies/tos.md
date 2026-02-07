@@ -10,10 +10,10 @@ accessing or using Foragd. Because it is such an important contract between us a
 as clear as possible. For your convenience, we have presented these terms in a short non-binding summary followed by the
 full legal terms.
 
-## Summary
+## Table of Contents
 
 - [Terms of Service](#terms-of-service)
-  - [Summary](#summary)
+  - [Table of Contents](#table-of-contents)
   - [Definitions](#definitions)
   - [Account Terms](#account-terms)
     - [1. Account Controls](#1-account-controls)
@@ -65,16 +65,16 @@ Effective date: November 1st, 2025
 **Short version:** _We use these basic terms throughout the agreement, and they have specific meanings. You should know
 what we mean when we use each of the terms. There's not going to be a test on it, but it's still useful information._
 
-1. An "Account" represents your legal relationship with Foragd.
+1. An “Account” represents your legal relationship with Foragd.
 2. The “Agreement” refers, collectively, to all the terms, conditions, notices contained or referenced in this document
-   (the “Terms of Service” or the "Terms") and all other operating rules, policies (including the Foragd Privacy
-   Statement, available at [foragd.app/privacy](https://foragd.app/privacy)) and procedures that we may
+   (the “Terms of Service” or the “Terms”) and all other operating rules, policies (including the Foragd Privacy
+   Statement, available at [foragd.app/privacy](/policies/privacy)) and procedures that we may
    publish from time to time on the Website.
-3. "Beta Previews" mean software, services, or features identified as alpha, beta, preview, early access, or evaluation,
+3. “Beta Previews” mean software, services, or features identified as alpha, beta, preview, early access, or evaluation,
    or words or phrases with similar meanings.
 4. “Content” refers to content featured or displayed through the Website, including without limitation code, text, data,
    articles, images, photographs, graphics, software, applications, packages, designs, features, and other materials
-   that are available on the Website or otherwise available through the Service. "Content" also includes Services.
+   that are available on the Website or otherwise available through the Service. “Content” also includes Services.
    “User-Generated Content” is Content, written or otherwise, created or uploaded by our Users.
 5. “Foragd,” “We,” and “Us” refer to Immanent Tech, as well as our affiliates, directors, subsidiaries, contractors,
    licensors, officers, agents, and employees.
@@ -90,10 +90,10 @@ what we mean when we use each of the terms. There's not going to be a test on it
 
 ## Account Terms
 
-**Short version:** A human must create your Account; you must be 16 or over; you must provide the information by our
+**Short version:** _A human must create your Account; you must be 16 or over; you must provide the information by our
 authentication backend; and you may not have more than one Account. You alone are responsible for your Account and
 anything that happens while you are signed in to or using your Account. You are responsible for keeping your Account
-secure.\_
+secure._
 
 ### 1. Account Controls
 
@@ -109,7 +109,7 @@ entity (in which case we need more information about the legal entity).
 
 We have a few simple rules for Accounts on Foragd's Service.
 
-- You must be a human to create an Account. Accounts registered by "bots" or other automated methods are not permitted.
+- You must be a human to create an Account. Accounts registered by “bots” or other automated methods are not permitted.
 - One person or legal entity may maintain no more than one Account.
 - You must be age 16 or older. Foragd does not target our Service to children under 16, and we do not permit any Users
   under 16 on our Service. If we learn of any User under the age of 16, we will [terminate that User’s Account

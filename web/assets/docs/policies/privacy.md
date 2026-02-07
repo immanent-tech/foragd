@@ -15,6 +15,30 @@ Commissioner at [https://www.oaic.gov.au/](https://www.oaic.gov.au/).
 
 Effective date: November 1st, 2025
 
+## Table of Contents
+
+- [Foragd Privacy Policy](#foragd-privacy-policy)
+  - [Table of Contents](#table-of-contents)
+  - [What is Personal Information and why do we collect it?](#what-is-personal-information-and-why-do-we-collect-it)
+  - [Sensitive Information](#sensitive-information)
+  - [Third Parties](#third-parties)
+  - [Disclosure of Personal Information](#disclosure-of-personal-information)
+  - [Security of Personal Information](#security-of-personal-information)
+  - [Access to your Personal Information](#access-to-your-personal-information)
+  - [Maintaining the Quality of your Personal Information](#maintaining-the-quality-of-your-personal-information)
+  - [How we collect your information](#how-we-collect-your-information)
+    - [From You](#from-you)
+    - [Automatically](#automatically)
+  - [Processing Purposes: How We Use Your Personal Data](#processing-purposes-how-we-use-your-personal-data)
+  - [Sharing of Personal Data](#sharing-of-personal-data)
+  - [Lawful Bases for Processing Personal Data (Applicable to EEA and UK End Users)](#lawful-bases-for-processing-personal-data-applicable-to-eea-and-uk-end-users)
+  - [Your Privacy Rights](#your-privacy-rights)
+  - [International data transfers](#international-data-transfers)
+  - [Security and Retention](#security-and-retention)
+  - [Security](#security)
+  - [Changes to Our Privacy Statement](#changes-to-our-privacy-statement)
+
+
 ## What is Personal Information and why do we collect it?
 
 Personal Information is information or an opinion that identifies an individual. Examples of Personal Information we

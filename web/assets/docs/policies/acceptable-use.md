@@ -10,7 +10,24 @@ restrictions on content and conduct on Foragd related to user safety, intellectu
 other limitations. In short, be excellent to each other._
 
 Capitalized terms used but not defined in these Acceptable Use Policies have the meanings assigned to them in your main
-agreement with us — the [Foragd Terms of Service](/tos).
+agreement with us — the [Foragd Terms of Service](/policies/tos).
+
+## Table of Contents
+
+- [Foragd Acceptable Use Policy](#foragd-acceptable-use-policy)
+  - [Table of Contents](#table-of-contents)
+  - [1. Compliance with Laws and Regulations](#1-compliance-with-laws-and-regulations)
+  - [2. User Safety](#2-user-safety)
+  - [3. Intellectual Property, Authenticity, and Private Information](#3-intellectual-property-authenticity-and-private-information)
+  - [4. Spam and Inauthentic Activity on Foragd](#4-spam-and-inauthentic-activity-on-foragd)
+  - [5. Site Access and Safety](#5-site-access-and-safety)
+  - [6. Services Usage Limits](#6-services-usage-limits)
+  - [7. Information Usage Restrictions](#7-information-usage-restrictions)
+  - [8. Privacy](#8-privacy)
+  - [9. Excessive Bandwidth Use](#9-excessive-bandwidth-use)
+  - [10. Advertising on Foragd](#10-advertising-on-foragd)
+  - [11. User Protection](#11-user-protection)
+
 
 ## 1. Compliance with Laws and Regulations
 
