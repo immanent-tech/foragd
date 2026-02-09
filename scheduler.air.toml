@@ -31,7 +31,6 @@ exclude_dir = [
   "magefiles",
   "models/generate",
   "node_modules",
-  "pkg",
   "providers",
   "server",
   "test",
@@ -40,7 +39,7 @@ exclude_dir = [
   "web",
 ]
 # Ignore these filename extensions or directories.
-include_dir = ["scheduler"]
+include_dir = ["scheduler", "models", "pkg"]
 # Exclude specific regular expressions.
 exclude_regex = ["_test\\.go", "_templ\\.go"]
 # Exclude unchanged files.
