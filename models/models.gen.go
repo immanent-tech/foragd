@@ -468,6 +468,9 @@ type FileDetails struct {
 type FileIndex struct {
 	// Files is a list of details for files.
 	Files []FileDetails `json:"files,omitempty,omitzero" toml:"file"`
+
+	// UpdatedAt indicates when the index was last updated.
+	UpdatedAt time.Time `json:"updated_at,omitempty,omitzero" toml:"updated_at"`
 }
 
 // FileUpload represents a file upload by a user.

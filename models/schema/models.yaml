@@ -1700,7 +1700,13 @@ components:
           items:
             $ref: '#/components/schemas/FileDetails'
           x-oapi-codegen-extra-tags:
-            toml: "file"
+            toml: 'file'
+        updated_at:
+          description: >
+            indicates when the index was last updated.
+          x-go-type: time.Time
+          x-oapi-codegen-extra-tags:
+            toml: 'updated_at'
     MarkdownFrontMatter:
       description: >
         contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
