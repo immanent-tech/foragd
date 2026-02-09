@@ -243,7 +243,7 @@ templ (a *Article) Content() {
 			@container() {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
 				<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
-				<article id={ a.GetID() } class="w-full sm:max-w-prose sm:mx-auto transform-gpu" transition-style="in:wipe:down">
+				<article id={ a.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
 					// Article title.
 					<div class="flex flex-1 pb-2">
 						if a.SourceType != models.SourceTypeEmail {

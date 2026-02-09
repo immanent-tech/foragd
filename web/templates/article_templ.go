@@ -805,7 +805,7 @@ func (a *Article) Content() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\" class=\"w-full sm:max-w-prose sm:mx-auto transform-gpu\" transition-style=\"in:wipe:down\"><div class=\"flex flex-1 pb-2\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 65, "\" class=\"w-full sm:max-w-prose sm:mx-auto\"><div class=\"flex flex-1 pb-2\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
