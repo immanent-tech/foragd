@@ -192,7 +192,7 @@ func Start(logger *slog.Logger) error {
 			r.Get("/cancel", handlers.HandleLanding())
 		})
 		r.Get("/home", handlers.HandleHome())
-		r.Get("/home/updates", handlers.WatchHome())
+		// r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
 		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.HandleSearchSuggestions())
 		r.With(middlewares.RequireHTMX).Post("/search", handlers.HandleSearchResults())
@@ -201,7 +201,7 @@ func Start(logger *slog.Logger) error {
 			Post("/search/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions())
 		r.With(middlewares.RequireHTMX).Post("/search/subscription", handlers.AddSubscriptionFilter())
 		r.Get("/search", handlers.HandleSearchResults())
-		r.Get("/search/updates", handlers.WatchSearchResults())
+		// r.Get("/search/updates", handlers.WatchSearchResults())
 		// Issues.
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.HandleReportObjectIssue())
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.HandleSubmitObjectIssue())
@@ -211,7 +211,7 @@ func Start(logger *slog.Logger) error {
 			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.HandleMarkSubscriptions())
-			r.Get("/updates", handlers.WatchList())
+			// r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).
@@ -234,7 +234,7 @@ func Start(logger *slog.Logger) error {
 			r.Post("/", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())
-			r.Get("/updates", handlers.WatchList())
+			// r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}", handlers.MarkArticle())
