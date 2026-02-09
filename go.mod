@@ -70,7 +70,6 @@ require (
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/go-pkgz/expirable-cache/v3 v3.0.0 // indirect
 	github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c // indirect
-	github.com/goforj/godump v1.9.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
@@ -160,7 +159,7 @@ require (
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/ThreeDotsLabs/watermill-googlecloud/v2 v2.0.0
 	github.com/ThreeDotsLabs/watermill-http/v2 v2.3.1
-	github.com/alecthomas/kong v1.13.0
+	github.com/alecthomas/kong v1.14.0
 	github.com/auth0/go-auth0/v2 v2.4.0
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
