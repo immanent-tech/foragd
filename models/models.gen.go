@@ -501,6 +501,9 @@ type GroupSubscriptionRequest struct {
 
 	// Subscriptions is the list of subscription IDs belonging to the group.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
+
+	// SuggestedCategories is a list of suggested categories for the subscription.
+	SuggestedCategories []Category `form:"-" json:"-"`
 }
 
 // HomeResponse contains the data for displaying the home page.

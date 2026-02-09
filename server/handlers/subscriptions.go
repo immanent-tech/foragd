@@ -416,10 +416,18 @@ func HandleEditSubscription() http.HandlerFunc {
 				ShowFullArticleContent: subscription.Settings.ShowFullArticleContent,
 				ArticleFilters:         subscription.FeedData.ArticleFilters,
 			}
-			// Get top categories across items in subscription feed and add as suggested categories for the
+			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
 			// subscription.
-			if categories, resp := models.GetArticleTopCategories(ctx, subscription.FeedData.GetFeedID()); resp == nil {
-				request.SuggestedCategories = categories
+			if suggestedCategories, resp := models.GetArticleTopCategories(
+				ctx,
+				subscription.FeedData.GetFeedID(),
+			); resp == nil {
+				suggestedCategories = slices.Collect(
+					models.FilterSlice(suggestedCategories, func(category models.Category) bool {
+						return !slices.Contains(models.CommonCategoryFilters, category)
+					}),
+				)
+				request.SuggestedCategories = suggestedCategories
 			}
 			// Generate page template.
 			template = templates.EditSubscription(request)
@@ -474,6 +482,19 @@ func HandleEditSubscription() http.HandlerFunc {
 					),
 				}).ServeHTTP(res, req)
 				return
+			}
+			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
+			// subscription.
+			if suggestedCategories, resp := models.GetArticleTopCategories(
+				ctx,
+				subscription.FeedData.GetFeedID(),
+			); resp == nil {
+				suggestedCategories = slices.Collect(
+					models.FilterSlice(suggestedCategories, func(category models.Category) bool {
+						return !slices.Contains(models.CommonCategoryFilters, category)
+					}),
+				)
+				request.SuggestedCategories = suggestedCategories
 			}
 			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			// Generate page template.

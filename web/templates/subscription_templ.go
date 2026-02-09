@@ -1557,7 +1557,7 @@ func EditSubscription(request *models.EditSubscriptionRequest) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					categoryMgmtPath := "/user/subscription/category"
-					templ_7745c5c3_Err = CategoryManagement(categoryMgmtPath, "categories", nil, request.Categories).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = CategoryManagement(categoryMgmtPath, "categories", request.SuggestedCategories, request.Categories).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

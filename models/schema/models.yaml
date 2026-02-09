@@ -946,6 +946,16 @@ components:
             - $ref: '#/components/schemas/SubscriptionSettings'
           x-oapi-codegen-extra-tags:
             form: 'settings'
+        suggestedCategories:
+          description: >
+            is a list of suggested categories for the subscription.
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true
     EditEmailSubscriptionRequest:
       description: >
         represents a request to create an email subscription.

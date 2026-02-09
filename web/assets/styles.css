@@ -51,6 +51,13 @@
     }
   }
 
+  el-options {
+    @apply overflow-auto rounded-box transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
+    el-option {
+      @apply block bg-base-content/10 px-3 py-2 select-none aria-selected:bg-primary aria-selected:text-primary-content;
+    }
+  }
+
   dialog {
     @apply backdrop:bg-transparent;
   }
