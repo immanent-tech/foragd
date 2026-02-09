@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@catppuccin/daisyui": "^2.1.1",
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^10.0.1",
     "@prettier/plugin-xml": "^3.4.2",
     "@tailwindcss/cli": "^4.1.18",
     "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
