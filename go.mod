@@ -159,7 +159,7 @@ require (
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/ThreeDotsLabs/watermill-googlecloud/v2 v2.0.0
 	github.com/ThreeDotsLabs/watermill-http/v2 v2.3.1
-	github.com/alecthomas/kong v1.13.0
+	github.com/alecthomas/kong v1.14.0
 	github.com/auth0/go-auth0/v2 v2.4.0
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
