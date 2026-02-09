@@ -56,6 +56,18 @@ func Restore[T any](ctx context.Context, key string) (T, error) {
 	return value, nil
 }
 
+// Renew updates the session data to have a new session token while retaining the current session data. The session
+// lifetime is also reset and the session data status will be set to Modified. The old session token and accompanying
+// data are deleted from the session store.
+func Renew(ctx context.Context) error {
+	if err := manager.RenewToken(ctx); err != nil {
+		return fmt.Errorf("unable to renew token: %w", err)
+	}
+	return nil
+}
+
+// Clear deletes the session data from the session store and sets the session status to Destroyed. Any further
+// operations in the same request cycle will result in a new session being created.
 func Clear(ctx context.Context) error {
 	if err := manager.Destroy(ctx); err != nil {
 		return fmt.Errorf("clear session: %w", err)
@@ -63,6 +75,7 @@ func Clear(ctx context.Context) error {
 	return nil
 }
 
+// LoadAndSave middleware handles loading the session data for a request and saving any modifications.
 func LoadAndSave(next http.Handler) http.Handler {
 	return manager.LoadAndSave(next)
 }

@@ -125,6 +125,12 @@ func RefreshTokenIfNeeded(next http.Handler) http.Handler {
 					slog.Any("error", err),
 				)
 			}
+			// Renew the session data.
+			if err := session.Renew(req.Context()); err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to renew session data.",
+					slog.Any("error", err),
+				)
+			}
 		}
 
 		next.ServeHTTP(res, req)
