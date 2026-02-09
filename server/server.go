@@ -122,6 +122,7 @@ func Start(logger *slog.Logger) error {
 	router.Handle("/robots.txt", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	router.Handle("/favicon.ico", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
+
 	// Avatars
 	router.Get("/img/avatar/*", handlers.LoadCachedImage)
 	// User custom subscription images
@@ -147,9 +148,12 @@ func Start(logger *slog.Logger) error {
 		r.Get("/help", handlers.DocumentationHandler())
 		// Policy documentation (i.e., terms of service, privacy).
 		r.Get("/policies/*", handlers.PolicyDocsHandler())
-		// Posts/Blog.
+		// Posts index.
 		r.Get("/posts", handlers.HandlePosts())
+		// Individual posts.
 		r.Get("/posts/*", handlers.HandlePosts())
+		// Posts RSS feed.
+		r.Get("/feed", handlers.HandlePostsFeed())
 		// Sign-up/Login routes.
 		r.Group(func(r chi.Router) {
 			r.Use(
