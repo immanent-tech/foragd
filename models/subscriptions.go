@@ -620,9 +620,7 @@ func ProcessSubscriptionRequest(
 		err     error
 	)
 
-	// Parse the URL.
-	slogctx.FromCtx(ctx).Debug("Parsing url", slog.String("url", request.GetURL()))
-	feedURL, err := url.Parse(request.GetURL())
+	feedURL, err := feedURLParser(ctx, request.GetURL())
 	if err != nil {
 		result.Error = err
 		result.Message = NewErrorMessage(
@@ -634,16 +632,6 @@ func ProcessSubscriptionRequest(
 		)
 		resultsCh <- result
 		return
-	}
-	// For some popular sites that have an API or special URL for feeds, handle those.
-	if strings.Contains(feedURL.Host, "reddit.com") {
-		// Reddit can usually support a feed by appending `.rss` to the end of the subreddit URL.
-		var err error
-		if feedURL.Path, err = url.JoinPath(feedURL.Path, "/.rss"); err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not create subreddit RSS url.",
-				slog.Any("err", err),
-			)
-		}
 	}
 
 	newFeed, err = NewFeedFromURL(ctx, feedURL.String())

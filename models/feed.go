@@ -8,8 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cespare/xxhash/v2"
@@ -530,4 +532,38 @@ func newFeedSortCombinations(sort *Sort) []estypes.SortCombinations {
 		})
 	}
 	return opts
+}
+
+// feedURLParser parses the given URL string into a url.URL object, applying some additional rules for known domains on where
+// to find their feeds.
+func feedURLParser(ctx context.Context, urlStr string) (*url.URL, error) {
+	// Parse the URL.
+	slogctx.FromCtx(ctx).Debug("Parsing url", slog.String("url", urlStr))
+	feedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, fmt.Errorf("parse url: %w", err)
+	}
+
+	// For some popular sites that have an API or special URL for feeds, handle those.
+	switch {
+	case strings.Contains(feedURL.Host, "reddit.com") &&
+		(!strings.HasPrefix(feedURL.Path, ".rss") || !strings.HasPrefix(feedURL.Path, ".rss/")):
+		// Reddit can usually support a feed by appending `.rss` to the end of the subreddit URL.
+		var err error
+		if feedURL.Path, err = url.JoinPath(feedURL.Path, "/.rss"); err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not create subreddit RSS url.",
+				slog.Any("err", err),
+			)
+		}
+	case strings.HasSuffix(feedURL.Host, "tumblr.com") && (!strings.HasPrefix(feedURL.Path, "feed") || !strings.HasPrefix(feedURL.Path, "feed/")):
+		// Tumblr blogs usually have their feed at the "/feed" path.
+		var err error
+		if feedURL.Path, err = url.JoinPath(feedURL.Path, "/feed"); err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not create create canonical Tumblr RSS url.",
+				slog.Any("err", err),
+			)
+		}
+	}
+
+	return feedURL, nil
 }
