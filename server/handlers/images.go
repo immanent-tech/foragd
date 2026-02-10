@@ -97,7 +97,6 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		// Fetch the image (either from proxy or direct).
 		resp, err := httpClient.R().
 			SetDoNotParseResponse(true).
-			EnableTrace().
 			Get(proxiedURL)
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
@@ -113,19 +112,6 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			)
 			return
 		}
-
-		slogctx.FromCtx(req.Context()).Debug("Fetched image.",
-			slog.Group("request",
-				slog.Duration("total_time", resp.Request.TraceInfo().TotalTime),
-				slog.Duration("response_time", resp.Request.TraceInfo().ResponseTime),
-				slog.Duration("server_time", resp.Request.TraceInfo().ServerTime),
-				slog.Duration("conn_time", resp.Request.TraceInfo().ConnTime),
-				slog.Duration("dns_lookup_time", resp.Request.TraceInfo().DNSLookup),
-				slog.Duration("tcp_conn_time", resp.Request.TraceInfo().TCPConnTime),
-				slog.Bool("conn_reused", resp.Request.TraceInfo().IsConnReused),
-				slog.Bool("conn_idle", resp.Request.TraceInfo().IsConnWasIdle),
-			),
-		)
 
 		_, err = io.Copy(imgBuf, resp.RawBody())
 		if err != nil {
