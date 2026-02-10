@@ -19,9 +19,9 @@ func PreventCSRF(next http.Handler) http.Handler {
 	cop.AddInsecureBypassPattern("/checkout/webhooks")
 	cop.AddInsecureBypassPattern("/mail/webhooks")
 
-	cop.SetDenyHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("CSRF check failed"))
+	cop.SetDenyHandler(http.HandlerFunc(func(res http.ResponseWriter, _ *http.Request) {
+		res.WriteHeader(http.StatusBadRequest)
+		res.Write([]byte("CSRF check failed"))
 	}))
 
 	return cop.Handler(next)
