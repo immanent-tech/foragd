@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.1](https://github.com/immanent-tech/foragd/compare/v0.52.0...v0.52.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* **handlers:** :bug: fix saving list filters ([dba3524](https://github.com/immanent-tech/foragd/commit/dba3524f84d7e21750c70f4bd72500f4e95f98c9))
+
 ## [0.52.0](https://github.com/immanent-tech/foragd/compare/v0.51.1...v0.52.0) (2026-02-10)
 
 
