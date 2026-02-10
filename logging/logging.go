@@ -18,6 +18,7 @@ import (
 	"github.com/mattn/go-isatty"
 	slogmulti "github.com/samber/slog-multi"
 	slogctx "github.com/veqryn/slog-context"
+	slogotel "github.com/veqryn/slog-context/otel"
 	slogjson "github.com/veqryn/slog-json"
 )
 
@@ -93,7 +94,18 @@ func New(options Options) *slog.Logger {
 		}
 	}
 
-	logger := slog.New(slogctx.NewHandler(slogmulti.Fanout(handlers...), nil))
+	logger := slog.New(slogctx.NewHandler(slogmulti.Fanout(handlers...), &slogctx.HandlerOptions{
+		// Prependers will first add the OTEL Trace ID,
+		// then anything else Prepended to the ctx
+		Prependers: []slogctx.AttrExtractor{
+			slogotel.ExtractTraceSpanID,
+			slogctx.ExtractPrepended,
+		},
+		// Appenders stays as default (leaving as nil would accomplish the same)
+		Appenders: []slogctx.AttrExtractor{
+			slogctx.ExtractAppended,
+		},
+	}))
 	slog.SetDefault(logger)
 
 	logger.Info("Logger initialised.")
