@@ -874,6 +874,9 @@ type SearchRequestPublishedWithin string
 type SearchResults struct {
 	Articles Articles `json:"articles,omitempty,omitzero"`
 
+	// Categories is a list of categories.
+	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
+
 	// Pagination contains data for paginating through results.
 	Pagination Pagination `form:"pagination" json:"pagination,omitempty,omitzero" validate:"omitempty,url_encoded"`
 

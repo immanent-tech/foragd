@@ -1197,6 +1197,16 @@ components:
           x-go-type: Articles
         subscriptions:
           x-go-type: Subscriptions
+        categories:
+          description: is a list of categories.
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            json: 'categories'
+            form: 'categories'
+            validate: 'omitnil,unique,dive,url_encoded'
+          x-go-type-skip-optional-pointer: true
         pagination:
           $ref: '#/components/schemas/Pagination'
     AddSubscriptionSearchFilterRequest:

@@ -263,6 +263,26 @@ templ SearchResults(results *models.SearchResults) {
 						sse-swap="updates"
 						class="toast toast-center z-50"
 					></div>
+					if len(results.Articles) > 1 {
+						<div class="flex justify-center gap-2 p-2 m-2">
+							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+								for category := range slices.Values(results.Categories) {
+									{{ search := results.Search }}
+									{{ search.Categories = category }}
+									<a
+										hx-post="/search"
+										hx-target={ ContentID.Target() }
+										hx-vals={ search.HXVals() }
+										class="link link-hover"
+									>
+										<span class="badge badge-secondary badge-lg line-clamp-1">
+											{ category }
+										</span>
+									</a>
+								}
+							</div>
+						</div>
+					}
 					// Articles grid.
 					<section class="mt-4">
 						@grid() {
