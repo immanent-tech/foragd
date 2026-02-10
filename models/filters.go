@@ -21,7 +21,7 @@ func init() {
 }
 
 var ErrNoFilters = &APIError{
-	InternalError: errors.New("not filters found"),
+	InternalError: errors.New("no filters found"),
 	StatusCode:    http.StatusNotFound,
 }
 

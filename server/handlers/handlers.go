@@ -341,35 +341,31 @@ func setRedirect(res http.ResponseWriter, request htmxext.HXLocationRequest) err
 
 func parseFilters(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		sessionKey := "path_" + req.URL.Path
+
 		filters, valid, err := forms.DecodeForm[*models.ListFilters](req)
-		ctx := req.Context()
 		switch {
 		case err != nil:
-			slogctx.FromCtx(ctx).Warn("Unable to parse new filters. Using filters from session.",
+			slogctx.FromCtx(req.Context()).Warn("Unable to parse new filters. Using filters from session.",
 				slog.Any("error", err),
 				slog.Any("filters", filters),
 			)
 			// Try to restore filters from session.
-			restored, err := session.Restore[models.ListFilters](ctx, "filters_"+req.URL.Path)
+			restored, err := session.Restore[models.ListFilters](req.Context(), sessionKey)
 			if err != nil {
 				// Use new filters if unable to restore from session or form data.
 				restored = models.NewListDisplayFilters()
 			}
 			filters = &restored
-			ctx = models.PageFiltersToCtx(ctx, req.URL.Path, filters)
 		case !valid:
+			slogctx.FromCtx(req.Context()).Warn("Invalid filters. Creating new filters.")
 			newFilters := models.NewListDisplayFilters()
-			session.Save(ctx, "filters_"+req.URL.Path, newFilters)
-			ctx = models.PageFiltersToCtx(ctx, req.URL.Path, filters)
-			slogctx.FromCtx(ctx).Warn("Invalid filters. Creating new filters.",
-				slog.Any("error", err),
-			)
+			session.Save(req.Context(), sessionKey, newFilters)
 		default:
-			slogctx.FromCtx(ctx).Debug("Saving filters",
-				slog.Any("filters", filters),
-			)
-			ctx = models.PageFiltersToCtx(ctx, req.URL.Path, filters)
+			session.Save(req.Context(), sessionKey, *filters)
 		}
+
+		ctx := models.PageFiltersToCtx(req.Context(), req.URL.Path, filters)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
