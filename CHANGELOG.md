@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.0](https://github.com/immanent-tech/foragd/compare/v0.52.1...v0.53.0) (2026-02-10)
+
+
+### Features
+
+* **middlewares:** :recycle: switch to github.com/go-chi/cors for CORS middleware ([11b9e9c](https://github.com/immanent-tech/foragd/commit/11b9e9cc7709d8385e5190098d2ad5625d00b1e4))
+
 ## [0.52.1](https://github.com/immanent-tech/foragd/compare/v0.52.0...v0.52.1) (2026-02-10)
 
 
