@@ -4,6 +4,7 @@
 // htmx
 import htmx from 'htmx.org/dist/htmx.esm'
 window.htmx = htmx
+htmx.logAll()
 
 // import 'htmx-ext-head-support'
 import 'htmx-ext-preload'
