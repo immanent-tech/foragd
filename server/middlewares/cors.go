@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/rs/cors"
+	"github.com/go-chi/cors"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
@@ -62,10 +62,9 @@ var loadCORS = sync.OnceValues(func() (*cors.Cors, error) {
 	}
 
 	corsOptions := cors.Options{
-		AllowCredentials:    true,
-		MaxAge:              corsSettings.MaxAge,
-		AllowPrivateNetwork: true,
-		OptionsPassthrough:  true,
+		AllowCredentials:   true,
+		MaxAge:             corsSettings.MaxAge,
+		OptionsPassthrough: true,
 		AllowedHeaders: append(
 			[]string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 			HTMXRequestHeaders...,
