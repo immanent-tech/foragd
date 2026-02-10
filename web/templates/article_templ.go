@@ -171,9 +171,9 @@ func (a *Article) Card() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = NewProxiedImage(img, "rs:auto:400:266/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
+			templ_7745c5c3_Err = NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
 				WithAttribute("width", "400"),
-				WithAttribute("height", "266"),
+				WithAttribute("height", "300"),
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
