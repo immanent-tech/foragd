@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.51.1](https://github.com/immanent-tech/foragd/compare/v0.51.0...v0.51.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* **server:** :bug: pass tracer to otel middleware ([547fa04](https://github.com/immanent-tech/foragd/commit/547fa0437f6be3e90bbb560e1debf4e68241a2ec))
+
 ## [0.51.0](https://github.com/immanent-tech/foragd/compare/v0.50.0...v0.51.0) (2026-02-10)
 
 
