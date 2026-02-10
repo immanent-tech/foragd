@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	"golang.org/x/oauth2"
 
@@ -117,15 +118,15 @@ func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 	return logoutURL, nil
 }
 
-func RefreshAccessToken(res http.ResponseWriter, req *http.Request, currentToken *oauth2.Token) error {
+func RefreshAccessToken(res http.ResponseWriter, req *http.Request, currentToken *oauth2.Token) (*oauth2.Token, error) {
 	if err := InitAuthenticator(req.Context()); err != nil {
-		return fmt.Errorf("unable to generate logout URL: %w", err)
+		return nil, fmt.Errorf("unable to generate logout URL: %w", err)
 	}
 
 	// Generate API url for refreshing the token.
 	refreshURL, err := url.Parse("https://" + cfg.Domain + "/oauth/token")
 	if err != nil {
-		return fmt.Errorf("unable to generate logout url: %w", err)
+		return nil, fmt.Errorf("unable to generate logout url: %w", err)
 	}
 
 	// Add parameters.
@@ -140,12 +141,13 @@ func RefreshAccessToken(res http.ResponseWriter, req *http.Request, currentToken
 	var errResult authentication.Error
 
 	client := loadHTTPClient()
-	if resp, err := client.R().
+	resp, err := client.R().
 		SetBody(payload).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetResult(&newToken).
 		SetError(&errResult).
-		Post(refreshURL.String()); err != nil || resp.IsError() {
+		Post(refreshURL.String())
+	if err != nil || resp.IsError() {
 		slogctx.FromCtx(req.Context()).Error("Unable to refresh session token.",
 			slog.Any("error", &errResult),
 		)
@@ -165,12 +167,12 @@ func RefreshAccessToken(res http.ResponseWriter, req *http.Request, currentToken
 
 	// Check if new token is valid.
 	if !newToken.Valid() {
-		return ErrInvalidToken
+		return nil, ErrInvalidToken
 	}
 
-	// Overwrite existing token in session store with new token.
-	session.Save(req.Context(), "token", newToken)
+	// Calculate and set the expiry timestamp.
+	newToken.Expiry = time.Now().UTC().Add(time.Duration(newToken.ExpiresIn))
 
 	slogctx.FromCtx(req.Context()).Debug("Refreshed access token.")
-	return nil
+	return &newToken, nil
 }

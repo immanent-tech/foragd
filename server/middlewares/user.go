@@ -120,11 +120,15 @@ func RefreshTokenIfNeeded(next http.Handler) http.Handler {
 		// If token will expire soon, refresh it.
 		const refreshGracePeriod = time.Hour
 		if token.Expiry.UTC().Sub(time.Now().UTC()) < refreshGracePeriod {
-			if err := auth0.RefreshAccessToken(res, req, &token); err != nil {
+			newToken, err := auth0.RefreshAccessToken(res, req, &token)
+			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Unable to refresh token.",
 					slog.Any("error", err),
 				)
 			}
+
+			// Save the new token into the session data.
+			session.Save(req.Context(), "token", *newToken)
 			// Renew the session data.
 			if err := session.Renew(req.Context()); err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to renew session data.",
