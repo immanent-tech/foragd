@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/angelofallars/htmx-go"
+	"github.com/go-chi/chi/v5/middleware"
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -19,6 +20,8 @@ var configureLogging = sync.OnceValue(func() slogchi.Config {
 	cfg := slogchi.Config{
 		ClientErrorLevel: slog.LevelWarn,
 		ServerErrorLevel: slog.LevelError,
+		WithSpanID:       true,
+		WithTraceID:      true,
 		WithRequestID:    true,
 		Filters: []slogchi.Filter{
 			slogchi.IgnorePathContains("/content", "/favicon"),
@@ -40,6 +43,7 @@ func Logger(next http.Handler) http.Handler {
 
 		logger := slogctx.FromCtx(req.Context())
 		if htmx.IsHTMX(req) {
+			// Decorate logger with HTMX specific attributes.
 			logger = logger.With(
 				slog.Group("request",
 					slog.Group("htmx",
@@ -51,7 +55,10 @@ func Logger(next http.Handler) http.Handler {
 				),
 			)
 		}
+		// Add request ID to logger in context.
+		ctx := slogctx.With(req.Context(), slog.String("id", middleware.GetReqID(req.Context())))
 
-		slogchi.NewWithConfig(logger, cfg)(next).ServeHTTP(res, req)
+		// Continue handling request with updated logging.
+		slogchi.NewWithConfig(logger, cfg)(next).ServeHTTP(res, req.WithContext(ctx))
 	})
 }
