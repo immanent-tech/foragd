@@ -257,12 +257,12 @@ templ SearchResults(results *models.SearchResults) {
 					</div>
 				} else {
 					// Watch for updates.
-					<div
-						id="update-notifications"
-						sse-connect={ "/search/updates?" + results.Search.Query() }
-						sse-swap="updates"
-						class="toast toast-center z-50"
-					></div>
+					// <div
+					// 	id="update-notifications"
+					// 	sse-connect={ "/search/updates?" + results.Search.Query() }
+					// 	sse-swap="updates"
+					// 	class="toast toast-center z-50"
+					// ></div>
 					if len(results.Articles) > 1 {
 						<div class="flex justify-center gap-2 p-2 m-2">
 							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">

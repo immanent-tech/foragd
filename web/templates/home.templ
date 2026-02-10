@@ -40,12 +40,12 @@ templ UserHome(data *models.HomeResponse) {
 					</div>
 				} else {
 					// Show some useful sections for unread content.
-					<div
-						id="update-notifications"
-						sse-connect="/home/updates"
-						sse-swap="updates"
-						class="toast toast-center z-50"
-					></div>
+					// <div
+					// 	id="update-notifications"
+					// 	sse-connect="/home/updates"
+					// 	sse-swap="updates"
+					// 	class="toast toast-center z-50"
+					// ></div>
 					if len(data.Subscriptions) > 0 {
 						<div class="flex w-full mb-4">
 							@partials.Heading2() {
