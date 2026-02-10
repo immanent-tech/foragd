@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.52.0](https://github.com/immanent-tech/foragd/compare/v0.51.1...v0.52.0) (2026-02-10)
+
+
+### Features
+
+* **templates:** :sparkles: add solarized-dark theme ([a911c15](https://github.com/immanent-tech/foragd/commit/a911c1514bd5f915909efe4fce2f054e9304ff7d))
+
+
+### Bug Fixes
+
+* **templates:** :bug: fix image aspect ratio on article cards ([b3731b1](https://github.com/immanent-tech/foragd/commit/b3731b1f96ade9079784234099eafa94e73fb4ec))
+
 ## [0.51.1](https://github.com/immanent-tech/foragd/compare/v0.51.0...v0.51.1) (2026-02-10)
 
 
