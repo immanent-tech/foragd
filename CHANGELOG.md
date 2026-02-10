@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.51.0](https://github.com/immanent-tech/foragd/compare/v0.50.0...v0.51.0) (2026-02-10)
+
+
+### Features
+
+* **logging:** :technologist: add otel trace/span to logs ([b5b356c](https://github.com/immanent-tech/foragd/commit/b5b356ce67567708153f29360d80120eae7890b6))
+* **models:** :sparkles: allow setting an updated_at timestamp for when a file index has been updated ([91fc3ba](https://github.com/immanent-tech/foragd/commit/91fc3ba0c3b3c34284ee18639168ae77de59e24d))
+* **server:** :sparkles: generate rss feed of posts ([0ae13c2](https://github.com/immanent-tech/foragd/commit/0ae13c204964ff36cbb7ad5a5457b00841c8a9f8))
+* **server:** :sparkles: renew the session data when the auth token is refreshed ([1354176](https://github.com/immanent-tech/foragd/commit/13541764a8a5b4d71159dac95fa3b20f4550c79f))
+* **templates:** :sparkles: add categories of matching articles on top of search results page ([b80c06f](https://github.com/immanent-tech/foragd/commit/b80c06f55eb7be9472d265f67f2c49e4d67ad995))
+* **templates:** :sparkles: add RSS autodiscovery ([0ca9ca8](https://github.com/immanent-tech/foragd/commit/0ca9ca8dede1dc4a49d05adc34d3eb085acbf382))
+
+
+### Bug Fixes
+
+* :bug: fix editing subscriptions categories ([88232da](https://github.com/immanent-tech/foragd/commit/88232da2b10ab8573b2cfdc5876c5e12b98816f4))
+* **handlers:** :bug: set content-type header when serving sitemap ([4115581](https://github.com/immanent-tech/foragd/commit/41155811bb8f7f6a268459cb334ab16384c7e88c))
+* **server:** :fire: disable broken updates polling for now ([8df301e](https://github.com/immanent-tech/foragd/commit/8df301ea4889b79e16957fc4e80c41c996b380a1))
+
+
+### Reverts
+
+* **templates:** :rewind: remove new transition style on view article ([bad20d2](https://github.com/immanent-tech/foragd/commit/bad20d2de620d9f5f574d22d4531b5c0828e81ac))
+
 ## [0.50.0](https://github.com/immanent-tech/foragd/compare/v0.49.0...v0.50.0) (2026-02-07)
 
 
