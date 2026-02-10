@@ -6,7 +6,6 @@
     dark,
     dracula --prefersdark,
     nord,
-    abyss;
   /* https://github.com/saadeghi/daisyui/issues/3882 */
   exclude: properties;
 }
