@@ -53,7 +53,7 @@ func (s *FeedStatus) GetID() string {
 // AddFeedStatus adds a FeedStatus document to the index.
 func AddFeedStatus(ctx context.Context, status *FeedStatus) error {
 	if err := elastic.CreateDoc(ctx, schema.FeedStatusIndex, status.GetID(), status); err != nil {
-		return es2APIError("add feed status failed", err)
+		return ElasticsearchToAPIError(err)
 	}
 	return nil
 }

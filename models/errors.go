@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
@@ -86,17 +87,27 @@ func HTTPStatus(err error) int {
 	return http.StatusInternalServerError
 }
 
-// es2APIError converts an Elastic package error into a APIError.
-func es2APIError(msg string, err error) error {
+// ElasticsearchToAPIError will extract and wrap a types.ElasticsearchError from the given error, in a APIError
+// containing its pertinent information. If the given error does not contain types.ElasticsearchError, the given error
+// is wrapped in a generic APIError is created.
+func ElasticsearchToAPIError(err error) error {
 	var esErr *types.ElasticsearchError
 	if errors.As(err, &esErr) {
+		var str strings.Builder
+
+		str.WriteString(*esErr.ErrorCause.Reason)
+		str.WriteString(" (" + esErr.ErrorCause.Type + ")")
+		if esErr.ErrorCause.RootCause != nil {
+			str.WriteString(" reason: " + *esErr.ErrorCause.CausedBy.Reason)
+		}
+
 		return &APIError{
-			InternalError: fmt.Errorf("%s: %s: %s", msg, esErr.ErrorCause.Type, *esErr.ErrorCause.Reason),
+			InternalError: fmt.Errorf("%s", str.String()),
 			StatusCode:    esErr.Status,
 		}
 	}
 	return &APIError{
-		InternalError: fmt.Errorf("%s: %w", msg, err),
+		InternalError: fmt.Errorf("%w: %w", ErrInvalidAPIResult, err),
 		StatusCode:    http.StatusInternalServerError,
 	}
 }

@@ -50,7 +50,7 @@ func GetTopCategoriesForItems(ctx context.Context, itemsQueries ...query.Option)
 		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
 	).Do(ctx)
 	if err != nil {
-		return nil, es2APIError("get item categories failed", err)
+		return nil, ElasticsearchToAPIError(err)
 	}
 
 	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
@@ -185,7 +185,7 @@ func ItemsAggregation(
 	)
 	resp, err := req.Do(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("items aggregation: %w", err)
+		return nil, ElasticsearchToAPIError(err)
 	}
 
 	return resp, nil

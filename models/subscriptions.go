@@ -57,7 +57,7 @@ func GetSubscriptionsForItems(ctx context.Context, items Items) (Subscriptions, 
 		len(items.GetFeedIDs()),
 	)
 	if err != nil {
-		return nil, es2APIError("get subscriptions", err)
+		return nil, ElasticsearchToAPIError(err)
 	}
 	return subscriptions, nil
 }
@@ -107,7 +107,7 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
 	).Do(ctx)
 	if err != nil {
-		return nil, es2APIError("get all subscription categories failed", err)
+		return nil, ElasticsearchToAPIError(err)
 	}
 
 	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
@@ -183,7 +183,7 @@ func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions)
 		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
 	).Do(ctx)
 	if err != nil {
-		return nil, es2APIError("get all subscription categories failed", err)
+		return nil, ElasticsearchToAPIError(err)
 	}
 
 	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
@@ -546,7 +546,7 @@ func SearchSubscriptions(
 		elastic.WithSearchAfter[*search.Search, elastic.SearchRequest](searchAfter...),
 	)
 	if err != nil {
-		return nil, "", es2APIError("search subscriptions failed", err)
+		return nil, "", ElasticsearchToAPIError(err)
 	}
 	// Parse search after into pagination.
 	if req.pagination != "" {
@@ -788,7 +788,7 @@ func RemoveSubscriptions(ctx context.Context, ids ...SubscriptionID) error {
 			),
 		),
 	); err != nil {
-		return es2APIError("remove subscriptions failed", err)
+		return ElasticsearchToAPIError(err)
 	}
 	return nil
 }
@@ -800,7 +800,7 @@ func UpdateSubscriptions(
 ) (map[SubscriptionID]*bulk.OperationResponse, error) {
 	resp, err := elastic.BulkUpdate(ctx, schema.SubscriptionsIndexRW, subscriptions...)
 	if err != nil {
-		return nil, es2APIError("update subscriptions failed", err)
+		return nil, ElasticsearchToAPIError(err)
 	}
 	return resp, nil
 }
@@ -817,7 +817,7 @@ func UpdateFavoriteSubscription(ctx context.Context, id SubscriptionID, favorite
 
 	_, err = UpdateSubscriptions(ctx, subscription)
 	if err != nil {
-		return es2APIError("update subscriptions failed", err)
+		return ElasticsearchToAPIError(err)
 	}
 
 	return nil
@@ -1110,7 +1110,7 @@ func getAllSubscriptionsByQuery(ctx context.Context, query query.Option) (Subscr
 		DefaultPaginationSize,
 	)
 	if err != nil {
-		return nil, es2APIError("get all subscription by query failed", err)
+		return nil, ElasticsearchToAPIError(err)
 	}
 	return subscriptions, nil
 }
