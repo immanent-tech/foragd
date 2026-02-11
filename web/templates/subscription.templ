@@ -42,9 +42,21 @@ func (s *Subscription) ViewArticlesAttributes() templ.Attributes {
 	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
 	attrs["hx-trigger"] = "click consume"
 	switch s.GetSubscriptionType() {
-	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail, models.SubscriptionTypeGroup:
+	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
 		filters := models.NewListDisplayFilters()
 		filters.Subscriptions = []string{s.GetID()}
+		if s.GetStats().IsUnread() {
+			filters.View = models.ViewUnread
+		} else {
+			filters.View = models.ViewRead
+		}
+		values := filters.Values()
+		values[models.ParamSubscriptionID] = s.GetID()
+		attrs["hx-vals"] = generateHXVals(values)
+		attrs["hx-get"] = "/list/articles"
+	case models.SubscriptionTypeGroup:
+		filters := models.NewListDisplayFilters()
+		filters.Subscriptions = s.GroupData.Subscriptions
 		if s.GetStats().IsUnread() {
 			filters.View = models.ViewUnread
 		} else {
@@ -448,45 +460,11 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 						<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
 						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
 						// Nickname.
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="nickname" class="text-base/7 font-semibold">Nickname</label>
-								<p class="mt-1 text-sm/6 ">A friendly name for this subscription.</p>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full mt-2">
-									<input
-										id="nickname"
-										required
-										type="text"
-										name="nickname"
-										value={ request.GetNickname() }
-										placeholder="My Subscription"
-										class="input input-primary bg-base-content/10"
-									/>
-								</div>
-							</div>
-						</div>
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="thumbnail" class="text-base/7 font-semibold">Thumbnail</label>
-								<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full mt-2 flex items-center gap-x-2">
-									@subscriptionThumbnail(request.ImageURL, request.Nickname)
-									<input
-										id="thumbnail"
-										type="file"
-										class="flex file-input file-input-primary bg-base-content/10"
-										name={ models.ParamThumbnail }
-										accept=".jpg,.png,.webp"
-									/>
-								</div>
-							</div>
-						</div>
+						@subscriptionNicknameField(request.GetNickname())
+						// Thumbnail
+						@subscriptionThumbnailField(request.ImageURL, request.Nickname)
 						// Filtering.
-						@SubscriptionArticleFilters(request.ArticleFilters)
+						@subscriptionArticleFiltersFields(request.ArticleFilters)
 						// Full article content toggle.
 						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 							<div>
@@ -534,73 +512,6 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			}
 		}
 	}
-}
-
-templ SubscriptionArticleFilters(filters models.SubscriptionArticleFilters) {
-	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-		<div>
-			@partials.Heading3() {
-				Filtering
-			}
-			<div class="flex items-center">
-				<p class="mt-1 text-sm/6 ">Filter articles by keywords/text in fields.</p>
-				@HelpPopover("subscription-filters-help", "top end") {
-					<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
-						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-						<p>+ signifies AND operation (i.e., food AND beverages)</p>
-						<p>| signifies OR operation (i.e., food OR beverages)</p>
-						<p>- negates a the word (i.e., NOT alcoholic)</p>
-						<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
-						<p>* at thez end of indicates a prefix match (i.e., match bird, birding and birds)</p>
-					</div>
-				}
-			</div>
-		</div>
-		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-			<div class="sm:col-span-full mt-2">
-				<div class="input input-primary bg-base-content/10 w-full">
-					<label for="article_text_filters" class="block text-xs font-medium">Text:</label>
-					<input
-						id="article_text_filters"
-						type="text"
-						name="article_filters.text"
-						value={ filters.Text }
-						placeholder="Text..."
-						class="block w-full"
-						spellcheck="false"
-					/>
-				</div>
-			</div>
-			<div class="sm:col-span-full mt-2">
-				<div class="input input-primary bg-base-content/10 w-full">
-					<label for="article_category_filters" class="block text-xs font-medium">Categories:</label>
-					<input
-						id="article_category_filters"
-						type="text"
-						name="article_filters.categories"
-						value={ filters.Categories }
-						placeholder="Categories..."
-						class="block w-full"
-						spellcheck="false"
-					/>
-				</div>
-			</div>
-			<div class="sm:col-span-full mt-2">
-				<div class="input input-primary bg-base-content/10 w-full">
-					<label for="article_author_filters" class="block text-xs font-medium">Authors:</label>
-					<input
-						id="article_author_filters"
-						type="text"
-						name="article_filters.authors"
-						value={ filters.Authors }
-						placeholder="Authors..."
-						class="block w-full"
-						spellcheck="false"
-					/>
-				</div>
-			</div>
-		</div>
-	</div>
 }
 
 // AddFeedSubscription is a page for adding a new subscription to a feed.
@@ -942,46 +853,9 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 						}
 					</div>
 					// Nickname.
-					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-						<div>
-							<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
-							// <p class="mt-1 text-sm/6 "></p>
-						</div>
-						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-							<div class="col-span-full mt-2">
-								<input
-									id="subscription-nickname"
-									type="text"
-									required
-									name="customisation.nickname"
-									value={ request.Customisation.Nickname }
-									placeholder="My Search Subscription"
-									class="input input-primary bg-base-content/10 w-full"
-									form="manage-search-subscription"
-									autocomplete="off"
-								/>
-							</div>
-						</div>
-					</div>
+					@subscriptionNicknameField(request.Customisation.Nickname)
 					// Image.
-					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-						<div>
-							<label for="image" class="text-base/7 font-semibold">Image</label>
-							<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
-						</div>
-						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-							<div class="col-span-full mt-2 flex items-center gap-x-2">
-								@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
-								<input
-									id="image"
-									type="file"
-									class="flex file-input file-input-primary bg-base-content/10"
-									name="image"
-									accept=".jpg,.png,.webp"
-								/>
-							</div>
-						</div>
-					</div>
+					@subscriptionThumbnailField(request.Customisation.ImageURL, request.Customisation.Nickname)
 					// Categories
 					{{ categoryMgmtPath := "/user/subscription/category" }}
 					@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
@@ -1073,47 +947,11 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 						</div>
 					</div>
 					// Nickname.
-					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-						<div>
-							<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
-							// <p class="mt-1 text-sm/6 "></p>
-						</div>
-						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-							<div class="col-span-full mt-2">
-								<input
-									id="subscription-nickname"
-									type="text"
-									required
-									name="customisation.nickname"
-									value={ request.Customisation.Nickname }
-									placeholder="My Search Subscription"
-									class="input input-primary bg-base-content/10 w-full"
-									autocomplete="off"
-								/>
-							</div>
-						</div>
-					</div>
+					@subscriptionNicknameField(request.Customisation.Nickname)
 					// Image.
-					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-						<div>
-							<label for="image" class="text-base/7 font-semibold">Image</label>
-							<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
-						</div>
-						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-							<div class="col-span-full mt-2 flex items-center gap-x-2">
-								@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
-								<input
-									id="image"
-									type="file"
-									class="flex file-input file-input-primary bg-base-content/10"
-									name="image"
-									accept=".jpg,.png,.webp"
-								/>
-							</div>
-						</div>
-					</div>
+					@subscriptionThumbnailField(request.Customisation.ImageURL, request.Customisation.Nickname)
 					if action == "edit" {
-						@SubscriptionArticleFilters(request.ArticleFilters)
+						@subscriptionArticleFiltersFields(request.ArticleFilters)
 					}
 					// Categories
 					{{ categoryMgmtPath := "/user/subscription/category" }}
@@ -1208,46 +1046,10 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeEmail) }/>
 						<input type="hidden" name="subscription_id" value={ request.SubscriptionID }/>
 						// Nickname.
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
-								// <p class="mt-1 text-sm/6 "></p>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full mt-2">
-									<input
-										id="subscription-nickname"
-										type="text"
-										required
-										name="customisation.nickname"
-										value={ request.Customisation.Nickname }
-										placeholder="My Email Subscription"
-										class="input input-primary bg-base-content/10 w-full"
-										autocomplete="off"
-									/>
-								</div>
-							</div>
-						</div>
+						@subscriptionNicknameField(request.Customisation.Nickname)
 					</form>
 					// Image.
-					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-						<div>
-							<label for="image" class="text-base/7 font-semibold">Image</label>
-							<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
-						</div>
-						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-							<div class="col-span-full mt-2 flex items-center gap-x-2">
-								@subscriptionThumbnail(request.Customisation.ImageURL, request.Customisation.Nickname)
-								<input
-									id="image"
-									type="file"
-									class="flex file-input file-input-primary bg-base-content/10"
-									name="image"
-									accept=".jpg,.png,.webp"
-								/>
-							</div>
-						</div>
-					</div>
+					@subscriptionThumbnailField(request.Customisation.ImageURL, request.Customisation.Nickname)
 					// Categories
 					{{ categoryMgmtPath := "/user/subscription/category" }}
 					@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
@@ -1264,6 +1066,117 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 			}
 		}
 	}
+}
+
+templ subscriptionNicknameField(nickname string) {
+	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+		<div>
+			<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
+			// <p class="mt-1 text-sm/6 "></p>
+		</div>
+		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+			<div class="col-span-full mt-2">
+				<input
+					id="subscription-nickname"
+					type="text"
+					required
+					name="customisation.nickname"
+					value={ nickname }
+					placeholder="My Subscription"
+					class="input input-primary bg-base-content/10 w-full"
+					autocomplete="off"
+				/>
+			</div>
+		</div>
+	</div>
+}
+
+templ subscriptionThumbnailField(url, nickname string) {
+	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+		<div>
+			<label for="thumbnail" class="text-base/7 font-semibold">Thumbnail</label>
+			<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
+		</div>
+		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+			<div class="col-span-full mt-2 flex items-center gap-x-2">
+				@subscriptionThumbnail(url, nickname)
+				<input
+					id="thumbnail"
+					type="file"
+					class="flex file-input file-input-primary bg-base-content/10"
+					name={ models.ParamThumbnail }
+					accept=".jpg,.png,.webp"
+				/>
+			</div>
+		</div>
+	</div>
+}
+
+templ subscriptionArticleFiltersFields(filters models.SubscriptionArticleFilters) {
+	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+		<div>
+			@partials.Heading3() {
+				Filtering
+			}
+			<div class="flex items-center">
+				<p class="mt-1 text-sm/6 ">Filter articles by keywords/text in fields.</p>
+				@HelpPopover("subscription-filters-help", "top end") {
+					<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+						<p>+ signifies AND operation (i.e., food AND beverages)</p>
+						<p>| signifies OR operation (i.e., food OR beverages)</p>
+						<p>- negates a the word (i.e., NOT alcoholic)</p>
+						<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
+						<p>* at thez end of indicates a prefix match (i.e., match bird, birding and birds)</p>
+					</div>
+				}
+			</div>
+		</div>
+		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+			<div class="sm:col-span-full mt-2">
+				<div class="input input-primary bg-base-content/10 w-full">
+					<label for="article_text_filters" class="block text-xs font-medium">Text:</label>
+					<input
+						id="article_text_filters"
+						type="text"
+						name="article_filters.text"
+						value={ filters.Text }
+						placeholder="Text..."
+						class="block w-full"
+						spellcheck="false"
+					/>
+				</div>
+			</div>
+			<div class="sm:col-span-full mt-2">
+				<div class="input input-primary bg-base-content/10 w-full">
+					<label for="article_category_filters" class="block text-xs font-medium">Categories:</label>
+					<input
+						id="article_category_filters"
+						type="text"
+						name="article_filters.categories"
+						value={ filters.Categories }
+						placeholder="Categories..."
+						class="block w-full"
+						spellcheck="false"
+					/>
+				</div>
+			</div>
+			<div class="sm:col-span-full mt-2">
+				<div class="input input-primary bg-base-content/10 w-full">
+					<label for="article_author_filters" class="block text-xs font-medium">Authors:</label>
+					<input
+						id="article_author_filters"
+						type="text"
+						name="article_filters.authors"
+						value={ filters.Authors }
+						placeholder="Authors..."
+						class="block w-full"
+						spellcheck="false"
+					/>
+				</div>
+			</div>
+		</div>
+	</div>
 }
 
 // ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
