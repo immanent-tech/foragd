@@ -91,6 +91,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			href="#"
 			hx-get="/user/subscription/add/feed"
 			hx-target={ ContentID.Target() }
+			hx-push-url="true"
 			hidden
 			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
@@ -103,6 +104,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			href="#"
 			hx-get="/user/subscription/add/search"
 			hx-target={ ContentID.Target() }
+			hx-push-url="true"
 			hx-include="#search-filters"
 			hidden
 			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
@@ -116,6 +118,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			href="#"
 			hx-get="/user/subscription/add/group"
 			hx-target={ ContentID.Target() }
+			hx-push-url="true"
 			hidden
 			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
@@ -152,6 +155,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					href="#"
 					hx-get={ "/view/article/" + article.GetID() }
 					hx-target={ ContentID.Target() }
+					hx-push-url="true"
 					hidden
 					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 					_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
