@@ -394,7 +394,7 @@ func AddSubscriptionFilter() http.HandlerFunc {
 func GetSubscriptionFilterSuggestions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 10
-		suggestion, valid, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
+		suggestion, valid, err := forms.DecodeMultiPartForm[*models.GetSubscriptionsSuggestionRequest](req)
 		if err != nil || !valid {
 			slogctx.FromCtx(req.Context()).Error("Invalid subscription suggestion input.",
 				slog.Any("error", err),

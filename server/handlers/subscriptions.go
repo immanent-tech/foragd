@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"maps"
 	"net/http"
 	"os"
 	"slices"
@@ -23,6 +24,8 @@ import (
 	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
+	"github.com/immanent-tech/go-syndication/sanitization"
+	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/config"
@@ -462,15 +465,9 @@ func HandleEditSubscription() http.HandlerFunc {
 			template = templates.EditSearchSubscription(request)
 			pageTitle = "Editing " + request.Customisation.Nickname
 		case models.SubscriptionTypeGroup:
-			// Editing SearchSubscription.
-			request := &models.GroupSubscriptionRequest{
-				Customisation:  subscription.Customisation,
-				Settings:       subscription.Settings,
-				Subscriptions:  subscription.GroupData.Subscriptions,
-				SubscriptionID: subscription.GetID(),
-			}
-			subscriptions, err := models.GetSubscriptions(ctx,
-				models.GetSubscriptionsByIDs(request.Subscriptions...),
+			subscriptions, err := models.GetSubscriptions(
+				req.Context(),
+				models.GetSubscriptionsByIDs(subscription.GroupData.Subscriptions...),
 			)
 			if err != nil {
 				HandleInternalError(&models.APIError{
@@ -482,12 +479,25 @@ func HandleEditSubscription() http.HandlerFunc {
 					),
 				}).ServeHTTP(res, req)
 				return
+
 			}
-			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
-			// subscription.
+
+			// Editing SearchSubscription.
+			request := &models.GroupSubscriptionRequest{
+				Customisation:  subscription.Customisation,
+				Settings:       subscription.Settings,
+				Subscriptions:  make(map[models.SubscriptionID]string),
+				SubscriptionID: subscription.GetID(),
+			}
+			// Populate the subscriptions data in the request.
+			for subscription := range slices.Values(subscriptions) {
+				request.Subscriptions[subscription.GetID()] = subscription.GetTitle()
+			}
+			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories
+			// for the subscription.
 			if suggestedCategories, resp := models.GetArticleTopCategories(
 				ctx,
-				subscription.FeedData.GetFeedID(),
+				subscriptions.GetFeedIDs()...,
 			); resp == nil {
 				suggestedCategories = slices.Collect(
 					models.FilterSlice(suggestedCategories, func(category models.Category) bool {
@@ -590,7 +600,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 			}
 			subscription.Customisation = request.Customisation
 			subscription.Settings = request.Settings
-			subscription.GroupData.Subscriptions = request.Subscriptions
+			subscription.GroupData.Subscriptions = slices.Collect(maps.Keys(request.Subscriptions))
 		case models.SubscriptionTypeEmail:
 			request, valid, err := forms.DecodeMultiPartForm[*models.EditEmailSubscriptionRequest](req)
 			if err != nil || !valid {
@@ -834,7 +844,7 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 			).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Decode request.
-			request, valid, err := forms.DecodeForm[*models.GroupSubscriptionRequest](req)
+			request, valid, err := forms.DecodeMultiPartForm[*models.GroupSubscriptionRequest](req)
 			if err != nil || !valid {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode group subscription request: %w", err),
@@ -886,10 +896,55 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 			// Render notification.
 			RenderPartial(
 				&Notification{
-					msg: models.NewSuccessMessage("Search Subscription Created!", ""),
+					msg: models.NewSuccessMessage("Group Subscription Created!", ""),
 				},
 			).ServeHTTP(res, req)
 		}
+	}).ServeHTTP
+}
+
+func HandleSuggestSubscriptionForGroup() http.HandlerFunc {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		request, valid, err := forms.DecodeForm[*models.GroupSubscriptionSuggestionRequest](req)
+		if err != nil || !valid {
+			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		subscriptions, err := models.GetSubscriptionSuggestions(
+			req.Context(),
+			request.Text,
+			10,
+			models.IgnoreSubscriptions(
+				slices.Collect(maps.Keys(request.IgnoredSubscriptions))...,
+			))
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		RenderPartial(&PartialTemplate{
+			template: templates.GroupSubscriptionSuggestions(subscriptions),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
+}
+
+func HandleAddSubscriptionToGroup() http.HandlerFunc {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		subscriptionID := sanitization.SanitizeString(req.FormValue("subscription_id"))
+		subscriptionName := sanitization.SanitizeString(req.FormValue("subscription_name"))
+		if subscriptionID == "" || subscriptionName == "" {
+			slogctx.FromCtx(req.Context()).Error("Invalid subscription details.")
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		RenderPartial(&PartialTemplate{
+			template: templates.GroupSubscriptionAddSubscription(subscriptionID, subscriptionName),
+		}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 

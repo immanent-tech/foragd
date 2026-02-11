@@ -929,13 +929,11 @@ components:
             validate: 'omitempty,startswith=sub_'
         subscriptions:
           description: >
-            is the list of subscription IDs belonging to the group.
-          type: array
-          items:
-            $ref: '#/components/schemas/SubscriptionID'
+            contains details of the subscriptions in the group.
+          x-go-type: 'map[SubscriptionID]string'
           x-oapi-codegen-extra-tags:
             form: 'subscriptions'
-            validate: 'required,dive,startswith=sub_'
+            validate: 'required'
         customisation:
           allOf:
             - $ref: '#/components/schemas/SubscriptionCustomisation'
@@ -956,6 +954,26 @@ components:
             form: '-'
             json: '-'
           x-go-type-skip-optional-pointer: true
+    GroupSubscriptionSuggestionRequest:
+      description: >
+        contains details for suggesting a subscription to add to a group.
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          description: >
+            is the text of a subscription to match for a suggestion.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: text
+        ignored_subscriptions:
+          description: >
+            contains subscriptions that can be ignored and not suggested.
+          x-go-type: map[SubscriptionID]string
+          x-oapi-codegen-extra-tags:
+            form: subscriptions
+
     EditEmailSubscriptionRequest:
       description: >
         represents a request to create an email subscription.

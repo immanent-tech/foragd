@@ -502,11 +502,20 @@ type GroupSubscriptionRequest struct {
 	// SubscriptionID will be a subscription ID if the user is editing an existing group subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"-" validate:"omitempty,startswith=sub_"`
 
-	// Subscriptions is the list of subscription IDs belonging to the group.
-	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
+	// Subscriptions contains details of the subscriptions in the group.
+	Subscriptions map[SubscriptionID]string `form:"subscriptions" json:"subscriptions" validate:"required"`
 
 	// SuggestedCategories is a list of suggested categories for the subscription.
 	SuggestedCategories []Category `form:"-" json:"-"`
+}
+
+// GroupSubscriptionSuggestionRequest contains details for suggesting a subscription to add to a group.
+type GroupSubscriptionSuggestionRequest struct {
+	// IgnoredSubscriptions contains subscriptions that can be ignored and not suggested.
+	IgnoredSubscriptions map[SubscriptionID]string `form:"subscriptions" json:"ignored_subscriptions,omitempty,omitzero"`
+
+	// Text is the text of a subscription to match for a suggestion.
+	Text string `form:"text" json:"text"`
 }
 
 // HomeResponse contains the data for displaying the home page.

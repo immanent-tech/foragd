@@ -1026,87 +1026,65 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 						}
 					}
 				</div>
-				<div class="space-y-8">
-					// hx-on::after-request="if(event.detail.successful) this.reset()"
-					<form
-						id="manage-group-subscription"
-						if action == "add" {
-							hx-post="/user/subscription/add/group"
-						} else {
-							hx-post={ "/edit/subscription/" + request.SubscriptionID }
-						}
-						hx-swap="none"
-						hx-include="[name='customisation.categories']"
-						hx-params="not subscription-text"
-						hx-indicator="#processing"
-						hx-encoding="multipart/form-data"
-					>
-						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
-						// Subscriptions.
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="subscriptions-filter-subscriptions-search" class="text-base/7 font-semibold">In Subscriptions</label>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full mt-2">
-									<label class="input input-primary bg-base-content/10 w-full">
-										@tabler.Search(i.Props{Class: "size-5"})
+				<div id="group-subscription-details" class="space-y-8">
+					<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
+					// Subscriptions.
+					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+						<div>
+							<label for="subscriptions-filter-subscriptions-search" class="text-base/7 font-semibold">In Subscriptions</label>
+						</div>
+						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+							<div class="col-span-full mt-2">
+								<label class="input input-primary bg-base-content/10 w-full">
+									@tabler.Search(i.Props{Class: "size-5"})
+									<form
+										hx-post="/subscription/group/suggest"
+										hx-trigger="input changed delay:500ms,consume"
+										hx-target="#subscription-suggestions"
+										hx-include="#subscriptions"
+										hx-encoding="application/x-www-form-urlencoded"
+										hx-swap="innerHTML"
+									>
 										<input
-											id="subscription-filter-subscriptions-search"
-											name="subscription-text"
+											id="suggest-subscription"
+											name="text"
 											placeholder="Search subscriptions..."
 											autocomplete="off"
-											hx-post="/search/subscription/suggestions"
-											hx-trigger="input changed delay:500ms,consume"
-											hx-target="#subscription-filter-subscriptions-options"
-											hx-swap="innerHTML show:window:top transition:true"
-											hx-params="subscription-text"
 										/>
-									</label>
-									<div
-										class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-										id="subscription-filter-subscriptions-options"
-										hx-target="#subscription-filter-subscriptions"
-										hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
-										_="on htmx:afterRequest set #subscription-filter-subscriptions-search.value to ''"
-									></div>
-									<div
-										id="subscription-filter-subscriptions"
-										class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-									>
-										for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
-											@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
-												InputName:        "subscriptions",
-												SubscriptionID:   subscription.GetID(),
-												SubscriptionName: subscription.GetTitle(),
-											})
-										}
-									</div>
-								</div>
+									</form>
+								</label>
+								<div
+									id="subscription-suggestions"
+									class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+								></div>
+								<div
+									id="subscriptions"
+									class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+								></div>
 							</div>
 						</div>
-						// Nickname.
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
-								// <p class="mt-1 text-sm/6 "></p>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full mt-2">
-									<input
-										id="subscription-nickname"
-										type="text"
-										required
-										name="customisation.nickname"
-										value={ request.Customisation.Nickname }
-										placeholder="My Search Subscription"
-										class="input input-primary bg-base-content/10 w-full"
-										autocomplete="off"
-									/>
-								</div>
+					</div>
+					// Nickname.
+					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+						<div>
+							<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
+							// <p class="mt-1 text-sm/6 "></p>
+						</div>
+						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+							<div class="col-span-full mt-2">
+								<input
+									id="subscription-nickname"
+									type="text"
+									required
+									name="customisation.nickname"
+									value={ request.Customisation.Nickname }
+									placeholder="My Search Subscription"
+									class="input input-primary bg-base-content/10 w-full"
+									autocomplete="off"
+								/>
 							</div>
 						</div>
-					</form>
+					</div>
 					// Image.
 					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 						<div>
@@ -1136,18 +1114,65 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 							<span class="loading loading-spinner loading-md"></span>
 						</div>
 						@partials.ButtonBack()
-						<button type="submit" class="btn btn-primary" form="manage-group-subscription">
+						<form
+							id="manage-group-subscription"
 							if action == "add" {
-								Add
+								hx-post="/user/subscription/add/group"
 							} else {
-								Save
+								hx-post={ "/edit/subscription/" + request.SubscriptionID }
 							}
-						</button>
+							hx-swap="none"
+							hx-include="[name='customisation.categories'],#group-subscription-details"
+							hx-params="not text"
+							hx-indicator="#processing"
+							hx-encoding="multipart/form-data"
+						>
+							<button type="submit" class="btn btn-primary">
+								if action == "add" {
+									Add
+								} else {
+									Save
+								}
+							</button>
+						</form>
 					</div>
 				</div>
 			}
 		}
 	}
+}
+
+templ GroupSubscriptionSuggestions(subscriptions models.Subscriptions) {
+	for subscription := range slices.Values(subscriptions) {
+		<form
+			hx-post="/subscription/group/add"
+			hx-target="#subscriptions"
+			hx-encoding="application/x-www-form-urlencoded"
+			hx-swap="beforeend"
+			_="on htmx:afterRequest(sucessful) set #suggest-subscription.value to '' then remove me"
+		>
+			<input type="hidden" name="subscription_id" value={ subscription.GetID() }/>
+			<input type="hidden" name="subscription_name" value={ subscription.GetTitle() }/>
+			<button
+				type="submit"
+				class="btn btn-primary hover:btn-success"
+			>
+				{ subscription.GetTitle() }
+				@tabler.Plus()
+			</button>
+		</form>
+	}
+}
+
+templ GroupSubscriptionAddSubscription(id, name string) {
+	<button
+		class="btn btn-success hover:btn-error"
+		_="on click remove me"
+	>
+		<input type="hidden" name={ "subscriptions[" + id + "]" } value={ name }/>
+		{ name }
+		@tabler.X()
+	</button>
 }
 
 templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
