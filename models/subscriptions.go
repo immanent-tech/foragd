@@ -218,6 +218,7 @@ type subscriptionsRequest struct {
 	filterIDs        []SubscriptionID
 	filterFeedIDs    []FeedID
 	filterCategories []Category
+	ignoreIDs        []SubscriptionID
 	addDynamicInfo   bool
 }
 
@@ -255,6 +256,12 @@ func GetSubscriptionsByCategories(categories ...Category) subscriptionsRequestOp
 func GetSubscriptionsDynamicInfo(value bool) subscriptionsRequestOption {
 	return func(sr *subscriptionsRequest) {
 		sr.addDynamicInfo = value
+	}
+}
+
+func IgnoreSubscriptions(ids ...SubscriptionID) subscriptionsRequestOption {
+	return func(sr *subscriptionsRequest) {
+		sr.ignoreIDs = ids
 	}
 }
 
@@ -491,6 +498,9 @@ func GetSubscriptionSuggestions(
 						query.SearchAsYouType(text, "customisation.nickname"),
 					),
 				),
+			),
+			query.MustNot(
+				query.Terms("subscription_id", req.ignoreIDs...),
 			),
 		),
 		searchSubscriptionsMaxResults(count),
@@ -1290,7 +1300,7 @@ func (s *SearchSubscription) Valid() error {
 // all articles from multiple individual subscriptions into a single custom subscription.
 func NewGroupSubscription(ctx context.Context, request *GroupSubscriptionRequest) (*Subscription, error) {
 	groupSubscription := &GroupSubscription{
-		Subscriptions: request.Subscriptions,
+		Subscriptions: slices.Collect(maps.Keys(request.Subscriptions)),
 	}
 	subscription, err := newSubscription(ctx, request.Customisation, request.Settings, groupSubscription)
 	if err != nil {
