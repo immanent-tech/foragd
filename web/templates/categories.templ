@@ -43,6 +43,9 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 					/>
 					<button
 						type="button"
+						if len(suggested) == 0 {
+							disabled
+						}
 						class="btn bg-base-content/10 join-item"
 					>
 						@tabler.ChevronDown()
