@@ -89,21 +89,12 @@ func HandleListArticles() http.HandlerFunc {
 			err          error
 		)
 
-		// Get articles matching filters.
-		articles, request.Pagination, err = models.FilterArticles(req.Context(), request)
-		if err != nil && !errors.Is(err, models.ErrNotFound) {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("filter articles: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-			}).ServeHTTP(res, req)
-			return
-		}
-
 		// Get the subscription details if the list is for a specific subscription.
-		if len(articles.GetSubscriptionIDs()) == 1 {
+		subscriptionID := req.FormValue("subscription_id")
+		if subscriptionID != "" {
 			subscription, err = models.GetSubscription(
 				req.Context(),
-				articles.GetSubscriptionIDs()[0],
+				subscriptionID,
 				models.GetSubscriptionsDynamicInfo(true),
 			)
 			if err != nil {
@@ -113,6 +104,29 @@ func HandleListArticles() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
+			request.Query = query.Bool(
+				query.Must(
+					query.SimpleQueryString(
+						subscription.GetArticleFilters().Text,
+						"",
+						"title",
+						"description",
+						"content",
+					),
+					query.SimpleQueryString(subscription.GetArticleFilters().Authors, "", "authors", "contributors"),
+					query.SimpleQueryString(subscription.GetArticleFilters().Categories, "", "categories"),
+				),
+			)
+		}
+
+		// Get articles matching filters.
+		articles, request.Pagination, err = models.FilterArticles(req.Context(), request)
+		if err != nil && !errors.Is(err, models.ErrNotFound) {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("filter articles: %w", err),
+				StatusCode:    http.StatusInternalServerError,
+			}).ServeHTTP(res, req)
+			return
 		}
 
 		// If the list of articles is from a single subscription, update the page tile to include the subscription

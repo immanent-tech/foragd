@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 	externalRef0 "github.com/immanent-tech/go-syndication/types"
 	"github.com/stripe/stripe-go/v83"
 )
@@ -641,6 +642,9 @@ type ListRequest struct {
 
 	// Pagination contains data for paginating through results.
 	Pagination Pagination `form:"pagination" json:"pagination,omitempty,omitzero" validate:"omitempty,url_encoded"`
+
+	// Query is an additional query to apply for this request.
+	Query query.Option `json:"query,omitempty,omitzero"`
 }
 
 // ListSubscriptionCategoriesRequest contains data for listing categories for a list of subscriptions.

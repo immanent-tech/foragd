@@ -1501,6 +1501,8 @@ func (s *Subscription) GetArticleFilters() SubscriptionArticleFilters {
 		return s.FeedData.ArticleFilters
 	case SubscriptionTypeEmail:
 		return s.EmailData.ArticleFilters
+	case SubscriptionTypeGroup:
+		return s.GroupData.ArticleFilters
 	default:
 		return SubscriptionArticleFilters{}
 	}

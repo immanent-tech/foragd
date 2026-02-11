@@ -1376,6 +1376,12 @@ components:
           $ref: '#/components/schemas/ListFilters'
         pagination:
           $ref: '#/components/schemas/Pagination'
+        query:
+          description: >
+            is an additional query to apply for this request.
+          x-go-type: query.Option
+          x-go-type-import:
+            path: 'github.com/immanent-tech/foragd/providers/elastic/query'
     ListSubscriptionsResponse:
       description: >
         contains the data retrieved and relevant for listing subscriptions.

@@ -343,10 +343,11 @@ func Filter(queryOptions ...Option) BoolOption {
 		// the bool filters list.
 		for _, queryOption := range queryOptions {
 			filterClause := &types.Query{}
-			queryOption(filterClause)
-
-			if !reflect.DeepEqual(filterClause, &types.Query{}) {
-				filters = append(filters, *filterClause)
+			if queryOption != nil {
+				queryOption(filterClause)
+				if !reflect.DeepEqual(filterClause, &types.Query{}) {
+					filters = append(filters, *filterClause)
+				}
 			}
 		}
 

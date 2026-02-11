@@ -73,8 +73,7 @@ func FilterArticles(
 		return nil, "", ErrNotFound
 	}
 
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
+	// Build article query.
 	articleQuery := query.Bool(
 		query.Filter(
 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
@@ -82,6 +81,7 @@ func FilterArticles(
 			query.Bool(
 				query.Should(BuildItemQueries(user, request.Filters.GetView(), subscriptions)...),
 			),
+			request.Query,
 		),
 	)
 
