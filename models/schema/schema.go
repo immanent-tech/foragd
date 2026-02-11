@@ -459,6 +459,7 @@ var (
 						),
 						templates.WithObjectMapping("group_data",
 							templates.WithKeywordMapping("subscriptions"),
+							templates.WithFlattenedMapping("article_filters"),
 						),
 						templates.WithFlattenedMapping("search_data"),
 						templates.WithObjectMapping("email_data",

@@ -647,6 +647,8 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'authors'
+      x-omitzero: false
+      x-omitempty: false
       x-oapi-codegen-extra-tags:
         form: 'article_filters'
     SubscriptionSettings:
@@ -787,6 +789,8 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'subscriptions'
             validate: 'required,dive,startswith=sub_'
+        article_filters:
+          $ref: '#/components/schemas/SubscriptionArticleFilters'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
       x-go-type-skip-optional-pointer: false
@@ -944,6 +948,8 @@ components:
             - $ref: '#/components/schemas/SubscriptionSettings'
           x-oapi-codegen-extra-tags:
             form: 'settings'
+        article_filters:
+          $ref: '#/components/schemas/SubscriptionArticleFilters'
         suggestedCategories:
           description: >
             is a list of suggested categories for the subscription.

@@ -312,7 +312,7 @@ type EditEmailSubscriptionRequest struct {
 // EditSubscriptionRequest defines model for EditSubscriptionRequest.
 type EditSubscriptionRequest struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
-	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters,omitempty,omitzero"`
+	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
 
 	// Categories is a custom list of categories for an object.
 	Categories []Category `form:"categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
@@ -345,7 +345,7 @@ type EmailSenderID = string
 // EmailSubscription is a subscription to an email newsletter source.
 type EmailSubscription struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
-	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters,omitempty,omitzero"`
+	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
 
 	// ArticleStates contains the states of items marked explicitly as read/unread/saved by the user.
 	ArticleStates map[ItemID]ArticleState `json:"article_states" validate:"required"`
@@ -443,7 +443,7 @@ type FeedStatus struct {
 // FeedSubscription represents a feed a user has subscribed to.
 type FeedSubscription struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
-	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters,omitempty,omitzero"`
+	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
 
 	// ArticleStates contains the states of items marked explicitly as read/unread/saved by the user.
 	ArticleStates map[ItemID]ArticleState `json:"article_states" validate:"required"`
@@ -490,14 +490,19 @@ type GetSubscriptionsSuggestionRequest struct {
 
 // GroupSubscription represents a subscription that combines other subscriptions.
 type GroupSubscription struct {
+	// ArticleFilters holds filters to apply to the articles within a subscription.
+	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
+
 	// Subscriptions is the list of subscription IDs belonging to the group.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
 }
 
 // GroupSubscriptionRequest represents a request to create a group subscription.
 type GroupSubscriptionRequest struct {
-	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`
-	Settings      SubscriptionSettings      `form:"settings" json:"settings,omitempty,omitzero"`
+	// ArticleFilters holds filters to apply to the articles within a subscription.
+	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
+	Customisation  SubscriptionCustomisation  `form:"customisation" json:"customisation,omitempty,omitzero"`
+	Settings       SubscriptionSettings       `form:"settings" json:"settings,omitempty,omitzero"`
 
 	// SubscriptionID will be a subscription ID if the user is editing an existing group subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"-" validate:"omitempty,startswith=sub_"`

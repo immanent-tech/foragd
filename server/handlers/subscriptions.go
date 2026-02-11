@@ -482,12 +482,13 @@ func HandleEditSubscription() http.HandlerFunc {
 
 			}
 
-			// Editing SearchSubscription.
+			// Create the request with details from the group subscription.
 			request := &models.GroupSubscriptionRequest{
 				Customisation:  subscription.Customisation,
 				Settings:       subscription.Settings,
 				Subscriptions:  make(map[models.SubscriptionID]string),
 				SubscriptionID: subscription.GetID(),
+				ArticleFilters: subscription.GroupData.ArticleFilters,
 			}
 			// Populate the subscriptions data in the request.
 			for subscription := range slices.Values(subscriptions) {
@@ -598,9 +599,13 @@ func HandleSaveSubscription() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
+
 			subscription.Customisation = request.Customisation
 			subscription.Settings = request.Settings
 			subscription.GroupData.Subscriptions = slices.Collect(maps.Keys(request.Subscriptions))
+			subscription.GroupData.ArticleFilters.Text = request.ArticleFilters.Text
+			subscription.GroupData.ArticleFilters.Authors = request.ArticleFilters.Authors
+			subscription.GroupData.ArticleFilters.Categories = request.ArticleFilters.Categories
 		case models.SubscriptionTypeEmail:
 			request, valid, err := forms.DecodeMultiPartForm[*models.EditEmailSubscriptionRequest](req)
 			if err != nil || !valid {
@@ -636,6 +641,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 		}
 
 		// Update the subscription object.
+		subscription.UpdatedAt = time.Now().UTC()
 		_, err = models.UpdateSubscriptions(req.Context(), subscription)
 		if err != nil {
 			HandleInternalError(&models.APIError{
