@@ -104,7 +104,7 @@ func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*User, e
 // GetUser retrieves the user doc with the given id.
 func GetUser(ctx context.Context, id UserID) (*User, error) {
 	user, err := elastic.GetDoc[UserID, *User](ctx, schema.UsersIndexRO, id)
-	if err != nil {
+	if err != nil || user == nil {
 		return nil, fmt.Errorf("get user: %w", err)
 	}
 	return user, nil

@@ -81,6 +81,9 @@ var InitAuthenticator = func(ctx context.Context) error {
 
 // VerifyIDToken verifies that an *oauth2.Token is a valid *oidc.IDToken.
 func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) (*oidc.IDToken, error) {
+	if err := InitAuthenticator(ctx); err != nil {
+		return nil, fmt.Errorf("init authenticator: %w", err)
+	}
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
 		return nil, ErrNoIDToken
@@ -98,16 +101,16 @@ func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) 
 // GenerateLogoutURL generates URL to log the user out from the auth backend.
 func GenerateLogoutURL(req *http.Request) (*url.URL, error) {
 	if err := InitAuthenticator(req.Context()); err != nil {
-		return nil, fmt.Errorf("unable to generate logout URL: %w", err)
+		return nil, fmt.Errorf("init authenticator: %w", err)
 	}
 	logoutURL, err := url.Parse("https://" + cfg.Domain + "/v2/logout")
 	if err != nil {
-		return nil, fmt.Errorf("unable to generate logout url: %w", err)
+		return nil, fmt.Errorf("generate logout url: %w", err)
 	}
 
 	returnTo, err := url.Parse("https://" + req.Host)
 	if err != nil {
-		return nil, fmt.Errorf("unable to generate logout URL: %w", err)
+		return nil, fmt.Errorf("generate return_to url: %w", err)
 	}
 
 	parameters := url.Values{}

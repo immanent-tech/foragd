@@ -60,18 +60,18 @@ func executeClearDeletedFeeds(ctx context.Context, _ *ScheduledJob) error {
 		return errors.New("unable to get scheduler api from context")
 	}
 
-	state := &ClearDeletedFeedsState{}
-	if lastState, err := schedulerAPI.GetJobState(ctx, jobStateID); err != nil {
-		if !errors.Is(err, elastic.ErrNotFound) {
-			return fmt.Errorf("get job state: %w", err)
-		}
-		state.Checkpoint = time.Time{}
-	} else {
-		err = json.Unmarshal(lastState.JobData, state)
-		if err != nil {
-			return fmt.Errorf("unmarshal job data: %w", err)
-		}
-	}
+	// state := &ClearDeletedFeedsState{}
+	// if lastState, err := schedulerAPI.GetJobState(ctx, jobStateID); err != nil {
+	// 	if !errors.Is(err, elastic.ErrNotFound) {
+	// 		return fmt.Errorf("get job state: %w", err)
+	// 	}
+	// 	state.Checkpoint = time.Time{}
+	// } else {
+	// 	err = json.Unmarshal(lastState.JobData, state)
+	// 	if err != nil {
+	// 		return fmt.Errorf("unmarshal job data: %w", err)
+	// 	}
+	// }
 
 	// Find new feeds. We detect new feeds by those where the last_fetched value equals Unix Epoch, indicating they
 	// don't have a job scheduled for updating their items.
@@ -94,11 +94,12 @@ func executeClearDeletedFeeds(ctx context.Context, _ *ScheduledJob) error {
 		)
 	}
 	// Update the checkpoint.
-	state.Checkpoint = time.Now().UTC()
-	err = schedulerAPI.UpdateJobState(ctx, jobStateID, map[string]any{
+	state := &ClearDeletedFeedsState{
+		Checkpoint: time.Now().UTC(),
+	}
+	if err := schedulerAPI.UpdateJobState(ctx, jobStateID, map[string]any{
 		"job_data": state,
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("update job state: %w", err)
 	}
 

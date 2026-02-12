@@ -608,14 +608,17 @@ func FilterSubscriptions(
 		return nil, "", fmt.Errorf("add dynamic info: %w", err)
 	}
 	// Sort and paginate.
-	pagination := new(Pagination)
+	var pagination Pagination
+	if request.Pagination != nil {
+		pagination = *request.Pagination
+	}
 	subscriptions, pagination = subscriptions.
 		FilterByView(request.Filters.GetView()).
 		FilterByFavorites(request.Filters.OnlyFavorites).
 		Sort(request.Filters.Sort).
-		Paginate(request.Pagination, request.Filters.GetCount())
+		Paginate(pagination, request.Filters.GetCount())
 
-	return subscriptions, *pagination, nil
+	return subscriptions, pagination, nil
 }
 
 // ProcessSubscriptionRequest manages parsing a subscription request and turning it into a subscription that can be
@@ -1076,13 +1079,13 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions
 		for groupSubscription := range slices.Values(subscriptions) {
 			if slices.Contains(subscription.GroupData.Subscriptions, groupSubscription.GetID()) {
 				if user.GetSettings().ShowSubscriptionStats {
-					avgDailyUpdates = append(avgDailyUpdates, groupSubscription.Stats.AvgDailyUpdates)
+					avgDailyUpdates = append(avgDailyUpdates, groupSubscription.GetStats().AvgDailyUpdates)
 				}
-				unreadCount += groupSubscription.Stats.UnreadCount
-				lastUpdates = append(lastUpdates, groupSubscription.Stats.LastUpdate)
+				unreadCount += groupSubscription.GetStats().UnreadCount
+				lastUpdates = append(lastUpdates, groupSubscription.GetStats().LastUpdate)
 			}
 		}
-		if user.GetSettings().ShowSubscriptionStats {
+		if user.GetSettings().ShowSubscriptionStats && len(avgDailyUpdates) > 0 {
 			slices.Sort(avgDailyUpdates)
 			slices.Reverse(avgDailyUpdates)
 			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[0]
@@ -1465,7 +1468,10 @@ func (s *Subscription) GetUpdatedDate() time.Time {
 
 // GetTitle returns the title (or user nickname if assigned) of the subscription.
 func (s *Subscription) GetTitle() string {
-	return s.Customisation.Nickname
+	if s.Customisation != nil {
+		return s.Customisation.Nickname
+	}
+	return ""
 }
 
 // GetCategories returns the categories of the subscription. It is the combined list of any user-assigned categories and
@@ -1595,7 +1601,9 @@ func (s *Subscription) GetItemState(itemID ItemID) *ArticleState {
 	case SubscriptionTypeEmail:
 		maps.Copy(states, s.EmailData.ArticleStates)
 	default:
-		return nil
+		return &ArticleState{
+			Read: false,
+		}
 	}
 
 	// If the subscription has no article states, return unread state.
@@ -1826,19 +1834,16 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 
 // Paginate will paginate through a slice of subscriptions, returning a new slice of subscriptions and the next
 // pagination value (if any).
-func (s Subscriptions) Paginate(pagination *Pagination, count int) (Subscriptions, *Pagination) {
-	if pagination == nil {
-		return s, nil
-	}
+func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions, Pagination) {
 	var from, to int
-	if *pagination != "" {
-		if value, err := strconv.Atoi(*pagination); err == nil {
+	if pagination != "" {
+		if value, err := strconv.Atoi(pagination); err == nil {
 			from = value
 		}
 	}
 	to = min(from+count, len(s))
 	newPagination := strconv.Itoa(to)
-	return s[from:to], &newPagination
+	return s[from:to], newPagination
 }
 
 // GetCategoryCounts returns a count of the occurrence of a Category across all

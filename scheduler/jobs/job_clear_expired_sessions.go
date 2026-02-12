@@ -52,18 +52,18 @@ func executeClearExpiredSessions(ctx context.Context) error {
 		return errors.New("unable to get scheduler api from context")
 	}
 
-	state := &ClearExpiredSessionsState{}
-	if lastState, err := schedulerAPI.GetJobState(ctx, jobStateID); err != nil {
-		if !errors.Is(err, elastic.ErrNotFound) {
-			return fmt.Errorf("get job state: %w", err)
-		}
-		state.Checkpoint = time.Time{}
-	} else {
-		err = json.Unmarshal(lastState.JobData, state)
-		if err != nil {
-			return fmt.Errorf("unmarshal job data: %w", err)
-		}
-	}
+	// state := &ClearExpiredSessionsState{}
+	// if lastState, err := schedulerAPI.GetJobState(ctx, jobStateID); err != nil {
+	// 	if !errors.Is(err, elastic.ErrNotFound) {
+	// 		return fmt.Errorf("get job state: %w", err)
+	// 	}
+	// 	state.Checkpoint = time.Time{}
+	// } else {
+	// 	err = json.Unmarshal(lastState.JobData, state)
+	// 	if err != nil {
+	// 		return fmt.Errorf("unmarshal job data: %w", err)
+	// 	}
+	// }
 
 	// Delete all sessions with an expiry older than now.
 	if err := elastic.DeleteDocs(
@@ -74,7 +74,9 @@ func executeClearExpiredSessions(ctx context.Context) error {
 		return fmt.Errorf("delete docs: %w", err)
 	}
 	// Update the checkpoint.
-	state.Checkpoint = time.Now().UTC()
+	state := &ClearExpiredSessionsState{
+		Checkpoint: time.Now().UTC(),
+	}
 	if err := schedulerAPI.UpdateJobState(ctx, jobStateID, map[string]any{
 		"job_data": state,
 	}); err != nil {
