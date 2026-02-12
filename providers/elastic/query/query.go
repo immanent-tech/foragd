@@ -46,12 +46,19 @@ func Exists(field string) Option {
 // Match adds a "Match" query on the given field with the given value.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query
-func Match(field string, value string) Option {
+func Match(field, fuzziness string, value string) Option {
 	return func(query *types.Query) {
 		if value != "" {
 			name := "match-" + field
+			matchQuery := types.MatchQuery{
+				Query:      value,
+				QueryName_: &name,
+			}
+			if fuzziness != "" {
+				matchQuery.Fuzziness = fuzziness
+			}
 			query.Match = map[string]types.MatchQuery{
-				field: {Query: value, QueryName_: &name, Fuzziness: FuzzinessAuto},
+				field: matchQuery,
 			}
 		}
 	}
@@ -60,7 +67,7 @@ func Match(field string, value string) Option {
 // MultiMatch adds a "MultiMatch" query on the given field with the given value.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-multi-match-query
-func MultiMatch(value string, fields ...string) Option {
+func MultiMatch(value, fuzziness string, fields ...string) Option {
 	return func(query *types.Query) {
 		if value != "" {
 			name := "multi-match-" + strings.Join(fields, "+")
@@ -68,7 +75,9 @@ func MultiMatch(value string, fields ...string) Option {
 				Fields:     fields,
 				Query:      value,
 				QueryName_: &name,
-				Fuzziness:  FuzzinessAuto,
+			}
+			if fuzziness != "" {
+				query.MultiMatch.Fuzziness = fuzziness
 			}
 		}
 	}
