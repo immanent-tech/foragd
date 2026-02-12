@@ -1702,6 +1702,15 @@ func (s Subscriptions) GetFeedIDs() []FeedID {
 	return slices.Compact(ids)
 }
 
+// GetCategories returns all categories across all the subscriptions. Duplicates are removed.
+func (s Subscriptions) GetCategories() Categories {
+	categories := make(Categories, 0)
+	for subscription := range slices.Values(s) {
+		categories = append(categories, subscription.GetCategories(0)...)
+	}
+	return slices.Compact(categories)
+}
+
 // GetByFeedID will return the subscription that matches the given feed ID, if any.
 func (s Subscriptions) GetByFeedID(id FeedID) *Subscription {
 	if idx := slices.IndexFunc(s, func(e *Subscription) bool {
@@ -1900,92 +1909,6 @@ func (r *AddFeedSubscriptionRequest) GetNickname() string {
 		return *r.Nickname
 	}
 	return ""
-}
-
-// Valid returns a boolean indicating whether the SubscriptionRequest is valid,
-// and any validation errors if applicable.
-func (r *SearchSubscriptionRequest) Valid() error {
-	if err := validation.Validate.Struct(r); err != nil {
-		return fmt.Errorf("subscription validation error: %w", err)
-	}
-	return nil
-}
-
-// Sanitise will sanitise the input values of the SubscriptionRequest.
-func (r *SearchSubscriptionRequest) Sanitise() error {
-	if err := r.Search.Sanitise(); err != nil {
-		return err
-	}
-	if r.Customisation.Nickname != "" {
-		r.Customisation.Nickname = validation.SanitizeString(r.Customisation.Nickname)
-	}
-	categories := make([]Category, 0, len(r.Customisation.Categories))
-	for category := range slices.Values(r.Customisation.Categories) {
-		category = validation.SanitizeString(category)
-		categories = append(categories, category)
-	}
-	r.Customisation.Categories = categories
-	return nil
-}
-
-// Valid returns a boolean indicating whether the GroupSubscriptionRequest is valid,
-// and any validation errors if applicable.
-func (r *GroupSubscriptionRequest) Valid() error {
-	if err := validation.Validate.Struct(r); err != nil {
-		return fmt.Errorf("group subscription error: %w", err)
-	}
-	return nil
-}
-
-// Sanitise will sanitise the input values of the GroupSubscriptionRequest.
-func (r *GroupSubscriptionRequest) Sanitise() error {
-	if r.Customisation.Nickname != "" {
-		r.Customisation.Nickname = validation.SanitizeString(r.Customisation.Nickname)
-	}
-	categories := make([]Category, 0, len(r.Customisation.Categories))
-	for category := range slices.Values(r.Customisation.Categories) {
-		category = validation.SanitizeString(category)
-		categories = append(categories, category)
-	}
-	r.Customisation.Categories = categories
-	return nil
-}
-
-// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
-// (false) a non-nil error is also returned which contains validation issues.
-func (s *EditFeedSubscriptionRequest) Valid() error {
-	if err := validation.Validate.Struct(s); err != nil {
-		return fmt.Errorf("subscription is invalid: %w", err)
-	}
-	return nil
-}
-
-// Sanitise will sanitise the user input for a SubscriptionCustomisation.
-func (s *EditFeedSubscriptionRequest) Sanitise() error {
-	if s.Customisation != nil {
-		s.Customisation.Nickname = validation.SanitizeString(s.Customisation.Nickname)
-		categories := make([]Category, 0, len(s.Customisation.Categories))
-		for category := range slices.Values(s.Customisation.Categories) {
-			category = validation.SanitizeString(category)
-			categories = append(categories, category)
-		}
-		s.Customisation.Categories = categories
-	}
-	if s.ArticleFilters != nil {
-		if s.ArticleFilters.Authors != nil {
-			cleanAuthorFilters := validation.SanitizeString(*s.ArticleFilters.Authors)
-			s.ArticleFilters.Authors = &cleanAuthorFilters
-		}
-		if s.ArticleFilters.Categories != nil {
-			cleanCategoryFilters := validation.SanitizeString(*s.ArticleFilters.Categories)
-			s.ArticleFilters.Categories = &cleanCategoryFilters
-		}
-		if s.ArticleFilters.Text != nil {
-			cleanTextFilters := validation.SanitizeString(*s.ArticleFilters.Text)
-			s.ArticleFilters.Text = &cleanTextFilters
-		}
-	}
-	return nil
 }
 
 // Valid checks that the MarkSubscriptionRequest contains valid data.

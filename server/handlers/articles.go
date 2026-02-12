@@ -92,8 +92,7 @@ func HandleListArticles() http.HandlerFunc {
 		)
 
 		// Get the subscription details if the list is for a specific subscription.
-		subscriptionID := req.FormValue("subscription_id")
-		if subscriptionID != "" {
+		if subscriptionID := req.FormValue("subscription_id"); subscriptionID != "" {
 			subscription, err = models.GetSubscription(
 				req.Context(),
 				subscriptionID,

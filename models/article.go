@@ -215,14 +215,7 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 }
 
 // GetArticleTopCategories performs an aggregation to return the top Item categories across the given Feeds.
-func GetArticleTopCategories(ctx context.Context, feeds ...FeedID) ([]Category, error) {
-	// Build query.
-	query := query.Bool(
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.Terms("feed_id", feeds...),
-		),
-	)
+func GetArticleTopCategories(ctx context.Context, searchQuery query.Option) ([]Category, error) {
 	// Build aggregations.
 	termsField := "categories.raw"
 	termsCount := 10
@@ -235,7 +228,7 @@ func GetArticleTopCategories(ctx context.Context, feeds ...FeedID) ([]Category, 
 		},
 	}
 	// Perform aggregation.
-	results, err := ItemsAggregation(ctx, query, 0, aggs)
+	results, err := ItemsAggregation(ctx, searchQuery, 0, aggs)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get top categories: %w", err)
 	}

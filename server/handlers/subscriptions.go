@@ -30,6 +30,7 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -421,10 +422,19 @@ func HandleEditSubscription() http.HandlerFunc {
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
 			// subscription.
-			if suggestedCategories, resp := models.GetArticleTopCategories(
-				ctx,
-				subscription.FeedData.GetFeedID(),
-			); resp == nil {
+			topCategoriesQuery := query.Bool(
+				query.Filter(
+					// Must match any of the given feed IDs.
+					query.Term("feed_id", subscription.FeedData.GetFeedID()),
+				),
+				query.MustNot(
+					query.Terms(
+						"categories.raw",
+						slices.Concat(models.CommonCategoryFilters, subscription.Customisation.Categories)...,
+					),
+				),
+			)
+			if suggestedCategories, resp := models.GetArticleTopCategories(ctx, topCategoriesQuery); resp == nil {
 				suggestedCategories = slices.Collect(
 					models.FilterSlice(suggestedCategories, func(category models.Category) bool {
 						return !slices.Contains(models.CommonCategoryFilters, category)
@@ -496,10 +506,19 @@ func HandleEditSubscription() http.HandlerFunc {
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories
 			// for the subscription.
-			if suggestedCategories, resp := models.GetArticleTopCategories(
-				ctx,
-				subscriptions.GetFeedIDs()...,
-			); resp == nil {
+			topCategoriesQuery := query.Bool(
+				query.Filter(
+					// Must match any of the given feed IDs.
+					query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+				),
+				query.MustNot(
+					query.Terms(
+						"categories.raw",
+						slices.Concat(models.CommonCategoryFilters, subscriptions.GetCategories())...,
+					),
+				),
+			)
+			if suggestedCategories, resp := models.GetArticleTopCategories(ctx, topCategoriesQuery); resp == nil {
 				suggestedCategories = slices.Collect(
 					models.FilterSlice(suggestedCategories, func(category models.Category) bool {
 						return !slices.Contains(models.CommonCategoryFilters, category)
