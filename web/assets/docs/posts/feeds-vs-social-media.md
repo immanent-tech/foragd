@@ -2,13 +2,13 @@
 title = "RSS & Atom vs Social Media"
 description = "Social Media dominates where we source our content from. But RSS and Atom feeds offer compelling freedom and control over the content that Social Media cannot."
 created_at = "2026-01-27"
-updated_at = "2026-02-06"
+updated_at = "2026-02-11"
 +++
 ## Are RSS and Atom Feeds Dead?
 
 Most of us spend a lot of time on Social Media services like Facebook, X/Twitter, Reddit and others. You might not spend much time looking at RSS and Atom feeds, even though they are very similar in a lot of ways. RSS and Atom pre-date most Social Media. But their usage and interest has declined over time as the web moved to be dominated by Social Media. [Google Trends](https://trends.google.com.au/trends/explore?date=all&q=%2Fm%2F0n5tx,%2Fm%2F0fch0p&hl=en-AU) doesn’t lie:
 
-<img src="/content/images/posts/rss-atom-social-media-trends.png"/>
+<img src="/content/images/posts/rss-atom-social-media-trends.png" alt="Screenshot from Google Trends of the keywords RSS and Social Media"/>
 
 While interest in RSS and Atom has waned from the turn of the century, it still has immense (IMHO) value. Claims that these feeds are dead or dying are greatly exaggerated. What is more likely, is that the information we see is driven by market forces that favor Social Media platforms [1](https://disa.org/dominance-of-major-technology-companies-over-information-access-fuels-critical-discussions-at-the-2025-internet-governance-forum-in-norway/),[2](https://www.dw.com/en/how-tech-giants-are-hijacking-the-internet/a-67037639). Feeds are still out there, waiting to be found. In this post, we’ll take a look at what RSS and Atom can offer and compare that to Social Media.
 
@@ -18,7 +18,7 @@ There are a lot of similarities between RSS, Atom, and Social Media. Both are ba
 
 RSS and Atom are essentially files that contain the list of articles/posts in a machine-readable format. You put the file up on your website, then special software reads the file and formats it into something a human can view. When a new article or post is created, you edit the file and upload it again. [Here is an example](https://feeds.arstechnica.com/arstechnica/index). When you click on that, without a proper feed viewer, it’ll probably look pretty ugly. A feed viewer on the other hand, can turn all that code into a beautiful list of articles. In fact, you can take that file and choose from a number of different feed viewers depending on your taste.
 
-Social Media is usually accessed through an app or website. There is no file though so you are forced to access and view the content via the layout and design of the company behind the service. For some services, you do have a choice of different clients to access it, [but that could change at any time](https://en.wikipedia.org/wiki/Reddit_API_controversy).
+Social Media is usually accessed through an app or website. There is no file so you are forced to access and view the content via the layout and design of the company behind the service. For some services, you do have a choice of different clients to access it, [but that could change at any time](https://en.wikipedia.org/wiki/Reddit_API_controversy).
 
 ## Finding Content
 
