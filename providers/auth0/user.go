@@ -109,9 +109,9 @@ func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
 	}
 	// Create update object.
 	updates := &management.UpdateUserRequestContent{
-		Nickname:    &request.Nickname,
-		Email:       &request.Email,
-		Picture:     &request.AvatarURL,
+		Nickname:    request.Nickname,
+		Email:       request.Email,
+		Picture:     request.AvatarURL,
 		VerifyEmail: &verifyEmail,
 	}
 	// Update the user.
@@ -179,19 +179,19 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
 	updates := make(map[string]any)
 	// Overwrite local avatar with remote avatar if different
-	if avatarURL := auth0User.GetPicture(); localUser.AvatarURL != avatarURL {
+	if avatarURL := auth0User.GetPicture(); localUser.GetAvatar() != avatarURL {
 		updates["avatar_url"] = avatarURL
-		localUser.AvatarURL = avatarURL
+		localUser.AvatarURL = &avatarURL
 	}
 	// Overwrite local nickname with remote nickname if different
-	if nickname := auth0User.GetNickname(); localUser.Nickname != nickname {
+	if nickname := auth0User.GetNickname(); localUser.GetNickname() != nickname {
 		updates["nickname"] = nickname
-		localUser.Nickname = nickname
+		localUser.Nickname = &nickname
 	}
 	// Overwrite local email with remote email if different
-	if email := auth0User.GetEmail(); localUser.Email != email {
+	if email := auth0User.GetEmail(); localUser.GetEmail() != email {
 		updates["email"] = email
-		localUser.Email = email
+		localUser.Email = &email
 	}
 	metadata := localUser.Metadata
 	if accepted, ok := auth0User.GetAppMetadata()["policies_accepted"].(bool); ok &&

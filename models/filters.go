@@ -70,7 +70,7 @@ type Filters interface {
 // NewListDisplayFilters creates a new set of display filters with sensible defaults.
 func NewListDisplayFilters() ListFilters {
 	return ListFilters{
-		Sort:  SortNewestFirst,
+		Sort:  defaultSort,
 		Count: defaultCount,
 		View:  defaultView,
 	}
@@ -137,8 +137,8 @@ func (f *ListFilters) QueryParams() url.Values {
 	if len(f.Categories) > 0 {
 		params.Set(ParamCategories, strings.Join(f.Categories, ","))
 	}
-	params.Set(ParamSort, string(f.Sort))
-	params.Set(ParamView, string(f.View))
+	params.Set(ParamSort, string(f.GetSort()))
+	params.Set(ParamView, string(f.GetView()))
 	params.Set(ParamCount, strconv.Itoa(f.Count))
 	return params
 }
@@ -158,8 +158,8 @@ func (f *ListFilters) Values() map[string]any {
 	if len(f.Categories) > 0 {
 		params[ParamCategories] = strings.Join(f.Categories, ",")
 	}
-	params[ParamSort] = string(f.Sort)
-	params[ParamView] = string(f.View)
+	params[ParamSort] = string(f.GetSort())
+	params[ParamView] = string(f.GetView())
 	params[ParamCount] = f.Count
 	return params
 }

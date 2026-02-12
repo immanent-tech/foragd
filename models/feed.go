@@ -274,7 +274,10 @@ func (f *Feed) GetTitle() string {
 
 // GetDescription returns the feed description, if any.
 func (f *Feed) GetDescription() string {
-	return f.Description
+	if f.Description != nil {
+		return *f.Description
+	}
+	return ""
 }
 
 // GetAuthors returns the feed authors, if any.
@@ -294,7 +297,7 @@ func (f *Feed) GetCategories() []string {
 
 // GetImage returns an image object that can visually represent the feed.
 func (f *Feed) GetImage() *types.ImageInfo {
-	return &f.Image
+	return f.Image
 }
 
 // GetItems returns a slice of the currently published items in the feed.
@@ -424,7 +427,7 @@ func NewSyndicationFeed(url string, source *feeds.Feed) *Feed {
 		Published:    source.GetPublishedDate().UTC(),
 		Updated:      source.GetUpdatedDate().UTC(),
 		Title:        source.GetTitle(),
-		Description:  source.GetDescription(),
+		Description:  new(source.GetDescription()),
 		SourceType:   SourceType(source.SourceType),
 		SourceURLs:   []string{source.GetSourceURL()},
 		URL:          source.GetLink(),
@@ -440,7 +443,7 @@ func NewSyndicationFeed(url string, source *feeds.Feed) *Feed {
 	}
 	// Add any image found.
 	if source.GetImage() != nil {
-		feed.Image = *source.GetImage()
+		feed.Image = source.GetImage()
 	}
 
 	return feed

@@ -91,11 +91,11 @@ func CreateObjectIssue(ctx context.Context, details *models.ReportObjectIssueReq
 		bodyBuilder.WriteString("- Duplicate object.")
 		bodyBuilder.WriteRune('\n')
 	}
-	if details.Details != "" {
+	if details.Details != nil {
 		bodyBuilder.WriteRune('\n')
 		bodyBuilder.WriteString("Details:")
 		bodyBuilder.WriteRune('\n')
-		bodyBuilder.WriteString(details.Details)
+		bodyBuilder.WriteString(*details.Details)
 		bodyBuilder.WriteRune('\n')
 	}
 	body := bodyBuilder.String()
@@ -140,15 +140,15 @@ func CreateIssue(ctx context.Context, details *models.ReportIssueRequest) error 
 	bodyBuilder.WriteRune('\n')
 	bodyBuilder.WriteString("Page URL: " + details.PageUrl)
 	bodyBuilder.WriteRune('\n')
-	if details.Details != "" {
+	if details.Details != nil {
 		bodyBuilder.WriteRune('\n')
 		bodyBuilder.WriteString("Details:")
 		bodyBuilder.WriteRune('\n')
-		bodyBuilder.WriteString(details.Details)
+		bodyBuilder.WriteString(*details.Details)
 		bodyBuilder.WriteRune('\n')
 	}
-	if details.ScreenshotURL != "" {
-		bodyBuilder.WriteString("![](" + details.ScreenshotURL + ")")
+	if details.ScreenshotURL != nil {
+		bodyBuilder.WriteString("![](" + *details.ScreenshotURL + ")")
 		bodyBuilder.WriteRune('\n')
 	}
 

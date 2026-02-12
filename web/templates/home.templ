@@ -7,6 +7,7 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
@@ -64,7 +65,17 @@ templ UserHome(data *models.HomeResponse) {
 									<div class="card-body">
 										<div class="card-title flex items-center">
 											<div class="mr-4 shrink-0 self-center">
-												@subscriptionThumbnail(subscription.GetImage(), subscription.GetTitle())
+												if subscription.GetImage() == "" {
+													@subscriptionThumbnail(nil, subscription.GetTitle())
+												} else {
+													@subscriptionThumbnail(
+														&types.ImageInfo{
+															URL:   subscription.GetImage(),
+															Title: subscription.GetTitle(),
+														},
+														subscription.GetTitle(),
+													)
+												}
 											</div>
 											<div class="text-pretty line-clamp-3 tracking-tight">{ subscription.GetTitle() }</div>
 										</div>

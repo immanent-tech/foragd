@@ -98,7 +98,7 @@ func HandleSubmitPageIssue() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 		}
 		if screenshotURL != "" {
-			request.ScreenshotURL = screenshotURL
+			request.ScreenshotURL = &screenshotURL
 		}
 
 		// Create the issue in Github.
@@ -230,7 +230,7 @@ func HandleSubmitObjectIssue() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 		}
 		if screenshotURL != "" {
-			request.ScreenshotURL = screenshotURL
+			request.ScreenshotURL = &screenshotURL
 		}
 
 		err = github.Connect(req.Context())

@@ -73,8 +73,8 @@ templ ReportPageIssue(details *models.ReportIssueRequest) {
 										name="details"
 										class="textarea textarea-primary w-full"
 										placeholder="What was expected, what is missing, etc."
-										if details.Details != "" {
-											value={ details.Details }
+										if details.Details != nil {
+											value={ *details.Details }
 										}
 									></textarea>
 								</div>
@@ -210,8 +210,8 @@ templ ReportObjectIssues(objectType, id string, details *models.ReportObjectIssu
 									name="details"
 									class="textarea w-full"
 									placeholder="What was expected, what is missing, etc."
-									if details.Details != "" {
-										value={ details.Details }
+									if details.Details != nil {
+										value={ *details.Details }
 									}
 								></textarea>
 							</div>

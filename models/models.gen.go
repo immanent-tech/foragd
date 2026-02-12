@@ -7,10 +7,8 @@ import (
 	"encoding/json"
 	"image"
 	"mime/multipart"
-	"net/url"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	externalRef0 "github.com/immanent-tech/go-syndication/types"
 	"github.com/stripe/stripe-go/v83"
@@ -96,10 +94,10 @@ const (
 // APIError represents an error returned from any API within the service/application.
 type APIError struct {
 	// InternalError is the low-level, internal error.
-	InternalError error `json:"internal_error,omitempty,omitzero"`
+	InternalError error `json:"internal_error,omitempty"`
 
 	// StatusCode is the status code associated with the error. Usually, this is a HTTP status code.
-	StatusCode int `json:"status_code,omitempty,omitzero"`
+	StatusCode int `json:"status_code"`
 
 	// UserMessage represents a message that can be displayed to the user as the result of an action.
 	UserMessage *UserMessage `json:"user_message,omitempty"`
@@ -111,18 +109,18 @@ type AddFeedSubscriptionRequest struct {
 	URL string `form:"url" json:"URL" validate:"required,url"`
 
 	// Categories a list custom categories for the subscription. Combined with the feed's own categories.
-	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero"`
+	Categories []Category `form:"user_categories" json:"categories,omitempty"`
 
 	// Nickname a custom name for the subscription. Overrides the feed name.
-	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero"`
+	Nickname *string `form:"user_nickname" json:"nickname,omitempty"`
 }
 
 // AddFeedSubscriptionResult contains the result of adding/importing a subscription from a request.
 type AddFeedSubscriptionResult struct {
-	Error error `json:"error,omitempty,omitzero"`
+	Error error `json:"error,omitempty"`
 
 	// Feed represents a feed object.
-	Feed Feed `json:"feed,omitempty,omitzero"`
+	Feed *Feed `json:"feed,omitempty"`
 
 	// Message represents a message that can be displayed to the user as the result of an action.
 	Message *UserMessage `json:"message,omitempty"`
@@ -131,30 +129,30 @@ type AddFeedSubscriptionResult struct {
 	Request AddFeedSubscriptionRequest `json:"request"`
 
 	// Subscription represents any kind of subscription.
-	Subscription Subscription `json:"subscription,omitempty,omitzero"`
+	Subscription *Subscription `json:"subscription,omitempty"`
 }
 
 // AddFeedsetRequest is a request from a user to add one or more feed sets as subscriptions.
 type AddFeedsetRequest struct {
-	Feedset []string `form:"feedset,unique" json:"feedset,omitempty,omitzero"`
+	Feedset []string `form:"feedset,unique" json:"feedset,omitempty"`
 }
 
 // AddSubscriptionSearchFilterRequest contains the data for adding a new subscription filter to a search request.
 type AddSubscriptionSearchFilterRequest struct {
 	// InputName is the name of the input in the form into which this filter should be added.
-	InputName string `form:"subscriptions-input-name" json:"input_name,omitempty,omitzero"`
+	InputName string `form:"subscriptions-input-name" json:"input_name"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// SubscriptionName is the nickname of the subscription.
-	SubscriptionName string `form:"subscription_name" json:"subscription_name,omitempty,omitzero"`
+	SubscriptionName string `form:"subscription_name" json:"subscription_name"`
 }
 
 // Article defines model for Article.
 type Article struct {
 	// Content contains the full article content, when it has been fetched from the origin link.
-	Content string `json:"content,omitempty,omitzero"`
+	Content *string `json:"content,omitempty"`
 
 	// Favorite indicates whether this subscription has been marked as a Favorite by the user.
 	Favorite bool `json:"-"`
@@ -169,7 +167,7 @@ type Article struct {
 	ShowFullContent bool `json:"show_full_content"`
 
 	// SourceType indicates what type of source the object came from.
-	SourceType SourceType `json:"source_type,omitempty,omitzero"`
+	SourceType SourceType `json:"source_type"`
 
 	// State tracks the state of an article.
 	State ArticleState `json:"state"`
@@ -184,20 +182,20 @@ type ArticleArchive struct {
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
-	Authors []string `json:"authors,omitempty,omitzero"`
+	Authors []string `json:"authors,omitempty"`
 
 	// Categories is a list of categories that define a taxonomy for the feed or item.
-	Categories []Category `json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
+	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Content contains the item content.
-	Content string `json:"content,omitempty,omitzero"`
+	Content string `json:"content,omitempty"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
-	Contributors []string `json:"contributors,omitempty,omitzero"`
-	Copyright    string   `json:"copyright,omitempty,omitzero"`
+	Contributors []string `json:"contributors,omitempty"`
+	Copyright    string   `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
-	Description string `json:"description,omitempty,omitzero"`
+	Description *string `json:"description,omitempty"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
@@ -206,11 +204,11 @@ type ArticleArchive struct {
 	FeedTitle string `json:"feed_title" validate:"required"`
 
 	// Image is an abstraction of an Image across different types of specifications.
-	Image externalRef0.ImageInfo `json:"image,omitempty,omitzero" validate:"omitempty"`
+	Image *externalRef0.ImageInfo `json:"image,omitempty" validate:"omitempty"`
 
 	// ItemID is the unique ID of an item.
 	ItemID   ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
-	Language string `json:"language,omitempty,omitzero"`
+	Language string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -225,10 +223,10 @@ type ArticleArchive struct {
 	Title string `json:"title"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated time.Time `json:"updated,omitempty,omitzero"`
+	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
-	URL string `json:"url,omitempty,omitzero" validate:"omitempty,url"`
+	URL string `json:"url,omitempty" validate:"omitempty,url"`
 
 	// UserID is the unique ID of a user.
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
@@ -237,7 +235,7 @@ type ArticleArchive struct {
 // ArticleMetadata contains the stored data that represents an article.
 type ArticleMetadata struct {
 	// SourceType indicates what type of source the object came from.
-	SourceType SourceType `json:"source_type,omitempty,omitzero"`
+	SourceType SourceType `json:"source_type"`
 
 	// State tracks the state of an article.
 	State ArticleState `json:"state"`
@@ -286,7 +284,7 @@ type CategoryFilters struct {
 // ChangePasswordRequest contains details for changing a user password.
 type ChangePasswordRequest struct {
 	// ConfirmNewPassword is the new password (again), used for confirmation.
-	ConfirmNewPassword string `form:"confirm_new_password" json:"confirm_new_password,omitempty,omitzero" validate:"required"`
+	ConfirmNewPassword *string `form:"confirm_new_password" json:"confirm_new_password,omitempty" validate:"required"`
 
 	// NewPassword is the new password.
 	NewPassword string `form:"new_password" json:"new_password" validate:"required,eqfield=ConfirmNewPassword"`
@@ -303,32 +301,19 @@ type DeletedAt = time.Time
 
 // EditEmailSubscriptionRequest represents a request to create an email subscription.
 type EditEmailSubscriptionRequest struct {
-	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`
-	Settings      SubscriptionSettings      `form:"settings" json:"settings,omitempty,omitzero"`
+	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
+	Settings      *SubscriptionSettings      `form:"settings" json:"settings,omitempty"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
-// EditSubscriptionRequest defines model for EditSubscriptionRequest.
-type EditSubscriptionRequest struct {
+// EditFeedSubscriptionRequest is the request details for editing a feed subscription.
+type EditFeedSubscriptionRequest struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
-	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
-
-	// Categories is a custom list of categories for an object.
-	Categories []Category `form:"categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
-
-	// ImageURL is a custom image to represent the object.
-	ImageURL string `json:"image_url,omitempty,omitzero" validate:"omitempty,url"`
-
-	// Nickname is an optional alias or label for an object.
-	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero" validate:"required"`
-
-	// ShowFullArticleContent toggles whether articles in the subscription should be always displayed with remote content.
-	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content"`
-
-	// ShowSubscriptionStats indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
-	ShowSubscriptionStats bool `form:"-" json:"-"`
+	ArticleFilters *SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
+	Customisation  *SubscriptionCustomisation  `form:"customisation" json:"customisation,omitempty"`
+	Settings       *SubscriptionSettings       `form:"settings" json:"settings,omitempty"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -346,7 +331,7 @@ type EmailSenderID = string
 // EmailSubscription is a subscription to an email newsletter source.
 type EmailSubscription struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
-	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
+	ArticleFilters *SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
 
 	// ArticleStates contains the states of items marked explicitly as read/unread/saved by the user.
 	ArticleStates map[ItemID]ArticleState `json:"article_states" validate:"required"`
@@ -376,27 +361,27 @@ type FavoriteSubscriptionRequest struct {
 // Feed defines model for Feed.
 type Feed struct {
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
-	Authors []string `json:"authors,omitempty,omitzero"`
+	Authors []string `json:"authors,omitempty"`
 
 	// Categories is a list of categories that define a taxonomy for the feed or item.
-	Categories []Category `json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
+	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
-	Contributors []string `json:"contributors,omitempty,omitzero"`
-	Copyright    string   `json:"copyright,omitempty,omitzero"`
+	Contributors []string `json:"contributors,omitempty"`
+	Copyright    string   `json:"copyright,omitempty"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Description is a short summary or description of the feed or item.
-	Description string `json:"description,omitempty,omitzero"`
+	Description *string `json:"description,omitempty"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// Image is an abstraction of an Image across different types of specifications.
-	Image    externalRef0.ImageInfo `json:"image,omitempty,omitzero" validate:"omitempty"`
-	Language string                 `json:"language,omitempty,omitzero"`
+	Image    *externalRef0.ImageInfo `json:"image,omitempty" validate:"omitempty"`
+	Language string                  `json:"language,omitempty"`
 
 	// LastFetched indicates when an object was last fetched.
 	LastFetched LastFetched `json:"last_fetched,omitempty"`
@@ -417,10 +402,10 @@ type Feed struct {
 	UpdateInterval int64 `json:"update_interval"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated time.Time `json:"updated,omitempty,omitzero"`
+	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
-	URL string `json:"url,omitempty,omitzero" validate:"omitempty,url"`
+	URL string `json:"url,omitempty" validate:"omitempty,url"`
 }
 
 // FeedID is the unique ID of a feed.
@@ -435,7 +420,7 @@ type FeedStatus struct {
 	StatusCode int `json:"status_code"`
 
 	// StatusMessage is a message associated with the status code.
-	StatusMessage string `json:"status_message,omitempty,omitzero"`
+	StatusMessage *string `json:"status_message,omitempty"`
 
 	// Timestamp is when the document was created.
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
@@ -444,7 +429,7 @@ type FeedStatus struct {
 // FeedSubscription represents a feed a user has subscribed to.
 type FeedSubscription struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
-	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
+	ArticleFilters *SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
 
 	// ArticleStates contains the states of items marked explicitly as read/unread/saved by the user.
 	ArticleStates map[ItemID]ArticleState `json:"article_states" validate:"required"`
@@ -468,10 +453,10 @@ type FileDetails struct {
 // FileIndex contains a listing of files in a directory of an embedded FS.
 type FileIndex struct {
 	// Files is a list of details for files.
-	Files []FileDetails `json:"files,omitempty,omitzero" toml:"file"`
+	Files []FileDetails `json:"files,omitempty" toml:"file"`
 
 	// UpdatedAt indicates when the index was last updated.
-	UpdatedAt time.Time `json:"updated_at,omitempty,omitzero" toml:"updated_at"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty" toml:"updated_at"`
 }
 
 // FileUpload represents a file upload by a user.
@@ -486,13 +471,13 @@ type FileUpload struct {
 // GetSubscriptionsSuggestionRequest contains the data for finding matching subscriptions as suggestion results.
 type GetSubscriptionsSuggestionRequest struct {
 	// Text is a string that should match a subscription.
-	Text string `form:"subscription-text" json:"text,omitempty,omitzero"`
+	Text string `form:"subscription-text" json:"text"`
 }
 
 // GroupSubscription represents a subscription that combines other subscriptions.
 type GroupSubscription struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
-	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
+	ArticleFilters *SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
 
 	// Subscriptions is the list of subscription IDs belonging to the group.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
@@ -501,12 +486,12 @@ type GroupSubscription struct {
 // GroupSubscriptionRequest represents a request to create a group subscription.
 type GroupSubscriptionRequest struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
-	ArticleFilters SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
-	Customisation  SubscriptionCustomisation  `form:"customisation" json:"customisation,omitempty,omitzero"`
-	Settings       SubscriptionSettings       `form:"settings" json:"settings,omitempty,omitzero"`
+	ArticleFilters *SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
+	Customisation  *SubscriptionCustomisation  `form:"customisation" json:"customisation,omitempty"`
+	Settings       *SubscriptionSettings       `form:"settings" json:"settings,omitempty"`
 
 	// SubscriptionID will be a subscription ID if the user is editing an existing group subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"-" validate:"omitempty,startswith=sub_"`
+	SubscriptionID *SubscriptionID `form:"subscription_id" json:"-" validate:"omitempty,startswith=sub_"`
 
 	// Subscriptions contains details of the subscriptions in the group.
 	Subscriptions map[SubscriptionID]string `form:"subscriptions" json:"subscriptions" validate:"required"`
@@ -518,7 +503,7 @@ type GroupSubscriptionRequest struct {
 // GroupSubscriptionSuggestionRequest contains details for suggesting a subscription to add to a group.
 type GroupSubscriptionSuggestionRequest struct {
 	// IgnoredSubscriptions contains subscriptions that can be ignored and not suggested.
-	IgnoredSubscriptions map[SubscriptionID]string `form:"subscriptions" json:"ignored_subscriptions,omitempty,omitzero"`
+	IgnoredSubscriptions map[SubscriptionID]string `form:"subscriptions" json:"ignored_subscriptions,omitempty"`
 
 	// Text is the text of a subscription to match for a suggestion.
 	Text string `form:"text" json:"text"`
@@ -526,10 +511,10 @@ type GroupSubscriptionSuggestionRequest struct {
 
 // HomeResponse contains the data for displaying the home page.
 type HomeResponse struct {
-	LatestArticles Articles                   `json:"latest_articles,omitempty,omitzero"`
-	RareCategories CategoryCounts             `json:"rare_categories,omitempty,omitzero"`
-	Subscriptions  Subscriptions              `json:"subscriptions,omitempty,omitzero"`
-	TopCategories  map[CategoryCount]Articles `json:"top_categories,omitempty,omitzero"`
+	LatestArticles Articles                   `json:"latest_articles,omitempty"`
+	RareCategories CategoryCounts             `json:"rare_categories,omitempty"`
+	Subscriptions  Subscriptions              `json:"subscriptions,omitempty"`
+	TopCategories  map[CategoryCount]Articles `json:"top_categories,omitempty"`
 }
 
 // Item defines model for Item.
@@ -538,20 +523,20 @@ type Item struct {
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
-	Authors []string `json:"authors,omitempty,omitzero"`
+	Authors []string `json:"authors,omitempty"`
 
 	// Categories is a list of categories that define a taxonomy for the feed or item.
-	Categories []Category `json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
+	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Content contains the item content.
-	Content string `json:"content,omitempty,omitzero"`
+	Content string `json:"content,omitempty"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
-	Contributors []string `json:"contributors,omitempty,omitzero"`
-	Copyright    string   `json:"copyright,omitempty,omitzero"`
+	Contributors []string `json:"contributors,omitempty"`
+	Copyright    string   `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
-	Description string `json:"description,omitempty,omitzero"`
+	Description *string `json:"description,omitempty"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
@@ -560,11 +545,11 @@ type Item struct {
 	FeedTitle string `json:"feed_title" validate:"required"`
 
 	// Image is an abstraction of an Image across different types of specifications.
-	Image externalRef0.ImageInfo `json:"image,omitempty,omitzero" validate:"omitempty"`
+	Image *externalRef0.ImageInfo `json:"image,omitempty" validate:"omitempty"`
 
 	// ItemID is the unique ID of an item.
 	ItemID   ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
-	Language string `json:"language,omitempty,omitzero"`
+	Language string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -576,10 +561,10 @@ type Item struct {
 	Title string `json:"title"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated time.Time `json:"updated,omitempty,omitzero"`
+	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
-	URL string `json:"url,omitempty,omitzero" validate:"omitempty,url"`
+	URL string `json:"url,omitempty" validate:"omitempty,url"`
 }
 
 // ItemID is the unique ID of an item.
@@ -587,7 +572,7 @@ type ItemID = string
 
 // JobState represents the stored state of a scheduled job.
 type JobState struct {
-	JobData json.RawMessage `json:"job_data,omitempty,omitzero"`
+	JobData json.RawMessage `json:"job_data,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -610,8 +595,8 @@ type ListArticlesResponse struct {
 
 // ListFavoritesResponse contains the data for displaying the favorites page.
 type ListFavoritesResponse struct {
-	Articles      Articles      `json:"articles,omitempty,omitzero"`
-	Subscriptions Subscriptions `json:"subscriptions,omitempty,omitzero"`
+	Articles      Articles      `json:"articles,omitempty"`
+	Subscriptions Subscriptions `json:"subscriptions,omitempty"`
 }
 
 // ListFilters contains filters for altering the display of objects.
@@ -626,31 +611,31 @@ type ListFilters struct {
 	OnlyFavorites bool `form:"only_favorites" json:"only_favorites" validate:"omitempty,boolean"`
 
 	// Sort is how a list of objects is sorted.
-	Sort Sort `form:"sort" json:"sort,omitempty,omitzero" validate:"oneof=newest_first oldest_first most_unread least_unread most_relevant"`
+	Sort Sort `form:"sort" json:"sort" validate:"required,oneof=newest_first oldest_first most_unread least_unread most_relevant"`
 
 	// Subscriptions is a list of subscription IDs.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,dive,startswith=sub_"`
 
 	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"oneof=read unread all"`
+	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
 }
 
 // ListRequest contains the parameters needed for listing subscriptions or articles.
 type ListRequest struct {
 	// Filters contains filters for altering the display of objects.
-	Filters ListFilters `json:"filters,omitempty,omitzero" validate:"required"`
+	Filters ListFilters `json:"filters" validate:"required"`
 
 	// Pagination contains data for paginating through results.
-	Pagination Pagination `form:"pagination" json:"pagination,omitempty,omitzero" validate:"omitempty,url_encoded"`
+	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
 
 	// Query is an additional query to apply for this request.
-	Query query.Option `json:"query,omitempty,omitzero"`
+	Query query.Option `json:"query,omitempty"`
 }
 
 // ListSubscriptionCategoriesRequest contains data for listing categories for a list of subscriptions.
 type ListSubscriptionCategoriesRequest struct {
 	// Subscriptions is a list of subscription IDs.
-	Subscriptions []SubscriptionID `form:"displayed_subscriptions" json:"subscriptions,omitempty,omitzero" validate:"omitempty,dive,startswith=sub_"`
+	Subscriptions []SubscriptionID `form:"displayed_subscriptions" json:"subscriptions,omitempty" validate:"omitempty,dive,startswith=sub_"`
 }
 
 // ListSubscriptionsResponse contains the data retrieved and relevant for listing subscriptions.
@@ -717,33 +702,33 @@ type MarkSubscriptionsRequest struct {
 	Subscriptions []SubscriptionID `form:"displayed_subscriptions" json:"subscriptions" validate:"omitempty,dive,startswith=sub_"`
 
 	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"oneof=read unread all"`
+	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
 }
 
 // MarkdownFile contains the raw markdown file data and its frontmatter.
 type MarkdownFile struct {
-	Content []byte `json:"content,omitempty,omitzero"`
+	Content []byte `json:"content"`
 
 	// Details contains a mapping of a file in an embedded FS to the URL path it is served from.
-	Details FileDetails `json:"details,omitempty,omitzero"`
+	Details FileDetails `json:"details"`
 
 	// Frontmatter contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
-	Frontmatter MarkdownFrontMatter `json:"frontmatter,omitempty,omitzero" toml:"doc_metadata"`
+	Frontmatter MarkdownFrontMatter `json:"frontmatter" toml:"doc_metadata"`
 }
 
 // MarkdownFrontMatter contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
 type MarkdownFrontMatter struct {
 	// CreatedAt is when the post was created.
-	CreatedAt string `json:"created_at,omitempty,omitzero" toml:"created_at"`
+	CreatedAt string `json:"created_at" toml:"created_at"`
 
 	// Description is a description of the document, used in metadata headers of the page.
-	Description string `json:"description,omitempty,omitzero" toml:"description"`
+	Description string `json:"description" toml:"description"`
 
 	// Title is the title to display for the document.
 	Title string `json:"title" toml:"title"`
 
 	// UpdatedAt is when the post was updated.
-	UpdatedAt string `json:"updated_at,omitempty,omitzero" toml:"updated_at"`
+	UpdatedAt *string `json:"updated_at,omitempty" toml:"updated_at"`
 }
 
 // Nickname is an optional friendly name.
@@ -752,21 +737,21 @@ type Nickname = string
 // ObjectCommon contains common fields across objects.
 type ObjectCommon struct {
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
-	Authors []string `json:"authors,omitempty,omitzero"`
+	Authors []string `json:"authors,omitempty"`
 
 	// Categories is a list of categories that define a taxonomy for the feed or item.
-	Categories []Category `json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
+	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
-	Contributors []string `json:"contributors,omitempty,omitzero"`
-	Copyright    string   `json:"copyright,omitempty,omitzero"`
+	Contributors []string `json:"contributors,omitempty"`
+	Copyright    string   `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
-	Description string `json:"description,omitempty,omitzero"`
+	Description *string `json:"description,omitempty"`
 
 	// Image is an abstraction of an Image across different types of specifications.
-	Image    externalRef0.ImageInfo `json:"image,omitempty,omitzero" validate:"omitempty"`
-	Language string                 `json:"language,omitempty,omitzero"`
+	Image    *externalRef0.ImageInfo `json:"image,omitempty" validate:"omitempty"`
+	Language string                  `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
@@ -778,10 +763,10 @@ type ObjectCommon struct {
 	Title string `json:"title"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated time.Time `json:"updated,omitempty,omitzero"`
+	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
-	URL string `json:"url,omitempty,omitzero" validate:"omitempty,url"`
+	URL string `json:"url,omitempty" validate:"omitempty,url"`
 }
 
 // ObjectID represents an ID of any user-facing object.
@@ -813,76 +798,76 @@ type RemoveSubscriptionRequest struct {
 // ReportIssueRequest contains details about an issue with the service.
 type ReportIssueRequest struct {
 	// Details is the user-submitted text about the issue.
-	Details string `form:"details" json:"details,omitempty,omitzero"`
+	Details *string `form:"details" json:"details,omitempty"`
 
 	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"required,url"`
+	PageUrl string `form:"page_url" json:"page_url" validate:"required,url"`
 
 	// ScreenshotURL is a URL to a screenshot the user has uploaded that is related to or showing the problem.
-	ScreenshotURL string `form:"-" json:"screenshot_url,omitempty,omitzero" validate:"omitempty,url"`
+	ScreenshotURL *string `form:"-" json:"screenshot_url,omitempty" validate:"omitempty,url"`
 
 	// UserEmail is the email address the user has entered for getting in touch about the issue.
-	UserEmail string `form:"user_email" json:"user_email,omitempty,omitzero" validate:"required,email"`
+	UserEmail string `form:"user_email" json:"user_email" validate:"required,email"`
 }
 
 // ReportObjectIssueRequest defines model for ReportObjectIssueRequest.
 type ReportObjectIssueRequest struct {
 	// Details is the user-submitted text about the issue.
-	Details string `form:"details" json:"details,omitempty,omitzero"`
+	Details *string `form:"details" json:"details,omitempty"`
 
 	// Duplicate indicates that the object has a duplicate.
-	Duplicate bool `form:"duplicate" json:"duplicate,omitempty,omitzero"`
+	Duplicate bool `form:"duplicate" json:"duplicate"`
 
 	// ObjectID represents an ID of any user-facing object.
 	ObjectID ObjectID `form:"id" json:"id" validate:"required,startswith=sub_|startswith=item_"`
 
 	// MangledContent indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
-	MangledContent bool `form:"mangled_content" json:"mangled_content,omitempty,omitzero"`
+	MangledContent bool `form:"mangled_content" json:"mangled_content"`
 
 	// MissingImage indicates the object is expected to have an image, but it is missing.
-	MissingImage bool `form:"missing_image" json:"missing_image,omitempty,omitzero"`
+	MissingImage bool `form:"missing_image" json:"missing_image"`
 
 	// Object represents the type of any user-facing object.
 	Object ObjectType `form:"object" json:"object" validate:"required,oneof=subscription article"`
 
 	// PageUrl is the URL of the page on which the user selected the report issue action.
-	PageUrl string `form:"page_url" json:"page_url,omitempty,omitzero" validate:"required,url"`
+	PageUrl string `form:"page_url" json:"page_url" validate:"required,url"`
 
 	// ScreenshotURL is a URL to a screenshot the user has uploaded that is related to or showing the problem.
-	ScreenshotURL string `form:"-" json:"screenshot_url,omitempty,omitzero" validate:"omitempty,url"`
+	ScreenshotURL *string `form:"-" json:"screenshot_url,omitempty" validate:"omitempty,url"`
 
 	// UserEmail is the email address the user has entered for getting in touch about the issue.
-	UserEmail string `form:"user_email" json:"user_email,omitempty,omitzero" validate:"required,email"`
+	UserEmail string `form:"user_email" json:"user_email" validate:"required,email"`
 }
 
 // SearchRequest represents a search request by the user.
 type SearchRequest struct {
 	// Authors a list of search terms for authors.
-	Authors string `form:"authors" json:"authors,omitempty,omitzero"`
+	Authors *string `form:"authors" json:"authors,omitempty"`
 
 	// Categories a list of search terms for categories.
-	Categories string `form:"categories" json:"categories,omitempty,omitzero"`
+	Categories *string `form:"categories" json:"categories,omitempty"`
 
 	// PublishedWithin represents a time range within which the objects should be published
 	PublishedWithin SearchRequestPublishedWithin `form:"published_within" json:"published_within" validate:"required,oneof=all_time last_hour last_12hours last_day last_week last_month"`
 
 	// Sort is how a list of objects is sorted.
-	Sort Sort `form:"sort" json:"sort,omitempty,omitzero" validate:"oneof=newest_first oldest_first most_unread least_unread most_relevant"`
+	Sort Sort `form:"sort" json:"sort" validate:"required,oneof=newest_first oldest_first most_unread least_unread most_relevant"`
 
 	// SubscriptionID will be a subscription ID if the user has created a SearchSubscription for this request.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id,omitempty,omitzero" validate:"omitzero,startswith=sub_"`
+	SubscriptionID *SubscriptionID `form:"subscription_id" json:"subscription_id,omitempty" validate:"omitzero,startswith=sub_"`
 
 	// Subscriptions is a list of subscription IDs.
-	Subscriptions []string `form:"subscriptions" json:"subscriptions,omitempty,omitzero" validate:"omitempty,unique,dive,startswith=sub_"`
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions,omitempty" validate:"omitempty,unique,dive,startswith=sub_"`
 
 	// Text is the text to search.
-	Text string `form:"text" json:"text,omitempty,omitzero" validate:"omitempty,required"`
+	Text string `form:"text" json:"text" validate:"omitempty,required"`
 
 	// Timezone represents the timezone of the browser (i.e., user), used for calculating published_within offset.
 	Timezone string `form:"timezone" json:"timezone" validate:"required,timezone"`
 
 	// View The state of objects to view.
-	View View `form:"view" json:"view,omitempty,omitzero" validate:"oneof=read unread all"`
+	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
 }
 
 // SearchRequestPublishedWithin represents a time range within which the objects should be published
@@ -890,17 +875,17 @@ type SearchRequestPublishedWithin string
 
 // SearchResults contains the results of a search.
 type SearchResults struct {
-	Articles Articles `json:"articles,omitempty,omitzero"`
+	Articles Articles `json:"articles,omitempty"`
 
 	// Categories is a list of categories.
 	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
 
 	// Pagination contains data for paginating through results.
-	Pagination Pagination `form:"pagination" json:"pagination,omitempty,omitzero" validate:"omitempty,url_encoded"`
+	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
 
 	// Search represents a search request by the user.
 	Search        SearchRequest `json:"search" validate:"required"`
-	Subscriptions Subscriptions `json:"subscriptions,omitempty,omitzero"`
+	Subscriptions Subscriptions `json:"subscriptions,omitempty"`
 }
 
 // SearchSubscription is a custom subscription created from a search request.
@@ -911,9 +896,9 @@ type SearchSubscription struct {
 
 // SearchSubscriptionRequest represents a request to create a search subscription.
 type SearchSubscriptionRequest struct {
-	Customisation SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty,omitzero"`
-	Search        SearchRequest             `form:"search" json:"search"`
-	Settings      SubscriptionSettings      `form:"settings" json:"settings,omitempty,omitzero"`
+	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
+	Search        SearchRequest              `form:"search" json:"search"`
+	Settings      *SubscriptionSettings      `form:"settings" json:"settings,omitempty"`
 }
 
 // ShareArticleRequest contains parameters for sharing an article.
@@ -948,7 +933,7 @@ type Subscription struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Customisation contains object fields that can be customised (overridden) by a user
-	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
+	Customisation *SubscriptionCustomisation `json:"customisation,omitempty"`
 
 	// EmailData is a subscription to an email newsletter source.
 	EmailData *EmailSubscription `json:"email_data,omitempty" validate:"omitempty"`
@@ -963,16 +948,16 @@ type Subscription struct {
 	GroupData *GroupSubscription `json:"group_data,omitempty" validate:"omitempty"`
 
 	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
-	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
+	MarkedReadAt *time.Time `json:"marked_read_at,omitempty"`
 
 	// SearchData is a custom subscription created from a search request.
 	SearchData *SearchSubscription `json:"search_data,omitempty" validate:"omitempty"`
 
 	// Settings contains options that control how the subscription is stored/displayed.
-	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
+	Settings SubscriptionSettings `json:"settings"`
 
 	// Stats contains stats about a subscription.
-	Stats SubscriptionStats `json:"-" validate:"-"`
+	Stats *SubscriptionStats `json:"-" validate:"-"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -981,7 +966,7 @@ type Subscription struct {
 	Type SubscriptionType `json:"type" validate:"required,oneof=feed search group email"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
 	// UserID is the unique ID of a user.
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
@@ -993,25 +978,25 @@ type SubscriptionType string
 // SubscriptionArticleFilters holds filters to apply to the articles within a subscription.
 type SubscriptionArticleFilters struct {
 	// Authors is the author filters to apply.
-	Authors string `form:"authors" json:"authors,omitempty,omitzero"`
+	Authors *string `form:"authors" json:"authors,omitempty"`
 
 	// Categories is the category filters to apply.
-	Categories string `form:"categories" json:"categories,omitempty,omitzero"`
+	Categories *string `form:"categories" json:"categories,omitempty"`
 
 	// Text is the filters on the title/content to apply.
-	Text string `form:"text" json:"text,omitempty,omitzero"`
+	Text *string `form:"text" json:"text,omitempty"`
 }
 
 // SubscriptionCustomisation contains object fields that can be customised (overridden) by a user
 type SubscriptionCustomisation struct {
 	// Categories is a custom list of categories for an object.
-	Categories []Category `form:"categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
+	Categories []Category `form:"categories" json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// ImageURL is a custom image to represent the object.
-	ImageURL string `json:"image_url,omitempty,omitzero" validate:"omitempty,url"`
+	ImageURL *string `json:"image_url,omitempty" validate:"omitempty,url"`
 
 	// Nickname is an optional alias or label for an object.
-	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero" validate:"required"`
+	Nickname string `form:"nickname" json:"nickname,omitempty" validate:"required"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
@@ -1023,16 +1008,16 @@ type SubscriptionMetadata struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Customisation contains object fields that can be customised (overridden) by a user
-	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
+	Customisation *SubscriptionCustomisation `json:"customisation,omitempty"`
 
 	// Favorite indicates whether this subscription has been marked as a favorite by the user.
 	Favorite bool `json:"favorite"`
 
 	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
-	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
+	MarkedReadAt *time.Time `json:"marked_read_at,omitempty"`
 
 	// Settings contains options that control how the subscription is stored/displayed.
-	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
+	Settings SubscriptionSettings `json:"settings"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -1041,7 +1026,7 @@ type SubscriptionMetadata struct {
 	Type SubscriptionMetadataType `json:"type" validate:"required,oneof=feed search group email"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
 	// UserID is the unique ID of a user.
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
@@ -1054,9 +1039,6 @@ type SubscriptionMetadataType string
 type SubscriptionSettings struct {
 	// ShowFullArticleContent toggles whether articles in the subscription should be always displayed with remote content.
 	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content"`
-
-	// ShowSubscriptionStats indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
-	ShowSubscriptionStats bool `form:"-" json:"-"`
 }
 
 // SubscriptionStats contains stats about a subscription.
@@ -1083,34 +1065,34 @@ type UpdatedAt = time.Time
 // User defines model for User.
 type User struct {
 	// AvatarURL is a link to an image file to user as an avatar for the user.
-	AvatarURL string `form:"avatar_url" json:"avatar_url,omitempty,omitzero" validate:"omitempty,url"`
+	AvatarURL *string `form:"avatar_url" json:"avatar_url,omitempty" validate:"omitempty,url"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Email is the email address of the user.
-	Email string `form:"email" json:"email,omitempty,omitzero" validate:"omitempty,email"`
+	Email *string `form:"email" json:"email,omitempty" validate:"omitempty,email"`
 
 	// ExternalUserID is the ID of the user on the external backend that was used to create the account.
 	ExternalUserID string `json:"external_user_id" validate:"required"`
 
 	// ItemFavorites is the IDs of items (articles) the user has favorited.
-	ItemFavorites []ItemID `json:"item_favorites,omitempty,omitzero" validate:"omitempty,dive,startswith=item_"`
+	ItemFavorites []ItemID `json:"item_favorites,omitempty" validate:"omitempty,dive,startswith=item_"`
 
 	// Metadata contains metadata related to the user's account.
-	Metadata UserMetadata `json:"metadata,omitempty,omitzero" validate:"omitempty"`
+	Metadata UserMetadata `json:"metadata" validate:"omitempty"`
 
 	// Nickname is a nickname for the user.
-	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero"`
+	Nickname *string `form:"nickname" json:"nickname,omitempty"`
 
 	// Provider is the backend provider that was used to create the account.
 	Provider string `json:"provider" validate:"required"`
 
 	// Settings contains user-specific settings for the application.
-	Settings UserSettings `json:"settings,omitempty,omitzero"`
+	Settings UserSettings `json:"settings"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
 	// UserID is the unique ID of a user.
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
@@ -1119,13 +1101,13 @@ type User struct {
 // UserCustomisation contains account fields that a user can customize.
 type UserCustomisation struct {
 	// AvatarURL is a link to an image file to user as an avatar for the user.
-	AvatarURL string `form:"avatar_url" json:"avatar_url,omitempty,omitzero" validate:"omitempty,url"`
+	AvatarURL *string `form:"avatar_url" json:"avatar_url,omitempty" validate:"omitempty,url"`
 
 	// Email is the email address of the user.
-	Email string `form:"email" json:"email,omitempty,omitzero" validate:"omitempty,email"`
+	Email *string `form:"email" json:"email,omitempty" validate:"omitempty,email"`
 
 	// Nickname is a nickname for the user.
-	Nickname string `form:"nickname" json:"nickname,omitempty,omitzero"`
+	Nickname *string `form:"nickname" json:"nickname,omitempty"`
 }
 
 // UserID is the unique ID of a user.
@@ -1134,7 +1116,7 @@ type UserID = string
 // UserMessage represents a message that can be displayed to the user as the result of an action.
 type UserMessage struct {
 	// Details is a longer description and/or background details about the message.
-	Details string `json:"details,omitempty,omitzero"`
+	Details *string `json:"details,omitempty"`
 
 	// Status indicates the severity or importance of the message.
 	Status UserMessageStatus `json:"status" validate:"required"`
@@ -1152,34 +1134,34 @@ type UserMetadata struct {
 	Blocked bool `json:"blocked"`
 
 	// CancelAt is a date in the future at which the subscription will automatically get canceled.
-	CancelAt time.Time `json:"cancel_at,omitempty,omitzero"`
+	CancelAt *time.Time `json:"cancel_at,omitempty"`
 
 	// Plan is the name of the subscription plan that the user is paying for.
 	// Possible values will come from the product defined in Stripe.
-	Plan string `json:"plan,omitempty,omitzero" validate:"required"`
+	Plan *string `json:"plan,omitempty" validate:"required"`
 
 	// PlanID is the unique identifier for the plan.
 	// Possible values will come from the product defined in Stripe.
-	PlanID string `json:"plan_id,omitempty,omitzero" validate:"required"`
+	PlanID *string `json:"plan_id,omitempty" validate:"required"`
 
 	// PlanStatus is the name current status of the subscription plan.
 	// Possible values come directly from the Stripe API:
 	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-status
-	PlanStatus stripe.SubscriptionStatus `json:"plan_status,omitempty,omitzero" validate:"required"`
+	PlanStatus *stripe.SubscriptionStatus `json:"plan_status,omitempty" validate:"required"`
 
 	// PoliciesAccepted indicates whether the user has accepted the app policies.
 	PoliciesAccepted bool `json:"policies_accepted" validate:"required"`
 
 	// StripeCustomerID is the stripe customer id of the user.
 	// https://docs.stripe.com/api/customers/object?api-version=2025-11-17.preview#customer_object-id
-	StripeCustomerID string `json:"stripe_customer_id,omitempty,omitzero" validate:"required"`
+	StripeCustomerID *string `json:"stripe_customer_id,omitempty" validate:"required"`
 
 	// StripeSubscriptionID is the stripe subscription id of the user's plan.
 	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-id
-	StripeSubscriptionID string `json:"stripe_subscription_id,omitempty,omitzero" validate:"required"`
+	StripeSubscriptionID *string `json:"stripe_subscription_id,omitempty" validate:"required"`
 
 	// TrialEnd is the date when the trial for the subscription ended.
-	TrialEnd time.Time `json:"trial_end,omitempty,omitzero"`
+	TrialEnd *time.Time `json:"trial_end,omitempty"`
 }
 
 // UserSession tracks a user session.
@@ -1200,7 +1182,7 @@ type UserSettings struct {
 	MarkArticleReadOnView bool `form:"mark_article_read_on_view" json:"mark_article_read_on_view"`
 
 	// MaxViewHistory is a user-specified limit on how far back in time to view articles.
-	MaxViewHistory time.Duration `form:"max_view_history" json:"max_view_history,omitempty,omitzero" validate:"gte=0"`
+	MaxViewHistory time.Duration `form:"max_view_history" json:"max_view_history" validate:"gte=0"`
 
 	// ShowOnboarding indicates whether to show onboarding information (i.e., for a new user).
 	ShowOnboarding bool `form:"-" json:"show_onboarding"`
@@ -1209,26 +1191,14 @@ type UserSettings struct {
 	ShowSubscriptionStats bool `form:"show_subscription_stats" json:"show_subscription_stats"`
 
 	// SubscriptionEmail is an email address the user can use to subscribe to email newsletters.
-	SubscriptionEmail string `form:"subscription_email" json:"subscription_email,omitempty,omitzero" validate:"omitempty,email"`
+	SubscriptionEmail *string `form:"subscription_email" json:"subscription_email,omitempty" validate:"omitempty,email"`
 
 	// Theme the user interface theme chosen by the user.
-	Theme string `form:"-" json:"theme,omitempty,omitzero"`
+	Theme string `form:"-" json:"theme"`
 
 	// UpdatesInterval is the interval on which to check for new updates.
-	UpdatesInterval time.Duration `form:"update_interval" json:"updates_interval,omitempty,omitzero" validate:"gte=0"`
+	UpdatesInterval time.Duration `form:"update_interval" json:"updates_interval" validate:"gte=0"`
 }
 
 // View The state of objects to view.
 type View string
-
-// ViewComponent contains data related to a particular view.
-type ViewComponent struct {
-	// Component is the template that will be rendered in the view.
-	Component templ.Component `json:"component,omitempty,omitzero"`
-
-	// URL is the URL where the view component is used.
-	URL *url.URL `json:"url,omitempty,omitzero"`
-
-	// User is a user of the application.
-	User User `json:"user,omitempty,omitzero"`
-}

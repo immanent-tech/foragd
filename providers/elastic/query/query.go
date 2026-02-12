@@ -273,16 +273,16 @@ func NumberRange(field string, options ...NumberRangeOption) Option {
 // SimpleQueryString constructs a simple query string query and adds it to the query.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-simple-query-string-query
-func SimpleQueryString(text, flags string, fields ...string) Option {
+func SimpleQueryString(text *string, flags string, fields ...string) Option {
 	return func(query *types.Query) {
 		// Don't add the query if the text is the zero value.
-		if text == "" {
+		if text == nil || *text == "" {
 			return
 		}
 		name := "simple-query-string-" + strings.Join(fields, "+")
 		query.SimpleQueryString = types.NewSimpleQueryStringQuery()
 		query.SimpleQueryString.Fields = fields
-		query.SimpleQueryString.Query = text
+		query.SimpleQueryString.Query = *text
 		query.SimpleQueryString.QueryName_ = &name
 		if flags != "" {
 			query.SimpleQueryString.Flags = flags

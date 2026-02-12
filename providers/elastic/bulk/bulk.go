@@ -83,7 +83,10 @@ func (r *Request) AddOperation(operation Operation) error {
 				operation.document,
 			)
 		} else {
-			err = r.CreateOp(types.CreateOperation{Index_: &operation.index, RequireAlias: &requireIndexAlias}, operation.document)
+			err = r.CreateOp(
+				types.CreateOperation{Index_: &operation.index, RequireAlias: &requireIndexAlias},
+				operation.document,
+			)
 		}
 	case BulkUpdate:
 		// If there is an update operation, trigger a refresh.

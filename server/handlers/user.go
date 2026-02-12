@@ -240,7 +240,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 			avatarCache.Set(req.Context(), avatarFileID, avatarData)
 			// Construct a new full URL to the uploaded avatar on the local server.
 			baseURL := os.Getenv("FORAGD_BASEURL")
-			request.AvatarURL = baseURL + "/img/avatar/" + avatarFileID
+			request.AvatarURL = new(baseURL + "/img/avatar/" + avatarFileID)
 		}
 
 		// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
@@ -733,10 +733,10 @@ func HandleGenerateSubscriptionEmail() http.HandlerFunc {
 		}
 
 		settings := user.GetSettings()
-		settings.SubscriptionEmail = "foragd_user_" + strconv.FormatUint(
+		settings.SubscriptionEmail = new("foragd_user_" + strconv.FormatUint(
 			xxhash.Sum64String(user.GetID()+user.GetNickname()),
 			10,
-		) + "@foragd.app"
+		) + "@foragd.app")
 
 		if err := models.UpdateUser(req.Context(), user.GetID(), map[string]any{"settings": settings}); err != nil {
 			HandleInternalError(&models.APIError{
@@ -751,7 +751,7 @@ func HandleGenerateSubscriptionEmail() http.HandlerFunc {
 		}
 
 		RenderPartial(&PartialTemplate{
-			template: templates.ShowSubscriptionEmail(settings.SubscriptionEmail),
+			template: templates.ShowSubscriptionEmail(*settings.SubscriptionEmail),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
 }

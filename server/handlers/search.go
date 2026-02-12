@@ -106,7 +106,7 @@ func HandleSearchSuggestions() http.HandlerFunc {
 				searchOption,
 				defaultArticleSuggestionsCount,
 				&sort,
-				"",
+				nil,
 			)
 			if err != nil {
 				slogctx.FromCtx(jobCtx).Debug("Unable to search articles.",
@@ -256,7 +256,7 @@ func HandleSearchResults() http.HandlerFunc {
 				searchQuery,
 				defaultArticleResultsCount,
 				&search.Sort,
-				pagination,
+				&pagination,
 			)
 			if err != nil {
 				return fmt.Errorf("search articles: %w", err)
@@ -329,7 +329,7 @@ func HandleSearchResults() http.HandlerFunc {
 				Search:     *search,
 				Articles:   articles,
 				Categories: categories,
-				Pagination: pagination,
+				Pagination: &pagination,
 			},
 		}).ServeHTTP(res, req)
 	}).ServeHTTP

@@ -137,7 +137,7 @@ func CancelSubscription(user *models.User) error {
 	}
 
 	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(true)}
-	_, err = subscription.Update(user.Metadata.StripeSubscriptionID, params)
+	_, err = subscription.Update(*user.Metadata.StripeSubscriptionID, params)
 	if err != nil {
 		return fmt.Errorf("update subscription cancel period: %w", err)
 	}
@@ -155,7 +155,7 @@ func StopPendingCancellation(user *models.User) error {
 	}
 
 	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(false)}
-	_, err = subscription.Update(user.Metadata.StripeSubscriptionID, params)
+	_, err = subscription.Update(*user.Metadata.StripeSubscriptionID, params)
 	if err != nil {
 		return fmt.Errorf("stop pending subscription cancellation: %w", err)
 	}
@@ -292,8 +292,8 @@ func handleSubscriptionDeleted(ctx context.Context, subscription stripe.Subscrip
 
 	// Update subscription plan status.
 	metadata := user.Metadata
-	metadata.PlanStatus = subscription.Status
-	metadata.CancelAt = time.Unix(subscription.CancelAt, 0)
+	metadata.PlanStatus = new(subscription.Status)
+	metadata.CancelAt = new(time.Unix(subscription.CancelAt, 0))
 
 	// Update the user object with the new metadata.
 	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
@@ -326,11 +326,11 @@ func handleSubscriptionUpdated(ctx context.Context, subscription stripe.Subscrip
 
 	// Set base metadata
 	metadata := models.UserMetadata{
-		Plan:                 prod.Name,
-		PlanStatus:           subscription.Status,
-		PlanID:               prod.ID,
-		StripeSubscriptionID: subscription.ID,
-		CancelAt:             time.Unix(subscription.CancelAt, 0),
+		Plan:                 &prod.Name,
+		PlanStatus:           &subscription.Status,
+		PlanID:               &prod.ID,
+		StripeSubscriptionID: &subscription.ID,
+		CancelAt:             new(time.Unix(subscription.CancelAt, 0)),
 	}
 
 	// Update the user object with the new metadata.
@@ -364,12 +364,12 @@ func handleSubscriptionCreated(ctx context.Context, subscription stripe.Subscrip
 
 	// Set base metadata
 	metadata := models.UserMetadata{
-		Plan:                 prod.Name,
-		PlanStatus:           subscription.Status,
-		PlanID:               prod.ID,
-		TrialEnd:             time.Unix(subscription.TrialEnd, 0),
-		StripeCustomerID:     subscription.Customer.ID,
-		StripeSubscriptionID: subscription.ID,
+		Plan:                 &prod.Name,
+		PlanStatus:           &subscription.Status,
+		PlanID:               &prod.ID,
+		TrialEnd:             new(time.Unix(subscription.TrialEnd, 0)),
+		StripeCustomerID:     &subscription.Customer.ID,
+		StripeSubscriptionID: &subscription.ID,
 	}
 
 	// Update the user object with the new metadata.

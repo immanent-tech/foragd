@@ -97,7 +97,7 @@ func SearchItems(
 	query query.Option,
 	count int,
 	sort *Sort,
-	pagination Pagination,
+	pagination *Pagination,
 ) (Items, Pagination, error) {
 	searchAfter, err := elastic.DecodePagination(pagination)
 	if err != nil {
@@ -274,7 +274,10 @@ func (i *Item) GetTitle() string {
 
 // GetDescription returns the summary of the item content, if any.
 func (i *Item) GetDescription() string {
-	return i.Description
+	if i.Description != nil {
+		return *i.Description
+	}
+	return ""
 }
 
 // GetAuthors returns a slice of the item's authors, if any.
@@ -295,7 +298,7 @@ func (i *Item) GetCategories() []string {
 
 // GetImage returns an image that can represent the item, if any.
 func (i *Item) GetImage() *types.ImageInfo {
-	return &i.Image
+	return i.Image
 }
 
 // GetLanguage returns the language of the item, if set.
@@ -347,7 +350,7 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		Published:    source.GetPublishedDate().UTC(),
 		Updated:      source.GetUpdatedDate().UTC(),
 		Title:        source.GetTitle(),
-		Description:  source.GetDescription(),
+		Description:  new(source.GetDescription()),
 		SourceType:   feed.SourceType,
 		URL:          source.GetLink(),
 		Authors:      source.GetAuthors(),
@@ -360,7 +363,7 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 	}
 
 	if source.GetImage() != nil {
-		item.Image = *source.GetImage()
+		item.Image = source.GetImage()
 	}
 
 	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.

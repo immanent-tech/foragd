@@ -38,7 +38,7 @@ func GetArticles(ctx context.Context, itemIDs ...ItemID) (Articles, error) {
 			query.Terms("item_id", itemIDs...),
 		),
 	)
-	items, _, err := SearchItems(ctx, query, len(itemIDs), nil, "")
+	items, _, err := SearchItems(ctx, query, len(itemIDs), nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("get articles failed: %w", err)
 	}
@@ -140,7 +140,7 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...ItemID) (Art
 	)
 	// Query for similar articles.
 	sort := SortMostRelevant
-	items, _, err := SearchItems(ctx, similarQuery, count, &sort, "")
+	items, _, err := SearchItems(ctx, similarQuery, count, &sort, nil)
 	if err != nil {
 		return nil, fmt.Errorf("unable to find similar articles: %w", err)
 	}
@@ -194,8 +194,8 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 		// Add any appropriate feed customisation data.
 		article.Item.FeedTitle = subscription.GetTitle()
 		// 	Update read status.
-		if item.GetTimestamp().Before(subscription.MarkedReadAt) {
-			article.State.MarkRead(subscription.MarkedReadAt)
+		if item.GetTimestamp().Before(subscription.GetMarkedReadAt()) {
+			article.State.MarkRead(subscription.GetMarkedReadAt())
 		}
 		// Toggle showing remote article content.
 		article.ShowFullContent = subscription.Settings.ShowFullArticleContent
@@ -364,8 +364,8 @@ func (a *Article) GetDescription() string {
 // requested), the "content" field of the item (if not empty), or the description (if any).
 func (a *Article) GetContent() string {
 	switch {
-	case a.ShowFullContent:
-		return a.Content
+	case a.ShowFullContent && a.Content != nil:
+		return *a.Content
 	case a.Item.GetContent() != "":
 		return a.Item.GetContent()
 	default:

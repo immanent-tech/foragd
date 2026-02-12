@@ -43,10 +43,10 @@ func CreateUser(ctx context.Context, externalID, email string) (*User, error) {
 	ts := time.Now().UTC()
 	user := &User{
 		CreatedAt:      ts,
-		UpdatedAt:      ts,
+		UpdatedAt:      &ts,
 		ExternalUserID: externalID,
 		Provider:       strings.Split(externalID, "|")[0],
-		Email:          email,
+		Email:          &email,
 		UserID:         "user_" + strconv.FormatUint(xxhash.Sum64String(externalID), 10),
 		Settings: UserSettings{
 			Theme:                 DefaultUserTheme,
@@ -144,17 +144,26 @@ func (u *User) GetExternalID() UserID {
 
 // GetAvatar retrieves the URL to the image to represent the user.
 func (u *User) GetAvatar() string {
-	return u.AvatarURL
+	if u.AvatarURL != nil {
+		return *u.AvatarURL
+	}
+	return ""
 }
 
 // GetNickname retrieves the nickname of the user.
 func (u *User) GetNickname() string {
-	return u.Nickname
+	if u.Nickname != nil {
+		return *u.Nickname
+	}
+	return ""
 }
 
 // GetEmail retrieves the email of the user.
 func (u *User) GetEmail() string {
-	return u.Email
+	if u.Email != nil {
+		return *u.Email
+	}
+	return ""
 }
 
 // GetMaxHistory returns a timestamp in the past from which the user can view items. If there is an issue retrieving and
@@ -179,8 +188,10 @@ func (u *User) GetUpdatesFrequency() time.Duration {
 // OnTrial returns a boolean indicating whether the user is currently in a trial period and if so, a timestamp
 // indicating when the trial will end.
 func (u *User) OnTrial() (bool, time.Time) {
-	if u.Metadata.PlanStatus == stripe.SubscriptionStatusTrialing {
-		return true, u.Metadata.TrialEnd
+	if u.Metadata.PlanStatus != nil {
+		if *u.Metadata.PlanStatus == stripe.SubscriptionStatusTrialing {
+			return true, *u.Metadata.TrialEnd
+		}
 	}
 	return false, time.Time{}
 }
@@ -188,8 +199,15 @@ func (u *User) OnTrial() (bool, time.Time) {
 // Cancelled returns a boolean indicating whether the user has cancelled their subscription plan and if so, a timestamp
 // indicating when the cancellation will apply.
 func (u *User) Cancelled() (bool, time.Time) {
-	if u.Metadata.PlanStatus == stripe.SubscriptionStatusCanceled || u.Metadata.CancelAt.After(time.Now().UTC()) {
-		return true, u.Metadata.CancelAt
+	if u.Metadata.PlanStatus != nil {
+		if *u.Metadata.PlanStatus == stripe.SubscriptionStatusCanceled {
+			if u.Metadata.CancelAt == nil {
+				return true, time.Now().UTC()
+			}
+			if u.Metadata.CancelAt.After(time.Now().UTC()) {
+				return true, *u.Metadata.CancelAt
+			}
+		}
 	}
 	return false, time.Time{}
 }
@@ -210,19 +228,16 @@ func (u *User) Active() bool {
 
 // GetSubscriptionPlan returns the name of the subscription plan of the user.
 func (u *User) GetSubscriptionPlan() string {
-	return u.Metadata.Plan
+	if u.Metadata.Plan != nil {
+		return *u.Metadata.Plan
+	}
+	return ""
 }
 
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be
 // returned.
 func (u *User) GetSettings() *UserSettings {
 	return &u.Settings
-}
-
-// GetPlan returns the subscription level the user has paid for. If this is missing, it defaults to the
-// lowest level (gatherer) subscription.
-func (u *User) GetPlan() string {
-	return u.Metadata.Plan
 }
 
 // Valid returns a boolean indicating if the UserSettings contains valid data (true). If it contains invalid data
@@ -273,7 +288,10 @@ func (s *EditUserRequest) Valid() error {
 
 // Sanitise will sanitise the user input for a SubscriptionCustomisation.
 func (s *EditUserRequest) Sanitise() error {
-	s.Nickname = validation.SanitizeString(s.Nickname)
+	if s.Nickname != nil {
+		cleanNickname := validation.SanitizeString(*s.Nickname)
+		s.Nickname = &cleanNickname
+	}
 	return nil
 }
 

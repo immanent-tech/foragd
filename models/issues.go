@@ -22,7 +22,10 @@ func (i *ReportObjectIssueRequest) Valid() error {
 }
 
 func (i *ReportObjectIssueRequest) Sanitise() error {
-	i.Details = validation.SanitizeString(i.Details)
+	if i.Details != nil {
+		cleanDetails := validation.SanitizeString(*i.Details)
+		i.Details = &cleanDetails
+	}
 	return nil
 }
 
@@ -34,6 +37,9 @@ func (i *ReportIssueRequest) Valid() error {
 }
 
 func (i *ReportIssueRequest) Sanitise() error {
-	i.Details = validation.SanitizeString(i.Details)
+	if i.Details != nil {
+		cleanDetails := validation.SanitizeString(*i.Details)
+		i.Details = &cleanDetails
+	}
 	return nil
 }

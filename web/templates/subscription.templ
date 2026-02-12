@@ -68,7 +68,7 @@ func (s *Subscription) ViewArticlesAttributes() templ.Attributes {
 		attrs["hx-get"] = "/list/articles"
 	case models.SubscriptionTypeSearch:
 		attrs["hx-post"] = "/search"
-		s.SearchData.Search.SubscriptionID = s.GetID()
+		s.SearchData.Search.SubscriptionID = new(s.GetID())
 		attrs["hx-vals"] = s.SearchData.Search.HXVals()
 	}
 	return attrs
@@ -123,7 +123,17 @@ templ (s *Subscription) Card() {
 		<div class="card-body">
 			<div class="card-title flex items-center">
 				<div class="mr-4 shrink-0 self-center">
-					@subscriptionThumbnail(s.Subscription.GetImage(), s.Subscription.GetTitle())
+					if s.GetImage() == "" {
+						@subscriptionThumbnail(nil, s.GetTitle())
+					} else {
+						@subscriptionThumbnail(
+							&types.ImageInfo{
+								URL:   s.GetImage(),
+								Title: s.GetTitle(),
+							},
+							s.GetTitle(),
+						)
+					}
 				</div>
 				<div class="text-pretty line-clamp-3 tracking-tight">{ s.Subscription.GetTitle() }</div>
 			</div>
@@ -158,7 +168,7 @@ templ (s *Subscription) Card() {
 				</div>
 				// Show stats if user requested.
 				<div class="label inline-grid grid-flow-row text-xs justify-items-start">
-					if s.Subscription.Settings.ShowSubscriptionStats {
+					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
 						if s.Subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
 							<span class="col-span-full justify-start">
 								{ s.Subscription.GetStats().UpdateFrequency() }
@@ -439,19 +449,19 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	}
 }
 
-templ EditSubscription(request *models.EditSubscriptionRequest) {
+templ EditSubscription(request *models.EditFeedSubscriptionRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
 					@partials.Heading2() {
-						{ "Editing " + request.Nickname }
+						{ "Editing " + request.Customisation.Nickname }
 					}
 				</div>
 				<div class="space-y-8">
 					<form
 						id="edit-subscription"
-						hx-post={ "/edit/subscription/" + request.GetID() }
+						hx-post={ "/edit/subscription/" + request.SubscriptionID }
 						hx-include="#current-categories"
 						hx-swap="none"
 						hx-indicator="#processing"
@@ -460,9 +470,22 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 						<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
 						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
 						// Nickname.
-						@subscriptionNicknameField(request.GetNickname())
+						@subscriptionNicknameField(request.Customisation.Nickname)
 						// Thumbnail
-						@subscriptionThumbnailField(request.ImageURL, request.Nickname)
+						if request.Customisation.ImageURL != nil {
+							@subscriptionThumbnailField(
+								&types.ImageInfo{
+									URL:   *request.Customisation.ImageURL,
+									Title: request.Customisation.Nickname,
+								},
+								request.Customisation.Nickname,
+							)
+						} else {
+							@subscriptionThumbnailField(
+								nil,
+								request.Customisation.Nickname,
+							)
+						}
 						// Filtering.
 						@subscriptionArticleFiltersFields(request.ArticleFilters)
 						// Full article content toggle.
@@ -486,7 +509,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 									<input
 										id="show-full-article-content"
 										type="checkbox"
-										if request.ShowFullArticleContent {
+										if request.Settings != nil && request.Settings.ShowFullArticleContent {
 											checked="checked"
 										}
 										name="show_full_article_content"
@@ -498,7 +521,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					</form>
 					// Categories
 					{{ categoryMgmtPath := "/user/subscription/category" }}
-					@CategoryManagement(categoryMgmtPath, "categories", request.SuggestedCategories, request.Categories)
+					@CategoryManagement(categoryMgmtPath, "categories", request.SuggestedCategories, request.Customisation.Categories)
 					// Action buttons.
 					<div class="flex flex-1 items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
@@ -573,7 +596,9 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 										id="nickname"
 										type="text"
 										name="nickname"
-										value={ request.Nickname }
+										if request.Nickname != nil {
+											value={ *request.Nickname }
+										}
 										placeholder="My cool subscription"
 										class="input input-primary bg-base-content/10"
 									/>
@@ -648,7 +673,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 						if action == "add" {
 							hx-post="/user/subscription/add/search"
 						} else {
-							hx-post={ "/edit/subscription/" + request.Search.SubscriptionID }
+							hx-post={ "/edit/subscription/" + *request.Search.SubscriptionID }
 						}
 						hx-swap="none"
 						hx-include="[name='customisation.categories']"
@@ -687,7 +712,9 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 										id="subscription-filter-categories"
 										type="text"
 										name="search.categories"
-										value={ request.Search.Categories }
+										if request.Search.Categories != nil {
+											value={ *request.Search.Categories }
+										}
 										placeholder="e.g., drinks + mediation"
 										class="input input-primary bg-base-content/10 w-full"
 									/>
@@ -705,7 +732,9 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 										id="subscription-filter-authors"
 										type="text"
 										name="search.authors"
-										value={ request.Search.Authors }
+										if request.Search.Authors != nil {
+											value={ *request.Search.Authors }
+										}
 										placeholder={ `e.g., -"John Smith"` }
 										class="input input-primary bg-base-content/10 w-full"
 									/>
@@ -855,7 +884,14 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					// Nickname.
 					@subscriptionNicknameField(request.Customisation.Nickname)
 					// Image.
-					@subscriptionThumbnailField(request.Customisation.ImageURL, request.Customisation.Nickname)
+					if request.Customisation.ImageURL != nil {
+						@subscriptionThumbnailField(&types.ImageInfo{
+							URL:   *request.Customisation.ImageURL,
+							Title: request.Customisation.Nickname,
+						}, request.Customisation.Nickname)
+					} else {
+						@subscriptionThumbnailField(nil, request.Customisation.Nickname)
+					}
 					// Categories
 					{{ categoryMgmtPath := "/user/subscription/category" }}
 					@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
@@ -949,7 +985,20 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 					// Nickname.
 					@subscriptionNicknameField(request.Customisation.Nickname)
 					// Image.
-					@subscriptionThumbnailField(request.Customisation.ImageURL, request.Customisation.Nickname)
+					if request.Customisation.ImageURL != nil {
+						@subscriptionThumbnailField(
+							&types.ImageInfo{
+								URL:   *request.Customisation.ImageURL,
+								Title: request.Customisation.Nickname,
+							},
+							request.Customisation.Nickname,
+						)
+					} else {
+						@subscriptionThumbnailField(
+							nil,
+							request.Customisation.Nickname,
+						)
+					}
 					if action == "edit" {
 						@subscriptionArticleFiltersFields(request.ArticleFilters)
 					}
@@ -968,7 +1017,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 							if action == "add" {
 								hx-post="/user/subscription/add/group"
 							} else {
-								hx-post={ "/edit/subscription/" + request.SubscriptionID }
+								hx-post={ "/edit/subscription/" + *request.SubscriptionID }
 							}
 							hx-swap="none"
 							hx-include="[name='customisation.categories'],#group-subscription-details"
@@ -1049,7 +1098,20 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 						@subscriptionNicknameField(request.Customisation.Nickname)
 					</form>
 					// Image.
-					@subscriptionThumbnailField(request.Customisation.ImageURL, request.Customisation.Nickname)
+					if request.Customisation.ImageURL != nil {
+						@subscriptionThumbnailField(
+							&types.ImageInfo{
+								URL:   *request.Customisation.ImageURL,
+								Title: request.Customisation.Nickname,
+							},
+							request.Customisation.Nickname,
+						)
+					} else {
+						@subscriptionThumbnailField(
+							nil,
+							request.Customisation.Nickname,
+						)
+					}
 					// Categories
 					{{ categoryMgmtPath := "/user/subscription/category" }}
 					@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
@@ -1091,7 +1153,7 @@ templ subscriptionNicknameField(nickname string) {
 	</div>
 }
 
-templ subscriptionThumbnailField(url, nickname string) {
+templ subscriptionThumbnailField(img *types.ImageInfo, name string) {
 	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 		<div>
 			<label for="thumbnail" class="text-base/7 font-semibold">Thumbnail</label>
@@ -1099,7 +1161,7 @@ templ subscriptionThumbnailField(url, nickname string) {
 		</div>
 		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 			<div class="col-span-full mt-2 flex items-center gap-x-2">
-				@subscriptionThumbnail(url, nickname)
+				@subscriptionThumbnail(img, name)
 				<input
 					id="thumbnail"
 					type="file"
@@ -1112,7 +1174,7 @@ templ subscriptionThumbnailField(url, nickname string) {
 	</div>
 }
 
-templ subscriptionArticleFiltersFields(filters models.SubscriptionArticleFilters) {
+templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilters) {
 	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 		<div>
 			@partials.Heading3() {
@@ -1140,7 +1202,9 @@ templ subscriptionArticleFiltersFields(filters models.SubscriptionArticleFilters
 						id="article_text_filters"
 						type="text"
 						name="article_filters.text"
-						value={ filters.Text }
+						if filters != nil && filters.Text != nil {
+							value={ *filters.Text }
+						}
 						placeholder="Text..."
 						class="block w-full"
 						spellcheck="false"
@@ -1154,7 +1218,9 @@ templ subscriptionArticleFiltersFields(filters models.SubscriptionArticleFilters
 						id="article_category_filters"
 						type="text"
 						name="article_filters.categories"
-						value={ filters.Categories }
+						if filters != nil && filters.Categories != nil {
+							value={ *filters.Categories }
+						}
 						placeholder="Categories..."
 						class="block w-full"
 						spellcheck="false"
@@ -1168,7 +1234,9 @@ templ subscriptionArticleFiltersFields(filters models.SubscriptionArticleFilters
 						id="article_author_filters"
 						type="text"
 						name="article_filters.authors"
-						value={ filters.Authors }
+						if filters != nil && filters.Authors != nil {
+							value={ *filters.Authors }
+						}
 						placeholder="Authors..."
 						class="block w-full"
 						spellcheck="false"
@@ -1287,7 +1355,7 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 								<div>{ response.Message.Summary }</div>
 								if response.Message.HasDetails() {
 									<p class="list-col-wrap text-xs">
-										{ response.Message.Details }
+										{ *response.Message.Details }
 									</p>
 								}
 							</div>
@@ -1297,7 +1365,7 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 								<div>{ response.Message.Summary }</div>
 								if response.Message.HasDetails() {
 									<p class="list-col-wrap text-xs">
-										{ response.Message.Details }
+										{ *response.Message.Details }
 									</p>
 								}
 							</div>
@@ -1398,8 +1466,8 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 	}
 }
 
-templ subscriptionThumbnail(url, title string) {
-	if url != "" {
+templ subscriptionThumbnail(img *types.ImageInfo, name string) {
+	if img != nil {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar">
 			<div class="rounded-box size-12 border border-base-content">
@@ -1409,18 +1477,18 @@ templ subscriptionThumbnail(url, title string) {
 				// sm:1 - strip metadata
 				// kcr:1 - keep copyright
 				// scp:1 - convert color profile to sRGB
-				@NewProxiedImage(&types.ImageInfo{Title: title, URL: url}, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
+				@NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
 					WithAttribute("width", "48"),
 					WithAttribute("height", "48"),
 				)
 			</div>
 		</div>
 	} else {
-		// Otherwise, take the first letter of the title and create a placeholder avatar.
+		// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
 		<div class="avatar avatar-placeholder">
 			<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
-				if title != "" {
-					<span class="text-3xl capitalize">{ title[0:1] }</span>
+				if name != "" {
+					<span class="text-3xl capitalize">{ name[0:1] }</span>
 				} else {
 					<span class="text-3xl capitalize">S</span>
 				}

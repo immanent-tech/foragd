@@ -392,7 +392,7 @@ func SearchAll[O any](
 		if err != nil {
 			return nil, fmt.Errorf("search all: encode pagination: %w", err)
 		}
-		searchAfter, err = DecodePagination(pagination)
+		searchAfter, err = DecodePagination(&pagination)
 		if err != nil {
 			return nil, fmt.Errorf("search all: decode pagination: %w", err)
 		}

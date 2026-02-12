@@ -70,7 +70,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 		// Generate request object.
 		request := &models.ListRequest{
 			Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
-			Pagination: req.FormValue(models.ParamPagination),
+			Pagination: new(req.FormValue(models.ParamPagination)),
 		}
 		if err := request.Valid(); err != nil {
 			HandleInternalError(&models.APIError{
@@ -101,7 +101,8 @@ func HandleListSubscriptions() http.HandlerFunc {
 		}
 
 		// Get subscriptions matching filters.
-		subscriptions, request.Pagination, err = models.FilterSubscriptions(req.Context(), request)
+		var next models.Pagination
+		subscriptions, next, err = models.FilterSubscriptions(req.Context(), request)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("unable to list subscriptions: %w", err),
@@ -109,6 +110,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
+		request.Pagination = &next
 
 		// Choose rendering method based on method (get = page, post = partial).
 		switch req.Method {
@@ -117,7 +119,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 				title: "Subscriptions",
 				template: templates.ListSubscriptions(&models.ListSubscriptionsResponse{
 					Filters:       request.Filters,
-					Pagination:    request.Pagination,
+					Pagination:    *request.Pagination,
 					Subscriptions: subscriptions,
 				}),
 			}).ServeHTTP(res, req)
@@ -126,7 +128,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 				title: "Subscriptions",
 				template: templates.ListSubscriptions(&models.ListSubscriptionsResponse{
 					Filters:       request.Filters,
-					Pagination:    request.Pagination,
+					Pagination:    *request.Pagination,
 					Subscriptions: subscriptions,
 				}),
 			}).ServeHTTP(res, req)
@@ -411,13 +413,11 @@ func HandleEditSubscription() http.HandlerFunc {
 		switch subscription.GetSubscriptionType() {
 		case models.SubscriptionTypeFeed:
 			// Convert metadata into edit request data.
-			request := &models.EditSubscriptionRequest{
-				SubscriptionID:         id,
-				Nickname:               subscription.GetTitle(),
-				Categories:             subscription.Customisation.Categories,
-				ImageURL:               subscription.GetImage(),
-				ShowFullArticleContent: subscription.Settings.ShowFullArticleContent,
-				ArticleFilters:         subscription.FeedData.ArticleFilters,
+			request := &models.EditFeedSubscriptionRequest{
+				SubscriptionID: id,
+				Customisation:  subscription.Customisation,
+				Settings:       &subscription.Settings,
+				ArticleFilters: subscription.FeedData.ArticleFilters,
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
 			// subscription.
@@ -434,15 +434,15 @@ func HandleEditSubscription() http.HandlerFunc {
 			}
 			// Generate page template.
 			template = templates.EditSubscription(request)
-			pageTitle = "Editing " + request.GetNickname()
+			pageTitle = "Editing " + subscription.GetTitle()
 		case models.SubscriptionTypeSearch:
 			// Editing SearchSubscription.
 			request := &models.SearchSubscriptionRequest{
 				Customisation: subscription.Customisation,
-				Settings:      subscription.Settings,
+				Settings:      &subscription.Settings,
 				Search:        subscription.SearchData.Search,
 			}
-			request.Search.SubscriptionID = subscription.GetID()
+			request.Search.SubscriptionID = new(subscription.GetID())
 			// Get any extra subscription info for subscription filters.
 			if len(request.Search.Subscriptions) > 0 {
 				subscriptions, err := models.GetSubscriptions(ctx,
@@ -485,9 +485,9 @@ func HandleEditSubscription() http.HandlerFunc {
 			// Create the request with details from the group subscription.
 			request := &models.GroupSubscriptionRequest{
 				Customisation:  subscription.Customisation,
-				Settings:       subscription.Settings,
+				Settings:       new(subscription.Settings),
 				Subscriptions:  make(map[models.SubscriptionID]string),
-				SubscriptionID: subscription.GetID(),
+				SubscriptionID: new(subscription.GetID()),
 				ArticleFilters: subscription.GroupData.ArticleFilters,
 			}
 			// Populate the subscriptions data in the request.
@@ -515,7 +515,7 @@ func HandleEditSubscription() http.HandlerFunc {
 			// Editing SearchSubscription.
 			request := &models.EditEmailSubscriptionRequest{
 				Customisation:  subscription.Customisation,
-				Settings:       subscription.Settings,
+				Settings:       new(subscription.Settings),
 				SubscriptionID: subscription.GetID(),
 			}
 			template = templates.EditEmailSubscription(request)
@@ -552,7 +552,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 		// Generate the appropriate subscription edit request.
 		switch models.SubscriptionType(req.FormValue("subscription_type")) {
 		case models.SubscriptionTypeFeed:
-			request, valid, err := forms.DecodeMultiPartForm[*models.EditSubscriptionRequest](req)
+			request, valid, err := forms.DecodeMultiPartForm[*models.EditFeedSubscriptionRequest](req)
 			if err != nil || !valid {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode subscription request: %w", err),
@@ -564,12 +564,13 @@ func HandleSaveSubscription() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
-			subscription.Customisation.Nickname = request.GetNickname()
-			subscription.Customisation.Categories = request.GetCategories()
-			subscription.Settings.ShowFullArticleContent = request.ShowFullArticleContent
-			subscription.FeedData.ArticleFilters.Text = request.ArticleFilters.Text
-			subscription.FeedData.ArticleFilters.Authors = request.ArticleFilters.Authors
-			subscription.FeedData.ArticleFilters.Categories = request.ArticleFilters.Categories
+			subscription.Customisation = request.Customisation
+			if request.Settings != nil {
+				subscription.Settings = *request.Settings
+			}
+			if request.ArticleFilters != nil {
+				subscription.FeedData.ArticleFilters = request.ArticleFilters
+			}
 		case models.SubscriptionTypeSearch:
 			request, valid, err := forms.DecodeMultiPartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {
@@ -584,7 +585,9 @@ func HandleSaveSubscription() http.HandlerFunc {
 				return
 			}
 			subscription.Customisation = request.Customisation
-			subscription.Settings = request.Settings
+			if request.Settings != nil {
+				subscription.Settings = *request.Settings
+			}
 			subscription.SearchData.Search = request.Search
 		case models.SubscriptionTypeGroup:
 			request, valid, err := forms.DecodeMultiPartForm[*models.GroupSubscriptionRequest](req)
@@ -601,7 +604,9 @@ func HandleSaveSubscription() http.HandlerFunc {
 			}
 
 			subscription.Customisation = request.Customisation
-			subscription.Settings = request.Settings
+			if request.Settings != nil {
+				subscription.Settings = *request.Settings
+			}
 			subscription.GroupData.Subscriptions = slices.Collect(maps.Keys(request.Subscriptions))
 			subscription.GroupData.ArticleFilters.Text = request.ArticleFilters.Text
 			subscription.GroupData.ArticleFilters.Authors = request.ArticleFilters.Authors
@@ -620,7 +625,9 @@ func HandleSaveSubscription() http.HandlerFunc {
 				return
 			}
 			subscription.Customisation = request.Customisation
-			subscription.Settings = request.Settings
+			if request.Settings != nil {
+				subscription.Settings = *request.Settings
+			}
 		}
 
 		// Process any uploaded thumbnail image.
@@ -637,11 +644,11 @@ func HandleSaveSubscription() http.HandlerFunc {
 			return
 		}
 		if thumbnail != "" {
-			subscription.Customisation.ImageURL = thumbnail
+			subscription.Customisation.ImageURL = new(thumbnail)
 		}
 
 		// Update the subscription object.
-		subscription.UpdatedAt = time.Now().UTC()
+		subscription.UpdatedAt = new(time.Now().UTC())
 		_, err = models.UpdateSubscriptions(req.Context(), subscription)
 		if err != nil {
 			HandleInternalError(&models.APIError{

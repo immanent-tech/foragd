@@ -52,12 +52,12 @@ func EncodePagination[T ~string](sortValues []types.FieldValue) (T, error) {
 
 // DecodePagination will take a Pagination object, HTML-unescape the
 // string then unmarshal it back into sort values.
-func DecodePagination[T ~string](pagination T) ([]types.FieldValueVariant, error) {
-	if pagination == "" {
+func DecodePagination[T ~string](pagination *T) ([]types.FieldValueVariant, error) {
+	if pagination == nil || *pagination == "" {
 		return nil, nil
 	}
 	// Unescape HTML encoded data.
-	data, err := url.QueryUnescape(string(pagination))
+	data, err := url.QueryUnescape(string(*pagination))
 	if err != nil {
 		return nil, fmt.Errorf("could not decode pagination values: %w", err)
 	}

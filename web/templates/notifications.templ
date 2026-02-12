@@ -45,7 +45,7 @@ templ Notification(msg *models.UserMessage, timeout time.Duration) {
 				</div>
 				if msg.HasDetails() {
 					<p class="mt-1">
-						{ msg.Details }
+						{ *msg.Details }
 					</p>
 				}
 				// Close button.

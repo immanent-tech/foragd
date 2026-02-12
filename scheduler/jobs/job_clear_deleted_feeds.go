@@ -52,7 +52,7 @@ func NewClearDeletedFeedsJob() (*ScheduledJob, error) {
 // executeClearDeletedFeeds runs a job that will look for update feed jobs marked for deletion and remove them from
 // the scheduler queue. Jobs marked for deletion are marked by the update feed job themselves when they cannot find
 // their feed in the feeds index, which indicates the feed was deleted.
-func executeClearDeletedFeeds(ctx context.Context, job *ScheduledJob) error {
+func executeClearDeletedFeeds(ctx context.Context, _ *ScheduledJob) error {
 	jobStateID := "clear_deleted_feeds_state"
 
 	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)

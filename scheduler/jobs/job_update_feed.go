@@ -104,10 +104,10 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		}
 		if errors.Is(err, &httpErr) {
 			status.StatusCode = httpErr.Code
-			status.StatusMessage = httpErr.Message
+			status.StatusMessage = &httpErr.Message
 		} else {
 			status.StatusCode = http.StatusInternalServerError
-			status.StatusMessage = err.Error()
+			status.StatusMessage = new(err.Error())
 		}
 		if err := models.AddFeedStatus(ctx, status); err != nil {
 			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
@@ -152,11 +152,11 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		}
 		// Update FeedStatus.
 		status.StatusCode = http.StatusOK
-		status.StatusMessage = fmt.Sprintf("added %d new items", len(newItems))
+		status.StatusMessage = new(fmt.Sprintf("added %d new items", len(newItems)))
 	} else {
 		// Update FeedStatus.
 		status.StatusCode = http.StatusNoContent
-		status.StatusMessage = "no new items"
+		status.StatusMessage = new("no new items")
 	}
 	// Index FeedStatus for this update.
 	if err := models.AddFeedStatus(ctx, status); err != nil {

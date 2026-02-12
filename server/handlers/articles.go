@@ -61,9 +61,11 @@ func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Reques
 func HandleListArticles() http.HandlerFunc {
 	return listHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Build request object.
+		pagination := req.FormValue(models.ParamPagination)
+		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 		request := &models.ListRequest{
-			Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
-			Pagination: req.FormValue(models.ParamPagination),
+			Filters:    *filters,
+			Pagination: &pagination,
 		}
 		if err := request.Valid(); err != nil {
 			HandleInternalError(&models.APIError{
@@ -120,7 +122,8 @@ func HandleListArticles() http.HandlerFunc {
 		}
 
 		// Get articles matching filters.
-		articles, request.Pagination, err = models.FilterArticles(req.Context(), request)
+		var next models.Pagination
+		articles, next, err = models.FilterArticles(req.Context(), request)
 		if err != nil && !errors.Is(err, models.ErrNotFound) {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("filter articles: %w", err),
@@ -128,6 +131,7 @@ func HandleListArticles() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 			return
 		}
+		request.Pagination = &next
 
 		// If the list of articles is from a single subscription, update the page tile to include the subscription
 		// name.
@@ -146,7 +150,7 @@ func HandleListArticles() http.HandlerFunc {
 					Subscription: subscription,
 					Articles:     articles,
 					Filters:      request.Filters,
-					Pagination:   request.Pagination,
+					Pagination:   *request.Pagination,
 				}),
 			}).ServeHTTP(res, req)
 		case http.MethodPost:
@@ -156,7 +160,7 @@ func HandleListArticles() http.HandlerFunc {
 					Subscription: subscription,
 					Articles:     articles,
 					Filters:      request.Filters,
-					Pagination:   request.Pagination,
+					Pagination:   *request.Pagination,
 				}),
 			}).ServeHTTP(res, req)
 		}
@@ -301,18 +305,18 @@ func HandleViewArticle() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				article.ShowFullContent = false
 				return
-			case content == article.Content:
+			case content == "":
 				// Remote content is same as feed content.
 				res.Header().Set(htmx.HeaderReswap, "none")
 				res.Header().Set(htmx.HeaderReplaceUrl, "false")
 				RenderPartial(&Notification{
-					msg: models.NewErrorMessage("No remote content", "Remote content is same as feed."),
+					msg: models.NewErrorMessage("No remote content", "Remote article content is missing."),
 				}).ServeHTTP(res, req)
 				article.ShowFullContent = false
 				return
-			case content != article.Content:
+			default:
 				// Got remote content.
-				article.Content = content
+				article.Content = &content
 			}
 		}
 

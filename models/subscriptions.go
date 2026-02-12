@@ -541,7 +541,7 @@ func SearchSubscriptions(
 		req.count = 10
 	}
 
-	searchAfter, err := elastic.DecodePagination(req.pagination)
+	searchAfter, err := elastic.DecodePagination(&req.pagination)
 	if err != nil {
 		return nil, "", ErrInvalidParams
 	}
@@ -602,14 +602,14 @@ func FilterSubscriptions(
 		return nil, "", fmt.Errorf("add dynamic info: %w", err)
 	}
 	// Sort and paginate.
-	var pagination Pagination
+	pagination := new(Pagination)
 	subscriptions, pagination = subscriptions.
 		FilterByView(request.Filters.GetView()).
 		FilterByFavorites(request.Filters.OnlyFavorites).
 		Sort(request.Filters.Sort).
 		Paginate(request.Pagination, request.Filters.GetCount())
 
-	return subscriptions, pagination, nil
+	return subscriptions, *pagination, nil
 }
 
 // ProcessSubscriptionRequest manages parsing a subscription request and turning it into a subscription that can be
@@ -687,7 +687,7 @@ func ProcessSubscriptionRequest(
 	}
 	if len(feeds) == 1 {
 		// If an existing feed is found, use that feed.
-		result.Feed = *feeds[0]
+		result.Feed = feeds[0]
 	} else {
 		// Otherwise create a new feed.
 		err = validation.Validate.Struct(newFeed)
@@ -716,7 +716,7 @@ func ProcessSubscriptionRequest(
 			slog.String("name", newFeed.GetTitle()),
 			slog.String("urls", strings.Join(newFeed.GetSourceURLs(), ",")),
 		)
-		result.Feed = *newFeed
+		result.Feed = newFeed
 	}
 
 	// Check for an existing subscription.
@@ -868,7 +868,7 @@ func CreateFeedSubscriptions(ctx context.Context, results ...*AddFeedSubscriptio
 			slog.String("url", result.Feed.GetLink()),
 		)
 		// Generate metadata.
-		subscription, err := NewFeedSubscription(ctx, &result.Feed, &result.Request)
+		subscription, err := NewFeedSubscription(ctx, result.Feed, &result.Request)
 		if err != nil {
 			slogctx.FromCtx(ctx).Error("Could not create subscription",
 				slog.Any("error", err))
@@ -882,7 +882,7 @@ func CreateFeedSubscriptions(ctx context.Context, results ...*AddFeedSubscriptio
 			result.Error = fmt.Errorf("unable to create subscription: invalid metadata: %w", err)
 			continue
 		}
-		result.Subscription = *subscription
+		result.Subscription = subscription
 		subscriptions = append(subscriptions, subscription)
 		result.Message = NewSuccessMessage(
 			"Subscription Created: "+result.Feed.GetTitle(),
@@ -944,8 +944,6 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions
 				}
 			}
 		}
-		// Add the show stats setting from the user settings.
-		subscription.Settings.ShowSubscriptionStats = user.GetSettings().ShowSubscriptionStats
 	}
 	if len(extraIDs) > 0 {
 		extraSubscriptions, err := GetSubscriptions(ctx,
@@ -986,7 +984,7 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions
 			}
 			count, err := CountItems(jobCtx, query)
 			if err == nil {
-				subscription.Stats.UnreadCount = int(count)
+				subscription.GetStats().UnreadCount = int(count)
 			} else {
 				slogctx.FromCtx(jobCtx).
 					Warn("Add subscription dynamic info, could not get unread count for search subscription.",
@@ -1005,8 +1003,8 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions
 					err,
 				)
 			}
-			if items, _, err := SearchItems(jobCtx, query, 1, &sort, ""); err == nil && len(items) > 0 {
-				subscription.Stats.LastUpdate = items[0].GetTimestamp()
+			if items, _, err := SearchItems(jobCtx, query, 1, &sort, nil); err == nil && len(items) > 0 {
+				subscription.GetStats().LastUpdate = items[0].GetTimestamp()
 			} else {
 				slogctx.FromCtx(jobCtx).
 					Warn("Add subscription dynamic info, could not get last update for search subscription.",
@@ -1048,19 +1046,19 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions
 
 	// For feed subscriptions, add stats.
 	for subscription := range slices.Values(subscriptions.FilterByType(SubscriptionTypeFeed)) {
-		subscription.Stats.UnreadCount = int(unreadCounts[subscription.GetFeedID()])
-		subscription.Stats.LastUpdate = lastUpdate[subscription.GetFeedID()]
+		subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
+		subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
 		if user.GetSettings().ShowSubscriptionStats {
-			subscription.Stats.AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
 		}
 	}
 
 	// For email subscriptions, add stats.
 	for subscription := range slices.Values(subscriptions.FilterByType(SubscriptionTypeEmail)) {
-		subscription.Stats.UnreadCount = int(unreadCounts[subscription.GetFeedID()])
-		subscription.Stats.LastUpdate = lastUpdate[subscription.GetFeedID()]
+		subscription.GetStats().UnreadCount = int(unreadCounts[subscription.GetFeedID()])
+		subscription.GetStats().LastUpdate = lastUpdate[subscription.GetFeedID()]
 		if user.GetSettings().ShowSubscriptionStats {
-			subscription.Stats.AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
+			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[subscription.GetFeedID()]
 		}
 	}
 
@@ -1081,15 +1079,15 @@ func addSubscriptionDynamicInfo(ctx context.Context, subscriptions Subscriptions
 		if user.GetSettings().ShowSubscriptionStats {
 			slices.Sort(avgDailyUpdates)
 			slices.Reverse(avgDailyUpdates)
-			subscription.Stats.AvgDailyUpdates = avgDailyUpdates[0]
+			subscription.GetStats().AvgDailyUpdates = avgDailyUpdates[0]
 		}
-		subscription.Stats.UnreadCount = unreadCount
+		subscription.GetStats().UnreadCount = unreadCount
 		// Sort by date ascending, with favorites before non-favorites.
 		slices.SortFunc(lastUpdates, func(timeA, timeB time.Time) int {
 			return timeA.Compare(timeB)
 		})
 		slices.Reverse(lastUpdates)
-		subscription.Stats.LastUpdate = lastUpdates[0]
+		subscription.GetStats().LastUpdate = lastUpdates[0]
 	}
 
 	return nil
@@ -1243,15 +1241,15 @@ func NewFeedSubscription(ctx context.Context, feed *Feed, request *AddFeedSubscr
 	customisation := newSubscriptionCustomisation(feed.GetTitle(), feed.GetImage().GetURL(), feed.GetCategories())
 	// Override with any user customisations.
 	if request != nil {
-		if request.Nickname != "" {
-			customisation.Nickname = request.Nickname
+		if request.Nickname != nil {
+			customisation.Nickname = *request.Nickname
 		}
 		if len(request.Categories) > 0 {
 			customisation.Categories = request.Categories
 		}
 	}
 
-	subscription, err := newSubscription(ctx, *customisation, *settings, feedSubscription)
+	subscription, err := newSubscription(ctx, *customisation, settings, feedSubscription)
 	if err != nil {
 		return nil, fmt.Errorf("new feed subscription: %w", err)
 	}
@@ -1279,7 +1277,7 @@ func NewSearchSubscription(ctx context.Context, request *SearchSubscriptionReque
 	searchSubscription := &SearchSubscription{
 		Search: request.Search,
 	}
-	subscription, err := newSubscription(ctx, request.Customisation, request.Settings, searchSubscription)
+	subscription, err := newSubscription(ctx, *request.Customisation, request.Settings, searchSubscription)
 	if err != nil {
 		return nil, fmt.Errorf("new search subscription: %w", err)
 	}
@@ -1302,7 +1300,7 @@ func NewGroupSubscription(ctx context.Context, request *GroupSubscriptionRequest
 	groupSubscription := &GroupSubscription{
 		Subscriptions: slices.Collect(maps.Keys(request.Subscriptions)),
 	}
-	subscription, err := newSubscription(ctx, request.Customisation, request.Settings, groupSubscription)
+	subscription, err := newSubscription(ctx, *request.Customisation, request.Settings, groupSubscription)
 	if err != nil {
 		return nil, fmt.Errorf("new group subscription: %w", err)
 	}
@@ -1338,7 +1336,7 @@ func NewEmailSubscription(
 	customisation := newSubscriptionCustomisation(from.String(), "", nil)
 	settings := newSubscriptionSettings()
 
-	subscription, err := newSubscription(ctx, *customisation, *settings, emailSubscription)
+	subscription, err := newSubscription(ctx, *customisation, settings, emailSubscription)
 	if err != nil {
 		return nil, fmt.Errorf("new group subscription: %w", err)
 	}
@@ -1482,7 +1480,12 @@ func (s *Subscription) GetCategories(maxCount int) Categories {
 
 // GetImage retrieves the image that represents the subscription, or nil if no image is available.
 func (s *Subscription) GetImage() URL {
-	return s.Customisation.ImageURL
+	if s.Customisation != nil {
+		if s.Customisation.ImageURL != nil {
+			return *s.Customisation.ImageURL
+		}
+	}
+	return ""
 }
 
 // GetLink returns the source feed link. For a search subscription, there is no source so this returns an empty string.
@@ -1496,13 +1499,13 @@ func (s *Subscription) GetLink() string {
 }
 
 func (s *Subscription) GetArticleFilters() SubscriptionArticleFilters {
-	switch s.Type {
-	case SubscriptionTypeFeed:
-		return s.FeedData.ArticleFilters
-	case SubscriptionTypeEmail:
-		return s.EmailData.ArticleFilters
-	case SubscriptionTypeGroup:
-		return s.GroupData.ArticleFilters
+	switch {
+	case s.Type == SubscriptionTypeFeed && s.FeedData.ArticleFilters != nil:
+		return *s.FeedData.ArticleFilters
+	case s.Type == SubscriptionTypeEmail && s.EmailData.ArticleFilters != nil:
+		return *s.EmailData.ArticleFilters
+	case s.Type == SubscriptionTypeGroup && s.GroupData.ArticleFilters != nil:
+		return *s.GroupData.ArticleFilters
 	default:
 		return SubscriptionArticleFilters{}
 	}
@@ -1511,7 +1514,11 @@ func (s *Subscription) GetArticleFilters() SubscriptionArticleFilters {
 // GetStats returns the stats object containing the dynamically generated stats (i.e., unread count, article rate) of
 // the subscription.
 func (s *Subscription) GetStats() *SubscriptionStats {
-	return &s.Stats
+	if s.Stats != nil {
+		return s.Stats
+	}
+	s.Stats = &SubscriptionStats{}
+	return s.Stats
 }
 
 // IsFavorite returns a boolean indicating whether the user has marked this subscription as a favorite. Note for some
@@ -1521,7 +1528,10 @@ func (s *Subscription) IsFavorite() bool {
 }
 
 func (s *Subscription) GetMarkedReadAt() time.Time {
-	return s.MarkedReadAt
+	if s.MarkedReadAt != nil {
+		return *s.MarkedReadAt
+	}
+	return UnixEpoch
 }
 
 // GetReadItems retrieves a list of ItemIDs for the feed subscription that
@@ -1618,14 +1628,16 @@ func (s *Subscription) SetItemState(itemID ItemID, state *ArticleState) {
 
 // Mark applies the given mark (read/unread) to a subscription.
 func (s *Subscription) Mark(user *User, mark Mark) {
+	var ts time.Time
 	switch mark {
 	case MarkRead:
 		// Set marked at to now when marking read.
-		s.MarkedReadAt = time.Now().UTC()
+		ts = time.Now().UTC()
 	case MarkUnread:
 		// Set marked at to max history when marking unread.
-		s.MarkedReadAt = user.GetMaxHistory()
+		ts = user.GetMaxHistory()
 	}
+	s.MarkedReadAt = &ts
 	// Reset article states for appropriate subscription types.
 	switch s.GetSubscriptionType() {
 	case SubscriptionTypeFeed:
@@ -1799,16 +1811,19 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 
 // Paginate will paginate through a slice of subscriptions, returning a new slice of subscriptions and the next
 // pagination value (if any).
-func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions, Pagination) {
+func (s Subscriptions) Paginate(pagination *Pagination, count int) (Subscriptions, *Pagination) {
+	if pagination == nil {
+		return s, nil
+	}
 	var from, to int
-	if pagination != "" {
-		if value, err := strconv.Atoi(pagination); err == nil {
+	if *pagination != "" {
+		if value, err := strconv.Atoi(*pagination); err == nil {
 			from = value
 		}
 	}
 	to = min(from+count, len(s))
-	pagination = strconv.Itoa(to)
-	return s[from:to], pagination
+	newPagination := strconv.Itoa(to)
+	return s[from:to], &newPagination
 }
 
 // GetCategoryCounts returns a count of the occurrence of a Category across all
@@ -1861,9 +1876,9 @@ func (r *AddFeedSubscriptionRequest) Sanitise() error {
 		rssURL.Scheme = "https"
 		r.URL = rssURL.String()
 	}
-	if r.Nickname != "" {
-		sanitizedNickname := validation.SanitizeString(r.Nickname)
-		r.Nickname = sanitizedNickname
+	if r.Nickname != nil {
+		sanitizedNickname := validation.SanitizeString(*r.Nickname)
+		r.Nickname = &sanitizedNickname
 	}
 	categories := make([]Category, 0, len(r.Categories))
 	for category := range slices.Values(r.Categories) {
@@ -1881,8 +1896,8 @@ func (r *AddFeedSubscriptionRequest) GetURL() string {
 
 // GetNickname returns the nickname chosen for the subscription.
 func (r *AddFeedSubscriptionRequest) GetNickname() string {
-	if r.Nickname != "" {
-		return r.Nickname
+	if r.Nickname != nil {
+		return *r.Nickname
 	}
 	return ""
 }
@@ -1936,24 +1951,9 @@ func (r *GroupSubscriptionRequest) Sanitise() error {
 	return nil
 }
 
-// GetID retrieves the subscription ID.
-func (s *EditSubscriptionRequest) GetID() SubscriptionID {
-	return s.SubscriptionID
-}
-
-// GetNickname retrieves the nickname assigned to the subscription.
-func (s *EditSubscriptionRequest) GetNickname() string {
-	return s.Nickname
-}
-
-// GetCategories retrieves the categories assigned to the subscription.
-func (s *EditSubscriptionRequest) GetCategories() Categories {
-	return s.Categories
-}
-
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *EditSubscriptionRequest) Valid() error {
+func (s *EditFeedSubscriptionRequest) Valid() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("subscription is invalid: %w", err)
 	}
@@ -1961,17 +1961,30 @@ func (s *EditSubscriptionRequest) Valid() error {
 }
 
 // Sanitise will sanitise the user input for a SubscriptionCustomisation.
-func (s *EditSubscriptionRequest) Sanitise() error {
-	s.Nickname = validation.SanitizeString(s.Nickname)
-	categories := make([]Category, 0, len(s.Nickname))
-	for category := range slices.Values(s.Categories) {
-		category = validation.SanitizeString(category)
-		categories = append(categories, category)
+func (s *EditFeedSubscriptionRequest) Sanitise() error {
+	if s.Customisation != nil {
+		s.Customisation.Nickname = validation.SanitizeString(s.Customisation.Nickname)
+		categories := make([]Category, 0, len(s.Customisation.Categories))
+		for category := range slices.Values(s.Customisation.Categories) {
+			category = validation.SanitizeString(category)
+			categories = append(categories, category)
+		}
+		s.Customisation.Categories = categories
 	}
-	s.Categories = categories
-	s.ArticleFilters.Authors = validation.SanitizeString(s.ArticleFilters.Authors)
-	s.ArticleFilters.Categories = validation.SanitizeString(s.ArticleFilters.Categories)
-	s.ArticleFilters.Text = validation.SanitizeString(s.ArticleFilters.Text)
+	if s.ArticleFilters != nil {
+		if s.ArticleFilters.Authors != nil {
+			cleanAuthorFilters := validation.SanitizeString(*s.ArticleFilters.Authors)
+			s.ArticleFilters.Authors = &cleanAuthorFilters
+		}
+		if s.ArticleFilters.Categories != nil {
+			cleanCategoryFilters := validation.SanitizeString(*s.ArticleFilters.Categories)
+			s.ArticleFilters.Categories = &cleanCategoryFilters
+		}
+		if s.ArticleFilters.Text != nil {
+			cleanTextFilters := validation.SanitizeString(*s.ArticleFilters.Text)
+			s.ArticleFilters.Text = &cleanTextFilters
+		}
+	}
 	return nil
 }
 
@@ -2059,7 +2072,7 @@ func (s *SubscriptionStats) IsUnread() bool {
 func newSubscription(
 	ctx context.Context,
 	customisation SubscriptionCustomisation,
-	settings SubscriptionSettings,
+	settings *SubscriptionSettings,
 	data any,
 ) (*Subscription, error) {
 	user := UserFromCtx(ctx)
@@ -2067,15 +2080,19 @@ func newSubscription(
 		return nil, fmt.Errorf("get user data: %w", ErrCtxValueNotFound)
 	}
 	ts := time.Now().UTC()
+	mr := user.GetMaxHistory()
 	subscription := &Subscription{
 		SubscriptionID: "sub_" + strconv.FormatUint(xxhash.Sum64String(user.GetID()+customisation.Nickname), 10),
 		UserID:         user.GetID(),
-		UpdatedAt:      ts,
+		UpdatedAt:      &ts,
 		CreatedAt:      ts,
-		MarkedReadAt:   user.GetMaxHistory(),
-		Customisation:  customisation,
-		Settings:       settings,
+		MarkedReadAt:   &mr,
+		Customisation:  &customisation,
+		Settings:       *newSubscriptionSettings(),
 		Favorite:       false,
+	}
+	if settings != nil {
+		subscription.Settings = *settings
 	}
 
 	switch typeData := data.(type) {
@@ -2103,7 +2120,7 @@ func newSubscription(
 func newSubscriptionCustomisation(nickname, url string, categories Categories) *SubscriptionCustomisation {
 	return &SubscriptionCustomisation{
 		Nickname:   nickname,
-		ImageURL:   url,
+		ImageURL:   &url,
 		Categories: categories,
 	}
 }

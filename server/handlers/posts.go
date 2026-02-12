@@ -79,7 +79,7 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 			opengraph.WithDescription(p.Frontmatter.Description),
 			opengraph.WithType("article", map[string]string{
 				"article:published_time": p.Frontmatter.CreatedAt,
-				"article:modified_time":  p.Frontmatter.UpdatedAt,
+				"article:modified_time":  *p.Frontmatter.UpdatedAt,
 			}),
 		)),
 	),

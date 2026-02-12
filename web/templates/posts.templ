@@ -56,8 +56,8 @@ templ Post(post *models.MarkdownFile) {
 				<p class="font-semibold">{ post.Frontmatter.Description }</p>
 				<div class="mx-auto flex flex-1 space-x-2 mb-4 text-sm">
 					<time datetime={ post.Frontmatter.CreatedAt } class="label">Published { post.Frontmatter.CreatedAt }</time>
-					if post.Frontmatter.UpdatedAt != "" {
-						<time datetime={ post.Frontmatter.UpdatedAt } class="label">Updated { post.Frontmatter.UpdatedAt }</time>
+					if post.Frontmatter.UpdatedAt != nil {
+						<time datetime={ *post.Frontmatter.UpdatedAt } class="label">Updated { *post.Frontmatter.UpdatedAt }</time>
 					}
 				</div>
 				@templ.Raw(string(post.Content))

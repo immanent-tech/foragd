@@ -176,7 +176,7 @@ components:
       enum: ['read', 'unread', 'all']
       default: 'unread'
       x-oapi-codegen-extra-tags:
-        validate: 'oneof=read unread all'
+        validate: 'required,oneof=read unread all'
         form: 'view'
     Pagination:
       description: contains data for paginating through results.
@@ -190,7 +190,7 @@ components:
       enum: ['newest_first','oldest_first','most_unread','least_unread','most_relevant']
       x-oapi-codegen-extra-tags:
         form: 'sort'
-        validate: 'oneof=newest_first oldest_first most_unread least_unread most_relevant'
+        validate: 'required,oneof=newest_first oldest_first most_unread least_unread most_relevant'
     # Objects.
     UserCustomisation:
       description: >
@@ -223,8 +223,12 @@ components:
         contains user-specific settings for the application.
       type: object
       required:
-        - max_history
+        - theme
         - show_onboarding
+        - show_subscription_stats
+        - mark_article_read_on_view
+        - max_view_history
+        - updates_interval
       properties:
         theme:
           description: >
@@ -242,6 +246,7 @@ components:
             form: '-'
           x-omitzero: false
           x-omitempty: false
+          x-go-type-skip-optional-pointer: true
         show_subscription_stats:
           description: >
             indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
@@ -250,6 +255,7 @@ components:
             form: 'show_subscription_stats'
           x-omitzero: false
           x-omitempty: false
+          x-go-type-skip-optional-pointer: true
         mark_article_read_on_view:
           description: >
             indicates whether to automatically mark an article as read when viewed.
@@ -259,6 +265,7 @@ components:
             form: 'mark_article_read_on_view'
           x-omitzero: false
           x-omitempty: false
+          x-go-type-skip-optional-pointer: true
         subscription_email:
           description: >
             is an email address the user can use to subscribe to email newsletters.
@@ -291,6 +298,7 @@ components:
           type: boolean
           x-omitzero: false
           x-omitempty: false
+          x-go-type-skip-optional-pointer: true
         stripe_customer_id:
           description: >
             is the stripe customer id of the user.
@@ -352,6 +360,7 @@ components:
           type: boolean
           x-omitzero: false
           x-omitempty: false
+          x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             validate: 'required'
       x-oapi-codegen-extra-tags:
@@ -366,6 +375,8 @@ components:
             - user_id
             - external_user_id
             - provider
+            - settings
+            - metadata
           properties:
             created_at:
               $ref: '#/components/schemas/CreatedAt'
@@ -398,6 +409,7 @@ components:
                 $ref: '#/components/schemas/ItemID'
               x-oapi-codegen-extra-tags:
                 validate: 'omitempty,dive,startswith=item_'
+              x-go-type-skip-optional-pointer: true
     EditUserRequest:
       description: >
         contains details for editing a user account.
@@ -647,7 +659,6 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'authors'
-      x-omitzero: false
       x-omitempty: false
       x-oapi-codegen-extra-tags:
         form: 'article_filters'
@@ -664,19 +675,15 @@ components:
             form: "show_full_article_content"
           x-omitzero: false
           x-omitempty: false
-        show_subscription_stats:
-          description: >
-            indicates whether various subscription stats (e.g., unread counts, articles/day, etc.) should be shown.
-          type: boolean
-          x-oapi-codegen-extra-tags:
-            json: '-'
-            form: '-'
-          x-omitzero: false
-          x-omitempty: false
+          x-go-type-skip-optional-pointer: true
     SubscriptionStats:
       description: >
         contains stats about a subscription.
       type: object
+      required:
+        - avg_daily_updates
+        - unread_count
+        - last_update
       properties:
         avg_daily_updates:
           description: >
@@ -711,6 +718,7 @@ components:
         - subscription_id
         - user_id
         - type
+        - settings
       properties:
         created_at:
           $ref: '#/components/schemas/CreatedAt'
@@ -737,6 +745,7 @@ components:
           type: boolean
           x-omitzero: false
           x-omitempty: false
+          x-go-type-skip-optional-pointer: true
         marked_read_at:
           description: >
             indicates when the subscription was last marked read. Any articles older than this timestamp are considered
@@ -892,6 +901,7 @@ components:
           $ref: '#/components/schemas/UserMessage'
         error:
           x-go-type: error
+          x-go-type-skip-optional-pointer: true
     SearchSubscriptionRequest:
       description: >
         represents a request to create a search subscription.
@@ -979,7 +989,7 @@ components:
           x-go-type: map[SubscriptionID]string
           x-oapi-codegen-extra-tags:
             form: subscriptions
-
+          x-go-type-skip-optional-pointer: true
     EditEmailSubscriptionRequest:
       description: >
         represents a request to create an email subscription.
@@ -999,31 +1009,37 @@ components:
             - $ref: '#/components/schemas/SubscriptionSettings'
           x-oapi-codegen-extra-tags:
             form: 'settings'
-    EditSubscriptionRequest:
+    EditFeedSubscriptionRequest:
       description: >
-        is the request details for editing a subscription.
+        is the request details for editing a feed subscription.
       type: object
-      allOf:
-        - $ref: '#/components/schemas/SubscriptionCustomisation'
-        - $ref: '#/components/schemas/SubscriptionSettings'
-        - type: object
-          required:
-            - subscription_id
-          properties:
-            subscription_id:
-              $ref: '#/components/schemas/SubscriptionID'
-            suggestedCategories:
-              description: >
-                is a list of suggested categories for the subscription.
-              type: array
-              items:
-                $ref: '#/components/schemas/Category'
-              x-oapi-codegen-extra-tags:
-                form: '-'
-                json: '-'
-              x-go-type-skip-optional-pointer: true
-            article_filters:
-              $ref: '#/components/schemas/SubscriptionArticleFilters'
+      required:
+        - subscription_id
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        customisation:
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionCustomisation'
+          x-oapi-codegen-extra-tags:
+            form: 'customisation'
+        settings:
+          allOf:
+            - $ref: '#/components/schemas/SubscriptionSettings'
+          x-oapi-codegen-extra-tags:
+            form: 'settings'
+        article_filters:
+          $ref: '#/components/schemas/SubscriptionArticleFilters'
+        suggestedCategories:
+          description: >
+            is a list of suggested categories for the subscription.
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true
     ArticleMetadata:
       description: >
         contains the stored data that represents an article.
@@ -1031,6 +1047,7 @@ components:
       required:
         - state
         - subscription_id
+        - source_type
       properties:
         subscription_id:
           $ref: '#/components/schemas/SubscriptionID'
@@ -1050,18 +1067,21 @@ components:
           type: boolean
           x-omitzero: false
           x-omitempty: false
+          x-go-type-skip-optional-pointer: true
         mark_article_read_on_view:
           description: >
             indicates whether to automatically mark an article as read when viewed.
           type: boolean
           x-omitzero: false
           x-omitempty: false
+          x-go-type-skip-optional-pointer: true
     ArticleState:
       description: >
         tracks the state of an article.
       type: object
       required:
         - read
+        - updated_at
       properties:
         read:
           description: >
@@ -1089,6 +1109,9 @@ components:
               type: boolean
               x-oapi-codegen-extra-tags:
                 json: '-'
+              x-go-type-skip-optional-pointer: true
+              x-omit-zero: false
+              x-omitempty: false
             content:
               description: >
                 contains the full article content, when it has been fetched from the origin link.
@@ -1119,15 +1142,20 @@ components:
           $ref: '#/components/schemas/UpdatedAt'
         job_data:
           x-go-type: json.RawMessage
+          x-go-type-skip-optional-pointer: true
     APIError:
       description: >
         represents an error returned from any API within the service/application.
       type: object
+      required:
+        - status_code
       properties:
         internal_error:
           description: >
             is the low-level, internal error.
           x-go-type: error
+          x-go-type-skip-optional-pointer: true
+          x-omit-zero: true
         status_code:
           description: >
             is the status code associated with the error. Usually, this is a HTTP status code.
@@ -1141,6 +1169,9 @@ components:
       required:
         - published_within
         - timezone
+        - text
+        - view
+        - sort
       properties:
         subscription_id:
           description: >
@@ -1177,11 +1208,11 @@ components:
             is a list of subscription IDs.
           type: array
           items:
-            type: string
-            # $ref: '#/components/schemas/SubscriptionID' #why doesn't this work?!
+            $ref: '#/components/schemas/SubscriptionID' #why doesn't this work?!
           x-oapi-codegen-extra-tags:
             form: 'subscriptions'
             validate: 'omitempty,unique,dive,startswith=sub_'
+          x-go-type-skip-optional-pointer: true
         published_within:
           description: >
             represents a time range within which the objects should be published
@@ -1219,8 +1250,10 @@ components:
           $ref: '#/components/schemas/SearchRequest'
         articles:
           x-go-type: Articles
+          x-go-type-skip-optional-pointer: true
         subscriptions:
           x-go-type: Subscriptions
+          x-go-type-skip-optional-pointer: true
         categories:
           description: is a list of categories.
           type: array
@@ -1237,6 +1270,10 @@ components:
       description: >
         contains the data for adding a new subscription filter to a search request.
       type: object
+      required:
+        - subscription_id
+        - subscription_name
+        - input_name
       properties:
         subscription_id:
           $ref: '#/components/schemas/SubscriptionID'
@@ -1256,6 +1293,8 @@ components:
       description: >
         contains the data for finding matching subscriptions as suggestion results.
       type: object
+      required:
+        - text
       properties:
         text:
           description: >
@@ -1274,6 +1313,7 @@ components:
             type: string
           x-oapi-codegen-extra-tags:
             form: 'feedset,unique'
+          x-go-type-skip-optional-pointer: true
     ListFilters:
       description: >
         contains filters for altering the display of objects.
@@ -1281,8 +1321,7 @@ components:
       required:
         - view
         - count
-        - sort_by
-        - sort_order
+        - sort
       properties:
         count:
           $ref: '#/components/schemas/Count'
@@ -1319,6 +1358,9 @@ components:
             json: 'only_favorites'
             form: 'only_favorites'
             validate: 'omitempty,boolean'
+          x-omit-zero: false
+          x-omitempty: false
+          x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         validate: 'required'
     ObjectParams:
@@ -1352,12 +1394,16 @@ components:
       properties:
         subscriptions:
           x-go-type: 'Subscriptions'
+          x-go-type-skip-optional-pointer: true
         latest_articles:
           x-go-type: 'Articles'
+          x-go-type-skip-optional-pointer: true
         top_categories:
           x-go-type: 'map[CategoryCount]Articles'
+          x-go-type-skip-optional-pointer: true
         rare_categories:
           x-go-type: 'CategoryCounts'
+          x-go-type-skip-optional-pointer: true
     ListFavoritesResponse:
       description: >
         contains the data for displaying the favorites page.
@@ -1365,12 +1411,16 @@ components:
       properties:
         subscriptions:
           x-go-type: 'Subscriptions'
+          x-go-type-skip-optional-pointer: true
         articles:
           x-go-type: 'Articles'
+          x-go-type-skip-optional-pointer: true
     ListRequest:
       description: >
         contains the parameters needed for listing subscriptions or articles.
       type: object
+      required:
+        - filters
       properties:
         filters:
           $ref: '#/components/schemas/ListFilters'
@@ -1382,6 +1432,7 @@ components:
           x-go-type: query.Option
           x-go-type-import:
             path: 'github.com/immanent-tech/foragd/providers/elastic/query'
+          x-go-type-skip-optional-pointer: true
     ListSubscriptionsResponse:
       description: >
         contains the data retrieved and relevant for listing subscriptions.
@@ -1443,6 +1494,7 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'displayed_subscriptions'
             validate: 'omitempty,dive,startswith=sub_'
+          x-go-type-skip-optional-pointer: true
     MarkSubscriptionRequest:
       description: >
         contains the parameters for marking a subscription.
@@ -1549,7 +1601,7 @@ components:
         contains parameters for sharing an article.
       type: object
       required:
-        - id
+        - item_id
         - title
         - link
       properties:
@@ -1583,22 +1635,34 @@ components:
               type: boolean
               x-oapi-codegen-extra-tags:
                 form: 'missing_image'
+              x-omit-zero: false
+              x-omitempty: false
+              x-go-type-skip-optional-pointer: true
             mangled_content:
               description: >
                 indicates that the text content of the object is mangled/malformed or otherwise incorrect in some way.
               type: boolean
               x-oapi-codegen-extra-tags:
                 form: 'mangled_content'
+              x-omit-zero: false
+              x-omitempty: false
+              x-go-type-skip-optional-pointer: true
             duplicate:
               description: >
                 indicates that the object has a duplicate.
               type: boolean
               x-oapi-codegen-extra-tags:
                 form: 'duplicate'
+              x-omit-zero: false
+              x-omitempty: false
+              x-go-type-skip-optional-pointer: true
     ReportIssueRequest:
       description: >
         contains details about an issue with the service.
       type: object
+      required:
+        - user_email
+        - page_url
       properties:
         user_email:
           description: >
@@ -1692,22 +1756,6 @@ components:
           x-go-type: '*multipart.FileHeader'
           x-oapi-codegen-extra-tags:
             validate: 'required'
-    ViewComponent:
-      description: >
-        contains data related to a particular view.
-      type: object
-      properties:
-        url:
-          description: >
-            is the URL where the view component is used.
-          x-go-type: '*url.URL'
-          x-go-name: URL
-        user:
-          $ref: '#/components/schemas/User'
-        component:
-          description: >
-            is the template that will be rendered in the view.
-          x-go-type: 'templ.Component'
     FileDetails:
       description: >
         contains a mapping of a file in an embedded FS to the URL path it is served from.
@@ -1741,6 +1789,7 @@ components:
             $ref: '#/components/schemas/FileDetails'
           x-oapi-codegen-extra-tags:
             toml: 'file'
+          x-go-type-skip-optional-pointer: true
         updated_at:
           description: >
             indicates when the index was last updated.
@@ -1753,6 +1802,8 @@ components:
       type: object
       required:
         - title
+        - description
+        - created_at
         - file
         - path
       properties:
@@ -1786,6 +1837,10 @@ components:
       description: >
         contains the raw markdown file data and its frontmatter.
       type: object
+      required:
+        - frontmatter
+        - details
+        - content
       properties:
         frontmatter:
           $ref: '#/components/schemas/MarkdownFrontMatter'

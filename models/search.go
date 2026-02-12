@@ -49,8 +49,14 @@ func (r *SearchRequest) Sanitise() error {
 	}
 	// Sanitise text inputs.
 	r.Text = sanitization.SanitizeString(r.Text)
-	r.Authors = sanitization.SanitizeString(r.Authors)
-	r.Categories = sanitization.SanitizeString(r.Categories)
+	if r.Authors != nil {
+		cleanAuthors := sanitization.SanitizeString(*r.Authors)
+		r.Authors = &cleanAuthors
+	}
+	if r.Authors != nil {
+		cleanCategories := sanitization.SanitizeString(*r.Categories)
+		r.Categories = &cleanCategories
+	}
 	// Default timezone is UTC.
 	if r.Timezone == "" {
 		r.Timezone = "UTC"
@@ -87,11 +93,11 @@ func (r *SearchRequest) HXVals() string {
 func (r *SearchRequest) params() url.Values {
 	params := make(url.Values)
 	params.Set("text", r.Text)
-	if r.Authors != "" {
-		params.Set("authors", r.Authors)
+	if r.Authors != nil {
+		params.Set("authors", *r.Authors)
 	}
-	if r.Categories != "" {
-		params.Set(ParamCategories, r.Categories)
+	if r.Categories != nil {
+		params.Set(ParamCategories, *r.Categories)
 	}
 	if len(r.Subscriptions) > 0 {
 		params.Set(ParamSubscriptions, strings.Join(r.Subscriptions, ","))
@@ -100,8 +106,8 @@ func (r *SearchRequest) params() url.Values {
 	params.Set("published_within", string(r.PublishedWithin))
 	params.Set(ParamSort, string(r.Sort))
 	params.Set("timezone", r.Timezone)
-	if r.SubscriptionID != "" {
-		params.Set(ParamSubscriptionID, r.SubscriptionID)
+	if r.SubscriptionID != nil {
+		params.Set(ParamSubscriptionID, *r.SubscriptionID)
 	}
 	return params
 }
@@ -144,7 +150,7 @@ func SearchResultsClause(search *SearchRequest) query.BoolOption {
 		// boosting).
 		query.Bool(
 			query.Should(
-				query.SimpleQueryString(search.Text, "", "title^6", "description^3", "content"),
+				query.SimpleQueryString(&search.Text, "", "title^6", "description^3", "content"),
 				query.MultiMatchPrefix(search.Text, "title^6", "description^3"),
 				query.Match("content", search.Text),
 			),

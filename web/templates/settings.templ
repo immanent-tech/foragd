@@ -229,7 +229,7 @@ templ AccountSettings(user *models.User) {
 			}
 		</div>
 		<div id="subscription-email" class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
-			if user.Settings.SubscriptionEmail == "" {
+			if user.Settings.SubscriptionEmail == nil {
 				<form
 					hx-post="/user/settings/subscriptionemail"
 					hx-target="#subscription-email"
@@ -247,7 +247,7 @@ templ AccountSettings(user *models.User) {
 					</div>
 				</form>
 			} else {
-				@ShowSubscriptionEmail(user.Settings.SubscriptionEmail)
+				@ShowSubscriptionEmail(*user.Settings.SubscriptionEmail)
 			}
 		</div>
 		if cancelled, _ := user.Cancelled(); cancelled {
