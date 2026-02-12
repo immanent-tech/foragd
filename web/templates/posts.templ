@@ -42,6 +42,9 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 	}
 }
 
+// Post renders a post.
+//
+// See also: https://developers.google.com/search/docs/appearance/structured-data/article#microdata
 templ Post(post *models.MarkdownFile) {
 	@content() {
 		@container() {
@@ -51,13 +54,19 @@ templ Post(post *models.MarkdownFile) {
 					<li><a href="#">{ post.Frontmatter.Title }</a></li>
 				</ul>
 			</div>
-			<article class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">
-				<h1>{ post.Frontmatter.Title }</h1>
+			<article itemscope itemtype="https://schema.org/NewsArticle" class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">
+				<h1 itemprop="headline">{ post.Frontmatter.Title }</h1>
 				<p class="font-semibold">{ post.Frontmatter.Description }</p>
 				<div class="mx-auto flex flex-1 space-x-2 mb-4 text-sm">
-					<time datetime={ post.Frontmatter.CreatedAt } class="label">Published { post.Frontmatter.CreatedAt }</time>
+					<time datetime={ post.Frontmatter.CreatedAt } class="label">
+						Published
+						<span itemprop="datePublished">{ post.Frontmatter.CreatedAt }</span>
+					</time>
 					if post.Frontmatter.UpdatedAt != nil {
-						<time datetime={ *post.Frontmatter.UpdatedAt } class="label">Updated { *post.Frontmatter.UpdatedAt }</time>
+						<time datetime={ *post.Frontmatter.UpdatedAt } class="label">
+							Updated
+							<span itemprop="dateModified">{ *post.Frontmatter.UpdatedAt }</span>
+						</time>
 					}
 				</div>
 				@templ.Raw(string(post.Content))
