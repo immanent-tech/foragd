@@ -48,9 +48,17 @@ func (c CategoryCounts) Sort() {
 	})
 }
 
-// GetTopCategories returns the n top Categories from the list of
+func (c CategoryCounts) GetCategories() []Category {
+	var categories []Category
+	for count := range slices.Values(c) {
+		categories = append(categories, count.Category)
+	}
+	return categories
+}
+
+// Limit returns the n top Categories from the list of
 // CategoryCounts.
-func (c CategoryCounts) GetTopCategories(count int) []CategoryCount {
+func (c CategoryCounts) Limit(count int) CategoryCounts {
 	if len(c) == 0 {
 		return nil
 	}

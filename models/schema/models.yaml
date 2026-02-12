@@ -888,6 +888,16 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             form: 'user_categories'
+        suggestedCategories:
+          description: >
+            is a list of suggested categories for the subscription.
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true
     AddFeedSubscriptionResult:
       description: >
         contains the result of adding/importing a subscription from a request.
@@ -919,6 +929,16 @@ components:
           $ref: '#/components/schemas/SubscriptionCustomisation'
         settings:
           $ref: '#/components/schemas/SubscriptionSettings'
+        suggestedCategories:
+          description: >
+            is a list of suggested categories for the subscription.
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true
     GroupSubscriptionRequest:
       description: >
         represents a request to create a group subscription.
@@ -1004,6 +1024,16 @@ components:
             - $ref: '#/components/schemas/SubscriptionSettings'
           x-oapi-codegen-extra-tags:
             form: 'settings'
+        suggestedCategories:
+          description: >
+            is a list of suggested categories for the subscription.
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true
     EditFeedSubscriptionRequest:
       description: >
         is the request details for editing a feed subscription.

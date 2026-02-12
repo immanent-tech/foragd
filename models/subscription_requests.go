@@ -10,10 +10,11 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
-func NewGroupSubscriptionRequest() *GroupSubscriptionRequest {
+func NewGroupSubscriptionRequest(suggestedCategories []Category) *GroupSubscriptionRequest {
 	return &GroupSubscriptionRequest{
-		Customisation: &SubscriptionCustomisation{},
-		Settings:      newSubscriptionSettings(),
+		Customisation:       &SubscriptionCustomisation{},
+		Settings:            newSubscriptionSettings(),
+		SuggestedCategories: suggestedCategories,
 	}
 }
 
@@ -83,10 +84,14 @@ func (s *EditFeedSubscriptionRequest) Sanitise() error {
 	return nil
 }
 
-func NewSearchSubscriptionRequest(search SearchRequest) *SearchSubscriptionRequest {
+func NewSearchSubscriptionRequest(
+	search SearchRequest,
+	suggestedCategories []Category,
+) *SearchSubscriptionRequest {
 	return &SearchSubscriptionRequest{
-		Search:        search,
-		Customisation: &SubscriptionCustomisation{},
+		Search:              search,
+		Customisation:       &SubscriptionCustomisation{},
+		SuggestedCategories: suggestedCategories,
 	}
 }
 

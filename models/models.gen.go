@@ -113,6 +113,9 @@ type AddFeedSubscriptionRequest struct {
 
 	// Nickname a custom name for the subscription. Overrides the feed name.
 	Nickname *string `form:"user_nickname" json:"nickname,omitempty"`
+
+	// SuggestedCategories is a list of suggested categories for the subscription.
+	SuggestedCategories []Category `form:"-" json:"-"`
 }
 
 // AddFeedSubscriptionResult contains the result of adding/importing a subscription from a request.
@@ -306,6 +309,9 @@ type EditEmailSubscriptionRequest struct {
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// SuggestedCategories is a list of suggested categories for the subscription.
+	SuggestedCategories []Category `form:"-" json:"-"`
 }
 
 // EditFeedSubscriptionRequest is the request details for editing a feed subscription.
@@ -904,6 +910,9 @@ type SearchSubscriptionRequest struct {
 
 	// Settings contains options that control how the subscription is stored/displayed.
 	Settings *SubscriptionSettings `form:"settings" json:"settings,omitempty"`
+
+	// SuggestedCategories is a list of suggested categories for the subscription.
+	SuggestedCategories []Category `form:"-" json:"-"`
 }
 
 // ShareArticleRequest contains parameters for sharing an article.

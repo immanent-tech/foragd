@@ -566,7 +566,7 @@ func ListCategoryFilters(filters *models.CategoryFilters) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			for idx, category := range filters.Categories.GetTopCategories(10) {
+			for idx, category := range filters.Categories.Limit(10) {
 				templ_7745c5c3_Err = categoryFilter(filters.Path, "filter-category-"+strconv.Itoa(idx), category, &filters.Filters).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err

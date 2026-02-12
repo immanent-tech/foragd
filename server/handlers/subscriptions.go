@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -395,8 +396,8 @@ func HandleEditSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.ParamSubscriptionID)
-		// Get the subscription.
-		subscription, err := models.GetSubscription(req.Context(), id)
+		// Get the existingSubscription.
+		existingSubscription, err := models.GetSubscription(req.Context(), id)
 		if err != nil {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("get subscription: %w", err),
@@ -411,48 +412,42 @@ func HandleEditSubscription() http.HandlerFunc {
 		var template templ.Component
 		var pageTitle string
 		ctx := req.Context()
-		switch subscription.GetSubscriptionType() {
+		switch existingSubscription.GetSubscriptionType() {
 		case models.SubscriptionTypeFeed:
 			// Convert metadata into edit request data.
 			request := &models.EditFeedSubscriptionRequest{
 				SubscriptionID: id,
-				Customisation:  subscription.Customisation,
-				Settings:       &subscription.Settings,
-				ArticleFilters: subscription.FeedData.ArticleFilters,
+				Customisation:  existingSubscription.Customisation,
+				Settings:       &existingSubscription.Settings,
+				ArticleFilters: existingSubscription.FeedData.ArticleFilters,
 			}
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
 			// subscription.
-			topCategoriesQuery := query.Bool(
-				query.Filter(
-					// Must match any of the given feed IDs.
-					query.Term("feed_id", subscription.FeedData.GetFeedID()),
-				),
-				query.MustNot(
-					query.Terms(
-						"categories.raw",
-						slices.Concat(models.CommonCategoryFilters, subscription.Customisation.Categories)...,
-					),
-				),
+			request.SuggestedCategories = getSubscriptionCategorySuggestions(
+				req.Context(),
+				[]models.FeedID{existingSubscription.FeedData.GetFeedID()},
+				existingSubscription.Customisation.Categories,
 			)
-			if suggestedCategories, resp := models.GetArticleTopCategories(ctx, topCategoriesQuery); resp == nil {
-				suggestedCategories = slices.Collect(
-					models.FilterSlice(suggestedCategories, func(category models.Category) bool {
-						return !slices.Contains(models.CommonCategoryFilters, category)
-					}),
-				)
-				request.SuggestedCategories = suggestedCategories
-			}
 			// Generate page template.
 			template = templates.EditSubscription(request)
-			pageTitle = "Editing " + subscription.GetTitle()
+			pageTitle = "Editing " + existingSubscription.GetTitle()
 		case models.SubscriptionTypeSearch:
 			// Editing SearchSubscription.
 			request := &models.SearchSubscriptionRequest{
-				Customisation: subscription.Customisation,
-				Settings:      &subscription.Settings,
-				Search:        subscription.SearchData.Search,
+				Customisation: existingSubscription.Customisation,
+				Settings:      &existingSubscription.Settings,
+				Search:        existingSubscription.SearchData.Search,
 			}
-			request.Search.SubscriptionID = new(subscription.GetID())
+			// Get suggested categories from existing subscriptions.
+			categoryCounts, err := models.GetCategoriesForSubscriptions(req.Context())
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
+					slog.Any("error", err),
+				)
+			}
+			request.SuggestedCategories = categoryCounts.Limit(10).GetCategories()
+
+			request.Search.SubscriptionID = new(existingSubscription.GetID())
 			// Get any extra subscription info for subscription filters.
 			if len(request.Search.Subscriptions) > 0 {
 				subscriptions, err := models.GetSubscriptions(ctx,
@@ -477,7 +472,7 @@ func HandleEditSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeGroup:
 			subscriptions, err := models.GetSubscriptions(
 				req.Context(),
-				models.GetSubscriptionsByIDs(subscription.GroupData.Subscriptions...),
+				models.GetSubscriptionsByIDs(existingSubscription.GroupData.Subscriptions...),
 			)
 			if err != nil {
 				HandleInternalError(&models.APIError{
@@ -494,49 +489,43 @@ func HandleEditSubscription() http.HandlerFunc {
 
 			// Create the request with details from the group subscription.
 			request := &models.GroupSubscriptionRequest{
-				Customisation:  subscription.Customisation,
-				Settings:       new(subscription.Settings),
+				Customisation:  existingSubscription.Customisation,
+				Settings:       new(existingSubscription.Settings),
 				Subscriptions:  make(map[models.SubscriptionID]string),
-				SubscriptionID: new(subscription.GetID()),
-				ArticleFilters: subscription.GroupData.ArticleFilters,
+				SubscriptionID: new(existingSubscription.GetID()),
+				ArticleFilters: existingSubscription.GroupData.ArticleFilters,
 			}
 			// Populate the subscriptions data in the request.
 			for subscription := range slices.Values(subscriptions) {
 				request.Subscriptions[subscription.GetID()] = subscription.GetTitle()
 			}
+			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories
 			// for the subscription.
-			topCategoriesQuery := query.Bool(
-				query.Filter(
-					// Must match any of the given feed IDs.
-					query.Terms("feed_id", subscriptions.GetFeedIDs()...),
-				),
-				query.MustNot(
-					query.Terms(
-						"categories.raw",
-						slices.Concat(models.CommonCategoryFilters, subscriptions.GetCategories())...,
-					),
-				),
+			request.SuggestedCategories = getSubscriptionCategorySuggestions(
+				req.Context(),
+				subscriptions.GetFeedIDs(),
+				subscriptions.GetCategories(),
 			)
-			if suggestedCategories, resp := models.GetArticleTopCategories(ctx, topCategoriesQuery); resp == nil {
-				suggestedCategories = slices.Collect(
-					models.FilterSlice(suggestedCategories, func(category models.Category) bool {
-						return !slices.Contains(models.CommonCategoryFilters, category)
-					}),
-				)
-				request.SuggestedCategories = suggestedCategories
-			}
-			ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			// Generate page template.
 			template = templates.EditGroupSubscription(request)
 			pageTitle = "Editing " + request.Customisation.Nickname
 		case models.SubscriptionTypeEmail:
 			// Editing SearchSubscription.
 			request := &models.EditEmailSubscriptionRequest{
-				Customisation:  subscription.Customisation,
-				Settings:       new(subscription.Settings),
-				SubscriptionID: subscription.GetID(),
+				Customisation:  existingSubscription.Customisation,
+				Settings:       new(existingSubscription.Settings),
+				SubscriptionID: existingSubscription.GetID(),
 			}
+			// Get suggested categories from existing subscriptions.
+			categoryCounts, err := models.GetCategoriesForSubscriptions(req.Context())
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
+					slog.Any("error", err),
+				)
+			}
+			request.SuggestedCategories = categoryCounts.Limit(10).GetCategories()
+
 			template = templates.EditEmailSubscription(request)
 			pageTitle = "Editing " + request.Customisation.Nickname
 		}
@@ -713,11 +702,21 @@ func HandleAddFeedSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
+			// Get suggested categories from existing subscriptions.
+			categoryCounts, err := models.GetCategoriesForSubscriptions(req.Context())
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
+					slog.Any("error", err),
+				)
+			}
+			suggestedCategories := categoryCounts.Limit(10).GetCategories()
 			res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 			RenderInternalPage(
 				&AddSubscription{
-					title:    "Add Feed Subscription",
-					template: templates.AddFeedSubscription(&models.AddFeedSubscriptionRequest{}),
+					title: "Add Feed Subscription",
+					template: templates.AddFeedSubscription(&models.AddFeedSubscriptionRequest{
+						SuggestedCategories: suggestedCategories,
+					}),
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:
@@ -820,10 +819,21 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 				}
 				ctx = models.SubscriptionsToCtx(ctx, subscriptions)
 			}
+			// Get suggested categories from existing subscriptions.
+			categoryCounts, err := models.GetCategoriesForSubscriptions(req.Context())
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
+					slog.Any("error", err),
+				)
+			}
+			suggestedCategories := categoryCounts.Limit(10).GetCategories()
+			// Render form.
 			RenderInternalPage(
 				&AddSubscription{
-					title:    "Add Search Subscription",
-					template: templates.AddSearchSubscription(models.NewSearchSubscriptionRequest(*request)),
+					title: "Add Search Subscription",
+					template: templates.AddSearchSubscription(
+						models.NewSearchSubscriptionRequest(*request, suggestedCategories),
+					),
 				},
 			).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
@@ -909,10 +919,19 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
+			// Get suggested categories from existing subscriptions.
+			categoryCounts, err := models.GetCategoriesForSubscriptions(req.Context())
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to get category suggestions from existing subscriptions.",
+					slog.Any("error", err),
+				)
+			}
+			suggestedCategories := categoryCounts.Limit(10).GetCategories()
+
 			RenderInternalPage(
 				&AddSubscription{
 					title:    "Add Group Subscription",
-					template: templates.AddGroupSubscription(models.NewGroupSubscriptionRequest()),
+					template: templates.AddGroupSubscription(models.NewGroupSubscriptionRequest(suggestedCategories)),
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:
@@ -1320,4 +1339,36 @@ func processThumbnail(req *http.Request, objectID string) (string, error) {
 	}
 
 	return "", nil
+}
+
+func getSubscriptionCategorySuggestions(
+	ctx context.Context,
+	feedIDs []models.FeedID,
+	excludedCategories []models.Category,
+) []models.Category {
+	var suggestions []models.Category
+	// Get top suggestedCategories across items in subscription feed and add as suggested suggestedCategories for the
+	// subscription.
+	topCategoriesQuery := query.Bool(
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", feedIDs...),
+		),
+		query.MustNot(
+			query.Terms(
+				"categories.raw",
+				slices.Concat(models.CommonCategoryFilters, excludedCategories)...,
+			),
+		),
+	)
+	if suggestedCategories, resp := models.GetArticleTopCategories(ctx, topCategoriesQuery); resp == nil {
+		suggestedCategories = slices.Collect(
+			models.FilterSlice(suggestedCategories, func(category models.Category) bool {
+				return !slices.Contains(models.CommonCategoryFilters, category)
+			}),
+		)
+		suggestions = suggestedCategories
+	}
+
+	return suggestions
 }

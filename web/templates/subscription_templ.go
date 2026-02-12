@@ -1743,7 +1743,7 @@ func AddFeedSubscription(request *models.AddFeedSubscriptionRequest) templ.Compo
 						return templ_7745c5c3_Err
 					}
 					categoryMgmtPath := "/user/subscription/category"
-					templ_7745c5c3_Err = CategoryManagement(categoryMgmtPath, "categories", nil, request.Categories).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = CategoryManagement(categoryMgmtPath, "categories", request.SuggestedCategories, request.Categories).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2296,7 +2296,7 @@ func manageSearchSubscription(request *models.SearchSubscriptionRequest, action 
 						}
 					}
 					categoryMgmtPath := "/user/subscription/category"
-					templ_7745c5c3_Err = CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = CategoryManagement(categoryMgmtPath, "customisation.categories", request.SuggestedCategories, request.Customisation.Categories).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2732,7 +2732,7 @@ func manageGroupSubscription(request *models.GroupSubscriptionRequest, action st
 						}
 					}
 					categoryMgmtPath := "/user/subscription/category"
-					templ_7745c5c3_Err = CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = CategoryManagement(categoryMgmtPath, "customisation.categories", request.SuggestedCategories, request.Customisation.Categories).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
