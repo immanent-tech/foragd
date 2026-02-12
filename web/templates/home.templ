@@ -47,6 +47,42 @@ templ UserHome(data *models.HomeResponse) {
 					// 	sse-swap="updates"
 					// 	class="toast toast-center z-50"
 					// ></div>
+					if len(data.LatestArticles) > 0 {
+						<div class="flex w-full mb-4">
+							@partials.Heading2() {
+								Latest Articles
+							}
+						</div>
+						// Grid of latest articles on large displays.
+						@grid(WithClasses("hidden sm:grid")) {
+							for article := range slices.Values(data.LatestArticles) {
+								@NewArticleView(article).Card()
+							}
+						}
+						// Carousel of latest articles on small displays.
+						<div class="sm:hidden w-full">
+							<div class="carousel w-full">
+								for article := range slices.Values(data.LatestArticles) {
+									<div id={ article.GetID() + "-carousel" } class="carousel-item w-full">
+										@NewArticleView(article).Card()
+									</div>
+								}
+							</div>
+							<div
+								class="flex w-full justify-center gap-2 py-2"
+							>
+								for article := range slices.Values(data.LatestArticles) {
+									<a
+										href={ "#" + article.GetID() + "-carousel" }
+										class="text-neutral"
+										_="on click remove .text-primary from <a/> in closest parent <div/> then add .text-primary to me"
+									>
+										@tabler.PointFilled()
+									</a>
+								}
+							</div>
+						</div>
+					}
 					if len(data.Subscriptions) > 0 {
 						<div class="flex w-full mb-4">
 							@partials.Heading2() {
@@ -100,42 +136,6 @@ templ UserHome(data *models.HomeResponse) {
 								</div>
 							}
 						}
-					}
-					if len(data.LatestArticles) > 0 {
-						<div class="flex w-full mb-4">
-							@partials.Heading2() {
-								Latest Articles
-							}
-						</div>
-						// Grid of latest articles on large displays.
-						@grid(WithClasses("hidden sm:grid")) {
-							for article := range slices.Values(data.LatestArticles) {
-								@NewArticleView(article).Card()
-							}
-						}
-						// Carousel of latest articles on small displays.
-						<div class="sm:hidden w-full">
-							<div class="carousel w-full">
-								for article := range slices.Values(data.LatestArticles) {
-									<div id={ article.GetID() + "-carousel" } class="carousel-item w-full">
-										@NewArticleView(article).Card()
-									</div>
-								}
-							</div>
-							<div
-								class="flex w-full justify-center gap-2 py-2"
-							>
-								for article := range slices.Values(data.LatestArticles) {
-									<a
-										href={ "#" + article.GetID() + "-carousel" }
-										class="text-neutral"
-										_="on click remove .text-primary from <a/> in closest parent <div/> then add .text-primary to me"
-									>
-										@tabler.PointFilled()
-									</a>
-								}
-							</div>
-						</div>
 					}
 					if len(data.TopCategories) > 0 {
 						<div class="flex w-full my-4">
