@@ -5,3 +5,7 @@ file = "feeds-vs-social-media.md"
 [[file]]
 path = "finding-feeds"
 file = "finding-feeds.md"
+
+[[file]]
+path = "managing-feed-overload"
+file = "managing-feed-overload.md"
