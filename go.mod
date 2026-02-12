@@ -1,6 +1,6 @@
 module github.com/immanent-tech/foragd
 
-go 1.25
+go 1.26
 
 replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 
@@ -16,6 +16,7 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.30.1
+	github.com/goforj/godump v1.9.0
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/knadh/koanf/v2 v2.3.2
 	github.com/lmittmann/tint v1.1.3

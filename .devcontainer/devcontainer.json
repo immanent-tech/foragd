@@ -32,7 +32,9 @@
         "DotJoshJohnson.xml",
         "redhat.vscode-xml",
         "davidlday.languagetool-linter",
-        "nize.oklch-preview"
+        "nize.oklch-preview",
+        "ms-vscode.wordcount",
+        "eliostruyf.vscode-front-matter"
       ]
     }
   }
