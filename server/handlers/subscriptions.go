@@ -23,7 +23,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/sanitization"
 	"github.com/justinas/alice"
@@ -594,7 +593,6 @@ func HandleSaveSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeSearch:
 			request, valid, err := forms.DecodeMultiPartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {
-				godump.Dump(request)
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode search subscription request: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
@@ -824,13 +822,8 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 			}
 			RenderInternalPage(
 				&AddSubscription{
-					title: "Add Search Subscription",
-					template: templates.AddSearchSubscription(
-						&models.SearchSubscriptionRequest{
-							Search:        *request,
-							Customisation: &models.SubscriptionCustomisation{},
-						},
-					),
+					title:    "Add Search Subscription",
+					template: templates.AddSearchSubscription(models.NewSearchSubscriptionRequest(*request)),
 				},
 			).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
@@ -919,7 +912,7 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 			RenderInternalPage(
 				&AddSubscription{
 					title:    "Add Group Subscription",
-					template: templates.AddGroupSubscription(&models.GroupSubscriptionRequest{}),
+					template: templates.AddGroupSubscription(models.NewGroupSubscriptionRequest()),
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:

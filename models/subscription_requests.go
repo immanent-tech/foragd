@@ -10,6 +10,13 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
+func NewGroupSubscriptionRequest() *GroupSubscriptionRequest {
+	return &GroupSubscriptionRequest{
+		Customisation: &SubscriptionCustomisation{},
+		Settings:      newSubscriptionSettings(),
+	}
+}
+
 func (r *GroupSubscriptionRequest) Valid() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("group subscription error: %w", err)
@@ -74,6 +81,13 @@ func (s *EditFeedSubscriptionRequest) Sanitise() error {
 		}
 	}
 	return nil
+}
+
+func NewSearchSubscriptionRequest(search SearchRequest) *SearchSubscriptionRequest {
+	return &SearchSubscriptionRequest{
+		Search:        search,
+		Customisation: &SubscriptionCustomisation{},
+	}
 }
 
 func (r *SearchSubscriptionRequest) Valid() error {
