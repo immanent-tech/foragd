@@ -11,5 +11,33 @@
       "title": "posts",
       "path": "[[workspace]]/web/assets/docs/posts"
     }
+  ],
+  "frontMatter.taxonomy.contentTypes": [
+    {
+      "name": "default",
+      "pageBundle": false,
+      "fields": [
+        {
+          "title": "title",
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "title": "description",
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "title": "created_at",
+          "name": "created_at",
+          "type": "datetime"
+        },
+        {
+          "title": "updated_at",
+          "name": "updated_at",
+          "type": "datetime"
+        }
+      ]
+    }
   ]
 }

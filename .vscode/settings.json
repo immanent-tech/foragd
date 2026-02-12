@@ -134,33 +134,5 @@
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000,
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
-  "xmlTools.splitAttributesOnFormat": true,
-  "frontMatter.taxonomy.contentTypes": [
-    {
-      "name": "default",
-      "pageBundle": false,
-      "fields": [
-        {
-          "title": "title",
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "title": "description",
-          "name": "description",
-          "type": "string"
-        },
-        {
-          "title": "created_at",
-          "name": "created_at",
-          "type": "datetime"
-        },
-        {
-          "title": "updated_at",
-          "name": "updated_at",
-          "type": "datetime"
-        }
-      ]
-    }
-  ]
+  "xmlTools.splitAttributesOnFormat": true
 }
