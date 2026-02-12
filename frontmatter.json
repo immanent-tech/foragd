@@ -1,0 +1,15 @@
+{
+  "$schema": "https://frontmatter.codes/frontmatter.schema.json",
+  "frontMatter.framework.id": "other",
+  "frontMatter.content.publicFolder": "",
+  "frontMatter.content.pageFolders": [
+    {
+      "title": "policies",
+      "path": "[[workspace]]/web/assets/docs/policies"
+    },
+    {
+      "title": "posts",
+      "path": "[[workspace]]/web/assets/docs/posts"
+    }
+  ]
+}
