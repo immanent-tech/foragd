@@ -678,6 +678,8 @@ components:
           x-omitzero: false
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
+      x-oapi-codegen-extra-tags:
+        form: 'settings'
     SubscriptionStats:
       description: >
         contains stats about a subscription.
@@ -916,10 +918,7 @@ components:
         customisation:
           $ref: '#/components/schemas/SubscriptionCustomisation'
         settings:
-          allOf:
-            - $ref: '#/components/schemas/SubscriptionSettings'
-          x-oapi-codegen-extra-tags:
-            form: 'settings'
+          $ref: '#/components/schemas/SubscriptionSettings'
     GroupSubscriptionRequest:
       description: >
         represents a request to create a group subscription.

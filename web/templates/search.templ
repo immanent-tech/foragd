@@ -324,237 +324,240 @@ templ SearchResults(results *models.SearchResults) {
 templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) {
 	// Search form.
 	<div id="search-filters" { attributes... }>
-		<form
-			id="search-results"
-			hx-post="/search"
-			hx-target={ ContentID.Target() }
-			hx-include="[id='timezone']"
-			hx-disinherit="*"
-		>
-			<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
-				// Full text search filter.
-				<div class="col-span-full">
-					<label for="text" class="block text-sm/6 font-medium">Includes the words</label>
-					<label class="input input-sm input-primary w-full bg-base-content/10 mt-2">
-						<input
-							id="search-text"
-							type="text"
-							name="text"
-							if request.Text != "" {
-								value={ request.Text }
-							}
-							placeholder="e.g. cat dog -mouse"
-							_="on change from #global-search set my value to #global-search.value"
-						/>
-						<button
-							id="clear-search-text"
-							type="button"
-							tabindex="0"
-							_="on click set #search-text.value to ''"
+		<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
+			// Full text search filter.
+			<div class="col-span-full">
+				<label for="text" class="block text-sm/6 font-medium">Includes the words</label>
+				<label class="input input-sm input-primary w-full bg-base-content/10 mt-2">
+					<input
+						id="search-text"
+						type="text"
+						name="text"
+						if request.Text != "" {
+							value={ request.Text }
+						}
+						placeholder="e.g. cat dog -mouse"
+						_="on change from #global-search set my value to #global-search.value"
+					/>
+					<button
+						id="clear-search-text"
+						type="button"
+						tabindex="0"
+						_="on click set #search-text.value to ''"
+					>
+						@tabler.CircleX(i.Props{Class: "flex-none text-primary"})
+					</button>
+				</label>
+			</div>
+			// Categories filter.
+			<div class="sm:col-span-3">
+				<label form="categories" class="block text-sm/6 font-medium">Categories</label>
+				<div class="mt-2">
+					<input
+						id="search-categories"
+						type="text"
+						name="categories"
+						if request.Categories != nil {
+							value={ *request.Categories }
+						}
+						class="input input-sm input-primary bg-base-content/10"
+					/>
+				</div>
+			</div>
+			// Authors filter.
+			<div class="sm:col-span-3">
+				<label for="authors" class="block text-sm/6 font-medium">Authors</label>
+				<div class="mt-2">
+					<input
+						id="search-authors"
+						type="text"
+						name="authors"
+						if request.Authors != nil {
+							value={ *request.Authors }
+						}
+						class="input input-sm input-primary bg-base-content/10"
+					/>
+				</div>
+			</div>
+			// Subscriptions filter.
+			<div class="sm:col-span-full">
+				<label class="block text-sm/6 font-medium">In subscriptions</label>
+				<div class="mt-2">
+					<label class="input input-sm input-primary bg-base-content/10 w-full">
+						@tabler.Search(i.Props{Class: "size-5"})
+						<form
+							hx-post="/search/subscription/suggestions"
+							hx-trigger="input changed delay:500ms,consume"
+							hx-target="#search-subscriptions-options"
+							hx-params="subscription-text"
+							hx-swap="innerHTML"
 						>
-							@tabler.CircleX(i.Props{Class: "flex-none text-primary"})
-						</button>
-					</label>
-				</div>
-				// Categories filter.
-				<div class="sm:col-span-3">
-					<label form="categories" class="block text-sm/6 font-medium">Categories</label>
-					<div class="mt-2">
-						<input
-							id="search-categories"
-							type="text"
-							name="categories"
-							if request.Categories != nil {
-								value={ *request.Categories }
-							}
-							class="input input-sm input-primary bg-base-content/10"
-						/>
-					</div>
-				</div>
-				// Authors filter.
-				<div class="sm:col-span-3">
-					<label for="authors" class="block text-sm/6 font-medium">Authors</label>
-					<div class="mt-2">
-						<input
-							id="search-authors"
-							type="text"
-							name="authors"
-							if request.Authors != nil {
-								value={ *request.Authors }
-							}
-							class="input input-sm input-primary bg-base-content/10"
-						/>
-					</div>
-				</div>
-				// Subscriptions filter.
-				<div class="sm:col-span-full">
-					<label class="block text-sm/6 font-medium">In subscriptions</label>
-					<div class="mt-2">
-						<label class="input input-sm input-primary bg-base-content/10 w-full">
-							@tabler.Search(i.Props{Class: "size-5"})
 							<input
 								id="search-subscriptions-suggest"
 								name="subscription-text"
 								placeholder="Search subscriptions..."
 								autocomplete="off"
-								hx-post="/search/subscription/suggestions"
-								hx-trigger="input changed delay:500ms,consume"
-								hx-target="#search-subscriptions-options"
-								hx-params="subscription-text"
-								hx-swap="innerHTML"
 							/>
-						</label>
-						<div
-							class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-							id="search-subscriptions-options"
-							hx-target="#search-subscriptions"
-							hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
-							_="on htmx:afterRequest set #search-subscriptions-suggest.value to ''"
-						></div>
-						<div
-							id="search-subscriptions"
-							class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-						>
-							for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
-								@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
-									InputName:        "subscriptions",
-									SubscriptionID:   subscription.GetID(),
-									SubscriptionName: subscription.GetTitle(),
-								})
-							}
-						</div>
+						</form>
+					</label>
+					<div
+						class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+						id="search-subscriptions-options"
+						hx-target="#search-subscriptions"
+						hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
+						_="on htmx:afterRequest set #search-subscriptions-suggest.value to ''"
+					></div>
+					<div
+						id="search-subscriptions"
+						class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+					>
+						for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
+							@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
+								InputName:        "subscriptions",
+								SubscriptionID:   subscription.GetID(),
+								SubscriptionName: subscription.GetTitle(),
+							})
+						}
 					</div>
 				</div>
-				// View filter.
-				<div class="sm:col-span-2">
-					<fieldset>
-						<legend class="text-sm/6 font-medium">View</legend>
-						<div>
-							<div class="flex items-center gap-x-3">
-								<input
-									id="search-view-unread"
-									type="radio"
-									name="view"
-									value="unread"
-									if request.View == models.ViewUnread {
-										checked
-									}
-									class="radio radio-sm radio-primary"
-								/>
-								<label for="view_unread" class="block text-sm/6 font-medium">Unread</label>
-							</div>
-							<div class="flex items-center gap-x-3">
-								<input
-									id="search-view-read"
-									type="radio"
-									name="view"
-									value="read"
-									if request.View == models.ViewRead {
-										checked
-									}
-									class="radio radio-sm radio-primary"
-								/>
-								<label for="view_read" class="block text-sm/6 font-medium">Read</label>
-							</div>
-							<div class="flex items-center gap-x-3">
-								<input
-									id="search-view-all"
-									type="radio"
-									name="view"
-									value="all"
-									if request.View == models.ViewAll {
-										checked
-									}
-									class="radio radio-sm radio-primary"
-								/>
-								<label for="view_all" class="block text-sm/6 font-medium">All</label>
-							</div>
-						</div>
-					</fieldset>
-				</div>
-				// Date range filter.
-				<div class="sm:col-span-2">
-					<label for="published_within" class="block text-sm/6 font-medium">Published Within</label>
-					<select id="search-published-within" name="published_within" class="select select-sm select-primary my-2 bg-base-content/10">
-						<option
-							value="last_hour"
-							if request.PublishedWithin == models.SearchRequestPublishedWithinLastHour {
-								selected
-							}
-						>Last hour</option>
-						<option
-							value="last_half_day"
-							if request.PublishedWithin == models.SearchRequestPublishedWithinLast12hours {
-								selected
-							}
-						>Last 12 hours</option>
-						<option
-							value="last_day"
-							if request.PublishedWithin == models.SearchRequestPublishedWithinLastDay {
-								selected
-							}
-						>Last day</option>
-						<option
-							value="last_week"
-							if request.PublishedWithin == models.SearchRequestPublishedWithinLastWeek {
-								selected
-							}
-						>Last week</option>
-						<option
-							value="last_month"
-							if request.PublishedWithin == models.SearchRequestPublishedWithinLastMonth {
-								selected
-							}
-						>Last month</option>
-						<option
-							value="all_time"
-							if request.PublishedWithin == models.SearchRequestPublishedWithinAllTime || request.PublishedWithin == "" {
-								selected
-							}
-						>All time</option>
-					</select>
-				</div>
-				// Sort option.
-				<div class="sm:col-span-2">
-					<label for="sort" class="block text-sm/6 font-medium">Sort By</label>
-					<select id="search-sort" name="sort" class="select select-sm select-primary my-2 bg-base-content/10">
-						<option
-							value={ string(models.SortMostRelevant) }
-							if request.Sort == models.SortMostRelevant {
-								selected
-							}
-						>
-							Most Relevant
-						</option>
-						<option
-							value={ string(models.SortNewestFirst) }
-							if request.Sort == models.SortNewestFirst {
-								selected
-							}
-						>Newest First</option>
-						<option
-							value={ string(models.SortOldestFirst) }
-							if request.Sort == models.SortOldestFirst {
-								selected
-							}
-						>Oldest First</option>
-					</select>
-				</div>
 			</div>
-			<div class="mt-6 flex items-center justify-end gap-x-6">
-				<button
-					type="button"
-					class="btn btn-sm btn-seconday hover:btn-error"
-					command="close"
-					commandfor="search-filters-dialog"
-				>Cancel</button>
+			// View filter.
+			<div class="sm:col-span-2">
+				<fieldset>
+					<legend class="text-sm/6 font-medium">View</legend>
+					<div>
+						<div class="flex items-center gap-x-3">
+							<input
+								id="search-view-unread"
+								type="radio"
+								name="view"
+								value="unread"
+								if request.View == models.ViewUnread {
+									checked
+								}
+								class="radio radio-sm radio-primary"
+							/>
+							<label for="view_unread" class="block text-sm/6 font-medium">Unread</label>
+						</div>
+						<div class="flex items-center gap-x-3">
+							<input
+								id="search-view-read"
+								type="radio"
+								name="view"
+								value="read"
+								if request.View == models.ViewRead {
+									checked
+								}
+								class="radio radio-sm radio-primary"
+							/>
+							<label for="view_read" class="block text-sm/6 font-medium">Read</label>
+						</div>
+						<div class="flex items-center gap-x-3">
+							<input
+								id="search-view-all"
+								type="radio"
+								name="view"
+								value="all"
+								if request.View == models.ViewAll {
+									checked
+								}
+								class="radio radio-sm radio-primary"
+							/>
+							<label for="view_all" class="block text-sm/6 font-medium">All</label>
+						</div>
+					</div>
+				</fieldset>
+			</div>
+			// Date range filter.
+			<div class="sm:col-span-2">
+				<label for="published_within" class="block text-sm/6 font-medium">Published Within</label>
+				<select id="search-published-within" name="published_within" class="select select-sm select-primary my-2 bg-base-content/10">
+					<option
+						value="last_hour"
+						if request.PublishedWithin == models.SearchRequestPublishedWithinLastHour {
+							selected
+						}
+					>Last hour</option>
+					<option
+						value="last_half_day"
+						if request.PublishedWithin == models.SearchRequestPublishedWithinLast12hours {
+							selected
+						}
+					>Last 12 hours</option>
+					<option
+						value="last_day"
+						if request.PublishedWithin == models.SearchRequestPublishedWithinLastDay {
+							selected
+						}
+					>Last day</option>
+					<option
+						value="last_week"
+						if request.PublishedWithin == models.SearchRequestPublishedWithinLastWeek {
+							selected
+						}
+					>Last week</option>
+					<option
+						value="last_month"
+						if request.PublishedWithin == models.SearchRequestPublishedWithinLastMonth {
+							selected
+						}
+					>Last month</option>
+					<option
+						value="all_time"
+						if request.PublishedWithin == models.SearchRequestPublishedWithinAllTime || request.PublishedWithin == "" {
+							selected
+						}
+					>All time</option>
+				</select>
+			</div>
+			// Sort option.
+			<div class="sm:col-span-2">
+				<label for="sort" class="block text-sm/6 font-medium">Sort By</label>
+				<select id="search-sort" name="sort" class="select select-sm select-primary my-2 bg-base-content/10">
+					<option
+						value={ string(models.SortMostRelevant) }
+						if request.Sort == models.SortMostRelevant {
+							selected
+						}
+					>
+						Most Relevant
+					</option>
+					<option
+						value={ string(models.SortNewestFirst) }
+						if request.Sort == models.SortNewestFirst {
+							selected
+						}
+					>Newest First</option>
+					<option
+						value={ string(models.SortOldestFirst) }
+						if request.Sort == models.SortOldestFirst {
+							selected
+						}
+					>Oldest First</option>
+				</select>
+			</div>
+		</div>
+		<div class="mt-6 flex items-center justify-end gap-x-6">
+			<button
+				type="button"
+				class="btn btn-sm btn-seconday hover:btn-error"
+				command="close"
+				commandfor="search-filters-dialog"
+			>Cancel</button>
+			<form
+				id="search-results"
+				hx-post="/search"
+				hx-target={ ContentID.Target() }
+				hx-include="[id='timezone'],#search-filters"
+				hx-params="not subscription-text"
+			>
 				<button
 					type="submit"
 					class="btn btn-sm btn-primary"
 					_="on click call #search-filters-dialog.close()"
 				>Search</button>
-			</div>
-		</form>
+			</form>
+		</div>
 		// Help dialog.
 		<div class="absolute right-2 top-2">
 			@HelpPopover("filter-operators-help", "bottom end") {
@@ -578,23 +581,23 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 			hx-swap="beforeend"
 			hx-vals={ templ.JSONString(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}) }
 			hx-params="subscription_id,subscription_name,subscriptions-input-name"
-			class="btn-sm btn-primary hover:btn-success flex items-center"
+			class="btn btn-xs hover:btn-success flex items-center"
 			_="on htmx:afterRequest(successful) remove me"
 		>
 			{ subscription.GetTitle() }
-			@tabler.Plus(i.Props{Class: "size-5"})
+			@tabler.Plus()
 		</button>
 	}
 }
 
 templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequest) {
 	<button
-		class="btn btn-sm hover:btn-error"
+		class="btn btn-xs hover:btn-error"
 		_="on click remove me then halt"
 	>
 		<input type="hidden" name={ filter.InputName } value={ filter.SubscriptionID }/>
 		{ filter.SubscriptionName }
-		@tabler.X(i.Props{Class: "size-5"})
+		@tabler.X()
 	</button>
 }
 

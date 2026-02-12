@@ -900,7 +900,9 @@ type SearchSubscriptionRequest struct {
 	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
 
 	// Search represents a search request by the user.
-	Search   SearchRequest         `form:"search" json:"search" validate:"required"`
+	Search SearchRequest `form:"search" json:"search" validate:"required"`
+
+	// Settings contains options that control how the subscription is stored/displayed.
 	Settings *SubscriptionSettings `form:"settings" json:"settings,omitempty"`
 }
 
@@ -957,7 +959,7 @@ type Subscription struct {
 	SearchData *SearchSubscription `json:"search_data,omitempty" validate:"omitempty"`
 
 	// Settings contains options that control how the subscription is stored/displayed.
-	Settings SubscriptionSettings `json:"settings"`
+	Settings SubscriptionSettings `form:"settings" json:"settings"`
 
 	// Stats contains stats about a subscription.
 	Stats *SubscriptionStats `json:"-" validate:"-"`
@@ -1020,7 +1022,7 @@ type SubscriptionMetadata struct {
 	MarkedReadAt *time.Time `json:"marked_read_at,omitempty"`
 
 	// Settings contains options that control how the subscription is stored/displayed.
-	Settings SubscriptionSettings `json:"settings"`
+	Settings SubscriptionSettings `form:"settings" json:"settings"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
