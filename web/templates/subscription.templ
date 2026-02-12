@@ -614,6 +614,8 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 								</div>
 							</div>
 						</div>
+						// Thumbnail.
+						@subscriptionThumbnailField(nil, "")
 					</form>
 					// Categories
 					{{ categoryMgmtPath := "/user/subscription/category" }}

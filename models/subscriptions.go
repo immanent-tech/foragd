@@ -21,11 +21,13 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -90,8 +92,8 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 	termsField := "customisation.categories.raw"
 	termsCount := 200
 	aggs := aggregations.Aggs{
-		"CategoryCounts": types.Aggregations{
-			Terms: &types.TermsAggregation{
+		"CategoryCounts": estypes.Aggregations{
+			Terms: &estypes.TermsAggregation{
 				Field: &termsField,
 				Size:  &termsCount,
 			},
@@ -103,21 +105,23 @@ func GetCategoriesForSubscriptions(ctx context.Context, subscriptionIDs ...Subsc
 		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.SubscriptionsIndexRO),
 		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](searchQuery),
 		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
+			&estypes.SortOptions{Doc_: estypes.NewScoreSort()},
+		),
 		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
 	).Do(ctx)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
 	}
 
-	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
+	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
 	if !ok {
 		return nil, fmt.Errorf(
 			"category counts aggregation invalid: %w",
 			ErrInvalidAPIResult,
 		)
 	}
-	categoryCountsBuckets, ok := categoryCounts.Buckets.([]types.StringTermsBucket)
+	categoryCountsBuckets, ok := categoryCounts.Buckets.([]estypes.StringTermsBucket)
 	if !ok {
 		return nil, fmt.Errorf(
 			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
@@ -166,8 +170,8 @@ func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions)
 	termsField := "customisation.categories.raw"
 	termsCount := 200
 	aggs := aggregations.Aggs{
-		"CategoryCounts": types.Aggregations{
-			Terms: &types.TermsAggregation{
+		"CategoryCounts": estypes.Aggregations{
+			Terms: &estypes.TermsAggregation{
 				Field: &termsField,
 				Size:  &termsCount,
 			},
@@ -179,21 +183,23 @@ func GetSubscriptionCategories(ctx context.Context, subscriptions Subscriptions)
 		elastic.WithIndex[*search.Search, elastic.SearchRequest](schema.SubscriptionsIndexRO),
 		elastic.WithQueryOptions[*search.Search, elastic.SearchRequest](searchQuery),
 		elastic.WithSize[*search.Search, elastic.SearchRequest](0),
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&types.SortOptions{Doc_: types.NewScoreSort()}),
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](
+			&estypes.SortOptions{Doc_: estypes.NewScoreSort()},
+		),
 		elastic.WithAggregations[*search.Search, elastic.SearchRequest](aggs),
 	).Do(ctx)
 	if err != nil {
 		return nil, ElasticsearchToAPIError(err)
 	}
 
-	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*types.StringTermsAggregate)
+	categoryCounts, ok := resp.Aggregations["CategoryCounts"].(*estypes.StringTermsAggregate)
 	if !ok {
 		return nil, fmt.Errorf(
 			"category counts aggregation invalid: %w",
 			ErrInvalidAPIResult,
 		)
 	}
-	categoryCountsBuckets, ok := categoryCounts.Buckets.([]types.StringTermsBucket)
+	categoryCountsBuckets, ok := categoryCounts.Buckets.([]estypes.StringTermsBucket)
 	if !ok {
 		return nil, fmt.Errorf(
 			"unable to get feed stats: UnreadCounts aggregations invalid: %w",
@@ -1238,7 +1244,7 @@ func NewFeedSubscription(ctx context.Context, feed *Feed, request *AddFeedSubscr
 
 	settings := newSubscriptionSettings()
 
-	customisation := newSubscriptionCustomisation(feed.GetTitle(), feed.GetImage().GetURL(), feed.GetCategories())
+	customisation := newSubscriptionCustomisation(feed.GetTitle(), feed.GetImage(), feed.GetCategories())
 	// Override with any user customisations.
 	if request != nil {
 		if request.Nickname != nil {
@@ -1333,7 +1339,7 @@ func NewEmailSubscription(
 	emailSubscription := &EmailSubscription{
 		EmailSenderID: from.Address,
 	}
-	customisation := newSubscriptionCustomisation(from.String(), "", nil)
+	customisation := newSubscriptionCustomisation(from.String(), nil, nil)
 	settings := newSubscriptionSettings()
 
 	subscription, err := newSubscription(ctx, *customisation, settings, emailSubscription)
@@ -2040,12 +2046,19 @@ func newSubscription(
 	return subscription, nil
 }
 
-func newSubscriptionCustomisation(nickname, url string, categories Categories) *SubscriptionCustomisation {
-	return &SubscriptionCustomisation{
+func newSubscriptionCustomisation(
+	nickname string,
+	image *types.ImageInfo,
+	categories Categories,
+) *SubscriptionCustomisation {
+	customisation := &SubscriptionCustomisation{
 		Nickname:   nickname,
-		ImageURL:   &url,
 		Categories: categories,
 	}
+	if image != nil {
+		customisation.ImageURL = new(image.GetURL())
+	}
+	return customisation
 }
 
 func newSubscriptionSettings() *SubscriptionSettings {
@@ -2061,16 +2074,16 @@ type SubscriptionSorting struct {
 }
 
 // SortCombinationsCaster is required to allow FeedSorting to be used as Elasticsearch sort values.
-func (s *SubscriptionSorting) SortCombinationsCaster() *types.SortCombinations {
-	c := types.SortCombinations(s)
+func (s *SubscriptionSorting) SortCombinationsCaster() *estypes.SortCombinations {
+	c := estypes.SortCombinations(s)
 	return &c
 }
 
-func newSubscriptionSortOptions(sort *Sort) []types.SortCombinationsVariant {
+func newSubscriptionSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
 	if sort == nil {
-		return []types.SortCombinationsVariant{&types.SortOptions{Doc_: types.NewScoreSort()}}
+		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
 	}
-	var opts []types.SortCombinationsVariant
+	var opts []estypes.SortCombinationsVariant
 	switch *sort {
 	case SortNewestFirst:
 		opts = append(opts, &SubscriptionSorting{
@@ -2083,8 +2096,8 @@ func newSubscriptionSortOptions(sort *Sort) []types.SortCombinationsVariant {
 			SubscriptionID: "asc",
 		})
 	case SortMostRelevant:
-		opts = append(opts, &types.SortOptions{
-			Score_: &types.ScoreSort{
+		opts = append(opts, &estypes.SortOptions{
+			Score_: &estypes.ScoreSort{
 				Order: &sortorder.Desc,
 			},
 		})
@@ -2095,8 +2108,8 @@ func newSubscriptionSortOptions(sort *Sort) []types.SortCombinationsVariant {
 			},
 		)
 	default:
-		opts = append(opts, &types.SortOptions{
-			Doc_: types.NewScoreSort(),
+		opts = append(opts, &estypes.SortOptions{
+			Doc_: estypes.NewScoreSort(),
 		})
 	}
 	return opts
