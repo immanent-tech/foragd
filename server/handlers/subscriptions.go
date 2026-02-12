@@ -23,6 +23,7 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/sanitization"
 	"github.com/justinas/alice"
@@ -593,6 +594,7 @@ func HandleSaveSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeSearch:
 			request, valid, err := forms.DecodeMultiPartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {
+				godump.Dump(request)
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode search subscription request: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
@@ -825,13 +827,14 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 					title: "Add Search Subscription",
 					template: templates.AddSearchSubscription(
 						&models.SearchSubscriptionRequest{
-							Search: *request,
+							Search:        *request,
+							Customisation: &models.SubscriptionCustomisation{},
 						},
 					),
 				},
 			).ServeHTTP(res, req.WithContext(ctx))
 		case http.MethodPost:
-			request, valid, err := forms.DecodeForm[*models.SearchSubscriptionRequest](req)
+			request, valid, err := forms.DecodeMultiPartForm[*models.SearchSubscriptionRequest](req)
 			if err != nil || !valid {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode search subscription request: %w", err),
@@ -860,6 +863,51 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 				},
 			).ServeHTTP(res, req)
 		}
+	}).ServeHTTP
+}
+
+func HandleSuggestSubscriptionForSearch() http.HandlerFunc {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		request, valid, err := forms.DecodeForm[*models.GroupSubscriptionSuggestionRequest](req)
+		if err != nil || !valid {
+			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		subscriptions, err := models.GetSubscriptionSuggestions(
+			req.Context(),
+			request.Text,
+			10,
+			models.IgnoreSubscriptions(
+				slices.Collect(maps.Keys(request.IgnoredSubscriptions))...,
+			))
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
+				slog.Any("error", err),
+			)
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		RenderPartial(&PartialTemplate{
+			template: templates.SearchSubscriptionSuggestions(subscriptions),
+		}).ServeHTTP(res, req)
+	}).ServeHTTP
+}
+
+func HandleAddSubscriptionToSearch() http.HandlerFunc {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		subscriptionID := sanitization.SanitizeString(req.FormValue("subscription_id"))
+		subscriptionName := sanitization.SanitizeString(req.FormValue("subscription_name"))
+		if subscriptionID == "" || subscriptionName == "" {
+			slogctx.FromCtx(req.Context()).Error("Invalid subscription details.")
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		RenderPartial(&PartialTemplate{
+			template: templates.SearchSubscriptionAddSubscription(subscriptionID, subscriptionName),
+		}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 

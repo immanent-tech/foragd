@@ -231,10 +231,17 @@ func Start(logger *slog.Logger) error {
 			r.With(middlewares.RequireHTMX).Post("/category", handlers.HandleSubscriptionCategories())
 			r.With(middlewares.RequireHTMX).Delete("/category", handlers.HandleSubscriptionCategories())
 		})
-		r.Route("/subscription/group", func(r chi.Router) {
-			// Suggest a subscription for the group.
-			r.With(middlewares.RequireHTMX).Post("/suggest", handlers.HandleSuggestSubscriptionForGroup())
-			r.With(middlewares.RequireHTMX).Post("/add", handlers.HandleAddSubscriptionToGroup())
+		r.Route("/subscription", func(r chi.Router) {
+			r.Route("/group", func(r chi.Router) {
+				// Suggest a subscription for the group.
+				r.With(middlewares.RequireHTMX).Post("/suggest", handlers.HandleSuggestSubscriptionForGroup())
+				r.With(middlewares.RequireHTMX).Post("/add", handlers.HandleAddSubscriptionToGroup())
+			})
+			r.Route("/search", func(r chi.Router) {
+				// Suggest a subscription for a search.
+				r.With(middlewares.RequireHTMX).Post("/suggest", handlers.HandleSuggestSubscriptionForSearch())
+				r.With(middlewares.RequireHTMX).Post("/add", handlers.HandleAddSubscriptionToSearch())
+			})
 		})
 
 		// Article specific.

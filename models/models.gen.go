@@ -884,21 +884,24 @@ type SearchResults struct {
 	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
 
 	// Search represents a search request by the user.
-	Search        SearchRequest `json:"search" validate:"required"`
+	Search        SearchRequest `form:"search" json:"search" validate:"required"`
 	Subscriptions Subscriptions `json:"subscriptions,omitempty"`
 }
 
 // SearchSubscription is a custom subscription created from a search request.
 type SearchSubscription struct {
 	// Search represents a search request by the user.
-	Search SearchRequest `json:"search" validate:"required"`
+	Search SearchRequest `form:"search" json:"search" validate:"required"`
 }
 
 // SearchSubscriptionRequest represents a request to create a search subscription.
 type SearchSubscriptionRequest struct {
+	// Customisation contains object fields that can be customised (overridden) by a user
 	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
-	Search        SearchRequest              `form:"search" json:"search"`
-	Settings      *SubscriptionSettings      `form:"settings" json:"settings,omitempty"`
+
+	// Search represents a search request by the user.
+	Search   SearchRequest         `form:"search" json:"search" validate:"required"`
+	Settings *SubscriptionSettings `form:"settings" json:"settings,omitempty"`
 }
 
 // ShareArticleRequest contains parameters for sharing an article.
@@ -933,7 +936,7 @@ type Subscription struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Customisation contains object fields that can be customised (overridden) by a user
-	Customisation *SubscriptionCustomisation `json:"customisation,omitempty"`
+	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
 
 	// EmailData is a subscription to an email newsletter source.
 	EmailData *EmailSubscription `json:"email_data,omitempty" validate:"omitempty"`
@@ -1008,7 +1011,7 @@ type SubscriptionMetadata struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Customisation contains object fields that can be customised (overridden) by a user
-	Customisation *SubscriptionCustomisation `json:"customisation,omitempty"`
+	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
 
 	// Favorite indicates whether this subscription has been marked as a favorite by the user.
 	Favorite bool `json:"favorite"`

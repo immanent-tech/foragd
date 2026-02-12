@@ -46,14 +46,11 @@ type FormInput interface {
 // true if it is valid. If decoding the form submission fails, a non-nill error
 // is returned.
 func DecodeForm[T FormInput](req *http.Request) (T, bool, error) {
-	var (
-		obj T
-		err error
-	)
 	if err := req.ParseForm(); err != nil {
+		var obj T
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
-	obj, err = decodeObject(req, obj)
+	obj, err := decodeObject[T](req)
 	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
@@ -61,24 +58,22 @@ func DecodeForm[T FormInput](req *http.Request) (T, bool, error) {
 }
 
 func DecodeMultiPartForm[T FormInput](req *http.Request) (T, bool, error) {
-	var (
-		obj T
-		err error
-	)
 	if err := req.ParseMultipartForm(defaultMaxSize); err != nil {
+		var obj T
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
-	obj, err = decodeObject(req, obj)
+	obj, err := decodeObject[T](req)
 	if err != nil {
 		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	return obj, true, nil
 }
 
-func decodeObject[T FormInput](req *http.Request, obj T) (T, error) {
+func decodeObject[T FormInput](req *http.Request) (T, error) {
+	var obj T
 	// Decode the form values.
 	if err := decoder.Decode(&obj, req.Form); err != nil {
-
+		return obj, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Sanitise the object.
 	if err := obj.Sanitise(); err != nil {

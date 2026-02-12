@@ -636,6 +636,8 @@ components:
           x-go-name: ImageURL
           x-oapi-codegen-extra-tags:
             validate: 'omitempty,url'
+      x-oapi-codegen-extra-tags:
+        form: 'customisation'
     SubscriptionArticleFilters:
       description: >
         holds filters to apply to the articles within a subscription.
@@ -910,15 +912,9 @@ components:
         - search
       properties:
         search:
-          allOf:
-            - $ref: '#/components/schemas/SearchRequest'
-          x-oapi-codegen-extra-tags:
-            form: 'search'
+          $ref: '#/components/schemas/SearchRequest'
         customisation:
-          allOf:
-            - $ref: '#/components/schemas/SubscriptionCustomisation'
-          x-oapi-codegen-extra-tags:
-            form: 'customisation'
+          $ref: '#/components/schemas/SubscriptionCustomisation'
         settings:
           allOf:
             - $ref: '#/components/schemas/SubscriptionSettings'
@@ -1239,6 +1235,7 @@ components:
             validate: 'required,timezone'
       x-oapi-codegen-extra-tags:
         validate: 'required'
+        form: 'search'
     SearchResults:
       description: >
         contains the results of a search.
