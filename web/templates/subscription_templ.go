@@ -1476,7 +1476,7 @@ func EditSubscription(request *models.EditFeedSubscriptionRequest) templ.Compone
 						return templ_7745c5c3_Err
 					}
 					categoryMgmtPath := "/user/subscription/category"
-					templ_7745c5c3_Err = CategoryManagement(categoryMgmtPath, "categories", request.SuggestedCategories, request.Customisation.Categories).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = CategoryManagement(categoryMgmtPath, "customisation.categories", request.SuggestedCategories, request.Customisation.Categories).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

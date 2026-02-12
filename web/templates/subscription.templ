@@ -530,7 +530,7 @@ templ EditSubscription(request *models.EditFeedSubscriptionRequest) {
 					</form>
 					// Categories
 					{{ categoryMgmtPath := "/user/subscription/category" }}
-					@CategoryManagement(categoryMgmtPath, "categories", request.SuggestedCategories, request.Customisation.Categories)
+					@CategoryManagement(categoryMgmtPath, "customisation.categories", request.SuggestedCategories, request.Customisation.Categories)
 					// Action buttons.
 					<div class="flex flex-1 items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
