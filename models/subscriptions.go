@@ -636,7 +636,7 @@ func ProcessSubscriptionRequest(
 		err     error
 	)
 
-	feedURL, err := feedURLParser(ctx, request.GetURL())
+	feedURL, err := FeedURLParser(ctx, request.GetURL())
 	if err != nil {
 		result.Error = err
 		result.Message = NewErrorMessage(

@@ -537,9 +537,9 @@ func newFeedSortCombinations(sort *Sort) []estypes.SortCombinations {
 	return opts
 }
 
-// feedURLParser parses the given URL string into a url.URL object, applying some additional rules for known domains on where
+// FeedURLParser parses the given URL string into a url.URL object, applying some additional rules for known domains on where
 // to find their feeds.
-func feedURLParser(ctx context.Context, urlStr string) (*url.URL, error) {
+func FeedURLParser(ctx context.Context, urlStr string) (*url.URL, error) {
 	// Parse the URL.
 	slogctx.FromCtx(ctx).Debug("Parsing url", slog.String("url", urlStr))
 	feedURL, err := url.Parse(urlStr)

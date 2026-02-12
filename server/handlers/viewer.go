@@ -56,7 +56,7 @@ func (p *ViewerError) PartialResponse(res http.ResponseWriter, req *http.Request
 	templ.Handler(templates.ViewerError(p.msg)).ServeHTTP(res, req)
 }
 
-// HandlViewer handles powering the feed viewer page.
+// HandleViewer handles powering the feed viewer page.
 func HandleViewer() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
@@ -64,9 +64,19 @@ func HandleViewer() http.HandlerFunc {
 			RenderExternalPage(&Viewer{}).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Get the submitted URL.
-			url := req.FormValue("url")
+			feedURL, err := models.FeedURLParser(req.Context(), req.FormValue("url"))
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
+					slog.Any("error", err),
+				)
+				RenderPartial(&ViewerError{
+					msg: models.NewErrorMessage("Failed to parse as feed", ""),
+				}).ServeHTTP(res, req)
+				return
+			}
+
 			// Parse the URL and find feed content.
-			feed, err := feeds.NewFeedFromURL(req.Context(), url)
+			feed, err := feeds.NewFeedFromURL(req.Context(), feedURL.String())
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),
