@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.54.0](https://github.com/immanent-tech/foragd/compare/v0.53.0...v0.54.0) (2026-02-12)
+
+
+### Features
+
+* :sparkles: add article filters for group subscriptions ([4e1e0cb](https://github.com/immanent-tech/foragd/commit/4e1e0cbb678b80b47baf41f1c4f0a8b4f603fee5))
+* :sparkles: support adding an additional query when filtering articles for a subscription ([5383e28](https://github.com/immanent-tech/foragd/commit/5383e283f2895b966578f6ee890d78710e173641))
+* :sparkles: viewer service now parses url and can handle finding feeds on well-known domains ([eeddfcb](https://github.com/immanent-tech/foragd/commit/eeddfcb6cbba3c1b4d84a2f34198433c30a96121))
+* **elastic:** :sparkles: allow specifying fuzziness for match-based query options ([3803224](https://github.com/immanent-tech/foragd/commit/3803224dc274f231b828fb746361f2c671bf6114))
+* **models:** :sparkles: add ability to exclude certain subscriptions when returning results ([d6b37e0](https://github.com/immanent-tech/foragd/commit/d6b37e01c8b8de265c9b2418754e5dda86869edd))
+* **models:** :sparkles: split out a method to parse and create feed urls for well-known sites ([e8b8d24](https://github.com/immanent-tech/foragd/commit/e8b8d249cc73a474faf6944aa56fc795f77a4959))
+* **posts:** :sparkles: add post about managing content overload ([65bfdac](https://github.com/immanent-tech/foragd/commit/65bfdacc94c82931c613f049186141dc530df828))
+* **templates:** :sparkles: add a &lt;noscript&gt; body tag ([6b36e48](https://github.com/immanent-tech/foragd/commit/6b36e4899827c8ff68d474df3c0e0afa367b3383))
+* **templates:** :sparkles: toggle control for showing just favorites/all subscriptions ([e365d01](https://github.com/immanent-tech/foragd/commit/e365d011ed1ee1a10ce57025b7b4209afb5282ce))
+
+
+### Bug Fixes
+
+* :bug: don't suggest categories that a subscription already has when editing ([a468c59](https://github.com/immanent-tech/foragd/commit/a468c595f1cbd1bdc6bce0666c77b32ec10f0c7d))
+* :bug: fix adding a search subscription from scratch ([8b983f4](https://github.com/immanent-tech/foragd/commit/8b983f4fc4864650917af8d8a6a15aa655f1398d))
+* :bug: fix adding feed subscription from scratch ([d6b9769](https://github.com/immanent-tech/foragd/commit/d6b9769b41b4ac18cf8f70e86c82733b6ecec0da))
+* :bug: fix adding group subscriptions ([e98f364](https://github.com/immanent-tech/foragd/commit/e98f36402ad8e1d1afc9ffb3379a2a62f51ec797))
+* :bug: fix changing categories on a feed subscription ([a9fd46e](https://github.com/immanent-tech/foragd/commit/a9fd46efcbcbaa16aeb8917f760e60d093f24321))
+* :bug: streamline group/search subscription creation ([e5a6978](https://github.com/immanent-tech/foragd/commit/e5a6978ec258b745693acfd4fd4716e6c9652e62))
+* :rotating_light: remove some potential sources of nil pointer references ([ab66156](https://github.com/immanent-tech/foragd/commit/ab66156604d6fbc943305b781a68dbaafc895be1))
+* **middlewares:** :bug: properly set the expiry time of the oauth token after refresh ([03d375b](https://github.com/immanent-tech/foragd/commit/03d375ba8a14f17010500d364845bab9b6336b53))
+* **search:** :bug: fix adding/removing subscription filters for searching ([0102a34](https://github.com/immanent-tech/foragd/commit/0102a34582e24368b6c125cad81aff9246b3e18d))
+* **templates:** :bug: disable category suggestions drop-down when there are no suggestions ([ef7f544](https://github.com/immanent-tech/foragd/commit/ef7f54472dbefbeaaf17e3f2513c1303521d39ac))
+* **templates:** :bug: push url when selecting command in search suggestions ([3237c14](https://github.com/immanent-tech/foragd/commit/3237c145436756310a5b0efb570c52d511e2f59d))
+
 ## [0.53.0](https://github.com/immanent-tech/foragd/compare/v0.52.1...v0.53.0) (2026-02-10)
 
 
