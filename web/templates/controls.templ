@@ -317,10 +317,17 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
 			class={ "link link-hover flex px-4 py-2 text-sm capitalize items-center",
 			templ.KV(filters.OnlyFavorites,"text-primary font-semibold") }
 		>
-			@tabler.Heart()
-			<span class="ml-2">
-				Only Favorites
-			</span>
+			if filters.OnlyFavorites {
+				@tabler.Heart()
+				<span class="ml-2">
+					All
+				</span>
+			} else {
+				@tabler.HeartFilled()
+				<span class="ml-2">
+					Favorites
+				</span>
+			}
 		</a>
 	</form>
 }
