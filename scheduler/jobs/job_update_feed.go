@@ -114,7 +114,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 				slog.Any("error", err),
 			)
 		}
-		return fmt.Errorf("fetch feed: %w", err)
+		return fmt.Errorf("new feed from url %s: %w", jobData.URLs[0], err)
 	}
 
 	// Create a new FeedStatus for this update.
