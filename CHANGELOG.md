@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.55.0](https://github.com/immanent-tech/foragd/compare/v0.54.0...v0.55.0) (2026-02-13)
+
+
+### Features
+
+* :sparkles: suggest categories from existing subscriptions where appropriate ([57ea5d7](https://github.com/immanent-tech/foragd/commit/57ea5d7dfe4827b709335ff5fda6fa712a11b1f9))
+* **templates:** :sparkles: add structured data to posts ([88ded20](https://github.com/immanent-tech/foragd/commit/88ded20322b4befc42bb91fe3d51e2122fbe1b81))
+
 ## [0.54.0](https://github.com/immanent-tech/foragd/compare/v0.53.0...v0.54.0) (2026-02-12)
 
 
