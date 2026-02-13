@@ -1,33 +1,62 @@
 {
   "name": "Foragd",
+  "lang": "en",
   "short_name": "Foragd",
-  "description": "Collect. Curate. Consume.",
+  "description": "A beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop.",
   "background_color": "#FCFAF7",
-  "theme_color": "#4ADE80",
+  "theme_color": "#7B9984",
   "display": "standalone",
   "orientation": "portrait",
-  "start_url": ".",
+  "start_url": "/home",
+  "categories": [
+    "news",
+    "magazines",
+    "social"
+  ],
   "icons": [
     {
-      "src": "manifest-touch-icon.png",
+      "src": "manifest-icon-512.png",
       "type": "image/png",
-      "sizes": "any"
+      "sizes": "512x512"
+    },
+    {
+      "src": "manifest-icon-128.png",
+      "type": "image/png",
+      "sizes": "128x128"
+    },
+    {
+      "src": "manifest-icon-64.png",
+      "type": "image/png",
+      "sizes": "64x64"
+    },
+    {
+      "src": "logo-color.svg"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Go to Subscriptions",
+      "description": "View your list of subscriptions",
+      "url": "/list/subscriptions"
+    },
+    {
+      "name": "Go to Articles",
+      "description": "View all articles",
+      "url": "/list/articles"
+    },
+    {
+      "name": "Go to Favorites",
+      "description": "View your list of favorites",
+      "url": "/list/favorites"
     }
   ],
   "screenshots": [
     {
-      "src": "manifest-desktop-screenshot.png",
-      "sizes": "1280x720",
-      "type": "image/png",
+      "src": "screenshots/home-desktop-mobile.png",
+      "sizes": "1920x1200",
+      "type": "image/webp",
       "form_factor": "wide",
-      "label": "Desktop homescreen of Foragd"
-    },
-    {
-      "src": "manifest-mobile-screenshot.png",
-      "sizes": "720x1280",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile homescreen of Foragd"
+      "label": "Home screen comparison on desktop and mobile"
     }
   ]
 }
