@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.55.1](https://github.com/immanent-tech/foragd/compare/v0.55.0...v0.55.1) (2026-02-13)
+
+
+### Bug Fixes
+
+* **models:** :bug: add additional email data fields ([e680b6b](https://github.com/immanent-tech/foragd/commit/e680b6bbeda73a866615df35250351eea586f0a9))
+* **models:** :bug: fix missing email_data schema definition in subscriptions ([c669b75](https://github.com/immanent-tech/foragd/commit/c669b75235a9d0cef6b45cbe467d48e6e3ebcf26))
+
 ## [0.55.0](https://github.com/immanent-tech/foragd/compare/v0.54.0...v0.55.0) (2026-02-13)
 
 
