@@ -3,7 +3,19 @@ title = "How to Find RSS and Atom Feeds for any website"
 description = "RSS and Atom are formats that are “hiding in plain sight”. Lots of websites have them, but it might not be obvious how to get them."
 created_at = "2026-02-02"
 updated_at = "2026-02-11"
+image = "/content/images/posts/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.jpg"
 +++
+
+
+<figure>
+  <img
+    src="/content/images/posts/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.jpg"
+    alt="Ferdinand Magellan's fleet" />
+  <figcaption>
+    Portuguese explorer Ferdinand Magellan's fleet of five ships after their departure from Spain on September 20, 1519; wood engraving, 19th century.
+North Wind Picture Archives/Alamy
+  </figcaption>
+</figure>
 
 ## Feed Discovery Was Designed For Machines, Not Humans 🙁
 

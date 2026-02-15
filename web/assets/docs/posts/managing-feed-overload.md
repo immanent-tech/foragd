@@ -3,7 +3,18 @@ title = "Managing Feed Overload"
 description = "How to manage content in the era of information overload."
 created_at = "2026-01-27"
 updated_at = "2026-02-06"
+image = "/content/images/posts/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.jpg"
 +++
+
+<figure>
+  <img
+    src="/content/images/posts/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.jpg"
+    alt="Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome" />
+  <figcaption>
+    Picture Gallery with Views of Modern Rome. Giovanni Paolo Panini, 1757. Museum of Fine Arts, Boston
+  <figcaption>
+</figure>
+
 ## Drowning in Content
 
 In any modern social media or feed viewer service, your feed is a central stream of information. However, the sheer

@@ -26,6 +26,14 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 				for post := range slices.Values(posts) {
 					<a href={ "/posts/" + post.Details.Path }>
 						<article class="card card-border bg-base-200 max-w-prose h-fit cursor-pointer">
+							if post.Frontmatter.Image != nil {
+								<figure>
+									<img
+										src={ *post.Frontmatter.Image }
+										alt={ post.Frontmatter.Title }
+									/>
+								</figure>
+							}
 							<div class="card-body">
 								<h2 class="card-title">{ post.Frontmatter.Title }</h2>
 								<p>{ post.Frontmatter.Description }</p>
