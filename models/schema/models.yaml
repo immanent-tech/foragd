@@ -1857,6 +1857,12 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             toml: 'updated_at'
+        image:
+          description: >
+            is a URL to an image to represent the file.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'image'
       x-oapi-codegen-extra-tags:
         toml: "doc_metadata"
     MarkdownFile:

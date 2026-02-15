@@ -730,6 +730,9 @@ type MarkdownFrontMatter struct {
 	// Description is a description of the document, used in metadata headers of the page.
 	Description string `json:"description" toml:"description"`
 
+	// Image is a URL to an image to represent the file.
+	Image *string `json:"image,omitempty" toml:"image"`
+
 	// Title is the title to display for the document.
 	Title string `json:"title" toml:"title"`
 
