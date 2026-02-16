@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.56.0](https://github.com/immanent-tech/foragd/compare/v0.55.1...v0.56.0) (2026-02-16)
+
+
+### Features
+
+* **models:** :sparkles: support defining a path to an image to represent a file in frontmatter ([f4c8c63](https://github.com/immanent-tech/foragd/commit/f4c8c6382f96683c650ab985c9bb6d02edadb5dd))
+* **templates:** :sparkles: add images for all posts ([cd75783](https://github.com/immanent-tech/foragd/commit/cd75783c2c513d63b22097ff107f33b65c34b475))
+
 ## [0.55.1](https://github.com/immanent-tech/foragd/compare/v0.55.0...v0.55.1) (2026-02-13)
 
 
