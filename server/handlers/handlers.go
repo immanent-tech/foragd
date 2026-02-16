@@ -57,7 +57,10 @@ var defaultHandlerChain = alice.New(storePath)
 var listHandlerChain = defaultHandlerChain.Append(parseFilters)
 
 var loadHTTPClient = sync.OnceValue(func() *resty.Client {
-	return resty.New().SetHeader("User-Agent", config.AppName+"/"+config.Version)
+	return resty.New().
+		SetHeader("User-Agent", config.AppName+"/"+config.Version).
+		SetHeader("Accept", "*/*").
+		SetHeader("Accept-Encoding", "gzip, deflate")
 })
 
 var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
