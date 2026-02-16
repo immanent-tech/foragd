@@ -13,12 +13,17 @@ services:
     volumes:
       - ..:/workspace:cached
       - /etc/localtime:/etc/localtime:ro,cached
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock:rw
     command: -c 'sleep infinity'
     user: vscode
+    privileged: true
+    init: true
     group_add:
       - keep-groups
     cap_add:
       - SYS_PTRACE
+      - SETUID
+      - SETGID
     security_opt:
       - seccomp:unconfined
     hostname: devcontainer

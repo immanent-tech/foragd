@@ -9,7 +9,8 @@
   },
   "remoteEnv": {
     "PODMAN_COMPOSE_WARNING_LOGS": "false",
-    "TZ": "${localEnv:TZ:Australia/Brisbane}"
+    "TZ": "${localEnv:TZ:Australia/Brisbane}",
+    "BUILDX_BUILDER": "default-rootless"
   },
   "updateRemoteUserUID": true,
   "workspaceFolder": "/workspace",

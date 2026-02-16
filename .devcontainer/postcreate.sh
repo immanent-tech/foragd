@@ -2,13 +2,6 @@
 
 set -x
 
-# Add starship to fish shell.
-mkdir -p ~/.config/fish
-echo "starship init fish | source" >>~/.config/fish/config.fish
-
-# Add starship to bash shell.
-echo 'eval "$(starship init bash)"' >>~/.bashrc
-
 cd /workspace
 
 # Update JS packages with bun.
@@ -32,7 +25,7 @@ cd /tmp \
     && tar xvf stripe* \
     && sudo mv stripe /usr/local/bin
 
-# Install gcloud cli
+# Install gcloud cli.
 cd $HOME && \
     curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz && \
     tar -xf google-cloud-cli-linux-x86_64.tar.gz && \
@@ -40,5 +33,10 @@ cd $HOME && \
     sudo apk add python3 && \
     google-cloud-sdk/install.sh --usage-reporting false --quiet --additional-components app-engine-go && \
     echo 'source /home/vscode/google-cloud-sdk/path.fish.inc' >> ~/.config/fish/config.fish
+
+# Setup docker buildx.
+docker buildx create --name default-rootless --driver=docker-container --driver-opt=image=moby/buildkit:buildx-stable-1-rootless --driver-opt default-load=true \
+    && docker buildx use default-rootless \
+    && docker buildx inspect --bootstrap default-rootless
 
 exit 0
