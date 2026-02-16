@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@catppuccin/daisyui": "^2.1.1",
+    "@cloudflare/containers": "^0.1.0",
     "@eslint/js": "^10.0.1",
     "@prettier/plugin-xml": "^3.4.2",
     "@tailwindcss/cli": "^4.1.18",
@@ -33,9 +34,11 @@
     "esbuild": "^0.27.2",
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
+    "hono": "^4.11.9",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "release-please": "^17.2.0"
+    "release-please": "^17.2.0",
+    "wrangler": "^4.65.0"
   }
 }
