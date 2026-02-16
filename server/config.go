@@ -6,7 +6,6 @@ package server
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/validation"
@@ -15,43 +14,24 @@ import (
 const (
 	serverConfigEnvPrefix   = config.ConfigEnvPrefix
 	imgProxyConfigEnvPrefix = config.ConfigEnvPrefix + "IMGPROXY_"
-
-	defaultCompressionLevel = 5
 )
-
-var compressMimetypes = []string{"text/html", "text/css", "text/javascript", "font/woff2", "image/svg+xml"}
 
 var cfg Config
 
-type timeout string
-
-func (t timeout) Validate() error {
-	if _, err := time.ParseDuration(string(t)); err != nil {
-		return fmt.Errorf("parse timeout: %w", err)
-	}
-	return nil
-}
-
-func (t timeout) Duration() time.Duration {
-	duration, err := time.ParseDuration(string(t))
-	if err != nil {
-		return time.Minute
-	}
-	return duration
-}
-
 // Config contains the server configuration options.
 type Config struct {
-	Port         uint64  `koanf:"port"         validate:"port"`
-	Host         string  `koanf:"host"         validate:"hostname|fqdn|ip"`
-	CertFile     string  `koanf:"crt"          validate:"omitempty,file"`
-	KeyFile      string  `koanf:"key"          validate:"omitempty,file"`
-	ReadTimeout  timeout `koanf:"readtimeout"  validate:"required,validateFn"`
-	WriteTimeout timeout `koanf:"writetimeout" validate:"required,validateFn"`
-	IdleTimeout  timeout `koanf:"idletimeout"  validate:"required,validateFn"`
-	BlockSignup  bool    `koanf:"blocksignup"`
-	BlockLogin   bool    `koanf:"blocklogin"`
-	ImgProxy     ImgProxyConfig
+	Port                 uint64         `koanf:"port"                 validate:"port"`
+	Host                 string         `koanf:"host"                 validate:"hostname|fqdn|ip"`
+	CompressionLevel     int            `koanf:"compressionlevel"     validate:"number"`
+	CompressionMimetypes []string       `koanf:"compressionmimetypes"`
+	CertFile             string         `koanf:"crt"                  validate:"omitempty,file"`
+	KeyFile              string         `koanf:"key"                  validate:"omitempty,file"`
+	ReadTimeout          config.Timeout `koanf:"readtimeout"          validate:"required,validateFn"`
+	WriteTimeout         config.Timeout `koanf:"writetimeout"         validate:"required,validateFn"`
+	IdleTimeout          config.Timeout `koanf:"idletimeout"          validate:"required,validateFn"`
+	BlockSignup          bool           `koanf:"blocksignup"`
+	BlockLogin           bool           `koanf:"blocklogin"`
+	ImgProxy             ImgProxyConfig
 }
 
 type ImgProxyConfig struct {

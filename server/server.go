@@ -104,7 +104,7 @@ func Start(logger *slog.Logger) error {
 		middlewares.PreventCSRF,
 		middlewares.RateLimit(rateLimiter),
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
-		middleware.Compress(defaultCompressionLevel, compressMimetypes...),
+		middleware.Compress(cfg.CompressionLevel, cfg.CompressionMimetypes...),
 		middleware.StripSlashes,
 		middlewares.Etag,
 		otelchi.Middleware(config.AppName,
