@@ -113,6 +113,8 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			return
 		}
 
+		defer resp.RawBody().Close()
+
 		_, err = io.Copy(imgBuf, resp.RawBody())
 		if err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
