@@ -42,6 +42,10 @@ templ Viewer(feed *feeds.Feed, errMsg *models.UserMessage) {
 						Bookmarklet
 					</a> (drag to your bookmarks then use on any site).
 				}
+				@partials.Paragraph() {
+					Want to keep track of feeds and email newsletters in one place? Search across content and discover
+					topics and interests? Try out <a href="https://foragd.app" class="link">Foragd</a>.
+				}
 				<form
 					id="viewer-form"
 					hx-post="/viewer"
