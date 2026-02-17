@@ -572,12 +572,15 @@ components:
       required:
         - timestamp
         - feed_id
+        - url
         - status_code
       properties:
         timestamp:
           $ref: '#/components/schemas/Timestamp'
         feed_id:
           $ref: '#/components/schemas/FeedID'
+        url:
+          $ref: '#/components/schemas/URL'
         status_code:
           description: >
             is the HTTP status code returned when fetching.

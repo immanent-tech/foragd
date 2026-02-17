@@ -328,6 +328,7 @@ var (
 					templates.WithProperties(
 						templates.WithDatetimeMapping("@timestamp"),
 						templates.WithKeywordMapping("feed_id"),
+						templates.WithKeywordMapping("url"),
 						templates.WithInt64Mapping("status_code"),
 						templates.WithTextMapping("status_message", &types.TextProperty{
 							Type: "text",
@@ -795,6 +796,8 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 			// ),
 		case schedulerIndexPrefix:
 			err = migrateIndexData(ctx, api, schedulerIndexPrefix, nil)
+		// case feedStatusIndexPrefix:
+		// 	err = migrateIndexData(ctx, api, feedStatusIndexPrefix, nil)
 		case feedsIndexPrefix:
 			err = migrateIndexData(ctx, api, feedsIndexPrefix, nil)
 		case subscriptionsSchemaPrefix:

@@ -404,14 +404,6 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 			return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
 		}
 	}
-	if result.GetImage() == nil {
-		if err := FindFeedImage(ctx, feed); err != nil {
-			slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
-				slog.String("feed", result.GetTitle()),
-				slog.String("url", result.GetSourceURL()),
-			)
-		}
-	}
 	feed = NewSyndicationFeed(url, result)
 	// Add the URL passed in to the source URLs if the parsed feed does not contain it (for example, user entered a
 	// website rather than feed URL).

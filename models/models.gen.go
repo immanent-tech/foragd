@@ -433,6 +433,9 @@ type FeedStatus struct {
 
 	// Timestamp is when the document was created.
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
+
+	// URL is a URL.
+	URL URL `json:"url" validate:"omitempty,url"`
 }
 
 // FeedSubscription represents a feed a user has subscribed to.

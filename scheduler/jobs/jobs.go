@@ -74,7 +74,7 @@ type pollTrigger struct {
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt models.CreatedAt `json:"created_at"                     validate:"required"`
+	CreatedAt models.CreatedAt `json:"created_at" validate:"required"`
 	// JobData contains job-specific data.
 	JobData json.RawMessage `json:"job_data"`
 	// JobNextRun is the next run time of the job.
@@ -82,13 +82,13 @@ type ScheduledJob struct {
 	// JobOptions are additional options for the job
 	JobOptions *quartz.JobDetailOptions `json:"job_options,omitempty,omitzero"`
 	// JobTrigger is the trigger for the job.
-	JobTrigger json.RawMessage `json:"job_trigger"                    validate:"required"`
+	JobTrigger json.RawMessage `json:"job_trigger" validate:"required"`
 	// JobTriggerType is the type of trigger the job is using.
-	JobTriggerType string `json:"job_trigger_type"               validate:"oneof=cron poll"`
+	JobTriggerType string `json:"job_trigger_type" validate:"oneof=cron poll"`
 	// JobDescription is a summary of what the job does.
 	JobDescription string `json:"job_description"`
 	// JobType is the type of job.
-	JobType string `json:"job_type"                       validate:"oneof=update_feed get_new_feeds"`
+	JobType string `json:"job_type" validate:"oneof=update_feed get_new_feeds"`
 }
 
 // Description returns the description of the Job.

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"sync"
 	"time"
 
@@ -20,6 +21,8 @@ import (
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 )
+
+var ErrFetchFailed = errors.New("fetching feed details failed")
 
 type UpdateFeedJobData struct {
 	// FeedID is the unique ID of a feed.
@@ -85,38 +88,51 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			if err := models.UpdateFeed(ctx, jobData.FeedID, map[string]any{"job_data.deleted": true}); err != nil {
 				return fmt.Errorf("mark job for deletion: %w", err)
 			}
+		} else {
+			return fmt.Errorf("get feed doc: %w", err)
 		}
-		return fmt.Errorf("get feed doc: %w", err)
 	}
-
-	feedURL := jobData.URLs[0]
 
 	// Add additional feed details to logs.
-	ctx = slogctx.With(ctx, "feed_url", feedURL)
 	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
 
-	// Get new items since the last fetch.
-	feed, err := models.NewFeedFromURL(ctx, feedURL)
-	if err != nil {
-		var httpErr feeds.HTTPError
-		status := &models.FeedStatus{
-			Timestamp: time.Now().UTC(),
-			FeedID:    details.GetID(),
+	// Get new items since the last fetch. Try each listed source URL for the feed until one succeeds.
+	var (
+		feed    *models.Feed
+		feedURL models.URL
+	)
+	for feedURL = range slices.Values(jobData.URLs) {
+		var err error
+		feed, err = models.NewFeedFromURL(ctx, feedURL)
+		if err != nil {
+			var httpErr feeds.HTTPError
+			status := &models.FeedStatus{
+				Timestamp: time.Now().UTC(),
+				FeedID:    details.GetID(),
+				URL:       feedURL,
+			}
+			if errors.Is(err, &httpErr) {
+				status.StatusCode = httpErr.Code
+				status.StatusMessage = &httpErr.Message
+			} else {
+				status.StatusCode = http.StatusInternalServerError
+				status.StatusMessage = new(err.Error())
+			}
+			if err := models.AddFeedStatus(ctx, status); err != nil {
+				slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+					slog.Any("error", err),
+				)
+			}
+			continue
 		}
-		if errors.Is(err, &httpErr) {
-			status.StatusCode = httpErr.Code
-			status.StatusMessage = &httpErr.Message
-		} else {
-			status.StatusCode = http.StatusInternalServerError
-			status.StatusMessage = new(err.Error())
-		}
-		if err := models.AddFeedStatus(ctx, status); err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-				slog.Any("error", err),
-			)
-		}
-		return fmt.Errorf("new feed from url %s: %w", jobData.URLs[0], err)
+		break
 	}
+
+	if feed == nil {
+		return fmt.Errorf("%w: all source URLs returned errors", ErrFetchFailed)
+	}
+
+	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
 	// Create a new FeedStatus for this update.
 	status := &models.FeedStatus{
@@ -142,7 +158,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 			// newer articles where a feed lags behind real-time.
 			if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, map[string]any{
-				"last_fetched": feed.GetItems().SortByTimestamp()[0].GetTimestamp(),
+				"last_fetched": newItems.SortByTimestamp()[0].GetTimestamp(),
 			}); err != nil {
 				return fmt.Errorf("update feed last fetched: %w", err)
 			}
