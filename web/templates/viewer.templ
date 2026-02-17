@@ -64,6 +64,62 @@ templ Viewer(feed *feeds.Feed, errMsg *models.UserMessage) {
 						@ViewerResults(feed)
 				}
 			</section>
+			<section>
+				<div class="lg:grid lg:grid-cols-12 lg:gap-8">
+					<div class="lg:col-span-5">
+						<h2 class="text-3xl font-semibold tracking-tight text-pretty sm:text-4xl">Frequently asked questions</h2>
+						<p class="mt-4 text-base/7 text-pretty">Got more questions? Reach out to us via <a href="mailto:hello@immanent.tech" class="link">email</a>.</p>
+					</div>
+					<div class="mt-10 lg:col-span-7 lg:mt-0">
+						<dl class="space-y-10">
+							<div>
+								<dt class="text-base/7 font-semibold">How does the feed viewer work?</dt>
+								<dd class="mt-2	text-base/7">
+									When you enter a URL, the feed viewer will fetch the source of the page, if the
+									source is one of the known feed formats like RSS or Atom, the viewer will format and
+									return the posts contained in the feed. If the source is normal webpage, the viewer
+									will look at links in the page and try to find one that points to feed content,
+									which it will then fetch, format and display.
+								</dd>
+							</div>
+							<div>
+								<dt class="text-base/7 font-semibold">Why did the feed viewer not find content for my URL?</dt>
+								<dd class="mt-2	text-base/7">
+									Unfortunately, not all websites have RSS and Atom feeds. While the viewer tries its
+									best to find feed content, and uses a few tricks for this, there are still websites
+									that cannot be parsed.
+								</dd>
+							</div>
+							<div>
+								<dt class="text-base/7 font-semibold">
+									Does the feed viewer collect or store any information about me, the URL or the feed
+									content it fetches?
+								</dt>
+								<dd class="mt-2	text-base/7">
+									No. Content is fetched and displayed dynamically, and is not stored once you
+									navigate away from the page. We do store webserver logs and use Umami analytics to
+									track minimal, anonymous usage of the feed viewer. No personal information is
+									collected or stored. The feed viewer does not require cookies.
+								</dd>
+							</div>
+							<div>
+								<dt class="text-base/7 font-semibold">
+									Is this open-source?
+								</dt>
+								<dd class="mt-2	text-base/7">
+									The underlying library that does most of the heavy lifting, <a
+	href="https://github.com/immanent-tech/go-syndication"
+	class="link"
+>go-syndication</a> is open-source! The site itself is part of <a
+	href="https://foragd.app"
+	class="link"
+>Foragd</a>, a beautiful, web based, online feed reader, that uses the go-syndication library.
+								</dd>
+							</div>
+						</dl>
+					</div>
+				</div>
+			</section>
 		}
 	}
 }
