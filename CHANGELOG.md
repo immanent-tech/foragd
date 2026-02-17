@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.57.0](https://github.com/immanent-tech/foragd/compare/v0.56.0...v0.57.0) (2026-02-17)
+
+
+### Features
+
+* :sparkles: add ability to pass a URL directly to viewer ([bd3c68c](https://github.com/immanent-tech/foragd/commit/bd3c68c2cd56dc88014954791e3ceebd7a109bd0))
+* :sparkles: add link to help in footer and expose in sitemap ([23c7076](https://github.com/immanent-tech/foragd/commit/23c70767766b3e0228c5139c7b79b96326be8a55))
+* :sparkles: add reverse proxy implementations for fetching restricted resources ([bb5e23b](https://github.com/immanent-tech/foragd/commit/bb5e23b8927e09b88a91fb52901d3a3342b77c14))
+* **models:** :recycle: update feed fetching ([e87a0f4](https://github.com/immanent-tech/foragd/commit/e87a0f485c8a2fd3d543ae6e324933533597a83f))
+* **models:** :sparkles: if fetching a feed returns a 403 response, try proxying it through cloudflare ([4c019e5](https://github.com/immanent-tech/foragd/commit/4c019e5d11798f575bd2f4385c5d7a847b20c7a6))
+* **scheduler:** :sparkles: update feed job improvements ([1f06745](https://github.com/immanent-tech/foragd/commit/1f06745dbd84077585d3fb4465608dd6641743ad))
+* **templates:** :sparkles: add a FAQ on the viewer page ([8713047](https://github.com/immanent-tech/foragd/commit/8713047b8cdede6b9d4a058ef058b0f4c874e592))
+* **templates:** :sparkles: update text and add bookmarklet ([8dee9e5](https://github.com/immanent-tech/foragd/commit/8dee9e588d23de6406ca486853877f4e6bf79ea7))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: make sure response body is closed when image proxy handler finishes running ([99f22f2](https://github.com/immanent-tech/foragd/commit/99f22f22df8a7eb190475647f8823cdc9c46e3f4))
+* **models:** :bug: feed fetching fixes ([63286c1](https://github.com/immanent-tech/foragd/commit/63286c11bcafa85723a3f4eacaab843dcb2a4d2f))
+* **reverseproxy:** :bug: fix sign-url script ([455bfd8](https://github.com/immanent-tech/foragd/commit/455bfd8407c5c3ed209928f98ed3561f4bcb511d))
+
 ## [0.56.0](https://github.com/immanent-tech/foragd/compare/v0.55.1...v0.56.0) (2026-02-16)
 
 
