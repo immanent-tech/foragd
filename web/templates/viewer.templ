@@ -25,7 +25,22 @@ templ Viewer(feed *feeds.Feed, errMsg *models.UserMessage) {
 					The feed content, if found, will be displayed below.
 				}
 				@partials.Paragraph() {
-					Feed Viewer is powered by open-source! Check out the <a class="link" href="https://github.com/immanent-tech/go-syndication">go-syndication</a> library on GitHub.
+					<span class="font-semibold text-primary">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to
+					<span
+						class="font-mono"
+					>
+						https://foragd.app/viewer/url/https://some.site
+					</span>. For example, <a
+	href="https://foragd.app/viewer/url/https://arstechnica.net"
+	class="link
+					font-mono"
+>https://foragd.app/viewer/url/https://arstechnica.net</a>. You can also use this
+					<a
+						class="link"
+						href="javascript:(function(){var currentUrl=window.location.href; var targetUrl='https://foragd.app/viewer/url/'+currentUrl; window.open(targetUrl,'_blank','noreferrer');})();"
+					>
+						Bookmarklet
+					</a> (drag to your bookmarks then use on any site).
 				}
 				<form
 					id="viewer-form"
@@ -35,22 +50,18 @@ templ Viewer(feed *feeds.Feed, errMsg *models.UserMessage) {
 					hx-swap="innerHTML transition:true"
 					hx-indicator="#processing"
 				>
-					<fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-4 w-full">
-						<legend class="fieldset-legend">URL</legend>
-						<div class="join">
-							<input
-								type="text"
-								name="url"
-								class="input w-full"
-								placeholder="https://some.site"
-								if feed != nil {
-									value={ feed.GetSourceURL() }
-								}
-							/>
-							<button class="btn join-item">View</button>
-						</div>
-						<p class="label">Enter a URL of a site to inspect for feeds</p>
-					</fieldset>
+					<div class="join w-full mt-4">
+						<input
+							type="text"
+							name="url"
+							class="input input-primary w-full bg-base-content/10"
+							placeholder="https://some.site"
+							if feed != nil {
+								value={ feed.GetSourceURL() }
+							}
+						/>
+						<button class="btn join-item">View</button>
+					</div>
 				</form>
 			</section>
 			<div id="processing" class="htmx-indicator my-4 flex justify-center mx-auto">
