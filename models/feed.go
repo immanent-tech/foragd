@@ -5,10 +5,16 @@ package models
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/url"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -403,6 +409,14 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 		} else {
 			return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
 		}
+		// If the error is StatusForbidden, try proxying the request.
+		var httpErr feeds.HTTPError
+		if errors.Is(err, &httpErr) && httpErr.Code == http.StatusForbidden {
+			slogctx.FromCtx(ctx).Warn("Forbidden response, trying with proxy",
+				slog.String("url", url),
+			)
+			return NewFeedFromURL(ctx, proxyURL(url))
+		}
 	}
 	feed = NewSyndicationFeed(url, result)
 	// Add the URL passed in to the source URLs if the parsed feed does not contain it (for example, user entered a
@@ -412,6 +426,29 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 	}
 
 	return feed, nil
+}
+
+func proxyURL(originalURL string) string {
+	var keyBin []byte
+	var err error
+
+	// Extract the key.
+	if keyBin, err = hex.DecodeString(os.Getenv("FORAGD_REVERSEPROXY_KEY")); err != nil {
+		return originalURL
+	}
+
+	encodedURL := base64.RawURLEncoding.EncodeToString(
+		[]byte(originalURL + "|3600|" + os.Getenv("FORAGD_REVERSEPROXY_SALT")),
+	)
+
+	mac := hmac.New(sha256.New, keyBin)
+	mac.Write([]byte(encodedURL))
+	signature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+
+	proxyBaseURL := os.Getenv("FORAGD_REVERSEPROXY_WORKER_URL")
+
+	return proxyBaseURL + "?signature=" + signature + "&url=" + url.QueryEscape(originalURL) + "&expires=3600"
+
 }
 
 // FindFeedImage will try to find an image to represent the feed. Useful to call if the feed does not define an image
