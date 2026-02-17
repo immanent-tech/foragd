@@ -104,7 +104,7 @@ func SearchItems(
 		return nil, "", ErrInvalidParams
 	}
 	// Perform search.
-	items, newSearchAfter, err := elastic.Search[*Item](ctx, schema.ItemsIndexRO, query, count,
+	items, newSearchAfter, err := elastic.Search[Item](ctx, schema.ItemsIndexRO, query, count,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](newItemSortOptions(sort)...),
 		elastic.WithSearchAfter[*search.Search, elastic.SearchRequest](searchAfter...),
 	)
@@ -120,8 +120,12 @@ func SearchItems(
 }
 
 // AddItems wraps an elastic bulk update to index items.
-func AddItems(ctx context.Context, items ...*Item) error {
-	if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW, items...); err != nil {
+func AddItems(ctx context.Context, items ...Item) error {
+	itemPtrs := make([]*Item, 0, len(items))
+	for i := range slices.Values(items) {
+		itemPtrs = append(itemPtrs, &i)
+	}
+	if _, err := elastic.BulkUpdate(ctx, schema.ItemsIndexRW, itemPtrs...); err != nil {
 		return fmt.Errorf("add email item: %w", err)
 	}
 	return nil
@@ -192,18 +196,18 @@ func ItemsAggregation(
 }
 
 // Items is a slice of items.
-type Items []*Item
+type Items []Item
 
 // FilterSince filters items to ones which are newer than the given timestamp.
 func (i Items) FilterSince(since time.Time) Items {
-	return slices.Collect(FilterSlice(i, func(item *Item) bool {
+	return slices.Collect(FilterSlice(i, func(item Item) bool {
 		return item.IsNewer(since)
 	}))
 }
 
 // FilterByFeed filters items to ones which match the given feed ID.
 func (i Items) FilterByFeed(feedID FeedID) Items {
-	return slices.Collect(FilterSlice(i, func(v *Item) bool {
+	return slices.Collect(FilterSlice(i, func(v Item) bool {
 		return v.GetFeedID() == feedID
 	}))
 }
@@ -245,7 +249,7 @@ func (i Items) GetCategoryCounts() CategoryCounts {
 
 // SortByTimestamp sorts the items by their timestamps, in descending order.
 func (i Items) SortByTimestamp() Items {
-	slices.SortFunc(i, func(itemA, itemB *Item) int {
+	slices.SortFunc(i, func(itemA, itemB Item) int {
 		return itemA.GetTimestamp().Compare(itemB.GetTimestamp())
 	})
 	slices.Reverse(i)

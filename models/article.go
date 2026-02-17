@@ -182,7 +182,7 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 			continue
 		}
 		article := &Article{
-			Item:           *item,
+			Item:           item,
 			SubscriptionID: subscription.GetID(),
 			State:          *subscription.GetItemState(item.GetID()),
 			SourceType:     item.SourceType,

@@ -546,6 +546,15 @@ components:
               x-go-name: SourceURLs
               x-oapi-codegen-extra-tags:
                 validate: 'required,dive,url'
+            items:
+              description: >
+                contains the list of items in the feed.
+              type: array
+              items:
+                $ref: '#/components/schemas/Item'
+              x-oapi-codegen-extra-tags:
+                json: '-'
+              x-go-type-skip-optional-pointer: true
             created_at:
               $ref: '#/components/schemas/CreatedAt'
             last_fetched:

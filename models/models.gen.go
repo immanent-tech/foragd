@@ -386,8 +386,11 @@ type Feed struct {
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// Image is an abstraction of an Image across different types of specifications.
-	Image    *externalRef0.ImageInfo `json:"image,omitempty" validate:"omitempty"`
-	Language string                  `json:"language,omitempty"`
+	Image *externalRef0.ImageInfo `json:"image,omitempty" validate:"omitempty"`
+
+	// Items contains the list of items in the feed.
+	Items    []Item `json:"-"`
+	Language string `json:"language,omitempty"`
 
 	// LastFetched indicates when an object was last fetched.
 	LastFetched LastFetched `json:"last_fetched,omitempty"`

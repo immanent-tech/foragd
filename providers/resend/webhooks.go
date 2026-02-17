@@ -145,7 +145,7 @@ func handleRecievedEmail(ctx context.Context, client *resend.Client, details Ema
 
 	// Create an Item from the email and index it.
 	item := models.NewEmailItem(email, subscription)
-	if err := models.AddItems(ctx, item); err != nil {
+	if err := models.AddItems(ctx, *item); err != nil {
 		return fmt.Errorf("add email item: %w", err)
 	}
 	return nil

@@ -301,8 +301,8 @@ func (f *Feed) GetImage() *types.ImageInfo {
 }
 
 // GetItems returns a slice of the currently published items in the feed.
-func (f *Feed) GetItems() []types.ItemSource {
-	return nil
+func (f *Feed) GetItems() Items {
+	return f.Items
 }
 
 // GetLanguage returns the language tag of the feed, if any.
@@ -405,7 +405,7 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 		}
 	}
 	if result.GetImage() == nil {
-		if err := feeds.FindFeedImage(ctx, result); err != nil {
+		if err := FindFeedImage(ctx, feed); err != nil {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
 				slog.String("feed", result.GetTitle()),
 				slog.String("url", result.GetSourceURL()),
@@ -413,8 +413,32 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 		}
 	}
 	feed = NewSyndicationFeed(url, result)
+	// Add the URL passed in to the source URLs if the parsed feed does not contain it (for example, user entered a
+	// website rather than feed URL).
+	if !slices.Contains(feed.SourceURLs, url) {
+		feed.SourceURLs = append(feed.SourceURLs, url)
+	}
 
 	return feed, nil
+}
+
+// FindFeedImage will try to find an image to represent the feed. Useful to call if the feed does not define an image
+// itself.
+func FindFeedImage(ctx context.Context, feed *Feed) error {
+	var timeout time.Duration
+	if deadline, ok := ctx.Deadline(); !ok {
+		timeout = DefaultHTTPRequestTimeout
+	} else {
+		timeout = time.Until(deadline)
+	}
+	image, err := feeds.DiscoverFeedImage(feed.GetLink(), timeout)
+	if err != nil {
+		return fmt.Errorf("unable to find feed image: %w", err)
+	}
+	if image != nil {
+		feed.Image = image
+	}
+	return nil
 }
 
 // NewSyndicationFeed converts the raw types.FeedSource into a Feed object.
@@ -437,6 +461,11 @@ func NewSyndicationFeed(url string, source *feeds.Feed) *Feed {
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
 	}
+	// Extract Items from source and add to Feed.
+	for i := range slices.Values(source.GetItems()) {
+		feed.Items = append(feed.Items, *NewFeedItem(&i, feed))
+	}
+
 	// Add the url used to find the feed to the source URLs if needed.
 	if !slices.Contains(feed.SourceURLs, url) {
 		feed.SourceURLs = append(feed.SourceURLs, url)

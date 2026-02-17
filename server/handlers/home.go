@@ -322,7 +322,7 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 						continue
 					}
 					var items models.Items
-					if items, _, err = results.ExtractSourceFromHits[*models.Item](topHitsAgg.Hits.Hits); err != nil {
+					if items, _, err = results.ExtractSourceFromHits[models.Item](topHitsAgg.Hits.Hits); err != nil {
 						continue
 					}
 					var articles models.Articles
@@ -341,7 +341,7 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 		var latestArticlesSampleAgg *types.TopHitsAggregate
 		if latestArticlesSampleAgg, ok = topCategoriesSamplerAgg.Aggregations["latest_articles_sample"].(*types.TopHitsAggregate); ok {
 			var items models.Items
-			if items, _, err = results.ExtractSourceFromHits[*models.Item](
+			if items, _, err = results.ExtractSourceFromHits[models.Item](
 				latestArticlesSampleAgg.Hits.Hits,
 			); err != nil {
 				slog.Info("could not extract items")

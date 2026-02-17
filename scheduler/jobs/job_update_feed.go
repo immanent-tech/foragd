@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"slices"
 	"sync"
 	"time"
 
@@ -90,12 +89,14 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		return fmt.Errorf("get feed doc: %w", err)
 	}
 
+	feedURL := jobData.URLs[0]
+
 	// Add additional feed details to logs.
-	ctx = slogctx.With(ctx, "feed_url", jobData.URLs[0])
+	ctx = slogctx.With(ctx, "feed_url", feedURL)
 	ctx = slogctx.With(ctx, "feed_name", details.GetTitle())
 
 	// Get new items since the last fetch.
-	feed, err := feeds.NewFeedFromURL(ctx, jobData.URLs[0])
+	feed, err := models.NewFeedFromURL(ctx, feedURL)
 	if err != nil {
 		var httpErr feeds.HTTPError
 		status := &models.FeedStatus{
@@ -123,46 +124,42 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		FeedID:    details.GetID(),
 	}
 
-	// Extract Items from Feed.
-	items := make(models.Items, 0, len(feed.GetItems()))
-	for i := range slices.Values(feed.GetItems()) {
-		items = append(items, models.NewFeedItem(&i, details))
-	}
-
 	// Add any new items since the last feed update.
-	slogctx.FromCtx(ctx).Debug("Checking for new items.",
-		slog.Time("since", details.LastFetched),
-		slog.Int("total_items", len(items)),
-		slog.Duration("interval", time.Duration(details.UpdateInterval)),
-	)
-	if newItems := items.FilterSince(details.LastFetched); len(newItems) > 0 {
-		// Add any new items.
-		if err := models.AddItems(ctx, newItems...); err != nil {
-			return fmt.Errorf("add new items: %w", err)
-		}
-		slogctx.FromCtx(ctx).Debug("Added new items.",
-			slog.Int("count", len(newItems)),
+	if len(feed.GetItems()) > 0 {
+		slogctx.FromCtx(ctx).Debug("Checking for new items.",
+			slog.Time("since", details.LastFetched),
+			slog.Int("total_items", len(feed.GetItems())),
+			slog.Duration("interval", time.Duration(details.UpdateInterval)),
 		)
-		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
-		// newer articles where a feed lags behind real-time.
-		if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, map[string]any{
-			"last_fetched": items.SortByTimestamp()[0].GetTimestamp(),
-		}); err != nil {
-			return fmt.Errorf("update feed last fetched: %w", err)
+		if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
+			// Add any new items.
+			if err := models.AddItems(ctx, newItems...); err != nil {
+				return fmt.Errorf("add new items: %w", err)
+			}
+			slogctx.FromCtx(ctx).Debug("Added new items.",
+				slog.Int("count", len(newItems)),
+			)
+			// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
+			// newer articles where a feed lags behind real-time.
+			if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, map[string]any{
+				"last_fetched": feed.GetItems().SortByTimestamp()[0].GetTimestamp(),
+			}); err != nil {
+				return fmt.Errorf("update feed last fetched: %w", err)
+			}
+			// Update FeedStatus.
+			status.StatusCode = http.StatusOK
+			status.StatusMessage = new(fmt.Sprintf("added %d new items", len(newItems)))
+		} else {
+			// Update FeedStatus.
+			status.StatusCode = http.StatusNoContent
+			status.StatusMessage = new("no new items")
 		}
-		// Update FeedStatus.
-		status.StatusCode = http.StatusOK
-		status.StatusMessage = new(fmt.Sprintf("added %d new items", len(newItems)))
-	} else {
-		// Update FeedStatus.
-		status.StatusCode = http.StatusNoContent
-		status.StatusMessage = new("no new items")
-	}
-	// Index FeedStatus for this update.
-	if err := models.AddFeedStatus(ctx, status); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-			slog.Any("error", err),
-		)
+		// Index FeedStatus for this update.
+		if err := models.AddFeedStatus(ctx, status); err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+				slog.Any("error", err),
+			)
+		}
 	}
 
 	return nil
