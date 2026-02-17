@@ -7,7 +7,6 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -383,40 +382,32 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 
 // NewFeedFromURL generates a new Feed object from the given URL. If there is a problem generating the object, a non-nil
 // error is returned.
-func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
+func NewFeedFromURL(ctx context.Context, url string, validate bool) (*Feed, error) {
 	var feed *Feed
 
 	ctx, cancel := context.WithTimeout(ctx, feeds.DefaultRequestTimeout)
 	defer cancel()
 
-	result, err := feeds.NewFeedFromURL(ctx, url)
+	result, err := feeds.NewFeedFromURL(ctx, url, feeds.PerformValidation(validate))
 	if err != nil {
-		var validateErrs validator.ValidationErrors
-		if errors.As(err, &validateErrs) {
+		if validateErrs, ok := errors.AsType[validator.ValidationErrors](err); ok && validate {
 			slogctx.FromCtx(ctx).Warn("Feed is invalid, continuing without validation",
 				slog.String("url", url),
+				slog.Any("error", validateErrs),
 			)
 			// On validation errors, try again without validation.
-			var (
-				err     error
-				invalid *feeds.Feed
-			)
-			invalid, err = feeds.NewFeedFromURL(ctx, url, feeds.PerformValidation(false))
-			if err != nil {
-				return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
-			}
-			result = invalid
-		} else {
-			return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
+			return NewFeedFromURL(ctx, url, false)
 		}
 		// If the error is StatusForbidden, try proxying the request.
-		var httpErr feeds.HTTPError
-		if errors.Is(err, &httpErr) && httpErr.Code == http.StatusForbidden {
-			slogctx.FromCtx(ctx).Warn("Forbidden response, trying with proxy",
-				slog.String("url", url),
-			)
-			return NewFeedFromURL(ctx, proxyURL(url))
+		if httpErr, ok := errors.AsType[feeds.HTTPError](err); ok && httpErr.Code == http.StatusForbidden {
+			if !strings.HasPrefix(url, os.Getenv("FORAGD_REVERSEPROXY_WORKER_URL")) {
+				slogctx.FromCtx(ctx).Warn("Forbidden response, trying with proxy",
+					slog.String("url", url),
+				)
+				return NewFeedFromURL(ctx, proxyURL(url), validate)
+			}
 		}
+		return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
 	}
 	feed = NewSyndicationFeed(url, result)
 	// Add the URL passed in to the source URLs if the parsed feed does not contain it (for example, user entered a
@@ -429,26 +420,30 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 }
 
 func proxyURL(originalURL string) string {
-	var keyBin []byte
-	var err error
+	key := os.Getenv("FORAGD_REVERSEPROXY_KEY")
+	salt := os.Getenv("FORAGD_REVERSEPROXY_SALT")
 
-	// Extract the key.
-	if keyBin, err = hex.DecodeString(os.Getenv("FORAGD_REVERSEPROXY_KEY")); err != nil {
+	expiry := strconv.FormatInt(time.Now().UTC().
+		Add(3600*time.Second).
+		Unix(), 10)
+
+	encoded := []byte(originalURL + "|" + expiry + "|" + salt)
+
+	mac := hmac.New(sha256.New, []byte(key))
+	mac.Write(encoded)
+	signature := hex.EncodeToString(mac.Sum(nil))
+
+	proxyURL, err := url.Parse(os.Getenv("FORAGD_REVERSEPROXY_WORKER_URL"))
+	if err != nil {
 		return originalURL
 	}
+	params := make(url.Values)
+	params.Add("signature", signature)
+	params.Add("url", originalURL)
+	params.Add("expires", expiry)
+	proxyURL.RawQuery = params.Encode()
 
-	encodedURL := base64.RawURLEncoding.EncodeToString(
-		[]byte(originalURL + "|3600|" + os.Getenv("FORAGD_REVERSEPROXY_SALT")),
-	)
-
-	mac := hmac.New(sha256.New, keyBin)
-	mac.Write([]byte(encodedURL))
-	signature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
-
-	proxyBaseURL := os.Getenv("FORAGD_REVERSEPROXY_WORKER_URL")
-
-	return proxyBaseURL + "?signature=" + signature + "&url=" + url.QueryEscape(originalURL) + "&expires=3600"
-
+	return proxyURL.String()
 }
 
 // FindFeedImage will try to find an image to represent the feed. Useful to call if the feed does not define an image
