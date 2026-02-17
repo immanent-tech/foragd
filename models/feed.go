@@ -433,7 +433,7 @@ func proxyURL(originalURL string) string {
 	mac.Write(encoded)
 	signature := hex.EncodeToString(mac.Sum(nil))
 
-	proxyURL, err := url.Parse(os.Getenv("FORAGD_REVERSEPROXY_WORKER_URL"))
+	proxyURL, err := url.Parse(os.Getenv("FORAGD_REVERSEPROXY_BASEURL"))
 	if err != nil {
 		return originalURL
 	}
