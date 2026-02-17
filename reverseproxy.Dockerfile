@@ -3,7 +3,7 @@
 
 # Alpine base.
 # https://hub.docker.com/_/alpine/
-FROM --platform=$BUILDPLATFORM docker.io/alpine:3.23.2@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62 AS builder
+FROM --platform=$BUILDPLATFORM docker.io/alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -11,7 +11,7 @@ ARG APPVERSION
 
 # Copy go from official image.
 # https://hub.docker.com/_/golang
-COPY --from=docker.io/golang:1.25.5-alpine@sha256:ac09a5f469f307e5da71e766b0bd59c9c49ea460a528cc3e6686513d64a6f1fb /usr/local/go/ /usr/local/go/
+COPY --from=docker.io/golang:1.26.0-alpine3.23@sha256:d4c4845f5d60c6a974c6000ce58ae079328d03ab7f721a0734277e69905473e5 /usr/local/go/ /usr/local/go/
 # Update $PATH.
 ENV PATH="/root/go/bin:/usr/local/go/bin:/usr/local/bin:${PATH}"
 
@@ -38,7 +38,7 @@ RUN go build -ldflags="-s -w -X github.com/immanent-tech/foragd/config.Version=$
 # compress binary with upx
 RUN upx --best --lzma foragd
 
-FROM docker.io/alpine:3.23.2@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62 AS scheduler
+FROM docker.io/alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659 AS reverseproxy
 
 ENV FORAGD_CONTAINER=1
 
