@@ -154,6 +154,10 @@ var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
 			Loc:      "https://foragd.app/about",
 			Priority: 0.75,
 		},
+		sitemap.URL{
+			Loc:      "https://foragd.app/help",
+			Priority: 0.75,
+		},
 	)
 	// Add all posts.
 	posts, err := getPosts()
