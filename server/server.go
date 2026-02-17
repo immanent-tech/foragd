@@ -146,6 +146,7 @@ func Start(logger *slog.Logger) error {
 		r.Get("/about", handlers.HandleAbout())
 		// Feed Viewer.
 		r.Get("/viewer", handlers.HandleViewer())
+		r.Get("/viewer/url/*", handlers.HandleViewer())
 		r.With(middlewares.RequireHTMX).Post("/viewer", handlers.HandleViewer())
 		// Help documentation.
 		r.Get("/help", handlers.DocumentationHandler())

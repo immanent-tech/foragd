@@ -6,8 +6,10 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/go-chi/chi/v5"
 	feeds "github.com/immanent-tech/go-syndication"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -16,7 +18,10 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 )
 
-type Viewer struct{}
+type Viewer struct {
+	feed   *feeds.Feed
+	errMsg *models.UserMessage
+}
 
 // FullResponse renders the full viewer page.
 func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
@@ -24,7 +29,7 @@ func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
 	description := "Search for and view syndicated content (RSS, Atom, JSONFeed feeds) on any site."
 	templ.Handler(
 		templates.CreatePage(
-			templates.Viewer(),
+			templates.Viewer(p.feed, p.errMsg),
 			templates.WithPageTitle(title),
 			templates.WithPageDescription(description),
 			templates.WithOGMetadata(
@@ -61,7 +66,34 @@ func HandleViewer() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
-			RenderExternalPage(&Viewer{}).ServeHTTP(res, req)
+			if !strings.HasPrefix(req.URL.Path, "/viewer/url") {
+				RenderExternalPage(&Viewer{}).ServeHTTP(res, req)
+			}
+			feedURL, err := models.FeedURLParser(req.Context(), chi.URLParam(req, "*"))
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Could not parse URL for viewer.",
+					slog.Any("error", err),
+				)
+				RenderExternalPage(&Viewer{
+					errMsg: models.NewErrorMessage("Unable to parse provided URL", "Please check and try again."),
+				}).ServeHTTP(res, req)
+				return
+			}
+			// Parse the URL and find feed content.
+			feed, err := feeds.NewFeedFromURL(req.Context(), feedURL.String())
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Could not parse URL for viewer.",
+					slog.Any("error", err),
+				)
+				RenderExternalPage(&Viewer{
+					errMsg: models.NewErrorMessage("Unable to find feed at provided URL", "Please check and try again"),
+				}).ServeHTTP(res, req)
+				return
+			}
+			RenderExternalPage(&Viewer{
+				feed: feed,
+			}).ServeHTTP(res, req)
+
 		case http.MethodPost:
 			// Get the submitted URL.
 			feedURL, err := models.FeedURLParser(req.Context(), req.FormValue("url"))

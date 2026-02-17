@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-templ Viewer() {
+templ Viewer(feed *feeds.Feed, errMsg *models.UserMessage) {
 	@content() {
 		@container() {
 			<section id="viewer">
@@ -37,7 +37,15 @@ templ Viewer() {
 					<fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-4 w-full">
 						<legend class="fieldset-legend">URL</legend>
 						<div class="join">
-							<input type="text" name="url" class="input w-full" placeholder="https://some.site"/>
+							<input
+								type="text"
+								name="url"
+								class="input w-full"
+								placeholder="https://some.site"
+								if feed != nil {
+									value={ feed.GetSourceURL() }
+								}
+							/>
 							<button class="btn join-item">View</button>
 						</div>
 						<p class="label">Enter a URL of a site to inspect for feeds</p>
@@ -47,7 +55,14 @@ templ Viewer() {
 			<div id="processing" class="htmx-indicator my-4 flex justify-center mx-auto">
 				<span class="flex loading loading-dots loading-lg"></span>
 			</div>
-			<section id="viewer-results" class="mt-8 mb-24 min-h-128 overflow-y-auto"></section>
+			<section id="viewer-results" class="mt-8 mb-24 min-h-128 overflow-y-auto">
+				switch  {
+					case errMsg != nil:
+						@ViewerError(errMsg)
+					case feed != nil:
+						@ViewerResults(feed)
+				}
+			</section>
 		}
 	}
 }
