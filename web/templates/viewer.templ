@@ -30,8 +30,9 @@ templ Viewer(feed *feeds.Feed, errMsg *models.UserMessage) {
 				<form
 					id="viewer-form"
 					hx-post="/viewer"
+					hx-push-url="true"
 					hx-target="#viewer-results"
-					hx-swap="innerHTML transition:true show:top"
+					hx-swap="innerHTML transition:true"
 					hx-indicator="#processing"
 				>
 					<fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-4 w-full">
