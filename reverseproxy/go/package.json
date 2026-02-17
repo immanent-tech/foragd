@@ -1,0 +1,26 @@
+{
+    "name": "cloudflare-signed-proxy",
+    "version": "1.0.0",
+    "description": "Cloudflare Worker reverse proxy with signed URL authentication",
+    "main": "cloudflare-signed-proxy.js",
+    "scripts": {
+        "deploy": "wrangler deploy",
+        "dev": "wrangler dev",
+        "sign": "node sign-url.js",
+        "set-key": "wrangler secret put SIGNING_KEY",
+        "set-salt": "wrangler secret put SIGNING_SALT"
+    },
+    "keywords": [
+        "cloudflare",
+        "worker",
+        "proxy",
+        "signed-url",
+        "hmac",
+        "security"
+    ],
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "wrangler": "^4.65.0"
+    }
+}
