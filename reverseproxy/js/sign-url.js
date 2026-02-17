@@ -10,7 +10,7 @@
  *   node sign-url.js "https://example.com/image.jpg" 3600
  */
 
-import { createHmac } from 'crypto'
+const crypto = require('crypto')
 
 // Configuration - should match your Cloudflare Worker settings
 const FORAGD_REVERSEPROXY_KEY =
@@ -19,13 +19,13 @@ const FORAGD_REVERSEPROXY_SALT =
   process.env.FORAGD_REVERSEPROXY_SALT || 'your-salt-here'
 const FORAGD_REVERSEPROXY_WORKER_URL =
   process.env.FORAGD_REVERSEPROXY_WORKER_URL ||
-  'https://signed-url-proxy-development.immanent-tech.workers.dev'
+  'https://your-worker.workers.dev'
 
 /**
  * Generate HMAC-SHA256 signature
  */
 function generateSignature(message, key) {
-  return createHmac('sha256', key).update(message).digest('hex')
+  return crypto.createHmac('sha256', key).update(message).digest('hex')
 }
 
 /**
@@ -144,7 +144,7 @@ if (require.main === module) {
 }
 
 // Export for use as a module
-export default {
+module.exports = {
   signUrl,
   verifySignature,
   generateSignature,

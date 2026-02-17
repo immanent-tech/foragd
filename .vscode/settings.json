@@ -68,7 +68,8 @@
     "sitemap",
     "posts",
     "docs",
-    "opml"
+    "opml",
+    "reverseproxy"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
