@@ -63,6 +63,15 @@ func (p *ViewerError) PartialResponse(res http.ResponseWriter, req *http.Request
 // HandleViewer handles powering the feed viewer page.
 func HandleViewer() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		parseErr := models.NewErrorMessage(
+			"Unable to parse provided URL",
+			"The URL does not appear to be valid, please check and try again.",
+		)
+		fetchErr := models.NewErrorMessage(
+			"Unable to find feed at provided URL",
+			"No feed details could be fetched from the given URL. This could be a temporary error.",
+		)
+
 		switch req.Method {
 		case http.MethodGet:
 			if !strings.HasPrefix(req.URL.Path, "/viewer/url") {
@@ -75,7 +84,7 @@ func HandleViewer() http.HandlerFunc {
 					slog.Any("error", err),
 				)
 				RenderExternalPage(&Viewer{
-					errMsg: models.NewErrorMessage("Unable to parse provided URL", err.Error()),
+					errMsg: parseErr,
 				}).ServeHTTP(res, req)
 				return
 			}
@@ -86,7 +95,7 @@ func HandleViewer() http.HandlerFunc {
 					slog.Any("error", err),
 				)
 				RenderExternalPage(&Viewer{
-					errMsg: models.NewErrorMessage("Unable to find feed at provided URL", err.Error()),
+					errMsg: fetchErr,
 				}).ServeHTTP(res, req)
 				return
 			}
@@ -102,7 +111,7 @@ func HandleViewer() http.HandlerFunc {
 					slog.Any("error", err),
 				)
 				RenderPartial(&ViewerError{
-					msg: models.NewErrorMessage("Failed to parse as feed", err.Error()),
+					msg: parseErr,
 				}).ServeHTTP(res, req)
 				return
 			}
@@ -114,7 +123,7 @@ func HandleViewer() http.HandlerFunc {
 					slog.Any("error", err),
 				)
 				RenderPartial(&ViewerError{
-					msg: models.NewErrorMessage("Failed to parse as feed", err.Error()),
+					msg: fetchErr,
 				}).ServeHTTP(res, req)
 				return
 			}
