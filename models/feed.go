@@ -385,7 +385,7 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (*Feed, error) {
 	var feed *Feed
 
-	ctx, cancel := context.WithTimeout(ctx, feeds.DefaultRequestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
 	result, err := feeds.NewFeedFromURL(ctx, url, feeds.PerformValidation(validate))
