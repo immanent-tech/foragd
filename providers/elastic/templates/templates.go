@@ -21,7 +21,7 @@ type Option[T any] func(T)
 
 // Template represents an index or component template with settings, mappings, aliases, etc.
 type Template struct {
-	types.IndexState
+	types.IndexTemplateMapping
 }
 
 // TemplateOption is a functional option to apply to a template.
@@ -274,7 +274,7 @@ func NewComponentTemplate(
 	template := &ComponentTemplate{
 		Name: name,
 		Request: &putcomponenttemplate.Request{
-			Template: templateSettings.IndexState,
+			Template: templateSettings.IndexTemplateMapping,
 		},
 	}
 	for option := range slices.Values(options) {
