@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.58.0](https://github.com/immanent-tech/foragd/compare/v0.57.0...v0.58.0) (2026-02-18)
+
+
+### Features
+
+* **templates:** :sparkles: add a heading on landing page ([6c7c4f5](https://github.com/immanent-tech/foragd/commit/6c7c4f5a2d9d1189a72d017da8fef55606d27e9e))
+* **templates:** :sparkles: improved heading for external pages ([b9b6d59](https://github.com/immanent-tech/foragd/commit/b9b6d59aa106edade73db94f72ffe8a5f1dda44d))
+* **templates:** :sparkles: use a mask for subscription thumbnails ([60b8017](https://github.com/immanent-tech/foragd/commit/60b8017d6b9cd7ba606f219b63ce1608c649142b))
+* **templates:** :sparkles: use a mask on avatar images ([1708f24](https://github.com/immanent-tech/foragd/commit/1708f249034e0382c23bad19d96a4a2bcb6b61ea))
+
+
+### Bug Fixes
+
+* **assets:** :bug: fix styling of cards with image issues and ensure this style doesn't propagate elsewhere ([1b32700](https://github.com/immanent-tech/foragd/commit/1b327008f914eb7af1c0562c899222111abddab6))
+* **elastic:** :bug: fix for new version ([751d3e3](https://github.com/immanent-tech/foragd/commit/751d3e36b3dba887e1e5deda7b92a003058acbdc))
+* **templates:** :bug: push url for import/export to browser bar ([f6a94c5](https://github.com/immanent-tech/foragd/commit/f6a94c55b889f4b81772998c987f7581d760c769))
+* **templates:** :bug: use card-img class to handle broken images on article cards ([3784298](https://github.com/immanent-tech/foragd/commit/3784298a1b05ea3a532e34eb6923197023c462f0))
+
 ## [0.57.0](https://github.com/immanent-tech/foragd/compare/v0.56.0...v0.57.0) (2026-02-17)
 
 
