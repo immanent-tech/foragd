@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.59.1](https://github.com/immanent-tech/foragd/compare/v0.59.0...v0.59.1) (2026-02-18)
+
+
+### Bug Fixes
+
+* **templates:** :bug: change example url to one that actually exists ([91b6532](https://github.com/immanent-tech/foragd/commit/91b65329a7b439f3e09f991778898dc1da36108f))
+
 ## [0.59.0](https://github.com/immanent-tech/foragd/compare/v0.58.2...v0.59.0) (2026-02-18)
 
 
