@@ -17,9 +17,8 @@ const FORAGD_REVERSEPROXY_KEY =
   process.env.FORAGD_REVERSEPROXY_KEY || 'your-secret-key-here'
 const FORAGD_REVERSEPROXY_SALT =
   process.env.FORAGD_REVERSEPROXY_SALT || 'your-salt-here'
-const FORAGD_REVERSEPROXY_WORKER_URL =
-  process.env.FORAGD_REVERSEPROXY_WORKER_URL ||
-  'https://your-worker.workers.dev'
+const FORAGD_REVERSEPROXY_BASEURL =
+  process.env.FORAGD_REVERSEPROXY_BASEURL || 'https://your-worker.workers.dev'
 
 /**
  * Generate HMAC-SHA256 signature
@@ -42,7 +41,7 @@ function signUrl(targetUrl, ttlSeconds = 3600) {
   const signature = generateSignature(message, FORAGD_REVERSEPROXY_KEY)
 
   // Build signed URL
-  const workerUrl = new URL(FORAGD_REVERSEPROXY_WORKER_URL)
+  const workerUrl = new URL(FORAGD_REVERSEPROXY_BASEURL)
   workerUrl.searchParams.set('url', targetUrl)
   workerUrl.searchParams.set('expires', expires.toString())
   workerUrl.searchParams.set('signature', signature)
@@ -86,12 +85,12 @@ if (require.main === module) {
       '  FORAGD_REVERSEPROXY_SALT  Additional salt for security (optional)'
     )
     console.log(
-      '  FORAGD_REVERSEPROXY_WORKER_URL    Your Cloudflare Worker URL (required)'
+      '  FORAGD_REVERSEPROXY_BASEURL    Your Cloudflare Worker URL (required)'
     )
     console.log('')
     console.log('Example:')
     console.log(
-      '  FORAGD_REVERSEPROXY_KEY=mysecret FORAGD_REVERSEPROXY_WORKER_URL=https://proxy.workers.dev \\'
+      '  FORAGD_REVERSEPROXY_KEY=mysecret FORAGD_REVERSEPROXY_BASEURL=https://proxy.workers.dev \\'
     )
     console.log('    node sign-url.js "https://example.com/image.jpg" 7200')
     process.exit(0)
@@ -110,14 +109,14 @@ if (require.main === module) {
   }
 
   if (
-    !FORAGD_REVERSEPROXY_WORKER_URL ||
-    FORAGD_REVERSEPROXY_WORKER_URL === 'https://your-worker.workers.dev'
+    !FORAGD_REVERSEPROXY_BASEURL ||
+    FORAGD_REVERSEPROXY_BASEURL === 'https://your-worker.workers.dev'
   ) {
     console.error(
-      'Error: FORAGD_REVERSEPROXY_WORKER_URL environment variable not set'
+      'Error: FORAGD_REVERSEPROXY_BASEURL environment variable not set'
     )
     console.error(
-      'Set it with: export FORAGD_REVERSEPROXY_WORKER_URL=https://your-worker.workers.dev'
+      'Set it with: export FORAGD_REVERSEPROXY_BASEURL=https://your-worker.workers.dev'
     )
     process.exit(1)
   }
