@@ -164,7 +164,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/didip/tollbooth/v8 v8.0.1
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
-	github.com/elastic/go-elasticsearch/v9 v9.2.1
+	github.com/elastic/go-elasticsearch/v9 v9.3.1
 	github.com/fatih/color v1.18.0
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
