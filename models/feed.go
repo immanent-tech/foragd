@@ -400,11 +400,11 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 		}
 		// If the error is StatusForbidden, try proxying the request.
 		if httpErr, ok := errors.AsType[feeds.HTTPError](err); ok && httpErr.Code == http.StatusForbidden {
-			if !strings.HasPrefix(url, os.Getenv("FORAGD_REVERSEPROXY_WORKER_URL")) {
+			if !strings.HasPrefix(url, os.Getenv("FORAGD_REVERSEPROXY_BASEURL")) {
 				slogctx.FromCtx(ctx).Warn("Forbidden response, trying with proxy",
 					slog.String("url", url),
 				)
-				return NewFeedFromURL(ctx, proxyURL(url), id, validate)
+				return NewFeedFromURL(ctx, proxyURL(ctx, url), id, validate)
 			}
 		}
 		return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
@@ -419,7 +419,7 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 	return feed, nil
 }
 
-func proxyURL(originalURL string) string {
+func proxyURL(ctx context.Context, originalURL string) string {
 	key := os.Getenv("FORAGD_REVERSEPROXY_KEY")
 	salt := os.Getenv("FORAGD_REVERSEPROXY_SALT")
 
@@ -435,6 +435,9 @@ func proxyURL(originalURL string) string {
 
 	proxyURL, err := url.Parse(os.Getenv("FORAGD_REVERSEPROXY_BASEURL"))
 	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not parse proxy base url.",
+			slog.Any("error", err),
+		)
 		return originalURL
 	}
 	params := make(url.Values)
