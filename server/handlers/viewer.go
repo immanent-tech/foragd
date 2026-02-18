@@ -80,7 +80,7 @@ func HandleViewer() http.HandlerFunc {
 				return
 			}
 			// Parse the URL and find feed content.
-			feed, err := models.NewFeedFromURL(req.Context(), feedURL.String(), false)
+			feed, err := models.NewFeedFromURL(req.Context(), feedURL.String(), "", false)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not parse URL for viewer.",
 					slog.Any("error", err),
@@ -108,7 +108,7 @@ func HandleViewer() http.HandlerFunc {
 			}
 
 			// Parse the URL and find feed content.
-			feed, err := models.NewFeedFromURL(req.Context(), feedURL.String(), false)
+			feed, err := models.NewFeedFromURL(req.Context(), feedURL.String(), "", false)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),

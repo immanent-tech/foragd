@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/goforj/godump"
 	feeds "github.com/immanent-tech/go-syndication"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -103,7 +104,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	)
 	for feedURL = range slices.Values(jobData.URLs) {
 		var err error
-		feed, err = models.NewFeedFromURL(ctx, feedURL, true)
+		feed, err = models.NewFeedFromURL(ctx, feedURL, jobData.FeedID, true)
 		if err != nil {
 			var httpErr feeds.HTTPError
 			status := &models.FeedStatus{
@@ -133,6 +134,8 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	}
 
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
+
+	godump.Dump(jobData.FeedID, feed.GetID())
 
 	// Create a new FeedStatus for this update.
 	status := &models.FeedStatus{

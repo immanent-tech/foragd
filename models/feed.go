@@ -382,7 +382,7 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 
 // NewFeedFromURL generates a new Feed object from the given URL. If there is a problem generating the object, a non-nil
 // error is returned.
-func NewFeedFromURL(ctx context.Context, url string, validate bool) (*Feed, error) {
+func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (*Feed, error) {
 	var feed *Feed
 
 	ctx, cancel := context.WithTimeout(ctx, feeds.DefaultRequestTimeout)
@@ -396,7 +396,7 @@ func NewFeedFromURL(ctx context.Context, url string, validate bool) (*Feed, erro
 				slog.Any("error", validateErrs),
 			)
 			// On validation errors, try again without validation.
-			return NewFeedFromURL(ctx, url, false)
+			return NewFeedFromURL(ctx, url, id, false)
 		}
 		// If the error is StatusForbidden, try proxying the request.
 		if httpErr, ok := errors.AsType[feeds.HTTPError](err); ok && httpErr.Code == http.StatusForbidden {
@@ -404,12 +404,12 @@ func NewFeedFromURL(ctx context.Context, url string, validate bool) (*Feed, erro
 				slogctx.FromCtx(ctx).Warn("Forbidden response, trying with proxy",
 					slog.String("url", url),
 				)
-				return NewFeedFromURL(ctx, proxyURL(url), validate)
+				return NewFeedFromURL(ctx, proxyURL(url), id, validate)
 			}
 		}
 		return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
 	}
-	feed = NewSyndicationFeed(url, result)
+	feed = NewSyndicationFeed(url, id, result)
 	// Add the URL passed in to the source URLs if the parsed feed does not contain it (for example, user entered a
 	// website rather than feed URL).
 	if !slices.Contains(feed.SourceURLs, url) {
@@ -466,8 +466,10 @@ func FindFeedImage(ctx context.Context, feed *Feed) error {
 }
 
 // NewSyndicationFeed converts the raw types.FeedSource into a Feed object.
-func NewSyndicationFeed(url string, source *feeds.Feed) *Feed {
-	id := "feed_" + strconv.FormatUint(xxhash.Sum64String(source.GetLink()), 10)
+func NewSyndicationFeed(url string, id FeedID, source *feeds.Feed) *Feed {
+	if id == "" {
+		id = "feed_" + strconv.FormatUint(xxhash.Sum64String(source.GetLink()), 10)
+	}
 	feed := &Feed{
 		FeedID:       id,
 		CreatedAt:    time.Now().UTC(),

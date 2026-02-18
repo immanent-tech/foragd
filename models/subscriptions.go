@@ -653,7 +653,7 @@ func ProcessSubscriptionRequest(
 		return
 	}
 
-	newFeed, err = NewFeedFromURL(ctx, feedURL.String(), true)
+	newFeed, err = NewFeedFromURL(ctx, feedURL.String(), "", true)
 	if err != nil {
 		result.Error = err
 		result.Message = NewErrorMessage(
