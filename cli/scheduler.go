@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"slices"
 	"syscall"
 
 	slogctx "github.com/veqryn/slog-context"
@@ -20,11 +21,13 @@ type SchedulerCmd struct {
 	Run   RunSchedulerCmd   `cmd:"run"   help:"Run scheduler."`
 	Clear ClearSchedulerCmd `cmd:"clear" help:"Clear all jobs."`
 	Init  InitSchedulerCmd  `cmd:"init"  help:"Initialise the scheduler/queue."`
+	List  ListSchedulerCmd  `cmd:"list"  help:"List all jobs."`
 }
 
 type RunSchedulerCmd struct{}
 type ClearSchedulerCmd struct{}
 type InitSchedulerCmd struct{}
+type ListSchedulerCmd struct{}
 
 // Run contains logic for setup and execution of the scheduler.
 func (c *RunSchedulerCmd) Run(opts *Arguments) error {
@@ -44,10 +47,9 @@ func (c *ClearSchedulerCmd) Run(opts *Arguments) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
-	ctx = slogctx.NewCtx(ctx, opts.Logger)
-	// Run scheduler.
-	if err := scheduler.NewManager(ctx); err != nil {
-		return fmt.Errorf("could not run scheduler: %w", err)
+
+	if err := setupScheduler(ctx, opts); err != nil {
+		return fmt.Errorf("could not setup scheduler: %w", err)
 	}
 	// Clear job queue.
 	if err := scheduler.Manager.Clear(ctx); err != nil {
@@ -62,15 +64,46 @@ func (c *InitSchedulerCmd) Run(opts *Arguments) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
-	ctx = slogctx.NewCtx(ctx, opts.Logger)
-	// Run scheduler.
-	if err := scheduler.NewManager(ctx); err != nil {
-		return fmt.Errorf("could not run scheduler: %w", err)
+
+	if err := setupScheduler(ctx, opts); err != nil {
+		return fmt.Errorf("could not setup scheduler: %w", err)
 	}
 	// Clear job queue.
 	if err := scheduler.RunStartupTasks(ctx); err != nil {
 		return fmt.Errorf("could not init scheduler: %w", err)
 	}
 	slogctx.FromCtx(ctx).Info("Scheduler initialised.")
+	return nil
+}
+
+// Run runs the clear command that will remove all scheduled jobs.
+func (c *ListSchedulerCmd) Run(opts *Arguments) error {
+	// Set up context.
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
+
+	if err := setupScheduler(ctx, opts); err != nil {
+		return fmt.Errorf("could not setup scheduler: %w", err)
+	}
+
+	// Clear job queue.
+	keys, err := scheduler.Manager.GetJobKeys()
+	if err != nil {
+		return fmt.Errorf("could not list jobs: %w", err)
+	}
+
+	for key := range slices.Values(keys) {
+		fmt.Println(key.String())
+	}
+
+	return nil
+}
+
+func setupScheduler(ctx context.Context, opts *Arguments) error {
+	ctx = slogctx.NewCtx(ctx, opts.Logger)
+	// Run scheduler.
+	if err := scheduler.NewManager(ctx); err != nil {
+		return fmt.Errorf("could not run scheduler: %w", err)
+	}
 	return nil
 }
