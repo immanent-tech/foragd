@@ -91,12 +91,14 @@ templ AccountSettings(user *models.User) {
 				<button
 					type="button"
 					class="btn btn-primary"
+					hx-push-url="true"
 					hx-get="/user/import"
 					hx-target={ ContentID.Target() }
 				>Import</button>
 				<button
 					type="button"
 					class="btn btn-primary"
+					hx-push-url="true"
 					hx-get="/user/export"
 					hx-target={ ContentID.Target() }
 				>Export</button>
@@ -146,7 +148,7 @@ templ AccountSettings(user *models.User) {
 					<label for="nickname" class="block text-sm/6 font-medium">Email</label>
 					<div class="mt-2">
 						<input
-							id="nickname"
+							id="email"
 							type="email"
 							class="input input-primary invalid:input-error validator bg-base-content/10"
 							placeholder="Email"
