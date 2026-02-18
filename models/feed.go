@@ -599,7 +599,6 @@ func newFeedSortCombinations(sort *Sort) []estypes.SortCombinations {
 // to find their feeds.
 func FeedURLParser(ctx context.Context, urlStr string) (*url.URL, error) {
 	// Parse the URL.
-	slogctx.FromCtx(ctx).Debug("Parsing url", slog.String("url", urlStr))
 	feedURL, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, fmt.Errorf("parse url: %w", err)
@@ -607,21 +606,34 @@ func FeedURLParser(ctx context.Context, urlStr string) (*url.URL, error) {
 
 	// For some popular sites that have an API or special URL for feeds, handle those.
 	switch {
-	case strings.Contains(feedURL.Host, "reddit.com") &&
-		(!strings.HasPrefix(feedURL.Path, ".rss") || !strings.HasPrefix(feedURL.Path, ".rss/")):
-		// Reddit can usually support a feed by appending `.rss` to the end of the subreddit URL.
-		var err error
-		if feedURL.Path, err = url.JoinPath(feedURL.Path, "/.rss"); err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not create subreddit RSS url.",
-				slog.Any("err", err),
+	case strings.Contains(feedURL.Host, "reddit.com"):
+		switch {
+		case !strings.HasSuffix(feedURL.Path, ".rss") && !strings.HasPrefix(feedURL.Path, ".rss/"):
+			// Reddit can usually support a feed by appending `.rss` to the end of the subreddit URL.
+			var err error
+			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/.rss"); err != nil {
+				slogctx.FromCtx(ctx).Warn("Could not create subreddit RSS url.",
+					slog.Any("err", err),
+				)
+			}
+			slogctx.FromCtx(ctx).Debug("Appended .rss onto end of URL for subreddit.",
+				slog.String("original_url", urlStr),
+				slog.String("new_url", feedURL.String()),
 			)
 		}
-	case strings.HasSuffix(feedURL.Host, "tumblr.com") && (!strings.HasPrefix(feedURL.Path, "feed") || !strings.HasPrefix(feedURL.Path, "feed/")):
-		// Tumblr blogs usually have their feed at the "/feed" path.
-		var err error
-		if feedURL.Path, err = url.JoinPath(feedURL.Path, "/feed"); err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not create create canonical Tumblr RSS url.",
-				slog.Any("err", err),
+	case strings.HasSuffix(feedURL.Host, "tumblr.com"):
+		switch {
+		case !strings.HasPrefix(feedURL.Path, "feed") && !strings.HasPrefix(feedURL.Path, "feed/"):
+			// Tumblr blogs usually have their feed at the "/feed" path.
+			var err error
+			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/feed"); err != nil {
+				slogctx.FromCtx(ctx).Warn("Could not create create canonical Tumblr RSS url.",
+					slog.Any("err", err),
+				)
+			}
+			slogctx.FromCtx(ctx).Debug("Appended feed onto end of URL for tumblr blog.",
+				slog.String("original_url", urlStr),
+				slog.String("new_url", feedURL.String()),
 			)
 		}
 	}
