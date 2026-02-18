@@ -52,8 +52,12 @@ export default {
       }
 
       // Check if signing key is configured
-      if (!env.FORAGD_REVERSEPROXY_SALT) {
-        console.error('FORAGD_REVERSEPROXY_KEY not configured')
+      if (!env.FORAGD_REVERSEPROXY_KEY) {
+        console.error(
+          JSON.stringify({
+            message: 'FORAGD_REVERSEPROXY_KEY not configured',
+          })
+        )
         return new Response('Service configuration error', { status: 500 })
       }
 
@@ -133,6 +137,7 @@ export default {
           'Accept-Encoding':
             request.headers.get('Accept-Encoding') || 'gzip, deflate',
         },
+        redirect: 'follow',
       })
 
       // Create response with appropriate headers
@@ -152,7 +157,12 @@ export default {
         headers: responseHeaders,
       })
     } catch (error) {
-      console.error('Proxy error:', error)
+      console.error(
+        JSON.stringify({
+          message: 'proxy error',
+          error: error,
+        })
+      )
       return new Response(JSON.stringify({ error: 'Internal server error' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
