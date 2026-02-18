@@ -1543,18 +1543,17 @@ templ subscriptionThumbnail(img *types.ImageInfo, name string) {
 	if img != nil {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar">
-			<div class="rounded-box size-12 border border-base-content">
-				// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
-				// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
-				// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
-				// sm:1 - strip metadata
-				// kcr:1 - keep copyright
-				// scp:1 - convert color profile to sRGB
-				@NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
-					WithAttribute("width", "48"),
-					WithAttribute("height", "48"),
-				)
-			</div>
+			// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
+			// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
+			// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
+			// sm:1 - strip metadata
+			// kcr:1 - keep copyright
+			// scp:1 - convert color profile to sRGB
+			@NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
+				WithAttribute("width", "48"),
+				WithAttribute("height", "48"),
+				WithClasses("mask mask-squircle size-12"),
+			)
 		</div>
 	} else {
 		// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
