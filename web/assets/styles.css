@@ -69,18 +69,7 @@
     @apply transition duration-200 data-closed:scale-95 data-closed:opacity-0;
   }
 
-  img {
-    @apply relative block w-full;
-  }
-  img::before {
-    @apply absolute block h-full w-full bg-[url(/content/images/placeholder.png)] bg-contain bg-center bg-no-repeat brightness-75 content-none;
-  }
-  img::after {
-    @apply absolute top-0 left-0 h-full w-full text-center font-bold text-white content-[attr(alt)] text-shadow-md;
-  }
-  img[alt] {
-    @apply text-center font-bold text-white text-shadow-md;
-  }
+
 }
 
 /* Custom Component Classes */
@@ -212,6 +201,19 @@
 @utility forced-width {
   :where(pre, code) {
     @apply w-full sm:max-w-prose;
+  }
+}
+
+@utility card-img {
+    @apply relative block w-full;
+  &::before {
+    @apply absolute block h-full w-full bg-[url(/content/images/placeholder.png)] bg-contain bg-center bg-no-repeat brightness-75 content-none;
+  }
+  &::after {
+    @apply absolute top-0 left-0 h-full w-full text-center font-bold text-white content-[attr(alt)] text-shadow-md;
+  }
+  [alt] {
+    @apply text-center font-bold text-white text-shadow-md;
   }
 }
 
