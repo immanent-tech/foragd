@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.59.0](https://github.com/immanent-tech/foragd/compare/v0.58.2...v0.59.0) (2026-02-18)
+
+
+### Features
+
+* **cli:** :sparkles: add scheduler sub command to list all jobs ([363f5c2](https://github.com/immanent-tech/foragd/commit/363f5c258923f9ee676342f03db5ef04ff666297))
+
+
+### Bug Fixes
+
+* **models:** :bug: fix parsing logic for well-known domains ([1736270](https://github.com/immanent-tech/foragd/commit/1736270dd0820ccc503ffd62de0428d35a0542c4))
+* **reverseproxy:** :bug: fix env for reverse proxy base url ([3138863](https://github.com/immanent-tech/foragd/commit/31388638b3d7b913e5f8c88680b78e9946ae2a4b))
+
+
+### Performance Improvements
+
+* **models:** :zap: extend timeout for fetching feed details ([6695f82](https://github.com/immanent-tech/foragd/commit/6695f8247ca79e2084f70b7ed8bb926faabfcd2a))
+
 ## [0.58.2](https://github.com/immanent-tech/foragd/compare/v0.58.1...v0.58.2) (2026-02-18)
 
 
