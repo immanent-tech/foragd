@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.58.1](https://github.com/immanent-tech/foragd/compare/v0.58.0...v0.58.1) (2026-02-18)
+
+
+### Bug Fixes
+
+* :bug: allow specifying an id when fetching a feed from url to assign results to an existing feed ([a462cd8](https://github.com/immanent-tech/foragd/commit/a462cd8d280b2c903f8e375f55d623c2a831b66f))
+* **scheduler:** :fire: remove debugging code ([49f8d23](https://github.com/immanent-tech/foragd/commit/49f8d23d569c7fdc74efc84d13d8acd71e066f89))
+
 ## [0.58.0](https://github.com/immanent-tech/foragd/compare/v0.57.0...v0.58.0) (2026-02-18)
 
 
