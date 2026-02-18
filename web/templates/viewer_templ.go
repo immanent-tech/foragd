@@ -126,7 +126,7 @@ func Viewer(feed *models.Feed, errMsg *models.UserMessage) templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span class=\"font-semibold text-primary\">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to <span class=\"font-mono\">https://foragd.app/viewer/url/https://some.site</span>. For example, <a href=\"https://foragd.app/viewer/url/https://arstechnica.net\" class=\"link\n\t\t\t\t\tfont-mono\">https://foragd.app/viewer/url/https://arstechnica.net</a>. You can also use this <a class=\"link\" href=\"javascript:(function(){var currentUrl=window.location.href; var targetUrl='https://foragd.app/viewer/url/'+currentUrl; window.open(targetUrl,'_blank','noreferrer');})();\">Bookmarklet</a> (drag to your bookmarks then use on any site).")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span class=\"font-semibold text-primary\">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to <span class=\"font-mono\">https://foragd.app/viewer/url/https://some.site</span>. For example, <a href=\"https://foragd.app/viewer/url/https://theverge.com\" class=\"link\n\t\t\t\t\tfont-mono\">https://foragd.app/viewer/url/https://theverge.com</a>. You can also use this <a class=\"link\" href=\"javascript:(function(){var currentUrl=window.location.href; var targetUrl='https://foragd.app/viewer/url/'+currentUrl; window.open(targetUrl,'_blank','noreferrer');})();\">Bookmarklet</a> (drag to your bookmarks then use on any site).")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
