@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.2](https://github.com/immanent-tech/foragd/compare/v0.58.1...v0.58.2) (2026-02-18)
+
+
+### Bug Fixes
+
+* :bug: fix proxy error handling ([66fd715](https://github.com/immanent-tech/foragd/commit/66fd715f6bcec53ca1e4a294a80a3502159f0e17))
+
 ## [0.58.1](https://github.com/immanent-tech/foragd/compare/v0.58.0...v0.58.1) (2026-02-18)
 
 
