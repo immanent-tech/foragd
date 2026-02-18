@@ -41,7 +41,23 @@ func Landing() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-base-100\"><main class=\"isolate bg-base-100\"><div class=\"relative pt-14\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div class=\"soft-gradient-top\"></div></div><div class=\"lg:pb-40\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto flow-root\"><img src=\"/content/logo-color.svg\" class=\"mx-auto sm:size-96\" alt=\"Foragd Logo\"></div><div class=\"mx-auto max-w-2xl mt-16 sm:mt-24 text-center\"><h1 class=\"text-5xl font-semibold tracking-tight text-balance sm:text-7xl\">Foragd&nbsp;<sup class=\"text-sm uppercase\">beta</sup></h1><p class=\"mt-8 text-lg font-medium text-pretty sm:text-xl/8\">Collect. Curate. Consume.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><button class=\"btn btn-primary text-sm/6 font-semibold\" _=\"on click go to #features smoothly\">See features</button> <button class=\"btn btn-primary text-sm/6 font-semibold\" _=\"on click go to #pricing smoothly\">Start a free trial</button></div><div class=\"text-sm/6 font-semibold mt-5\">Already have an account?<a href=\"/login\" class=\"link\">&nbsp;Log in</a></div></div></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div class=\"soft-gradient-bottom\"></div></div></div><div id=\"features\" class=\"mt-32 sm:mt-56\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">A beautiful, web based, online feed reader.</p><p class=\"mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop.</p></div><div class=\"mt-16 flow-root sm:mt-24\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-base-100\"><header class=\"absolute inset-x-0 top-0 z-50\"><nav aria-label=\"Global\" class=\"flex items-center justify-between p-6 lg:px-8 w-full\"><div class=\"flex lg:hidden\"><button type=\"button\" command=\"show-modal\" commandfor=\"mobile-menu\" class=\"-m-2.5 inline-flex items-center justify-center rounded-md p-2.5\"><span class=\"sr-only\">Open main menu</span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.Menu2(i.Props{Class: "text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button></div><div class=\"hidden lg:flex lg:gap-x-12\"><a href=\"/about\" class=\"link link-hover text-sm/6 font-semibold text-primary\">About</a> <a href=\"#features\" class=\"link link-hover text-sm/6 font-semibold text-primary\" _=\"on click go to #features smoothly\">Features</a> <a href=\"#pricing\" class=\"link link-hover text-sm/6 font-semibold text-primary\" _=\"on click go to #pricing smoothly\">Pricing</a></div><div class=\"hidden lg:flex lg:flex-1 lg:justify-end\"><a href=\"/login\" class=\"link link-hover text-sm/6 font-semibold text-primary\">Log in <span aria-hidden=\"true\">&rarr;</span></a></div></nav><el-dialog><dialog id=\"mobile-menu\" class=\"backdrop:bg-transparent lg:hidden\"><div tabindex=\"0\" class=\"fixed inset-0 focus:outline-none\"><el-dialog-panel class=\"fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-300 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10\"><div class=\"flex items-center justify-between\"><a href=\"#\" class=\"-m-1.5 p-1.5\"><div class=\"flex items-center\"><img src=\"/content/favicon.svg\" class=\"flex size-8\" alt=\"Foragd Logo\"><p class=\"font-bold text-primary hidden lg:flex\">Foragd</p></div></a> <button type=\"button\" command=\"close\" commandfor=\"mobile-menu\" class=\"-m-2.5 rounded-md p-2.5 text-neutral\"><span class=\"sr-only\">Close menu</span>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = tabler.X().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</button></div><div class=\"mt-6 flow-root\"><div class=\"-my-6 divide-y divide-neutral\"><div class=\"space-y-2 py-6\"><a href=\"/about\" class=\"link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary\">About</a> <a href=\"/#features\" class=\"link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary\">Features</a> <a href=\"/#pricing\" class=\"link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary\">Pricing</a></div><div class=\"py-6\"><a href=\"/login\" class=\"link link-hover -mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral\">Log in</a></div></div></div></el-dialog-panel></div></dialog></el-dialog></header><main class=\"isolate bg-base-100\"><div class=\"relative pt-14\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div class=\"soft-gradient-top\"></div></div><div class=\"lg:pb-40\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto flow-root\"><img src=\"/content/logo-color.svg\" class=\"mx-auto sm:size-96\" alt=\"Foragd Logo\"></div><div class=\"mx-auto max-w-2xl mt-16 sm:mt-24 text-center\"><h1 class=\"text-5xl font-semibold tracking-tight text-balance sm:text-7xl\">Foragd&nbsp;<sup class=\"text-sm uppercase\">beta</sup></h1><p class=\"mt-8 text-lg font-medium text-pretty\n\t\t\t\t\t\t\tsm:text-xl/8\">Your internet, your way. One place for every feed, newsletter, and article. All fully searchable, always in sync, never algorithmic.</p><div class=\"mt-10 flex items-center\n\t\t\t\t\t\t\tjustify-center gap-x-6\"><button class=\"btn btn-primary text-sm/6 font-semibold\" _=\"on click go to #features smoothly\">See features</button> <button class=\"btn btn-primary text-sm/6 font-semibold\" _=\"on click go to #pricing smoothly\">Start a free trial</button></div><div class=\"text-sm/6 font-semibold mt-5\">Already have an account?<a href=\"/login\" class=\"link\">&nbsp;Log in</a></div></div></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div class=\"soft-gradient-bottom\"></div></div></div><div id=\"features\" class=\"mt-32 sm:mt-56\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">A beautiful, web based, online feed reader.</p><p class=\"mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop.</p></div><div class=\"mt-16 flow-root sm:mt-24\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -60,7 +76,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div class=\"mt-10 grid gap-4 sm:mt-16 lg:grid-cols-3 lg:grid-rows-2\"><div class=\"relative lg:row-span-2\"><div class=\"absolute inset-px rounded-lg bg-base-200 lg:rounded-l-4xl\"></div><div class=\"relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] lg:rounded-l-[calc(2rem+1px)]\"><div class=\"px-8 pt-8 pb-4 sm:px-10 sm:pt-10\"><p class=\"mt-2 text-lg font-medium tracking-tight max-lg:text-center\">Mobile and desktop friendly</p><p class=\"mt-2 max-w-lg text-sm/6 max-lg:text-center\">Foragd is a web based online app. It has a responsive design that works in any browser on any device, anywhere.</p></div><div class=\"@container relative min-h-120 sm:h-170 w-full max-lg:mx-auto max-lg:max-w-sm flex items-center justify-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div class=\"mt-10 grid gap-4 sm:mt-16 lg:grid-cols-3 lg:grid-rows-2\"><div class=\"relative lg:row-span-2\"><div class=\"absolute inset-px rounded-lg bg-base-200 lg:rounded-l-4xl\"></div><div class=\"relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] lg:rounded-l-[calc(2rem+1px)]\"><div class=\"px-8 pt-8 pb-4 sm:px-10 sm:pt-10\"><p class=\"mt-2 text-lg font-medium tracking-tight max-lg:text-center\">Mobile and desktop friendly</p><p class=\"mt-2 max-w-lg text-sm/6 max-lg:text-center\">Foragd is a web based online app. It has a responsive design that works in any browser on any device, anywhere.</p></div><div class=\"@container relative min-h-120 sm:h-170 w-full max-lg:mx-auto max-lg:max-w-sm flex items-center justify-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -79,7 +95,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><div class=\"pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 lg:rounded-l-4xl dark:outline-white/15\"></div></div><div class=\"relative max-lg:row-start-3 lg:col-start-2 lg:row-start-2 max-h-128\"><div class=\"absolute inset-px rounded-lg bg-base-200 max-lg:rounded-t-4xl\"></div><div class=\"relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-t-[calc(2rem+1px)]\"><div class=\"px-8 pt-8 pb-4 sm:px-10 sm:pt-10\"><p class=\"mt-2 text-lg font-medium tracking-tight max-lg:text-center\">Powerful Search</p><p class=\"mt-2 max-w-lg text-sm/6 max-lg:text-center\">Full-text search across subscriptions and articles. Quickly access subscriptions and perform actions from the search bar.</p></div><div class=\"flex flex-1 items-center justify-center px-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div><div class=\"pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 lg:rounded-l-4xl dark:outline-white/15\"></div></div><div class=\"relative max-lg:row-start-3 lg:col-start-2 lg:row-start-2 max-h-128\"><div class=\"absolute inset-px rounded-lg bg-base-200 max-lg:rounded-t-4xl\"></div><div class=\"relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-t-[calc(2rem+1px)]\"><div class=\"px-8 pt-8 pb-4 sm:px-10 sm:pt-10\"><p class=\"mt-2 text-lg font-medium tracking-tight max-lg:text-center\">Powerful Search</p><p class=\"mt-2 max-w-lg text-sm/6 max-lg:text-center\">Full-text search across subscriptions and articles. Quickly access subscriptions and perform actions from the search bar.</p></div><div class=\"flex flex-1 items-center justify-center px-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -98,7 +114,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div><div class=\"pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 dark:outline-white/15\"></div></div><div class=\"relative max-lg:row-start-1 max-h-128\"><div class=\"absolute inset-px rounded-lg bg-base-200\"></div><div class=\"relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)]\"><div class=\"px-8 pt-8 pb-4 sm:px-10 sm:pt-10\"><p class=\"mt-2 text-lg font-medium tracking-tight max-lg:text-center\">Content Comes First</p><p class=\"mt-2 max-w-lg text-sm/6 max-lg:text-center\">Simple UI. Big images. Beautiful typography. Let the content shine.</p></div><div class=\"flex flex-1 items-center justify-center px-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></div><div class=\"pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 dark:outline-white/15\"></div></div><div class=\"relative max-lg:row-start-1 max-h-128\"><div class=\"absolute inset-px rounded-lg bg-base-200\"></div><div class=\"relative flex h-full flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)]\"><div class=\"px-8 pt-8 pb-4 sm:px-10 sm:pt-10\"><p class=\"mt-2 text-lg font-medium tracking-tight max-lg:text-center\">Content Comes First</p><p class=\"mt-2 max-w-lg text-sm/6 max-lg:text-center\">Simple UI. Big images. Beautiful typography. Let the content shine.</p></div><div class=\"flex flex-1 items-center justify-center px-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -117,7 +133,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div><div class=\"pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 max-lg:rounded-t-4xl dark:outline-white/15\"></div></div><div class=\"relative lg:row-span-2\"><div class=\"absolute inset-px rounded-lg bg-base-200 max-lg:rounded-b-4xl lg:rounded-r-4xl\"></div><div class=\"relative flex flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-b-[calc(2rem+1px)] lg:rounded-r-[calc(2rem+1px)]\"><div class=\"px-8 pt-8 pb-4 sm:px-10 sm:pt-10\"><p class=\"mt-2 text-lg font-medium tracking-tight max-lg:text-center\">Customisation and Filtering</p><p class=\"mt-2 max-w-lg text-sm/6 max-lg:text-center\">Add a nickname and custom categories to a subscription. Filter articles by text/phrase, category or authors, with easy to use operators.</p></div><div class=\"flex flex-1 items-center justify-center px-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><div class=\"pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 max-lg:rounded-t-4xl dark:outline-white/15\"></div></div><div class=\"relative lg:row-span-2\"><div class=\"absolute inset-px rounded-lg bg-base-200 max-lg:rounded-b-4xl lg:rounded-r-4xl\"></div><div class=\"relative flex flex-col overflow-hidden rounded-[calc(var(--radius-lg)+1px)] max-lg:rounded-b-[calc(2rem+1px)] lg:rounded-r-[calc(2rem+1px)]\"><div class=\"px-8 pt-8 pb-4 sm:px-10 sm:pt-10\"><p class=\"mt-2 text-lg font-medium tracking-tight max-lg:text-center\">Customisation and Filtering</p><p class=\"mt-2 max-w-lg text-sm/6 max-lg:text-center\">Add a nickname and custom categories to a subscription. Filter articles by text/phrase, category or authors, with easy to use operators.</p></div><div class=\"flex flex-1 items-center justify-center px-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -136,7 +152,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></div><div class=\"pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 dark:outline-white/15\"></div></div></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><p class=\"text-lg/8 text-base-content/80 font-semibold\">And additional features:</p></div></div><div class=\"mt-16\"><dl class=\"mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16\"><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div><div class=\"pointer-events-none absolute inset-px rounded-lg shadow-sm outline outline-black/5 dark:outline-white/15\"></div></div></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><p class=\"text-lg/8 text-base-content/80 font-semibold\">And additional features:</p></div></div><div class=\"mt-16\"><dl class=\"mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16\"><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -144,7 +160,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "Subscription and article favorites.&nbsp;</dt><dd class=\"inline\">Mark subscriptions and articles as favorites, to quickly access them later.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "Subscription and article favorites.&nbsp;</dt><dd class=\"inline\">Mark subscriptions and articles as favorites, to quickly access them later.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -152,7 +168,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "Group subscriptions.&nbsp;</dt><dd class=\"inline\">Combine multiple feeds into a <a href=\"/help#group-subscriptions\" class=\"link\">group subscription</a> to present a unified view of articles from any of them.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "Group subscriptions.&nbsp;</dt><dd class=\"inline\">Combine multiple feeds into a <a href=\"/help#group-subscriptions\" class=\"link\">group subscription</a> to present a unified view of articles from any of them.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -160,7 +176,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "Search subscriptions.&nbsp;</dt><dd class=\"inline\">Save the search terms as a <a href=\"/help#search-subscriptions\" class=\"link\">search subscription</a> to always find new articles that match.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "Search subscriptions.&nbsp;</dt><dd class=\"inline\">Save the search terms as a <a href=\"/help#search-subscriptions\" class=\"link\">search subscription</a> to always find new articles that match.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -168,7 +184,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "Get remote article content.&nbsp;</dt><dd class=\"inline\">Fetch the remote article content where the feed only shows a summary.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "Get remote article content.&nbsp;</dt><dd class=\"inline\">Fetch the remote article content where the feed only shows a summary.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -176,7 +192,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "Themes.&nbsp;</dt><dd class=\"inline\">Choose between a selection of dark and light themes to your preference.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "Themes.&nbsp;</dt><dd class=\"inline\">Choose between a selection of dark and light themes to your preference.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -184,7 +200,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "Cloud sync.&nbsp;</dt><dd class=\"inline\">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</dd></div></dl></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><p class=\"text-lg/8 text-base-content/80 font-semibold\">And more features planned, such as email newsletters to RSS, semantic search (i.e., show me all articles about android)...</p></div></div></div></div><div class=\"py-24 sm:pt-48\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><h2 id=\"pricing\" class=\"text-base/7 font-semibold text-primary\">Subscriptions and Pricing.</h2><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Keep up to date without breaking the bank</p></div><div class=\"mx-auto my-8 card card-xl bg-base-300 max-w-96 shadow-sm\"><div class=\"card-body\"><h2 class=\"card-title mx-auto\">📢 Beta Now Open</h2><p>Sign up during the beta period pay nothing now, provide feedback, and get a year free when we launch!</p><p class=\"mx-auto\">🎉 🎉 🎉</p></div></div><div class=\"mt-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "Cloud sync.&nbsp;</dt><dd class=\"inline\">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</dd></div></dl></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><p class=\"text-lg/8 text-base-content/80 font-semibold\">And more features planned, such as email newsletters to RSS, semantic search (i.e., show me all articles about android)...</p></div></div></div></div><div class=\"py-24 sm:pt-48\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><h2 id=\"pricing\" class=\"text-base/7 font-semibold text-primary\">Subscriptions and Pricing.</h2><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Keep up to date without breaking the bank</p></div><div class=\"mx-auto my-8 card card-xl bg-base-300 max-w-96 shadow-sm\"><div class=\"card-body\"><h2 class=\"card-title mx-auto\">📢 Beta Now Open</h2><p>Sign up during the beta period pay nothing now, provide feedback, and get a year free when we launch!</p><p class=\"mx-auto\">🎉 🎉 🎉</p></div></div><div class=\"mt-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -192,7 +208,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Indicative pricing and feature sets. Subject to change until general release. Got questions about pricing or features? <a href=\"mailto:hello@immanent.tech&subject=Pricing\" class=\"link text-base-content/80\">Email Us.</a></p></div></div></div><div id=\"faq\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-4xl\"><h2 class=\"text-4xl font-semibold tracking-tight sm:text-5xl\">Frequently asked questions</h2><dl class=\"mt-16 divide-y divide-accent\"><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-0\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Do you have an app?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Indicative pricing and feature sets. Subject to change until general release. Got questions about pricing or features? <a href=\"mailto:hello@immanent.tech&subject=Pricing\" class=\"link text-base-content/80\">Email Us.</a></p></div></div></div><div id=\"faq\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-4xl\"><h2 class=\"text-4xl font-semibold tracking-tight sm:text-5xl\">Frequently asked questions</h2><dl class=\"mt-16 divide-y divide-accent\"><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-0\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Do you have an app?</span> <span class=\"ml-6 flex h-7 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -204,7 +220,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span></button></dt><el-disclosure id=\"faq-0\" class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">No, because you don't need an app to use Foragd! Foragd is a web based, online feed reader/viewer. It works on any browser (Chrome, Safari, Firefox), on any operating system (Windows, Mac, Linux). It has a responsive design to support all screen sizes from desktops down to mobiles.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-1\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Can I import my subscriptions from elsewhere?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span></button></dt><el-disclosure id=\"faq-0\" class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">No, because you don't need an app to use Foragd! Foragd is a web based, online feed reader/viewer. It works on any browser (Chrome, Safari, Firefox), on any operating system (Windows, Mac, Linux). It has a responsive design to support all screen sizes from desktops down to mobiles.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-1\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Can I import my subscriptions from elsewhere?</span> <span class=\"ml-6 flex h-7 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -216,7 +232,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span></button></dt><el-disclosure id=\"faq-1\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Yes, Foragd supports importing (and exporting) with the OPML file format, which all good feed readers support.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-2\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Can I make changes to my subscription after purchase?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span></button></dt><el-disclosure id=\"faq-1\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Yes, Foragd supports importing (and exporting) with the OPML file format, which all good feed readers support.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-2\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Can I make changes to my subscription after purchase?</span> <span class=\"ml-6 flex h-7 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -228,7 +244,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</span></button></dt><el-disclosure id=\"faq-2\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Yes, you can make changes to your subscription, including changing the plan level or cancelling at any time from within the app. Cancellation takes effect at your next billing cycle. Until then, you can continue using Foragd (and you can stop the cancellation if you change your mind).</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-3\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Are my subscriptions private?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span></button></dt><el-disclosure id=\"faq-2\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Yes, you can make changes to your subscription, including changing the plan level or cancelling at any time from within the app. Cancellation takes effect at your next billing cycle. Until then, you can continue using Foragd (and you can stop the cancellation if you change your mind).</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-3\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Are my subscriptions private?</span> <span class=\"ml-6 flex h-7 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -240,7 +256,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span></button></dt><el-disclosure id=\"faq-3\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Foragd does not have any social features, so your subscriptions are private to you. We collect the minimal legally required personal information to provide the service (see our <a href=\"/policies/privacy\" class=\"link link-hover\">privacy policy</a>). We don't pass the data on to marketing third-parties and we don't inject ads or show sponsored content in your subscriptions.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-4\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Can I use Foragd offline?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span></button></dt><el-disclosure id=\"faq-3\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Foragd does not have any social features, so your subscriptions are private to you. We collect the minimal legally required personal information to provide the service (see our <a href=\"/policies/privacy\" class=\"link link-hover\">privacy policy</a>). We don't pass the data on to marketing third-parties and we don't inject ads or show sponsored content in your subscriptions.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-4\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Can I use Foragd offline?</span> <span class=\"ml-6 flex h-7 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -252,7 +268,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span></button></dt><el-disclosure id=\"faq-4\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Foragd is a web based online feed aggregator. It does not have any offline capabilities. If you need an app that can download and cache articles from your subscriptions to read offline later, there are lots of good alternatives out there.</p></dd></el-disclosure></div></dl></div></div><div class=\"relative -z-10 mt-32 px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"#pricing\" role=\"button\" class=\"btn btn-primary\">Start a free trial</a></div></div></div></main></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span></button></dt><el-disclosure id=\"faq-4\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Foragd is a web based online feed aggregator. It does not have any offline capabilities. If you need an app that can download and cache articles from your subscriptions to read offline later, there are lots of good alternatives out there.</p></dd></el-disclosure></div></dl></div></div><div class=\"relative -z-10 mt-32 px-6 lg:px-8\"><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"#pricing\" role=\"button\" class=\"btn btn-primary\">Start a free trial</a></div></div></div></main></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -292,20 +308,20 @@ func imagePopup(id string, img Image) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button command=\"show-modal\" commandfor=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<button command=\"show-modal\" commandfor=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 475, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 536, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" type=\"button\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" type=\"button\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -314,59 +330,59 @@ func imagePopup(id string, img Image) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<img width=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<img width=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(img.Width)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 477, Col: 20}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 538, Col: 20}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" height=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" height=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(img.Height)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 478, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 539, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" decoding=\"async\" src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" decoding=\"async\" src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 480, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 541, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" alt=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" alt=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 481, Col: 23}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 542, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -379,72 +395,72 @@ func imagePopup(id string, img Image) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"></button> <el-dialog><dialog id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\"></button> <el-dialog><dialog id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 486, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 547, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" class=\"relative z-10 backdrop:bg-transparent\"><el-dialog-backdrop class=\"fixed inset-0 hidden bg-primary transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in md:block\"></el-dialog-backdrop><div tabindex=\"0\" class=\"fixed inset-0 z-10 w-screen overflow-y-auto focus:outline-none\"><div class=\"flex min-h-full items-stretch justify-center text-center md:items-center\"><span aria-hidden=\"true\" class=\"hidden md:inline-block md:h-screen md:align-middle\">&#8203;</span> <el-dialog-panel class=\"flex w-full transform text-left text-base transition data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:md:translate-y-0 data-closed:md:scale-95\" _=\"on click remove @open from  the closest <el-dialog/>\"><img width=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" class=\"relative z-10 backdrop:bg-transparent\"><el-dialog-backdrop class=\"fixed inset-0 hidden bg-primary transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in md:block\"></el-dialog-backdrop><div tabindex=\"0\" class=\"fixed inset-0 z-10 w-screen overflow-y-auto focus:outline-none\"><div class=\"flex min-h-full items-stretch justify-center text-center md:items-center\"><span aria-hidden=\"true\" class=\"hidden md:inline-block md:h-screen md:align-middle\">&#8203;</span> <el-dialog-panel class=\"flex w-full transform text-left text-base transition data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:md:translate-y-0 data-closed:md:scale-95\" _=\"on click remove @open from  the closest <el-dialog/>\"><img width=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(img.Width)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 496, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 557, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "\" height=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" height=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(img.Height)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 497, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 558, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" decoding=\"async\" src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" decoding=\"async\" src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetURL())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 499, Col: 25}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 560, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" alt=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" alt=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 500, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 561, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\" class=\"w-full max-h-screen object-scale-down shadow-xl\"></el-dialog-panel></div></div></dialog></el-dialog>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" class=\"w-full max-h-screen object-scale-down shadow-xl\"></el-dialog-panel></div></div></dialog></el-dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
