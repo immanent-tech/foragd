@@ -6,14 +6,13 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 	"strings"
 )
 
-templ Viewer(feed *feeds.Feed, errMsg *models.UserMessage) {
+templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 	@content() {
 		@container() {
 			<section id="viewer">
@@ -61,7 +60,7 @@ templ Viewer(feed *feeds.Feed, errMsg *models.UserMessage) {
 							class="input input-primary w-full bg-base-content/10"
 							placeholder="https://some.site"
 							if feed != nil {
-								value={ feed.GetSourceURL() }
+								value={ feed.GetSourceURLs()[0] }
 							}
 						/>
 						<button class="btn join-item">View</button>
@@ -139,7 +138,7 @@ templ Viewer(feed *feeds.Feed, errMsg *models.UserMessage) {
 	}
 }
 
-templ ViewerResults(feed *feeds.Feed) {
+templ ViewerResults(feed *models.Feed) {
 	<div>
 		<h2 id="profile-overview-title" class="sr-only">Feed Overview</h2>
 		<div class="p-6">
@@ -204,8 +203,8 @@ templ ViewerResults(feed *feeds.Feed) {
 			<div class="px-6 py-5 text-center text-sm font-medium">
 				<span class="">Last Updated</span>
 				<span class="label">
-					if !feed.GetUpdatedDate().Equal(models.UnixEpoch) {
-						@showTimestamp(feed.GetUpdatedDate())
+					if !feed.GetTimestamp().Equal(models.UnixEpoch) {
+						@showTimestamp(feed.GetTimestamp())
 					} else {
 						Unknown
 					}
@@ -237,7 +236,7 @@ templ ViewerError(msg *models.UserMessage) {
 }
 
 // inspectorItemCard renders a feed item in a card.
-templ viewerItemCard(item feeds.Item) {
+templ viewerItemCard(item models.Item) {
 	<div class="card bg-base-200 w-full shadow-sm">
 		{{ var img *types.ImageInfo }}
 		{{ img = item.GetImage() }}
@@ -267,7 +266,7 @@ templ viewerItemCard(item feeds.Item) {
 				}
 				<p class="col-span-full text-sm/6 capitalize">
 					Updated&nbsp;
-					@showTimestamp(item.GetUpdatedDate())
+					@showTimestamp(item.GetTimestamp())
 				</p>
 			</div>
 			<div data-disable-scripting class="prose-summary">

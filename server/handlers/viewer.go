@@ -10,7 +10,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	feeds "github.com/immanent-tech/go-syndication"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
@@ -19,7 +18,7 @@ import (
 )
 
 type Viewer struct {
-	feed   *feeds.Feed
+	feed   *models.Feed
 	errMsg *models.UserMessage
 }
 
@@ -43,7 +42,7 @@ func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
 }
 
 type ViewerResponse struct {
-	feed *feeds.Feed
+	feed *models.Feed
 }
 
 // PartialResponse returns no content for the viewer as partials are unsupported.
@@ -81,7 +80,7 @@ func HandleViewer() http.HandlerFunc {
 				return
 			}
 			// Parse the URL and find feed content.
-			feed, err := feeds.NewFeedFromURL(req.Context(), feedURL.String())
+			feed, err := models.NewFeedFromURL(req.Context(), feedURL.String(), false)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not parse URL for viewer.",
 					slog.Any("error", err),
@@ -109,7 +108,7 @@ func HandleViewer() http.HandlerFunc {
 			}
 
 			// Parse the URL and find feed content.
-			feed, err := feeds.NewFeedFromURL(req.Context(), feedURL.String())
+			feed, err := models.NewFeedFromURL(req.Context(), feedURL.String(), false)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),
