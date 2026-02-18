@@ -1,18 +1,26 @@
 name = "request-proxy"
 main = "worker.js"
 compatibility_date = "2024-01-01"
+workers_dev = true
+preview_urls = true
+
+[[routes]]
+pattern = "reverse-proxy.foragd.app"
+zone_name = "foragd.app"
+custom_domain = true
+
+[placement]
+mode = "smart"
 
 [observability]
-enabled = false
+enabled = true
 head_sampling_rate = 1
 
 [observability.logs]
 enabled = true
 head_sampling_rate = 1
-persist = true
 invocation_logs = true
 
 [observability.traces]
-enabled = false
-persist = true
+enabled = true
 head_sampling_rate = 1
