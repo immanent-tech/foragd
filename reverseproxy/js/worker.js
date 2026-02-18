@@ -129,6 +129,13 @@ export default {
       }
 
       // Proxy the request
+      console.log(
+        JSON.stringify({
+          message: 'proxying request for: ' + targetUrl,
+          method: request.method,
+          url: targetUrl,
+        })
+      )
       const proxyResponse = await fetch(targetUrl, {
         method: request.method,
         headers: {
