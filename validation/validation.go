@@ -13,6 +13,7 @@ import (
 var Validate = validator.New(validator.WithRequiredStructEnabled())
 
 var ErrNilObject = errors.New("object is nil")
+var ErrInvalid = errors.New("object is invalid")
 
 // Error is a map of fields and their validation errors.
 type Error struct {

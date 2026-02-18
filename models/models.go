@@ -27,8 +27,6 @@ const (
 
 var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
 
-var ErrValidationErr = errors.New("validation failed")
-
 var UnixEpoch = time.Unix(0, 0)
 
 // SliceToMap generates a map from slice content by mapping key-value pairs from the slice with the given map function.

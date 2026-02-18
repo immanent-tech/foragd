@@ -1344,10 +1344,10 @@ func NewEmailSubscription(
 ) (*Subscription, error) {
 	// Validate sender address.
 	if from.Address == "" {
-		return nil, fmt.Errorf("%w: blank sender address", ErrValidationErr)
+		return nil, fmt.Errorf("%w: blank sender address", validation.ErrInvalid)
 	}
 	if err := validation.Validate.Var(from.Address, "required,email"); err != nil {
-		return nil, fmt.Errorf("%w: sender address: %w", ErrValidationErr, err)
+		return nil, fmt.Errorf("%w: sender address: %w", validation.ErrInvalid, err)
 	}
 
 	emailSubscription := &EmailSubscription{
