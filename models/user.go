@@ -7,11 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
-	"github.com/cespare/xxhash/v2"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/stripe/stripe-go/v83"
@@ -37,31 +34,6 @@ const (
 var (
 	ErrUserAlreadyFavorited = errors.New("already a favorite")
 )
-
-// CreateUser creates a new user from the external provider details.
-func CreateUser(ctx context.Context, externalID, email string) (*User, error) {
-	ts := time.Now().UTC()
-	user := &User{
-		CreatedAt:      ts,
-		UpdatedAt:      &ts,
-		ExternalUserID: externalID,
-		Provider:       strings.Split(externalID, "|")[0],
-		Email:          &email,
-		UserID:         "user_" + strconv.FormatUint(xxhash.Sum64String(externalID), 10),
-		Settings: UserSettings{
-			Theme:                 DefaultUserTheme,
-			ShowOnboarding:        true,
-			ShowSubscriptionStats: false,
-			MarkArticleReadOnView: true,
-		},
-	}
-
-	if err := elastic.CreateDoc(ctx, schema.UsersIndexRW, user.GetID(), user); err != nil {
-		return nil, fmt.Errorf("create user: %w", err)
-	}
-
-	return user, nil
-}
 
 // GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
 func GetUserByExternalID(ctx context.Context, externalID string) (*User, error) {

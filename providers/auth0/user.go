@@ -116,6 +116,9 @@ func CreateUser(ctx context.Context, profile *UserProfile) (*models.User, error)
 		UserID:         "user_" + strconv.FormatUint(xxhash.Sum64String(profile.GetID()), 10),
 		AvatarURL:      new(auth0User.GetPicture()),
 		LoginCount:     auth0User.LoginsCount,
+		Metadata: models.UserMetadata{
+			EmailVerified: auth0User.GetEmailVerified(),
+		},
 		Settings: models.UserSettings{
 			Theme:                 models.DefaultUserTheme,
 			ShowOnboarding:        true,
@@ -258,9 +261,12 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 	if accepted, ok := auth0User.GetAppMetadata()["policies_accepted"].(bool); ok &&
 		metadata.PoliciesAccepted != accepted {
 		metadata.PoliciesAccepted = accepted
-		localUser.Metadata = metadata
-		updates["metadata"] = metadata
 	}
+	if emailVerified := auth0User.GetEmailVerified(); emailVerified != metadata.EmailVerified {
+		metadata.EmailVerified = emailVerified
+	}
+	localUser.Metadata = metadata
+	updates["metadata"] = metadata
 
 	// If no updates are necessary, bail early.
 	if len(updates) > 0 {
@@ -270,6 +276,5 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 				slog.Any("error", err))
 			return
 		}
-		slogctx.FromCtx(ctx).Info("User data updated.")
 	}
 }

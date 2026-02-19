@@ -363,6 +363,15 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             validate: 'required'
+        email_verified:
+          description: >
+            indicates whether the user has verfied their email address.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
       x-oapi-codegen-extra-tags:
         validate: 'omitempty'
     User:

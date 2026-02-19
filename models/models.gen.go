@@ -1165,6 +1165,9 @@ type UserMetadata struct {
 	// CancelAt is a date in the future at which the subscription will automatically get canceled.
 	CancelAt *time.Time `json:"cancel_at,omitempty"`
 
+	// EmailVerified indicates whether the user has verfied their email address.
+	EmailVerified bool `json:"email_verified" validate:"required"`
+
 	// Plan is the name of the subscription plan that the user is paying for.
 	// Possible values will come from the product defined in Stripe.
 	Plan *string `json:"plan,omitempty" validate:"required"`
