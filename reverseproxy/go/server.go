@@ -17,13 +17,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/riandyrn/otelchi"
-	otelchimetric "github.com/riandyrn/otelchi/metric"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/server/middlewares"
 	"github.com/immanent-tech/foragd/server/otel"
 )
@@ -47,14 +44,10 @@ func Start(logger *slog.Logger) error {
 	var err error
 
 	// Set up OpenTelemetry.
-	otelConfig, otelShutdown, err := otel.Setup(ctx)
+	otelShutdown, err := otel.Setup(ctx)
 	if err != nil {
 		return fmt.Errorf("unable to set up open telemetry: %w", err)
 	}
-
-	// define base config for metric middlewares
-	otelMetricConfig := otelchimetric.NewBaseConfig(config.AppName, otelchimetric.WithMeterProvider(otelConfig.Meter))
-
 	// Handle shutdown properly so nothing leaks.
 	defer func() {
 		err = errors.Join(err, otelShutdown(context.Background()))
@@ -73,13 +66,8 @@ func Start(logger *slog.Logger) error {
 		middleware.Recoverer,
 		middleware.StripSlashes,
 		// middlewares.Etag,
-		otelchi.Middleware(config.AppName,
-			otelchi.WithChiRoutes(router),
-			otelchi.WithTracerProvider(otelConfig.Tracer),
-		),
-		otelchimetric.NewRequestDurationMillis(otelMetricConfig),
-		otelchimetric.NewRequestInFlight(otelMetricConfig),
-		otelchimetric.NewResponseSizeBytes(otelMetricConfig))
+		middlewares.Otel,
+	)
 
 	router.Get("/{signature}/{encodedURL}", handleReverseProxy)
 

@@ -11,29 +11,31 @@ import (
 	"time"
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport/version"
+	otelchimetric "github.com/riandyrn/otelchi/metric"
 	slogctx "github.com/veqryn/slog-context"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/log/global"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
+
+	"github.com/immanent-tech/foragd/config"
 )
 
-// Config contains the OTEL providers.
-type Config struct {
-	Tracer *trace.TracerProvider
-	Meter  *metric.MeterProvider
-	Log    *log.LoggerProvider
-}
+var TracerProvider *trace.TracerProvider
+var MeterProvider *metric.MeterProvider
+var MeterConfig otelchimetric.BaseConfig
+var LoggerProvider *log.LoggerProvider
 
 // Setup bootstraps the OpenTelemetry pipeline. If it does not return an error, make sure to call shutdown for proper
 // cleanup.
-func Setup(ctx context.Context) (*Config, func(context.Context) error, error) {
+func Setup(ctx context.Context) (func(context.Context) error, error) {
 	var shutdownFuncs []func(context.Context) error
 	var err error
 
@@ -59,13 +61,10 @@ func Setup(ctx context.Context) (*Config, func(context.Context) error, error) {
 	loggerProvider, err := newLoggerProvider(ctx)
 	if err != nil {
 		handleErr(err)
-		return nil, shutdown, err
+		return shutdown, err
 	}
+	LoggerProvider = loggerProvider
 	shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
-
-	// // Set up propagator.
-	// prop := newPropagator()
-	// otel.SetTextMapPropagator(prop)
 
 	// Set up resources.
 	res, _ := resource.Merge(
@@ -76,50 +75,26 @@ func Setup(ctx context.Context) (*Config, func(context.Context) error, error) {
 	)
 
 	// Set up trace exporter.
-	traceExporter, err := otlptracegrpc.New(ctx)
+	tracerProvider, err := newTracerProvider(ctx, res)
 	if err != nil {
 		handleErr(err)
-		return nil, shutdown, fmt.Errorf("new grpc tracer: %w", err)
+		return shutdown, err
 	}
-	opts := []trace.TracerProviderOption{
-		trace.WithResource(res),
-		trace.WithBatcher(traceExporter),
-	}
-	tracerProvider := trace.NewTracerProvider(opts...)
+	TracerProvider = tracerProvider
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
-	otel.SetTracerProvider(tracerProvider)
 
 	// Set up meter provider.
-	metricExporter, err := otlpmetricgrpc.New(ctx)
+	meterProvider, err := newMeterProvider(ctx, res)
 	if err != nil {
 		handleErr(err)
-		return nil, shutdown, fmt.Errorf("new grpc meter: %w", err)
+		return shutdown, err
 	}
-	metricReader := metric.NewPeriodicReader(
-		metricExporter,
-		metric.WithInterval(5*time.Second),
-	)
-	meterProvider := metric.NewMeterProvider(
-		metric.WithResource(res),
-		metric.WithReader(metricReader),
-	)
+	MeterProvider = meterProvider
+	MeterConfig = otelchimetric.NewBaseConfig(config.AppName, otelchimetric.WithMeterProvider(MeterProvider))
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
-	otel.SetMeterProvider(meterProvider)
 
-	return &Config{
-			Tracer: tracerProvider,
-			Meter:  meterProvider,
-			Log:    loggerProvider,
-		},
-		shutdown, nil
+	return shutdown, nil
 }
-
-// func newPropagator() propagation.TextMapPropagator {
-// 	return propagation.NewCompositeTextMapPropagator(
-// 		propagation.TraceContext{},
-// 		propagation.Baggage{},
-// 	)
-// }
 
 func newLoggerProvider(ctx context.Context) (*log.LoggerProvider, error) {
 	logExporter, err := otlploggrpc.New(ctx)
@@ -134,6 +109,45 @@ func newLoggerProvider(ctx context.Context) (*log.LoggerProvider, error) {
 	global.SetLoggerProvider(loggerProvider)
 
 	return loggerProvider, nil
+}
+
+func newTracerProvider(ctx context.Context, res *resource.Resource) (*trace.TracerProvider, error) {
+	traceExporter, err := otlptracegrpc.New(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("new grpc tracer: %w", err)
+	}
+	opts := []trace.TracerProviderOption{
+		trace.WithResource(res),
+		trace.WithBatcher(traceExporter),
+		trace.WithSampler(trace.AlwaysSample()),
+	}
+	tracerProvider := trace.NewTracerProvider(opts...)
+
+	otel.SetTracerProvider(tracerProvider)
+	otel.SetTextMapPropagator(
+		propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}),
+	)
+
+	return tracerProvider, nil
+}
+
+func newMeterProvider(ctx context.Context, res *resource.Resource) (*metric.MeterProvider, error) {
+	metricExporter, err := otlpmetricgrpc.New(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("new grpc meter: %w", err)
+	}
+	metricReader := metric.NewPeriodicReader(
+		metricExporter,
+		metric.WithInterval(5*time.Second),
+	)
+	meterProvider := metric.NewMeterProvider(
+		metric.WithResource(res),
+		metric.WithReader(metricReader),
+	)
+
+	otel.SetMeterProvider(meterProvider)
+
+	return meterProvider, nil
 }
 
 type errorHandler struct {

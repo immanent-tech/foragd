@@ -11,10 +11,13 @@ import (
 
 	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/oauth2"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/server/otel"
 	"github.com/immanent-tech/foragd/server/session"
 )
 
@@ -89,6 +92,11 @@ func RequireUserAuth(next http.Handler) http.Handler {
 		// Add context values.
 		ctx = models.UserToCtx(ctx, user)
 		ctx = slogctx.With(ctx, slog.String("user_id", user.GetID()))
+
+		// Add otel attributes.
+		_, span := otel.TracerProvider.Tracer("").
+			Start(ctx, "RequireUserAuth", trace.WithAttributes(attribute.String("id", user.GetID())))
+		defer span.End()
 
 		// Pass to next request.
 		next.ServeHTTP(res, req.WithContext(ctx))
