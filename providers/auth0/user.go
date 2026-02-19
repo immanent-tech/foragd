@@ -201,9 +201,11 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 		)
 	} else {
 		localUser.LastLogin = &lastLogin
+		updates["last_login"] = lastLogin
 	}
 	// Update login count.
 	localUser.LoginCount = new(auth0User.GetLoginsCount())
+	updates["login_count"] = auth0User.GetLoginsCount()
 	// Update user metadata.
 	metadata := localUser.Metadata
 	if accepted, ok := auth0User.GetAppMetadata()["policies_accepted"].(bool); ok &&
