@@ -382,6 +382,14 @@ components:
               $ref: '#/components/schemas/CreatedAt'
             updated_at:
               $ref: '#/components/schemas/UpdatedAt'
+            last_login:
+              description: >
+                is the timestamp of when the user last logged in to the app.
+              x-go-type: 'time.Time'
+            login_count:
+              description: >
+                is the total number of logins of the user.
+              type: integer
             user_id:
               $ref: '#/components/schemas/UserID'
             external_user_id:

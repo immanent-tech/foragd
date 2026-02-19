@@ -1102,6 +1102,12 @@ type User struct {
 	// ItemFavorites is the IDs of items (articles) the user has favorited.
 	ItemFavorites []ItemID `json:"item_favorites,omitempty" validate:"omitempty,dive,startswith=item_"`
 
+	// LastLogin is the timestamp of when the user last logged in to the app.
+	LastLogin *time.Time `json:"last_login,omitempty"`
+
+	// LoginCount is the total number of logins of the user.
+	LoginCount *int `json:"login_count,omitempty"`
+
 	// Metadata contains metadata related to the user's account.
 	Metadata UserMetadata `json:"metadata" validate:"omitempty"`
 

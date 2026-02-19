@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/auth0/go-auth0/v2/management"
 	slogctx "github.com/veqryn/slog-context"
@@ -193,6 +194,17 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 		updates["email"] = email
 		localUser.Email = &email
 	}
+	// Update last login timestamp
+	if lastLogin, err := time.Parse(time.RFC3339, auth0User.GetLastLogin().String); err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not parse last login.",
+			slog.Any("error", err),
+		)
+	} else {
+		localUser.LastLogin = &lastLogin
+	}
+	// Update login count.
+	localUser.LoginCount = new(auth0User.GetLoginsCount())
+	// Update user metadata.
 	metadata := localUser.Metadata
 	if accepted, ok := auth0User.GetAppMetadata()["policies_accepted"].(bool); ok &&
 		metadata.PoliciesAccepted != accepted {
