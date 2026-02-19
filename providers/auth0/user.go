@@ -7,12 +7,17 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/auth0/go-auth0/v2/management"
+	"github.com/cespare/xxhash/v2"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
 // UserProfile represents the data returned from the auth0 backend that represents an authorised user.
@@ -92,6 +97,48 @@ func DeleteUser(ctx context.Context, id string) error {
 		return fmt.Errorf("unable to delete user account on backend: %w", err)
 	}
 	return nil
+}
+
+// CreateUser creates a new user from the external provider details.
+func CreateUser(ctx context.Context, profile *UserProfile) (*models.User, error) {
+	auth0User, err := GetUser(ctx, profile.GetID())
+	if err != nil {
+		return nil, fmt.Errorf("get user details: %w", err)
+	}
+
+	ts := time.Now().UTC()
+	user := &models.User{
+		CreatedAt:      ts,
+		UpdatedAt:      &ts,
+		ExternalUserID: profile.GetID(),
+		Provider:       strings.Split(profile.GetID(), "|")[0],
+		Email:          new(auth0User.GetEmail()),
+		UserID:         "user_" + strconv.FormatUint(xxhash.Sum64String(profile.GetID()), 10),
+		AvatarURL:      new(auth0User.GetPicture()),
+		LoginCount:     auth0User.LoginsCount,
+		Settings: models.UserSettings{
+			Theme:                 models.DefaultUserTheme,
+			ShowOnboarding:        true,
+			ShowSubscriptionStats: false,
+			MarkArticleReadOnView: true,
+		},
+	}
+	if accepted, ok := auth0User.GetAppMetadata()["policies_accepted"].(bool); ok {
+		user.Metadata.PoliciesAccepted = accepted
+	}
+	if lastLogin, err := time.Parse(time.RFC3339, auth0User.GetLastLogin().String); err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not parse last login.",
+			slog.Any("error", err),
+		)
+	} else {
+		user.LastLogin = &lastLogin
+	}
+
+	if err := elastic.CreateDoc(ctx, schema.UsersIndexRW, user.GetID(), user); err != nil {
+		return nil, fmt.Errorf("create user: %w", err)
+	}
+
+	return user, nil
 }
 
 func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {

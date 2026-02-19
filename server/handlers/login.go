@@ -137,9 +137,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	switch {
 	case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
 		// Create a new local account for the user
-		var err error
-		user, err = models.CreateUser(req.Context(), profile.GetID(), profile.GetEmail())
-		if err != nil {
+		if user, err = auth0.CreateUser(req.Context(), &profile); err != nil {
 			HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("create user: %w", err),
 				StatusCode:    http.StatusInternalServerError,

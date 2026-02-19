@@ -711,7 +711,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"focus:outline-hidden\"><span aria-hidden=\"true\" class=\"absolute inset-0\"></span> <span>Add a feed subscription</span> <span aria-hidden=\"true\">&rarr;</span></a></h4><p class=\"mt-1 text-sm text-base-content\">Add a single subscription from a URL or webpage.</p></div></div><div class=\"relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content max-w-prose\"><div class=\"flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-push-url=\"true\" class=\"focus:outline-hidden\"><span aria-hidden=\"true\" class=\"absolute inset-0\"></span> <span>Add a feed subscription</span> <span aria-hidden=\"true\">&rarr;</span></a></h4><p class=\"mt-1 text-sm text-base-content\">Add a single subscription from a URL or webpage.</p></div></div><div class=\"relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content max-w-prose\"><div class=\"flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -726,13 +726,13 @@ func NewUserHome() templ.Component {
 					var templ_7745c5c3_Var30 string
 					templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 219, Col: 39}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 220, Col: 39}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"focus:outline-hidden\"><span aria-hidden=\"true\" class=\"absolute inset-0\"></span> <span>Import subscriptions</span> <span aria-hidden=\"true\">&rarr;</span></a></h4><p class=\"mt-1 text-sm text-base-content\">Import multiple subscriptions using an OPML file.</p></div></div></div><div class=\"py-4\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-push-url=\"true\" class=\"focus:outline-hidden\"><span aria-hidden=\"true\" class=\"absolute inset-0\"></span> <span>Import subscriptions</span> <span aria-hidden=\"true\">&rarr;</span></a></h4><p class=\"mt-1 text-sm text-base-content\">Import multiple subscriptions using an OPML file.</p></div></div></div><div class=\"py-4\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
