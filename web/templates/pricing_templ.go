@@ -39,84 +39,160 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"grid grid-cols-1 gap-10 lg:grid-cols-3\"><div class=\"-m-2 grid mx-auto col-span-full rounded-4xl bg-base-100 shadow-[inset_0_0_2px_1px_#ffffff4d] max-lg:mx-auto max-lg:w-full max-lg:max-w-md\"><div class=\"grid grid-cols-1 rounded-4xl p-2 shadow-md shadow-black/5\"><div class=\"rounded-3xl bg-base-200 p-10 pb-9 shadow-2xl\"><h2 class=\"text-lg/7 font-semibold text-primary\">The One <span class=\"sr-only\">plan</span></h2>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"grid grid-cols-1 gap-10 lg:grid-cols-2\"><div class=\"-m-2 grid mx-auto col-span-full max-lg:mx-auto max-lg:w-full max-lg:max-w-md\"><div class=\"grid grid-cols-1 sm:grid-cols-2 rounded-4xl p-2 gap-4\"><div class=\"card w-full sm:w-lg bg-base-200 shadow-sm\"><div class=\"card-body\"><h2 class=\"text-lg/7 font-semibold text-primary\">The One <span class=\"sr-only\">plan</span> (monthly)</h2><p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-4 mb-auto flex items-center gap-4\"><div class=\"text-5xl font-semibold\">$7</div><div class=\"text-sm\"><p>USD</p><p>per month (pay nothing during beta, price on launch)</p></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if selectedID == "TheOne-85297d6" && selectedText != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<span class=\"badge badge-xs badge-primary\">")
+		templ_7745c5c3_Err = featureList().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"mt-8\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if user := models.UserFromCtx(ctx); user != nil {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<form action=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(selectedText)
+			var templ_7745c5c3_Var2 templ.SafeURL
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(action)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 19, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 31, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" method=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-8 flex items-center gap-4\"><div class=\"text-5xl font-semibold\">$7</div><div class=\"text-sm\"><p>USD</p><p>per month (pay nothing during beta, price on launch)</p></div></div><div class=\"mt-8\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if user := models.UserFromCtx(ctx); user != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<form action=\"")
+			var templ_7745c5c3_Var3 string
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(method)
 			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var3 templ.SafeURL
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(action)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 31, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 31, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" method=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><input type=\"hidden\" name=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(method)
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(models.ParamPlanID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 31, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 32, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><input type=\"hidden\" name=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" value=\"TheOne-85297d6\"> <button aria-label=\"Start a free trial on the One plan\" id=\"checkout-theone\" type=\"submit\" class=\"btn btn-accent btn-block\">Start a free trial</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(models.ParamPlanID)
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<a role=\"button\" class=\"btn btn-accent btn-block\" href=\"/signup\">Sign up for beta access</a>")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 32, Col: 54}
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div></div><div class=\"card w-full sm:w-lg bg-base-200 shadow-sm\"><div class=\"card-body\"><h2 class=\"text-lg/7 font-semibold text-primary\">The One <span class=\"sr-only\">plan</span> (yearly)</h2><p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-4 mb-auto flex items-center gap-4\"><div class=\"text-5xl font-semibold\">$59</div><div class=\"text-sm\"><p>USD</p><p>annually (pay nothing during beta, price on launch)</p></div></div><p class=\"mt-2 text-sm/6 text-pretty text-neutral font-semibold\"><span class=\"badge badge-sm badge-warning text-black\">Best value</span> ~30% discount vs. monthly subscription.</p>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = featureList().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"mt-8\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if user := models.UserFromCtx(ctx); user != nil {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<form action=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 templ.SafeURL
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(action)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 63, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" value=\"TheOne-85297d6\"> <button aria-label=\"Start a free trial on the One plan\" id=\"checkout-theone\" type=\"submit\" class=\"btn btn-accent btn-block\">Start a free trial</button></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" method=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(method)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 63, Col: 47}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"><input type=\"hidden\" name=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var7 string
+			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(models.ParamPlanID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 64, Col: 55}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" value=\"TheOne-85297d6\"> <button aria-label=\"Start a free trial on the One plan\" id=\"checkout-theone\" type=\"submit\" class=\"btn btn-accent btn-block\">Start a free trial</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<a role=\"button\" class=\"btn btn-accent btn-block\" href=\"/signup\">Sign up for beta access</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<a role=\"button\" class=\"btn btn-accent btn-block\" href=\"/signup\">Sign up for beta access</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div><div class=\"mt-8\"><h3 class=\"text-sm/6 font-medium\">Features:</h3><ul class=\"mt-3 space-y-3\"><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div></div></div></div></div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func featureList() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var8 == nil {
+			templ_7745c5c3_Var8 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"mt-8\"><h3 class=\"text-sm/6 font-medium\">Features:</h3><ul class=\"mt-3 space-y-3\"><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -124,7 +200,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span> 3000 subscriptions.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span> 3000 subscriptions.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -132,7 +208,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</span> 50 email newsletters.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span> 50 email newsletters.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -140,7 +216,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span> Fetch remote article content.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span> Fetch remote article content.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -148,7 +224,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span> Add favorite subscriptions and articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span> Add favorite subscriptions and articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -156,15 +232,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span> Group subscriptions (combine multiple feeds into one). <a href=\"/help#group-subscriptions\" rel=\"noopener\" target=\"_blank\" class=\"link\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.HelpCircle(i.Props{Class: "size-6"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</a></li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span> Group subscriptions (combine multiple feeds into one).</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -172,15 +240,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span> Search subscriptions (save search results as a subscription). <a href=\"/help#search-subscriptions\" rel=\"noopener\" target=\"_blank\" class=\"link\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.HelpCircle(i.Props{Class: "size-6"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</a></li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</span> Search subscriptions (save search results as a subscription).</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -188,7 +248,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span> Full text search through articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span> Full text search through articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -196,7 +256,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span> No ads, no recommended content, ever.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span> No ads, no recommended content, ever.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -204,7 +264,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span> Personal use only.</li></ul></div></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span> Personal use only.</li></ul></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
