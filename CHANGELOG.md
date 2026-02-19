@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.60.0](https://github.com/immanent-tech/foragd/compare/v0.59.1...v0.60.0) (2026-02-19)
+
+
+### Features
+
+* :sparkles: new post: foragd vs inoreader vs feedly comparison ([1968cb7](https://github.com/immanent-tech/foragd/commit/1968cb7ee79f873814b3455a9e454c204ff4ec3f))
+* **elastic:** :sparkles: more flexible simplequerystring clause generation with functional options ([1cd2144](https://github.com/immanent-tech/foragd/commit/1cd214482125968829536521807ab8f010925c74))
+* **models:** :sparkles: track additional values for users locally ([b56ee15](https://github.com/immanent-tech/foragd/commit/b56ee157e7437beccbe82a374ac038319b38f764))
+* **models:** :sparkles: track email verified for users locally ([b1a57f8](https://github.com/immanent-tech/foragd/commit/b1a57f8bd04a9bc02c7d3c7cbbeec98f7e73e8c4))
+* **templates:** :sparkles: add feed viewer link to heading for non logged-in/external users ([b1cc91c](https://github.com/immanent-tech/foragd/commit/b1cc91c5edbb41bdafc6947f470a0d941fd909dd))
+* **templates:** :sparkles: improved landing page ([08c0d9b](https://github.com/immanent-tech/foragd/commit/08c0d9b036bc93c9d627ef8eb150982542b48a1c))
+* **templates:** :sparkles: update pricing with annual plan discount ([6a95fbd](https://github.com/immanent-tech/foragd/commit/6a95fbd384b4c57513b50e84e4abf42957474e82))
+
+
+### Bug Fixes
+
+* :bug: fix new user login quirks ([c16fc07](https://github.com/immanent-tech/foragd/commit/c16fc07cf46a45e26f422a09667f89f3ee6b5961))
+* **models:** :bug: actually send updates for last_login and login_count ([35954ec](https://github.com/immanent-tech/foragd/commit/35954ecc972b9bc217d016786cfbe1627ab91774))
+* **resend:** :bug: fix passing template id for sending email ([7b94c70](https://github.com/immanent-tech/foragd/commit/7b94c70d5ef782fd67063abd2abb6278475bf7a4))
+* **templates:** :lipstick: fix article card images not having rounded corners ([9df70b4](https://github.com/immanent-tech/foragd/commit/9df70b4a7c3b73d8ffe71ba65829125342421c39))
+
+
+### Performance Improvements
+
+* **search:** :zap: tweak search ([7a8e22e](https://github.com/immanent-tech/foragd/commit/7a8e22e823daee2874d58fe76ad4caaf36adb7de))
+
 ## [0.59.1](https://github.com/immanent-tech/foragd/compare/v0.59.0...v0.59.1) (2026-02-18)
 
 
