@@ -20,31 +20,33 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 					Posts from the Foragd team.
 				}
 			</div>
-			@grid(
-				WithClasses("mt-8 place-items-start sm:min-h-svh"),
-			) {
-				for post := range slices.Values(posts) {
-					<a href={ "/posts/" + post.Details.Path }>
-						<article class="card card-border bg-base-200 max-w-prose h-fit cursor-pointer">
-							if post.Frontmatter.Image != nil {
-								<figure>
-									<img
-										src={ *post.Frontmatter.Image }
-										alt={ post.Frontmatter.Title }
-									/>
-								</figure>
-							}
-							<div class="card-body">
-								<h2 class="card-title">{ post.Frontmatter.Title }</h2>
-								<p>{ post.Frontmatter.Description }</p>
-								<div class="card-actions justify-end">
-									<time datetime={ post.Frontmatter.CreatedAt } class="label">{ post.Frontmatter.CreatedAt }</time>
+			<div class="mt-8">
+				@grid(
+					WithClasses("place-items-start sm:min-h-svh"),
+				) {
+					for post := range slices.Values(posts) {
+						<a href={ "/posts/" + post.Details.Path }>
+							<article class="card card-border bg-base-200 max-w-prose h-fit cursor-pointer">
+								if post.Frontmatter.Image != nil {
+									<figure>
+										<img
+											src={ *post.Frontmatter.Image }
+											alt={ post.Frontmatter.Title }
+										/>
+									</figure>
+								}
+								<div class="card-body">
+									<h2 class="card-title">{ post.Frontmatter.Title }</h2>
+									<p>{ post.Frontmatter.Description }</p>
+									<div class="card-actions justify-end">
+										<time datetime={ post.Frontmatter.CreatedAt } class="label">{ post.Frontmatter.CreatedAt }</time>
+									</div>
 								</div>
-							</div>
-						</article>
-					</a>
+							</article>
+						</a>
+					}
 				}
-			}
+			</div>
 			@partials.ButtonBackToTop()
 		}
 	}

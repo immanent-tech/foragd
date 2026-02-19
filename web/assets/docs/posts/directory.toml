@@ -9,3 +9,7 @@ file = "finding-feeds.md"
 [[file]]
 path = "managing-feed-overload"
 file = "managing-feed-overload.md"
+
+[[file]]
+path = "foragd-vs-inoreader-vs-feedly"
+file = "foragd-vs-inoreader-vs-feedly.md"
