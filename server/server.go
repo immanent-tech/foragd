@@ -107,10 +107,7 @@ func Start(logger *slog.Logger) error {
 		middleware.Compress(cfg.CompressionLevel, cfg.CompressionMimetypes...),
 		middleware.StripSlashes,
 		middlewares.Etag,
-		otelchi.Middleware(config.AppName,
-			otelchi.WithChiRoutes(router),
-			otelchi.WithTracerProvider(otelConfig.Tracer),
-		),
+		otelchi.Middleware(config.AppName),
 		otelchimetric.NewRequestDurationMillis(otelMetricConfig),
 		otelchimetric.NewRequestInFlight(otelMetricConfig),
 		otelchimetric.NewResponseSizeBytes(otelMetricConfig))
