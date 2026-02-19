@@ -106,17 +106,7 @@ func HandleListArticles() http.HandlerFunc {
 				return
 			}
 			request.Query = query.Bool(
-				query.Must(
-					query.SimpleQueryString(
-						subscription.GetArticleFilters().Text,
-						"",
-						"title",
-						"description",
-						"content",
-					),
-					query.SimpleQueryString(subscription.GetArticleFilters().Authors, "", "authors", "contributors"),
-					query.SimpleQueryString(subscription.GetArticleFilters().Categories, "", "categories"),
-				),
+				models.ArticleFiltersQueryClause(subscription),
 			)
 		}
 

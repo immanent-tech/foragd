@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/textquerytype"
 )
 
@@ -282,19 +283,53 @@ func NumberRange(field string, options ...NumberRangeOption) Option {
 // SimpleQueryString constructs a simple query string query and adds it to the query.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-simple-query-string-query
-func SimpleQueryString(text *string, flags string, fields ...string) Option {
+func SimpleQueryString(options ...SimpleQueryStringOption) Option {
 	return func(query *types.Query) {
-		// Don't add the query if the text is the zero value.
-		if text == nil || *text == "" {
-			return
+		simpleQueryString := types.NewSimpleQueryStringQuery()
+		for option := range slices.Values(options) {
+			option(simpleQueryString)
 		}
-		name := "simple-query-string-" + strings.Join(fields, "+")
-		query.SimpleQueryString = types.NewSimpleQueryStringQuery()
-		query.SimpleQueryString.Fields = fields
-		query.SimpleQueryString.Query = *text
-		query.SimpleQueryString.QueryName_ = &name
-		if flags != "" {
-			query.SimpleQueryString.Flags = flags
+
+		// Only apply the clause if it is not the zero value and has valid query/fields set.
+		if !reflect.DeepEqual(simpleQueryString, &types.SimpleQueryStringQuery{}) && simpleQueryString.Query != "" &&
+			len(simpleQueryString.Fields) > 0 {
+			query.SimpleQueryString = simpleQueryString
+		}
+	}
+}
+
+// SimpleQueryStringOption is a functional option for building a SimpleQueryString query.
+type SimpleQueryStringOption func(*types.SimpleQueryStringQuery)
+
+// WithSimpleQueryStringName option assigns a name to the query.
+func WithSimpleQueryStringName(name string) SimpleQueryStringOption {
+	return func(q *types.SimpleQueryStringQuery) {
+		q.QueryName_ = &name
+	}
+}
+
+// WithSimpleQueryStringText option specifies the query text.
+func WithSimpleQueryStringText(text *string) SimpleQueryStringOption {
+	return func(q *types.SimpleQueryStringQuery) {
+		if text != nil && *text != "" {
+			q.Query = *text
+		}
+	}
+}
+
+// WithSimpleQueryStringFields option specifies the fields to query.
+func WithSimpleQueryStringFields(fields ...string) SimpleQueryStringOption {
+	return func(q *types.SimpleQueryStringQuery) {
+		q.Fields = slices.Compact(slices.Concat(q.Fields, fields))
+	}
+}
+
+// WithSimpleQueryStringOperator option sets the default operator for the SimpleQueryString query. If not used, the
+// default is OR.
+func WithSimpleQueryStringOperator(op *operator.Operator) SimpleQueryStringOption {
+	return func(q *types.SimpleQueryStringQuery) {
+		if op != nil {
+			q.DefaultOperator = op
 		}
 	}
 }

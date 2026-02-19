@@ -22,6 +22,7 @@ import (
 	"github.com/cespare/xxhash/v2"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
@@ -1186,11 +1187,7 @@ func queryReadItems(user *User, source ItemSource) query.Option {
 			),
 		),
 		// User-specified field-level filtering.
-		query.Must(
-			query.SimpleQueryString(source.GetArticleFilters().Text, "", "title", "description", "content"),
-			query.SimpleQueryString(source.GetArticleFilters().Authors, "", "authors", "contributors"),
-			query.SimpleQueryString(source.GetArticleFilters().Categories, "", "categories"),
-		),
+		ArticleFiltersQueryClause(source),
 	)
 }
 
@@ -1214,11 +1211,7 @@ func queryUnreadItems(_ *User, source ItemSource) query.Option {
 			query.Terms("item_id", source.GetReadItems()...),
 		),
 		// User-specified field-level filtering.
-		query.Must(
-			query.SimpleQueryString(source.GetArticleFilters().Text, "", "title", "description", "content"),
-			query.SimpleQueryString(source.GetArticleFilters().Authors, "", "authors", "contributors"),
-			query.SimpleQueryString(source.GetArticleFilters().Categories, "", "categories"),
-		),
+		ArticleFiltersQueryClause(source),
 	)
 }
 
@@ -1239,10 +1232,26 @@ func queryAllItems(user *User, source ItemSource) query.Option {
 			),
 		),
 		// User-specified field-level filtering.
-		query.Must(
-			query.SimpleQueryString(source.GetArticleFilters().Text, "", "title", "description", "content"),
-			query.SimpleQueryString(source.GetArticleFilters().Authors, "", "authors", "contributors"),
-			query.SimpleQueryString(source.GetArticleFilters().Categories, "", "categories"),
+		ArticleFiltersQueryClause(source),
+	)
+}
+
+func ArticleFiltersQueryClause(source ItemSource) query.BoolOption {
+	return query.Must(
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(source.GetArticleFilters().Text),
+			query.WithSimpleQueryStringFields("title", "description", "content"),
+			query.WithSimpleQueryStringOperator(&operator.And),
+		),
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(source.GetArticleFilters().Authors),
+			query.WithSimpleQueryStringFields("authors", "contributors"),
+			query.WithSimpleQueryStringOperator(&operator.And),
+		),
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(source.GetArticleFilters().Categories),
+			query.WithSimpleQueryStringFields("categories"),
+			query.WithSimpleQueryStringOperator(&operator.And),
 		),
 	)
 }

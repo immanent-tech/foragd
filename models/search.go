@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/immanent-tech/go-syndication/sanitization"
 
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -150,15 +151,25 @@ func SearchResultsClause(search *SearchRequest) query.BoolOption {
 		// boosting).
 		query.Bool(
 			query.Should(
-				query.SimpleQueryString(&search.Text, "", "title^6", "description^3", "content"),
-				// query.MultiMatchPrefix(search.Text, "title^6", "description^3"),
-				// query.Match("content", "", search.Text),
+				query.SimpleQueryString(
+					query.WithSimpleQueryStringText(&search.Text),
+					query.WithSimpleQueryStringFields("title^6", "description^3", "content"),
+					query.WithSimpleQueryStringOperator(&operator.And),
+				),
 			),
 		),
 		// Search in categories.
-		query.SimpleQueryString(search.Categories, "", "categories"),
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(search.Categories),
+			query.WithSimpleQueryStringFields("categories"),
+			query.WithSimpleQueryStringOperator(&operator.And),
+		),
 		// Search in authors, contributors.
-		query.SimpleQueryString(search.Authors, "", "authors", "contributors"),
+		query.SimpleQueryString(
+			query.WithSimpleQueryStringText(search.Authors),
+			query.WithSimpleQueryStringFields("authors", "contributors"),
+			query.WithSimpleQueryStringOperator(&operator.And),
+		),
 	)
 }
 
@@ -169,10 +180,15 @@ func SearchSuggestionsClause(search *SearchRequest) query.BoolOption {
 			query.Should(
 				query.SearchAsYouType(search.Text, "title"),
 				query.SearchAsYouType(search.Text, "description"),
-				query.SimpleQueryString(&search.Text, "", "content"),
+				query.SimpleQueryString(
+					query.WithSimpleQueryStringText(&search.Text),
+					query.WithSimpleQueryStringFields("content"),
+					query.WithSimpleQueryStringOperator(&operator.And),
+				),
 			),
 		),
 	)
+
 }
 
 // BuildSearchResultsQuery generates a query that can be used to fetch appropriate results for a given SearchRequest
