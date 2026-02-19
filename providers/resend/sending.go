@@ -16,6 +16,7 @@ import (
 
 type templateEmail struct {
 	*resend.EmailTemplate
+	tags []resend.Tag
 
 	mu sync.Mutex
 }
@@ -27,6 +28,14 @@ func WithTemplateVariable(key string, value any) TemplateEmailOption {
 		te.mu.Lock()
 		defer te.mu.Unlock()
 		te.Variables[key] = value
+	}
+}
+
+func WithTag(key string, value string) TemplateEmailOption {
+	return func(te *templateEmail) {
+		te.mu.Lock()
+		defer te.mu.Unlock()
+		te.tags = append(te.tags, resend.Tag{Name: key, Value: value})
 	}
 }
 
@@ -52,6 +61,7 @@ func SendTemplatedEmail(ctx context.Context, to string, templateID string, optio
 	params := &resend.SendEmailRequest{
 		To:       []string{to},
 		Template: template.EmailTemplate,
+		Tags:     template.tags,
 	}
 
 	slogctx.FromCtx(ctx).Debug("Sending templated email.",
