@@ -392,6 +392,8 @@ var (
 						templates.WithKeywordMapping("level"),
 						templates.WithDatetimeMapping("created_at"),
 						templates.WithDatetimeMapping("updated_at"),
+						templates.WithDatetimeMapping("last_login"),
+						templates.WithInt64Mapping("login_count"),
 						templates.WithKeywordMapping("max_history"),
 						templates.WithFlattenedMapping("settings"),
 						templates.WithFlattenedMapping("metadata"),
