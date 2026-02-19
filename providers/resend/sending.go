@@ -20,9 +20,9 @@ type templateEmail struct {
 	mu sync.Mutex
 }
 
-type templateEmailOption func(*templateEmail)
+type TemplateEmailOption func(*templateEmail)
 
-func WithTemplateVariable(key string, value any) templateEmailOption {
+func WithTemplateVariable(key string, value any) TemplateEmailOption {
 	return func(te *templateEmail) {
 		te.mu.Lock()
 		defer te.mu.Unlock()
@@ -30,11 +30,12 @@ func WithTemplateVariable(key string, value any) templateEmailOption {
 	}
 }
 
-// SendTemplateEmail sends the template with the given id to the given address, with any additional template options
+// SendTemplatedEmail sends the template with the given id to the given address, with any additional template options
 // applied.
-func SendTemplatedEmail(ctx context.Context, to string, templateID string, options ...templateEmailOption) error {
+func SendTemplatedEmail(ctx context.Context, to string, templateID string, options ...TemplateEmailOption) error {
 	template := &templateEmail{
 		EmailTemplate: &resend.EmailTemplate{
+			Id:        templateID,
 			Variables: make(map[string]interface{}),
 		},
 	}
