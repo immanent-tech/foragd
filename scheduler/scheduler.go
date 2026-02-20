@@ -192,6 +192,22 @@ func RunStartupTasks(ctx context.Context) error {
 		return nil
 	})
 
+	startupTasks.Go(func() error {
+		// Setup clear expired sessions job.
+		pingNewInactiveUsersJob, err := jobs.NewUserNewInactiveJob()
+		if err != nil {
+			return fmt.Errorf("ping new inactive users job: %w", err)
+		}
+		_, err = Manager.GetScheduledJob(pingNewInactiveUsersJob.JobDetail().JobKey())
+		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
+			err = Manager.ScheduleJob(pingNewInactiveUsersJob.JobDetail(), pingNewInactiveUsersJob.Trigger())
+			if err != nil {
+				return fmt.Errorf("ping new inactive users job: %w", err)
+			}
+		}
+		return nil
+	})
+
 	if err := startupTasks.Wait(); err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
