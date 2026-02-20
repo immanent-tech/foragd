@@ -147,8 +147,8 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 
 		if err := resend.SendTemplatedEmail(
 			req.Context(),
-			user.GetEmail(),
 			"beta-signup",
+			resend.To(user.GetEmail()),
 			resend.WithTag("category", "welcome"),
 		); err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Unable to send welcome email.",
