@@ -54,6 +54,13 @@ type JobQueue struct {
 	logger *slog.Logger
 }
 
+type SerializedJob interface {
+	SetNextRun(nextRun time.Time)
+	SetCreatedAt(createdAt time.Time)
+	SetOptions(opts *quartz.JobDetailOptions)
+	AsScheduledJob() *jobs.ScheduledJob
+}
+
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(ctx context.Context) (*JobQueue, error) {
 	return &JobQueue{logger: slogctx.FromCtx(ctx)}, nil
@@ -66,10 +73,21 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRequestTimeout)
 	defer cancel()
 
-	data, err := jobs.MarshalJob(job)
-	if err != nil {
-		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
+	serialized, ok := job.JobDetail().Job().(SerializedJob)
+	if !ok {
+		return fmt.Errorf("%w: could not serialize job", ErrPushJobFailed)
 	}
+
+	// Update job values.
+	serialized.SetNextRun(time.Unix(0, job.NextRunTime()))
+	serialized.SetCreatedAt(time.Now().UTC())
+	serialized.SetOptions(job.JobDetail().Options())
+
+	data := serialized.AsScheduledJob()
+	// data, err := jobs.MarshalJob(job)
+	// if err != nil {
+	// 	return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
+	// }
 
 	if err := elastic.UpdateDoc(
 		ctx,

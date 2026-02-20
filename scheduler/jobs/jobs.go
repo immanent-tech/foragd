@@ -170,6 +170,22 @@ func (job *ScheduledJob) NextRunTime() int64 {
 	return job.JobNextRun.UnixNano()
 }
 
+func (job *ScheduledJob) SetNextRun(nextRun time.Time) {
+	job.JobNextRun = nextRun
+}
+
+func (job *ScheduledJob) SetCreatedAt(createdAt time.Time) {
+	job.CreatedAt = createdAt
+}
+
+func (job *ScheduledJob) SetOptions(opts *quartz.JobDetailOptions) {
+	job.JobOptions = opts
+}
+
+func (job *ScheduledJob) AsScheduledJob() *ScheduledJob {
+	return job
+}
+
 // generateJobKey generates an appropriate job key based on the type of job.
 func (job *ScheduledJob) generateJobKey(jobID, group string) *quartz.JobKey {
 	if group != "" {
@@ -178,19 +194,14 @@ func (job *ScheduledJob) generateJobKey(jobID, group string) *quartz.JobKey {
 	return quartz.NewJobKey(jobID)
 }
 
-// MarshalJob takes a quartz.ScheduledJob object and marshals it back into a ScheduledJob, updating fields as
-// appropriate.
-func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
-	// Extract serialized job as models.ScheduledJob
-	serialized, ok := job.JobDetail().Job().(*ScheduledJob)
-	if !ok {
-		return nil, errors.Join(ErrMarshalJobFailed, ErrInvalidJob)
-	}
+// // MarshalJob takes a quartz.ScheduledJob object and marshals it back into a ScheduledJob, updating fields as
+// // appropriate.
+// func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
+// 	// Extract serialized job as models.ScheduledJob
+// 	serialized, ok := job.JobDetail().Job().(SerializedJob)
+// 	if !ok {
+// 		return nil, errors.Join(ErrMarshalJobFailed, ErrInvalidJob)
+// 	}
 
-	// Update job values.
-	serialized.JobNextRun = time.Unix(0, job.NextRunTime())
-	serialized.CreatedAt = time.Now().UTC()
-	serialized.JobOptions = job.JobDetail().Options()
-
-	return serialized, nil
-}
+// 	return serialized, nil
+// }
