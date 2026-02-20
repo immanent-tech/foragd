@@ -77,6 +77,12 @@ func (u *UserProfile) GetEmail() string {
 
 type UserData struct {
 	*management.GetUserResponseContent
+	*management.UserResponseSchema
+}
+
+type UpdateUserData struct {
+	ID string
+	*management.UpdateUserRequestContent
 }
 
 // DeleteUser will delete the given user from the Auth0 backend.
@@ -112,12 +118,12 @@ func CreateUser(ctx context.Context, profile *UserProfile) (*models.User, error)
 		UpdatedAt:      &ts,
 		ExternalUserID: profile.GetID(),
 		Provider:       strings.Split(profile.GetID(), "|")[0],
-		Email:          new(auth0User.GetEmail()),
+		Email:          new(auth0User.GetUserResponseContent.GetEmail()),
 		UserID:         "user_" + strconv.FormatUint(xxhash.Sum64String(profile.GetID()), 10),
-		AvatarURL:      new(auth0User.GetPicture()),
-		LoginCount:     auth0User.LoginsCount,
+		AvatarURL:      new(auth0User.GetUserResponseContent.GetPicture()),
+		LoginCount:     auth0User.GetUserResponseContent.LoginsCount,
 		Metadata: models.UserMetadata{
-			EmailVerified: auth0User.GetEmailVerified(),
+			EmailVerified: auth0User.GetUserResponseContent.GetEmailVerified(),
 		},
 		Settings: models.UserSettings{
 			Theme:                 models.DefaultUserTheme,
@@ -126,10 +132,10 @@ func CreateUser(ctx context.Context, profile *UserProfile) (*models.User, error)
 			MarkArticleReadOnView: true,
 		},
 	}
-	if accepted, ok := auth0User.GetAppMetadata()["policies_accepted"].(bool); ok {
+	if accepted, ok := auth0User.GetUserResponseContent.GetAppMetadata()["policies_accepted"].(bool); ok {
 		user.Metadata.PoliciesAccepted = accepted
 	}
-	if lastLogin, err := time.Parse(time.RFC3339, auth0User.GetLastLogin().String); err != nil {
+	if lastLogin, err := time.Parse(time.RFC3339, auth0User.GetUserResponseContent.GetLastLogin().String); err != nil {
 		slogctx.FromCtx(ctx).Warn("Could not parse last login.",
 			slog.Any("error", err),
 		)
@@ -144,39 +150,6 @@ func CreateUser(ctx context.Context, profile *UserProfile) (*models.User, error)
 	return user, nil
 }
 
-func UpdateUser(ctx context.Context, request *models.EditUserRequest) error {
-	mgmt, err := loadManagementAPI()
-	if err != nil {
-		return fmt.Errorf("load management API: %w", err)
-	}
-	user := models.UserFromCtx(ctx)
-	if user == nil {
-		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
-	}
-	// If the user changed their email, end a new verification email.
-	var verifyEmail bool
-	if user.Email != request.Email {
-		verifyEmail = true
-	}
-	// Create update object.
-	updates := &management.UpdateUserRequestContent{
-		Nickname:    request.Nickname,
-		Email:       request.Email,
-		Picture:     request.AvatarURL,
-		VerifyEmail: &verifyEmail,
-	}
-	// Update the user.
-	_, err = mgmt.Users.Update(
-		ctx,
-		user.GetExternalID(),
-		updates,
-	)
-	if err != nil {
-		return fmt.Errorf("update user: %w", err)
-	}
-	return nil
-}
-
 // GetUser fetches the user with the given ID from Auth0.
 func GetUser(ctx context.Context, id string) (*UserData, error) {
 	mgmt, err := loadManagementAPI()
@@ -189,6 +162,90 @@ func GetUser(ctx context.Context, id string) (*UserData, error) {
 	}
 
 	return &UserData{GetUserResponseContent: resp}, nil
+}
+
+// UpdateUser updates user data in Auth0.
+func UpdateUser(ctx context.Context, update *UpdateUserData) error {
+	mgmt, err := loadManagementAPI()
+	if err != nil {
+		return fmt.Errorf("load management API: %w", err)
+	}
+
+	// Update the user.
+	_, err = mgmt.Users.Update(
+		ctx,
+		update.ID,
+		update.UpdateUserRequestContent,
+	)
+	if err != nil {
+		return fmt.Errorf("update user: %w", err)
+	}
+	return nil
+}
+
+// GetNewInactiveUsers returns all accounts created on the backend that haven't yet logged in to the app.
+func GetNewInactiveUsers(ctx context.Context) ([]*UserData, error) {
+	mgmt, err := loadManagementAPI()
+	if err != nil {
+		return nil, fmt.Errorf("load management API: %w", err)
+	}
+	query := "logins_count:[0 TO 1]"
+	resp, err := mgmt.Users.List(ctx, &management.ListUsersRequestParameters{
+		Q:       &query,
+		PerPage: management.Int(100),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list users: %w", err)
+	}
+
+	var users []*UserData
+
+	iterator := resp.Iterator()
+	for iterator.Next(ctx) {
+		users = append(users, &UserData{UserResponseSchema: iterator.Current()})
+	}
+
+	if iterator.Err() != nil {
+		return nil, fmt.Errorf("loop over inactive users: %w", iterator.Err())
+	}
+
+	return users, nil
+}
+
+func UpdateUserCustomisation(ctx context.Context, request *models.EditUserRequest) error {
+	user := models.UserFromCtx(ctx)
+	if user == nil {
+		return fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound)
+	}
+	// If the user changed their email, end a new verification email.
+	var verifyEmail bool
+	if user.Email != request.Email {
+		verifyEmail = true
+	}
+	// Create update object.
+	updates := &UpdateUserData{
+		ID: user.GetExternalID(),
+		UpdateUserRequestContent: &management.UpdateUserRequestContent{
+			Nickname:    request.Nickname,
+			Email:       request.Email,
+			Picture:     request.AvatarURL,
+			VerifyEmail: &verifyEmail,
+		},
+	}
+
+	return UpdateUser(ctx, updates)
+}
+
+func UpdateUserMetadata(ctx context.Context, id string, key string, value any) error {
+	update := &UpdateUserData{
+		ID: id,
+		UpdateUserRequestContent: &management.UpdateUserRequestContent{
+			UserMetadata: &management.UserMetadata{
+				key: value,
+			},
+		},
+	}
+	return UpdateUser(ctx, update)
 }
 
 // ChangeUserPassword will perform a password change on behalf of a user.
@@ -230,22 +287,22 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 	// Create needed updates by comparing request values to existing user values and adding new values to updates map as appropriate.
 	updates := make(map[string]any)
 	// Overwrite local avatar with remote avatar if different
-	if avatarURL := auth0User.GetPicture(); localUser.GetAvatar() != avatarURL {
+	if avatarURL := auth0User.GetUserResponseContent.GetPicture(); localUser.GetAvatar() != avatarURL {
 		updates["avatar_url"] = avatarURL
 		localUser.AvatarURL = &avatarURL
 	}
 	// Overwrite local nickname with remote nickname if different
-	if nickname := auth0User.GetNickname(); localUser.GetNickname() != nickname {
+	if nickname := auth0User.GetUserResponseContent.GetNickname(); localUser.GetNickname() != nickname {
 		updates["nickname"] = nickname
 		localUser.Nickname = &nickname
 	}
 	// Overwrite local email with remote email if different
-	if email := auth0User.GetEmail(); localUser.GetEmail() != email {
+	if email := auth0User.GetUserResponseContent.GetEmail(); localUser.GetEmail() != email {
 		updates["email"] = email
 		localUser.Email = &email
 	}
 	// Update last login timestamp
-	if lastLogin, err := time.Parse(time.RFC3339, auth0User.GetLastLogin().String); err != nil {
+	if lastLogin, err := time.Parse(time.RFC3339, auth0User.GetUserResponseContent.GetLastLogin().String); err != nil {
 		slogctx.FromCtx(ctx).Warn("Could not parse last login.",
 			slog.Any("error", err),
 		)
@@ -254,15 +311,15 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 		updates["last_login"] = lastLogin
 	}
 	// Update login count.
-	localUser.LoginCount = new(auth0User.GetLoginsCount())
-	updates["login_count"] = auth0User.GetLoginsCount()
+	localUser.LoginCount = new(auth0User.GetUserResponseContent.GetLoginsCount())
+	updates["login_count"] = auth0User.GetUserResponseContent.GetLoginsCount()
 	// Update user metadata.
 	metadata := localUser.Metadata
-	if accepted, ok := auth0User.GetAppMetadata()["policies_accepted"].(bool); ok &&
+	if accepted, ok := auth0User.GetUserResponseContent.GetAppMetadata()["policies_accepted"].(bool); ok &&
 		metadata.PoliciesAccepted != accepted {
 		metadata.PoliciesAccepted = accepted
 	}
-	if emailVerified := auth0User.GetEmailVerified(); emailVerified != metadata.EmailVerified {
+	if emailVerified := auth0User.GetUserResponseContent.GetEmailVerified(); emailVerified != metadata.EmailVerified {
 		metadata.EmailVerified = emailVerified
 	}
 	localUser.Metadata = metadata

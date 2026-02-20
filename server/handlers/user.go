@@ -263,7 +263,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 			return
 		}
 		// Update on backend.
-		err = auth0.UpdateUser(req.Context(), request)
+		err = auth0.UpdateUserCustomisation(req.Context(), request)
 		if err != nil || !valid {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("update user in auth0: %w", err),
