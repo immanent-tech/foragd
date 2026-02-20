@@ -6,11 +6,13 @@ package resend
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/mail"
+	"slices"
 
 	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
@@ -106,10 +108,17 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(res).Encode(map[string]bool{"success": true})
 }
 
+// handleRecievedEmail processes an incoming email. If it is addressed to a user address, the email is extracted and
+// indexed as a new email subscritpion article. Otherwise, if it is addressed to our catch-all/admin address, it is
+// forwarded. All other emails are ignored.
 func handleRecievedEmail(ctx context.Context, client *resend.Client, details EmailRecieved) error {
 	// Match the email to address to a user subscription email
 	user, err := models.GetUserBySubscriptionEmail(ctx, details.To...)
 	if err != nil {
+		// If this does not match a user email, process as a non-user email
+		if apiErr, ok := errors.AsType[*models.APIError](err); ok && apiErr.StatusCode == http.StatusNotFound {
+			return handleNonUserEmail(ctx, client, details)
+		}
 		return fmt.Errorf("get user by subscription email: %w", err)
 	}
 	// Load user data into context for later methods.
@@ -148,5 +157,33 @@ func handleRecievedEmail(ctx context.Context, client *resend.Client, details Ema
 	if err := models.AddItems(ctx, *item); err != nil {
 		return fmt.Errorf("add email item: %w", err)
 	}
+	return nil
+}
+
+// handleNonUserEmail handles emails not addressed to user addresses. If they are addressed to our catch-all/admin
+// address, they are forwarded to that address. Otherwise, they are ignored.
+func handleNonUserEmail(ctx context.Context, client *resend.Client, details EmailRecieved) error {
+	// Ignore emails not explicitly addressed to our admin/catch-all address.
+	if !slices.Contains(details.To, cfg.CatchAllEmail) {
+		return nil
+	}
+
+	// Retrieve the full email content and details.
+	rawEmail, err := client.Emails.Receiving.GetWithContext(ctx, details.EmailId)
+	if err != nil {
+		return fmt.Errorf("get email details: %w", err)
+	}
+
+	// Parse into our custom format and ensure its valid.
+	email := &ReceivedEmail{ReceivedEmail: rawEmail}
+	if err := email.Valid(); err != nil {
+		return fmt.Errorf("parse email contents: %w", err)
+	}
+
+	// Forward the email.
+	if err := email.Forward(ctx, cfg.AdminEmail); err != nil {
+		return fmt.Errorf("forward non-user email: %w", err)
+	}
+
 	return nil
 }
