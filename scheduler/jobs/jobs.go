@@ -136,12 +136,9 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 			return quartz.NewJobDetailWithOptions(job, job.generateJobKey(data.FeedID, job.JobType), job.JobOptions)
 		}
 		return quartz.NewJobDetail(job, job.generateJobKey(data.FeedID, job.JobType))
-	case jobTypeClearDeletedFeeds:
-		return quartz.NewJobDetail(job, job.generateJobKey("clear_delete_feeds", ""))
-	case jobTypeClearExpiredSessions:
-		return quartz.NewJobDetail(job, job.generateJobKey("clear_expired_sessions", ""))
+	default:
+		return quartz.NewJobDetail(job, job.generateJobKey(job.JobType, ""))
 	}
-	return nil
 }
 
 // Trigger defines the job trigger.
