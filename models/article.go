@@ -120,13 +120,17 @@ func FindSimilarArticles(ctx context.Context, count int, itemIDs ...ItemID) (Art
 	// TODO: tweak values and fields for optimum results matching...
 	var (
 		minTermFreq   = 1
-		maxQueryTerms = 12
+		minDocFreq    = 2
+		minWordLen    = 3
+		maxQueryTerms = 25
 	)
 	mlt := query.NewMoreLikeThisQuery("similar_articles")
 	mlt.LikeDocs(itemIDs...)
-	mlt.Fields = []string{"title", "categories.raw", "author"}
+	mlt.Fields = []string{"title", "description", "content", "categories.raw", "author"}
 	mlt.MinTermFreq = &minTermFreq
 	mlt.MaxQueryTerms = &maxQueryTerms
+	mlt.MinDocFreq = &minDocFreq
+	mlt.MinWordLength = &minWordLen
 	// Build query
 	similarQuery := query.Bool(
 		query.Filter(
