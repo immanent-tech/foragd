@@ -25,10 +25,10 @@ var cfg Config
 
 // Config structure.
 type Config struct {
-	WebHookSecret string `koanf:"webhooksecret"   validate:"required"`
-	APIKey        string `koanf:"apikey"          validate:"required"`
-	CatchAllEmail string `koanf:"catch_all_email" validate:"required,email"`
-	AdminEmail    string `koanf:"admin_email"     validate:"required,email"`
+	WebHookSecret string `koanf:"webhooksecret" validate:"required"`
+	APIKey        string `koanf:"apikey"        validate:"required"`
+	CatchAllEmail string `koanf:"catchallemail" validate:"required,email"`
+	AdminEmail    string `koanf:"adminemail"    validate:"required,email"`
 }
 
 // loadClient loads the resend API client and ensures this is only done one time, no matter how many times it is called.
