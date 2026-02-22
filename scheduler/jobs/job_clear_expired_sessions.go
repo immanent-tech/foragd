@@ -15,6 +15,10 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
+const (
+	jobTypeClearExpiredSessions jobType = "clear_expired_sessions"
+)
+
 // ClearExpiredSessionsState represents the state required by this job type.
 type ClearExpiredSessionsState struct {
 	// Checkpoint is the timestamp when the job last cleared expired sessions.
@@ -45,7 +49,7 @@ func NewClearExpiredSessionsJob() (*ScheduledJob, error) {
 }
 
 func executeClearExpiredSessions(ctx context.Context) error {
-	jobStateID := "clear_expired_sessions_state"
+	jobStateID := string(jobTypeClearExpiredSessions) + "_state"
 
 	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
 	if !ok || schedulerAPI == nil {

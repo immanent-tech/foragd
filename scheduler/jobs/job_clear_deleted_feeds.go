@@ -20,6 +20,10 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
+const (
+	jobTypeClearDeletedFeeds jobType = "clear_deleted_feeds"
+)
+
 // ClearDeletedFeedsState represents the state required by this job type.
 type ClearDeletedFeedsState struct {
 	// Checkpoint is the timestamp when the job last checked for new feeds.
@@ -53,7 +57,7 @@ func NewClearDeletedFeedsJob() (*ScheduledJob, error) {
 // the scheduler queue. Jobs marked for deletion are marked by the update feed job themselves when they cannot find
 // their feed in the feeds index, which indicates the feed was deleted.
 func executeClearDeletedFeeds(ctx context.Context, _ *ScheduledJob) error {
-	jobStateID := "clear_deleted_feeds_state"
+	jobStateID := string(jobTypeClearDeletedFeeds) + "_state"
 
 	schedulerAPI, ok := ctx.Value(schedulerAPICtxKey).(SchedulerAPI)
 	if !ok || schedulerAPI == nil {

@@ -33,10 +33,6 @@ var (
 const (
 	defaultJobTimeout = 60 * time.Second
 
-	jobTypeUpdateFeed           = "update_feed"
-	jobTypeClearDeletedFeeds    = "clear_deleted_feeds"
-	jobTypeClearExpiredSessions = "clear_expired_sessions"
-
 	jobTriggerTypeCron = "cron"
 	jobTriggerTypePoll = "poll"
 
@@ -45,6 +41,8 @@ const (
 	// defaultPaginationSize is the default number of docs to fetch when paginating through results from elasticsearch.
 	defaultPaginationSize = 5000
 )
+
+type jobType string
 
 type contextKey string
 
@@ -88,7 +86,7 @@ type ScheduledJob struct {
 	// JobDescription is a summary of what the job does.
 	JobDescription string `json:"job_description"`
 	// JobType is the type of job.
-	JobType string `json:"job_type" validate:"oneof=update_feed get_new_feeds"`
+	JobType jobType `json:"job_type" validate:"required"`
 }
 
 // Description returns the description of the Job.
@@ -124,20 +122,28 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 			return nil
 		}
 		if job.JobOptions != nil {
-			return quartz.NewJobDetailWithOptions(job, job.generateJobKey(jobTypeGetNewFeeds, ""), job.JobOptions)
+			return quartz.NewJobDetailWithOptions(
+				job,
+				job.generateJobKey(string(job.JobType), ""),
+				job.JobOptions,
+			)
 		}
-		return quartz.NewJobDetail(job, job.generateJobKey(jobTypeGetNewFeeds, ""))
+		return quartz.NewJobDetail(job, job.generateJobKey(string(job.JobType), ""))
 	case jobTypeUpdateFeed:
 		var data UpdateFeedJobData
 		if err := json.Unmarshal(job.JobData, &data); err != nil {
 			return nil
 		}
 		if job.JobOptions != nil {
-			return quartz.NewJobDetailWithOptions(job, job.generateJobKey(data.FeedID, job.JobType), job.JobOptions)
+			return quartz.NewJobDetailWithOptions(
+				job,
+				job.generateJobKey(data.FeedID, string(job.JobType)),
+				job.JobOptions,
+			)
 		}
-		return quartz.NewJobDetail(job, job.generateJobKey(data.FeedID, job.JobType))
+		return quartz.NewJobDetail(job, job.generateJobKey(data.FeedID, string(job.JobType)))
 	default:
-		return quartz.NewJobDetail(job, job.generateJobKey(job.JobType, ""))
+		return quartz.NewJobDetail(job, job.generateJobKey(string(job.JobType), ""))
 	}
 }
 
@@ -186,7 +192,7 @@ func (job *ScheduledJob) AsScheduledJob() *ScheduledJob {
 // generateJobKey generates an appropriate job key based on the type of job.
 func (job *ScheduledJob) generateJobKey(jobID, group string) *quartz.JobKey {
 	if group != "" {
-		return quartz.NewJobKeyWithGroup(jobID, job.JobType)
+		return quartz.NewJobKeyWithGroup(jobID, string(job.JobType))
 	}
 	return quartz.NewJobKey(jobID)
 }

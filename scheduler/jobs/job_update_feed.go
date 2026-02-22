@@ -22,6 +22,8 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
+const jobTypeUpdateFeed jobType = "update_feed"
+
 var ErrFetchFailed = errors.New("fetching feed details failed")
 
 type UpdateFeedJobData struct {

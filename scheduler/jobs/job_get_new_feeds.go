@@ -23,10 +23,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-const (
-	jobStateGetNewFeeds = "get_new_feeds_state"
-	jobTypeGetNewFeeds  = "get_new_feeds"
-)
+const jobTypeGetNewFeeds jobType = "get_new_feeds"
 
 // GetNewFeedsJobData contains the data required by the GetNewFeeds job.
 type GetNewFeedsJobData struct {
@@ -120,7 +117,7 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 		feedCtx = slogctx.With(feedCtx, "feed_name", feed.GetTitle())
 
 		wg.Go(func() {
-			jobKey := job.generateJobKey(feed.GetID(), job.JobType)
+			jobKey := job.generateJobKey(feed.GetID(), string(job.JobType))
 			existingJob, err := schedulerAPI.GetScheduledJob(jobKey)
 			switch {
 			case err != nil && models.HTTPStatus(err) != http.StatusNotFound && !errors.Is(err, quartz.ErrJobNotFound):
@@ -188,8 +185,9 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 	wg.Wait()
 
 	// Update the checkpoint.
+	jobStateID := string(jobTypeGetNewFeeds) + "_state"
 	state.Checkpoint = time.Now().UTC()
-	if err = schedulerAPI.UpdateJobState(ctx, jobStateGetNewFeeds, map[string]any{
+	if err = schedulerAPI.UpdateJobState(ctx, jobStateID, map[string]any{
 		"job_data": state,
 	}); err != nil {
 		return fmt.Errorf("%w: %s: %w", ErrExecuteJobFailed, job.Description(), err)
@@ -204,14 +202,16 @@ func fetchGetNewFeedsJobState(ctx context.Context) (*GetNewFeedsJobState, error)
 		return nil, errors.New("unable to get scheduler api from context")
 	}
 
+	jobStateID := string(jobTypeGetNewFeeds) + "_state"
+
 	state := &GetNewFeedsJobState{}
-	if lastState, err := schedulerAPI.GetJobState(ctx, jobStateGetNewFeeds); err != nil {
+	if lastState, err := schedulerAPI.GetJobState(ctx, jobStateID); err != nil {
 		if !errors.Is(err, elastic.ErrNotFound) {
 			return nil, fmt.Errorf("get existing job state: %w", err)
 		}
 		slogctx.FromCtx(ctx).Debug("No existing job state. Creating new.")
 		state.Checkpoint = time.Time{}
-		if err = schedulerAPI.UpdateJobState(ctx, jobStateGetNewFeeds, map[string]any{
+		if err = schedulerAPI.UpdateJobState(ctx, jobStateID, map[string]any{
 			"job_data": state,
 		}); err != nil {
 			return nil, fmt.Errorf("create job state: %w", err)
