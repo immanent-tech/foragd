@@ -41,6 +41,7 @@ func (s *Subscription) ViewArticlesAttributes() templ.Attributes {
 	attrs["hx-target"] = ContentID.Target()
 	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
 	attrs["hx-trigger"] = "click consume"
+	attrs["hx-push-url"] = true
 	switch s.GetSubscriptionType() {
 	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
 		filters := models.NewListDisplayFilters()

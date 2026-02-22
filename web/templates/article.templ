@@ -54,6 +54,7 @@ templ (a *Article) Card() {
 		hx-target={ ContentID.Target() }
 		hx-swap="innerHTML show:window:top transition:true"
 		hx-trigger="click"
+		hx-push-url="true"
 		hx-disinherit="*"
 	>
 		if img := a.GetImage(); img != nil {
