@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -165,8 +166,11 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 				return fmt.Errorf("update feed last fetched: %w", err)
 			}
 			// Update FeedStatus.
+
 			status.StatusCode = http.StatusOK
-			status.StatusMessage = new(fmt.Sprintf("added %d new items", len(newItems)))
+			status.StatusMessage = new(
+				fmt.Sprintf("added %d new items: %s", len(newItems), strings.Join(newItems.GetIDs(), ",")),
+			)
 		} else {
 			// Update FeedStatus.
 			status.StatusCode = http.StatusNoContent
