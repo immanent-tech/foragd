@@ -377,7 +377,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 		<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
 			// Full text search filter.
 			<div class="col-span-full">
-				<label for="text" class="block text-sm/6 font-medium">Includes the words</label>
+				<label for="search-text" class="block text-sm/6 font-medium">Includes the words</label>
 				<label class="input input-sm input-primary w-full bg-base-content/10 mt-2">
 					<input
 						id="search-text"
@@ -418,7 +418,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			</div>
 			// Authors filter.
 			<div class="sm:col-span-3">
-				<label for="authors" class="block text-sm/6 font-medium">
+				<label for="search-authors" class="block text-sm/6 font-medium">
 					Authors
 					<div class="mt-2">
 						<input
@@ -435,7 +435,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			</div>
 			// Subscriptions filter.
 			<div class="sm:col-span-full">
-				<label class="block text-sm/6 font-medium">In subscriptions</label>
+				<span class="block text-sm/6 font-medium">In subscriptions</span>
 				<div class="mt-2">
 					<label class="input input-sm input-primary bg-base-content/10 w-full">
 						@tabler.Search(i.Props{Class: "size-5"})
@@ -491,7 +491,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 								}
 								class="radio radio-sm radio-primary"
 							/>
-							<label for="view_unread" class="block text-sm/6 font-medium">Unread</label>
+							<label for="search-view-unread" class="block text-sm/6 font-medium">Unread</label>
 						</div>
 						<div class="flex items-center gap-x-3">
 							<input
@@ -504,7 +504,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 								}
 								class="radio radio-sm radio-primary"
 							/>
-							<label for="view_read" class="block text-sm/6 font-medium">Read</label>
+							<label for="search-view-read" class="block text-sm/6 font-medium">Read</label>
 						</div>
 						<div class="flex items-center gap-x-3">
 							<input
@@ -517,14 +517,14 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 								}
 								class="radio radio-sm radio-primary"
 							/>
-							<label for="view_all" class="block text-sm/6 font-medium">All</label>
+							<label for="search-view-all" class="block text-sm/6 font-medium">All</label>
 						</div>
 					</div>
 				</fieldset>
 			</div>
 			// Date range filter.
 			<div class="sm:col-span-2">
-				<label for="published_within" class="block text-sm/6 font-medium">Published Within</label>
+				<label for="search-published-within" class="block text-sm/6 font-medium">Published Within</label>
 				<select id="search-published-within" name="published_within" class="select select-sm select-primary my-2 bg-base-content/10">
 					<option
 						value="last_hour"
@@ -566,7 +566,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			</div>
 			// Sort option.
 			<div class="sm:col-span-2">
-				<label for="sort" class="block text-sm/6 font-medium">Sort By</label>
+				<label for="search-sort" class="block text-sm/6 font-medium">Sort By</label>
 				<select id="search-sort" name="sort" class="select select-sm select-primary my-2 bg-base-content/10">
 					<option
 						value={ string(models.SortMostRelevant) }
