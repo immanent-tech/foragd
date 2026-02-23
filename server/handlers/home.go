@@ -246,7 +246,7 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 				"top_categories": {
 					Terms: &types.TermsAggregation{
 						Field:   &termsField,
-						Exclude: models.CommonCategoryFilters,
+						Exclude: slices.Concat(models.CommonCategoryFilters, []string{""}),
 					},
 					Aggregations: map[string]types.Aggregations{
 						"top_article_hits": {
