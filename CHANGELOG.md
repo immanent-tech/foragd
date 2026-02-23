@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.61.0](https://github.com/immanent-tech/foragd/compare/v0.60.0...v0.61.0) (2026-02-23)
+
+
+### Features
+
+* :sparkles: support youtube feeds ([75be7a3](https://github.com/immanent-tech/foragd/commit/75be7a36a6020856244d58ec4cdc0cdeb3088ec2))
+* :sparkles: use idiomorph htmx extension for swaps where possible ([7ef5a5b](https://github.com/immanent-tech/foragd/commit/7ef5a5bc107d7af04d94202d4f58fefffc8b959e))
+* **config:** :sparkles: use a canonical format for the app id ([2db785b](https://github.com/immanent-tech/foragd/commit/2db785b995e7ce0febc3e7b735feff683c5f5519))
+* **models:** :sparkles: detect and format non-HTML item descriptions as HTML ([6dba317](https://github.com/immanent-tech/foragd/commit/6dba317feb9453ef0c13d2897005d902db791447))
+* **resend:** :sparkles: allow adding tags to sent emails ([4ac9f25](https://github.com/immanent-tech/foragd/commit/4ac9f25260c830c2ab8bfcd8ca512251b96f0f24))
+* **resend:** :sparkles: handle recieved catch-all/admin emails ([ba9e548](https://github.com/immanent-tech/foragd/commit/ba9e548a2b820818a02c0bfbde6374bed467f1af))
+* **scheduler:** :sparkles: create a job for pinging new and inactive users (account created but not logged in) ([142f61a](https://github.com/immanent-tech/foragd/commit/142f61a48d40586082ef55c3de26e289cd931356))
+* **scheduler:** :sparkles: make it easier to define different jobs ([98d7dca](https://github.com/immanent-tech/foragd/commit/98d7dcacd9b63d2540a5d05c7249816caf97b9d6))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: update for resend changes ([a3157a8](https://github.com/immanent-tech/foragd/commit/a3157a801b04120dae691b0a2ef4324f4574246b))
+* **middlewares:** :bug: don't use broken nonce handling in CSP middleware ([032728d](https://github.com/immanent-tech/foragd/commit/032728d635fc6e554cb429950530460d7ebe7511))
+* **resend:** :bug: fix config variables ([ecf016a](https://github.com/immanent-tech/foragd/commit/ecf016a092af72fe87cdd8e344d319df4e08195f))
+* **scheduler:** :bug: fix generating jobdetail for scheduled jobs ([1ffd1ee](https://github.com/immanent-tech/foragd/commit/1ffd1eeca310bfc129c53db6bb1b310ffcd3b7c7))
+* **scheduler:** :bug: fix job scheduling issues ([06d0fda](https://github.com/immanent-tech/foragd/commit/06d0fdab75060b5f74f983ddfa612ee632a8d9dc))
+* **templates:** :bug: add missing hx-push-url attributes ([ba00d09](https://github.com/immanent-tech/foragd/commit/ba00d096d33237349d8d4fd9a52aa3defa8c546e))
+* **templates:** :bug: fix remembering scroll position on using back button ([53df3c0](https://github.com/immanent-tech/foragd/commit/53df3c01a7032fdeddf0fcf320c2d208524d6222))
+
+
+### Performance Improvements
+
+* **handlers:** :zap: reverse proxy image requests for certain error responses ([a688df5](https://github.com/immanent-tech/foragd/commit/a688df500b803e01bd5b93605ea0065ce0715ff6))
+* **models:** :zap: html conversion improvements ([6f147e8](https://github.com/immanent-tech/foragd/commit/6f147e829301289a6a7556c72673f76975c3e4a3))
+
 ## [0.60.0](https://github.com/immanent-tech/foragd/compare/v0.59.1...v0.60.0) (2026-02-19)
 
 
