@@ -99,7 +99,7 @@ templ header(user *models.User) {
 									hx-post="/search/suggestions"
 									hx-target="#global-search-suggestions"
 									hx-include="#search-filters,[id='timezone']"
-									hx-trigger="keyup changed delay:300ms"
+									hx-trigger="keyup changed delay:100ms"
 									id="global-search"
 									type="search"
 									name="text"
@@ -112,14 +112,14 @@ templ header(user *models.User) {
 								/>
 								// on change if my value is '' add .hidden to #clear-search-text else remove .hidden from #clear-search-text end
 								// Clear text.
-								<button
-									id="clear-search-text"
-									type="button"
-									tabindex="0"
-									_="on click set #global-search.value to '' then add @hidden to #global-search-suggestions"
-								>
-									@tabler.CircleX(i.Props{Class: "flex-none text-primary"})
-								</button>
+								// <button
+								// 	id="clear-search-text"
+								// 	type="button"
+								// 	tabindex="0"
+								// 	_="on click set #global-search.value to '' then add @hidden to #global-search-suggestions"
+								// >
+								// 	@tabler.CircleX(i.Props{Class: "flex-none text-primary"})
+								// </button>
 								// Filters button opens advanced search dialog.
 								<button
 									type="button"
