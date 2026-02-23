@@ -11,7 +11,18 @@ import (
 
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	externalRef0 "github.com/immanent-tech/go-syndication/types"
+	"github.com/oapi-codegen/runtime"
 	"github.com/stripe/stripe-go/v83"
+)
+
+// Defines values for ArticleArchiveExtensionType.
+const (
+	ArticleArchiveExtensionTypeYoutube ArticleArchiveExtensionType = "youtube"
+)
+
+// Defines values for ItemExtensionType.
+const (
+	ItemExtensionTypeYoutube ItemExtensionType = "youtube"
 )
 
 // Defines values for Mark.
@@ -200,6 +211,12 @@ type ArticleArchive struct {
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
 
+	// ExtensionData contains the embedded extension data.
+	ExtensionData *ArticleArchive_ExtensionData `json:"extension_data,omitempty"`
+
+	// ExtensionType is the type of extension for this item.
+	ExtensionType *ArticleArchiveExtensionType `json:"extension_type,omitempty"`
+
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
@@ -234,6 +251,14 @@ type ArticleArchive struct {
 	// UserID is the unique ID of a user.
 	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
 }
+
+// ArticleArchive_ExtensionData contains the embedded extension data.
+type ArticleArchive_ExtensionData struct {
+	union json.RawMessage
+}
+
+// ArticleArchiveExtensionType is the type of extension for this item.
+type ArticleArchiveExtensionType string
 
 // ArticleMetadata contains the stored data that represents an article.
 type ArticleMetadata struct {
@@ -550,6 +575,12 @@ type Item struct {
 	// Description is a short summary or description of the feed or item.
 	Description *string `json:"description,omitempty"`
 
+	// ExtensionData contains the embedded extension data.
+	ExtensionData *Item_ExtensionData `json:"extension_data,omitempty"`
+
+	// ExtensionType is the type of extension for this item.
+	ExtensionType *ItemExtensionType `json:"extension_type,omitempty"`
+
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
@@ -577,6 +608,26 @@ type Item struct {
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty" validate:"omitempty,url"`
+}
+
+// Item_ExtensionData contains the embedded extension data.
+type Item_ExtensionData struct {
+	union json.RawMessage
+}
+
+// ItemExtensionType is the type of extension for this item.
+type ItemExtensionType string
+
+// ItemExtensionYoutube is an item extension for Youtube videos.
+type ItemExtensionYoutube struct {
+	// Height is the video height.
+	Height *int `json:"height,omitempty"`
+
+	// VideoId is the Youtube video ID for the video.
+	VideoId string `json:"video_id"`
+
+	// Width is the video width.
+	Width *int `json:"width,omitempty"`
 }
 
 // ItemID is the unique ID of an item.
@@ -1234,3 +1285,75 @@ type UserSettings struct {
 
 // View The state of objects to view.
 type View string
+
+// AsItemExtensionYoutube returns the union data inside the ArticleArchive_ExtensionData as a ItemExtensionYoutube
+func (t ArticleArchive_ExtensionData) AsItemExtensionYoutube() (ItemExtensionYoutube, error) {
+	var body ItemExtensionYoutube
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromItemExtensionYoutube overwrites any union data inside the ArticleArchive_ExtensionData as the provided ItemExtensionYoutube
+func (t *ArticleArchive_ExtensionData) FromItemExtensionYoutube(v ItemExtensionYoutube) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeItemExtensionYoutube performs a merge with any union data inside the ArticleArchive_ExtensionData, using the provided ItemExtensionYoutube
+func (t *ArticleArchive_ExtensionData) MergeItemExtensionYoutube(v ItemExtensionYoutube) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t ArticleArchive_ExtensionData) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ArticleArchive_ExtensionData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsItemExtensionYoutube returns the union data inside the Item_ExtensionData as a ItemExtensionYoutube
+func (t Item_ExtensionData) AsItemExtensionYoutube() (ItemExtensionYoutube, error) {
+	var body ItemExtensionYoutube
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromItemExtensionYoutube overwrites any union data inside the Item_ExtensionData as the provided ItemExtensionYoutube
+func (t *Item_ExtensionData) FromItemExtensionYoutube(v ItemExtensionYoutube) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeItemExtensionYoutube performs a merge with any union data inside the Item_ExtensionData, using the provided ItemExtensionYoutube
+func (t *Item_ExtensionData) MergeItemExtensionYoutube(v ItemExtensionYoutube) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Item_ExtensionData) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Item_ExtensionData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}

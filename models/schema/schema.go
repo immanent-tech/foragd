@@ -187,6 +187,8 @@ var (
 							// 	"semantic": types.NewSemanticTextProperty(),
 							// },
 						}),
+						templates.WithKeywordMapping("extension_type"),
+						templates.WithFlattenedMapping("extension_data"),
 					),
 					templates.WithDynamicProperties(false),
 				),

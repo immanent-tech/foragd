@@ -389,93 +389,64 @@ templ (a *Article) Content() {
 						</div>
 					</div>
 					// Content.
-					if a.SourceType == models.SourceTypeEmail {
-						<div
-							class="prose-email mt-4"
-							data-disable-scripting
-							hx-disable
-						>
-							@templ.Raw(a.GetContent())
-						</div>
-					} else {
-						if a.GetContent() != "" || a.GetDescription() != "" {
+					switch  {
+						case a.SourceType == models.SourceTypeEmail:
+							// Article from email newsletter.
 							<div
+								class="prose-email mt-4"
 								data-disable-scripting
 								hx-disable
-								class="prose-article mt-4 forced-width"
 							>
-								switch  {
-									case a.GetContent() != "":
-										@templ.Raw(a.GetContent())
-									case a.GetDescription() != "":
-										@templ.Raw(a.GetDescription())
-								}
+								@templ.Raw(a.GetContent())
 							</div>
-						}
+						case a.Item.ExtensionType != nil && *a.Item.ExtensionType == models.ItemExtensionTypeYoutube:
+							// Youtube video.
+							if youtubeData, err := a.Item.ExtensionData.AsItemExtensionYoutube(); err == nil {
+								<div class="mt-8">
+									<embed-youtube
+										video-id={ youtubeData.VideoId }
+										width={ *youtubeData.Width }
+										height={ *youtubeData.Height }
+										origin="https://foragd.app"
+										credentialless
+									></embed-youtube>
+								</div>
+							}
+							if a.GetDescription() != "" {
+								<div
+									data-disable-scripting
+									hx-disable
+									class="prose-article mt-4 forced-width"
+								>
+									@templ.Raw(a.GetDescription())
+								</div>
+							}
+							<nav class="my-16 flex flex-col sm:flex-row gap-2 items-center justify-center text-sm">
+								@shareArticleButton(a)
+							</nav>
+						default:
+							// Try to display content or description.
+							if a.GetContent() != "" || a.GetDescription() != "" {
+								<div
+									data-disable-scripting
+									hx-disable
+									class="prose-article mt-4 forced-width"
+								>
+									switch  {
+										case a.GetContent() != "":
+											@templ.Raw(a.GetContent())
+										case a.GetDescription() != "":
+											@templ.Raw(a.GetDescription())
+									}
+								</div>
+							}
+							<nav class="my-16 flex flex-col sm:flex-row gap-2 items-center justify-center text-sm">
+								@getRemoteContentButton(a)
+								@viewRemoteContentButton(a)
+								@shareArticleButton(a)
+							</nav>
 					}
 				</article>
-				if a.SourceType != models.SourceTypeEmail {
-					<nav class="my-16 flex flex-col sm:flex-row gap-2 items-center justify-center text-sm">
-						// Show a toggle for fetching full content where it appears the feed content is only a summary
-						// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
-						<button
-							class="btn btn-primary"
-							hx-get={ "/view/article/" + a.GetID() }
-							hx-target={ ContentID.Target() }
-							hx-swap="innerHTML transition:true"
-							hx-replace-url="true"
-							hx-trigger="click"
-							hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
-						>
-							// _="on htmx:afterResponse[detail.failed] add @disabled to me"
-							if a.IsRemoteContent() {
-								@tabler.FileRss()
-								Show Feed Content
-							} else {
-								@tabler.FileDownload()
-								Get Remote Content
-							}
-						</button>
-						// }
-						// View original article action.
-						<a
-							role="button"
-							class="btn btn-primary"
-							href={ a.GetLink() }
-							target="_blank"
-							rel="noopener"
-							_="on click halt the event's bubbling"
-						>
-							@tabler.ExternalLink()
-							View Remote
-						</a>
-						// Mobile share action via navigator API.
-						<div _="init if not navigator.share then hide me">
-							<button
-								class="btn btn-primary"
-								_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
-							>
-								@tabler.Share()
-								Share
-							</button>
-						</div>
-						// Desktop share action with modal and options.
-						<form _="init if navigator.share then hide me">
-							<input type="hidden" name="item_id" value={ a.GetID() }/>
-							<input type="hidden" name="title" value={ a.GetTitle() }/>
-							<input type="hidden" name="link" value={ a.GetLink() }/>
-							<button
-								class="btn btn-primary"
-								hx-post={ "/share/article/" + a.GetID() }
-								hx-target={ partials.ModalContainerID.Target() }
-								hx-trigger="click consume"
-							>
-								@tabler.Share()
-								Share
-							</button>
-						</form>
-					</nav>
-				}
 				@partials.ButtonBackToTop()
 				// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 				// read and mark it so (when the user has set this option).
@@ -497,6 +468,72 @@ templ (a *Article) Content() {
 			}
 		}
 	}
+}
+
+templ getRemoteContentButton(a *Article) {
+	// Show a toggle for fetching full content where it appears the feed content is only a summary
+	// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
+	<button
+		class="btn btn-primary"
+		hx-get={ "/view/article/" + a.GetID() }
+		hx-target={ ContentID.Target() }
+		hx-swap="innerHTML transition:true"
+		hx-replace-url="true"
+		hx-trigger="click"
+		hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
+	>
+		// _="on htmx:afterResponse[detail.failed] add @disabled to me"
+		if a.IsRemoteContent() {
+			@tabler.FileRss()
+			Show Feed Content
+		} else {
+			@tabler.FileDownload()
+			Get Remote Content
+		}
+	</button>
+}
+
+templ viewRemoteContentButton(a *Article) {
+	// View original article action.
+	<a
+		role="button"
+		class="btn btn-primary"
+		href={ a.GetLink() }
+		target="_blank"
+		rel="noopener"
+		_="on click halt the event's bubbling"
+	>
+		@tabler.ExternalLink()
+		View Remote
+	</a>
+}
+
+templ shareArticleButton(a *Article) {
+	// Mobile share action via navigator API.
+	<div _="init if not navigator.share then hide me">
+		<button
+			class="btn btn-primary"
+			_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
+		>
+			@tabler.Share()
+			Share
+		</button>
+	</div>
+	// Desktop share action with modal and options.
+	<form _="init if navigator.share then hide me">
+		<input type="hidden" name="item_id" value={ a.GetID() }/>
+		<input type="hidden" name="title" value={ a.GetTitle() }/>
+		<input type="hidden" name="link" value={ a.GetLink() }/>
+		<button
+			class="btn btn-primary"
+			hx-post={ "/share/article/" + a.GetID() }
+			hx-target={ partials.ModalContainerID.Target() }
+			hx-trigger="click consume"
+		>
+			@tabler.Share()
+			Share
+		</button>
+	</form>
 }
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.

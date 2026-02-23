@@ -630,11 +630,41 @@ components:
               type: string
               x-oapi-codegen-extra-tags:
                 validate: 'required'
+            extension_type:
+              description: >
+                is the type of extension for this item.
+              type: string
+              enum:
+                - youtube
+            extension_data:
+              description: >
+                contains the embedded extension data.
+              oneOf:
+                - $ref: '#/components/schemas/ItemExtensionYoutube'
             content:
               description: >
                 contains the item content.
               type: string
               x-go-type-skip-optional-pointer: true
+    ItemExtensionYoutube:
+      description: >
+        is an item extension for Youtube videos.
+      type: object
+      required:
+        - video_id
+      properties:
+        video_id:
+          description: >
+            is the Youtube video ID for the video.
+          type: string
+        width:
+          description: >
+            is the video width.
+          type: integer
+        height:
+          description: >
+            is the video height.
+          type: integer
     SubscriptionCustomisation:
       description: >
         contains object fields that can be customised (overridden) by a user

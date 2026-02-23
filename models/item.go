@@ -9,6 +9,7 @@ import (
 	"maps"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cespare/xxhash/v2"
@@ -18,6 +19,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
 	feeds "github.com/immanent-tech/go-syndication"
+	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/foragd/models/schema"
@@ -366,6 +368,9 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 		FeedTitle:    feed.GetTitle(),
 	}
 
+	// Add youtube extension data if found.
+	addYoutubeExtension(source, item)
+
 	if source.GetImage() != nil {
 		item.Image = source.GetImage()
 	}
@@ -484,4 +489,27 @@ func newItemSortCombinations(sort *Sort) []estypes.SortCombinations {
 		})
 	}
 	return opts
+}
+
+func addYoutubeExtension(source *feeds.Item, item *Item) {
+	// Extract and add additional information for youtube feeds.
+	if strings.Contains(item.GetLink(), "youtube.com") && strings.HasPrefix(source.GetID(), "yt:video:") {
+		if entry, ok := source.ItemSource.(*atom.Entry); ok {
+			if len(entry.MediaGroup.Content) > 0 {
+				width := entry.MediaGroup.Content[0].Width
+				height := entry.MediaGroup.Content[0].Height
+				videoID, ok := strings.CutPrefix(source.GetID(), "yt:video:")
+				if ok {
+					item.ExtensionType = new(ItemExtensionTypeYoutube)
+					item.ExtensionData = &Item_ExtensionData{}
+					item.ExtensionData.FromItemExtensionYoutube(ItemExtensionYoutube{
+						VideoId: videoID,
+						Width:   &width,
+						Height:  &height,
+					})
+				}
+			}
+
+		}
+	}
 }

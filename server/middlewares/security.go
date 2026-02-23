@@ -40,7 +40,8 @@ func CrossOriginProtection(next http.Handler) http.Handler {
 		// Prevent loading of cross-origin resources not explicitly granted.
 		//
 		// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-embedder-policy-coep
-		res.Header().Set("Cross-Origin-Embedder-Policy", "credentialless")
+		// TODO: Work out how we can enable this *and* allow embedded Youtube videos to load.
+		// res.Header().Set("Cross-Origin-Embedder-Policy", "credentialless")
 
 		// Do not share browsing context.
 		//

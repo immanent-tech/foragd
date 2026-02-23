@@ -15,7 +15,9 @@ import 'htmx-ext-sse'
 import _hyperscript from 'hyperscript.org/dist/_hyperscript.js'
 _hyperscript.browserInit()
 
-// custom element for timestamps
+// custom element for timestamps.
 import './timestamps'
+// custom element for youtube player.
+import './embed-youtube'
 
 import 'transition-style'
