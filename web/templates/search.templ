@@ -18,8 +18,8 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
 			hx-include="#search-filters,[id='timezone']"
-			hx-trigger="click, keydown['Enter']"
-			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions"
+			hx-trigger="click, keydown['Enter'] from #global-search"
+			_="on htmx:beforeRequest add @hidden to #global-search-suggestions"
 		>
 			//  then set #global-search.value to ''
 			<input type="hidden" name="text" value={ suggestions.Search.Text }/>
@@ -351,33 +351,37 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			</div>
 			// Categories filter.
 			<div class="sm:col-span-3">
-				<label form="categories" class="block text-sm/6 font-medium">Categories</label>
-				<div class="mt-2">
-					<input
-						id="search-categories"
-						type="text"
-						name="categories"
-						if request.Categories != nil {
-							value={ *request.Categories }
-						}
-						class="input input-sm input-primary bg-base-content/10"
-					/>
-				</div>
+				<label form="categories" class="block text-sm/6 font-medium">
+					Categories
+					<div class="mt-2">
+						<input
+							id="search-categories"
+							type="text"
+							name="categories"
+							if request.Categories != nil {
+								value={ *request.Categories }
+							}
+							class="input input-sm input-primary bg-base-content/10"
+						/>
+					</div>
+				</label>
 			</div>
 			// Authors filter.
 			<div class="sm:col-span-3">
-				<label for="authors" class="block text-sm/6 font-medium">Authors</label>
-				<div class="mt-2">
-					<input
-						id="search-authors"
-						type="text"
-						name="authors"
-						if request.Authors != nil {
-							value={ *request.Authors }
-						}
-						class="input input-sm input-primary bg-base-content/10"
-					/>
-				</div>
+				<label for="authors" class="block text-sm/6 font-medium">
+					Authors
+					<div class="mt-2">
+						<input
+							id="search-authors"
+							type="text"
+							name="authors"
+							if request.Authors != nil {
+								value={ *request.Authors }
+							}
+							class="input input-sm input-primary bg-base-content/10"
+						/>
+					</div>
+				</label>
 			</div>
 			// Subscriptions filter.
 			<div class="sm:col-span-full">
