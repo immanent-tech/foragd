@@ -10,6 +10,7 @@ window.htmx = htmx
 import 'htmx-ext-preload'
 // import 'htmx-ext-response-targets'
 import 'htmx-ext-sse'
+import 'idiomorph/htmx'
 
 // hyperscript
 import _hyperscript from 'hyperscript.org/dist/_hyperscript.js'

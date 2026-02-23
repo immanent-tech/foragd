@@ -408,13 +408,13 @@ func MarkArticles() http.HandlerFunc {
 			err = setRedirect(res, htmxext.HXLocationRequest{
 				Path:   "/home",
 				Target: templates.ContentID.Target(),
-				Swap:   "innerHTML show:window:top transition:true",
+				Swap:   "morph:innerHTML show:window:top transition:true",
 			})
 		} else {
 			err = setRedirect(res, htmxext.HXLocationRequest{
 				Path:   currentURL,
 				Target: templates.ContentID.Target(),
-				Swap:   "innerHTML show:window:top transition:true",
+				Swap:   "morph:innerHTML show:window:top transition:true",
 			})
 		}
 		if err != nil {

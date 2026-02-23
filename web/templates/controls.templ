@@ -279,7 +279,7 @@ templ viewFilter(path, id string, view models.View, filters *models.ListFilters)
 			hx-post={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="morph:innerHTML transition:true"
 			class={ "link link-hover flex px-4 py-2 text-sm capitalize items-center", templ.KV("text-primary font-semibold",view==filters.GetView()) }
 		>
 			switch view {
@@ -313,7 +313,7 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="morph:innerHTML transition:true"
 			class={ "link link-hover flex px-4 py-2 text-sm capitalize items-center",
 			templ.KV(filters.OnlyFavorites,"text-primary font-semibold") }
 		>
@@ -347,7 +347,7 @@ templ categoryFilter(path, id string, category models.CategoryCount, filters *mo
 			hx-post={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="morph:innerHTML transition:true"
 			class={ "link link-hover flex px-4 py-2 text-sm items-center",
 			templ.KV("text-primary font-semibold",filters.GetCategories().HasCategory(category.Category)) }
 		>
@@ -371,7 +371,7 @@ templ clearCategoryFilters(path, id string, filters *models.ListFilters) {
 			hx-post={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="morph:innerHTML transition:true"
 			hx-params="not categories"
 			class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm capitalize"
 		>
@@ -397,7 +397,7 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 					hx-post={ path }
 					hx-target={ ContentID.Target() }
 					hx-replace-url="true"
-					hx-swap="innerHTML transition:true"
+					hx-swap="morph:innerHTML transition:true"
 					hx-params="not categories"
 					class="link link-hover"
 				>
@@ -423,7 +423,7 @@ templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
 			hx-post={ path }
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
+			hx-swap="morph:innerHTML transition:true"
 			class={ "link-hover flex items-center px-4 py-2 text-sm capitalize",
 	templ.KV("text-primary font-semibold",sort==filters.GetSort()) }
 		>

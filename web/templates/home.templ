@@ -32,7 +32,7 @@ templ UserHome(data *models.HomeResponse) {
 							<button
 								hx-get="/list/favorites"
 								hx-target={ ContentID.Target() }
-								hx-swap="innerHTML show:window:top transition:true"
+								hx-swap="morph:innerHTML show:window:top transition:true"
 								class="btn btn-accent"
 							>
 								View favorites
@@ -197,7 +197,7 @@ templ NewUserHome() {
 								<a
 									hx-get="/user/subscription/add/feed"
 									hx-target={ ContentID.Target() }
-									hx-swap="innerHTML show:window:top transition:true"
+									hx-swap="morph:innerHTML show:window:top transition:true"
 									hx-push-url="true"
 									class="focus:outline-hidden"
 								>
@@ -218,7 +218,7 @@ templ NewUserHome() {
 								<a
 									hx-get="/user/import"
 									hx-target={ ContentID.Target() }
-									hx-swap="innerHTML show:window:top transition:true"
+									hx-swap="morph:innerHTML show:window:top transition:true"
 									hx-push-url="true"
 									class="focus:outline-hidden"
 								>

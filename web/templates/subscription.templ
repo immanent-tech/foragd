@@ -39,7 +39,7 @@ func (s *Subscription) ViewOriginAttributes() templ.Attributes {
 func (s *Subscription) ViewArticlesAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
 	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
+	attrs["hx-swap"] = "morph:innerHTML show:window:top transition:true"
 	attrs["hx-trigger"] = "click consume"
 	attrs["hx-push-url"] = true
 	switch s.GetSubscriptionType() {
@@ -96,7 +96,7 @@ func (s *Subscription) EditAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
 	attrs["hx-get"] = "/edit/subscription/" + s.GetID()
 	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
+	attrs["hx-swap"] = "morph:innerHTML show:window:top transition:true"
 	attrs["hx-trigger"] = "click consume"
 	return attrs
 }
@@ -436,7 +436,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								<button
 									hx-get="/list/favorites"
 									hx-target={ ContentID.Target() }
-									hx-swap="innerHTML show:window:top transition:true"
+									hx-swap="morph:innerHTML show:window:top transition:true"
 									class="btn btn-accent"
 								>
 									View favorites
@@ -753,7 +753,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 								// 		hx-target="#subscription-suggestions"
 								// 		hx-include="#subscriptions"
 								// 		hx-encoding="application/x-www-form-urlencoded"
-								// 		hx-swap="innerHTML"
+								// 		hx-swap="morph:innerHTML"
 								// 	>
 								// 		<input
 								// 			id="suggest-subscription"
@@ -781,7 +781,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 										hx-post="/subscription/search/suggest"
 										hx-trigger="input changed delay:500ms,consume"
 										hx-target="#subscription-suggestions"
-										hx-swap="innerHTML"
+										hx-swap="morph:innerHTML"
 									>
 										<input
 											id="suggest-subscription"
@@ -1031,7 +1031,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 										hx-target="#subscription-suggestions"
 										hx-include="#subscriptions"
 										hx-encoding="application/x-www-form-urlencoded"
-										hx-swap="innerHTML"
+										hx-swap="morph:innerHTML"
 									>
 										<input
 											id="suggest-subscription"

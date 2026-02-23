@@ -226,7 +226,7 @@ templ SearchResults(results *models.SearchResults) {
 									<a
 										hx-get={ "/edit/subscription/" + *results.Search.SubscriptionID }
 										hx-target={ ContentID.Target() }
-										hx-swap="innerHTML show:window:top transition:true"
+										hx-swap="morph:innerHTML show:window:top transition:true"
 										class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
 									>
 										@tabler.Edit(i.Props{Class: "size-4"})
@@ -390,7 +390,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 							hx-trigger="input changed delay:500ms,consume"
 							hx-target="#search-subscriptions-options"
 							hx-params="subscription-text"
-							hx-swap="innerHTML"
+							hx-swap="morph:innerHTML"
 						>
 							<input
 								id="search-subscriptions-suggest"

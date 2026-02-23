@@ -48,7 +48,7 @@ func (s *Subscription) ViewOriginAttributes() templ.Attributes {
 func (s *Subscription) ViewArticlesAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
 	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
+	attrs["hx-swap"] = "morph:innerHTML show:window:top transition:true"
 	attrs["hx-trigger"] = "click consume"
 	attrs["hx-push-url"] = true
 	switch s.GetSubscriptionType() {
@@ -105,7 +105,7 @@ func (s *Subscription) EditAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
 	attrs["hx-get"] = "/edit/subscription/" + s.GetID()
 	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
+	attrs["hx-swap"] = "morph:innerHTML show:window:top transition:true"
 	attrs["hx-trigger"] = "click consume"
 	return attrs
 }
@@ -1233,7 +1233,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"btn btn-accent\">View favorites</button></div></div>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 98, "\" hx-swap=\"morph:innerHTML show:window:top transition:true\" class=\"btn btn-accent\">View favorites</button></div></div>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -2096,7 +2096,7 @@ func manageSearchSubscription(request *models.SearchSubscriptionRequest, action 
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "<form hx-post=\"/subscription/search/suggest\" hx-trigger=\"input changed delay:500ms,consume\" hx-target=\"#subscription-suggestions\" hx-swap=\"innerHTML\"><input id=\"suggest-subscription\" name=\"text\" placeholder=\"Search subscriptions...\" autocomplete=\"off\"></form></label><div id=\"subscription-suggestions\" class=\"flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8\"></div><div id=\"subscriptions\" class=\"flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 146, "<form hx-post=\"/subscription/search/suggest\" hx-trigger=\"input changed delay:500ms,consume\" hx-target=\"#subscription-suggestions\" hx-swap=\"morph:innerHTML\"><input id=\"suggest-subscription\" name=\"text\" placeholder=\"Search subscriptions...\" autocomplete=\"off\"></form></label><div id=\"subscription-suggestions\" class=\"flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8\"></div><div id=\"subscriptions\" class=\"flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -2688,7 +2688,7 @@ func manageGroupSubscription(request *models.GroupSubscriptionRequest, action st
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 188, "<form hx-post=\"/subscription/group/suggest\" hx-trigger=\"input changed delay:500ms,consume\" hx-target=\"#subscription-suggestions\" hx-include=\"#subscriptions\" hx-encoding=\"application/x-www-form-urlencoded\" hx-swap=\"innerHTML\"><input id=\"suggest-subscription\" name=\"text\" placeholder=\"Search subscriptions...\" autocomplete=\"off\"></form></label><div id=\"subscription-suggestions\" class=\"flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8\"></div><div id=\"subscriptions\" class=\"flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 188, "<form hx-post=\"/subscription/group/suggest\" hx-trigger=\"input changed delay:500ms,consume\" hx-target=\"#subscription-suggestions\" hx-include=\"#subscriptions\" hx-encoding=\"application/x-www-form-urlencoded\" hx-swap=\"morph:innerHTML\"><input id=\"suggest-subscription\" name=\"text\" placeholder=\"Search subscriptions...\" autocomplete=\"off\"></form></label><div id=\"subscription-suggestions\" class=\"flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8\"></div><div id=\"subscriptions\" class=\"flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

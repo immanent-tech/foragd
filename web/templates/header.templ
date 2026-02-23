@@ -78,7 +78,7 @@ templ header(user *models.User) {
 				<a
 					hx-get="/home"
 					hx-target={ ContentID.Target() }
-					hx-swap="innerHTML show:window:top transition:true"
+					hx-swap="morph:innerHTML show:window:top transition:true"
 					class="link link-hover"
 				>
 					<div class="flex flex-row shrink-0 p-2 items-center">

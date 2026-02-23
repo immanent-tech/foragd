@@ -17,7 +17,7 @@ templ Dock(attributes templ.Attributes) {
 			hx-get="/home"
 			hx-trigger="click,globalShortcutHome"
 			hx-target={ ContentID.Target() }
-			hx-swap="innerHTML show:window:top transition:true"
+			hx-swap="morph:innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/home")) }
 			_="on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"
 		>
@@ -30,7 +30,7 @@ templ Dock(attributes templ.Attributes) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
 			hx-params={ "not " + models.ParamSubscriptions }
-			hx-swap="innerHTML show:window:top transition:true"
+			hx-swap="morph:innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/list/subscriptions")) }
 		>
 			@tabler.Rss(i.Props{Class: "size-6 text-primary"})
@@ -42,7 +42,7 @@ templ Dock(attributes templ.Attributes) {
 			hx-get="/list/articles"
 			hx-target={ ContentID.Target() }
 			hx-vals={ templ.JSONString(filters.Values()) }
-			hx-swap="innerHTML show:window:top transition:true"
+			hx-swap="morph:innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/list/articles")) }
 			if strings.HasPrefix(pageURL, "/view/article") {
 				hx-include="[name='subscriptions']"
@@ -55,7 +55,7 @@ templ Dock(attributes templ.Attributes) {
 		<button
 			hx-get="/list/favorites"
 			hx-target={ ContentID.Target() }
-			hx-swap="innerHTML show:window:top transition:true"
+			hx-swap="morph:innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/list/favorites")) }
 		>
 			@tabler.HeartFilled(i.Props{Class: "size-6 text-primary"})
