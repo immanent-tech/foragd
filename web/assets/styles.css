@@ -6,7 +6,6 @@
     dark,
     dracula --prefersdark,
     nord,
-  /* https://github.com/saadeghi/daisyui/issues/3882 */
   exclude: properties;
 }
 
@@ -28,6 +27,7 @@
     'cv04' 1,
     'cv11' 1;
   --sidebar-width: var(--w-sm);
+  scrollbar-gutter: stable;
 }
 
 @supports (font-variation-settings: normal) {
@@ -68,8 +68,6 @@
   el-dialog-panel {
     @apply transition duration-200 data-closed:scale-95 data-closed:opacity-0;
   }
-
-
 }
 
 /* Custom Component Classes */
