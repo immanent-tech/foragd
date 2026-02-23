@@ -281,7 +281,16 @@ func (i *Item) GetTitle() string {
 // GetDescription returns the summary of the item content, if any.
 func (i *Item) GetDescription() string {
 	if i.Description != nil {
-		return *i.Description
+		switch {
+		case IsHTML(*i.Description):
+			return *i.Description
+		default:
+			if formatted, err := FormatAsMarkdown([]byte(*i.Description)); err != nil {
+				return *i.Description
+			} else {
+				return string(formatted)
+			}
+		}
 	}
 	return ""
 }
