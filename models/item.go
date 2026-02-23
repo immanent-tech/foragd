@@ -285,7 +285,7 @@ func (i *Item) GetDescription() string {
 		case IsHTML(*i.Description):
 			return *i.Description
 		default:
-			if formatted, err := FormatAsMarkdown([]byte(*i.Description)); err != nil {
+			if formatted, err := MarkdownToHTML([]byte(*i.Description)); err != nil {
 				return *i.Description
 			} else {
 				return string(formatted)

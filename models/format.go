@@ -5,6 +5,7 @@ package models
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -63,10 +64,19 @@ var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
 	)
 })
 
-func FormatAsMarkdown(input []byte) ([]byte, error) {
+// MarkdownToHTML treats the given string data input as markdown formatted plain-text and returns an appropriate HTML
+// representation.
+func MarkdownToHTML(input []byte) ([]byte, error) {
 	converter := loadMarkdownWriter()
-	var buf bytes.Buffer
-	if err := converter.Convert(input, &buf); err != nil {
+	buf, ok := bufPool.Get().(*bytes.Buffer)
+	if !ok {
+		return input, errors.New("unable to retrieve buffer")
+	}
+	defer func() {
+		buf.Reset()
+		defer bufPool.Put(buf)
+	}()
+	if err := converter.Convert(input, buf); err != nil {
 		return nil, fmt.Errorf("format as markdown: %w", err)
 	}
 	return buf.Bytes(), nil
