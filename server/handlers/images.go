@@ -19,17 +19,17 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/google/gcs"
 )
 
 func ImageProxy(proxyURLBase string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Load the http client used for making requests to the image proxy.
-		httpClient := loadHTTPClient()
 
 		// Load the image cache.
 		if err := loadImageCache(); err != nil {
@@ -94,25 +94,19 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			proxiedURL = string(originalURL)
 		}
 
-		// Fetch the image (either from proxy or direct).
-		resp, err := httpClient.R().
-			SetDoNotParseResponse(true).
-			Get(proxiedURL)
+		// Fetch the remote image.
+		resp, err := requestRemoteImage(req.Context(), proxiedURL)
 		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Get image from proxy failed.",
+			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
+				res.WriteHeader(apiErr.StatusCode)
+			} else {
+				res.WriteHeader(http.StatusInternalServerError)
+			}
+			slogctx.FromCtx(req.Context()).Error("Fetch remote image failed.",
 				slog.Any("error", err),
 			)
 			return
 		}
-		if resp.IsError() {
-			res.WriteHeader(resp.StatusCode())
-			slogctx.FromCtx(req.Context()).Error("Image proxy returned error status code.",
-				slog.Any("error", resp.Status()),
-			)
-			return
-		}
-
 		defer resp.RawBody().Close()
 
 		_, err = io.Copy(imgBuf, resp.RawBody())
@@ -234,6 +228,34 @@ func LoadCachedImage(res http.ResponseWriter, req *http.Request) {
 	// Return success.
 	res.Header().Set("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable")
 	res.WriteHeader(http.StatusOK)
+}
+
+func requestRemoteImage(ctx context.Context, remoteURL string) (*resty.Response, error) {
+	// Load the http client used for making requests to the image proxy.
+	httpClient := loadHTTPClient()
+
+	// Fetch the image (either from proxy or direct).
+	resp, err := httpClient.R().
+		SetContext(ctx).
+		SetDoNotParseResponse(true).
+		Get(remoteURL)
+	if err != nil {
+		return nil, &models.APIError{
+			InternalError: err,
+			StatusCode:    http.StatusInternalServerError,
+		}
+	}
+	if resp.IsError() {
+		// When the error response is 403: Forbidden try again with our Cloudflare reverse proxy.
+		if resp.StatusCode() == http.StatusForbidden {
+			return requestRemoteImage(ctx, models.ProxyURL(ctx, remoteURL))
+		}
+		return nil, &models.APIError{
+			InternalError: errors.New(resp.Status()),
+			StatusCode:    resp.StatusCode(),
+		}
+	}
+	return resp, nil
 }
 
 var imgCache objectCache

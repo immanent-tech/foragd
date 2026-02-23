@@ -404,7 +404,7 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 				slogctx.FromCtx(ctx).Warn("Forbidden response, trying with proxy",
 					slog.String("url", url),
 				)
-				return NewFeedFromURL(ctx, proxyURL(ctx, url), id, validate)
+				return NewFeedFromURL(ctx, ProxyURL(ctx, url), id, validate)
 			}
 		}
 		return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
@@ -419,7 +419,7 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 	return feed, nil
 }
 
-func proxyURL(ctx context.Context, originalURL string) string {
+func ProxyURL(ctx context.Context, originalURL string) string {
 	key := os.Getenv("FORAGD_REVERSEPROXY_KEY")
 	salt := os.Getenv("FORAGD_REVERSEPROXY_SALT")
 
