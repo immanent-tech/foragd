@@ -16,6 +16,9 @@ import 'idiomorph/htmx'
 import _hyperscript from 'hyperscript.org/dist/_hyperscript.js'
 _hyperscript.browserInit()
 
+// Tailwind Plus.
+import '@tailwindplus/elements'
+
 // custom element for timestamps.
 import './timestamps'
 // custom element for youtube player.

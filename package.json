@@ -10,6 +10,7 @@
     "build:css": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
   },
   "dependencies": {
+    "@tailwindplus/elements": "^1.0.22",
     "daisyui": "^5.5.14",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
