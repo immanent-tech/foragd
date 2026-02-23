@@ -10,6 +10,58 @@ import (
 	"slices"
 )
 
+templ searchBox() {
+	<el-command-palette class="grid w-full sm:max-w-3xl">
+		<search>
+			<label
+				for="global-search"
+				class="w-full sm:max-w-3xl input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10"
+			>
+				@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
+				<input
+					hx-post="/search/suggestions"
+					hx-target="#global-search-suggestions"
+					hx-include="#search-filters,[id='timezone']"
+					hx-trigger="keyup changed delay:100ms"
+					id="global-search"
+					type="search"
+					name="text"
+					placeholder="Search..."
+					spellcheck="false"
+					autocomplete="off"
+					_="
+								on keydown from body if the event's key is 'k' and event.altKey then focus() me end
+								"
+				/>
+				// on change if my value is '' add .hidden to #clear-search-text else remove .hidden from #clear-search-text end
+				// Clear text.
+				// <button
+				// 	id="clear-search-text"
+				// 	type="button"
+				// 	tabindex="0"
+				// 	_="on click set #global-search.value to '' then add @hidden to #global-search-suggestions"
+				// >
+				// 	@tabler.CircleX(i.Props{Class: "flex-none text-primary"})
+				// </button>
+				// Filters button opens advanced search dialog.
+				<button
+					type="button"
+					command="show-modal"
+					commandfor="search-filters-dialog"
+					tabindex="0"
+				>
+					@tabler.Filter(i.Props{Class: "flex-none text-primary"})
+				</button>
+			</label>
+		</search>
+		<el-command-list
+			id="global-search-suggestions"
+			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-128 sm:max-h-196 sm:h-fit scroll-py-2 overflow-y-auto p-2 rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
+			_="on keydown[key is 'Escape'] add .hidden"
+		></el-command-list>
+	</el-command-palette>
+}
+
 // SearchSuggestions will render suggestions for a given search.
 templ SearchSuggestions(suggestions *models.SearchResults) {
 	// Always generate a suggestion to execute a full search.
@@ -18,7 +70,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
 			hx-include="#search-filters,[id='timezone']"
-			hx-trigger="click, keydown['Enter'] from #global-search"
+			hx-trigger="click, keydown['Enter'] from:#global-search"
 			_="on htmx:beforeRequest add @hidden to #global-search-suggestions"
 		>
 			//  then set #global-search.value to ''
@@ -169,8 +221,6 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 	}
 }
 
-const PaginateSearchFragment templFragmentKey = "paginateSearch"
-
 // SearchResults renders the given articles returned from the given search in a grid layout with an actions menu.
 templ SearchResults(results *models.SearchResults) {
 	@content() {
@@ -290,7 +340,7 @@ templ SearchResults(results *models.SearchResults) {
 					// Articles grid.
 					<section class="mt-4">
 						@grid() {
-							@templ.Fragment(PaginateSearchFragment) {
+							@templ.Fragment(PaginateFragment) {
 								for article := range slices.Values(results.Articles) {
 									<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
 									@NewArticleView(article).Card()

@@ -172,7 +172,7 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 		if len(h.results.Articles) == 0 {
 			res.WriteHeader(http.StatusNoContent)
 		} else {
-			templ.Handler(templates.SearchResults(h.results), templ.WithFragments(templates.PaginateSearchFragment)).
+			templ.Handler(templates.SearchResults(h.results), templ.WithFragments(templates.PaginateFragment)).
 				ServeHTTP(res, req)
 		}
 	}
