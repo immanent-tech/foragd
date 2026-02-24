@@ -461,7 +461,7 @@ func FindFeedImage(ctx context.Context, feed *Feed) error {
 	} else {
 		timeout = time.Until(deadline)
 	}
-	image, err := feeds.DiscoverFeedImage(feed.GetLink(), timeout)
+	image, err := feeds.DiscoverPageImage(feed.GetLink(), timeout)
 	if err != nil {
 		return fmt.Errorf("unable to find feed image: %w", err)
 	}

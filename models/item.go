@@ -380,8 +380,14 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 	// Add youtube extension data if found.
 	addYoutubeExtension(source, item)
 
+	// Set the image.
 	if source.GetImage() != nil {
+		// Source has an image, use that.
 		item.Image = source.GetImage()
+	} else {
+		if img, err := feeds.DiscoverPageImage(source.GetLink(), DefaultHTTPRequestTimeout); err == nil && img != nil {
+			item.Image = img
+		}
 	}
 
 	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.
