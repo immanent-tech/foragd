@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.65.0](https://github.com/immanent-tech/foragd/compare/v0.64.0...v0.65.0) (2026-02-24)
+
+
+### Features
+
+* **assets:** :lipstick: style scrollbar ([20af0a8](https://github.com/immanent-tech/foragd/commit/20af0a85a080357f6b8cf37769d62a5b4eeb4657))
+
+
+### Bug Fixes
+
+* **models:** :bug: make sure proxied URL is not saved to feed data ([fd2b0b5](https://github.com/immanent-tech/foragd/commit/fd2b0b5251fddf6cfab41ba908357253c5890c49))
+
 ## [0.64.0](https://github.com/immanent-tech/foragd/compare/v0.63.0...v0.64.0) (2026-02-24)
 
 
