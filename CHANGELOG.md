@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.62.0](https://github.com/immanent-tech/foragd/compare/v0.61.0...v0.62.0) (2026-02-24)
+
+
+### Features
+
+* **templates:** :lipstick: improved styling of menus ([e31e10f](https://github.com/immanent-tech/foragd/commit/e31e10fd84f331eab7b41473e254f7111b27683a))
+
+
+### Bug Fixes
+
+* :bug: fix popovers causing layout shift in chrome ([4491fb6](https://github.com/immanent-tech/foragd/commit/4491fb6c6c7f2ee348742ad9fdb75bcffffb8e53))
+* **assets:** :bento: make htmx aware of custom elements ([d4345c7](https://github.com/immanent-tech/foragd/commit/d4345c700281fbe4ab4add1add4a530ccf0413a6))
+* **handlers:** :bug: exclude empty strings from top categories results on home page ([48caccf](https://github.com/immanent-tech/foragd/commit/48caccf2edb9fdc188d516d3696798573728131d))
+* **search:** :bug: exclude empty string categories on search results page ([69e4033](https://github.com/immanent-tech/foragd/commit/69e4033b53269067a76bd789c5ff0da97417d19d))
+* **templates:** :bug: fix hx-trigger for search results ([ef207c3](https://github.com/immanent-tech/foragd/commit/ef207c3e66f44edb1870cbaf4c51b6995803229b))
+* **templates:** :bug: fix label elements referenced ids ([3ab16d2](https://github.com/immanent-tech/foragd/commit/3ab16d2f460fd1161eb31ac4f9862f30094e16b3))
+* **templates:** :bug: hitting enter in global search should execute a global search ([12aac76](https://github.com/immanent-tech/foragd/commit/12aac7605ee8c375aaeb4128d70ea03beb289918))
+
+
+### Performance Improvements
+
+* **templates:** :zap: reduce delay in showing suggestions when searching ([243fe8d](https://github.com/immanent-tech/foragd/commit/243fe8d6272c986773dc40daa0adaab4075f884d))
+
 ## [0.61.0](https://github.com/immanent-tech/foragd/compare/v0.60.0...v0.61.0) (2026-02-23)
 
 
