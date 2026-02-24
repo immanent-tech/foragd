@@ -19,10 +19,9 @@ templ searchBox() {
 			>
 				@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
 				<input
-					hx-post="/search/suggestions"
-					hx-target="#global-search-suggestions"
+					hx-post="/search"
+					hx-target={ ContentID.Target() }
 					hx-include="#search-filters,[id='timezone']"
-					hx-trigger="keyup changed delay:500ms"
 					id="global-search"
 					type="search"
 					name="text"
@@ -30,19 +29,9 @@ templ searchBox() {
 					spellcheck="false"
 					autocomplete="off"
 					_="
-								on keydown from body if the event's key is 'k' and event.altKey then focus() me end
-								"
+					on keydown from body if the event's key is 'k' and event.altKey then focus() me end
+					"
 				/>
-				// on change if my value is '' add .hidden to #clear-search-text else remove .hidden from #clear-search-text end
-				// Clear text.
-				// <button
-				// 	id="clear-search-text"
-				// 	type="button"
-				// 	tabindex="0"
-				// 	_="on click set #global-search.value to '' then add @hidden to #global-search-suggestions"
-				// >
-				// 	@tabler.CircleX(i.Props{Class: "flex-none text-primary"})
-				// </button>
 				// Filters button opens advanced search dialog.
 				<button
 					type="button"
@@ -55,12 +44,16 @@ templ searchBox() {
 			</label>
 		</search>
 		<el-command-list
+			hx-post="/search/suggestions"
+			hx-target="#global-search-suggestions"
+			hx-include="#search-filters,[id='timezone'],[id='global-search']"
+			hx-trigger="keyup changed delay:500ms from:#global-search"
+			hx-sync="#global-search:abort"
 			id="global-search-suggestions"
 			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-128 sm:max-h-196 sm:h-fit scroll-py-2 overflow-y-auto p-2 rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
 			_="on keydown[key is 'Escape'] add .hidden"
 		></el-command-list>
 	</el-command-palette>
-	<button type="submit" form="show-search-results" class="hidden" hx-trigger="keydown['Enter'] from:#global-search"></button>
 }
 
 // SearchSuggestions will render suggestions for a given search.
@@ -75,7 +68,6 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			hx-trigger="click"
 			_="on htmx:beforeRequest add @hidden to #global-search-suggestions"
 		>
-			//  then set #global-search.value to ''
 			<input type="hidden" name="text" value={ suggestions.Search.Text }/>
 			<a
 				href="#"
