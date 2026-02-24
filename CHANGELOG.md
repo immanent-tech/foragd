@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.64.0](https://github.com/immanent-tech/foragd/compare/v0.63.0...v0.64.0) (2026-02-24)
+
+
+### Features
+
+* **assets:** :bento: add placeholder image in webp format ([78c2733](https://github.com/immanent-tech/foragd/commit/78c2733c45632d2e966c7461871bd33e69a9d595))
+
 ## [0.63.0](https://github.com/immanent-tech/foragd/compare/v0.62.0...v0.63.0) (2026-02-24)
 
 
