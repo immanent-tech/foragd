@@ -115,7 +115,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			if config.CurrentEnvironment == config.EnvProduction {
 				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous" hx-preserve="true"></script>
 			}
-			// <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module" crossorigin="anonymous" hx-preserve="true"></script>
+			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module" crossorigin="anonymous" hx-preserve="true"></script>
 			switch config.CurrentEnvironment {
 				case config.EnvDevelopment:
 					<script src={ "/content/scripts.js?v=" + time.Now().Format("2006-01-02T15:04:05.00Z07:00") } type="module" hx-preserve="true"></script>

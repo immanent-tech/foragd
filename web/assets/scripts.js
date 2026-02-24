@@ -17,7 +17,7 @@ import _hyperscript from 'hyperscript.org/dist/_hyperscript.js'
 _hyperscript.browserInit()
 
 // Tailwind Plus.
-import '@tailwindplus/elements'
+// import '@tailwindplus/elements'
 
 // Relative time custom element.
 import '@github/relative-time-element'
