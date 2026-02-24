@@ -116,7 +116,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" _=\"on click remove @open from #header-menu\" class=\"link link-hover hover:text-primary\"><div class=\"flex flex-1 items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" _=\"on click remove @open from #header-menu\" class=\"group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2\" role=\"menuitem\" tabindex=\"-1\"><div class=\"flex flex-1 items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -124,7 +124,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "Settings</div></a><a href=\"/help\" rel=\"noopener\" target=\"_blank\" class=\"link link-hover hover:text-primary\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "Settings</div></a><a href=\"/help\" rel=\"noopener\" target=\"_blank\" class=\"group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2\" role=\"menuitem\" tabindex=\"-1\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -139,13 +139,13 @@ func header(user *models.User) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 143, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/header.templ`, Line: 147, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-replace-url=\"true\" class=\"link link-hover hover:text-primary\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-replace-url=\"true\" class=\"group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2\" role=\"menuitem\" tabindex=\"-1\" _=\"on click remove @open from #header-menu\"><div class=\"flex flex-1 items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -153,7 +153,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "Report an issue</div></a><a href=\"/logout\" class=\"link link-hover hover:text-primary\" _=\"on click remove @open from #header-menu then call window.sessionStorage.removeItem('htmx-history-cache')\"><div class=\"flex flex-1 items-center gap-x-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "Report an issue</div></a><a href=\"/logout\" class=\"group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2\" role=\"menuitem\" tabindex=\"-1\" _=\"on click remove @open from #header-menu then call window.sessionStorage.removeItem('htmx-history-cache')\"><div class=\"flex flex-1 items-center gap-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

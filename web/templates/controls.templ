@@ -58,7 +58,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								hx-trigger="click from:#filters-mobile-disclosure"
 								hx-indicator="#load-categories-mobile"
 							>
-								<span id="load-categories-mobile" class="loading loading-spinner loading-sm"></span>
+								<span id="load-categories-mobile" class="htmx-indicator loading loading-spinner loading-sm"></span>
 							</div>
 						</el-disclosure>
 					</div>
@@ -148,6 +148,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 				>Filters</button>
 				<div class="hidden sm:flex">
 					<div class="flex gap-x-4 ">
+						// Category filters.
 						<el-dropdown class="inline-block">
 							<button
 								class="inline-flex btn btn-wide"
@@ -165,7 +166,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									id="category-filters-desktop"
 									class="py-1"
 								>
-									<span id="load-categories-desktop" class="loading loading-spinner loading-sm"></span>
+									<span id="load-categories-desktop" class="htmx-indicator loading loading-spinner loading-sm"></span>
 								</div>
 							</el-menu>
 						</el-dropdown>
@@ -256,9 +257,7 @@ templ ListCategoryFilters(filters *models.CategoryFilters) {
 			@categoryFilter(filters.Path, "filter-category-"+strconv.Itoa(idx), category, &filters.Filters)
 		}
 		if len(filters.Filters.GetCategories()) > 0 {
-			<div class="flex justify-end">
-				@clearCategoryFilters(filters.Path, "clear-category-filters", &filters.Filters)
-			</div>
+			@clearCategoryFilters(filters.Path, "clear-category-filters", &filters.Filters)
 		}
 	}
 }
@@ -280,7 +279,10 @@ templ viewFilter(path, id string, view models.View, filters *models.ListFilters)
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
 			hx-swap="morph:innerHTML transition:true"
-			class={ "link link-hover flex px-4 py-2 text-sm capitalize items-center", templ.KV("text-primary font-semibold",view==filters.GetView()) }
+			class={ "group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm capitalize focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2",
+			templ.KV("text-primary font-semibold",view==filters.GetView()) }
+			role="menuitem"
+			tabindex="-1"
 		>
 			switch view {
 				case models.ViewUnread:
@@ -348,8 +350,10 @@ templ categoryFilter(path, id string, category models.CategoryCount, filters *mo
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
 			hx-swap="morph:innerHTML transition:true"
-			class={ "link link-hover flex px-4 py-2 text-sm items-center",
+			class={ "group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2",
 			templ.KV("text-primary font-semibold",filters.GetCategories().HasCategory(category.Category)) }
+			role="menuitem"
+			tabindex="-1"
 		>
 			@tabler.Category()
 			<span class="ml-2">
@@ -373,7 +377,9 @@ templ clearCategoryFilters(path, id string, filters *models.ListFilters) {
 			hx-replace-url="true"
 			hx-swap="morph:innerHTML transition:true"
 			hx-params="not categories"
-			class="link link-hover flex items-center gap-x-4 px-4 py-2 text-sm capitalize"
+			class="group/item w-full link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+			role="menuitem"
+			tabindex="-1"
 		>
 			@tabler.X()
 			<span class="ml-2">
@@ -424,8 +430,10 @@ templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
 			hx-target={ ContentID.Target() }
 			hx-replace-url="true"
 			hx-swap="morph:innerHTML transition:true"
-			class={ "link-hover flex items-center px-4 py-2 text-sm capitalize",
-	templ.KV("text-primary font-semibold",sort==filters.GetSort()) }
+			class={ "group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm capitalize focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2",
+			templ.KV("text-primary font-semibold",sort==filters.GetSort()) }
+			role="menuitem"
+			tabindex="-1"
 		>
 			switch sort {
 				case models.SortNewestFirst:

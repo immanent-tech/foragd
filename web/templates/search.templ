@@ -22,7 +22,7 @@ templ searchBox() {
 					hx-post="/search/suggestions"
 					hx-target="#global-search-suggestions"
 					hx-include="#search-filters,[id='timezone']"
-					hx-trigger="keyup changed delay:100ms"
+					hx-trigger="keyup changed delay:500ms"
 					id="global-search"
 					type="search"
 					name="text"
@@ -60,6 +60,7 @@ templ searchBox() {
 			_="on keydown[key is 'Escape'] add .hidden"
 		></el-command-list>
 	</el-command-palette>
+	<button type="submit" form="show-search-results" class="hidden" hx-trigger="keydown['Enter'] from:#global-search"></button>
 }
 
 // SearchSuggestions will render suggestions for a given search.
@@ -67,10 +68,11 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 	// Always generate a suggestion to execute a full search.
 	<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="search-group-label">
 		<form
+			id="show-search-results"
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
 			hx-include="#search-filters,[id='timezone']"
-			hx-trigger="click, keydown['Enter'] from:#global-search"
+			hx-trigger="click"
 			_="on htmx:beforeRequest add @hidden to #global-search-suggestions"
 		>
 			//  then set #global-search.value to ''
@@ -248,7 +250,9 @@ templ SearchResults(results *models.SearchResults) {
 									hx-post="/list/articles/mark/read"
 									hx-target={ ContentID.Target() }
 									hx-include="#grid-objects"
-									class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
+									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									role="menuitem"
+									tabindex="-1"
 								>
 									@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
 									<span class="sr-only">Mark All Read</span>
@@ -263,7 +267,9 @@ templ SearchResults(results *models.SearchResults) {
 									hx-post="/list/articles/mark/unread"
 									hx-target={ ContentID.Target() }
 									hx-include="#grid-objects"
-									class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
+									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									role="menuitem"
+									tabindex="-1"
 								>
 									@tabler.Mail(i.Props{Class: "size-4"})
 									<span class="sr-only">Mark All Unread</span>
@@ -271,30 +277,30 @@ templ SearchResults(results *models.SearchResults) {
 								</a>
 							</form>
 							if results.Search.SubscriptionID != nil {
-								<div class="py-1">
-									// Edit action.
-									<a
-										hx-get={ "/edit/subscription/" + *results.Search.SubscriptionID }
-										hx-target={ ContentID.Target() }
-										hx-swap="morph:innerHTML show:window:top transition:true"
-										class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
-									>
-										@tabler.Edit(i.Props{Class: "size-4"})
-										Edit Subscription
-									</a>
-								</div>
+								// Edit action.
+								<a
+									hx-get={ "/edit/subscription/" + *results.Search.SubscriptionID }
+									hx-target={ ContentID.Target() }
+									hx-swap="morph:innerHTML show:window:top transition:true"
+									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									role="menuitem"
+									tabindex="-1"
+								>
+									@tabler.Edit(i.Props{Class: "size-4"})
+									Edit Subscription
+								</a>
 							} else {
-								<div class="py-1">
-									<a
-										hx-get="/user/subscription/add/search"
-										hx-target={ ContentID.Target() }
-										hx-include="#search-filters"
-										class="group/item flex items-center px-4 py-2 text-sm space-x-2 focus:text-primary focus:outline-hidden"
-									>
-										@tabler.Plus(i.Props{Class: "size-4"})
-										Add Subscription
-									</a>
-								</div>
+								<a
+									hx-get="/user/subscription/add/search"
+									hx-target={ ContentID.Target() }
+									hx-include="#search-filters"
+									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									role="menuitem"
+									tabindex="-1"
+								>
+									@tabler.Plus(i.Props{Class: "size-4"})
+									Add Subscription
+								</a>
 							}
 						</el-menu>
 					</el-dropdown>

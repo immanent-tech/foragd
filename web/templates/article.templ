@@ -182,54 +182,68 @@ templ (a *Article) Card() {
 							_="on htmx:afterRequest(successful) hidePopover() on me"
 							class="w-fit"
 						>
-							<div class="py-1">
-								// View original article action.
+							// View original article action.
+							<a
+								href={ a.GetLink() }
+								target="_blank"
+								rel="noopener"
+								_="on click halt the event's bubbling"
+								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+								role="menuitem"
+								tabindex="-1"
+							>
+								@tabler.ExternalLink(i.Props{Class: "size-4"})
+								Go To Article
+							</a>
+							// Find similar action.
+							<a
+								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+								role="menuitem"
+								tabindex="-1"
+								{ a.SimilarArticlesAttributes()... }
+							>
+								@tabler.FileSearch(i.Props{Class: "size-4"})
+								Find similar...
+							</a>
+							// Mobile share action via navigator API.
+							<div _="init if not navigator.share then hide me">
 								<a
-									href={ a.GetLink() }
-									target="_blank"
-									rel="noopener"
-									_="on click halt the event's bubbling"
-									class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden"
+									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									role="menuitem"
+									tabindex="-1"
+									_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
 								>
-									@tabler.ExternalLink(i.Props{Class: "size-4"})
-									Go To Article
-								</a>
-								// Find similar action.
-								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.SimilarArticlesAttributes()... }>
-									@tabler.FileSearch(i.Props{Class: "size-4"})
-									Find similar...
-								</a>
-								// Mobile share action via navigator API.
-								<div _="init if not navigator.share then hide me">
-									<a
-										class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden"
-										_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
-									>
-										@tabler.Share(i.Props{Class: "size-4"})
-										Share
-									</a>
-								</div>
-								// Desktop share action with modal and options.
-								<form _="init if navigator.share then hide me">
-									<input type="hidden" name="item_id" value={ a.GetID() }/>
-									<input type="hidden" name="title" value={ a.GetTitle() }/>
-									<input type="hidden" name="link" value={ a.GetLink() }/>
-									<a
-										class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden"
-										hx-post={ "/share/article/" + a.GetID() }
-										hx-target={ partials.ModalContainerID.Target() }
-										hx-trigger="click consume"
-									>
-										@tabler.Share(i.Props{Class: "size-4"})
-										Share
-									</a>
-								</form>
-								// Report issue action.
-								<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ReportIssueAttributes()... }>
-									@tabler.FlagFilled(i.Props{Class: "size-4"})
-									Report an issue
+									@tabler.Share(i.Props{Class: "size-4"})
+									Share
 								</a>
 							</div>
+							// Desktop share action with modal and options.
+							<form _="init if navigator.share then hide me">
+								<input type="hidden" name="item_id" value={ a.GetID() }/>
+								<input type="hidden" name="title" value={ a.GetTitle() }/>
+								<input type="hidden" name="link" value={ a.GetLink() }/>
+								<a
+									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									role="menuitem"
+									tabindex="-1"
+									hx-post={ "/share/article/" + a.GetID() }
+									hx-target={ partials.ModalContainerID.Target() }
+									hx-trigger="click consume"
+								>
+									@tabler.Share(i.Props{Class: "size-4"})
+									Share
+								</a>
+							</form>
+							// Report issue action.
+							<a
+								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+								role="menuitem"
+								tabindex="-1"
+								{ a.ReportIssueAttributes()... }
+							>
+								@tabler.FlagFilled(i.Props{Class: "size-4"})
+								Report an issue
+							</a>
 						</el-menu>
 					</el-dropdown>
 				</div>
@@ -593,7 +607,9 @@ templ ListArticles(response *models.ListArticlesResponse) {
 											// Mark all articles action.
 											<form class="flex items-center">
 												<a
-													class="link link-hover px-4 py-2 focus:text-primary focus:outline-hidden"
+													class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+													role="menuitem"
+													tabindex="-1"
 													if response.Filters.GetView() == models.ViewUnread {
 														hx-post="/list/articles/mark/read"
 													} else {
@@ -639,7 +655,9 @@ templ ListArticles(response *models.ListArticlesResponse) {
 												}
 												<a
 													hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-													class="link link-hover px-4 py-2 focus:text-primary focus:outline-hidden"
+													class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+													role="menuitem"
+													tabindex="-1"
 												>
 													@markIcon
 													{ markText }
@@ -650,7 +668,9 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										<a
 											hx-get={ "/edit/subscription/" + response.Subscription.GetID() }
 											hx-target={ ContentID.Target() }
-											class="link link-hover px-4 py-2 flex items-center focus:text-primary focus:outline-hidden"
+											class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+											role="menuitem"
+											tabindex="-1"
 										>
 											@tabler.Edit(i.Props{Class: "size-4"})
 											Edit Subscription

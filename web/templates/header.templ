@@ -117,7 +117,9 @@ templ header(user *models.User) {
 								hx-get="/user/settings"
 								hx-target={ ContentID.Target() }
 								_="on click remove @open from #header-menu"
-								class="link link-hover hover:text-primary"
+								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+								role="menuitem"
+								tabindex="-1"
 							>
 								<div class="flex flex-1 items-center gap-x-2">
 									@tabler.SettingsFilled()
@@ -129,7 +131,9 @@ templ header(user *models.User) {
 								href="/help"
 								rel="noopener"
 								target="_blank"
-								class="link link-hover hover:text-primary"
+								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+								role="menuitem"
+								tabindex="-1"
 								_="on click remove @open from #header-menu"
 							>
 								<div class="flex flex-1 items-center gap-x-2">
@@ -142,7 +146,9 @@ templ header(user *models.User) {
 								hx-get="/issue"
 								hx-target={ ContentID.Target() }
 								hx-replace-url="true"
-								class="link link-hover hover:text-primary"
+								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+								role="menuitem"
+								tabindex="-1"
 								_="on click remove @open from #header-menu"
 							>
 								<div class="flex flex-1 items-center gap-x-2">
@@ -153,7 +159,9 @@ templ header(user *models.User) {
 							// Logout
 							<a
 								href="/logout"
-								class="link link-hover hover:text-primary"
+								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+								role="menuitem"
+								tabindex="-1"
 								_="on click remove @open from #header-menu then call window.sessionStorage.removeItem('htmx-history-cache')"
 							>
 								<div class="flex flex-1 items-center gap-x-2">

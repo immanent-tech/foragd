@@ -257,13 +257,23 @@ templ (s *Subscription) Card() {
 							>
 								// View action.
 								if len(s.ViewOriginAttributes()) > 0 {
-									<a class="link link-hover" { s.ViewOriginAttributes()... }>
+									<a
+										class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+										role="menuitem"
+										tabindex="-1"
+										{ s.ViewOriginAttributes()... }
+									>
 										@tabler.ExternalLink(i.Props{Class: "size-4"})
 										Feed Website
 									</a>
 								}
 								// Edit action.
-								<a class="link link-hover" { s.EditAttributes()... }>
+								<a
+									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									role="menuitem"
+									tabindex="-1"
+									{ s.EditAttributes()... }
+								>
 									@tabler.Edit(i.Props{Class: "size-4"})
 									Edit Subscription
 								</a>
@@ -272,7 +282,9 @@ templ (s *Subscription) Card() {
 									<input type="hidden" name="nickname" value={ s.GetTitle() }/>
 									<input type="hidden" name="confirmed" value="false"/>
 									<a
-										class="link link-hover"
+										class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+										role="menuitem"
+										tabindex="-1"
 										hx-post={ "/remove/subscription/" + s.GetID() }
 										hx-target={ partials.ModalContainerID.Target() }
 										hx-trigger="click consume"
@@ -282,7 +294,12 @@ templ (s *Subscription) Card() {
 									</a>
 								</form>
 								// Report issue action.
-								<a class="link link-hover" { s.ReportIssueAttributes()... }>
+								<a
+									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									role="menuitem"
+									tabindex="-1"
+									{ s.ReportIssueAttributes()... }
+								>
 									@tabler.FlagFilled(i.Props{Class: "size-4"})
 									Report an issue
 								</a>
@@ -336,63 +353,69 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							_="on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"
 							class="w-fit"
 						>
-							<div class="py-1">
-								// Mark all subscriptions action.
-								if len(response.Subscriptions) > 0 {
-									<form class="flex items-center">
-										<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
-										{{ var markText string }}
-										{{ var markURL string }}
-										{{ var markIcon templ.Component }}
-										if response.Filters.GetView() == models.ViewUnread {
-											{{ markText = "Mark All Read" }}
-											{{ markURL = "/list/subscriptions/mark/" + string(models.MarkRead) }}
-											{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
-											<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-										} else {
-											{{ markText = "Mark All Unread" }}
-											{{ markURL = "/list/subscriptions/mark/" + string(models.MarkUnread) }}
-											{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
-											<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
-										}
-										<a
-											hx-post={ markURL }
-											hx-target={ ContentID.Target() }
-											hx-include="article > input"
-											class="link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
-										>
-											@markIcon
-											<span class="sr-only">{ markText }</span>
-											{ markText }
-										</a>
-									</form>
-								}
-								<a
-									hx-get="/user/subscription/add/feed"
-									hx-target={ ContentID.Target() }
-									class="flex items-center link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
-								>
-									@tabler.Plus(i.Props{Class: "size-4"})
-									Add Feed Subscription
-								</a>
-								<a
-									hx-get="/user/subscription/add/search"
-									hx-target={ ContentID.Target() }
-									hx-include="#search-filters"
-									class="flex items-center link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
-								>
-									@tabler.Plus(i.Props{Class: "size-4"})
-									Add Search Subscription
-								</a>
-								<a
-									hx-get="/user/subscription/add/group"
-									hx-target={ ContentID.Target() }
-									class="flex items-center link link-hover focus:text-primary focus:outline-hidden px-4 py-2"
-								>
-									@tabler.Plus(i.Props{Class: "size-4"})
-									Add Group Subscription
-								</a>
-							</div>
+							// Mark all subscriptions action.
+							if len(response.Subscriptions) > 0 {
+								<form class="flex items-center">
+									<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
+									{{ var markText string }}
+									{{ var markURL string }}
+									{{ var markIcon templ.Component }}
+									if response.Filters.GetView() == models.ViewUnread {
+										{{ markText = "Mark All Read" }}
+										{{ markURL = "/list/subscriptions/mark/" + string(models.MarkRead) }}
+										{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
+										<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+									} else {
+										{{ markText = "Mark All Unread" }}
+										{{ markURL = "/list/subscriptions/mark/" + string(models.MarkUnread) }}
+										{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
+										<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+									}
+									<a
+										hx-post={ markURL }
+										hx-target={ ContentID.Target() }
+										hx-include="article > input"
+										class="group/item w-full link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+										role="menuitem"
+										tabindex="-1"
+									>
+										@markIcon
+										<span class="sr-only">{ markText }</span>
+										{ markText }
+									</a>
+								</form>
+							}
+							<a
+								hx-get="/user/subscription/add/feed"
+								hx-target={ ContentID.Target() }
+								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+								role="menuitem"
+								tabindex="-1"
+							>
+								@tabler.Plus(i.Props{Class: "size-4"})
+								Add Feed Subscription
+							</a>
+							<a
+								hx-get="/user/subscription/add/search"
+								hx-target={ ContentID.Target() }
+								hx-include="#search-filters"
+								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+								role="menuitem"
+								tabindex="-1"
+							>
+								@tabler.Plus(i.Props{Class: "size-4"})
+								Add Search Subscription
+							</a>
+							<a
+								hx-get="/user/subscription/add/group"
+								hx-target={ ContentID.Target() }
+								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+								role="menuitem"
+								tabindex="-1"
+							>
+								@tabler.Plus(i.Props{Class: "size-4"})
+								Add Group Subscription
+							</a>
 						</el-menu>
 					</el-dropdown>
 				}
@@ -741,7 +764,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					</div>
 					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 						<div>
-							<label for="subscription-filter-subscriptions-search" class="text-base/7 font-semibold">In Subscriptions</label>
+							<span class="text-base/7 font-semibold">In Subscriptions</span>
 						</div>
 						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 							<div class="col-span-full mt-2">
@@ -1019,7 +1042,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 					// Subscriptions.
 					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 						<div>
-							<label for="subscriptions-filter-subscriptions-search" class="text-base/7 font-semibold">In Subscriptions</label>
+							<span class="text-base/7 font-semibold">In Subscriptions</span>
 						</div>
 						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 							<div class="col-span-full mt-2">
