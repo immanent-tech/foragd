@@ -22,7 +22,7 @@
     "htmx.org": "^2.0.8",
     "hyperscript.org": "^0.9.14",
     "idiomorph": "^0.7.4",
-    "tailwindcss": "^4.1.18",
+    "tailwindcss": "^4.2.1",
     "transition-style": "^0.1.4"
   },
   "devDependencies": {
