@@ -22,7 +22,7 @@ require (
 	github.com/lmittmann/tint v1.1.3
 	github.com/mattn/go-isatty v0.0.20
 	github.com/oapi-codegen/runtime v1.1.2
-	github.com/samber/slog-chi v1.19.0
+	github.com/samber/slog-chi v1.18.0
 	github.com/samber/slog-multi v1.7.1
 	github.com/sebasvil20/templicons v1.1.0
 	github.com/stripe/stripe-go/v83 v83.2.1
