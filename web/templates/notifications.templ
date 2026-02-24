@@ -18,15 +18,18 @@ const DefaultNotificationTimeout = 5 * time.Second
 templ Notification(msg *models.UserMessage, timeout time.Duration) {
 	// Generate a random id for this notification (to allow hyperscript to remove by id).
 	{{ id := "notification-" + strconv.FormatUint(xxhash.Sum64String(msg.Summary), 10) }}
-	<div hx-swap-oob={ "beforeend:" + NotificationsID.Target() }>
+	<div
+		hx-swap-oob={ "beforeend:" + NotificationsID.Target() }
+		if timeout != 0 {
+			_={ "on load wait for " + timeout.String() + " then remove me" }
+		}
+		class="w-full"
+		id={ id }
+	>
 		<div
-			id={ id }
-			if timeout != 0 {
-				_={ "on load wait for " + timeout.String() + " then remove me" }
-			}
-			class="card card-sm pointer-events-auto bg-base-300 w-full max-w-sm shadow-xl"
+			class="card card-sm pointer-events-auto bg-base-300 w-full shadow-xl"
 		>
-			<div class="card-body">
+			<div class="card-body pr-4">
 				<div class="flex items-start">
 					<div class="shrink-0">
 						// Generate appropriate status icon.
@@ -48,17 +51,17 @@ templ Notification(msg *models.UserMessage, timeout time.Duration) {
 						{ *msg.Details }
 					</p>
 				}
-				// Close button.
-				<div class="absolute top-0 right-0 p-2">
-					<button
-						type="button"
-						class="btn btn-square btn-xs btn-ghost"
-						_={ "on click remove #" + id }
-					>
-						<span class="sr-only">Close</span>
-						@tabler.X()
-					</button>
-				</div>
+			</div>
+			// Close button.
+			<div class="absolute top-0 right-0 p-2">
+				<button
+					type="button"
+					class="btn btn-square btn-xs btn-ghost"
+					_={ "on click remove #" + id }
+				>
+					<span class="sr-only">Close</span>
+					@tabler.X(i.Props{Class: "text-neutral"})
+				</button>
 			</div>
 		</div>
 	</div>
