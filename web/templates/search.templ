@@ -22,6 +22,7 @@ templ searchBox() {
 					hx-post="/search"
 					hx-target={ ContentID.Target() }
 					hx-include="#search-filters,[id='timezone']"
+					hx-trigger="keydown[key=='Enter']"
 					id="global-search"
 					type="search"
 					name="text"
