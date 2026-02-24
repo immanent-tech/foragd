@@ -198,7 +198,7 @@
     @apply w-full sm:max-w-prose;
   }
 }
-
+/*
 @utility card-img {
     @apply relative block w-full;
   &::before {
@@ -210,7 +210,7 @@
   [alt] {
     @apply text-center font-bold text-white text-shadow-md;
   }
-}
+} */
 
 @utility soft-gradient-top {
   @apply relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20;
