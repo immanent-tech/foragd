@@ -404,17 +404,20 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 				slogctx.FromCtx(ctx).Warn("Forbidden response, trying with proxy",
 					slog.String("url", url),
 				)
-				return NewFeedFromURL(ctx, ProxyURL(ctx, url), id, validate)
+				if feed, err = NewFeedFromURL(ctx, ProxyURL(ctx, url), id, validate); err != nil {
+					return nil, err
+				}
+				// Clean up source URLs: remove proxied URL and re-add original URL as needed.
+				feed.SourceURLs = slices.DeleteFunc(feed.SourceURLs, func(e string) bool {
+					return strings.HasPrefix(e, os.Getenv("FORAGD_REVERSEPROXY_BASEURL"))
+				})
+				feed.SourceURLs = append(feed.SourceURLs, url)
+				return feed, err
 			}
 		}
 		return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
 	}
 	feed = NewSyndicationFeed(url, id, result)
-	// Add the URL passed in to the source URLs if the parsed feed does not contain it (for example, user entered a
-	// website rather than feed URL).
-	if !slices.Contains(feed.SourceURLs, url) {
-		feed.SourceURLs = append(feed.SourceURLs, url)
-	}
 
 	return feed, nil
 }

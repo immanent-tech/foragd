@@ -99,6 +99,7 @@ func HandleViewer() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
+
 			RenderExternalPage(&Viewer{
 				feed: feed,
 			}).ServeHTTP(res, req)
