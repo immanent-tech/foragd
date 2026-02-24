@@ -164,7 +164,12 @@ templ (s *Subscription) Card() {
 				<div class="flex flex-1 gap-x-2">
 					<span class="label text-xs/4 capitalize">
 						Updated&nbsp;
-						@showTimestamp(s.Subscription.GetUpdatedDate())
+						<relative-time
+							datetime={ s.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+							format="relative"
+						>
+							{ s.GetUpdatedDate().Format("Jan _2, 2006") }
+						</relative-time>
 					</span>
 				</div>
 				// Show stats if user requested.

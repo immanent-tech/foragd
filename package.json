@@ -10,6 +10,7 @@
     "build:css": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
   },
   "dependencies": {
+    "@github/relative-time-element": "^5.0.0",
     "@tailwindplus/elements": "^1.0.22",
     "daisyui": "^5.5.19",
     "date-fns": "^4.1.0",

@@ -19,8 +19,9 @@ _hyperscript.browserInit()
 // Tailwind Plus.
 import '@tailwindplus/elements'
 
-// custom element for timestamps.
-import './timestamps'
+// Relative time custom element.
+import '@github/relative-time-element'
+
 // custom element for youtube player.
 import './embed-youtube'
 

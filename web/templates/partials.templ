@@ -7,7 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"time"
 )
 
 // NotFound renders a layout appropriate to use for a 404 response.
@@ -29,12 +28,6 @@ templ NotFound() {
 			}
 		}
 	}
-}
-
-// showTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time
-// passes.
-templ showTimestamp(timestamp time.Time) {
-	<human-time datetime={ timestamp.Format("2006-01-02T15:04:05-0700") }>{ timestamp.Format("2006-01-02 15:04:05 -0700") }</human-time>
 }
 
 // HelpPopover can be used to render a help icon, that when clicked, will open a popover displaying informational or

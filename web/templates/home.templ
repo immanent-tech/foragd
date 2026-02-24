@@ -120,7 +120,12 @@ templ UserHome(data *models.HomeResponse) {
 											<div class="flex flex-1 gap-x-2">
 												<span class="label text-xs/4 capitalize">
 													Updated&nbsp;
-													@showTimestamp(subscription.GetUpdatedDate())
+													<relative-time
+														datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+														format="relative"
+													>
+														{ subscription.GetUpdatedDate().Format("ANSIC") }
+													</relative-time>
 												</span>
 											</div>
 											if models.UserFromCtx(ctx).GetSettings().ShowSubscriptionStats {

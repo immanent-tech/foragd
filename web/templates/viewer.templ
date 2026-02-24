@@ -204,7 +204,12 @@ templ ViewerResults(feed *models.Feed) {
 				<span class="">Last Updated</span>
 				<span class="label">
 					if !feed.GetTimestamp().Equal(models.UnixEpoch) {
-						@showTimestamp(feed.GetTimestamp())
+						<relative-time
+							datetime={ feed.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
+							format="relative"
+						>
+							{ feed.GetTimestamp().Format("Jan _2, 2006") }
+						</relative-time>
 					} else {
 						Unknown
 					}
@@ -267,7 +272,12 @@ templ viewerItemCard(item models.Item) {
 				}
 				<p class="col-span-full text-sm/6 capitalize">
 					Updated&nbsp;
-					@showTimestamp(item.GetTimestamp())
+					<relative-time
+						datetime={ item.GetTimestamp().Format("2006-01-02T15:04:05-0700") }
+						format="relative"
+					>
+						{ item.GetTimestamp().Format("Jan _2, 2006") }
+					</relative-time>
 				</p>
 			</div>
 			<div data-disable-scripting class="prose-summary">

@@ -111,7 +111,12 @@ templ (a *Article) Card() {
 				<div class="flex flex-1 gap-x-2">
 					<span class="label text-xs/4 capitalize">
 						Updated&nbsp;
-						@showTimestamp(a.GetUpdatedDate())
+						<relative-time
+							datetime={ a.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+							format="relative"
+						>
+							{ a.GetUpdatedDate().Format("ANSIC") }
+						</relative-time>
 					</span>
 				</div>
 				<form>
@@ -314,7 +319,12 @@ templ (a *Article) Content() {
 							// Show updated date.
 							<p class="col-span-full text-sm/6 capitalize">
 								Updated&nbsp;
-								@showTimestamp(a.GetUpdatedDate())
+								<relative-time
+									datetime={ a.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+									format="relative"
+								>
+									{ a.GetUpdatedDate().Format("ANSIC") }
+								</relative-time>
 							</p>
 						</div>
 						<form class="p-2">
