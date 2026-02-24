@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.63.0](https://github.com/immanent-tech/foragd/compare/v0.62.0...v0.63.0) (2026-02-24)
+
+
+### Features
+
+* **templates:** :fire: remove custom relative time custom element with packaged version ([1a620c4](https://github.com/immanent-tech/foragd/commit/1a620c4908f373a41fae1a56e8515285412898f0))
+* **templates:** :sparkles: show search results on hitting enter key ([070406a](https://github.com/immanent-tech/foragd/commit/070406aeafc19e42d18673ddf754b64eaeca2795))
+
+
+### Bug Fixes
+
+* **templates:** :lipstick: fix favorites filter menu item ([5e158c6](https://github.com/immanent-tech/foragd/commit/5e158c6751c013d65b827662293735dd980c73c8))
+
+
+### Reverts
+
+* :rewind: switch back to hosted tailwindplus elements due to issues in production deployment ([31ac5f2](https://github.com/immanent-tech/foragd/commit/31ac5f270e3916ed982979ba8c5c2a65e224094d))
+
 ## [0.62.0](https://github.com/immanent-tech/foragd/compare/v0.61.0...v0.62.0) (2026-02-24)
 
 
