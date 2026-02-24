@@ -316,8 +316,10 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
 			hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
 			hx-replace-url="true"
 			hx-swap="morph:innerHTML transition:true"
-			class={ "link link-hover flex px-4 py-2 text-sm capitalize items-center",
+			class={ "group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2",
 			templ.KV(filters.OnlyFavorites,"text-primary font-semibold") }
+			role="menuitem"
+			tabindex="-1"
 		>
 			if filters.OnlyFavorites {
 				@tabler.Heart()
