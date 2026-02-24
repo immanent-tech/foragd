@@ -24,8 +24,7 @@ type InternalError struct {
 // HandleInternalError handles display errors on internal pages (pages accessible to logged in users).
 func HandleInternalError(err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		var apiErr *models.APIError
-		if errors.As(err, &apiErr) {
+		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 			apiErr.WriteLog(req.Context())
 			res.WriteHeader(apiErr.HTTPStatus())
 			if apiErr.UserMessage == nil {
