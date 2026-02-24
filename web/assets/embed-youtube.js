@@ -1,3 +1,5 @@
+import htmx from 'htmx.org/dist/htmx.esm'
+
 class EmbedYoutube extends HTMLElement {
   constructor() {
     super()
@@ -21,6 +23,8 @@ class EmbedYoutube extends HTMLElement {
   connectedCallback() {
     this._render()
     this._loadAPI()
+    window.htmx = htmx
+    htmx.process(root)
   }
 
   attributeChangedCallback(name, oldVal, newVal) {

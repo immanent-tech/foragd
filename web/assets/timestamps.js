@@ -1,7 +1,8 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-import { parseISO, intlFormatDistance } from 'date-fns'
+import { intlFormatDistance, parseISO } from 'date-fns'
+import htmx from 'htmx.org/dist/htmx.esm'
 
 export function FormatTimestamp(object) {
   const absoluteTime = object.getAttribute('datetime')
@@ -37,6 +38,8 @@ window.customElements.define(
     connectedCallback() {
       this.alive = true
       this.update(true)
+      window.htmx = htmx
+      htmx.process(root)
     }
 
     disconnectedCallback() {
