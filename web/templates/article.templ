@@ -497,13 +497,14 @@ templ (a *Article) Content() {
 templ getRemoteContentButton(a *Article) {
 	// Show a toggle for fetching full content where it appears the feed content is only a summary
 	// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
-	<button
+	<a
+		role="button"
 		class="btn btn-primary"
 		hx-get={ "/view/article/" + a.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-swap="morph:innerHTML transition:true"
 		hx-replace-url="true"
-		hx-trigger="click"
+		hx-trigger="click consume"
 		hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
 	>
 		// _="on htmx:afterResponse[detail.failed] add @disabled to me"
@@ -514,7 +515,7 @@ templ getRemoteContentButton(a *Article) {
 			@tabler.FileDownload()
 			Get Remote Content
 		}
-	</button>
+	</a>
 }
 
 templ viewRemoteContentButton(a *Article) {

@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"slices"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -284,6 +286,11 @@ func HandleViewArticle() http.HandlerFunc {
 			switch {
 			case err != nil:
 				// Couldn't fetch remote article content, show an error message.
+				slogctx.FromCtx(req.Context()).Warn("Unable to fetch remote content for article.",
+					slog.String("item_id", article.GetID()),
+					slog.String("item_url", article.GetLink()),
+					slog.Any("error", err),
+				)
 				res.Header().Set(htmx.HeaderReswap, "none")
 				res.Header().Set(htmx.HeaderReplaceUrl, "false")
 				RenderPartial(&Notification{
@@ -296,6 +303,10 @@ func HandleViewArticle() http.HandlerFunc {
 				return
 			case content == "":
 				// Remote content is same as feed content.
+				slogctx.FromCtx(req.Context()).Warn("No remote content returned for article.",
+					slog.String("item_id", article.GetID()),
+					slog.String("item_url", article.GetLink()),
+				)
 				res.Header().Set(htmx.HeaderReswap, "none")
 				res.Header().Set(htmx.HeaderReplaceUrl, "false")
 				RenderPartial(&Notification{
@@ -552,20 +563,19 @@ func extractArticleFromURL(url string) (string, error) {
 		return "", fmt.Errorf("extract article from url %s: %w", url, err)
 	}
 
-	articleBufPtr, ok := articleBufPool.Get().(*bytes.Buffer)
+	buf, ok := articleBufPool.Get().(*bytes.Buffer)
 	if !ok {
 		return "", errors.New("unable to allocate article content buffer")
 	}
-	articleBuf := *articleBufPtr
 	defer func() {
-		articleBufPtr.Reset()
-		bufPool.Put(articleBufPtr)
+		buf.Reset()
+		bufPool.Put(buf)
 	}()
 
-	if err := remote.RenderHTML(&articleBuf); err != nil {
+	if err := remote.RenderHTML(buf); err != nil {
 		return "", fmt.Errorf("render article html: %w", err)
 	}
-	content := validation.SanitizeString(articleBuf.String())
+	content := validation.SanitizeString(buf.String())
 	return content, nil
 }
 
