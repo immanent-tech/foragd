@@ -28,6 +28,7 @@
     'cv11' 1;
   --sidebar-width: var(--w-sm);
   scrollbar-gutter: stable;
+  scrollbar-color: var(--color-primary);
 }
 
 @supports (font-variation-settings: normal) {
