@@ -233,6 +233,7 @@ func HandleLoginError(res http.ResponseWriter, req *http.Request) {
 		slog.String("client_id", req.URL.Query().Get("client_id")),
 		slog.String("error_code", req.URL.Query().Get("error")),
 		slog.String("error_description", req.URL.Query().Get("error_description")),
+		slog.String("tracking", req.URL.Query().Get("tracking")),
 	)
 	HandleExternalError(&models.APIError{
 		InternalError: errors.New("login failed"),
