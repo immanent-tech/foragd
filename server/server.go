@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -135,7 +136,7 @@ func Start(logger *slog.Logger) error {
 		r.Get("/about", handlers.HandleAbout())
 		// Feed Viewer.
 		r.Get("/viewer", handlers.HandleViewer())
-		r.Get("/viewer/url/*", handlers.HandleViewer())
+		r.With(httprate.LimitByIP(10, time.Minute)).Get("/viewer/url/*", handlers.HandleViewer())
 		r.With(middlewares.RequireHTMX).Post("/viewer", handlers.HandleViewer())
 		// Help documentation.
 		r.Get("/help", handlers.DocumentationHandler())
