@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.67.0](https://github.com/immanent-tech/foragd/compare/v0.66.0...v0.67.0) (2026-02-25)
+
+
+### Features
+
+* **models:** :sparkles: add a method to detect whether string content is wrapped in a specific html element ([edeca32](https://github.com/immanent-tech/foragd/commit/edeca3244eba370f7f653a8db77ad6c580c6b690))
+
+
+### Bug Fixes
+
+* **search:** :bug: fix triggers for search requests ([4f4dbb1](https://github.com/immanent-tech/foragd/commit/4f4dbb1292001cc2224ac83a8b5a2264b77f8db9))
+
 ## [0.66.0](https://github.com/immanent-tech/foragd/compare/v0.65.0...v0.66.0) (2026-02-25)
 
 
