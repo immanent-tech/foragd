@@ -146,7 +146,7 @@ func IsHTML(s string) bool {
 	}
 
 	// Signal 8: Starts with a tag (strong partial HTML indicator)
-	if bytes.HasPrefix([]byte(trimmed), []byte("<")) && tagPattern.MatchString(trimmed[:min(50, len(trimmed))]) {
+	if strings.HasPrefix(trimmed, "<") && tagPattern.MatchString(trimmed[:min(50, len(trimmed))]) {
 		score += 10
 	}
 
@@ -156,6 +156,23 @@ func IsHTML(s string) bool {
 	}
 	confidence := float64(score) / 100.0
 	return confidence >= 0.10 // low threshold — we want to catch partials
+}
+
+// IsHTMLElement returns a boolean indicating whether the given string is the given HTML element.
+func IsHTMLElement(str, tag string) bool {
+	pattern1 := regexp.MustCompile(`(?i)<(/?)(?:` + tag + `)(?:\s[^>]*)?>`)
+	pattern2 := regexp.MustCompile(`(?i)<(?:` + tag + `)\b[^>]*?/?>`)
+	trimmed := strings.TrimSpace(str)
+	switch {
+	case len(trimmed) == 0:
+		return false
+	case strings.HasPrefix(trimmed, "<") && pattern1.MatchString(trimmed[:min(50, len(trimmed))]):
+		return true
+	case pattern2.MatchString(trimmed):
+		return true
+	default:
+		return false
+	}
 }
 
 func buildTagPattern() *regexp.Regexp {
