@@ -69,7 +69,8 @@
     "posts",
     "docs",
     "opml",
-    "reverseproxy"
+    "reverseproxy",
+    "client"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
