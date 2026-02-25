@@ -75,9 +75,6 @@ func Start(logger *slog.Logger) error {
 	// topic := marshaler.Name(handlers.UpdatesFound{})
 	// updatesHandler := pubsub.AddSSEHandler(topic, &handlers.UpdatesStream{})
 
-	// Set up routes.
-	rateLimiter := middlewares.NewRateLimiter()
-
 	// Set up a new chi router.
 	router := chi.NewRouter()
 
@@ -94,7 +91,7 @@ func Start(logger *slog.Logger) error {
 		middlewares.ContentSecurityPolicy,
 		middlewares.GeneralSecurity,
 		middlewares.PreventCSRF,
-		middlewares.RateLimit(rateLimiter),
+		middlewares.RateLimit,
 		middlewares.SetupImgProxy(cfg.ImgProxy.Key, cfg.ImgProxy.Salt),
 		middleware.Compress(cfg.CompressionLevel, cfg.CompressionMimetypes...),
 		middleware.StripSlashes,

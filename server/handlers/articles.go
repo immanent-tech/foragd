@@ -20,6 +20,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -558,7 +559,7 @@ var articleBufPool = sync.Pool{
 // ExtractArticleFromURL fetches the text content of the given URL and attempts to extract the main article content from
 // it.
 func extractArticleFromURL(url string) (string, error) {
-	remote, err := readability.FromURL(url, models.DefaultHTTPRequestTimeout)
+	remote, err := readability.FromURL(url, client.DefaultHTTPRequestTimeout)
 	if err != nil {
 		return "", fmt.Errorf("extract article from url %s: %w", url, err)
 	}
