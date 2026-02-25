@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strconv"
 
 	"github.com/elastic/go-elasticsearch/v9"
@@ -261,7 +262,23 @@ func NewRequest(
 			slogctx.FromCtx(ctx).Error("Bulk request failed.", slog.Any("error", err))
 			respCh <- Response{Err: err}
 		case resp.Errors:
-			slogctx.FromCtx(ctx).Warn("Bulk request completed with some operation errors.")
+			for itemResp := range slices.Values(resp.Items) {
+				for op, resp := range itemResp {
+					if resp.Error != nil {
+						var attrs []slog.Attr
+						attrs = append(attrs, slog.String("op", op.Name))
+						attrs = append(attrs, slog.String("error_type", resp.Error.Type))
+						if resp.Id_ != nil {
+							attrs = append(attrs, slog.String("doc_id", *resp.Id_))
+						}
+						if resp.Error.Reason != nil {
+							attrs = append(attrs, slog.String("error_reason", *resp.Error.Reason))
+						}
+						slogctx.FromCtx(ctx).LogAttrs(ctx, slog.LevelWarn, "Bulk op failed.", attrs...)
+					}
+				}
+
+			}
 			respCh <- Response{Err: ErrBulkHasErrors, Responses: GetOperationResponses(resp.Items)}
 		default:
 			respCh <- Response{Responses: GetOperationResponses(resp.Items)}
