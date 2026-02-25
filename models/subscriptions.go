@@ -28,6 +28,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/immanent-tech/go-syndication/opengraph"
 	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/foragd/models/schema"
@@ -703,10 +704,15 @@ func ProcessSubscriptionRequest(
 
 		// Try to find an image for the feed if it does not supply one.
 		if newFeed.GetImage() == nil {
-			if err := FindFeedImage(ctx, newFeed); err != nil {
+			og, err := opengraph.ParseURL(ctx, newFeed.GetLink())
+			if err != nil {
 				slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
 					slog.String("feed", newFeed.GetTitle()),
 				)
+			}
+			newFeed.Image = &types.ImageInfo{
+				URL:   og.Image,
+				Title: newFeed.GetDescription(),
 			}
 		}
 		// Validate the new feed data.

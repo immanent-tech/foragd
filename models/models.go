@@ -19,10 +19,6 @@ import (
 )
 
 const (
-	// DefaultHTTPRequestTimeout is the maximum time allowed for a background HTTP request to execute.
-	DefaultHTTPRequestTimeout = 30 * time.Second
-	// DefaultRequestRetries is the default number of retries for API requests.
-	DefaultRequestRetries = 3
 	// DefaultPaginationSize is the default number of docs to fetch when paginating through results from elasticsearch.
 	DefaultPaginationSize = 5000
 )

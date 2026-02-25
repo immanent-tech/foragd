@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cespare/xxhash/v2"
@@ -20,6 +21,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
+	"github.com/immanent-tech/go-syndication/opengraph"
 	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/foragd/models/schema"
@@ -350,7 +352,7 @@ func (i *Item) IsNewer(since time.Time) bool {
 }
 
 // NewFeedItem generates an Item from the underlying feed data.
-func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
+func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
 	var itemID ItemID
 	if sourceID := source.GetID(); sourceID != "" {
@@ -380,14 +382,22 @@ func NewFeedItem(source *feeds.Item, feed *Feed) *Item {
 	// Add youtube extension data if found.
 	addYoutubeExtension(source, item)
 
+	var wg sync.WaitGroup
+
 	// Set the image.
 	if source.GetImage() != nil {
 		// Source has an image, use that.
 		item.Image = source.GetImage()
 	} else {
-		if img, err := feeds.DiscoverPageImage(source.GetLink(), DefaultHTTPRequestTimeout); err == nil && img != nil {
-			item.Image = img
-		}
+		wg.Go(func() {
+			og, err := opengraph.ParseURL(ctx, source.GetLink())
+			if err != nil {
+				return
+			}
+			item.Image = &types.ImageInfo{
+				URL: og.Image,
+			}
+		})
 	}
 
 	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.

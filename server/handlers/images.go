@@ -23,6 +23,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/google/gcs"
@@ -232,7 +233,7 @@ func LoadCachedImage(res http.ResponseWriter, req *http.Request) {
 
 func requestRemoteImage(ctx context.Context, remoteURL string) (*resty.Response, error) {
 	// Load the http client used for making requests to the image proxy.
-	httpClient := loadHTTPClient()
+	httpClient := client.LoadHTTPClient()
 
 	// Fetch the image (either from proxy or direct).
 	resp, err := httpClient.R().

@@ -18,9 +18,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
-	feeds "github.com/immanent-tech/go-syndication"
-
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -120,9 +117,6 @@ func NewManager(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("new scheduler: %w", err)
 	}
-
-	// Set the User-Agent string to be used for underlying requests to fetch feeds and content.
-	feeds.UserAgent = config.AppName + "/" + config.Version + " (+https://foragd.app/policies/bot)"
 
 	Manager = &manager{
 		Scheduler: scheduler,

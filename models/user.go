@@ -14,6 +14,7 @@ import (
 	"github.com/stripe/stripe-go/v83"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -87,7 +88,7 @@ func UpdateUser(ctx context.Context, userID UserID, updates map[string]any) erro
 	updates["updated_at"] = time.Now().UTC()
 	if err := elastic.UpdateDoc(ctx, schema.UsersIndexRW, userID, updates,
 		elastic.WithRefresh("true"),
-		elastic.WithRetryOnConflict(DefaultRequestRetries),
+		elastic.WithRetryOnConflict(client.DefaultRequestRetries),
 	); err != nil {
 		return fmt.Errorf("update user: %w", err)
 	}

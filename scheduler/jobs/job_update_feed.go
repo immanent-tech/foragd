@@ -15,8 +15,9 @@ import (
 	"sync"
 	"time"
 
-	feeds "github.com/immanent-tech/go-syndication"
 	slogctx "github.com/veqryn/slog-context"
+
+	feeds "github.com/immanent-tech/go-syndication"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"

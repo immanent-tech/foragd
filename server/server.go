@@ -22,9 +22,6 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
-	feeds "github.com/immanent-tech/go-syndication"
-
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/handlers"
@@ -341,9 +338,6 @@ func Start(logger *slog.Logger) error {
 	// 		)
 	// 	}
 	// }()
-
-	// Set the User-Agent string to be used for underlying requests to fetch feeds and content.
-	feeds.UserAgent = config.AppName + "/" + config.Version + " (+https://foragd.app/policies/bot)" //nolint:reassign
 
 	logger.Info("Starting server...",
 		slog.String("address", svr.Addr),

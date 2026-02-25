@@ -23,7 +23,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-resty/resty/v2"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/yuin/goldmark"
@@ -37,7 +36,6 @@ import (
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 
-	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
@@ -55,13 +53,6 @@ var (
 
 var defaultHandlerChain = alice.New(storePath)
 var listHandlerChain = defaultHandlerChain.Append(parseFilters)
-
-var loadHTTPClient = sync.OnceValue(func() *resty.Client {
-	return resty.New().
-		SetHeader("User-Agent", config.AppName+"/"+config.Version).
-		SetHeader("Accept", "*/*").
-		SetHeader("Accept-Encoding", "gzip, deflate")
-})
 
 var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
 	return goldmark.New(

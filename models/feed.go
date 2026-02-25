@@ -29,6 +29,7 @@ import (
 	"github.com/immanent-tech/go-syndication/types"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
@@ -388,7 +389,12 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	result, err := feeds.NewFeedFromURL(ctx, url, feeds.PerformValidation(validate))
+	result, err := feeds.NewFeedFromURL(
+		ctx,
+		url,
+		feeds.PerformValidation(validate),
+		feeds.WithClient(client.LoadHTTPClient()),
+	)
 	if err != nil {
 		if validateErrs, ok := errors.AsType[validator.ValidationErrors](err); ok && validate {
 			slogctx.FromCtx(ctx).Warn("Feed is invalid, continuing without validation",
@@ -417,7 +423,7 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 		}
 		return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
 	}
-	feed = NewSyndicationFeed(url, id, result)
+	feed = NewSyndicationFeed(ctx, url, id, result)
 
 	return feed, nil
 }
@@ -457,7 +463,7 @@ func ProxyURL(ctx context.Context, originalURL string) string {
 func FindFeedImage(ctx context.Context, feed *Feed) error {
 	var timeout time.Duration
 	if deadline, ok := ctx.Deadline(); !ok {
-		timeout = DefaultHTTPRequestTimeout
+		timeout = client.DefaultHTTPRequestTimeout
 	} else {
 		timeout = time.Until(deadline)
 	}
@@ -472,7 +478,7 @@ func FindFeedImage(ctx context.Context, feed *Feed) error {
 }
 
 // NewSyndicationFeed converts the raw types.FeedSource into a Feed object.
-func NewSyndicationFeed(url string, id FeedID, source *feeds.Feed) *Feed {
+func NewSyndicationFeed(ctx context.Context, url string, id FeedID, source *feeds.Feed) *Feed {
 	if id == "" {
 		id = "feed_" + strconv.FormatUint(xxhash.Sum64String(source.GetLink()), 10)
 	}
@@ -495,7 +501,7 @@ func NewSyndicationFeed(url string, id FeedID, source *feeds.Feed) *Feed {
 	}
 	// Extract Items from source and add to Feed.
 	for i := range slices.Values(source.GetItems()) {
-		feed.Items = append(feed.Items, *NewFeedItem(&i, feed))
+		feed.Items = append(feed.Items, *NewFeedItem(ctx, &i, feed))
 	}
 
 	// Add the url used to find the feed to the source URLs if needed.
