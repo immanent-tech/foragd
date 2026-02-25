@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.66.0](https://github.com/immanent-tech/foragd/compare/v0.65.0...v0.66.0) (2026-02-25)
+
+
+### Features
+
+* **elastic:** :loud_sound: log individual bulk operation failures as warning level logs ([b6eef59](https://github.com/immanent-tech/foragd/commit/b6eef5922febb4ff61f4309eb94240766bc88edb))
+* **models:** :sparkles: try to discover an item image from original page if the item does not contain one ([e627d29](https://github.com/immanent-tech/foragd/commit/e627d2919033f8d2f7d80293086c93420b871286))
+* **server:** :lock: add an explicit rate limit by ip on viewer url route ([40d936b](https://github.com/immanent-tech/foragd/commit/40d936b50d5cecc5b6d9656863c3bf7f49d1823a))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: fix fetching remote content sending duplicate requests ([5a24925](https://github.com/immanent-tech/foragd/commit/5a24925de1b12bdc0f6875e303e6d094e7e590b6))
+* **templates:** :bug: fix display and removal action for error messages ([00c20e6](https://github.com/immanent-tech/foragd/commit/00c20e6f2a1df37e41068915dba9c61b7a04e14f))
+* **templates:** :bug: fix triggers for search results on global search bar ([22e4d42](https://github.com/immanent-tech/foragd/commit/22e4d427335eb0dfbbb1d2571918df4227e856f1))
+
 ## [0.65.0](https://github.com/immanent-tech/foragd/compare/v0.64.0...v0.65.0) (2026-02-24)
 
 
