@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.68.0](https://github.com/immanent-tech/foragd/compare/v0.67.0...v0.68.0) (2026-02-25)
+
+
+### Features
+
+* **client:** :sparkles: implement a http client package ([271a28c](https://github.com/immanent-tech/foragd/commit/271a28cae8f7a07b1a21a83858ac6c7a88f04ea6))
+
+
+### Performance Improvements
+
+* **server:** :zap: adjust rate-limiting ([8efff26](https://github.com/immanent-tech/foragd/commit/8efff26fef8ef3788d86ee2d2e4e633a1f9a8170))
+
 ## [0.67.0](https://github.com/immanent-tech/foragd/compare/v0.66.0...v0.67.0) (2026-02-25)
 
 
