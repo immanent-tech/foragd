@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -154,18 +155,17 @@ func readPost(details models.FileDetails) (*models.MarkdownFile, error) {
 	}
 
 	mdw := loadMarkdownWriter()
-	postBufPtr, ok := bufPool.Get().(*bytes.Buffer)
+	buf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
 		return nil, fmt.Errorf("allocate buffer: %w", err)
 	}
-	postBuf := *postBufPtr
 	defer func() {
-		postBufPtr.Reset()
-		bufPool.Put(postBufPtr)
+		buf.Reset()
+		bufPool.Put(buf)
 	}()
 
 	parserCtx := parser.NewContext()
-	if err := mdw.Convert(contents, &postBuf, parser.WithContext(parserCtx)); err != nil {
+	if err := mdw.Convert(contents, buf, parser.WithContext(parserCtx)); err != nil {
 		return nil, fmt.Errorf("convert markdown: %w", err)
 	}
 
@@ -178,7 +178,7 @@ func readPost(details models.FileDetails) (*models.MarkdownFile, error) {
 	return &models.MarkdownFile{
 		Frontmatter: frontmatter,
 		Details:     details,
-		Content:     postBuf.Bytes(),
+		Content:     buf.Bytes(),
 	}, nil
 }
 
@@ -196,18 +196,28 @@ func HandlePostsFeed() http.HandlerFunc {
 			return
 		}
 
+		baseURL := os.Getenv("FORAGD_BASEURL")
+		if baseURL == "" {
+			// If file is not found, return HTTP 404 error.
+			slogctx.FromCtx(req.Context()).Error("Could not read base URL from env.",
+				slog.Any("error", err),
+			)
+			http.NotFound(res, req)
+			return
+		}
+
 		// Generate RSS file.
 		rssFile := rss.NewRSS(
 			"Posts from the Foragd Team",
 			"Comparisons, opinions and other content from the Foragd team",
-			"https://foragd.app",
+			baseURL,
 			rss.WithCopyright("Copyright 2026 Joshua Rich <joshua.rich@gmail.com>"),
 			rss.WithManagingEditor("hello@immanent.tech (Immanent Tech)"),
 			rss.WithWebmaster("hello@immanent.tech (Immanent Tech)"),
 			rss.WithChannelLanguage("en-us"),
 			rss.WithChannelImage(&rss.Image{
-				Link:  "https://foragd.app",
-				URL:   "https://foragd.app/content/logo-color.webp",
+				Link:  baseURL,
+				URL:   baseURL + "/content/logo-color.webp",
 				Title: "Foragd Logo",
 			}),
 			rss.WithUpdatePeriod("monthly"),
@@ -229,13 +239,22 @@ func HandlePostsFeed() http.HandlerFunc {
 			item := rss.NewItem(
 				rss.WithItemTitle(data.Frontmatter.Title),
 				rss.WithItemDescription(data.Frontmatter.Description),
-				rss.WithItemLink("https://foragd.app/posts/"+data.Details.Path),
-				rss.WithItemGUID(rss.GenerateGUID("https://foragd.app/posts/"+data.Details.Path, true)),
+				rss.WithItemLink(baseURL+"/posts/"+data.Details.Path),
+				rss.WithItemGUID(rss.GenerateGUID(baseURL+"/posts/"+data.Details.Path, true)),
+				rss.WithItemImage(&types.ImageInfo{
+					Title: data.Frontmatter.Title,
+					URL:   baseURL + *data.Frontmatter.Image,
+				}),
 				rss.WithItemContent(data.Content),
 				rss.WithItemPublishedDate(published),
 			)
 			rssFile.Channel.Items = append(rssFile.Channel.Items, *item)
 		}
+
+		slices.SortFunc(rssFile.Channel.Items, func(a rss.Item, b rss.Item) int {
+			return a.GetUpdatedDate().Compare(b.GetUpdatedDate())
+		})
+		slices.Reverse(rssFile.Channel.Items)
 
 		// Write RSS file in response.
 		res.Header().Set("Content-Type", types.MimeTypesRSS[0])
