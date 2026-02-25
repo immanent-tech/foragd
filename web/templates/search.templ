@@ -19,10 +19,6 @@ templ searchBox() {
 			>
 				@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
 				<input
-					hx-post="/search"
-					hx-target={ ContentID.Target() }
-					hx-include="#search-filters,[id='timezone']"
-					hx-trigger="keydown[key=='Enter']"
 					id="global-search"
 					type="search"
 					name="text"
@@ -44,12 +40,19 @@ templ searchBox() {
 				</button>
 			</label>
 		</search>
+		// <div
+		// 	hx-post="/search"
+		// 	hx-target={ ContentID.Target() }
+		// 	hx-include="#search-filters,[id='timezone']"
+		// 	hx-trigger="keydown[key=='Enter'] from:#global-search consume"
+		// ></div>
 		<el-command-list
 			hx-post="/search/suggestions"
 			hx-target="#global-search-suggestions"
 			hx-include="#search-filters,[id='timezone'],[id='global-search']"
 			hx-trigger="keyup changed delay:500ms from:#global-search"
 			hx-sync="#global-search:abort"
+			hx-disinherit="*"
 			id="global-search-suggestions"
 			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-128 sm:max-h-196 sm:h-fit scroll-py-2 overflow-y-auto p-2 rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
 			_="on keydown[key is 'Escape'] add .hidden"
@@ -66,7 +69,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			hx-post="/search"
 			hx-target={ ContentID.Target() }
 			hx-include="#search-filters,[id='timezone']"
-			hx-trigger="click"
+			hx-trigger="click consume"
 			_="on htmx:beforeRequest add @hidden to #global-search-suggestions"
 		>
 			<input type="hidden" name="text" value={ suggestions.Search.Text }/>
@@ -205,7 +208,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					hx-push-url="true"
 					hidden
 					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-					_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
+					_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to '' end"
 				>
 					@tabler.File(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
 					<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
