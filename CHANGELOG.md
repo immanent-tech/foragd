@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.68.1](https://github.com/immanent-tech/foragd/compare/v0.68.0...v0.68.1) (2026-02-26)
+
+
+### Performance Improvements
+
+* **middlewares:** :zap: adjust rate-limiting ([5626650](https://github.com/immanent-tech/foragd/commit/5626650cd9ada8280ad4821466e632068be47945))
+
 ## [0.68.0](https://github.com/immanent-tech/foragd/compare/v0.67.0...v0.68.0) (2026-02-25)
 
 
