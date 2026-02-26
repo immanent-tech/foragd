@@ -4,8 +4,10 @@
 package middlewares
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/angelofallars/htmx-go"
@@ -14,6 +16,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/foragd/logging"
+	gcp "github.com/immanent-tech/foragd/providers/google"
 )
 
 var configureLogging = sync.OnceValue(func() slogchi.Config {
@@ -54,6 +57,15 @@ func Logger(next http.Handler) http.Handler {
 					),
 				),
 			)
+		}
+
+		if googleCfg, err := gcp.LoadConfig(); err == nil && googleCfg.ProjectID != "" {
+			traceHeader := req.Header.Get("X-Cloud-Trace-Context")
+			if traceParts := strings.Split(traceHeader, "/"); len(traceParts) > 0 && len(traceParts[0]) > 0 {
+				logger = logger.With(
+					slog.String("trace", fmt.Sprintf("projects/%s/traces/%s", googleCfg.ProjectID, traceParts[0])),
+				)
+			}
 		}
 		// Add request ID to logger in context.
 		ctx := slogctx.With(req.Context(), slog.String("id", middleware.GetReqID(req.Context())))
