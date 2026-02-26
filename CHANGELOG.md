@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.69.0](https://github.com/immanent-tech/foragd/compare/v0.68.1...v0.69.0) (2026-02-26)
+
+
+### Features
+
+* **gcp:** :sparkles: gather instance id from metadata server when loading gcp config ([3e6267d](https://github.com/immanent-tech/foragd/commit/3e6267db98fd3cdbcb08b29b8bb4a7dfc87738a6))
+
+
+### Bug Fixes
+
+* **resend:** :bug: properly initialise email object ([a8422cc](https://github.com/immanent-tech/foragd/commit/a8422cc60abec1f6e90d572be56f9b877e2d4622))
+
+
+### Performance Improvements
+
+* **middlewares:** :zap: rate limit by path (and drop requests per second to compensate) ([ffd961e](https://github.com/immanent-tech/foragd/commit/ffd961ea8d3d8244c367903ae502d3b5b1c80584))
+
 ## [0.68.1](https://github.com/immanent-tech/foragd/compare/v0.68.0...v0.68.1) (2026-02-26)
 
 
