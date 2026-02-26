@@ -69,6 +69,7 @@ func WithTag(key string, value string) EmailOption {
 // applied.
 func SendTemplatedEmail(ctx context.Context, templateID string, options ...EmailOption) error {
 	template := &email{
+		Email: &resend.Email{},
 		template: &resend.EmailTemplate{
 			Id:        templateID,
 			Variables: make(map[string]interface{}),
