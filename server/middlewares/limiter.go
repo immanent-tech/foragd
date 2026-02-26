@@ -6,9 +6,7 @@ package middlewares
 import (
 	"log/slog"
 	"net/http"
-	"os"
 	"slices"
-	"strings"
 	"sync"
 
 	"github.com/didip/tollbooth/v8"
@@ -19,7 +17,7 @@ import (
 
 const (
 	clientIPHeader       = "X-Forwarded-For"
-	maxRequestsPerSecond = 1
+	maxRequestsPerSecond = 50
 )
 
 var rateLimiter RateLimiter
@@ -55,11 +53,6 @@ func RateLimit(next http.Handler) http.Handler {
 		ratelimiter := NewRateLimiter()
 		// Ignore rate-limiting in for health probes in GCP.
 		if slices.Contains([]string{"/livenessProbe"}, req.URL.Path) {
-			next.ServeHTTP(res, req)
-			return
-		}
-		// Ignore rate-limiting from self.
-		if strings.HasSuffix(os.Getenv("FORAGD_BASEURL"), req.Host) {
 			next.ServeHTTP(res, req)
 			return
 		}
