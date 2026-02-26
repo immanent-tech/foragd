@@ -24,9 +24,10 @@ var cfg = Config{
 
 // Config contains the pubsub configuration options.
 type Config struct {
-	ProjectID string `koanf:"project" validate:"required"`
-	Service   string
-	Revision  string
+	ProjectID  string `koanf:"project" validate:"required"`
+	InstanceID string
+	Service    string
+	Revision   string
 }
 
 // LoadConfig loads the auth0 configuration and ensures this is only done
@@ -39,6 +40,9 @@ var LoadConfig = sync.OnceValues(func() (*Config, error) {
 		// Try to fetch details from metadata endpoint.
 		cfg.ProjectID, _ = queryMetadataServer("/computeMetadata/v1/project/project-id")
 	}
+
+	cfg.InstanceID, _ = queryMetadataServer("/computeMetadata/v1/instance/id")
+
 	if err := validation.Validate.Struct(cfg); err != nil {
 		return nil, fmt.Errorf("google: unable to validate config: %w", err)
 	}
