@@ -43,14 +43,11 @@ var loadClient = sync.OnceValues(func() (*resend.Client, error) {
 // loadConfig loads the Resend configuration and ensures this is only done one time, no matter how many times it is
 // called.
 var loadConfig = sync.OnceValue(func() error {
-	var err error
-	cfg, err = config.Load[Config](ConfigEnvPrefix)
-	if err != nil {
+	if err := config.Load(ConfigEnvPrefix, &cfg); err != nil {
 		return fmt.Errorf("load environment variables: %w", err)
 	}
 
-	err = validation.Validate.Struct(cfg)
-	if err != nil {
+	if err := validation.Validate.Struct(cfg); err != nil {
 		return fmt.Errorf("validate config: %w", err)
 	}
 	return nil

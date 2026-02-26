@@ -84,19 +84,13 @@ var loadConfigOnce = sync.OnceValues(func() (*elasticsearch.Config, error) {
 	var err error
 	switch config.CurrentEnvironment {
 	case config.EnvDevelopment:
-		var c ConfigDevelopment
-		c, err = config.Load[ConfigDevelopment](elasticConfigEnvPrefix)
-		if err != nil {
+		if err = config.Load(elasticConfigEnvPrefix, &cfg.Development); err != nil {
 			return nil, fmt.Errorf("unable to load development config: %w", err)
 		}
-		cfg.Development = c
 	case config.EnvProduction:
-		var c ConfigProduction
-		c, err = config.Load[ConfigProduction](elasticConfigEnvPrefix)
-		if err != nil {
+		if err = config.Load(elasticConfigEnvPrefix, &cfg.Production); err != nil {
 			return nil, fmt.Errorf("unable to load production config: %w", err)
 		}
-		cfg.Production = c
 	}
 	clientConfig, err := genConfig(config.CurrentEnvironment)
 	if err != nil {

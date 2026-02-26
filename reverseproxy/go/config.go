@@ -33,15 +33,12 @@ type Config struct {
 // loadConfigOnce loads the server configuration and ensures this is only done
 // one time, no matter how many times it is called.
 var loadConfigOnce = sync.OnceValue(func() error {
-	var err error
 	// Load server config.
-	cfg, err = config.Load[Config](serverConfigEnvPrefix)
-	if err != nil {
+	if err := config.Load(serverConfigEnvPrefix, &cfg); err != nil {
 		return fmt.Errorf("load server environment: %w", err)
 	}
 
-	err = validation.Validate.Struct(cfg)
-	if err != nil {
+	if err := validation.Validate.Struct(cfg); err != nil {
 		return fmt.Errorf("validate config: %w", err)
 	}
 	return nil

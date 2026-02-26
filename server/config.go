@@ -54,28 +54,24 @@ type ImgProxyConfig struct {
 // loadConfigOnce loads the server configuration and ensures this is only done
 // one time, no matter how many times it is called.
 var loadConfigOnce = sync.OnceValue(func() error {
-	var err error
-
 	// Load server config.
-	cfg, err = config.Load[Config](serverConfigEnvPrefix)
-	if err != nil {
+	if err := config.Load(serverConfigEnvPrefix, &cfg); err != nil {
 		return fmt.Errorf("load server environment: %w", err)
 	}
 	// Load additional environment variables.
-	cfg.Port, err = strconv.ParseUint(os.Getenv("PORT"), 10, 64)
-	if err != nil {
+	if port, err := strconv.ParseUint(os.Getenv("PORT"), 10, 64); err != nil {
 		return fmt.Errorf("load port: %w", err)
+	} else {
+		cfg.Port = port
 	}
 	// Load image proxy config into server config.
 	var imgProxyCfg ImgProxyConfig
-	imgProxyCfg, err = config.Load[ImgProxyConfig](imgProxyConfigEnvPrefix)
-	if err != nil {
+	if err := config.Load(imgProxyConfigEnvPrefix, &imgProxyCfg); err != nil {
 		return fmt.Errorf("load image proxy environment: %w", err)
 	}
 	cfg.ImgProxy = imgProxyCfg
 
-	err = validation.Validate.Struct(cfg)
-	if err != nil {
+	if err := validation.Validate.Struct(cfg); err != nil {
 		return fmt.Errorf("validate config: %w", err)
 	}
 	return nil

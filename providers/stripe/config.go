@@ -35,17 +35,14 @@ type Config struct {
 // loadConfigOnce loads the Stripe configuration and ensures this is only done
 // one time, no matter how many times it is called.
 var loadConfigOnce = sync.OnceValue(func() error {
-	var err error
-	cfg, err = config.Load[Config](ConfigEnvPrefix)
-	if err != nil {
+	if err := config.Load(ConfigEnvPrefix, &cfg); err != nil {
 		return fmt.Errorf("load environment variables: %w", err)
 	}
 
 	stripe.Key = cfg.APIKey //nolint:reassign // seems to be a recommended approach in the docs.
 	cfg.BaseURL = os.Getenv("FORAGD_BASEURL")
 
-	err = validation.Validate.Struct(cfg)
-	if err != nil {
+	if err := validation.Validate.Struct(cfg); err != nil {
 		return fmt.Errorf("validate config: %w", err)
 	}
 	return nil

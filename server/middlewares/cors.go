@@ -55,15 +55,16 @@ var HTMXResponseHeaders = []string{
 	htmx.HeaderTrigger,
 }
 
+var corsCfg CORS
+
 var loadCORS = sync.OnceValues(func() (*cors.Cors, error) {
-	corsSettings, err := config.Load[CORS](config.ConfigEnvPrefix + "CORS_")
-	if err != nil {
+	if err := config.Load(config.ConfigEnvPrefix+"CORS_", &corsCfg); err != nil {
 		return nil, fmt.Errorf("load cors config: %w", err)
 	}
 
 	corsOptions := cors.Options{
 		AllowCredentials:   true,
-		MaxAge:             corsSettings.MaxAge,
+		MaxAge:             corsCfg.MaxAge,
 		OptionsPassthrough: true,
 		AllowedHeaders: append(
 			[]string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
@@ -74,7 +75,7 @@ var loadCORS = sync.OnceValues(func() (*cors.Cors, error) {
 			HTMXResponseHeaders...,
 		),
 		AllowedMethods: []string{http.MethodGet, http.MethodHead, http.MethodPost, http.MethodOptions},
-		AllowedOrigins: corsSettings.AllowedOrigins,
+		AllowedOrigins: corsCfg.AllowedOrigins,
 	}
 
 	return cors.New(corsOptions), nil

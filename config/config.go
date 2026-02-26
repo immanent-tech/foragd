@@ -61,8 +61,7 @@ var Init = sync.OnceValue(func() error {
 })
 
 // Load will load a config via environment variables with the given prefix into an object of the given type.
-func Load[T any](envPrefix string) (T, error) {
-	var cfg T
+func Load[T any](envPrefix string, cfg T) error {
 	// Initialise the config  object.
 	configSrc := koanf.New(".")
 	// Load environment variables.
@@ -82,16 +81,16 @@ func Load[T any](envPrefix string) (T, error) {
 		},
 	}), nil)
 	if err != nil {
-		return cfg, fmt.Errorf("unable to load config: %w", err)
+		return fmt.Errorf("unable to load config: %w", err)
 	}
 	// Unmarshal config, overwriting defaults.
 	err = configSrc.Unmarshal(
 		strings.ToLower(strings.TrimSuffix(strings.TrimPrefix(envPrefix, ConfigEnvPrefix), "_")),
-		&cfg,
+		cfg,
 	)
 	if err != nil {
-		return cfg, fmt.Errorf("%w: %w", ErrLoadConfig, err)
+		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 
-	return cfg, nil
+	return nil
 }
