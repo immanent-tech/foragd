@@ -158,7 +158,7 @@ func Viewer(feed *models.Feed, errMsg *models.UserMessage) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<form id=\"viewer-form\" hx-post=\"/viewer\" hx-push-url=\"true\" hx-target=\"#viewer-results\" hx-swap=\"morph:innerHTML transition:true\" hx-indicator=\"#processing\"><div class=\"join w-full mt-4\"><input type=\"text\" name=\"url\" class=\"input input-primary w-full bg-base-content/10\" placeholder=\"https://some.site\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<form id=\"viewer-form\" hx-post=\"/viewer\" hx-push-url=\"true\" hx-target=\"#viewer-results\" hx-swap=\"innerHTML transition:true\" hx-indicator=\"#processing\"><div class=\"join w-full mt-4\"><input type=\"text\" name=\"url\" class=\"input input-primary w-full bg-base-content/10\" placeholder=\"https://some.site\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

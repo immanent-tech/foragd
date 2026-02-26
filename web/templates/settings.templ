@@ -235,7 +235,7 @@ templ AccountSettings(user *models.User) {
 				<form
 					hx-post="/user/settings/subscriptionemail"
 					hx-target="#subscription-email"
-					hx-swap="morph:innerHTML transition:true"
+					hx-swap="innerHTML transition:true"
 					class="col-span-full"
 				>
 					<div class="col-span-full place-self-end">

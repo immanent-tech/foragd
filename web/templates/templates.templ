@@ -155,7 +155,9 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 		<body
 			class="h-full bg-base-100"
 			hx-ext="morph,preload,sse"
-			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
+			_="
+			on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end
+			"
 		>
 			<noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript>
 			// Hidden input controller for theme.

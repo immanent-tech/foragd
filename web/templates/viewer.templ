@@ -50,7 +50,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					hx-post="/viewer"
 					hx-push-url="true"
 					hx-target="#viewer-results"
-					hx-swap="morph:innerHTML transition:true"
+					hx-swap="innerHTML transition:true"
 					hx-indicator="#processing"
 				>
 					<div class="join w-full mt-4">
