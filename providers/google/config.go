@@ -13,14 +13,14 @@ import (
 
 const (
 	// ConfigEnvPrefix is the prefix applied to environment variables for configuring Auth0.
-	ConfigEnvPrefix = config.ConfigEnvPrefix + "GCP_"
+	ConfigEnvPrefix = "GOOGLE_CLOUD_"
 )
 
 var cfg Config
 
 // Config contains the pubsub configuration options.
 type Config struct {
-	ProjectID string `koanf:"projectid" validate:"required"`
+	ProjectID string `koanf:"project" validate:"required"`
 }
 
 // LoadConfig loads the auth0 configuration and ensures this is only done
