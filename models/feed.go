@@ -405,9 +405,13 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 			return NewFeedFromURL(ctx, url, id, false)
 		}
 		// If the error is StatusForbidden, try proxying the request.
-		if httpErr, ok := errors.AsType[feeds.HTTPError](err); ok && httpErr.Code == http.StatusForbidden {
+		if httpErr, ok := errors.AsType[feeds.HTTPError](
+			err,
+		); ok &&
+			(httpErr.Code == http.StatusForbidden || httpErr.Code == http.StatusTooManyRequests) {
 			if !strings.HasPrefix(url, os.Getenv("FORAGD_REVERSEPROXY_BASEURL")) {
-				slogctx.FromCtx(ctx).Warn("Forbidden response, trying with proxy",
+				slogctx.FromCtx(ctx).Warn("Error response, trying with proxy",
+					slog.Int("response_code", httpErr.Code),
 					slog.String("url", url),
 				)
 				if feed, err = NewFeedFromURL(ctx, ProxyURL(ctx, url), id, validate); err != nil {
