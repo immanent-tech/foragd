@@ -17,7 +17,7 @@ import (
 
 const (
 	clientIPHeader       = "X-Forwarded-For"
-	maxRequestsPerSecond = 50
+	maxRequestsPerSecond = 2
 )
 
 var rateLimiter RateLimiter
@@ -66,10 +66,11 @@ func RateLimit(next http.Handler) http.Handler {
 		// We don't want to include the zone in our limiter key
 		clientIP, _ = realclientip.SplitHostZone(clientIP)
 
-		if httpErr := tollbooth.LimitByKeys(ratelimiter.limiter, []string{clientIP}); httpErr != nil {
+		if httpErr := tollbooth.LimitByKeys(ratelimiter.limiter, []string{clientIP, req.URL.Path}); httpErr != nil {
 			slogctx.FromCtx(req.Context()).Warn("Request rate-limited.",
 				slog.String("error", httpErr.Message),
 				slog.Int("code", httpErr.StatusCode),
+				slog.String("path", req.URL.Path),
 			)
 			http.Error(res, httpErr.Message, httpErr.StatusCode)
 			return
