@@ -18,12 +18,21 @@ const (
 	imgProxyConfigEnvPrefix = config.ConfigEnvPrefix + "IMGPROXY_"
 )
 
-var cfg Config
+// cfg is the server config with default values.
+var cfg = Config{
+	Port:                 7000,
+	Host:                 "localhost",
+	CompressionLevel:     5,
+	CompressionMimetypes: []string{"text/html", "text/css", "text/javascript", "font/woff2", "image/svg+xml"},
+	ReadTimeout:          "30s",
+	WriteTimeout:         "120s",
+	IdleTimeout:          "900s",
+}
 
 // Config contains the server configuration options.
 type Config struct {
-	Port                 uint64         `koanf:"port"                 validate:"port"`
-	Host                 string         `koanf:"host"                 validate:"hostname|fqdn|ip"`
+	Port                 uint64         `koanf:"port"                 validate:"required,port"`
+	Host                 string         `koanf:"host"                 validate:"required,hostname|fqdn|ip"`
 	CompressionLevel     int            `koanf:"compressionlevel"     validate:"number"`
 	CompressionMimetypes []string       `koanf:"compressionmimetypes"`
 	CertFile             string         `koanf:"crt"                  validate:"omitempty,file"`
@@ -46,6 +55,7 @@ type ImgProxyConfig struct {
 // one time, no matter how many times it is called.
 var loadConfigOnce = sync.OnceValue(func() error {
 	var err error
+
 	// Load server config.
 	cfg, err = config.Load[Config](serverConfigEnvPrefix)
 	if err != nil {
