@@ -52,7 +52,7 @@ templ (a *Article) Card() {
 		}
 		hx-get={ "/view/article/" + a.GetID() }
 		hx-target={ ContentID.Target() }
-		hx-swap="morph:innerHTML show:window:top transition:true"
+		hx-swap="innerHTML show:window:top transition:true"
 		hx-trigger="click"
 		hx-push-url="true"
 		hx-disinherit="*"
@@ -91,7 +91,7 @@ templ (a *Article) Card() {
 					<a
 						hx-get="/list/articles"
 						hx-target={ ContentID.Target() }
-						hx-swap="morph:innerHTML show:window:top transition:true"
+						hx-swap="innerHTML show:window:top transition:true"
 						hx-trigger="click consume"
 						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: a.GetSubscriptionID()}) }
 						class="link link-hover truncate"
@@ -297,7 +297,7 @@ templ (a *Article) Content() {
 							<a
 								hx-post="/list/articles"
 								hx-target={ ContentID.Target() }
-								hx-swap="morph:innerHTML show:window:top transition:true"
+								hx-swap="innerHTML show:window:top transition:true"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
 								@partials.Heading3() {
@@ -502,7 +502,7 @@ templ getRemoteContentButton(a *Article) {
 		class="btn btn-primary"
 		hx-get={ "/view/article/" + a.GetID() }
 		hx-target={ ContentID.Target() }
-		hx-swap="morph:innerHTML transition:true"
+		hx-swap="innerHTML transition:true"
 		hx-replace-url="true"
 		hx-trigger="click consume"
 		hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
@@ -733,7 +733,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								<button
 									hx-get="/list/favorites"
 									hx-target={ ContentID.Target() }
-									hx-swap="morph:innerHTML show:window:top transition:true"
+									hx-swap="innerHTML show:window:top transition:true"
 									class="btn btn-accent"
 								>
 									View favorites

@@ -79,7 +79,7 @@ func header(user *models.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-swap=\"morph:innerHTML show:window:top transition:true\" class=\"link link-hover\"><div class=\"flex flex-row shrink-0 p-2 items-center\"><img src=\"/content/favicon.svg\" class=\"flex size-8\" alt=\"Foragd Logo\"><p class=\"font-bold text-primary hidden lg:flex\">Foragd</p></div></a> <div class=\"flex flex-1 justify-center\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-swap=\"innerHTML show:window:top transition:true\" class=\"link link-hover\"><div class=\"flex flex-row shrink-0 p-2 items-center\"><img src=\"/content/favicon.svg\" class=\"flex size-8\" alt=\"Foragd Logo\"><p class=\"font-bold text-primary hidden lg:flex\">Foragd</p></div></a> <div class=\"flex flex-1 justify-center\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
