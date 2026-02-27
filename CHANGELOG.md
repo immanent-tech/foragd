@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.70.0](https://github.com/immanent-tech/foragd/compare/v0.69.0...v0.70.0) (2026-02-27)
+
+
+### Features
+
+* :sparkles: use go-syndication open graph pkg ([a6246a8](https://github.com/immanent-tech/foragd/commit/a6246a8e1ca955ea5c5eebba5402bebda7c9e858))
+
+
+### Bug Fixes
+
+* :lock: don't generate sourcemaps in production ([69cffb9](https://github.com/immanent-tech/foragd/commit/69cffb9edc6805bff9d4db46902d80a58d19f5b0))
+* **templates:** :lipstick: fix notification width on large displays ([4770837](https://github.com/immanent-tech/foragd/commit/47708371c18ee5a876a6ee27fd720debb2fd4d50))
+* **templates:** commit generated files ([f821505](https://github.com/immanent-tech/foragd/commit/f8215050196a2a838b3f69f1cb7d641f5b898ed4))
+
+
+### Performance Improvements
+
+* **models:** :zap: proxy 429 responses through cloudflare ([b400d76](https://github.com/immanent-tech/foragd/commit/b400d767337cc0bce24a035572f16fd72d26a775))
+
+
+### Reverts
+
+* **templates:** :rewind: don't use idiomorph as it intereferes with some interactive elements after swapping ([dacb49f](https://github.com/immanent-tech/foragd/commit/dacb49f62e1bb72c755d38daeb825194601f47df))
+
 ## [0.69.0](https://github.com/immanent-tech/foragd/compare/v0.68.1...v0.69.0) (2026-02-26)
 
 
