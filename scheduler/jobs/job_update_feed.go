@@ -133,7 +133,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	}
 
 	if feed == nil {
-		return fmt.Errorf("%w: all source URLs returned errors", ErrFetchFailed)
+		return fmt.Errorf("%w: all source URLs returned errors (%s)", ErrFetchFailed, strings.Join(jobData.URLs, ","))
 	}
 
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
