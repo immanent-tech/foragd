@@ -5,9 +5,6 @@ package models
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -34,6 +31,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/reverseproxy"
 )
 
 // GetFeedByID fetches the given Feed by its id.
@@ -414,12 +412,27 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 					slog.Int("response_code", httpErr.Code),
 					slog.String("url", url),
 				)
-				if feed, err = NewFeedFromURL(ctx, ProxyURL(ctx, url), id, validate); err != nil {
+				// Generate a proxied URL.
+				proxiedURL, err := reverseproxy.GenerateProxyURL(url)
+				if err != nil {
+					return nil, fmt.Errorf("proxy url: %w", err)
+				}
+				// Try to fetch the feed through the proxy.
+				if feed, err = NewFeedFromURL(ctx, proxiedURL, id, validate); err != nil {
 					return nil, err
 				}
 				// Clean up source URLs: remove proxied URL and re-add original URL as needed.
 				feed.SourceURLs = slices.DeleteFunc(feed.SourceURLs, func(e string) bool {
-					return strings.HasPrefix(e, os.Getenv("FORAGD_REVERSEPROXY_BASEURL"))
+					ok, err := reverseproxy.IsProxiedURL(e)
+					switch {
+					case ok:
+						return true
+					case err != nil:
+						slogctx.FromCtx(ctx).Warn("Unable to determine if URL was proxied.",
+							slog.String("url", e),
+							slog.Any("error", err))
+					}
+					return false
 				})
 				feed.SourceURLs = append(feed.SourceURLs, url)
 				return feed, err
@@ -430,36 +443,6 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 	feed = NewSyndicationFeed(ctx, url, id, result)
 
 	return feed, nil
-}
-
-func ProxyURL(ctx context.Context, originalURL string) string {
-	key := os.Getenv("FORAGD_REVERSEPROXY_KEY")
-	salt := os.Getenv("FORAGD_REVERSEPROXY_SALT")
-
-	expiry := strconv.FormatInt(time.Now().UTC().
-		Add(3600*time.Second).
-		Unix(), 10)
-
-	encoded := []byte(originalURL + "|" + expiry + "|" + salt)
-
-	mac := hmac.New(sha256.New, []byte(key))
-	mac.Write(encoded)
-	signature := hex.EncodeToString(mac.Sum(nil))
-
-	proxyURL, err := url.Parse(os.Getenv("FORAGD_REVERSEPROXY_BASEURL"))
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Could not parse proxy base url.",
-			slog.Any("error", err),
-		)
-		return originalURL
-	}
-	params := make(url.Values)
-	params.Add("signature", signature)
-	params.Add("url", originalURL)
-	params.Add("expires", expiry)
-	proxyURL.RawQuery = params.Encode()
-
-	return proxyURL.String()
 }
 
 // FindFeedImage will try to find an image to represent the feed. Useful to call if the feed does not define an image

@@ -27,6 +27,7 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/google/gcs"
+	"github.com/immanent-tech/foragd/reverseproxy"
 )
 
 func ImageProxy(proxyURLBase string) http.HandlerFunc {
@@ -248,8 +249,15 @@ func requestRemoteImage(ctx context.Context, remoteURL string) (*resty.Response,
 	}
 	if resp.IsError() {
 		// When the error response is 403: Forbidden try again with our Cloudflare reverse proxy.
-		if resp.StatusCode() == http.StatusForbidden {
-			return requestRemoteImage(ctx, models.ProxyURL(ctx, remoteURL))
+		if resp.StatusCode() == http.StatusForbidden || resp.StatusCode() == http.StatusTooManyRequests {
+			proxiedURL, err := reverseproxy.GenerateProxyURL(remoteURL)
+			if err != nil {
+				return nil, &models.APIError{
+					InternalError: fmt.Errorf("generate proxy url: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+				}
+			}
+			return requestRemoteImage(ctx, proxiedURL)
 		}
 		return nil, &models.APIError{
 			InternalError: errors.New(resp.Status()),
