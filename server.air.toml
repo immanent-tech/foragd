@@ -55,8 +55,8 @@ include_ext = [
 log = "server.air.log"
 # Array of commands to run before each build
 pre_cmd = [
-  "npm run build:css",
-  "npm run build:js",
+  "npm run build:css:dev",
+  "npm run build:js:dev",
   "go run github.com/a-h/templ/cmd/templ@latest generate -path web",
 ]
 # Array of commands to run after ^C

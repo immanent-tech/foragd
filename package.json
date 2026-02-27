@@ -6,8 +6,10 @@
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "type": "module",
   "scripts": {
-    "build:js": "esbuild --bundle --minify --sourcemap ./web/assets/scripts.js --outdir=./web/content/",
-    "build:css": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map"
+    "build:js": "esbuild --bundle --minify --outdir=./web/content/",
+    "build:js:dev": "esbuild --bundle --sourcemap ./web/assets/scripts.js --outdir=./web/content/",
+    "build:css": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify",
+    "build:css:dev": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --map"
   },
   "dependencies": {
     "@github/relative-time-element": "^5.0.0",
