@@ -260,54 +260,60 @@ templ (s *Subscription) Card() {
 								popover
 								_="on htmx:afterRequest(successful) hidePopover() on me"
 							>
-								// View action.
-								if len(s.ViewOriginAttributes()) > 0 {
-									<a
-										class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-										role="menuitem"
-										tabindex="-1"
-										{ s.ViewOriginAttributes()... }
-									>
-										@tabler.ExternalLink(i.Props{Class: "size-4"})
-										Feed Website
-									</a>
-								}
-								// Edit action.
-								<a
-									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-									role="menuitem"
-									tabindex="-1"
-									{ s.EditAttributes()... }
-								>
-									@tabler.Edit(i.Props{Class: "size-4"})
-									Edit Subscription
-								</a>
-								// Unsubscribe action.
-								<form>
-									<input type="hidden" name="nickname" value={ s.GetTitle() }/>
-									<input type="hidden" name="confirmed" value="false"/>
-									<a
-										class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-										role="menuitem"
-										tabindex="-1"
-										hx-post={ "/remove/subscription/" + s.GetID() }
-										hx-target={ partials.ModalContainerID.Target() }
-										hx-trigger="click consume"
-									>
-										@tabler.TrashFilled(i.Props{Class: "size-4"})
-										Remove Subscription
-									</a>
-								</form>
-								// Report issue action.
-								<a
-									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-									role="menuitem"
-									tabindex="-1"
-									{ s.ReportIssueAttributes()... }
-								>
-									@tabler.FlagFilled(i.Props{Class: "size-4"})
-									Report an issue
-								</a>
+								<ul class="menu">
+									// View action.
+									if len(s.ViewOriginAttributes()) > 0 {
+										<li>
+											<a
+												role="menuitem"
+												tabindex="-1"
+												{ s.ViewOriginAttributes()... }
+											>
+												@tabler.ExternalLink(i.Props{Class: "size-4"})
+												Feed Website
+											</a>
+										</li>
+									}
+									// Edit action.
+									<li>
+										<a
+											role="menuitem"
+											tabindex="-1"
+											{ s.EditAttributes()... }
+										>
+											@tabler.Edit(i.Props{Class: "size-4"})
+											Edit Subscription
+										</a>
+									</li>
+									// Unsubscribe action.
+									<form>
+										<input type="hidden" name="nickname" value={ s.GetTitle() }/>
+										<input type="hidden" name="confirmed" value="false"/>
+										<li>
+											<a
+												role="menuitem"
+												tabindex="-1"
+												hx-post={ "/remove/subscription/" + s.GetID() }
+												hx-target={ partials.ModalContainerID.Target() }
+												hx-trigger="click consume"
+											>
+												@tabler.TrashFilled(i.Props{Class: "size-4"})
+												Remove Subscription
+											</a>
+										</li>
+									</form>
+									// Report issue action.
+									<li>
+										<a
+											role="menuitem"
+											tabindex="-1"
+											{ s.ReportIssueAttributes()... }
+										>
+											@tabler.FlagFilled(i.Props{Class: "size-4"})
+											Report an issue
+										</a>
+									</li>
+								</ul>
 							</el-menu>
 						</el-dropdown>
 					</div>
@@ -358,69 +364,75 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							_="on keydown from body if the event's key is 'x' and event.altKey then togglePopover() on me"
 							class="w-fit"
 						>
-							// Mark all subscriptions action.
-							if len(response.Subscriptions) > 0 {
-								<form class="flex items-center">
-									<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
-									{{ var markText string }}
-									{{ var markURL string }}
-									{{ var markIcon templ.Component }}
-									if response.Filters.GetView() == models.ViewUnread {
-										{{ markText = "Mark All Read" }}
-										{{ markURL = "/list/subscriptions/mark/" + string(models.MarkRead) }}
-										{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
-										<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-									} else {
-										{{ markText = "Mark All Unread" }}
-										{{ markURL = "/list/subscriptions/mark/" + string(models.MarkUnread) }}
-										{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
-										<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
-									}
+							<ul class="menu w-full">
+								// Mark all subscriptions action.
+								if len(response.Subscriptions) > 0 {
+									<form class="flex flex-1 items-center w-full">
+										<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
+										{{ var markText string }}
+										{{ var markURL string }}
+										{{ var markIcon templ.Component }}
+										if response.Filters.GetView() == models.ViewUnread {
+											{{ markText = "Mark All Read" }}
+											{{ markURL = "/list/subscriptions/mark/" + string(models.MarkRead) }}
+											{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
+											<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+										} else {
+											{{ markText = "Mark All Unread" }}
+											{{ markURL = "/list/subscriptions/mark/" + string(models.MarkUnread) }}
+											{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
+											<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+										}
+										<li class="w-full">
+											<a
+												hx-post={ markURL }
+												hx-target={ ContentID.Target() }
+												hx-include="article > input"
+												role="menuitem"
+												tabindex="-1"
+											>
+												@markIcon
+												<span class="sr-only">{ markText }</span>
+												{ markText }
+											</a>
+										</li>
+									</form>
+								}
+								<li>
 									<a
-										hx-post={ markURL }
+										hx-get="/user/subscription/add/feed"
 										hx-target={ ContentID.Target() }
-										hx-include="article > input"
-										class="group/item w-full link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
 										role="menuitem"
 										tabindex="-1"
 									>
-										@markIcon
-										<span class="sr-only">{ markText }</span>
-										{ markText }
+										@tabler.Plus(i.Props{Class: "size-4"})
+										Add Feed Subscription
 									</a>
-								</form>
-							}
-							<a
-								hx-get="/user/subscription/add/feed"
-								hx-target={ ContentID.Target() }
-								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-								role="menuitem"
-								tabindex="-1"
-							>
-								@tabler.Plus(i.Props{Class: "size-4"})
-								Add Feed Subscription
-							</a>
-							<a
-								hx-get="/user/subscription/add/search"
-								hx-target={ ContentID.Target() }
-								hx-include="#search-filters"
-								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-								role="menuitem"
-								tabindex="-1"
-							>
-								@tabler.Plus(i.Props{Class: "size-4"})
-								Add Search Subscription
-							</a>
-							<a
-								hx-get="/user/subscription/add/group"
-								hx-target={ ContentID.Target() }
-								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-								role="menuitem"
-								tabindex="-1"
-							>
-								@tabler.Plus(i.Props{Class: "size-4"})
-								Add Group Subscription
-							</a>
+								</li>
+								<li>
+									<a
+										hx-get="/user/subscription/add/search"
+										hx-target={ ContentID.Target() }
+										hx-include="#search-filters"
+										role="menuitem"
+										tabindex="-1"
+									>
+										@tabler.Plus(i.Props{Class: "size-4"})
+										Add Search Subscription
+									</a>
+								</li>
+								<li>
+									<a
+										hx-get="/user/subscription/add/group"
+										hx-target={ ContentID.Target() }
+										role="menuitem"
+										tabindex="-1"
+									>
+										@tabler.Plus(i.Props{Class: "size-4"})
+										Add Group Subscription
+									</a>
+								</li>
+							</ul>
 						</el-menu>
 					</el-dropdown>
 				}

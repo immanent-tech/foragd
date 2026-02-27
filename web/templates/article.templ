@@ -396,18 +396,22 @@ templ (a *Article) Content() {
 									_="on htmx:afterRequest(successful) hidePopover() on me"
 									class="w-fit"
 								>
-									<div class="py-1">
+									<ul class="menu">
 										// Find similar action.
-										<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.SimilarArticlesAttributes()... }>
-											@tabler.FileSearch(i.Props{Class: "size-4"})
-											Find similar...
-										</a>
+										<li>
+											<a { a.SimilarArticlesAttributes()... } role="menuitem">
+												@tabler.FileSearch(i.Props{Class: "size-4"})
+												Find similar...
+											</a>
+										</li>
 										// Report article issue action.
-										<a class="link link-hover focus:text-primary flex items-center px-4 focus:outline-hidden" { a.ReportIssueAttributes()... }>
-											@tabler.FlagFilled(i.Props{Class: "size-4"})
-											Report an issue
-										</a>
-									</div>
+										<li>
+											<a { a.ReportIssueAttributes()... } role="menuitem">
+												@tabler.FlagFilled(i.Props{Class: "size-4"})
+												Report an issue
+											</a>
+										</li>
+									</ul>
 								</el-menu>
 							</el-dropdown>
 						</div>
@@ -612,44 +616,47 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						"
 								class="w-fit"
 							>
-								<div class="py-1">
+								<ul class="menu">
 									if response.Subscription == nil {
 										if len(response.Articles) > 0 {
 											// Mark all articles action.
-											<form class="flex items-center">
-												<a
-													class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-													role="menuitem"
-													tabindex="-1"
-													if response.Filters.GetView() == models.ViewUnread {
-														hx-post="/list/articles/mark/read"
-													} else {
-														hx-post="/list/articles/mark/unread"
-													}
-													hx-target={ ContentID.Target() }
-													hx-include="article > input"
-												>
-													if response.Filters.GetView() == models.ViewUnread {
-														@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-														<span class="sr-only">Mark All Read</span>
-														Mark Articles Read
-														<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-													} else {
-														@tabler.Mail(i.Props{Class: "size-4"})
-														<span class="sr-only">Mark All Unread</span>
-														Mark Articles Unread
-														<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-													}
-												</a>
+											<form class="flex items-center w-full">
+												<li>
+													<a
+														role="menuitem"
+														tabindex="-1"
+														if response.Filters.GetView() == models.ViewUnread {
+															hx-post="/list/articles/mark/read"
+														} else {
+															hx-post="/list/articles/mark/unread"
+														}
+														hx-target={ ContentID.Target() }
+														hx-include="article > input"
+													>
+														if response.Filters.GetView() == models.ViewUnread {
+															@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
+															<span class="sr-only">Mark All Read</span>
+															Mark Articles Read
+															<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+														} else {
+															@tabler.Mail(i.Props{Class: "size-4"})
+															<span class="sr-only">Mark All Unread</span>
+															Mark Articles Unread
+															<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+														}
+													</a>
+												</li>
 											</form>
 										} else {
-											<p class="italic px-4 py-2">No actions.</p>
+											<li>
+												<p class="italic px-4 py-2">No actions.</p>
+											</li>
 										}
 									} else {
 										// Show mark read/unread action when not viewing all articles.
 										if response.Filters.GetView() != models.ViewAll {
 											// Mark subscription action.
-											<form id={ "mark-" + response.Subscription.GetID() } class="flex items-center">
+											<form id={ "mark-" + response.Subscription.GetID() } class="flex items-center w-full">
 												<input type="hidden" name={ models.ParamSubscriptionID } value={ response.Subscription.GetID() }/>
 												<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
 												// MarkURL returns the app URL for marking the subscription.
@@ -664,30 +671,32 @@ templ ListArticles(response *models.ListArticlesResponse) {
 													{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
 													<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
 												}
-												<a
-													hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-													class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-													role="menuitem"
-													tabindex="-1"
-												>
-													@markIcon
-													{ markText }
-												</a>
+												<li>
+													<a
+														hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
+														role="menuitem"
+														tabindex="-1"
+													>
+														@markIcon
+														{ markText }
+													</a>
+												</li>
 											</form>
 										}
 										// Edit subscription action.
-										<a
-											hx-get={ "/edit/subscription/" + response.Subscription.GetID() }
-											hx-target={ ContentID.Target() }
-											class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-											role="menuitem"
-											tabindex="-1"
-										>
-											@tabler.Edit(i.Props{Class: "size-4"})
-											Edit Subscription
-										</a>
+										<li>
+											<a
+												hx-get={ "/edit/subscription/" + response.Subscription.GetID() }
+												hx-target={ ContentID.Target() }
+												role="menuitem"
+												tabindex="-1"
+											>
+												@tabler.Edit(i.Props{Class: "size-4"})
+												Edit Subscription
+											</a>
+										</li>
 									}
-								</div>
+								</ul>
 							</el-menu>
 						</el-dropdown>
 					}

@@ -162,12 +162,9 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
 							<el-menu anchor="bottom end" popover class="w-fit">
-								<div
-									id="category-filters-desktop"
-									class="py-1"
-								>
+								<ul id="category-filters-desktop" class="menu">
 									<span id="load-categories-desktop" class="htmx-indicator loading loading-spinner loading-sm"></span>
-								</div>
+								</ul>
 							</el-menu>
 						</el-dropdown>
 						// View filters.
@@ -177,14 +174,14 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
 							<el-menu id="filters-categories-desktop-menu" anchor="bottom end" popover class="w-fit">
-								<div class="py-1">
+								<ul class="menu">
 									@viewFilter(path, "filter-view-unread-desktop", models.ViewUnread, filters)
 									@viewFilter(path, "filter-view-read-desktop", models.ViewRead, filters)
 									@viewFilter(path, "filter-view-all-desktop", models.ViewAll, filters)
 									if path == "/list/subscriptions" {
 										@viewFilterOnlyFavorites(path, "filter-only-favorites-desktop", filters)
 									}
-								</div>
+								</ul>
 							</el-menu>
 						</el-dropdown>
 						// Sorting.
@@ -194,14 +191,14 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
 							<el-menu anchor="bottom end" popover class="w-fit">
-								<div class="py-1">
+								<ul class="menu">
 									@sortOption(path, models.SortNewestFirst, filters)
 									@sortOption(path, models.SortOldestFirst, filters)
 									if path == "/list/subscriptions" {
 										@sortOption(path, models.SortMostUnread, filters)
 										@sortOption(path, models.SortLeastUnread, filters)
 									}
-								</div>
+								</ul>
 							</el-menu>
 						</el-dropdown>
 					</div>
@@ -274,28 +271,29 @@ templ viewFilter(path, id string, view models.View, filters *models.ListFilters)
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		<a
-			hx-post={ path }
-			hx-target={ ContentID.Target() }
-			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
-			class={ "group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm capitalize focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2",
-			templ.KV("text-primary font-semibold",view==filters.GetView()) }
-			role="menuitem"
-			tabindex="-1"
-		>
-			switch view {
-				case models.ViewUnread:
-					@tabler.Mail()
-				case models.ViewRead:
-					@tabler.MailOpened()
-				case models.ViewAll:
-					@tabler.Inbox()
-			}
-			<span class="ml-2">
-				{ view }
-			</span>
-		</a>
+		<li>
+			<a
+				hx-post={ path }
+				hx-target={ ContentID.Target() }
+				hx-replace-url="true"
+				hx-swap="innerHTML transition:true"
+				class={ "capitalize", templ.KV("text-primary font-semibold", view == filters.GetView()) }
+				role="menuitem"
+				tabindex="-1"
+			>
+				switch view {
+					case models.ViewUnread:
+						@tabler.Mail()
+					case models.ViewRead:
+						@tabler.MailOpened()
+					case models.ViewAll:
+						@tabler.Inbox()
+				}
+				<span class="ml-2">
+					{ view }
+				</span>
+			</a>
+		</li>
 	</form>
 }
 
@@ -310,29 +308,30 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		<a
-			hx-post={ path }
-			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
-			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
-			class={ "group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2",
-			templ.KV(filters.OnlyFavorites,"text-primary font-semibold") }
-			role="menuitem"
-			tabindex="-1"
-		>
-			if filters.OnlyFavorites {
-				@tabler.Heart()
-				<span class="ml-2">
-					All
-				</span>
-			} else {
-				@tabler.HeartFilled()
-				<span class="ml-2">
-					Favorites
-				</span>
-			}
-		</a>
+		<li>
+			<a
+				hx-post={ path }
+				hx-target={ ContentID.Target() }
+				hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
+				hx-replace-url="true"
+				hx-swap="innerHTML transition:true"
+				class={ templ.KV(filters.OnlyFavorites, "text-primary font-semibold") }
+				role="menuitem"
+				tabindex="-1"
+			>
+				if filters.OnlyFavorites {
+					@tabler.Heart()
+					<span class="ml-2">
+						All
+					</span>
+				} else {
+					@tabler.HeartFilled()
+					<span class="ml-2">
+						Favorites
+					</span>
+				}
+			</a>
+		</li>
 	</form>
 }
 
@@ -346,22 +345,23 @@ templ categoryFilter(path, id string, category models.CategoryCount, filters *mo
 		for subscription := range slices.Values(filters.GetSubscriptions()) {
 			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 		}
-		<a
-			id={ id }
-			hx-post={ path }
-			hx-target={ ContentID.Target() }
-			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
-			class={ "group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2",
-			templ.KV("text-primary font-semibold",filters.GetCategories().HasCategory(category.Category)) }
-			role="menuitem"
-			tabindex="-1"
-		>
-			@tabler.Category()
-			<span class="ml-2">
-				{ category.Category }
-			</span>
-		</a>
+		<li>
+			<a
+				id={ id }
+				hx-post={ path }
+				hx-target={ ContentID.Target() }
+				hx-replace-url="true"
+				hx-swap="innerHTML transition:true"
+				class={ templ.KV("text-primary font-semibold", filters.GetCategories().HasCategory(category.Category)) }
+				role="menuitem"
+				tabindex="-1"
+			>
+				@tabler.Category()
+				<span class="ml-2">
+					{ category.Category }
+				</span>
+			</a>
+		</li>
 	</form>
 }
 
@@ -373,21 +373,22 @@ templ clearCategoryFilters(path, id string, filters *models.ListFilters) {
 		for subscription := range slices.Values(filters.GetSubscriptions()) {
 			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 		}
-		<a
-			hx-post={ path }
-			hx-target={ ContentID.Target() }
-			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
-			hx-params="not categories"
-			class="group/item w-full link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-			role="menuitem"
-			tabindex="-1"
-		>
-			@tabler.X()
-			<span class="ml-2">
-				Clear
-			</span>
-		</a>
+		<li>
+			<a
+				hx-post={ path }
+				hx-target={ ContentID.Target() }
+				hx-replace-url="true"
+				hx-swap="innerHTML transition:true"
+				hx-params="not categories"
+				role="menuitem"
+				tabindex="-1"
+			>
+				@tabler.X()
+				<span class="ml-2">
+					Clear
+				</span>
+			</a>
+		</li>
 	</form>
 }
 
@@ -401,16 +402,17 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 				for subscription := range slices.Values(filters.GetSubscriptions()) {
 					<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 				}
-				<a
-					hx-post={ path }
-					hx-target={ ContentID.Target() }
-					hx-replace-url="true"
-					hx-swap="innerHTML transition:true"
-					hx-params="not categories"
-					class="link link-hover"
-				>
-					@tabler.X(i.Props{Class: "size-4"})
-				</a>
+				<li>
+					<a
+						hx-post={ path }
+						hx-target={ ContentID.Target() }
+						hx-replace-url="true"
+						hx-swap="innerHTML transition:true"
+						hx-params="not categories"
+					>
+						@tabler.X(i.Props{Class: "size-4"})
+					</a>
+				</li>
 			</form>
 		}
 	</div>
@@ -427,29 +429,30 @@ templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		<a
-			hx-post={ path }
-			hx-target={ ContentID.Target() }
-			hx-replace-url="true"
-			hx-swap="innerHTML transition:true"
-			class={ "group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm capitalize focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2",
-			templ.KV("text-primary font-semibold",sort==filters.GetSort()) }
-			role="menuitem"
-			tabindex="-1"
-		>
-			switch sort {
-				case models.SortNewestFirst:
-					@tabler.SortDescending2()
-				case models.SortOldestFirst:
-					@tabler.SortAscending2()
-				case models.SortMostUnread:
-					@tabler.SortDescendingNumbers()
-				case models.SortLeastUnread:
-					@tabler.SortAscendingNumbers()
-			}
-			<span class="ml-2">
-				{ sort.String() }
-			</span>
-		</a>
+		<li>
+			<a
+				hx-post={ path }
+				hx-target={ ContentID.Target() }
+				hx-replace-url="true"
+				hx-swap="innerHTML transition:true"
+				class={ templ.KV("text-primary font-semibold", sort == filters.GetSort()) }
+				role="menuitem"
+				tabindex="-1"
+			>
+				switch sort {
+					case models.SortNewestFirst:
+						@tabler.SortDescending2()
+					case models.SortOldestFirst:
+						@tabler.SortAscending2()
+					case models.SortMostUnread:
+						@tabler.SortDescendingNumbers()
+					case models.SortLeastUnread:
+						@tabler.SortAscendingNumbers()
+				}
+				<span class="ml-2">
+					{ sort.String() }
+				</span>
+			</a>
+		</li>
 	</form>
 }
