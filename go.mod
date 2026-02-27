@@ -12,18 +12,18 @@ require (
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/elastic/elastic-transport-go/v8 v8.8.0
+	github.com/elastic/elastic-transport-go/v8 v8.9.0
 	github.com/go-chi/chi/v5 v5.2.5
-	github.com/go-json-experiment/json v0.0.0-20251027170946-4849db3c2f7e
+	github.com/go-json-experiment/json v0.0.0-20260214004413-d219187c3433
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.30.1
-	github.com/goforj/godump v1.9.0
+	github.com/goforj/godump v1.9.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
 	github.com/knadh/koanf/v2 v2.3.2
 	github.com/lmittmann/tint v1.1.3
 	github.com/mattn/go-isatty v0.0.20
-	github.com/oapi-codegen/runtime v1.1.2
-	github.com/samber/slog-chi v1.18.0
+	github.com/oapi-codegen/runtime v1.2.0
+	github.com/samber/slog-chi v1.19.0
 	github.com/samber/slog-multi v1.7.1
 	github.com/sebasvil20/templicons v1.1.0
 	github.com/stripe/stripe-go/v83 v83.2.1
@@ -164,7 +164,7 @@ require (
 	github.com/ThreeDotsLabs/watermill-googlecloud/v2 v2.0.0
 	github.com/ThreeDotsLabs/watermill-http/v2 v2.3.1
 	github.com/alecthomas/kong v1.14.0
-	github.com/auth0/go-auth0/v2 v2.5.0
+	github.com/auth0/go-auth0/v2 v2.6.0
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/didip/tollbooth/v8 v8.0.1
@@ -210,7 +210,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/realclientip/realclientip-go v1.0.0
-	github.com/resend/resend-go/v3 v3.1.0
+	github.com/resend/resend-go/v3 v3.1.1
 	github.com/reugn/go-quartz v0.15.2
 	github.com/riandyrn/otelchi v0.12.2
 	github.com/samber/lo v1.52.0 // indirect
@@ -232,7 +232,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.40.0
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/mod v0.32.0 // indirect
-	golang.org/x/net v0.50.0
+	golang.org/x/net v0.51.0
 	golang.org/x/sync v0.19.0
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
