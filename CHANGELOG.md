@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.70.1](https://github.com/immanent-tech/foragd/compare/v0.70.0...v0.70.1) (2026-02-27)
+
+
+### Bug Fixes
+
+* :bug: fix generation of scripts.js ([76cbd25](https://github.com/immanent-tech/foragd/commit/76cbd25c625dab2ed31195217b3fa3396f3e2477))
+
 ## [0.70.0](https://github.com/immanent-tech/foragd/compare/v0.69.0...v0.70.0) (2026-02-27)
 
 
