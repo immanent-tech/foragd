@@ -10,213 +10,513 @@ import (
 	"slices"
 )
 
+templ searchCommands() {
+	<button
+		command="show-modal"
+		commandfor="dialog"
+		class="hidden rounded-md bg-white/80 px-2.5 py-1.5 text-sm font-semibold text-gray-900 hover:bg-white/90 dark:bg-gray-800/80 dark:text-white dark:hover:bg-gray-700/90"
+		_="on keydown from body if the event's key is 'k' and event.altKey then showModal() on #dialog"
+	>
+		Open command palette
+	</button>
+	<el-dialog>
+		<dialog id="dialog" class="backdrop:bg-transparent">
+			<el-dialog-backdrop class="fixed inset-0 bg-gray-500/25 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in dark:bg-gray-900/50"></el-dialog-backdrop>
+			<div tabindex="0" class="fixed inset-0 w-screen overflow-y-auto p-4 focus:outline-none sm:p-6 md:p-20">
+				<el-dialog-panel class="mx-auto block max-w-2xl transform overflow-hidden rounded-xl bg-white/80 shadow-2xl outline-1 outline-black/5 backdrop-blur-sm backdrop-filter transition-all data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in dark:bg-gray-900/80 dark:-outline-offset-1 dark:outline-white/10">
+					<el-command-palette>
+						<div class="grid grid-cols-1 border-b border-gray-500/10 dark:border-white/10">
+							<input type="text" autofocus placeholder="Search..." class="col-start-1 row-start-1 h-12 w-full bg-transparent pr-4 pl-11 text-base text-gray-900 outline-hidden placeholder:text-gray-500 sm:text-sm dark:text-white dark:placeholder:text-gray-400"/>
+							<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 ml-4 size-5 self-center text-gray-900/40 dark:text-gray-500">
+								<path d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+							</svg>
+						</div>
+						<el-command-list class="block max-h-80 scroll-py-2 overflow-y-auto">
+							<el-defaults class="block divide-y divide-gray-500/10 dark:divide-white/10">
+								<div class="p-2">
+									<h2 class="mt-4 mb-2 px-3 text-xs font-semibold text-gray-900 dark:text-gray-200">Recent searches</h2>
+									<div class="text-sm text-gray-700 dark:text-gray-300">
+										<a href="#" class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+											<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+												<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+											</svg>
+											<span class="ml-3 flex-auto truncate">Workflow Inc. / Website Redesign</span>
+											<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+										</a>
+									</div>
+								</div>
+								<div class="p-2">
+									<h2 class="sr-only">Quick actions</h2>
+									<div class="text-sm text-gray-700 dark:text-gray-300">
+										<a href="#" class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+											<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+												<path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" stroke-linecap="round" stroke-linejoin="round"></path>
+											</svg>
+											<span class="ml-3 flex-auto truncate">Add new file...</span>
+											<span aria-hidden="true" class="ml-3 flex-none text-xs font-semibold text-gray-500 dark:text-gray-400"><kbd class="font-sans">⌘</kbd><kbd class="font-sans">N</kbd> </span>
+										</a>
+										<a href="#" class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+											<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+												<path d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+											</svg>
+											<span class="ml-3 flex-auto truncate">Add new folder...</span>
+											<span aria-hidden="true" class="ml-3 flex-none text-xs font-semibold text-gray-500 dark:text-gray-400"><kbd class="font-sans">⌘</kbd><kbd class="font-sans">F</kbd> </span>
+										</a>
+										<a href="#" class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+											<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+												<path d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5" stroke-linecap="round" stroke-linejoin="round"></path>
+											</svg>
+											<span class="ml-3 flex-auto truncate">Add hashtag...</span>
+											<span aria-hidden="true" class="ml-3 flex-none text-xs font-semibold text-gray-500 dark:text-gray-400"><kbd class="font-sans">⌘</kbd><kbd class="font-sans">H</kbd> </span>
+										</a>
+										<a href="#" class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+											<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+												<path d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" stroke-linecap="round" stroke-linejoin="round"></path>
+												<path d="M6 6h.008v.008H6V6Z" stroke-linecap="round" stroke-linejoin="round"></path>
+											</svg>
+											<span class="ml-3 flex-auto truncate">Add label...</span>
+											<span aria-hidden="true" class="ml-3 flex-none text-xs font-semibold text-gray-500 dark:text-gray-400"><kbd class="font-sans">⌘</kbd><kbd class="font-sans">L</kbd> </span>
+										</a>
+									</div>
+								</div>
+							</el-defaults>
+							<el-command-group hidden class="block p-2 text-sm text-gray-700 dark:text-gray-300">
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Workflow Inc. / Website Redesign</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Workflow Inc. / Open Graph Image</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Workflow Inc. / Logo Design</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Workflow Inc. / Advertising Campaign</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Conglomerate Inc. / TV Ad Campaign</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Conglomerate Inc. / Mobile App</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Conglomerate Inc. / Product Design</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Conglomerate Inc. / Intranet</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Conglomerate Inc. / Custom Programming</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Multinational LLC / Creative Writing</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Multinational LLC / Animation</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Multinational LLC / Product Illustration</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Products Inc. / Video Production</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Products Inc. / Print Brochure</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+								<a href="#" hidden class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-gray-900/5 aria-selected:text-gray-900 dark:aria-selected:bg-white/5 dark:aria-selected:text-white">
+									<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 flex-none text-gray-900/40 group-aria-selected:text-gray-900 dark:text-gray-500 dark:group-aria-selected:text-white">
+										<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+									<span class="ml-3 flex-auto truncate">Products Inc. / Documentation</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-gray-500 group-aria-selected:inline dark:text-gray-400">Jump to...</span>
+								</a>
+							</el-command-group>
+						</el-command-list>
+						<el-no-results hidden class="block px-6 py-14 text-center sm:px-14">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="mx-auto size-6 text-gray-900/40 dark:text-gray-500">
+								<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg>
+							<p class="mt-4 text-sm text-gray-900 dark:text-gray-200">We couldn’t find any projects with that term. Please try again.</p>
+						</el-no-results>
+					</el-command-palette>
+				</el-dialog-panel>
+			</div>
+		</dialog>
+	</el-dialog>
+}
+
 templ searchBox() {
-	<el-command-palette class="grid w-full sm:max-w-3xl">
-		<search>
-			<label
-				for="global-search"
-				class="w-full sm:max-w-3xl input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10"
+	<el-popover-group class="w-full sm:max-w-3xl">
+		<label
+			for="global-search"
+			class="w-full input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10"
+		>
+			<button
+				hx-post="/search/suggestions"
+				hx-target="#search-suggestions-popover"
+				hx-include="#search-filters,[id='timezone'],[id='global-search']"
+				hx-trigger="keyup changed delay:500ms from:#global-search"
+				hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
+				popovertarget="search-suggestions-popover"
+				type="button"
 			>
 				@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
-				<input
-					id="global-search"
-					type="search"
-					name="text"
-					placeholder="Search..."
-					spellcheck="false"
-					autocomplete="off"
-					_="
-					on keydown from body if the event's key is 'k' and event.altKey then focus() me end
-					"
-				/>
-				// Filters button opens advanced search dialog.
-				<button
-					type="button"
-					command="show-modal"
-					commandfor="search-filters-dialog"
-					tabindex="0"
-				>
-					@tabler.Filter(i.Props{Class: "flex-none text-primary"})
-				</button>
-			</label>
-		</search>
-		// <div
-		// 	hx-post="/search"
-		// 	hx-target={ ContentID.Target() }
-		// 	hx-include="#search-filters,[id='timezone']"
-		// 	hx-trigger="keydown[key=='Enter'] from:#global-search consume"
-		// ></div>
-		<el-command-list
-			hx-post="/search/suggestions"
-			hx-target="#global-search-suggestions"
-			hx-include="#search-filters,[id='timezone'],[id='global-search']"
-			hx-trigger="keyup changed delay:500ms from:#global-search"
-			hx-sync="#global-search:abort"
-			hx-disinherit="*"
-			id="global-search-suggestions"
-			class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-128 sm:max-h-196 sm:h-fit scroll-py-2 overflow-y-auto p-2 rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
-			_="on keydown[key is 'Escape'] add .hidden"
-		></el-command-list>
-	</el-command-palette>
+			</button>
+			<input
+				id="global-search"
+				type="search"
+				name="text"
+				placeholder="Search..."
+				spellcheck="false"
+				autocomplete="off"
+			/>
+			<button
+				type="button"
+				popovertarget="search-filters-popover"
+				tabindex="0"
+			>
+				@tabler.Filter(i.Props{Class: "flex-none text-primary"})
+			</button>
+		</label>
+		<el-popover
+			id="search-suggestions-popover"
+			anchor="bottom start"
+			popover
+			class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:-12px] h-fit max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm divide-y divide-primary/80 outline-1 -outline-offset-1 outline-base-content/15"
+		></el-popover>
+		<el-popover
+			popover
+			id="search-filters-popover"
+			anchor="bottom end"
+			class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:12px] p-4 sm:p-6 max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15"
+		>
+			@SearchFilters(models.NewSearchRequest(), nil)
+		</el-popover>
+	</el-popover-group>
+	// <el-command-palette class="grid w-full sm:max-w-3xl">
+	// 	<search>
+	// 		<label
+	// 			for="global-search"
+	// 			class="w-full sm:max-w-3xl input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10"
+	// 		>
+	// 			@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
+	// 			<input
+	// 				id="global-search"
+	// 				type="search"
+	// 				name="text"
+	// 				placeholder="Search..."
+	// 				spellcheck="false"
+	// 				autocomplete="off"
+	// 				_="
+	// 				on keydown from body if the event's key is 'k' and event.altKey then focus() me end
+	// 				"
+	// 			/>
+	// 			// Filters button opens advanced search dialog.
+	// 			<button
+	// 				type="button"
+	// 				command="show-modal"
+	// 				commandfor="search-filters-dialog"
+	// 				tabindex="0"
+	// 			>
+	// 				@tabler.Filter(i.Props{Class: "flex-none text-primary"})
+	// 			</button>
+	// 		</label>
+	// 	</search>
+	// 	// <div
+	// 	// 	hx-post="/search"
+	// 	// 	hx-target={ ContentID.Target() }
+	// 	// 	hx-include="#search-filters,[id='timezone']"
+	// 	// 	hx-trigger="keydown[key=='Enter'] from:#global-search consume"
+	// 	// ></div>
+	// 	<el-command-list
+	// 		hx-post="/search/suggestions"
+	// 		hx-target="#global-search-suggestions"
+	// 		hx-include="#search-filters,[id='timezone'],[id='global-search']"
+	// 		hx-trigger="keyup changed delay:500ms from:#global-search"
+	// 		hx-sync="#global-search:abort"
+	// 		hx-disinherit="*"
+	// 		id="global-search-suggestions"
+	// 		class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-128 sm:max-h-196 sm:h-fit scroll-py-2 overflow-y-auto p-2 rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
+	// 		_="on keydown[key is 'Escape'] add .hidden"
+	// 	></el-command-list>
+	// </el-command-palette>
 }
 
 // SearchSuggestions will render suggestions for a given search.
 templ SearchSuggestions(suggestions *models.SearchResults) {
-	// Always generate a suggestion to execute a full search.
-	<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="search-group-label">
-		<form
-			id="show-search-results"
-			hx-post="/search"
-			hx-target={ ContentID.Target() }
-			hx-include="#search-filters,[id='timezone']"
-			hx-trigger="click consume"
-			_="on htmx:beforeRequest add @hidden to #global-search-suggestions"
-		>
-			<input type="hidden" name="text" value={ suggestions.Search.Text }/>
-			<a
-				href="#"
-				hidden
-				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content text-sm"
+	// // Always generate a suggestion to execute a full search.
+	// <el-command-group hidden class="block text-sm text-base-content" aria-labelledby="search-group-label">
+	// 	<form
+	// 		id="show-search-results"
+	// 		hx-post="/search"
+	// 		hx-target={ ContentID.Target() }
+	// 		hx-include="#search-filters,[id='timezone']"
+	// 		hx-trigger="click consume"
+	// 		_="on htmx:beforeRequest add @hidden to #global-search-suggestions"
+	// 	>
+	// 		<input type="hidden" name="text" value={ suggestions.Search.Text }/>
+	// 		<a
+	// 			href="#"
+	// 			hidden
+	// 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content text-sm"
+	// 		>
+	// 			@tabler.Search(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 			<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
+	// 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Search...</span>
+	// 		</a>
+	// 	</form>
+	// </el-command-group>
+	// // Page suggestions.
+	// <el-command-group hidden class="block text-sm text-base-content" aria-labelledby="pages-group-label">
+	// 	<div id="pages-group-label" class="text-base-content/80 px-3">Actions</div>
+	// 	<a
+	// 		href="/home"
+	// 		hidden
+	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 		_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
+	// 	>
+	// 		@tabler.Home(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 		<span class="ml-3 flex-auto truncate">Go to Home</span>
+	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 	</a>
+	// 	<a
+	// 		href="/list/subscriptions"
+	// 		hidden
+	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 		_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
+	// 	>
+	// 		@tabler.Rss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 		<span class="ml-3 flex-auto truncate">Go to Subscriptions</span>
+	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 	</a>
+	// 	<a
+	// 		href="/list/articles"
+	// 		hidden
+	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 		_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
+	// 	>
+	// 		@tabler.FileRss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 		<span class="ml-3 flex-auto truncate">Go to Articles</span>
+	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 	</a>
+	// 	<a
+	// 		href="/list/favorites"
+	// 		hidden
+	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 		_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
+	// 	>
+	// 		@tabler.Heart(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 		<span class="ml-3 flex-auto truncate">Go to Favorites</span>
+	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 	</a>
+	// 	<a
+	// 		href="/user/settings"
+	// 		hidden
+	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 		_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
+	// 	>
+	// 		@tabler.Settings(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 		<span class="ml-3 flex-auto truncate">Go to Settings</span>
+	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 	</a>
+	// 	<a
+	// 		href="#"
+	// 		hx-get="/user/subscription/add/feed"
+	// 		hx-target={ ContentID.Target() }
+	// 		hx-push-url="true"
+	// 		hidden
+	// 		_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
+	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 	>
+	// 		@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 		<span class="ml-3 flex-auto truncate">Add a feed subscription</span>
+	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 	</a>
+	// 	<a
+	// 		href="#"
+	// 		hx-get="/user/subscription/add/search"
+	// 		hx-target={ ContentID.Target() }
+	// 		hx-push-url="true"
+	// 		hx-include="#search-filters"
+	// 		hidden
+	// 		_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
+	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 	>
+	// 		@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 		<span class="ml-3 flex-auto truncate">Add a search subscription</span>
+	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 	</a>
+	// 	<a
+	// 		href="#"
+	// 		hx-get="/user/subscription/add/group"
+	// 		hx-target={ ContentID.Target() }
+	// 		hx-push-url="true"
+	// 		hidden
+	// 		_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
+	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 	>
+	// 		@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 		<span class="ml-3 flex-auto truncate">Add a group subscription</span>
+	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 	</a>
+	// </el-command-group>
+	// if len(suggestions.Subscriptions) > 0 {
+	// 	// Subscription suggestions.
+	// 	<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="subscriptions-group-label">
+	// 		<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
+	// 		for subscription := range slices.Values(suggestions.Subscriptions) {
+	// 			<a
+	// 				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 				href="#"
+	// 				_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
+	// 				{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
+	// 			>
+	// 				@tabler.Rss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 				<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
+	// 				<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 			</a>
+	// 		}
+	// 	</el-command-group>
+	// }
+	// if len(suggestions.Articles)> 0 {
+	// 	// Article suggestions.
+	// 	<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="articles-group-label">
+	// 	<div id="articles-group-label" class="text-base-content/80 px-3 py-2">Articles</div>
+	// 	for article := range slices.Values(suggestions.Articles) {
+	// 		<a
+	// 			href="#"
+	// 			hx-get={ "/view/article/" + article.GetID() }
+	// 			hx-target={ ContentID.Target() }
+	// 			hx-push-url="true"
+	// 			hidden
+	// 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+	// 			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to '' end"
+	// 		>
+	// 			@tabler.File(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+	// 			<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
+	// 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+	// 		</a>
+	// 	}
+	// 	</el-command-group>
+	// }
+	<ul class="menu w-full">
+		<li>
+			<form
+				id="show-search-results"
+				hx-post="/search"
+				hx-target={ ContentID.Target() }
+				hx-include="#search-filters,[id='timezone']"
+				hx-trigger="click consume"
+				hx-sync="#search-suggestions-popover:drop"
+				hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
 			>
-				@tabler.Search(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-				<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
-				<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Search...</span>
-			</a>
-		</form>
-	</el-command-group>
-	// Page suggestions.
-	<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="pages-group-label">
-		<div id="pages-group-label" class="text-base-content/80 px-3">Actions</div>
-		<a
-			href="/home"
-			hidden
-			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
-		>
-			@tabler.Home(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-			<span class="ml-3 flex-auto truncate">Go to Home</span>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-		</a>
-		<a
-			href="/list/subscriptions"
-			hidden
-			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
-		>
-			@tabler.Rss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-			<span class="ml-3 flex-auto truncate">Go to Subscriptions</span>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-		</a>
-		<a
-			href="/list/articles"
-			hidden
-			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
-		>
-			@tabler.FileRss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-			<span class="ml-3 flex-auto truncate">Go to Articles</span>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-		</a>
-		<a
-			href="/list/favorites"
-			hidden
-			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
-		>
-			@tabler.Heart(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-			<span class="ml-3 flex-auto truncate">Go to Favorites</span>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-		</a>
-		<a
-			href="/user/settings"
-			hidden
-			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
-		>
-			@tabler.Settings(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-			<span class="ml-3 flex-auto truncate">Go to Settings</span>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-		</a>
-		<a
-			href="#"
-			hx-get="/user/subscription/add/feed"
-			hx-target={ ContentID.Target() }
-			hx-push-url="true"
-			hidden
-			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
-			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-		>
-			@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-			<span class="ml-3 flex-auto truncate">Add a feed subscription</span>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-		</a>
-		<a
-			href="#"
-			hx-get="/user/subscription/add/search"
-			hx-target={ ContentID.Target() }
-			hx-push-url="true"
-			hx-include="#search-filters"
-			hidden
-			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
-			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-		>
-			@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-			<span class="ml-3 flex-auto truncate">Add a search subscription</span>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-		</a>
-		<a
-			href="#"
-			hx-get="/user/subscription/add/group"
-			hx-target={ ContentID.Target() }
-			hx-push-url="true"
-			hidden
-			_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
-			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-		>
-			@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-			<span class="ml-3 flex-auto truncate">Add a group subscription</span>
-			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-		</a>
-	</el-command-group>
-	if len(suggestions.Subscriptions) > 0 {
-		// Subscription suggestions.
-		<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="subscriptions-group-label">
-			<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
-			for subscription := range slices.Values(suggestions.Subscriptions) {
-				<a
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-					href="#"
-					_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
-					{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
-				>
-					@tabler.Rss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-					<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
-					<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+				<input type="hidden" name="text" value={ suggestions.Search.Text }/>
+				<a class="group/item flex items-center">
+					@tabler.Search(i.Props{Class: "group-hover:text-primary"})
+					<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
+					<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Search...</span>
 				</a>
-			}
-		</el-command-group>
-	}
-	if len(suggestions.Articles)> 0 {
-		// Article suggestions.
-		<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="articles-group-label">
-			<div id="articles-group-label" class="text-base-content/80 px-3 py-2">Articles</div>
-			for article := range slices.Values(suggestions.Articles) {
-				<a
-					href="#"
-					hx-get={ "/view/article/" + article.GetID() }
-					hx-target={ ContentID.Target() }
-					hx-push-url="true"
-					hidden
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-					_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to '' end"
-				>
-					@tabler.File(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-					<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
-					<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-				</a>
-			}
-		</el-command-group>
-	}
+			</form>
+		</li>
+		if len(suggestions.Subscriptions) > 0 {
+			// Subscription suggestions.
+			<ul class="menu w-full">
+				<li class="menu-title">Subscriptions</li>
+				for subscription := range slices.Values(suggestions.Subscriptions) {
+					<li>
+						<a
+							{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
+							hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
+							class="group"
+						>
+							@tabler.Rss(i.Props{Class: "group-hover:text-primary"})
+							<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
+							<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
+						</a>
+					</li>
+				}
+			</ul>
+		}
+		if len(suggestions.Articles)> 0 {
+			// Article suggestions.
+			<ul class="menu w-full">
+				<li class="menu-title">
+					Articles
+				</li>
+				for article := range slices.Values(suggestions.Articles) {
+					<li>
+						<a
+							hx-get={ "/view/article/" + article.GetID() }
+							hx-target={ ContentID.Target() }
+							hx-push-url="true"
+							hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
+							class="group"
+						>
+							@tabler.File(i.Props{Class: "group-hover:text-primary"})
+							<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
+							<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
+						</a>
+					</li>
+				}
+			</ul>
+		}
+	</ul>
 }
 
 // SearchResults renders the given articles returned from the given search in a grid layout with an actions menu.
@@ -527,7 +827,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			// Date range filter.
 			<div class="sm:col-span-2">
 				<label for="search-published-within" class="block text-sm/6 font-medium">Published Within</label>
-				<select id="search-published-within" name="published_within" class="select select-sm select-primary my-2 bg-base-content/10">
+				<select id="search-published-within" name="published_within" class="select select-sm select-primary my-2 bg-base-300 brightness-95">
 					<option
 						value="last_hour"
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLastHour {
@@ -569,7 +869,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			// Sort option.
 			<div class="sm:col-span-2">
 				<label for="search-sort" class="block text-sm/6 font-medium">Sort By</label>
-				<select id="search-sort" name="sort" class="select select-sm select-primary my-2 bg-base-content/10">
+				<select id="search-sort" name="sort" class="select select-sm select-primary my-2 bg-base-300 brightness-95">
 					<option
 						value={ string(models.SortMostRelevant) }
 						if request.Sort == models.SortMostRelevant {
@@ -597,8 +897,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			<button
 				type="button"
 				class="btn btn-sm btn-seconday hover:btn-error"
-				command="close"
-				commandfor="search-filters-dialog"
+				_="on click hidePopover() on #search-filters-popover"
 			>Cancel</button>
 			<form
 				id="search-results"
@@ -606,11 +905,11 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 				hx-target={ ContentID.Target() }
 				hx-include="[id='timezone'],#search-filters"
 				hx-params="not subscription-text"
+				hx-on::before-request="document.getElementById('search-filters-popover').hidePopover()"
 			>
 				<button
 					type="submit"
 					class="btn btn-sm btn-primary"
-					_="on click call #search-filters-dialog.close()"
 				>Search</button>
 			</form>
 		</div>
@@ -637,23 +936,23 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 			hx-swap="beforeend"
 			hx-vals={ templ.JSONString(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}) }
 			hx-params="subscription_id,subscription_name,subscriptions-input-name"
-			class="btn btn-xs hover:btn-success flex items-center"
 			_="on htmx:afterRequest(successful) remove me"
 		>
-			{ subscription.GetTitle() }
-			@tabler.Plus()
+			<div class="badge hover:badge-success hover:cursor-pointer badge-sm">
+				{ subscription.GetTitle() }
+				@tabler.Plus(i.Props{Class: "size-4"})
+			</div>
 		</button>
 	}
 }
 
 templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequest) {
-	<button
-		class="btn btn-xs hover:btn-error"
-		_="on click remove me then halt"
-	>
+	<button _="on click remove me then halt">
 		<input type="hidden" name={ filter.InputName } value={ filter.SubscriptionID }/>
-		{ filter.SubscriptionName }
-		@tabler.X()
+		<div class="badge hover:badge-error hover:cursor-pointer badge-sm">
+			{ filter.SubscriptionName }
+			@tabler.X(i.Props{Class: "size-4"})
+		</div>
 	</button>
 }
 
