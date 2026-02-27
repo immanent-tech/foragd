@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -31,10 +32,11 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 	"go.abhg.dev/goldmark/frontmatter"
 
+	"github.com/immanent-tech/go-syndication/opengraph"
 	"github.com/immanent-tech/go-syndication/sitemap"
 
+	"github.com/immanent-tech/foragd/config"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
-	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -271,12 +273,14 @@ func PolicyDocsHandler() http.HandlerFunc {
 			templates.Document(policyBuf.Bytes()),
 			templates.WithPageTitle(fm.Title),
 			templates.WithPageDescription(fm.Description),
-			templates.WithOGMetadata(
-				opengraph.NewMetadata(
-					opengraph.WithTitle(fm.Title),
-					opengraph.WithDescription(fm.Description),
-				),
-			),
+			templates.WithOpenGraphMetadata(opengraph.New(
+				fm.Title,
+				"website",
+				os.Getenv("FORAGD_BASEURL")+"/"+metadata.Path,
+				os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
+				opengraph.WithDescription(fm.Description),
+				opengraph.WithSiteName(config.AppName),
+			)),
 		)
 		templ.Handler(template).ServeHTTP(res, req)
 	}

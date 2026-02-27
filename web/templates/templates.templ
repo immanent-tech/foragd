@@ -7,9 +7,10 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/htmx"
-	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/go-syndication/opengraph"
 	"maps"
+	"os"
 	"slices"
 	"strings"
 	"sync"
@@ -50,7 +51,7 @@ type Page struct {
 	// Description adds a meta tag with the given text.
 	Description string
 	// OGMetadata contains the Opengraph metadata for the page.
-	OGMetadata *opengraph.Metadata
+	OpenGraph *opengraph.OpenGraph
 }
 
 // PageOption is a functional option applied to a page.
@@ -70,10 +71,10 @@ func WithPageDescription(desc string) PageOption {
 	}
 }
 
-// WithOGMetadata option sets the given metadata as appropriate Opengraph tags in the page header.
-func WithOGMetadata(metadata *opengraph.Metadata) PageOption {
+// WithOpenGraphMetadata option sets the given metadata as appropriate Open Graph tags in the page header.
+func WithOpenGraphMetadata(metadata *opengraph.OpenGraph) PageOption {
 	return func(p *Page) {
-		p.OGMetadata = metadata
+		p.OpenGraph = metadata
 	}
 }
 
@@ -85,7 +86,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			Component:   template,
 			Title:       config.AppName,
 			Description: config.AppDescription,
-			OGMetadata:  opengraph.NewMetadata(),
+			OpenGraph:   NewOpenGraphMetadata(),
 		}
 
 		for option := range slices.Values(options) {
@@ -101,8 +102,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual" hx-preserve="true"/>
 			<meta http-equiv="X-UA-Compatible" content="ie=edge" hx-preserve="true"/>
 			<meta http-equiv="Accept-CH" content="DPR, Viewport-Width, Width" hx-preserve="true"/>
-			if p.OGMetadata != nil {
-				@p.OGMetadata.Render()
+			if p.OpenGraph != nil {
+				@templ.Raw(p.OpenGraph.String())
 			}
 			<link rel="canonical" href="https://foragd.app" hx-preserve="true"/>
 			<link rel="manifest" href="/content/manifest.json" hx-preserve="true"/>
@@ -273,4 +274,20 @@ func WithID(id string) ElementOption {
 	return func(e *Element) {
 		e.SetID(id)
 	}
+}
+
+// NewMetadata creates a new opengraph Metadata object with properties set to values given by the options. Where a
+// property is not set by an option, a default value will be used.
+func NewOpenGraphMetadata(options ...opengraph.Option) *opengraph.OpenGraph {
+	og := &opengraph.OpenGraph{
+		Title:       config.AppName,
+		ObjectType:  "website",
+		URL:         os.Getenv("FORAGD_BASEURL"),
+		Image:       os.Getenv("FORAGD_BASEURL") + "/content/logo-color.webp",
+		Description: new(config.AppDescription),
+	}
+	for option := range slices.Values(options) {
+		option(og)
+	}
+	return og
 }

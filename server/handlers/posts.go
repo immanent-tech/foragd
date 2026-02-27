@@ -19,18 +19,20 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/yuin/goldmark/parser"
 	"go.abhg.dev/goldmark/frontmatter"
 
+	"github.com/immanent-tech/go-syndication/opengraph"
 	"github.com/immanent-tech/go-syndication/rss"
 
 	"github.com/immanent-tech/go-syndication/types"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 )
 
 var postsPath = "assets/docs/posts"
@@ -56,9 +58,13 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.PostsIndex(p.posts),
 		templates.WithPageTitle(title),
 		templates.WithPageDescription(description),
-		templates.WithOGMetadata(opengraph.NewMetadata(
-			opengraph.WithTitle(title),
+		templates.WithOpenGraphMetadata(opengraph.New(
+			title,
+			"website",
+			os.Getenv("FORAGD_BASEURL")+"/posts",
+			os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
 			opengraph.WithDescription(description),
+			opengraph.WithSiteName(config.AppName),
 		)),
 	),
 	).ServeHTTP(res, req)
@@ -75,16 +81,17 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.Post(p.MarkdownFile),
 		templates.WithPageTitle(p.Frontmatter.Title),
 		templates.WithPageDescription(p.Frontmatter.Description),
-		templates.WithOGMetadata(opengraph.NewMetadata(
-			opengraph.WithTitle(p.Frontmatter.Title),
+		templates.WithOpenGraphMetadata(opengraph.New(
+			p.Frontmatter.Title,
+			"article",
+			os.Getenv("FORAGD_BASEURL")+"/"+p.Details.Path,
+			os.Getenv("FORAGD_BASEURL")+*p.Frontmatter.Image,
 			opengraph.WithDescription(p.Frontmatter.Description),
-			opengraph.WithType("article", map[string]string{
-				"article:published_time": p.Frontmatter.CreatedAt,
-				"article:modified_time":  *p.Frontmatter.UpdatedAt,
-			}),
+			opengraph.WithSiteName(config.AppName),
+			opengraph.WithAdditionalProperty("article:published_time", p.Frontmatter.CreatedAt),
+			opengraph.WithAdditionalProperty("article:modified_time", *p.Frontmatter.UpdatedAt),
 		)),
-	),
-	).ServeHTTP(res, req)
+	)).ServeHTTP(res, req)
 }
 
 // HandlePosts handles showing the posts index or individual posts.
@@ -227,6 +234,7 @@ func HandlePostsFeed() http.HandlerFunc {
 			if err != nil {
 				continue
 			}
+			godump.Dump(data)
 			var published time.Time
 			if published, err = time.Parse(time.DateOnly, data.Frontmatter.CreatedAt); err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to parse published date of post.",

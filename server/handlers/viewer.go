@@ -6,15 +6,18 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/go-syndication/opengraph"
+
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates"
-	"github.com/immanent-tech/foragd/web/templates/helpers/opengraph"
 )
 
 type Viewer struct {
@@ -31,12 +34,14 @@ func (p *Viewer) FullResponse(res http.ResponseWriter, req *http.Request) {
 			templates.Viewer(p.feed, p.errMsg),
 			templates.WithPageTitle(title),
 			templates.WithPageDescription(description),
-			templates.WithOGMetadata(
-				opengraph.NewMetadata(
-					opengraph.WithTitle(title),
-					opengraph.WithDescription(description),
-				),
-			),
+			templates.WithOpenGraphMetadata(opengraph.New(
+				title,
+				"website",
+				os.Getenv("FORAGD_BASEURL")+"/about",
+				os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
+				opengraph.WithDescription(description),
+				opengraph.WithSiteName(config.AppName),
+			)),
 		),
 	).ServeHTTP(res, req)
 }

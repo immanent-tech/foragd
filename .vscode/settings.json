@@ -70,7 +70,8 @@
     "docs",
     "opml",
     "reverseproxy",
-    "client"
+    "client",
+    "opengraph"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
