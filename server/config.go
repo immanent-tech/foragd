@@ -59,10 +59,12 @@ var loadConfigOnce = sync.OnceValue(func() error {
 		return fmt.Errorf("load server environment: %w", err)
 	}
 	// Load additional environment variables.
-	if port, err := strconv.ParseUint(os.Getenv("PORT"), 10, 64); err != nil {
-		return fmt.Errorf("load port: %w", err)
-	} else {
-		cfg.Port = port
+	if os.Getenv("PORT") != "" {
+		if port, err := strconv.ParseUint(os.Getenv("PORT"), 10, 64); err != nil {
+			return fmt.Errorf("load port: %w", err)
+		} else {
+			cfg.Port = port
+		}
 	}
 	// Load image proxy config into server config.
 	var imgProxyCfg ImgProxyConfig

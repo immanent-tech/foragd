@@ -24,7 +24,11 @@ const (
 	ConfigEnvPrefix = config.ConfigEnvPrefix + "REVERSPROXY_"
 )
 
-var cfg Config
+// cfg is the server config with default values.
+var cfg = Config{
+	Port: 7000,
+	Host: "localhost",
+}
 
 // Config contains the reverseproxy configuration options.
 type Config struct {
@@ -42,10 +46,12 @@ var LoadConfig = sync.OnceValues(func() (*Config, error) {
 		return nil, fmt.Errorf("load config: %w", err)
 	}
 	// Load additional environment variables.
-	if port, err := strconv.ParseUint(os.Getenv("PORT"), 10, 64); err != nil {
-		return nil, fmt.Errorf("load port from envrionment: %w", err)
-	} else {
-		cfg.Port = port
+	if os.Getenv("PORT") != "" {
+		if port, err := strconv.ParseUint(os.Getenv("PORT"), 10, 64); err != nil {
+			return nil, fmt.Errorf("load port from envrionment: %w", err)
+		} else {
+			cfg.Port = port
+		}
 	}
 	if err := validation.Validate.Struct(cfg); err != nil {
 		return nil, fmt.Errorf("google: unable to validate config: %w", err)
