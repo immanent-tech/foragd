@@ -35,7 +35,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					if len(response.Subscriptions) > 0 {
 						<section id="subscriptions" class="mt-4">
 							<div class="pb-5">
-								@partials.Heading2() {
+								@partials.Heading1() {
 									Subscriptions
 								}
 							</div>
@@ -51,7 +51,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					if len(response.Articles) > 0 {
 						<section id="articles" class="mt-4">
 							<div class="pb-5">
-								@partials.Heading2() {
+								@partials.Heading1() {
 									Articles
 								}
 							</div>
