@@ -25,6 +25,7 @@ var CLI struct {
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
 	Data         cli.DataCmd          `cmd:"" help:"Manipulate data."`
 	User         cli.UserCmd          `cmd:"user" help:"Manipulate users."`
+	Feed         cli.FeedCmd          `cmd:"feed" help:"Perform feed actions"`
 	ProfileFlags logging.ProfileFlags `name:"profile" help:"Set profiling flags."`
 	Environment  string               `env:"FORAGD_ENVIRONMENT" name:"environment" help:"Set the running environment." required:"true" default:"development" enum:"development,production"`
 }
