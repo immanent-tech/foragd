@@ -122,7 +122,7 @@ templ (a *Article) Card() {
 				<form>
 					<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
 					<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
-					<label class="swap" _="on click halt the event's bubbling">
+					<label class="swap touch-manipulation" _="on click halt the event's bubbling">
 						<input
 							hx-post={ "/favorite/article/" + a.GetID() }
 							hx-swap="none"
@@ -149,7 +149,7 @@ templ (a *Article) Card() {
 							value={ models.MarkUnread }
 						}
 					/>
-					<label class="swap" _="on click halt the event's bubbling">
+					<label class="swap touch-manipulation" _="on click halt the event's bubbling">
 						<input
 							hx-post={ "/mark/article/" + a.GetID() }
 							hx-swap="none"
@@ -176,7 +176,7 @@ templ (a *Article) Card() {
 				</form>
 				// Actions menu.
 				<div class="flex flex-none">
-					<el-dropdown class="relative ml-auto" _="on click halt the event's bubbling">
+					<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
 						<button class="btn btn-sm btn-ghost btn-square">
 							<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
 							@tabler.Menu2(i.Props{Class: "size-5 text-primary"})

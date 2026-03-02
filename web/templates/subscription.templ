@@ -190,7 +190,7 @@ templ (s *Subscription) Card() {
 				<div class="flex flex-1 space-x-2 items-center justify-end">
 					<form>
 						<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
-						<label class="swap" _="on click halt the event's bubbling">
+						<label class="swap touch-manipulation" _="on click halt the event's bubbling">
 							<input
 								hx-post={ "/favorite/subscription/" + s.GetID() }
 								hx-swap="none"
@@ -218,7 +218,7 @@ templ (s *Subscription) Card() {
 									value={ models.MarkUnread }
 								}
 							/>
-							<label class="swap" _="on click halt the event's bubbling">
+							<label class="swap touch-manipulation" _="on click halt the event's bubbling">
 								<input
 									hx-post={ "/mark/subscription/" + s.GetID() }
 									hx-swap="none"
@@ -246,12 +246,12 @@ templ (s *Subscription) Card() {
 					}
 					// Context menu actions.
 					<div class="flex flex-none">
-						<el-dropdown class="relative" _="on click halt the event's bubbling">
+						<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
 							<button
 								id={ "btn-" + s.GetID() + "-actions" }
 								class="btn btn-sm btn-ghost"
 							>
-								<span class="sr-only">s.GetTitle() + " Actions"</span>
+								<span class="sr-only">{ s.GetTitle() + " Actions" }</span>
 								@tabler.Menu2(i.Props{Class: "size-5 text-primary"})
 							</button>
 							<el-menu
@@ -1583,7 +1583,7 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 templ subscriptionThumbnail(img *types.ImageInfo, name string) {
 	if img != nil {
 		// If the source has an image, use that as the avatar.
-		<div class="avatar">
+		<div class="avatar" aria-hidden="true">
 			// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
 			// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
 			// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
@@ -1598,7 +1598,7 @@ templ subscriptionThumbnail(img *types.ImageInfo, name string) {
 		</div>
 	} else {
 		// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
-		<div class="avatar avatar-placeholder">
+		<div class="avatar avatar-placeholder" aria-hidden="true">
 			<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
 				if name != "" {
 					<span class="text-3xl capitalize">{ name[0:1] }</span>

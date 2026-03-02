@@ -362,7 +362,7 @@ func (a *Article) Card() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\"> <label class=\"swap\" _=\"on click halt the event's bubbling\"><input hx-post=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\"> <label class=\"swap touch-manipulation\" _=\"on click halt the event's bubbling\"><input hx-post=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -516,7 +516,7 @@ func (a *Article) Card() templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "> <label class=\"swap\" _=\"on click halt the event's bubbling\"><input hx-post=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "> <label class=\"swap touch-manipulation\" _=\"on click halt the event's bubbling\"><input hx-post=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -564,7 +564,7 @@ func (a *Article) Card() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</label></form><div class=\"flex flex-none\"><el-dropdown class=\"relative ml-auto\" _=\"on click halt the event's bubbling\"><button class=\"btn btn-sm btn-ghost btn-square\"><span class=\"sr-only\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</label></form><div class=\"flex flex-none\"><el-dropdown class=\"relative ml-auto touch-manipulation\" _=\"on click halt the event's bubbling\"><button class=\"btn btn-sm btn-ghost btn-square\"><span class=\"sr-only\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
