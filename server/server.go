@@ -97,6 +97,7 @@ func Start(logger *slog.Logger) error {
 		middleware.StripSlashes,
 		middlewares.Etag,
 		middlewares.Otel,
+		middlewares.SetCacheControl,
 	)
 
 	// Error handling.
@@ -169,7 +170,6 @@ func Start(logger *slog.Logger) error {
 			session.LoadAndSave,
 			middlewares.RequireUserAuth,
 			middlewares.RefreshTokenIfNeeded,
-			middlewares.SetCacheControl,
 			middlewares.PushCriticalAssets,
 		)
 		// Payment routes (Stripe).

@@ -105,15 +105,11 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 		req.URL.Path = file
 
 		switch {
-		case strings.HasSuffix(req.URL.Path, "js"):
-			// JS files are cached for 1 week.
-			res.Header().Set("Cache-Control", "public, max-age=604800")
-		case strings.HasSuffix(req.URL.Path, "css"):
-			// CSS files are cached for 1 week.
-			res.Header().Set("Cache-Control", "public, max-age=604800")
+		case strings.HasSuffix(req.URL.Path, "js") || strings.HasSuffix(req.URL.Path, "css"):
+			// JS/CSS files are cached for 1 week.
+			res.Header().Set("Cache-Control", "public, max-age=604800, immutable")
 		case strings.HasSuffix(req.URL.Path, "woff2"):
-			// Fonts are cached for 1 year.
-			res.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			fallthrough
 		case strings.HasSuffix(req.URL.Path, "png"):
 			fallthrough
 		case strings.HasSuffix(req.URL.Path, "jpg"):

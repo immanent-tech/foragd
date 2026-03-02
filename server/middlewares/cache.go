@@ -17,7 +17,8 @@ import (
 // setting.
 func SetCacheControl(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Cache-Control", "private, max-age=0, must-revalidate")
+		res.Header().
+			Set("Cache-Control", "private, no-cache, max-age=60, stale-while-revalidate=3600, stale-if-error=86400")
 		next.ServeHTTP(res, req)
 	})
 }
