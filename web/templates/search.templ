@@ -454,68 +454,71 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 	// 	}
 	// 	</el-command-group>
 	// }
-	<ul class="menu w-full">
-		<li tabindex="0">
-			<form
-				id="show-search-results"
-				hx-post="/search"
-				hx-target={ ContentID.Target() }
-				hx-include="#search-filters,[id='timezone']"
-				hx-trigger="click consume"
-				hx-sync="#search-suggestions-popover:drop"
-				hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-			>
-				<input type="hidden" name="text" value={ suggestions.Search.Text }/>
-				<a class="group/item flex items-center">
-					@tabler.Search(i.Props{Class: "group-hover:text-primary"})
-					<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
-					<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Search...</span>
-				</a>
-			</form>
-		</li>
-		if len(suggestions.Subscriptions) > 0 {
-			// Subscription suggestions.
-			<ul class="menu w-full">
-				<li class="menu-title" tabindex="-1">Subscriptions</li>
-				for subscription := range slices.Values(suggestions.Subscriptions) {
-					<li tabindex="0">
-						<a
-							{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
-							hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
-							class="group"
-						>
-							@tabler.Rss(i.Props{Class: "group-hover:text-primary"})
-							<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
-							<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
-						</a>
+	<nav>
+		<ul class="menu w-full">
+			<li tabindex="0">
+				<form
+					id="show-search-results"
+					hx-post="/search"
+					hx-target={ ContentID.Target() }
+					hx-include="#search-filters,[id='timezone']"
+					hx-trigger="click consume"
+					hx-sync="#search-suggestions-popover:drop"
+					hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
+					_="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
+				>
+					<input type="hidden" name="text" value={ suggestions.Search.Text }/>
+					<a class="group/item flex items-center">
+						@tabler.Search(i.Props{Class: "group-hover:text-primary"})
+						<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
+						<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Search...</span>
+					</a>
+				</form>
+			</li>
+			if len(suggestions.Subscriptions) > 0 {
+				// Subscription suggestions.
+				<ul class="menu w-full">
+					<li class="menu-title" tabindex="-1">Subscriptions</li>
+					for subscription := range slices.Values(suggestions.Subscriptions) {
+						<li tabindex="0">
+							<a
+								{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
+								hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
+								class="group"
+							>
+								@tabler.Rss(i.Props{Class: "group-hover:text-primary"})
+								<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
+								<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
+							</a>
+						</li>
+					}
+				</ul>
+			}
+			if len(suggestions.Articles)> 0 {
+				// Article suggestions.
+				<ul class="menu w-full">
+					<li class="menu-title" tabindex="-1">
+						Articles
 					</li>
-				}
-			</ul>
-		}
-		if len(suggestions.Articles)> 0 {
-			// Article suggestions.
-			<ul class="menu w-full">
-				<li class="menu-title" tabindex="-1">
-					Articles
-				</li>
-				for article := range slices.Values(suggestions.Articles) {
-					<li tabindex="0">
-						<a
-							hx-get={ "/view/article/" + article.GetID() }
-							hx-target={ ContentID.Target() }
-							hx-push-url="true"
-							hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-							class="group"
-						>
-							@tabler.File(i.Props{Class: "group-hover:text-primary"})
-							<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
-							<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
-						</a>
-					</li>
-				}
-			</ul>
-		}
-	</ul>
+					for article := range slices.Values(suggestions.Articles) {
+						<li tabindex="0">
+							<a
+								hx-get={ "/view/article/" + article.GetID() }
+								hx-target={ ContentID.Target() }
+								hx-push-url="true"
+								hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
+								class="group"
+							>
+								@tabler.File(i.Props{Class: "group-hover:text-primary"})
+								<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
+								<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
+							</a>
+						</li>
+					}
+				</ul>
+			}
+		</ul>
+	</nav>
 }
 
 // SearchResults renders the given articles returned from the given search in a grid layout with an actions menu.
