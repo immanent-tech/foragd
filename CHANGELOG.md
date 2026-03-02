@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.71.0](https://github.com/immanent-tech/foragd/compare/v0.70.1...v0.71.0) (2026-03-02)
+
+
+### Features
+
+* **cli:** :sparkles: add a command for fetching a feed ([5f9a183](https://github.com/immanent-tech/foragd/commit/5f9a1834d573e382fdabe2358c02968261b66fd8))
+* **search:** :sparkles: add a separate command pallette for desktop/keyboard users ([683a2f2](https://github.com/immanent-tech/foragd/commit/683a2f2c607a585468e7ebf95d86576528ebdcc7))
+* **templates:** :sparkles: improved search and suggestions ([35ce67f](https://github.com/immanent-tech/foragd/commit/35ce67f5e98128f19bd13fd833dd8d809fddda08))
+
+
+### Bug Fixes
+
+* :bug: fix parsing custom port for server and reverse proxy ([d7c649e](https://github.com/immanent-tech/foragd/commit/d7c649e045941f7ec6db892003033d66058f8af0))
+* **templates:** :bug: set tabindex for search suggestions ([db9d3e2](https://github.com/immanent-tech/foragd/commit/db9d3e2841dfe87271b81151f6c5da50940a3153))
+
 ## [0.70.1](https://github.com/immanent-tech/foragd/compare/v0.70.0...v0.70.1) (2026-02-27)
 
 
