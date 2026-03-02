@@ -44,18 +44,18 @@ func (a *Article) ReportIssueAttributes() templ.Attributes {
 // Card renders an article as a card, for displaying in a list.
 templ (a *Article) Card() {
 	<article
-		id={ a.GetID() }
-		class={
-			"card bg-base-200 h-full w-full max-w-prose shadow-md cursor-pointer",
-			templ.KV("row-span-1", a.GetImage() == nil),
-			templ.KV("row-span-2", a.GetImage() != nil),
-		}
 		hx-get={ "/view/article/" + a.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-swap="innerHTML show:window:top transition:true"
 		hx-trigger="click"
 		hx-push-url="true"
 		hx-disinherit="*"
+		id={ a.GetID() }
+		class={
+			"card bg-base-200 h-full w-full max-w-prose shadow-md cursor-pointer touch-manipulation",
+			templ.KV("row-span-1", a.GetImage() == nil),
+			templ.KV("row-span-2", a.GetImage() != nil),
+		}
 	>
 		if img := a.GetImage(); img != nil {
 			{{ img := a.GetImage() }}
@@ -178,7 +178,7 @@ templ (a *Article) Card() {
 				<div class="flex flex-none">
 					<el-dropdown class="relative ml-auto" _="on click halt the event's bubbling">
 						<button class="btn btn-sm btn-ghost btn-square">
-							<span class="sr-only">a.GetTitle() + " Actions"</span>
+							<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
 							@tabler.Menu2(i.Props{Class: "size-5 text-primary"})
 						</button>
 						<el-menu
