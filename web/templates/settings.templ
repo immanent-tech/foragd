@@ -446,9 +446,9 @@ templ DisplaySettings(user *models.User) {
 templ ShowSubscriptionEmail(email string) {
 	<p class="mt-1 text-sm/6 col-span-full">This is your unique subscription email. Use it in place of your own email to subscribe to email newsletters.</p>
 	<div class="join join-vertical sm:join-horizontal col-span-full">
-		<input type="text" class="input input-primary join-item" value={ email } readonly/>
+		<input type="text" class="input input-primary w-full join-item" value={ email } readonly/>
 		<button
-			class="btn btn-outline join-item"
+			class="btn btn-outline btn-primary w-full join-item"
 			_={ "on click set currentValue to (my innerHTML) then writeText('" + email + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
 		>
 			@tabler.Copy()
