@@ -11,6 +11,7 @@ import (
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
+	"strconv"
 )
 
 // UserHome is the default user home page.
@@ -71,13 +72,13 @@ templ UserHome(data *models.HomeResponse) {
 							<div
 								class="flex w-full justify-center gap-2 py-2"
 							>
-								for article := range slices.Values(data.LatestArticles) {
+								for idx, article := range data.LatestArticles {
 									<a
 										href={ "#" + article.GetID() + "-carousel" }
 										class="text-neutral"
 										_="on click remove .text-primary from <a/> in closest parent <div/> then add .text-primary to me"
 									>
-										@tabler.PointFilled()
+										@tabler.PointFilled(i.Props{AriaLabel: "Go to article " + strconv.Itoa(idx+1)})
 									</a>
 								}
 							</div>

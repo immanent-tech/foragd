@@ -20,6 +20,7 @@ import (
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
+	"strconv"
 )
 
 // UserHome is the default user home page.
@@ -140,7 +141,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 						var templ_7745c5c3_Var7 string
 						templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 34, Col: 38}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 35, Col: 38}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 						if templ_7745c5c3_Err != nil {
@@ -222,7 +223,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								var templ_7745c5c3_Var10 string
 								templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(article.GetID() + "-carousel")
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 66, Col: 48}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 67, Col: 48}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 								if templ_7745c5c3_Err != nil {
@@ -245,7 +246,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							for article := range slices.Values(data.LatestArticles) {
+							for idx, article := range data.LatestArticles {
 								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<a href=\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
@@ -253,7 +254,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								var templ_7745c5c3_Var11 templ.SafeURL
 								templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinURLErrs("#" + article.GetID() + "-carousel")
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 76, Col: 52}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 77, Col: 52}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 								if templ_7745c5c3_Err != nil {
@@ -263,7 +264,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = tabler.PointFilled().Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = tabler.PointFilled(i.Props{AriaLabel: "Go to article " + strconv.Itoa(idx+1)}).Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -364,7 +365,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 									var templ_7745c5c3_Var14 string
 									templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetTitle())
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 116, Col: 89}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 117, Col: 89}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 									if templ_7745c5c3_Err != nil {
@@ -377,7 +378,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 									var templ_7745c5c3_Var15 string
 									templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 124, Col: 89}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 125, Col: 89}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 									if templ_7745c5c3_Err != nil {
@@ -390,7 +391,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 									var templ_7745c5c3_Var16 string
 									templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetUpdatedDate().Format("ANSIC"))
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 127, Col: 61}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 128, Col: 61}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 									if templ_7745c5c3_Err != nil {
@@ -408,7 +409,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 										var templ_7745c5c3_Var17 string
 										templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(subscription.GetStats().UnreadTotal())
 										if templ_7745c5c3_Err != nil {
-											return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 134, Col: 53}
+											return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 135, Col: 53}
 										}
 										_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 										if templ_7745c5c3_Err != nil {
@@ -476,7 +477,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								var templ_7745c5c3_Var19 string
 								templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 158, Col: 40}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 159, Col: 40}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 								if templ_7745c5c3_Err != nil {
@@ -489,7 +490,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								var templ_7745c5c3_Var20 string
 								templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(params))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 159, Col: 44}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 160, Col: 44}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 								if templ_7745c5c3_Err != nil {
@@ -502,7 +503,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								var templ_7745c5c3_Var21 string
 								templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(category.Category)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 163, Col: 30}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 164, Col: 30}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 								if templ_7745c5c3_Err != nil {
@@ -622,7 +623,7 @@ func NewUserHome() templ.Component {
 						var templ_7745c5c3_Var27 string
 						templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs("Welcome to " + config.AppName)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 183, Col: 37}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 184, Col: 37}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 						if templ_7745c5c3_Err != nil {
@@ -723,7 +724,7 @@ func NewUserHome() templ.Component {
 					var templ_7745c5c3_Var31 string
 					templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 204, Col: 39}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 205, Col: 39}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 					if templ_7745c5c3_Err != nil {
@@ -744,7 +745,7 @@ func NewUserHome() templ.Component {
 					var templ_7745c5c3_Var32 string
 					templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 225, Col: 39}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/home.templ`, Line: 226, Col: 39}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 					if templ_7745c5c3_Err != nil {
