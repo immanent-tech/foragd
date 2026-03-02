@@ -18,8 +18,8 @@ import (
 )
 
 type FeedArgs struct {
-	FeedID  models.UserID `arg:"" optional:"" help:"ID of feed"`
-	FeedURL string        `arg:"" optional:"" help:"URL of feed"`
+	FeedID  models.UserID `arg:"id"  optional:"" help:"ID of feed"`
+	FeedURL string        `arg:"url" optional:"" help:"URL of feed"`
 }
 
 // FeedCmd contains sub commands for interacting with feeds.
