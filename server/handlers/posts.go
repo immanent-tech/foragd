@@ -19,7 +19,6 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/yuin/goldmark/parser"
 	"go.abhg.dev/goldmark/frontmatter"
@@ -234,7 +233,6 @@ func HandlePostsFeed() http.HandlerFunc {
 			if err != nil {
 				continue
 			}
-			godump.Dump(data)
 			var published time.Time
 			if published, err = time.Parse(time.DateOnly, data.Frontmatter.CreatedAt); err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to parse published date of post.",
