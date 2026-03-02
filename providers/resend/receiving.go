@@ -49,7 +49,15 @@ func (e *ReceivedEmail) GetBody() string {
 }
 
 func (e *ReceivedEmail) GetFrom() *mail.Address {
-	from, err := mail.ParseAddress(e.From)
+	var (
+		from *mail.Address
+		err  error
+	)
+	if fromHdr, ok := e.Headers["from"]; ok {
+		from, err = mail.ParseAddress(fromHdr)
+	} else {
+		from, err = mail.ParseAddress(e.From)
+	}
 	if err != nil {
 		return &mail.Address{
 			Address: e.From,

@@ -76,7 +76,7 @@ func HandleWebhook(res http.ResponseWriter, req *http.Request) {
 
 	switch payload["type"] {
 	case "email.received":
-		slogctx.FromCtx(req.Context()).Warn("Email received",
+		slogctx.FromCtx(req.Context()).Debug("Email received",
 			slog.String("type", payload["type"].(string)),
 			slog.Any("payload", payload),
 		)
