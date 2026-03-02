@@ -122,7 +122,9 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			for scriptFile := range slices.Values(web.GetScriptFilenames()) {
 				<script src={ filepath.Join("/content", scriptFile) } type="module" hx-preserve="true"></script>
 			}
-			<link href={ "/content/styles.css?v=" + config.Version } rel="stylesheet" hx-preserve="true"/>
+			for styleFile := range slices.Values(web.GetStyleFilenames()) {
+				<link href={ filepath.Join("/content", styleFile+"?v="+config.Version) } rel="stylesheet" hx-preserve="true"/>
+			}
 			// Site-wide htmx config.
 			<meta
 				name="htmx-config"
