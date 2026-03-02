@@ -455,7 +455,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 	// 	</el-command-group>
 	// }
 	<ul class="menu w-full">
-		<li>
+		<li tabindex="0">
 			<form
 				id="show-search-results"
 				hx-post="/search"
@@ -476,9 +476,9 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 		if len(suggestions.Subscriptions) > 0 {
 			// Subscription suggestions.
 			<ul class="menu w-full">
-				<li class="menu-title">Subscriptions</li>
+				<li class="menu-title" tabindex="-1">Subscriptions</li>
 				for subscription := range slices.Values(suggestions.Subscriptions) {
-					<li>
+					<li tabindex="0">
 						<a
 							{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
 							hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
@@ -495,11 +495,11 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 		if len(suggestions.Articles)> 0 {
 			// Article suggestions.
 			<ul class="menu w-full">
-				<li class="menu-title">
+				<li class="menu-title" tabindex="-1">
 					Articles
 				</li>
 				for article := range slices.Values(suggestions.Articles) {
-					<li>
+					<li tabindex="0">
 						<a
 							hx-get={ "/view/article/" + article.GetID() }
 							hx-target={ ContentID.Target() }

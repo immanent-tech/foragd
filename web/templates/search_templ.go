@@ -235,7 +235,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<ul class=\"menu w-full\"><li><form id=\"show-search-results\" hx-post=\"/search\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<ul class=\"menu w-full\"><li tabindex=\"0\"><form id=\"show-search-results\" hx-post=\"/search\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -287,12 +287,12 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(suggestions.Subscriptions) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " <ul class=\"menu w-full\"><li class=\"menu-title\">Subscriptions</li>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " <ul class=\"menu w-full\"><li class=\"menu-title\" tabindex=\"-1\">Subscriptions</li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for subscription := range slices.Values(suggestions.Subscriptions) {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<li><a")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<li tabindex=\"0\"><a")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -332,12 +332,12 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 			}
 		}
 		if len(suggestions.Articles) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " <ul class=\"menu w-full\"><li class=\"menu-title\">Articles</li>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " <ul class=\"menu w-full\"><li class=\"menu-title\" tabindex=\"-1\">Articles</li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for article := range slices.Values(suggestions.Articles) {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<li><a hx-get=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<li tabindex=\"0\"><a hx-get=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

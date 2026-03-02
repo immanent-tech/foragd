@@ -47,7 +47,7 @@
   el-menu {
     @apply origin-top-right rounded-md bg-base-300 shadow-lg outline-1 -outline-offset-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
   }
-  											/* class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2" */
+
   el-options {
     @apply overflow-auto rounded-box transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
     el-option {
