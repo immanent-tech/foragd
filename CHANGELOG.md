@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.71.2](https://github.com/immanent-tech/foragd/compare/v0.71.1...v0.71.2) (2026-03-02)
+
+
+### Performance Improvements
+
+* :zap: improved Cache-Control header for content ([df143ad](https://github.com/immanent-tech/foragd/commit/df143adcba0c3c7fe22b2a19b11400d221960038))
+
 ## [0.71.1](https://github.com/immanent-tech/foragd/compare/v0.71.0...v0.71.1) (2026-03-02)
 
 
