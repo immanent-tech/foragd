@@ -22,7 +22,7 @@ templ UserHome(data *models.HomeResponse) {
 					// User has no unread content, show a message and link to favorites.
 					<div class="text-center">
 						@tabler.Confetti(i.Props{Class: "mx-auto text-accent size-12"})
-						@partials.Heading3() {
+						@partials.Heading1() {
 							All caught up!
 						}
 						@partials.Paragraph() {
@@ -49,7 +49,7 @@ templ UserHome(data *models.HomeResponse) {
 					// ></div>
 					if len(data.LatestArticles) > 0 {
 						<div class="flex w-full mb-4">
-							@partials.Heading2() {
+							@partials.Heading1() {
 								Latest Articles
 							}
 						</div>
@@ -85,7 +85,7 @@ templ UserHome(data *models.HomeResponse) {
 					}
 					if len(data.Subscriptions) > 0 {
 						<div class="flex w-full mb-4">
-							@partials.Heading2() {
+							@partials.Heading1() {
 								Recently Updated Subscriptions
 							}
 						</div>
@@ -144,7 +144,7 @@ templ UserHome(data *models.HomeResponse) {
 					}
 					if len(data.TopCategories) > 0 {
 						<div class="flex w-full my-4">
-							@partials.Heading2() {
+							@partials.Heading1() {
 								Top Categories
 							}
 						</div>
@@ -179,7 +179,7 @@ templ NewUserHome() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				@partials.Heading2() {
+				@partials.Heading1() {
 					{ "Welcome to " + config.AppName }
 				}
 				@partials.Paragraph() {
@@ -187,7 +187,7 @@ templ NewUserHome() {
 				}
 				<p class="py-2"></p>
 				<div class="py-4">
-					@partials.Heading3() {
+					@partials.Heading2() {
 						Add/Import Subscriptions
 					}
 					@partials.Paragraph() {
@@ -237,7 +237,7 @@ templ NewUserHome() {
 					</div>
 				</div>
 				<div class="py-4">
-					@partials.Heading3() {
+					@partials.Heading2() {
 						Start With Curated Subscription Sets
 					}
 					@partials.Paragraph() {
@@ -295,7 +295,7 @@ templ NewUserHome() {
 					</form>
 				</div>
 				<div class="py-4">
-					@partials.Heading3() {
+					@partials.Heading2() {
 						Get to know Foragd
 					}
 					@partials.Paragraph() {
