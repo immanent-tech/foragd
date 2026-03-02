@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.71.1](https://github.com/immanent-tech/foragd/compare/v0.71.0...v0.71.1) (2026-03-02)
+
+
+### Bug Fixes
+
+* **cli:** :bug: fix naming of command arguments for fetching feed ([dc7a694](https://github.com/immanent-tech/foragd/commit/dc7a694c0573aaa3a9d74e8fe053129214469cc2))
+* **handlers:** :fire: remove debugging ([ea993b0](https://github.com/immanent-tech/foragd/commit/ea993b0a4c9fec3ca56c1f2a18fb841ffe1fbdf4))
+* **reverseproxy:** :bug: fix spelling of envrionment variables prefix ([05c8757](https://github.com/immanent-tech/foragd/commit/05c8757cfd093779dbf51eb03b81db38e3799c01))
+* **templates:** :bug: add id for notifications to correct element ([73c8742](https://github.com/immanent-tech/foragd/commit/73c874237d970be5398321992f8933a5f4f98ce3))
+* **templates:** :bug: fix button alignment for copying subscription email on mobile displays ([7f791b8](https://github.com/immanent-tech/foragd/commit/7f791b8accfd83431ace8a922871fac001b25954))
+* **templates:** :bug: make sure overscroll-contain is set on popovers and dialogs ([9306fb1](https://github.com/immanent-tech/foragd/commit/9306fb1d611e8c589c3ab9cee6ec91020b4ff4fb))
+
 ## [0.71.0](https://github.com/immanent-tech/foragd/compare/v0.70.1...v0.71.0) (2026-03-02)
 
 
