@@ -85,8 +85,7 @@ type ExternalError struct {
 // HandleExternalError handles display errors on external pages.
 func HandleExternalError(err error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		var apiErr *models.APIError
-		if errors.As(err, &apiErr) {
+		if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 			apiErr.WriteLog(req.Context())
 			res.WriteHeader(apiErr.HTTPStatus())
 			page := &ExternalError{
@@ -105,5 +104,5 @@ func HandleExternalError(err error) http.HandlerFunc {
 
 // FullResponse renders the error on a full page.
 func (p *ExternalError) FullResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.CreatePage(p.template)).ServeHTTP(res, req)
+	templ.Handler(templates.CreatePage(p.template, templates.WithPageTitle("Something went wrong"))).ServeHTTP(res, req)
 }

@@ -17,7 +17,9 @@ templ InternalError(user *models.User, msg *models.UserMessage) {
 		@templ.Fragment(ErrorFragment) {
 			@container() {
 				<div class="text-center">
-					@tabler.MoodConfuzed(i.Props{Class: "mx-auto text-accent size-12"})
+					<div aria-hidden="true">
+						@tabler.MoodConfuzed(i.Props{Class: "mx-auto text-accent size-12"})
+					</div>
 					@partials.Heading3() {
 						Whoops!
 					}
@@ -33,7 +35,7 @@ templ InternalError(user *models.User, msg *models.UserMessage) {
 						<a href="/home" role="button" class="btn btn-primary">
 							Go Back Home
 						</a>
-						<a href="mailto:support@immanent.tech&subject=Foragd Issue" role="button" class="btn btn-primary">
+						<a href="mailto:support@immanent.tech&subject=Foragd Issue" class="btn btn-primary">
 							Email Support <span aria-hidden="true">&rarr;</span>
 						</a>
 					</div>
@@ -48,8 +50,10 @@ templ ExternalError(user *models.User, msg *models.UserMessage) {
 		@templ.Fragment(ErrorFragment) {
 			@container() {
 				<div class="text-center">
-					@tabler.MoodConfuzed(i.Props{Class: "mx-auto text-accent size-12"})
-					@partials.Heading3() {
+					<div aria-hidden="true">
+						@tabler.MoodConfuzed(i.Props{Class: "mx-auto text-accent size-12"})
+					</div>
+					@partials.Heading1() {
 						Whoops!
 					}
 					@partials.Paragraph() {
@@ -60,8 +64,11 @@ templ ExternalError(user *models.User, msg *models.UserMessage) {
 							{ *msg.Details }
 						}
 					}
+					<a href="/" role="button" class="btn btn-primary">
+						Go Back
+					</a>
 					<div class="mt-6">
-						<a href="mailto:support@immanent.tech&subject=Foragd Issue" role="button" class="btn btn-primary">
+						<a href="mailto:support@immanent.tech&subject=Foragd Issue" class="btn btn-primary">
 							Email Support <span aria-hidden="true">&rarr;</span>
 						</a>
 					</div>
