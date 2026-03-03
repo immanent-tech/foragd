@@ -6,7 +6,7 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/go-http-utils/etag"
+	"github.com/immanent-tech/foragd/server/middlewares/etag"
 )
 
 // Etag calculates and adds an appropriate e-tag header to the response.
