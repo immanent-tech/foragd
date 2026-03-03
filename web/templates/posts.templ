@@ -26,12 +26,13 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 				) {
 					for post := range slices.Values(posts) {
 						<a href={ "/posts/" + post.Details.Path }>
-							<article class="card card-border bg-base-200 max-w-prose h-fit cursor-pointer">
+							<article class="card card-border bg-base-200 max-w-prose h-fit cursor-pointer touch-manipulation">
 								if post.Frontmatter.Image != nil {
 									<figure>
 										<img
 											src={ *post.Frontmatter.Image }
 											alt={ post.Frontmatter.Title }
+											fetchpriority="high"
 										/>
 									</figure>
 								}
@@ -61,7 +62,7 @@ templ Post(post *models.MarkdownFile) {
 			<div class="breadcrumbs text-sm">
 				<ul>
 					<li><a href="/posts">Posts</a></li>
-					<li><a href="#">{ post.Frontmatter.Title }</a></li>
+					<li><span>{ post.Frontmatter.Title }</span></li>
 				</ul>
 			</div>
 			<article itemscope itemtype="https://schema.org/NewsArticle" class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">

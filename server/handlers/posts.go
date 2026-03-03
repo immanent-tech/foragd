@@ -80,10 +80,11 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.Post(p.MarkdownFile),
 		templates.WithPageTitle(p.Frontmatter.Title),
 		templates.WithPageDescription(p.Frontmatter.Description),
+		templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+"/posts/"+p.Details.Path),
 		templates.WithOpenGraphMetadata(opengraph.New(
 			p.Frontmatter.Title,
 			"article",
-			os.Getenv("FORAGD_BASEURL")+"/"+p.Details.Path,
+			os.Getenv("FORAGD_BASEURL")+"/posts/"+p.Details.Path,
 			os.Getenv("FORAGD_BASEURL")+*p.Frontmatter.Image,
 			opengraph.WithDescription(p.Frontmatter.Description),
 			opengraph.WithSiteName(config.AppName),
