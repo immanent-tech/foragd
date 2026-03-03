@@ -41,7 +41,7 @@ type Authenticator struct {
 	oauth2.Config
 }
 
-var AuthClient *Authenticator
+var AuthClient Authenticator
 
 // InitAuthenticator will the setup and initialisation of the Auth0 tenant. It can be called multiple times but will only
 // perform initialisation once (so it can be lazily loaded by calling it before any Auth0 actions).
@@ -67,7 +67,7 @@ var InitAuthenticator = func(ctx context.Context) error {
 			Endpoint:     provider.Endpoint(),
 			Scopes:       []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess, "profile", "email"},
 		}
-		AuthClient = &Authenticator{
+		AuthClient = Authenticator{
 			Provider: provider,
 			Config:   conf,
 		}
