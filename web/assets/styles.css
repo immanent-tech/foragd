@@ -70,6 +70,14 @@
   el-dialog-panel {
     @apply transition duration-200 data-closed:scale-95 data-closed:opacity-0;
   }
+
+  @media screen and (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
 }
 
 /* Custom Component Classes */
