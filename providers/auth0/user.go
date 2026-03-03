@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/auth0/go-auth0/v2/management"
-	"github.com/cespare/xxhash/v2"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -119,7 +119,7 @@ func CreateUser(ctx context.Context, profile *UserProfile) (*models.User, error)
 		ExternalUserID: profile.GetID(),
 		Provider:       strings.Split(profile.GetID(), "|")[0],
 		Email:          new(auth0User.GetUserResponseContent.GetEmail()),
-		UserID:         "user_" + strconv.FormatUint(xxhash.Sum64String(profile.GetID()), 10),
+		UserID:         "user_" + strconv.FormatUint(xxh3.Hash([]byte(profile.GetID())), 10),
 		AvatarURL:      new(auth0User.GetUserResponseContent.GetPicture()),
 		LoginCount:     auth0User.GetUserResponseContent.LoginsCount,
 		Metadata: models.UserMetadata{

@@ -17,9 +17,9 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/go-syndication/opml"
 
@@ -223,7 +223,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 				return
 			}
 			// Generate a unique ID for the avatar image in the cache using the user ID.
-			avatarFileID := strconv.FormatUint(xxhash.Sum64String(user.GetID()+"avatar"), 10)
+			avatarFileID := strconv.FormatUint(xxh3.Hash([]byte(user.GetID()+"avatar")), 10)
 			// Read the uploaded data and store in the cache.
 			avatarData, err := io.ReadAll(avatar.Data)
 			if err != nil {
@@ -734,7 +734,7 @@ func HandleGenerateSubscriptionEmail() http.HandlerFunc {
 
 		settings := user.GetSettings()
 		settings.SubscriptionEmail = new("foragd_user_" + strconv.FormatUint(
-			xxhash.Sum64String(user.GetID()+user.GetNickname()),
+			xxh3.Hash([]byte(user.GetID()+user.GetNickname())),
 			10,
 		) + "@foragd.app")
 

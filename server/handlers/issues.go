@@ -13,9 +13,9 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/github"
@@ -287,7 +287,7 @@ func processScreenshots(req *http.Request) (string, error) {
 			return "", fmt.Errorf("load screenshot cache: %w", err)
 		}
 		// Generate a unique ID for the avatar image in the cache using the user ID.
-		imageFileID := strconv.FormatUint(xxhash.Sum64String(image.Header.Filename), 10)
+		imageFileID := strconv.FormatUint(xxh3.Hash([]byte(image.Header.Filename)), 10)
 		// Read the uploaded data and store in the cache.
 		imageData, err := io.ReadAll(image.Data)
 		if err != nil {

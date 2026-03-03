@@ -19,13 +19,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cespare/xxhash/v2"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/go-syndication/opengraph"
@@ -1378,7 +1378,7 @@ func NewEmailSubscription(
 
 	// Override the default SubscriptionID generation
 	subscription.SubscriptionID = "sub_" + strconv.FormatUint(
-		xxhash.Sum64String(userID+from.Address),
+		xxh3.Hash([]byte(userID+from.Address)),
 		10,
 	)
 
@@ -2042,7 +2042,7 @@ func newSubscription(
 	ts := time.Now().UTC()
 	mr := user.GetMaxHistory()
 	subscription := &Subscription{
-		SubscriptionID: "sub_" + strconv.FormatUint(xxhash.Sum64String(user.GetID()+customisation.Nickname), 10),
+		SubscriptionID: "sub_" + strconv.FormatUint(xxh3.Hash([]byte(user.GetID()+customisation.Nickname)), 10),
 		UserID:         user.GetID(),
 		UpdatedAt:      &ts,
 		CreatedAt:      ts,

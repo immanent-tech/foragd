@@ -4,10 +4,10 @@
 package templates
 
 import (
-	"github.com/cespare/xxhash/v2"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"github.com/zeebo/xxh3"
 	"strconv"
 	"time"
 )
@@ -17,7 +17,7 @@ const DefaultNotificationTimeout = 5 * time.Second
 // Notification renders a notification with the given user message.
 templ Notification(msg *models.UserMessage, timeout time.Duration) {
 	// Generate a random id for this notification (to allow hyperscript to remove by id).
-	{{ id := "notification-" + strconv.FormatUint(xxhash.Sum64String(msg.Summary), 10) }}
+	{{ id := "notification-" + strconv.FormatUint(xxh3.Hash([]byte(msg.Summary)), 10) }}
 	<div
 		hx-swap-oob={ "beforeend:" + NotificationsID.Target() }
 		if timeout != 0 {

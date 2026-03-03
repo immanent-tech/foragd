@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cespare/xxhash/v2"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/zeebo/xxh3"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
@@ -356,9 +356,9 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
 	var itemID ItemID
 	if sourceID := source.GetID(); sourceID != "" {
-		itemID = "item_" + strconv.FormatUint(xxhash.Sum64String(feed.GetID()+sourceID), 10)
+		itemID = "item_" + strconv.FormatUint(xxh3.Hash([]byte(feed.GetID()+sourceID)), 10)
 	} else {
-		itemID = "item_" + strconv.FormatUint(xxhash.Sum64String(feed.GetID()+source.GetLink()), 10)
+		itemID = "item_" + strconv.FormatUint(xxh3.Hash([]byte(feed.GetID()+source.GetLink())), 10)
 	}
 	item := &Item{
 		ItemID:       itemID,
@@ -411,7 +411,7 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 // NewEmailItem generates a new Item from an email.
 func NewEmailItem(email Email, subscription *Subscription) *Item {
 	// Generate a consistent document ID from either the item ID (if it has one) or the item URL.
-	itemID := "item_" + strconv.FormatUint(xxhash.Sum64String(email.GetID()), 10)
+	itemID := "item_" + strconv.FormatUint(xxh3.Hash([]byte(email.GetID())), 10)
 	item := &Item{
 		ItemID:     itemID,
 		FeedID:     subscription.GetFeedID(),

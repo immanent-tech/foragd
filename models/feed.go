@@ -16,7 +16,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cespare/xxhash/v2"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
@@ -25,6 +24,7 @@ import (
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models/schema"
@@ -53,7 +53,7 @@ func UpdateFeed(ctx context.Context, id FeedID, updates map[string]any) error {
 
 // GetID retrieves (generates) a unique ID for a FeedStatus object.
 func (s *FeedStatus) GetID() string {
-	return strconv.FormatUint(xxhash.Sum64String(s.FeedID+s.Timestamp.String()), 10)
+	return strconv.FormatUint(xxh3.Hash([]byte(s.FeedID+s.Timestamp.String())), 10)
 }
 
 // AddFeedStatus adds a FeedStatus document to the index.
@@ -467,7 +467,7 @@ func FindFeedImage(ctx context.Context, feed *Feed) error {
 // NewSyndicationFeed converts the raw types.FeedSource into a Feed object.
 func NewSyndicationFeed(ctx context.Context, url string, id FeedID, source *feeds.Feed) *Feed {
 	if id == "" {
-		id = "feed_" + strconv.FormatUint(xxhash.Sum64String(source.GetLink()), 10)
+		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetLink())), 10)
 	}
 	feed := &Feed{
 		FeedID:       id,

@@ -22,12 +22,12 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/immanent-tech/go-syndication/sanitization"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
@@ -1326,7 +1326,7 @@ func processThumbnail(req *http.Request, objectID string) (string, error) {
 			return "", fmt.Errorf("load thumbnail cache: %w", err)
 		}
 		// Generate a unique ID for the avatar image in the cache using the user ID.
-		imageFileID := strconv.FormatUint(xxhash.Sum64String(objectID+"thumbnail"), 10)
+		imageFileID := strconv.FormatUint(xxh3.Hash([]byte(objectID+"thumbnail")), 10)
 		// Read the uploaded data and store in the cache.
 		imageData, err := io.ReadAll(image.Data)
 		if err != nil {

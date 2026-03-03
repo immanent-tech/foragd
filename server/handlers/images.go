@@ -17,10 +17,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/cespare/xxhash/v2"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/foragd/client"
@@ -48,7 +48,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 
 		// Generate a unique hash for the image and processing options.
 		imgHash := strconv.FormatUint(
-			xxhash.Sum64String(strings.Join(params[1:len(params)-1], "|")+params[len(params)-1]),
+			xxh3.Hash([]byte(strings.Join(params[1:len(params)-1], "|")+params[len(params)-1])),
 			10,
 		)
 

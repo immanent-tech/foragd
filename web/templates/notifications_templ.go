@@ -13,10 +13,10 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/cespare/xxhash/v2"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"github.com/zeebo/xxh3"
 	"strconv"
 	"time"
 )
@@ -45,7 +45,7 @@ func Notification(msg *models.UserMessage, timeout time.Duration) templ.Componen
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		id := "notification-" + strconv.FormatUint(xxhash.Sum64String(msg.Summary), 10)
+		id := "notification-" + strconv.FormatUint(xxh3.Hash([]byte(msg.Summary)), 10)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap-oob=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
