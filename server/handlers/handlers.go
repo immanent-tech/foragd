@@ -60,6 +60,7 @@ var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
 	return goldmark.New(
 		goldmark.WithExtensions(
 			extension.GFM,
+			extension.Typographer,
 			&frontmatter.Extender{},
 		),
 		goldmark.WithParserOptions(
