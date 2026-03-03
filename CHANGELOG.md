@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.72.0](https://github.com/immanent-tech/foragd/compare/v0.71.3...v0.72.0) (2026-03-03)
+
+
+### Features
+
+* **templates:** :sparkles: allow overriding the canonical link on a page ([1a2bea3](https://github.com/immanent-tech/foragd/commit/1a2bea3dfea6bece6ae0b205e91fc4bc465e8a3b))
+
+
+### Bug Fixes
+
+* :wheelchair: no animations if user prefers none ([eca6542](https://github.com/immanent-tech/foragd/commit/eca6542ae006d6b216f21b1c2be04b451c970b6d))
+
 ## [0.71.3](https://github.com/immanent-tech/foragd/compare/v0.71.2...v0.71.3) (2026-03-03)
 
 
