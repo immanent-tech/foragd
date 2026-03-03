@@ -455,8 +455,8 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 	// 	</el-command-group>
 	// }
 	<nav>
-		<ul class="menu w-full">
-			<li tabindex="0">
+		<ul class="menu w-full" role="listbox">
+			<li role="option">
 				<form
 					id="show-search-results"
 					hx-post="/search"
@@ -468,54 +468,58 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					_="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
 				>
 					<input type="hidden" name="text" value={ suggestions.Search.Text }/>
-					<a class="group/item flex items-center">
+					<button type="submit" class="group/item flex items-center" tabindex="0">
 						@tabler.Search(i.Props{Class: "group-hover:text-primary"})
 						<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
 						<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Search...</span>
-					</a>
+					</button>
 				</form>
 			</li>
 			if len(suggestions.Subscriptions) > 0 {
 				// Subscription suggestions.
-				<ul class="menu w-full">
-					<li class="menu-title" tabindex="-1">Subscriptions</li>
-					for subscription := range slices.Values(suggestions.Subscriptions) {
-						<li tabindex="0">
-							<a
-								{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
-								hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
-								class="group"
+				<li id="subscription-suggestions" class="menu-title" tabindex="-1" role="none">Subscriptions</li>
+				for subscription := range slices.Values(suggestions.Subscriptions) {
+					<li role="option">
+						<form
+							{ subscriptionViewArticlesAttributes(subscription)... }
+							hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
+						>
+							// href={ subscriptionViewArticlesLink(subscription) }
+							<button
+								class="group flex items-center"
+								tabindex="0"
+								type="submit"
 							>
 								@tabler.Rss(i.Props{Class: "group-hover:text-primary"})
 								<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
 								<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
-							</a>
-						</li>
-					}
-				</ul>
+							</button>
+						</form>
+					</li>
+				}
 			}
 			if len(suggestions.Articles)> 0 {
 				// Article suggestions.
-				<ul class="menu w-full">
-					<li class="menu-title" tabindex="-1">
-						Articles
+				<li id="article-suggestions" class="menu-title" role="none">
+					Articles
+				</li>
+				for article := range slices.Values(suggestions.Articles) {
+					<li role="option">
+						<a
+							href={ "/view/article/" + article.GetID() }
+							hx-get={ "/view/article/" + article.GetID() }
+							hx-target={ ContentID.Target() }
+							hx-push-url="true"
+							hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
+							class="group"
+							tabindex="0"
+						>
+							@tabler.File(i.Props{Class: "group-hover:text-primary"})
+							<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
+							<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
+						</a>
 					</li>
-					for article := range slices.Values(suggestions.Articles) {
-						<li tabindex="0">
-							<a
-								hx-get={ "/view/article/" + article.GetID() }
-								hx-target={ ContentID.Target() }
-								hx-push-url="true"
-								hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-								class="group"
-							>
-								@tabler.File(i.Props{Class: "group-hover:text-primary"})
-								<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
-								<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
-							</a>
-						</li>
-					}
-				</ul>
+				}
 			}
 		</ul>
 	</nav>
@@ -716,6 +720,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 								value={ *request.Categories }
 							}
 							class="input input-sm input-primary bg-base-content/10"
+							autocomplete="off"
 						/>
 					</div>
 				</label>
@@ -729,6 +734,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 							id="search-authors"
 							type="text"
 							name="authors"
+							autocomplete="off"
 							if request.Authors != nil {
 								value={ *request.Authors }
 							}

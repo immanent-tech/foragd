@@ -4224,4 +4224,70 @@ func subscriptionThumbnail(img *types.ImageInfo, name string) templ.Component {
 	})
 }
 
+func subscriptionViewArticlesAttributes(s *models.Subscription) templ.Attributes {
+	attrs := make(templ.Attributes)
+	attrs["hx-target"] = ContentID.Target()
+	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
+	attrs["hx-trigger"] = "click consume"
+	attrs["hx-push-url"] = true
+	switch s.GetSubscriptionType() {
+	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
+		filters := models.NewListDisplayFilters()
+		filters.Subscriptions = []string{s.GetID()}
+		if s.GetStats().IsUnread() {
+			filters.View = models.ViewUnread
+		} else {
+			filters.View = models.ViewRead
+		}
+		values := filters.Values()
+		values[models.ParamSubscriptionID] = s.GetID()
+		attrs["hx-vals"] = generateHXVals(values)
+		attrs["hx-get"] = "/list/articles"
+	case models.SubscriptionTypeGroup:
+		filters := models.NewListDisplayFilters()
+		filters.Subscriptions = s.GroupData.Subscriptions
+		if s.GetStats().IsUnread() {
+			filters.View = models.ViewUnread
+		} else {
+			filters.View = models.ViewRead
+		}
+		values := filters.Values()
+		values[models.ParamSubscriptionID] = s.GetID()
+		attrs["hx-vals"] = generateHXVals(values)
+		attrs["hx-get"] = "/list/articles"
+	case models.SubscriptionTypeSearch:
+		attrs["hx-post"] = "/search"
+		s.SearchData.Search.SubscriptionID = new(s.GetID())
+		attrs["hx-vals"] = s.SearchData.Search.HXVals()
+	}
+	return attrs
+}
+
+func subscriptionViewArticlesLink(s *models.Subscription) string {
+	switch s.GetSubscriptionType() {
+	case models.SubscriptionTypeFeed, models.SubscriptionTypeEmail:
+		filters := models.NewListDisplayFilters()
+		filters.Subscriptions = []string{s.GetID()}
+		if s.GetStats().IsUnread() {
+			filters.View = models.ViewUnread
+		} else {
+			filters.View = models.ViewRead
+		}
+		return "/list/articles?" + filters.QueryParams().Encode()
+	case models.SubscriptionTypeGroup:
+		filters := models.NewListDisplayFilters()
+		filters.Subscriptions = s.GroupData.Subscriptions
+		if s.GetStats().IsUnread() {
+			filters.View = models.ViewUnread
+		} else {
+			filters.View = models.ViewRead
+		}
+		return "/list/articles?" + filters.QueryParams().Encode()
+	case models.SubscriptionTypeSearch:
+		s.SearchData.Search.SubscriptionID = new(s.GetID())
+		return "/search?" + s.SearchData.Search.Query()
+	}
+	return "/list/articles"
+}
+
 var _ = templruntime.GeneratedTemplate
