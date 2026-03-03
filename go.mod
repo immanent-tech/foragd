@@ -26,6 +26,7 @@ require (
 	github.com/samber/slog-multi v1.7.1
 	github.com/sebasvil20/templicons v1.1.0
 	github.com/stripe/stripe-go/v83 v83.2.1
+	github.com/zeebo/xxh3 v1.0.2
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.16.0
 	go.opentelemetry.io/otel/sdk v1.40.0
 	go.opentelemetry.io/otel/sdk/metric v1.40.0
@@ -66,8 +67,6 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-chi/render v1.0.3 // indirect
-	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
-	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/go-pkgz/expirable-cache/v3 v3.0.0 // indirect
 	github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c // indirect
@@ -133,7 +132,6 @@ require (
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/ulikunitz/xz v0.5.14 // indirect
 	github.com/woodsbury/decimal128 v1.3.0 // indirect
-	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.devnw.com/structs v1.0.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -175,7 +173,6 @@ require (
 	github.com/getkin/kin-openapi v0.133.0 // indirect
 	github.com/go-chi/cors v1.2.2
 	github.com/go-chi/httprate v0.15.0
-	github.com/go-http-utils/etag v0.0.0-20161124023236-513ea8f21eb1
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.21.0 // indirect
@@ -185,6 +182,7 @@ require (
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
+	github.com/goforj/godump v1.9.1
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
