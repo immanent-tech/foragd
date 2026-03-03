@@ -918,7 +918,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 		// Help dialog.
 		<div class="absolute right-2 top-2">
 			@HelpPopover("filter-operators-help", "bottom end") {
-				<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+				<div class="card-body bg-base-300 shadow-md border border-primary rounded-box">
 					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 					<p>+ signifies AND operation (i.e., food AND beverages)</p>
 					<p>| signifies OR operation (i.e., food OR beverages)</p>

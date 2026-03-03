@@ -36,7 +36,7 @@ templ HelpPopover(id, anchor string) {
 	<button id={ id + "-button" } popovertarget={ id } type="button" class="btn btn-circle btn-ghost btn-xs text-info">
 		@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
 	</button>
-	<el-popover popover id={ id } anchor={ anchor } class="[--anchor-gap:4px] rounded-box">
+	<el-popover popover id={ id } anchor={ anchor } class="[--anchor-gap:4px]">
 		{ children... }
 	</el-popover>
 }
