@@ -403,7 +403,7 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 			return NewFeedFromURL(ctx, url, id, false)
 		}
 		// If the error is StatusForbidden, try proxying the request.
-		if httpErr, ok := errors.AsType[feeds.HTTPError](
+		if httpErr, ok := errors.AsType[feeds.ParseError](
 			err,
 		); ok &&
 			(httpErr.Code == http.StatusForbidden || httpErr.Code == http.StatusTooManyRequests) {

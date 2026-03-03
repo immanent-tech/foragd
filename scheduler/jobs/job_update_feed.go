@@ -109,7 +109,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		var err error
 		feed, err = models.NewFeedFromURL(ctx, feedURL, jobData.FeedID, true)
 		if err != nil {
-			var httpErr feeds.HTTPError
+			var httpErr feeds.ParseError
 			status := &models.FeedStatus{
 				Timestamp: time.Now().UTC(),
 				FeedID:    details.GetID(),
@@ -117,7 +117,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			}
 			if errors.Is(err, &httpErr) {
 				status.StatusCode = httpErr.Code
-				status.StatusMessage = &httpErr.Message
+				status.StatusMessage = new(httpErr.Error())
 			} else {
 				status.StatusCode = http.StatusInternalServerError
 				status.StatusMessage = new(err.Error())
