@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.72.1](https://github.com/immanent-tech/foragd/compare/v0.72.0...v0.72.1) (2026-03-03)
+
+
+### Bug Fixes
+
+* **middlewares:** :bug: always redirect to login on invalid token ([26c0e89](https://github.com/immanent-tech/foragd/commit/26c0e899ba9d1ccfa3b5817415231cdffbd5c20c))
+
 ## [0.72.0](https://github.com/immanent-tech/foragd/compare/v0.71.3...v0.72.0) (2026-03-03)
 
 
