@@ -29,9 +29,10 @@ func RequireUserAuth(next http.Handler) http.Handler {
 		// Validate the access token stored in the session.
 		if token, err := session.Restore[oauth2.Token](req.Context(), "token"); err != nil || !token.Valid() {
 			if !strings.HasSuffix(req.URL.Path, "/updates") {
-				slogctx.FromCtx(req.Context()).Error("Invalid session token.",
-					slog.Any("error", err),
-				)
+				slogctx.FromCtx(req.Context()).
+					Error("Invalid session token. Generating new state and redirecting to login.",
+						slog.Any("error", err),
+					)
 				// Generate new state and save url for redirection after login.
 				if state, err := auth0.GenerateRandomState(); err != nil {
 					slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
@@ -109,18 +110,28 @@ func RefreshTokenIfNeeded(next http.Handler) http.Handler {
 		// Retrieve the refresh token from the session.
 		token, err := session.Restore[oauth2.Token](req.Context(), "token")
 		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Invalid session token.",
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusForbidden)
+			slogctx.FromCtx(req.Context()).
+				Error("Invalid session token. Unable to refresh. Generating new state and redirecting to login.",
+					slog.Any("error", err),
+				)
+			// Generate new state and save url for redirection after login.
+			if state, err := auth0.GenerateRandomState(); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Generate new state failed.",
+					slog.Any("error", err),
+				)
+			} else {
+				session.Save(req.Context(), "state", state)
+				session.Save(req.Context(), state, map[string]string{
+					"redirectURL": req.URL.String(),
+				})
+			}
+			http.Redirect(res, req, "/login", http.StatusSeeOther)
 			return
 		}
 
 		// Check token validity.
 		if !token.Valid() {
-			slogctx.FromCtx(req.Context()).Error("Invalid user token.",
-				slog.Any("error", err),
-			)
+			slogctx.FromCtx(req.Context()).Error("Invalid user token.")
 			res.WriteHeader(http.StatusForbidden)
 			return
 		}
