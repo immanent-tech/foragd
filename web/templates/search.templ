@@ -491,8 +491,8 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 	<div id="search-filters" { attributes... }>
 		<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
 			// Full text search filter.
-			<div class="col-span-full">
-				<label for="search-text" class="block text-sm/6 font-medium">Includes the words</label>
+			<fieldset class="fieldset col-span-full">
+				<legend class="fieldset-legend">Includes the words</legend>
 				<label class="input input-sm input-primary w-full bg-base-300 brightness-95 mt-2">
 					<input
 						id="search-text"
@@ -501,7 +501,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 						if request.Text != "" {
 							value={ request.Text }
 						}
-						placeholder="e.g. cat dog -mouse"
+						placeholder="e.g. cat dog -mouse..."
 						_="on change from #global-search set my value to #global-search.value"
 					/>
 					<button
@@ -509,137 +509,134 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 						type="button"
 						tabindex="0"
 						_="on click set #search-text.value to ''"
+						aria-label="Clear search text"
 					>
-						@tabler.CircleX(i.Props{Class: "flex-none text-primary"})
+						<div aria-hidden="true">
+							@tabler.CircleX(i.Props{Class: "flex-none text-primary"})
+						</div>
 					</button>
 				</label>
-			</div>
+			</fieldset>
 			// Categories filter.
-			<div class="sm:col-span-3">
-				<label for="categories" class="block text-sm/6 font-medium">
-					Categories
-					<div class="mt-2">
-						<input
-							id="search-categories"
-							type="text"
-							name="categories"
-							if request.Categories != nil {
-								value={ *request.Categories }
-							}
-							class="input input-sm input-primary bg-base-300 brightness-95"
-						/>
-					</div>
-				</label>
-			</div>
-			// Authors filter.
-			<div class="sm:col-span-3">
-				<label for="search-authors" class="block text-sm/6 font-medium">
-					Authors
-					<div class="mt-2">
-						<input
-							id="search-authors"
-							type="text"
-							name="authors"
-							if request.Authors != nil {
-								value={ *request.Authors }
-							}
-							class="input input-primary bg-base-300 brightness-95"
-						/>
-					</div>
-				</label>
-			</div>
-			// Subscriptions filter.
-			<div class="sm:col-span-full">
-				<span class="block text-sm/6 font-medium">In subscriptions</span>
-				<div class="mt-2">
-					<label class="flex items-center input input-sm input-primary bg-base-300 brightness-95 w-full">
-						@tabler.Search(i.Props{Class: "size-5"})
-						<form
-							hx-post="/search/subscription/suggestions"
-							hx-trigger="input changed delay:500ms,consume"
-							hx-target="#search-subscriptions-options"
-							hx-params="subscription-text"
-							hx-swap="innerHTML"
-						>
-							<input
-								id="search-subscriptions-suggest"
-								name="subscription-text"
-								placeholder="Search subscriptions..."
-								autocomplete="off"
-							/>
-						</form>
-					</label>
-					<div
-						class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-						id="search-subscriptions-options"
-						hx-target="#search-subscriptions"
-						hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
-						_="on htmx:afterRequest set #search-subscriptions-suggest.value to ''"
-					></div>
-					<div
-						id="search-subscriptions"
-						class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-					>
-						for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
-							@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
-								InputName:        "subscriptions",
-								SubscriptionID:   subscription.GetID(),
-								SubscriptionName: subscription.GetTitle(),
-							})
+			<fieldset class="fieldset sm:col-span-3">
+				<legend class="fieldset-legend">Categories</legend>
+				<label for="search-categories" class="input input-sm input-primary bg-base-300 brightness-95">
+					<input
+						id="search-categories"
+						type="text"
+						name="categories"
+						autocomplete="off"
+						if request.Categories != nil {
+							value={ *request.Categories }
 						}
-					</div>
+					/>
+				</label>
+			</fieldset>
+			// Authors filter.
+			<fieldset class="fieldset sm:col-span-3">
+				<legend class="fieldset-legend">Authors</legend>
+				<label for="search-authors" class="input input-sm input-primary bg-base-300 brightness-95">
+					<input
+						id="search-authors"
+						type="text"
+						name="authors"
+						autocomplete="off"
+						if request.Authors != nil {
+							value={ *request.Authors }
+						}
+					/>
+				</label>
+			</fieldset>
+			// Subscriptions filter.
+			<fieldset class="fieldset sm:col-span-full">
+				<legend class="fieldset-legend">In subscriptions</legend>
+				<form
+					hx-post="/search/subscription/suggestions"
+					hx-trigger="input changed delay:500ms,consume"
+					hx-target="#search-subscriptions-options"
+					hx-params="subscription-text"
+					hx-swap="innerHTML"
+				>
+					<label for="search-subscriptions-suggest" class="flex items-center input input-sm input-primary bg-base-300 brightness-95 w-full">
+						<div aria-hidden="true">
+							@tabler.Search(i.Props{Class: "text-primary"})
+						</div>
+						<input
+							id="search-subscriptions-suggest"
+							name="subscription-text"
+							placeholder="Search subscriptions..."
+							autocomplete="off"
+						/>
+					</label>
+				</form>
+				<div
+					class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+					id="search-subscriptions-options"
+					hx-target="#search-subscriptions"
+					hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
+					_="on htmx:afterRequest set #search-subscriptions-suggest.value to ''"
+					aria-live="polite"
+				></div>
+				<div
+					id="search-subscriptions"
+					class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+					aria-live="polite"
+				>
+					for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
+						@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
+							InputName:        "subscriptions",
+							SubscriptionID:   subscription.GetID(),
+							SubscriptionName: subscription.GetTitle(),
+						})
+					}
 				</div>
-			</div>
+			</fieldset>
 			// View filter.
-			<div class="sm:col-span-2">
-				<fieldset>
-					<legend class="text-sm/6 font-medium">View</legend>
-					<div>
-						<div class="flex items-center gap-x-3">
-							<input
-								id="search-view-unread"
-								type="radio"
-								name="view"
-								value="unread"
-								if request.View == models.ViewUnread {
-									checked
-								}
-								class="radio radio-sm radio-primary"
-							/>
-							<label for="search-view-unread" class="block text-sm/6 font-medium">Unread</label>
-						</div>
-						<div class="flex items-center gap-x-3">
-							<input
-								id="search-view-read"
-								type="radio"
-								name="view"
-								value="read"
-								if request.View == models.ViewRead {
-									checked
-								}
-								class="radio radio-sm radio-primary"
-							/>
-							<label for="search-view-read" class="block text-sm/6 font-medium">Read</label>
-						</div>
-						<div class="flex items-center gap-x-3">
-							<input
-								id="search-view-all"
-								type="radio"
-								name="view"
-								value="all"
-								if request.View == models.ViewAll {
-									checked
-								}
-								class="radio radio-sm radio-primary"
-							/>
-							<label for="search-view-all" class="block text-sm/6 font-medium">All</label>
-						</div>
-					</div>
-				</fieldset>
-			</div>
+			<fieldset class="fieldset sm:col-span-2">
+				<legend class="fieldset-legend">View</legend>
+				<div class="flex items-center gap-x-3">
+					<input
+						id="search-view-unread"
+						type="radio"
+						name="view"
+						value="unread"
+						if request.View == models.ViewUnread {
+							checked
+						}
+						class="radio radio-sm radio-primary"
+					/>
+					<label for="search-view-unread" class="block text-xs font-medium">Unread</label>
+				</div>
+				<div class="flex items-center gap-x-3">
+					<input
+						id="search-view-read"
+						type="radio"
+						name="view"
+						value="read"
+						if request.View == models.ViewRead {
+							checked
+						}
+						class="radio radio-sm radio-primary"
+					/>
+					<label for="search-view-read" class="block text-xs font-medium">Read</label>
+				</div>
+				<div class="flex items-center gap-x-3">
+					<input
+						id="search-view-all"
+						type="radio"
+						name="view"
+						value="all"
+						if request.View == models.ViewAll {
+							checked
+						}
+						class="radio radio-sm radio-primary"
+					/>
+					<label for="search-view-all" class="block text-xs font-medium">All</label>
+				</div>
+			</fieldset>
 			// Date range filter.
-			<div class="sm:col-span-2">
-				<label for="search-published-within" class="block text-sm/6 font-medium">Published Within</label>
+			<fieldset class="fieldset sm:col-span-2">
+				<legend class="fieldset-legend">Published Within</legend>
 				<select id="search-published-within" name="published_within" class="select select-sm select-primary my-2 bg-base-300 brightness-95">
 					<option
 						value="last_hour"
@@ -678,10 +675,10 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 						}
 					>All time</option>
 				</select>
-			</div>
+			</fieldset>
 			// Sort option.
-			<div class="sm:col-span-2">
-				<label for="search-sort" class="block text-sm/6 font-medium">Sort By</label>
+			<fieldset class="fieldset sm:col-span-2">
+				<legend class="fieldset-legend">Sort By</legend>
 				<select id="search-sort" name="sort" class="select select-sm select-primary my-2 bg-base-300 brightness-95">
 					<option
 						value={ string(models.SortMostRelevant) }
@@ -704,12 +701,12 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 						}
 					>Oldest First</option>
 				</select>
-			</div>
+			</fieldset>
 		</div>
 		<div class="mt-6 flex items-center justify-end gap-x-6">
 			<button
 				type="button"
-				class="btn btn-sm btn-seconday hover:btn-error"
+				class="btn btn-sm btn-secondary hover:btn-error"
 				_="on click hidePopover() on #search-filters-popover"
 			>Cancel</button>
 			<form
@@ -728,16 +725,29 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 		</div>
 		// Help dialog.
 		<div class="absolute right-2 top-2">
-			@HelpPopover("filter-operators-help", "bottom end") {
-				<div class="card-body bg-base-300 shadow-md border border-primary rounded-box">
-					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-					<p>+ signifies AND operation (i.e., food AND beverages)</p>
-					<p>| signifies OR operation (i.e., food OR beverages)</p>
-					<p>- negates a the word (i.e., NOT alcoholic)</p>
-					<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
-					<p>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</p>
+			<button
+				id="filter-operators-help-button"
+				popovertarget="filter-operators-help"
+				type="button"
+				class="btn btn-circle btn-ghost btn-xs text-info"
+				aria-label="Search filters help"
+			>
+				<div aria-hidden="true">
+					@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
 				</div>
-			}
+			</button>
+			<el-popover popover id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
+				<div class="card-body bg-base-300 shadow-md max-w-full border border-primary rounded-box text-xs text-wrap">
+					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+					<ul>
+						<li>+ signifies AND operation (i.e., food AND beverages)</li>
+						<li>| signifies OR operation (i.e., food OR beverages)</li>
+						<li>- negates the word (i.e., NOT alcoholic)</li>
+						<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
+						<li>* at the end of a term indicates a prefix match (i.e., match bird, birding and birds)</li>
+					</ul>
+				</div>
+			</el-popover>
 		</div>
 	</div>
 }
