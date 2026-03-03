@@ -204,20 +204,36 @@ templ searchBox() {
 	<el-popover-group class="w-full sm:max-w-3xl">
 		<label
 			for="global-search"
-			class="w-full input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10"
+			class="w-full input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-300 brightness-95"
 		>
-			<button
-				hx-post="/search/suggestions"
-				hx-target="#search-suggestions-popover"
-				hx-include="#search-filters,[id='timezone'],[id='global-search']"
-				hx-trigger="keyup changed delay:500ms from:#global-search"
-				hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
-				popovertarget="search-suggestions-popover"
-				type="button"
-			>
-				@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
-			</button>
+			<el-dropdown class="flex items-center">
+				<button
+					hx-post="/search/suggestions"
+					hx-target="#search-suggestions-popover"
+					hx-include="#search-filters,[id='timezone'],[id='global-search']"
+					hx-trigger="keyup changed delay:500ms from:#global-search"
+					hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
+					hx-sync="#global-search:drop"
+					popovertarget="search-suggestions-popover"
+					type="button"
+				>
+					@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
+				</button>
+				<el-menu
+					id="search-suggestions-popover"
+					anchor="bottom start"
+					popover
+					class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:-12px] h-fit max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm divide-y divide-primary/80 outline-1 -outline-offset-1 outline-base-content/15"
+				></el-menu>
+			</el-dropdown>
+			// hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
+			// _="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
 			<input
+				hx-post="/search"
+				hx-target={ ContentID.Target() }
+				hx-include="#search-filters,[id='timezone']"
+				hx-trigger="keydown[key=='Enter'] consume"
+				hx-sync="#search-suggestions-popover:replace"
 				id="global-search"
 				type="search"
 				name="text"
@@ -232,297 +248,88 @@ templ searchBox() {
 			>
 				@tabler.Filter(i.Props{Class: "flex-none text-primary"})
 			</button>
+			<el-popover
+				popover
+				id="search-filters-popover"
+				anchor="bottom end"
+				class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:12px] p-4 sm:p-6 max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15"
+			>
+				@SearchFilters(models.NewSearchRequest(), nil)
+			</el-popover>
 		</label>
-		<el-popover
-			id="search-suggestions-popover"
-			anchor="bottom start"
-			popover
-			class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:-12px] h-fit max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm divide-y divide-primary/80 outline-1 -outline-offset-1 outline-base-content/15"
-		></el-popover>
-		<el-popover
-			popover
-			id="search-filters-popover"
-			anchor="bottom end"
-			class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:12px] p-4 sm:p-6 max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15"
-		>
-			@SearchFilters(models.NewSearchRequest(), nil)
-		</el-popover>
 	</el-popover-group>
-	// <el-command-palette class="grid w-full sm:max-w-3xl">
-	// 	<search>
-	// 		<label
-	// 			for="global-search"
-	// 			class="w-full sm:max-w-3xl input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-content/10"
-	// 		>
-	// 			@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
-	// 			<input
-	// 				id="global-search"
-	// 				type="search"
-	// 				name="text"
-	// 				placeholder="Search..."
-	// 				spellcheck="false"
-	// 				autocomplete="off"
-	// 				_="
-	// 				on keydown from body if the event's key is 'k' and event.altKey then focus() me end
-	// 				"
-	// 			/>
-	// 			// Filters button opens advanced search dialog.
-	// 			<button
-	// 				type="button"
-	// 				command="show-modal"
-	// 				commandfor="search-filters-dialog"
-	// 				tabindex="0"
-	// 			>
-	// 				@tabler.Filter(i.Props{Class: "flex-none text-primary"})
-	// 			</button>
-	// 		</label>
-	// 	</search>
-	// 	// <div
-	// 	// 	hx-post="/search"
-	// 	// 	hx-target={ ContentID.Target() }
-	// 	// 	hx-include="#search-filters,[id='timezone']"
-	// 	// 	hx-trigger="keydown[key=='Enter'] from:#global-search consume"
-	// 	// ></div>
-	// 	<el-command-list
-	// 		hx-post="/search/suggestions"
-	// 		hx-target="#global-search-suggestions"
-	// 		hx-include="#search-filters,[id='timezone'],[id='global-search']"
-	// 		hx-trigger="keyup changed delay:500ms from:#global-search"
-	// 		hx-sync="#global-search:abort"
-	// 		hx-disinherit="*"
-	// 		id="global-search-suggestions"
-	// 		class="absolute left-0 sm:fixed sm:left-auto top-16 mt-2 w-full sm:max-w-3xl max-h-128 sm:max-h-196 sm:h-fit scroll-py-2 overflow-y-auto p-2 rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6 outline-1 -outline-offset-1 outline-base-content/10"
-	// 		_="on keydown[key is 'Escape'] add .hidden"
-	// 	></el-command-list>
-	// </el-command-palette>
 }
 
 // SearchSuggestions will render suggestions for a given search.
 templ SearchSuggestions(suggestions *models.SearchResults) {
-	// // Always generate a suggestion to execute a full search.
-	// <el-command-group hidden class="block text-sm text-base-content" aria-labelledby="search-group-label">
-	// 	<form
-	// 		id="show-search-results"
-	// 		hx-post="/search"
-	// 		hx-target={ ContentID.Target() }
-	// 		hx-include="#search-filters,[id='timezone']"
-	// 		hx-trigger="click consume"
-	// 		_="on htmx:beforeRequest add @hidden to #global-search-suggestions"
-	// 	>
-	// 		<input type="hidden" name="text" value={ suggestions.Search.Text }/>
-	// 		<a
-	// 			href="#"
-	// 			hidden
-	// 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content text-sm"
-	// 		>
-	// 			@tabler.Search(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 			<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
-	// 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Search...</span>
-	// 		</a>
-	// 	</form>
-	// </el-command-group>
-	// // Page suggestions.
-	// <el-command-group hidden class="block text-sm text-base-content" aria-labelledby="pages-group-label">
-	// 	<div id="pages-group-label" class="text-base-content/80 px-3">Actions</div>
-	// 	<a
-	// 		href="/home"
-	// 		hidden
-	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-	// 		_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
-	// 	>
-	// 		@tabler.Home(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 		<span class="ml-3 flex-auto truncate">Go to Home</span>
-	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-	// 	</a>
-	// 	<a
-	// 		href="/list/subscriptions"
-	// 		hidden
-	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-	// 		_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
-	// 	>
-	// 		@tabler.Rss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 		<span class="ml-3 flex-auto truncate">Go to Subscriptions</span>
-	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-	// 	</a>
-	// 	<a
-	// 		href="/list/articles"
-	// 		hidden
-	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-	// 		_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
-	// 	>
-	// 		@tabler.FileRss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 		<span class="ml-3 flex-auto truncate">Go to Articles</span>
-	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-	// 	</a>
-	// 	<a
-	// 		href="/list/favorites"
-	// 		hidden
-	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-	// 		_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
-	// 	>
-	// 		@tabler.Heart(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 		<span class="ml-3 flex-auto truncate">Go to Favorites</span>
-	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-	// 	</a>
-	// 	<a
-	// 		href="/user/settings"
-	// 		hidden
-	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-	// 		_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
-	// 	>
-	// 		@tabler.Settings(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 		<span class="ml-3 flex-auto truncate">Go to Settings</span>
-	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-	// 	</a>
-	// 	<a
-	// 		href="#"
-	// 		hx-get="/user/subscription/add/feed"
-	// 		hx-target={ ContentID.Target() }
-	// 		hx-push-url="true"
-	// 		hidden
-	// 		_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
-	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-	// 	>
-	// 		@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 		<span class="ml-3 flex-auto truncate">Add a feed subscription</span>
-	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-	// 	</a>
-	// 	<a
-	// 		href="#"
-	// 		hx-get="/user/subscription/add/search"
-	// 		hx-target={ ContentID.Target() }
-	// 		hx-push-url="true"
-	// 		hx-include="#search-filters"
-	// 		hidden
-	// 		_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
-	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-	// 	>
-	// 		@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 		<span class="ml-3 flex-auto truncate">Add a search subscription</span>
-	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-	// 	</a>
-	// 	<a
-	// 		href="#"
-	// 		hx-get="/user/subscription/add/group"
-	// 		hx-target={ ContentID.Target() }
-	// 		hx-push-url="true"
-	// 		hidden
-	// 		_="on click or keyup[key is 'Enter']  add @hidden to #global-search-suggestions then set #global-search.value to ''"
-	// 		class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-	// 	>
-	// 		@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 		<span class="ml-3 flex-auto truncate">Add a group subscription</span>
-	// 		<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-	// 	</a>
-	// </el-command-group>
-	// if len(suggestions.Subscriptions) > 0 {
-	// 	// Subscription suggestions.
-	// 	<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="subscriptions-group-label">
-	// 		<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
-	// 		for subscription := range slices.Values(suggestions.Subscriptions) {
-	// 			<a
-	// 				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-	// 				href="#"
-	// 				_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to ''"
-	// 				{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
-	// 			>
-	// 				@tabler.Rss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 				<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
-	// 				<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-	// 			</a>
-	// 		}
-	// 	</el-command-group>
-	// }
-	// if len(suggestions.Articles)> 0 {
-	// 	// Article suggestions.
-	// 	<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="articles-group-label">
-	// 	<div id="articles-group-label" class="text-base-content/80 px-3 py-2">Articles</div>
-	// 	for article := range slices.Values(suggestions.Articles) {
-	// 		<a
-	// 			href="#"
-	// 			hx-get={ "/view/article/" + article.GetID() }
-	// 			hx-target={ ContentID.Target() }
-	// 			hx-push-url="true"
-	// 			hidden
-	// 			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-	// 			_="on click or keyup[key is 'Enter'] add @hidden to #global-search-suggestions then set #global-search.value to '' end"
-	// 		>
-	// 			@tabler.File(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-	// 			<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
-	// 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-	// 		</a>
-	// 	}
-	// 	</el-command-group>
-	// }
-	<nav>
-		<ul class="menu w-full" role="listbox">
-			<li role="option">
-				<form
-					id="show-search-results"
-					hx-post="/search"
-					hx-target={ ContentID.Target() }
-					hx-include="#search-filters,[id='timezone']"
-					hx-trigger="click consume"
-					hx-sync="#search-suggestions-popover:drop"
-					hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-					_="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
-				>
-					<input type="hidden" name="text" value={ suggestions.Search.Text }/>
-					<button type="submit" class="group/item flex items-center" tabindex="0">
-						@tabler.Search(i.Props{Class: "group-hover:text-primary"})
-						<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
-						<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Search...</span>
-					</button>
-				</form>
-			</li>
-			if len(suggestions.Subscriptions) > 0 {
-				// Subscription suggestions.
-				<li id="subscription-suggestions" class="menu-title" tabindex="-1" role="none">Subscriptions</li>
-				for subscription := range slices.Values(suggestions.Subscriptions) {
-					<li role="option">
-						<form
-							{ subscriptionViewArticlesAttributes(subscription)... }
-							hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
-						>
-							// href={ subscriptionViewArticlesLink(subscription) }
-							<button
-								class="group flex items-center"
-								tabindex="0"
-								type="submit"
-							>
-								@tabler.Rss(i.Props{Class: "group-hover:text-primary"})
-								<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
-								<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
-							</button>
-						</form>
-					</li>
-				}
-			}
-			if len(suggestions.Articles)> 0 {
-				// Article suggestions.
-				<li id="article-suggestions" class="menu-title" role="none">
-					Articles
-				</li>
-				for article := range slices.Values(suggestions.Articles) {
-					<li role="option">
-						<a
-							href={ "/view/article/" + article.GetID() }
-							hx-get={ "/view/article/" + article.GetID() }
-							hx-target={ ContentID.Target() }
-							hx-push-url="true"
-							hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-							class="group"
+	<ul class="menu w-full" role="listbox">
+		<li role="option">
+			<form
+				id="show-search-results"
+				hx-post="/search"
+				hx-target={ ContentID.Target() }
+				hx-include="#search-filters,[id='timezone']"
+				hx-trigger="click consume"
+				hx-sync="#search-suggestions-popover:drop"
+				hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
+				_="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
+			>
+				<input type="hidden" name="text" value={ suggestions.Search.Text }/>
+				<button type="submit" class="group flex items-center" tabindex="0">
+					@tabler.Search(i.Props{Class: "group-hover:text-primary"})
+					<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
+					<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Search...</span>
+				</button>
+			</form>
+		</li>
+		if len(suggestions.Subscriptions) > 0 {
+			// Subscription suggestions.
+			<li id="subscription-suggestions" class="menu-title" tabindex="-1" role="none">Subscriptions</li>
+			for subscription := range slices.Values(suggestions.Subscriptions) {
+				<li role="option">
+					<form
+						{ subscriptionViewArticlesAttributes(subscription)... }
+						hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
+					>
+						// href={ subscriptionViewArticlesLink(subscription) }
+						<button
+							class="group flex items-center"
 							tabindex="0"
+							type="submit"
 						>
-							@tabler.File(i.Props{Class: "group-hover:text-primary"})
-							<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
+							@tabler.Rss(i.Props{Class: "group-hover:text-primary"})
+							<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
 							<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
-						</a>
-					</li>
-				}
+						</button>
+					</form>
+				</li>
 			}
-		</ul>
-	</nav>
+		}
+		if len(suggestions.Articles)> 0 {
+			// Article suggestions.
+			<li id="article-suggestions" class="menu-title" role="none">
+				Articles
+			</li>
+			for article := range slices.Values(suggestions.Articles) {
+				<li role="option">
+					<button
+						type="button"
+						href={ "/view/article/" + article.GetID() }
+						hx-get={ "/view/article/" + article.GetID() }
+						hx-target={ ContentID.Target() }
+						hx-push-url="true"
+						hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
+						class="group"
+						tabindex="0"
+					>
+						@tabler.File(i.Props{Class: "group-hover:text-primary"})
+						<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
+						<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
+					</button>
+				</li>
+			}
+		}
+	</ul>
 }
 
 // SearchResults renders the given articles returned from the given search in a grid layout with an actions menu.
@@ -533,7 +340,7 @@ templ SearchResults(results *models.SearchResults) {
 				<div id="header" class="flex items-center justify-between mt-4">
 					// Page title.
 					<div class="min-w-0 flex-1">
-						@partials.Heading2() {
+						@partials.Heading1() {
 							Search Results
 						}
 					</div>
@@ -686,7 +493,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			// Full text search filter.
 			<div class="col-span-full">
 				<label for="search-text" class="block text-sm/6 font-medium">Includes the words</label>
-				<label class="input input-sm input-primary w-full bg-base-content/10 mt-2">
+				<label class="input input-sm input-primary w-full bg-base-300 brightness-95 mt-2">
 					<input
 						id="search-text"
 						type="text"
@@ -719,8 +526,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 							if request.Categories != nil {
 								value={ *request.Categories }
 							}
-							class="input input-sm input-primary bg-base-content/10"
-							autocomplete="off"
+							class="input input-sm input-primary bg-base-300 brightness-95"
 						/>
 					</div>
 				</label>
@@ -734,11 +540,10 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 							id="search-authors"
 							type="text"
 							name="authors"
-							autocomplete="off"
 							if request.Authors != nil {
 								value={ *request.Authors }
 							}
-							class="input input-sm input-primary bg-base-content/10"
+							class="input input-primary bg-base-300 brightness-95"
 						/>
 					</div>
 				</label>
@@ -747,7 +552,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			<div class="sm:col-span-full">
 				<span class="block text-sm/6 font-medium">In subscriptions</span>
 				<div class="mt-2">
-					<label class="input input-sm input-primary bg-base-content/10 w-full">
+					<label class="flex items-center input input-sm input-primary bg-base-300 brightness-95 w-full">
 						@tabler.Search(i.Props{Class: "size-5"})
 						<form
 							hx-post="/search/subscription/suggestions"
