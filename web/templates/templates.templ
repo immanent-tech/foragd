@@ -53,6 +53,8 @@ type Page struct {
 	Description string
 	// OGMetadata contains the Opengraph metadata for the page.
 	OpenGraph *opengraph.OpenGraph
+	// CanonicalLink is the link that will be used with <link rel="canonical> on the page.
+	CanonicalLink string
 }
 
 // PageOption is a functional option applied to a page.
@@ -76,6 +78,13 @@ func WithPageDescription(desc string) PageOption {
 func WithOpenGraphMetadata(metadata *opengraph.OpenGraph) PageOption {
 	return func(p *Page) {
 		p.OpenGraph = metadata
+	}
+}
+
+// WithCanonicalLink sets the <link rel="canonical> link for the page.
+func WithCanonicalLink(link string) PageOption {
+	return func(p *Page) {
+		p.CanonicalLink = link
 	}
 }
 
@@ -106,7 +115,11 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			if p.OpenGraph != nil {
 				@templ.Raw(p.OpenGraph.String())
 			}
-			<link rel="canonical" href="https://foragd.app" hx-preserve="true"/>
+			if p.CanonicalLink != "" {
+				<link rel="canonical" href={ p.CanonicalLink } hx-preserve="true"/>
+			} else {
+				<link rel="canonical" href="https://foragd.app" hx-preserve="true"/>
+			}
 			<link rel="manifest" href="/content/manifest.json" hx-preserve="true"/>
 			<link rel="apple-touch-icon" href="/content/apple-touch-icon.png" hx-preserve="true"/>
 			<link rel="icon" href="/content/favicon.svg" type="image/svg+xml" hx-preserve="true"/>
