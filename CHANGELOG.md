@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.71.3](https://github.com/immanent-tech/foragd/compare/v0.71.2...v0.71.3) (2026-03-03)
+
+
+### Bug Fixes
+
+* **templates:** :bug: fix attribute spelling mistake ([969cd86](https://github.com/immanent-tech/foragd/commit/969cd869dbf6f6d727f9c4d5a2fc5df55c4c2afe))
+
+
+### Performance Improvements
+
+* **middlewares:** :zap: improve etag generation ([2c06ca0](https://github.com/immanent-tech/foragd/commit/2c06ca0c445e9a276e13647a52b613d321ff5c22))
+* **templates:** :zap: add link preconnect for imgproxy ([438e529](https://github.com/immanent-tech/foragd/commit/438e529491de12afc6b712c10a163910571201e6))
+
 ## [0.71.2](https://github.com/immanent-tech/foragd/compare/v0.71.1...v0.71.2) (2026-03-02)
 
 
