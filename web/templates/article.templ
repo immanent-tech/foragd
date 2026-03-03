@@ -274,12 +274,12 @@ templ (a *Article) Content() {
 								rel="noopener"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
-								@partials.Heading2() {
+								@partials.Heading1() {
 									{ a.GetTitle() }
 								}
 							</a>
 						} else {
-							@partials.Heading2() {
+							@partials.Heading1() {
 								{ a.GetTitle() }
 							}
 						}
