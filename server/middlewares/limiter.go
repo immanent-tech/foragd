@@ -17,7 +17,7 @@ import (
 
 const (
 	clientIPHeader       = "X-Forwarded-For"
-	maxRequestsPerSecond = 2
+	maxRequestsPerSecond = 1
 )
 
 var rateLimiter RateLimiter
@@ -71,6 +71,8 @@ func RateLimit(next http.Handler) http.Handler {
 				slog.String("error", httpErr.Message),
 				slog.Int("code", httpErr.StatusCode),
 				slog.String("path", req.URL.Path),
+				slog.String("client_ip", clientIP),
+				slog.String("user_agent", req.Header.Get("User-Agent")),
 			)
 			http.Error(res, httpErr.Message, httpErr.StatusCode)
 			return
