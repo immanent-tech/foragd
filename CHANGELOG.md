@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.73.1](https://github.com/immanent-tech/foragd/compare/v0.73.0...v0.73.1) (2026-03-04)
+
+
+### Bug Fixes
+
+* **middlewares:** :bug: also reset hash interface in hashwriter buffers ([28bb37d](https://github.com/immanent-tech/foragd/commit/28bb37d930df0295bc8cba3b042eb8eb83ae0a00))
+* **templates:** :bug: fix display of newsletter email ([d4e48a5](https://github.com/immanent-tech/foragd/commit/d4e48a5e3b681c813e36b379cf46be2c51c2686d))
+
+
+### Performance Improvements
+
+* **middlewares:** :zap: reduce max requests per second on rate limiter ([8195772](https://github.com/immanent-tech/foragd/commit/81957726007ca703cdfabe6064ceb4e1c63ac5a1))
+* **middlewares:** :zap: set rate limiter expire ttl ([4786ef9](https://github.com/immanent-tech/foragd/commit/4786ef9606ccf7996538c0523b914dc034be7cb5))
+* **templates:** :zap: embed svg logo in template ([c2b2e0f](https://github.com/immanent-tech/foragd/commit/c2b2e0f6b2780665a9f3b8b7011a99c321f5c5b6))
+
 ## [0.73.0](https://github.com/immanent-tech/foragd/compare/v0.72.1...v0.73.0) (2026-03-04)
 
 
