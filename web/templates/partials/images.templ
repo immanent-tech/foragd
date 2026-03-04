@@ -83,7 +83,7 @@ templ Thumbnail(img *types.ImageInfo, name string, size int) {
 			// sm:1 - strip metadata
 			// kcr:1 - keep copyright
 			// scp:1 - convert color profile to sRGB
-			@NewProxiedImage(img, "rs:auto:"+s+":"+s+"/q:80/sm:1/kcr:1/scp:1",
+			@NewProxiedImage(img, "rs:auto:"+s+":"+s+"/q:80/sm:1/kcr:1/scp:1/ext:webp",
 				element.WithAttribute("width", s),
 				element.WithAttribute("height", s),
 				element.WithClasses("mask mask-squircle"),

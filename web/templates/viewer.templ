@@ -157,7 +157,7 @@ templ ViewerResults(feed *models.Feed) {
 										// sm:1 - strip metadata
 										// kcr:1 - keep copyright
 										// scp:1 - convert color profile to sRGB
-										@partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
+										@partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1/ext:webp",
 											element.WithAttribute("width", "48"),
 											element.WithAttribute("height", "48"),
 											element.WithAttribute("loading", "lazy"),

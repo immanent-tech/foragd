@@ -4175,7 +4175,7 @@ func subscriptionThumbnail(img *types.ImageInfo, name string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
+			templ_7745c5c3_Err = partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1/ext:webp",
 				element.WithAttribute("width", "48"),
 				element.WithAttribute("height", "48"),
 				element.WithClasses("mask mask-squircle size-12"),

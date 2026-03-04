@@ -199,7 +199,7 @@ func Thumbnail(img *types.ImageInfo, name string, size int) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = NewProxiedImage(img, "rs:auto:"+s+":"+s+"/q:80/sm:1/kcr:1/scp:1",
+			templ_7745c5c3_Err = NewProxiedImage(img, "rs:auto:"+s+":"+s+"/q:80/sm:1/kcr:1/scp:1/ext:webp",
 				element.WithAttribute("width", s),
 				element.WithAttribute("height", s),
 				element.WithClasses("mask mask-squircle"),
