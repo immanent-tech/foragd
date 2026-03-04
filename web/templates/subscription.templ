@@ -1561,8 +1561,8 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 				hx-post={ "/remove/subscription/" + string(request.SubscriptionID) }
 				hx-target={ "#" + request.SubscriptionID }
 				hx-swap="delete transition:true"
-				_={ "on htmx:afterRequest(successful) if successful remove #" + id }
 				class="flex"
+				_={ "on htmx:afterRequest(successful) close() on #" + id }
 			>
 				<input type="hidden" name="nickname" value={ request.Nickname }/>
 				<input type="hidden" name="confirmed" value="true"/>
@@ -1573,7 +1573,8 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 			</form>
 			<button
 				type="button"
-				_={ "on click remove #el-dialog-" + id + " then halt the event's bubbling" }
+				command="close"
+				commandfor={ id }
 				class="btn btn-secondary hover:btn-error"
 			>Cancel</button>
 		</div>
