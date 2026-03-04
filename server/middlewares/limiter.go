@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/didip/tollbooth/v8"
 	"github.com/didip/tollbooth/v8/limiter"
@@ -35,7 +36,7 @@ var NewRateLimiter = sync.OnceValue(func() RateLimiter {
 	if err != nil {
 		panic("realclientip.NewRightmostNonPrivateStrategy returned error (bad input)")
 	}
-	lmt := tollbooth.NewLimiter(maxRequestsPerSecond, nil)
+	lmt := tollbooth.NewLimiter(maxRequestsPerSecond, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
 	lmt.SetIPLookup(limiter.IPLookup{
 		Name:           clientIPHeader,
 		IndexFromRight: 0,
