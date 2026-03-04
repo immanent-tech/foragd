@@ -315,7 +315,18 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 							tabindex="0"
 							type="submit"
 						>
-							@tabler.Rss(i.Props{Class: "group-hover:text-primary"})
+							if subscription.GetImage() != "" {
+								@Thumbnail(
+									&types.ImageInfo{
+										URL:   subscription.GetImage(),
+										Title: subscription.GetTitle(),
+									},
+									subscription.GetTitle(),
+									24,
+								)
+							} else {
+								@tabler.Rss(i.Props{Class: "group-hover:text-primary"})
+							}
 							<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
 							<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
 						</button>
@@ -340,7 +351,18 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 						class="group"
 						tabindex="0"
 					>
-						@tabler.File(i.Props{Class: "group-hover:text-primary"})
+						if article.GetImage() != nil {
+							@Thumbnail(
+								&types.ImageInfo{
+									URL:   article.GetImage().GetURL(),
+									Title: article.GetTitle(),
+								},
+								article.GetTitle(),
+								24,
+							)
+						} else {
+							@tabler.FileRssFilled(i.Props{Class: "group-hover:text-primary"})
+						}
 						<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
 						<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
 					</button>
