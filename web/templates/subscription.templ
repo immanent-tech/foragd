@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
@@ -1591,10 +1592,10 @@ templ subscriptionThumbnail(img *types.ImageInfo, name string) {
 			// sm:1 - strip metadata
 			// kcr:1 - keep copyright
 			// scp:1 - convert color profile to sRGB
-			@NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
-				WithAttribute("width", "48"),
-				WithAttribute("height", "48"),
-				WithClasses("mask mask-squircle size-12"),
+			@partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
+				element.WithAttribute("width", "48"),
+				element.WithAttribute("height", "48"),
+				element.WithClasses("mask mask-squircle size-12"),
 			)
 		</div>
 	} else {

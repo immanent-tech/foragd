@@ -6,6 +6,7 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
@@ -55,7 +56,7 @@ templ UserHome(data *models.HomeResponse) {
 							}
 						</div>
 						// Grid of latest articles on large displays.
-						@grid(WithClasses("hidden sm:grid")) {
+						@grid(element.WithClasses("hidden sm:grid")) {
 							for article := range slices.Values(data.LatestArticles) {
 								@NewArticleView(article).Card()
 							}

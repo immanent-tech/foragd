@@ -198,7 +198,7 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 				if subscription.GetImage() == "" {
 					@tabler.Rss()
 				} else {
-					@Thumbnail(
+					@partials.Thumbnail(
 						&types.ImageInfo{
 							URL:   subscription.GetImage(),
 							Title: subscription.GetTitle(),
@@ -316,7 +316,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 							type="submit"
 						>
 							if subscription.GetImage() != "" {
-								@Thumbnail(
+								@partials.Thumbnail(
 									&types.ImageInfo{
 										URL:   subscription.GetImage(),
 										Title: subscription.GetTitle(),
@@ -352,7 +352,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 						tabindex="0"
 					>
 						if article.GetImage() != nil {
-							@Thumbnail(
+							@partials.Thumbnail(
 								&types.ImageInfo{
 									URL:   article.GetImage().GetURL(),
 									Title: article.GetTitle(),

@@ -1,0 +1,104 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
+	"github.com/immanent-tech/foragd/web/templates/element"
+	"github.com/immanent-tech/go-syndication/types"
+	"slices"
+	"strconv"
+)
+
+type ProxiedImage struct {
+	*element.Element
+}
+
+templ NewProxiedImage(img *types.ImageInfo, props string, options ...element.Option) {
+	{{ elem := &ProxiedImage{Element: element.New()} }}
+	for option := range slices.Values(options) {
+		{{ option(elem.Element) }}
+	}
+	{{ elem.SetAttribute("loading", "lazy") }}
+	{{ elem.SetAttribute("decoding", "async") }}
+	<img
+		if elem.GetID() != "" {
+			id={ elem.GetID() }
+		}
+		src={ GenerateImageProxyURL(ctx, img.GetURL(), props) }
+		alt={ img.GetTitle() }
+		class={ templ.KV(elem.GetClasses(), elem.GetClasses() != "") }
+		{ elem.GetAttributes()... }
+	/>
+	// src={ generateImageProxyURL(ctx, img.GetURL(), props) }
+}
+
+func GenerateImageProxyURL(ctx context.Context, url, props string) string {
+	var keyBin, saltBin []byte
+	var err error
+
+	// Extract the key.
+	key, ok := ctx.Value(ImgProxyKey).(string)
+	if !ok {
+		return url
+	}
+	if keyBin, err = hex.DecodeString(key); err != nil {
+		return url
+	}
+
+	// Extract the salt.
+	salt, ok := ctx.Value(ImgProxySalt).(string)
+	if !ok {
+		return url
+	}
+	if saltBin, err = hex.DecodeString(salt); err != nil {
+		return url
+	}
+
+	encodedImageURL := base64.RawURLEncoding.EncodeToString([]byte(url))
+
+	path := "/" + props + "/" + encodedImageURL
+
+	mac := hmac.New(sha256.New, keyBin)
+	mac.Write(saltBin)
+	mac.Write([]byte(path))
+	signature := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+
+	return "/img-proxy/" + signature + path
+}
+
+templ Thumbnail(img *types.ImageInfo, name string, size int) {
+	{{ s := strconv.Itoa(size) }}
+	if img != nil {
+		// If the source has an image, use that as the avatar.
+		<div class="avatar" aria-hidden="true">
+			// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
+			// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
+			// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
+			// sm:1 - strip metadata
+			// kcr:1 - keep copyright
+			// scp:1 - convert color profile to sRGB
+			@NewProxiedImage(img, "rs:auto:"+s+":"+s+"/q:80/sm:1/kcr:1/scp:1",
+				element.WithAttribute("width", s),
+				element.WithAttribute("height", s),
+				element.WithClasses("mask mask-squircle"),
+			)
+		</div>
+	} else {
+		// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
+		<div class="avatar avatar-placeholder" aria-hidden="true">
+			<div class="bg-neutral text-neutral-content mask mask-squircle">
+				if name != "" {
+					<span class="text-3xl capitalize">{ name[0:1] }</span>
+				} else {
+					<span class="text-3xl capitalize">S</span>
+				}
+			</div>
+		</div>
+	}
+}

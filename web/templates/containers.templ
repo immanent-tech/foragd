@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
@@ -23,9 +24,9 @@ templ Document(data []byte) {
 }
 
 // content renders children wrapped with appropriate header/footer navigation.
-templ content(options ...ElementOption) {
+templ content(options ...element.Option) {
 	{{
-		e := NewElement()
+		e := element.New()
 		for option := range slices.Values(options) {
 			option(e)
 		}
@@ -70,9 +71,9 @@ templ content(options ...ElementOption) {
 }
 
 // container constrains children to a nominal width and adds some padding.
-templ container(options ...ElementOption) {
+templ container(options ...element.Option) {
 	{{
-		e := NewElement()
+		e := element.New()
 		for option := range slices.Values(options) {
 			option(e)
 		}
@@ -85,9 +86,9 @@ templ container(options ...ElementOption) {
 	</div>
 }
 
-templ grid(options ...ElementOption) {
+templ grid(options ...element.Option) {
 	{{
-		e := NewElement()
+		e := element.New()
 		for option := range slices.Values(options) {
 			option(e)
 		}

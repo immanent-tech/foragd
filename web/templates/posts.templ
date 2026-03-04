@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
@@ -22,7 +23,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 			</div>
 			<div class="mt-8">
 				@grid(
-					WithClasses("place-items-start sm:min-h-svh"),
+					element.WithClasses("place-items-start sm:min-h-svh"),
 				) {
 					for post := range slices.Values(posts) {
 						<a href={ "/posts/" + post.Details.Path }>

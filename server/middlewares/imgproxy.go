@@ -7,14 +7,14 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 func SetupImgProxy(key, salt string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := context.WithValue(req.Context(), templates.ImgProxyKey, key)
-			ctx = context.WithValue(ctx, templates.ImgProxySalt, salt)
+			ctx := context.WithValue(req.Context(), partials.ImgProxyKey, key)
+			ctx = context.WithValue(ctx, partials.ImgProxySalt, salt)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/tabler"
@@ -156,11 +157,11 @@ templ ViewerResults(feed *models.Feed) {
 										// sm:1 - strip metadata
 										// kcr:1 - keep copyright
 										// scp:1 - convert color profile to sRGB
-										@NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
-											WithAttribute("width", "48"),
-											WithAttribute("height", "48"),
-											WithAttribute("loading", "lazy"),
-											WithAttribute("decoding", "async"),
+										@partials.NewProxiedImage(img, "rs:auto:48:48/q:80/sm:1/kcr:1/scp:1",
+											element.WithAttribute("width", "48"),
+											element.WithAttribute("height", "48"),
+											element.WithAttribute("loading", "lazy"),
+											element.WithAttribute("decoding", "async"),
 										)
 									</div>
 								</div>
@@ -253,7 +254,7 @@ templ viewerItemCard(item models.Item) {
 				<img
 					src={ img.GetURL() }
 					alt={ img.GetTitle() }
-					srcset={ generateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + generateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
+					srcset={ partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:280:280/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 280w, " + partials.GenerateImageProxyURL(ctx, img.GetURL(), "rs:auto:600:400/sh:0.5/el:1/q:80/sm:1/kcr:1/scp:1") + " 600w" }
 					sizes="(max-width: 480px) 100vw, 600px"
 					decoding="async"
 					loading="lazy"

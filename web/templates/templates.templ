@@ -10,20 +10,10 @@ import (
 	"github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/immanent-tech/go-syndication/opengraph"
-	"maps"
 	"os"
 	"path/filepath"
 	"slices"
-	"strings"
-	"sync"
 )
-
-const (
-	ImgProxyKey  contextKey = "imgproxy_key"
-	ImgProxySalt contextKey = "imgproxy_salt"
-)
-
-type contextKey string
 
 var (
 	// ContentID points to the element containing the main content of the page.
@@ -194,99 +184,6 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 
 templ UpdateTitle(title string) {
 	<title>{ title + " | " + config.AppName }</title>
-}
-
-// Element represents any HTML element that can have attributes and classes.
-type Element struct {
-	mu         sync.Mutex
-	ID         models.ElementID
-	Attributes templ.Attributes
-	Classes    []string
-}
-
-func NewElement() *Element {
-	return &Element{
-		Attributes: make(templ.Attributes),
-		Classes:    make([]string, 0),
-	}
-}
-
-func (e *Element) GetID() string {
-	return e.ID.String()
-}
-
-func (e *Element) GetTarget() string {
-	return e.ID.Target()
-}
-
-func (e *Element) SetID(id string) {
-	e.ID = models.ElementID(id)
-}
-
-func (e *Element) SetAttribute(key string, value any) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	e.Attributes[key] = value
-}
-
-func (e *Element) MergeAttributes(attributes templ.Attributes) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	maps.Copy(attributes, e.Attributes)
-}
-
-func (e *Element) HasAttribute(key string) bool {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	_, ok := e.Attributes[key]
-	return ok
-}
-
-func (e *Element) GetAttributes() templ.Attributes {
-	return e.Attributes
-}
-
-func (e *Element) AddClasses(classes ...string) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	e.Classes = append(e.Classes, classes...)
-}
-
-func (e *Element) GetClasses() string {
-	return strings.Join(e.Classes, " ")
-}
-
-// ElementOption is a functional option applied to an Element.
-type ElementOption func(*Element)
-
-// WithClasses option applies the given classes to the Element.
-func WithClasses(classes ...string) ElementOption {
-	return func(e *Element) {
-		e.AddClasses(classes...)
-	}
-}
-
-// WithAttribute option applies the given attribute to the Element.
-func WithAttribute(key string, value any) ElementOption {
-	return func(e *Element) {
-		e.SetAttribute(key, value)
-	}
-}
-
-// WithAttributes option applies the set of attributes to the Element. It will merge the set with any existing elements
-// (duplicate existing attributes will be overridden).
-func WithAttributes(attributes templ.Attributes) ElementOption {
-	return func(e *Element) {
-		if attributes != nil {
-			e.MergeAttributes(attributes)
-		}
-	}
-}
-
-func WithID(id string) ElementOption {
-	return func(e *Element) {
-		e.SetID(id)
-	}
 }
 
 // NewMetadata creates a new opengraph Metadata object with properties set to values given by the options. Where a

@@ -6,6 +6,7 @@ package templates
 import (
 	"fmt"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -63,10 +64,10 @@ templ (a *Article) Card() {
 				{{ img.Title = a.GetTitle() }}
 			}
 			<figure>
-				@NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
-					WithAttribute("width", "400"),
-					WithAttribute("height", "300"),
-					WithClasses("card-img"),
+				@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1",
+					element.WithAttribute("width", "400"),
+					element.WithAttribute("height", "300"),
+					element.WithClasses("card-img"),
 				)
 			</figure>
 		}

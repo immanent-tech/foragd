@@ -226,7 +226,7 @@ func ActionSuggestionSubscriptions(subscriptions models.Subscriptions) templ.Com
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = Thumbnail(
+				templ_7745c5c3_Err = partials.Thumbnail(
 					&types.ImageInfo{
 						URL:   subscription.GetImage(),
 						Title: subscription.GetTitle(),
@@ -426,7 +426,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if subscription.GetImage() != "" {
-					templ_7745c5c3_Err = Thumbnail(
+					templ_7745c5c3_Err = partials.Thumbnail(
 						&types.ImageInfo{
 							URL:   subscription.GetImage(),
 							Title: subscription.GetTitle(),
@@ -512,7 +512,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if article.GetImage() != nil {
-					templ_7745c5c3_Err = Thumbnail(
+					templ_7745c5c3_Err = partials.Thumbnail(
 						&types.ImageInfo{
 							URL:   article.GetImage().GetURL(),
 							Title: article.GetTitle(),
