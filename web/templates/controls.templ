@@ -162,9 +162,8 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
 							<el-menu anchor="bottom end" popover class="w-fit">
-								<ul id="category-filters-desktop" class="menu">
-									<span id="load-categories-desktop" class="htmx-indicator loading loading-spinner loading-sm"></span>
-								</ul>
+								<ul id="category-filters-desktop" class="menu"></ul>
+								<span id="load-categories-desktop" class="htmx-indicator loading loading-spinner loading-sm"></span>
 							</el-menu>
 						</el-dropdown>
 						// View filters.
