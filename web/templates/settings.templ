@@ -448,7 +448,7 @@ templ ShowSubscriptionEmail(email string) {
 	<div class="join join-vertical sm:join-horizontal col-span-full">
 		<input type="text" class="input input-primary w-full join-item" value={ email } readonly/>
 		<button
-			class="btn btn-outline btn-primary w-full join-item"
+			class="btn btn-outline btn-primary join-item"
 			_={ "on click set currentValue to (my innerHTML) then writeText('" + email + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
 		>
 			@tabler.Copy()
