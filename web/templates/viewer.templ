@@ -58,7 +58,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 						<input
 							type="text"
 							name="url"
-							class="input input-primary w-full bg-base-content/10"
+							class="input input-primary w-full bg-base-300 brightness-95"
 							placeholder="https://some.site"
 							if feed != nil {
 								value={ feed.GetSourceURLs()[0] }
@@ -71,7 +71,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 			<div id="processing" class="htmx-indicator my-4 flex justify-center mx-auto">
 				<span class="flex loading loading-dots loading-lg"></span>
 			</div>
-			<section id="viewer-results" class="mt-8 mb-24 min-h-128 overflow-y-auto">
+			<section id="viewer-results" class="mt-8 mb-24 overflow-y-auto">
 				switch  {
 					case errMsg != nil:
 						@ViewerError(errMsg)

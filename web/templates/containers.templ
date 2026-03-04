@@ -50,7 +50,7 @@ templ content(options ...element.Option) {
 	<main
 		id={ ContentID.String() }
 		aria-label="Main Content"
-		class={ "scroll-mt-16 pt-16 pb-24 sm:pb-8", templ.KV("lg:pl-36",user!=nil),  templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
+		class={ "mb-auto scroll-mt-16 pt-16", templ.KV("lg:pl-36",user!=nil),  templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
 		hx-indicator="#content-loading"
 		{ e.GetAttributes()... }
 	>

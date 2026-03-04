@@ -76,7 +76,7 @@ func NotFound() templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"text-center\"><p class=\"text-base font-semibold\">404</p><h1 class=\"mt-4 text-5xl font-semibold tracking-tight text-primary text-balancesm:text-7xl\">Page not found</h1><p class=\"mt-6 text-lg font-medium text-pretty sm:text-xl/8\">Sorry, we couldn’t find the page you’re looking for.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"h-screen my-auto text-center\"><p class=\"text-base font-semibold\">404</p><h1 class=\"mt-4 text-5xl font-semibold tracking-tight text-primary text-balancesm:text-7xl\">Page not found</h1><p class=\"mt-6 text-lg font-medium text-pretty sm:text-xl/8\">Sorry, we couldn’t find the page you’re looking for.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

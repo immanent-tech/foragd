@@ -3,34 +3,44 @@
 
 package templates
 
-import "github.com/sebasvil20/templicons/tabler"
+import (
+	"github.com/sebasvil20/templicons/tabler"
+	"time"
+)
 
 templ footer() {
-	<footer class="relative bottom-0 left-0 right-0 mt-24 bg-base-200 flex justify-center w-full">
-		<div class="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
-			<nav aria-label="Footer" class="-mb-6 flex flex-wrap justify-center gap-x-12 gap-y-3 text-sm/6">
-				<a href="/about" class="link link-hover">About</a>
-				<a href="/posts" class="link link-hover">Posts</a>
-				<a href="/viewer" class="link link-hover">Feed Viewer</a>
-				<a href="/help" class="link link-hover">Help/Documentation</a>
-				<a href="/policies/tos" class="link link-hover">Terms of Service</a>
-				<a href="/policies/acceptable-use" class="link link-hover">Acceptable Use</a>
-				<a href="/policies/privacy" class="link link-hover">Privacy Policy</a>
-				<a href="https://github.com/immanent-tech/foragd/security" class="link link-hover">Report Security Issues</a>
-			</nav>
-			<div class="mt-16 flex justify-center gap-x-10">
-				<a href="https://github.com/immanent-tech/foragd" class="link link-hover">
-					<span class="sr-only">GitHub</span>
-					<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="size-6">
-						<path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" fill-rule="evenodd"></path>
-					</svg>
-				</a>
-				<a href="mailto:hello@immanent.tech" class="link link-hover">
-					<span class="sr-only">Email</span>
-					@tabler.Mail()
-				</a>
-			</div>
-			<p class="mt-10 text-center text-sm/6 text-neutral">&copy; 2025 <a class="link" href="https://immanent.tech">Immanent Tech.</a> All rights reserved.</p>
-		</div>
+	<footer class="footer sm:footer-horizontal bg-base-200 text-base-content p-10">
+		<nav>
+			<div class="footer-title">Links</div>
+			<a href="/about" class="link link-hover">About</a>
+			<a href="/posts" class="link link-hover">Posts</a>
+			<a href="/viewer" class="link link-hover">Feed Viewer</a>
+			<a href="/help" class="link link-hover">Help/Documentation</a>
+			<a href="https://github.com/immanent-tech/foragd/security" class="link link-hover">Report Security Issues</a>
+		</nav>
+		<nav>
+			<div class="footer-title">Legal</div>
+			<a href="/policies/tos" class="link link-hover">Terms of Service</a>
+			<a href="/policies/acceptable-use" class="link link-hover">Acceptable Use</a>
+			<a href="/policies/privacy" class="link link-hover">Privacy Policy</a>
+		</nav>
+		<nav>
+			<div class="footer-title">Social</div>
+			<a href="https://github.com/immanent-tech/foragd" class="link link-hover">
+				<span class="sr-only">GitHub</span>
+				<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="size-6">
+					<path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" fill-rule="evenodd"></path>
+				</svg>
+			</a>
+			<a href="mailto:hello@immanent.tech" class="link link-hover">
+				<span class="sr-only">Email</span>
+				@tabler.Mail()
+			</a>
+		</nav>
+	</footer>
+	<footer class="footer bg-base-200 text-base-content p-4">
+		<aside class="mx-auto text-center">
+			<p>Copyright © { time.Now().Format("2006") } - <a class="link" href="https://immanent.tech">Immanent Tech.</a> All rights reserved.</p>
+		</aside>
 	</footer>
 }
