@@ -50,6 +50,11 @@ func (hw *hashWriter) Write(data []byte) (int, error) {
 	return l, nil
 }
 
+func (hw *hashWriter) Reset() {
+	hw.hash = xxh3.New()
+	hw.buf.Reset()
+}
+
 // Handler wraps the http.Handler h with ETag support.
 func Handler(next http.Handler, weak bool) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -61,7 +66,7 @@ func Handler(next http.Handler, weak bool) http.Handler {
 		}
 		hw.rw = res
 		defer func() {
-			hw.buf.Reset()
+			hw.Reset()
 			hwPool.Put(hw)
 		}()
 		next.ServeHTTP(hw, req)
