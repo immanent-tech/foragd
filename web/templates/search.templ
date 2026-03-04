@@ -202,32 +202,10 @@ templ searchCommands() {
 
 templ searchBox() {
 	<el-popover-group class="w-full sm:max-w-3xl">
-		<label
-			for="global-search"
-			class="w-full input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-300 brightness-95"
-		>
-			<el-dropdown class="flex items-center">
-				<button
-					hx-post="/search/suggestions"
-					hx-target="#search-suggestions-popover"
-					hx-include="#search-filters,[id='timezone'],[id='global-search']"
-					hx-trigger="keyup changed delay:500ms from:#global-search"
-					hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
-					hx-sync="#global-search:drop"
-					popovertarget="search-suggestions-popover"
-					type="button"
-				>
-					@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
-				</button>
-				<el-menu
-					id="search-suggestions-popover"
-					anchor="bottom start"
-					popover
-					class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:-12px] h-fit max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm divide-y divide-primary/80 outline-1 -outline-offset-1 outline-base-content/15"
-				></el-menu>
-			</el-dropdown>
-			// hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-			// _="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
+		<div class="w-full input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-300 brightness-95">
+			<div aria-hidden="true">
+				@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
+			</div>
 			<input
 				hx-post="/search"
 				hx-target={ ContentID.Target() }
@@ -240,13 +218,40 @@ templ searchBox() {
 				placeholder="Search..."
 				spellcheck="false"
 				autocomplete="off"
+				aria-label="Search"
+				_="on keydown focus() me"
 			/>
+			<button
+				hx-post="/search/suggestions"
+				hx-target="#search-suggestions-popover"
+				hx-include="#search-filters,[id='timezone'],[id='global-search']"
+				hx-trigger="keyup changed delay:500ms from:#global-search"
+				hx-sync="#global-search:drop"
+				hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
+				popovertarget="search-suggestions-popover"
+				type="button"
+				aria-label="Search suggestions"
+			>
+				<div aria-hidden="true">
+					@tabler.ChevronDown(i.Props{Class: "pointer-events-none flex-none text-primary"})
+				</div>
+			</button>
+			<el-popover
+				id="search-suggestions-popover"
+				anchor="bottom end"
+				popover
+				role="listbox"
+				class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px] h-fit max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm divide-y divide-primary/80 outline-1 -outline-offset-1 outline-base-content/15"
+			></el-popover>
 			<button
 				type="button"
 				popovertarget="search-filters-popover"
 				tabindex="0"
+				aria-label="Search filters"
 			>
-				@tabler.Filter(i.Props{Class: "flex-none text-primary"})
+				<div aria-hidden="true">
+					@tabler.Filter(i.Props{Class: "flex-none text-primary"})
+				</div>
 			</button>
 			<el-popover
 				popover
@@ -256,7 +261,7 @@ templ searchBox() {
 			>
 				@SearchFilters(models.NewSearchRequest(), nil)
 			</el-popover>
-		</label>
+		</div>
 	</el-popover-group>
 }
 
@@ -264,15 +269,14 @@ templ searchBox() {
 templ SearchSuggestions(suggestions *models.SearchResults) {
 	<ul class="menu w-full" role="listbox">
 		<li role="option">
+			// _="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
 			<form
 				id="show-search-results"
 				hx-post="/search"
 				hx-target={ ContentID.Target() }
 				hx-include="#search-filters,[id='timezone']"
-				hx-trigger="click consume"
 				hx-sync="#search-suggestions-popover:drop"
 				hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-				_="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
 			>
 				<input type="hidden" name="text" value={ suggestions.Search.Text }/>
 				<button type="submit" class="group flex items-center" tabindex="0">
@@ -736,7 +740,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 					@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
 				</div>
 			</button>
-			<el-popover popover id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
+			<el-popover popover="hint" id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
 				<div class="card-body bg-base-300 shadow-md max-w-full border border-primary rounded-box text-xs text-wrap">
 					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 					<ul>
