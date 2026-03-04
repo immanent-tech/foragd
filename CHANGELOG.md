@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.73.0](https://github.com/immanent-tech/foragd/compare/v0.72.1...v0.73.0) (2026-03-04)
+
+
+### Features
+
+* **templates:** :sparkles: actual thumbnails for articles and subscriptions in suggestions ([7c98c54](https://github.com/immanent-tech/foragd/commit/7c98c5478a9ef5ffcf91d797531bf8a85f4a4b30))
+* **templates:** :sparkles: add subscription suggestions for actions ([e95bad7](https://github.com/immanent-tech/foragd/commit/e95bad73db1f576eb535f87e9a57498a416a3031))
+
+
+### Bug Fixes
+
+* **templates:** :bug: fix indicator for loading category filters ([d2d0bc2](https://github.com/immanent-tech/foragd/commit/d2d0bc2b55f941bad9dcea29e9922e94dec62a3d))
+* **templates:** :bug: fix unsubscribe modals blocking all page interactivity ([48d5069](https://github.com/immanent-tech/foragd/commit/48d50699cebd4d42e0cb71066f8619f8b0509569))
+* **templates:** :fire: remove unnecessary hyperscript from command-pallette actions ([81585a8](https://github.com/immanent-tech/foragd/commit/81585a8c7b41156ad1f8ea24ee551b4ea18965e6))
+
+
+### Performance Improvements
+
+* **handlers:** :zap: reject requests for feed with query parameters set ([6a3070c](https://github.com/immanent-tech/foragd/commit/6a3070c15e76fb942306545d0b8ed09afb8a00b1))
+* **templates:** :zap: use webp wherever possible for proxied images ([232b701](https://github.com/immanent-tech/foragd/commit/232b701ee321da18e31f1641ef190e0ca4480671))
+
 ## [0.72.1](https://github.com/immanent-tech/foragd/compare/v0.72.0...v0.72.1) (2026-03-03)
 
 
