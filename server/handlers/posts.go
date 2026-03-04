@@ -193,6 +193,11 @@ func readPost(details models.FileDetails) (*models.MarkdownFile, error) {
 // HandlePostsFeed handles showing an RSS file for posts.
 func HandlePostsFeed() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Reject requests with any query parameters set.
+		if len(req.URL.Query()) > 0 {
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		// Check, if the requested file is existing.
 		posts, err := getPosts()
 		if err != nil {
