@@ -5,6 +5,7 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
@@ -13,20 +14,27 @@ import (
 templ searchCommands() {
 	<button
 		command="show-modal"
-		commandfor="dialog"
+		commandfor="commands"
 		class="hidden"
-		_="on keydown from body if the event's key is 'k' and event.altKey then showModal() on #dialog"
+		_="on keydown from body if the event's key is 'k' and event.altKey then showModal() on #commands"
 	>
 		Open command palette
 	</button>
 	<el-dialog>
-		<dialog id="dialog">
+		<dialog id="commands">
 			<el-dialog-backdrop></el-dialog-backdrop>
 			<div tabindex="0" class="fixed inset-0 w-screen overflow-y-auto p-4 focus:outline-none sm:p-6 md:p-20">
 				<el-dialog-panel class="mx-auto block max-w-2xl transform overflow-hidden rounded-xl bg-base-300 shadow-2xl outline-1 outline-primary/5 backdrop-blur-sm backdrop-filter transition-all data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in">
 					<el-command-palette>
 						<div class="grid grid-cols-1 border-b border-primary/10 items-center">
-							<input id="command-text" type="text" autofocus placeholder="Search..." class="col-start-1 row-start-1 h-12 w-full bg-transparent pr-4 pl-11 text-base outline-hidden placeholder:text-primary sm:text-sm"/>
+							<input
+								id="command-text"
+								name="command-text"
+								type="text"
+								autofocus
+								placeholder="Search..."
+								class="col-start-1 row-start-1 h-12 w-full bg-transparent pr-4 pl-11 text-base outline-hidden placeholder:text-primary sm:text-sm"
+							/>
 							@tabler.Search(i.Props{Class: "pointer-events-none col-start-1 row-start-1 ml-4 size-5 self-center text-primary"})
 						</div>
 						<el-command-list class="block max-h-80 scroll-py-2 overflow-y-auto">
@@ -66,35 +74,16 @@ templ searchCommands() {
 							// 		</div>
 							// 	</div>
 							// </el-defaults>
+							<el-command-group
+								hidden
+								class="block text-sm text-base-content"
+								aria-labelledby="subscriptions-group-label"
+								hx-post="/action/subscription/suggestions"
+								hx-include="[name='command-text']"
+								hx-trigger="keyup changed delay:500ms from:#command-text"
+							></el-command-group>
 							<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="pages-group-label">
-								<div id="pages-group-label" class="text-base-content/80 px-3">Actions</div>
-								// <a
-								// 	href="#"
-								// 	hidden
-								// 	class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content text-sm"
-								// >
-								// 	@tabler.Search(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
-								// 	<span
-								// 		class="ml-3 flex-auto truncate"
-								// 		_="on change from #command-text set my innerText to 'Search for ' + #command-text.value"
-								// 	></span>
-								// 	<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Search...</span>
-								// </a>
-								// <form
-								// 	id="show-search-results"
-								// 	hx-post="/search"
-								// 	hx-target={ ContentID.Target() }
-								// 	hx-include="[id='command-text'],[id='timezone']"
-								// 	hx-trigger="click consume"
-								// 	_="on htmx:beforeRequest add @hidden to #global-search-suggestions"
-								// >
-								// 	<input
-								// 		type="hidden"
-								// 		name="text"
-								// 		value=""
-								// 		_="on change from #command-text set my value to #command-text.value"
-								// 	/>
-								// </form>
+								<div id="pages-group-label" class="text-base-content/80 font-semibold px-3 py-4">Pages</div>
 								<a
 									href="/home"
 									hidden
@@ -140,17 +129,21 @@ templ searchCommands() {
 									<span class="ml-3 flex-auto truncate">Go to Settings</span>
 									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 								</a>
+							</el-command-group>
+							<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="actions-group-label">
+								<div id="actions-group-label" class="text-base-content/80 font-semibold px-3 py-4">Actions</div>
 								<a
 									href="/user/subscription/add/feed"
 									hx-get="/user/subscription/add/feed"
 									hx-target={ ContentID.Target() }
 									hx-push-url="true"
+									hx-on::after-request="document.getElementById('commands').close()"
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
 									@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
 									<span class="ml-3 flex-auto truncate">Add a feed subscription</span>
-									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Create...</span>
 								</a>
 								<a
 									href="/user/subscription/add/search"
@@ -158,38 +151,67 @@ templ searchCommands() {
 									hx-target={ ContentID.Target() }
 									hx-push-url="true"
 									hx-include="#search-filters"
+									hx-on::after-request="document.getElementById('commands').close()"
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
 									@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
 									<span class="ml-3 flex-auto truncate">Add a search subscription</span>
-									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Create...</span>
 								</a>
 								<a
 									href="/user/subscription/add/group"
 									hx-get="/user/subscription/add/group"
 									hx-target={ ContentID.Target() }
 									hx-push-url="true"
+									hx-on::after-request="document.getElementById('commands').close()"
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
 									@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
 									<span class="ml-3 flex-auto truncate">Add a group subscription</span>
-									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Create...</span>
 								</a>
 							</el-command-group>
 						</el-command-list>
-						// <el-no-results hidden class="block px-6 py-14 text-center sm:px-14">
-						// 	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="mx-auto size-6 text-gray-900/40 dark:text-gray-500">
-						// 		<path d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" stroke-linecap="round" stroke-linejoin="round"></path>
-						// 	</svg>
-						// 	<p class="mt-4 text-sm text-gray-900 dark:text-gray-200">We couldn’t find any projects with that term. Please try again.</p>
-						// </el-no-results>
+						<el-no-results hidden class="block px-6 py-14 text-center sm:px-14">
+							@tabler.QuestionMark(i.Props{Class: "mx-auto size-6 text-primary"})
+							<p class="mt-4 font-semibold text-primary">We couldn't find any actions with that term. Please try again.</p>
+						</el-no-results>
 					</el-command-palette>
 				</el-dialog-panel>
 			</div>
 		</dialog>
 	</el-dialog>
+}
+
+templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
+	<div id="subscriptions-group-label" class="text-base-content/80 font-semibold px-3 py-4">Subscriptions</div>
+	for subscription := range slices.Values(subscriptions) {
+		<a
+			href={ subscriptionViewArticlesLink(subscription) }
+			{ subscriptionViewArticlesAttributes(subscription)... }
+			hx-on::after-request="document.getElementById('commands').close()"
+			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+		>
+			<div class="flex-none">
+				if subscription.GetImage() == "" {
+					@tabler.Rss()
+				} else {
+					@Thumbnail(
+						&types.ImageInfo{
+							URL:   subscription.GetImage(),
+							Title: subscription.GetTitle(),
+						},
+						subscription.GetTitle(),
+						24,
+					)
+				}
+			</div>
+			<div class="ml-3 flex-auto text-pretty line-clamp-1 tracking-tight">{ subscription.GetTitle() }</div>
+			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Go to...</span>
+		</a>
+	}
 }
 
 templ searchBox() {

@@ -182,14 +182,20 @@ func Start(logger *slog.Logger) error {
 		r.Get("/home", handlers.HandleHome())
 		// r.Get("/home/updates", handlers.WatchHome())
 		// Searching.
-		r.With(middlewares.RequireHTMX).Post("/search/suggestions", handlers.HandleSearchSuggestions())
-		r.With(middlewares.RequireHTMX).Post("/search", handlers.HandleSearchResults())
-		r.With(middlewares.RequireHTMX).Post("/search/paginate", handlers.HandleSearchResults())
-		r.With(middlewares.RequireHTMX).
-			Post("/search/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions())
-		r.With(middlewares.RequireHTMX).Post("/search/subscription", handlers.AddSubscriptionFilter())
-		r.Get("/search", handlers.HandleSearchResults())
-		// r.Get("/search/updates", handlers.WatchSearchResults())
+		r.Route("/search", func(r chi.Router) {
+			r.Get("/", handlers.HandleSearchResults())
+			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleSearchResults())
+			r.With(middlewares.RequireHTMX).Post("/suggestions", handlers.HandleSearchSuggestions())
+			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleSearchResults())
+			r.With(middlewares.RequireHTMX).
+				Post("/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions())
+			r.With(middlewares.RequireHTMX).Post("/subscription", handlers.AddSubscriptionFilter())
+			// r.Get("/search/updates", handlers.WatchSearchResults())
+		})
+		r.Route("/action", func(r chi.Router) {
+			r.With(middlewares.RequireHTMX).
+				Post("/subscription/suggestions", handlers.GetSubscriptionActionSuggestions())
+		})
 		// Issues.
 		r.With(middlewares.RequireHTMX).Get("/issue/{object}/{id}", handlers.HandleReportObjectIssue())
 		r.With(middlewares.RequireHTMX).Post("/issue/{object}/{id}", handlers.HandleSubmitObjectIssue())
