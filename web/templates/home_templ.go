@@ -163,7 +163,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					if len(data.LatestArticles) > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"flex mx-auto max-w-7xl w-full mb-4 sm:pr-128\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"flex w-full mb-4 sm:pr-128\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -189,7 +189,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div> <div class=\"mx-auto max-w-7xl hidden sm:grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 sm:pr-128\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div> <div class=\"hidden sm:grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 2xl:grid-cols-3 sm:gap-8 sm:pr-128\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
