@@ -5,6 +5,7 @@ package gcp
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"sync"
 
@@ -46,5 +47,7 @@ var LoadConfig = sync.OnceValues(func() (*Config, error) {
 	if err := validation.Validate.Struct(cfg); err != nil {
 		return nil, fmt.Errorf("google: unable to validate config: %w", err)
 	}
+
+	slog.Info("GCP config loaded.") //nolint:sloglint // we don't pass a context.
 	return &cfg, nil
 })

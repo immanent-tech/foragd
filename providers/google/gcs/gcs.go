@@ -98,6 +98,10 @@ func Connect(ctx context.Context, name, prefix string) (*Bucket, error) {
 		return nil, fmt.Errorf("create storage client: %w", err)
 	}
 
+	slogctx.FromCtx(ctx).Info("Connect to GCS bucket.",
+		slog.String("bucket", name),
+	)
+
 	return &Bucket{
 		prefix:  prefix,
 		storage: client.Bucket(name),
