@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.74.0](https://github.com/immanent-tech/foragd/compare/v0.73.1...v0.74.0) (2026-03-05)
+
+
+### Features
+
+* **templates:** :lipstick: multi-column homepage layout on desktop screens ([92efc4c](https://github.com/immanent-tech/foragd/commit/92efc4c80c53e4da500e4e92f49c9e51ff5069a7))
+* **templates:** :sparkles: updated screenshots and layout on landing page ([20b4778](https://github.com/immanent-tech/foragd/commit/20b47786d12176a2e028612eec96f16df8db4851))
+
+
+### Bug Fixes
+
+* **middlewares:** :bug: fix rate limit configuration ([b50ac06](https://github.com/immanent-tech/foragd/commit/b50ac06eaaf46687811b8a351eaff7702d29f492))
+
+
+### Performance Improvements
+
+* **templates:** :zap: add dns-prefetch for auth domain ([66566ca](https://github.com/immanent-tech/foragd/commit/66566ca4aff1f8cce58a17327d2303d95743dc24))
+* **templates:** :zap: embed logo svg in landing page ([ddcf51c](https://github.com/immanent-tech/foragd/commit/ddcf51c94f7a68bba193dff3907b581ec5864b3d))
+
 ## [0.73.1](https://github.com/immanent-tech/foragd/compare/v0.73.0...v0.73.1) (2026-03-04)
 
 
