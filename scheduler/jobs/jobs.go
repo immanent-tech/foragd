@@ -15,6 +15,7 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/immanent-tech/foragd/models"
+	gcp "github.com/immanent-tech/foragd/providers/google"
 )
 
 var (
@@ -108,6 +109,8 @@ func (job *ScheduledJob) Execute(ctx context.Context) error {
 		err = executeClearExpiredSessions(ctx)
 	}
 	if err != nil {
+		// Report job execution errors to cloud console.
+		gcp.ReportError(ctx, err)
 		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
 	return nil
