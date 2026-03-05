@@ -50,7 +50,7 @@ templ content(options ...element.Option) {
 	<main
 		id={ ContentID.String() }
 		aria-label="Main Content"
-		class={ "mb-auto scroll-mt-16 pt-16", templ.KV("lg:pl-36",user!=nil),  templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
+		class={ "mb-24 sm:mb-auto scroll-mt-16 pt-16", templ.KV("lg:pl-36",user!=nil),  templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
 		hx-indicator="#content-loading"
 		{ e.GetAttributes()... }
 	>
@@ -79,7 +79,7 @@ templ container(options ...element.Option) {
 		}
 	}}
 	<div
-		class={ "mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8", templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
+		class={ "mx-auto max-w-7xl px-4 pt-4 sm:px-6 sm:pt-8", templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
 		{ e.GetAttributes()... }
 	>
 		{ children... }
