@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.75.0](https://github.com/immanent-tech/foragd/compare/v0.74.0...v0.75.0) (2026-03-05)
+
+
+### Features
+
+* **gcp:** :sparkles: add ability to report errors in google cloud console ([53abfdd](https://github.com/immanent-tech/foragd/commit/53abfdd221dce359642ddb7f76d51c9520953ff7))
+* **scheduler:** :sparkles: log failed update feed job executions to google cloud console ([b285088](https://github.com/immanent-tech/foragd/commit/b2850889edd368aad33c48c618416cb56b9d7023))
+
+
+### Bug Fixes
+
+* **templates:** :lipstick: better full-width responsive design for home page ([c5567b0](https://github.com/immanent-tech/foragd/commit/c5567b03d1bde2b2dc8f7053806583f1ea62ebd2))
+* **templates:** :lipstick: fix padding/margin ([8383203](https://github.com/immanent-tech/foragd/commit/838320358d448634a3326ee03fc5c69c8742a7a7))
+
 ## [0.74.0](https://github.com/immanent-tech/foragd/compare/v0.73.1...v0.74.0) (2026-03-05)
 
 
