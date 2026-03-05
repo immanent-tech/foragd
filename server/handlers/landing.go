@@ -17,7 +17,9 @@ type Landing struct {
 
 func HandleLanding() http.HandlerFunc {
 	return RenderExternalPage(&Landing{
-		template: templates.CreatePage(templates.Landing()),
+		template: templates.CreatePage(templates.Landing(),
+			templates.WithPageTitle("A beautiful web-based feed reader"),
+		),
 	})
 }
 

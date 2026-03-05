@@ -117,6 +117,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon" hx-preserve="true"/>
 			<link rel="alternate" type="application/rss+xml" title="Foragd RSS Feed" href="http://foragd.app/feed"/>
 			<link rel="preconnect" href="https://imgproxy.foragd.app"/>
+			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 			<link rel="dns-prefetch" href="//auth.foragd.app"/>
 			<link href={ "/content/fonts/inter/inter.css?v=" + config.Version } rel="stylesheet" hx-preserve="true"/>
 			if config.CurrentEnvironment == config.EnvProduction {
