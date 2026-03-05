@@ -36,11 +36,12 @@ var NewRateLimiter = sync.OnceValue(func() RateLimiter {
 	if err != nil {
 		panic("realclientip.NewRightmostNonPrivateStrategy returned error (bad input)")
 	}
-	lmt := tollbooth.NewLimiter(maxRequestsPerSecond, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour})
-	lmt.SetIPLookup(limiter.IPLookup{
-		Name:           clientIPHeader,
-		IndexFromRight: 0,
-	})
+	lmt := tollbooth.NewLimiter(maxRequestsPerSecond, &limiter.ExpirableOptions{DefaultExpirationTTL: time.Hour}).
+		SetIPLookup(limiter.IPLookup{
+			Name:           clientIPHeader,
+			IndexFromRight: 0,
+		}).
+		SetBurst(3)
 	rateLimiter = RateLimiter{
 		strategy: strategy,
 		limiter:  lmt,
