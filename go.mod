@@ -154,6 +154,7 @@ require (
 )
 
 require (
+	cloud.google.com/go/errorreporting v0.4.0
 	cloud.google.com/go/storage v1.60.0
 	codeberg.org/readeck/go-readability/v2 v2.1.1
 	github.com/BurntSushi/toml v1.6.0
