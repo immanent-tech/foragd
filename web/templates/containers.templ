@@ -51,16 +51,10 @@ templ content(options ...element.Option) {
 		id={ ContentID.String() }
 		aria-label="Main Content"
 		class={ "mb-24 sm:mb-auto scroll-mt-16 pt-16", templ.KV("lg:pl-36",user!=nil),  templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
-		hx-indicator="#content-loading"
 		{ e.GetAttributes()... }
 	>
 		{ children... }
 	</main>
-	// Content loading indicator.
-	<div id="content-loading" class="flex my-auto mx-auto justify-center items-center space-x-2 htmx-indicator">
-		<span class="loading loading-bars loading-xl"></span>
-		<p class="text-lg/loose font-semibold">Loading content...</p>
-	</div>
 	if user != nil {
 		// Bottom navigation dock (on small displays) for logged in user.
 		@Dock(nil)

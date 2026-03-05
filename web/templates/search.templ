@@ -507,7 +507,7 @@ templ SearchResults(results *models.SearchResults) {
 										hx-trigger="intersect once"
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
-										hx-indicator="#content-loading"
+										hx-indicator="#loading-results"
 										preload
 										preload-images="true"
 										_="on htmx:afterRequest remove me"
@@ -518,6 +518,7 @@ templ SearchResults(results *models.SearchResults) {
 								}
 							}
 							@partials.ButtonBackToTop()
+							@partials.LoadingIndicator("loading-results")
 						}
 					</section>
 				}

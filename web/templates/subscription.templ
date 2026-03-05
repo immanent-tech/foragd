@@ -452,7 +452,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										hx-trigger="intersect once"
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
-										hx-indicator="#content-loading"
+										hx-indicator="#loading-subscriptions"
 										preload
 										preload-images="true"
 										_="on htmx:afterRequest remove me"
@@ -463,6 +463,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								// @PaginateSubscriptions(response)
 							}
 						}
+						@partials.LoadingIndicator("loading-subscriptions")
 						@partials.ButtonBackToTop()
 					} else {
 						<div class="text-center">

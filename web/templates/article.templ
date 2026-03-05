@@ -704,7 +704,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				</div>
 				<section class="mt-4">
 					if len(response.Articles) > 0 {
-						@grid() {
+						@grid(element.WithAttribute("hx-indicator", "")) {
 							@templ.Fragment(PaginateFragment) {
 								for article := range slices.Values(response.Articles) {
 									@NewArticleView(article).Card()
@@ -718,7 +718,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										hx-trigger="intersect once"
 										hx-target="#grid-objects"
 										hx-swap="beforeend transition:false"
-										hx-indicator="#content-loading"
+										hx-indicator="#loading-articles"
 										preload
 										preload-images="true"
 										_="on htmx:afterRequest remove me"
@@ -728,6 +728,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								}
 							}
 						}
+						@partials.LoadingIndicator("loading-articles")
 						@partials.ButtonBackToTop()
 					} else {
 						{{ response.Filters.Subscriptions = nil }}
