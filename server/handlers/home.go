@@ -169,7 +169,7 @@ func getHomePageObjects(ctx context.Context) (models.Subscriptions, models.Artic
 	// Use default filters.
 	filters := models.NewListDisplayFilters()
 	// Get up to 6 latest articles.
-	filters.Count = 6
+	filters.Count = 15
 
 	var (
 		subscriptions models.Subscriptions
@@ -230,7 +230,7 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 	defaultMaxDocsPerValue := 1
 	shardSize := 200
 	topCategoryHitsCount := 3
-	topSampleHitsCount := 6
+	topSampleHitsCount := 15
 	maxDocCount := int64(3)
 	aggs := aggregations.Aggs{
 		// top_categories_sample: diversified sampler to ensure top categories not dominated by single overwhelming
