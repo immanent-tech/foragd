@@ -15,7 +15,7 @@ import (
 
 const (
 	serverConfigEnvPrefix   = config.ConfigEnvPrefix
-	imgProxyConfigEnvPrefix = config.ConfigEnvPrefix + "IMGPROXY_"
+	imgProxyConfigEnvPrefix = "IMGPROXY_"
 )
 
 // cfg is the server config with default values.
@@ -46,9 +46,9 @@ type Config struct {
 }
 
 type ImgProxyConfig struct {
-	Key     string `koanf:"key"     validate:"required,base64rawurl"`
-	Salt    string `koanf:"salt"    validate:"required,base64rawurl"`
-	BaseURL string `koanf:"baseurl" validate:"required,url"`
+	Key    string `koanf:"key"    validate:"required,base64rawurl"`
+	Salt   string `koanf:"salt"   validate:"required,base64rawurl"`
+	Prefix string `koanf:"prefix" validate:"required,url"`
 }
 
 // loadConfigOnce loads the server configuration and ensures this is only done

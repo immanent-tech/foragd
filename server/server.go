@@ -103,7 +103,7 @@ func Start(logger *slog.Logger) error {
 	// Error handling.
 	router.NotFound(handlers.HandleNotFound())
 	// Image proxy.
-	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgProxy.BaseURL))
+	router.Get("/img-proxy/*", handlers.ImageProxy(cfg.ImgProxy.Prefix))
 	// sitemap.xml.
 	router.Handle("/sitemap.xml", handlers.HandleSitemap())
 	// Static content.
