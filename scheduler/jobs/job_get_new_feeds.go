@@ -137,7 +137,6 @@ func executeGetNewFeedsJob(ctx context.Context, job *ScheduledJob) error {
 				// If there is no existing scheduled newJob, create one.
 				newJob, err := NewUpdateFeedJob(
 					feed.GetID(),
-					feed.SourceURLs,
 					newPollTrigger(feed.UpdateInterval, defaultPollJitter),
 				)
 				if err != nil {

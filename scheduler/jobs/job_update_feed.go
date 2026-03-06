@@ -31,12 +31,11 @@ var ErrFetchFailed = errors.New("fetching feed details failed")
 type UpdateFeedJobData struct {
 	// FeedID is the unique ID of a feed.
 	FeedID  models.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-	URLs    []models.URL  `json:"URLs"    validate:"required,dive,url"`
 	Deleted bool          `json:"deleted"`
 }
 
 // NewUpdateFeedJob creates a job that can be scheduled from the given feed data.
-func NewUpdateFeedJob(id models.FeedID, urls []models.URL, trigger *pollTrigger) (*ScheduledJob, error) {
+func NewUpdateFeedJob(id models.FeedID, trigger *pollTrigger) (*ScheduledJob, error) {
 	job := &ScheduledJob{
 		CreatedAt:      time.Now().UTC(),
 		JobTriggerType: jobTriggerTypePoll,
@@ -57,7 +56,7 @@ func NewUpdateFeedJob(id models.FeedID, urls []models.URL, trigger *pollTrigger)
 	job.JobTrigger = data
 
 	// Create job data.
-	data, err = json.Marshal(UpdateFeedJobData{FeedID: id, URLs: urls})
+	data, err = json.Marshal(UpdateFeedJobData{FeedID: id})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
 	}
@@ -105,7 +104,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		feed    *models.Feed
 		feedURL models.URL
 	)
-	for feedURL = range slices.Values(jobData.URLs) {
+	for feedURL = range slices.Values(details.GetSourceURLs()) {
 		var err error
 		feed, err = models.NewFeedFromURL(ctx, feedURL, jobData.FeedID, true)
 		if err != nil {
@@ -133,7 +132,11 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	}
 
 	if feed == nil {
-		return fmt.Errorf("%w: all source URLs returned errors (%s)", ErrFetchFailed, strings.Join(jobData.URLs, ","))
+		return fmt.Errorf(
+			"%w: all source URLs returned errors (%s)",
+			ErrFetchFailed,
+			strings.Join(details.GetSourceURLs(), ","),
+		)
 	}
 
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
