@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.76.0](https://github.com/immanent-tech/foragd/compare/v0.75.0...v0.76.0) (2026-03-06)
+
+
+### Features
+
+* **docs:** :memo: update help documentation ([bc3a75a](https://github.com/immanent-tech/foragd/commit/bc3a75abb02ba31136222d2731556f0208bb940b))
+* **templates:** :sparkles: add safe area padding ([0783103](https://github.com/immanent-tech/foragd/commit/078310306d19c030f2792295945e65b4a75fc339))
+
 ## [0.75.0](https://github.com/immanent-tech/foragd/compare/v0.74.0...v0.75.0) (2026-03-05)
 
 
