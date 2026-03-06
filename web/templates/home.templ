@@ -68,16 +68,16 @@ templ UserHome(data *models.HomeResponse) {
 								for idx, article := range data.LatestArticles {
 									<div id={ "article" + strconv.Itoa(idx+1) } class="carousel-item relative w-full">
 										@NewArticleView(article).Card()
-										<div class="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+										<div class="absolute left-2 right-2 top-1/2 flex -translate-y-1/2 transform justify-between">
 											if idx == 0 {
-												<a href={ "#article" + strconv.Itoa(len(data.LatestArticles)) } class="btn btn-circle">❮</a>
+												<a href={ "#article" + strconv.Itoa(len(data.LatestArticles)) } class="btn btn-sm btn-circle btn-primary btn-outline opacity-50">❮</a>
 											} else {
-												<a href={ "#article" + strconv.Itoa(idx) } class="btn btn-circle">❮</a>
+												<a href={ "#article" + strconv.Itoa(idx) } class="btn btn-sm btn-circle btn-primary btn-outline opacity-50">❮</a>
 											}
 											if idx == len(data.LatestArticles)-1 {
-												<a href="#article1" class="btn btn-circle">❯</a>
+												<a href="#article1" class="btn btn-sm btn-circle btn-primary btn-outline opacity-50">❯</a>
 											} else {
-												<a href={ "#article" + strconv.Itoa(idx+2) } class="btn btn-circle">❯</a>
+												<a href={ "#article" + strconv.Itoa(idx+2) } class="btn btn-sm btn-circle btn-primary btn-outline opacity-50">❯</a>
 											}
 										</div>
 									</div>
