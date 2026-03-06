@@ -233,7 +233,9 @@ templ searchBox() {
 				spellcheck="false"
 				autocomplete="off"
 				aria-label="Search"
-				_="on keydown focus() me"
+				_="
+				on keydown from body if the event's key is 'q' and event.altKey then focus() me end
+				"
 			/>
 			<button
 				hx-post="/search/suggestions"
