@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.76.2](https://github.com/immanent-tech/foragd/compare/v0.76.1...v0.76.2) (2026-03-06)
+
+
+### Bug Fixes
+
+* **templates:** :lipstick: fix resolution of user avatar in header ([fe26655](https://github.com/immanent-tech/foragd/commit/fe26655bea118a9da0a005f375e345c28d7b6fa3))
+* **templates:** :lipstick: fix size of app icon in header ([791eb11](https://github.com/immanent-tech/foragd/commit/791eb1153f795a191d668baf00566faf7c43ce76))
+
+
+### Performance Improvements
+
+* **templates:** :zap: defer loading of css files ([de4eb8c](https://github.com/immanent-tech/foragd/commit/de4eb8c74a9b2bdcfa3ab9c339b7217d5443c89a))
+* **templates:** :zap: preload fonts ([27afaf9](https://github.com/immanent-tech/foragd/commit/27afaf9b731d3b6b6e55f237a731ad6673994989))
+
 ## [0.76.1](https://github.com/immanent-tech/foragd/compare/v0.76.0...v0.76.1) (2026-03-06)
 
 
