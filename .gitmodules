@@ -4,3 +4,6 @@
 [submodule "logging/slog-elasticsearch"]
 	path = pkg/slog-elasticsearch
 	url = git@github.com:immanent-tech/slog-elasticsearch.git
+[submodule "pkg/slog-chi"]
+	path = pkg/slog-chi
+	url = git@github.com:immanent-tech/slog-chi.git

@@ -6,6 +6,8 @@ replace github.com/immanent-tech/go-syndication v0.0.0 => ./pkg/go-syndication
 
 replace github.com/immanent-tech/slog-elasticsearch v0.0.0 => ./pkg/slog-elasticsearch
 
+replace github.com/immanent-tech/slog-chi v0.0.0 => ./pkg/slog-chi
+
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/a-h/templ v0.3.1001
@@ -21,7 +23,6 @@ require (
 	github.com/lmittmann/tint v1.1.3
 	github.com/mattn/go-isatty v0.0.20
 	github.com/oapi-codegen/runtime v1.2.0
-	github.com/samber/slog-chi v1.19.0
 	github.com/samber/slog-multi v1.7.1
 	github.com/sebasvil20/templicons v1.1.0
 	github.com/stripe/stripe-go/v83 v83.2.1
@@ -187,6 +188,7 @@ require (
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
+	github.com/immanent-tech/slog-chi v0.0.0
 	github.com/jferrl/go-githubauth v1.5.1
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/justinas/alice v1.2.0
