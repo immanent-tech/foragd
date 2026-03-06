@@ -109,19 +109,6 @@ templ header(user *models.User) {
 				<div class="flex flex-1 justify-center">
 					@searchBox()
 					@searchCommands()
-					// Advanced search dialog.
-					// <el-dialog
-					// 	_="
-					// on open add @disabled to #global-search end
-					// on close remove @disabled from #global-search end
-					// "
-					// >
-					// 	<dialog id="search-filters-dialog" class="mt-16 mb-auto mx-auto p-4 sm:p-6 w-full sm:max-w-3xl max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
-					// 		<el-dialog-panel>
-					// 			@SearchFilters(models.NewSearchRequest(), nil)
-					// 		</el-dialog-panel>
-					// 	</dialog>
-					// </el-dialog>
 				</div>
 				// User settings menu.
 				<div class="flex items-center justify-end mx-2 sm:mr-4 space-x-2">
