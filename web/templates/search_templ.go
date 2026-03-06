@@ -281,7 +281,7 @@ func searchBox() templ.Component {
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<el-popover-group class=\"w-full sm:max-w-3xl\"><div class=\"w-full input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-300 brightness-95\"><div aria-hidden=\"true\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<el-popover-group class=\"w-full sm:max-w-3xl\"><div class=\"w-full input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-300 brightness-95\"><span aria-hidden=\"true\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -289,7 +289,7 @@ func searchBox() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</div><input hx-post=\"/search\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</span> <input hx-post=\"/search\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -310,7 +310,7 @@ func searchBox() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></button> <el-popover id=\"search-suggestions-popover\" anchor=\"bottom end\" popover role=\"listbox\" class=\"w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px] h-fit max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm divide-y divide-primary/80 outline-1 -outline-offset-1 outline-base-content/15\"></el-popover> <button type=\"button\" popovertarget=\"search-filters-popover\" tabindex=\"0\" aria-label=\"Search filters\"><div aria-hidden=\"true\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></button> <el-popover id=\"search-suggestions-popover\" anchor=\"bottom end\" popover role=\"listbox\" class=\"w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px] h-fit max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm divide-y divide-primary/80 outline-1 -outline-offset-1 outline-base-content/15\"></el-popover> <button type=\"button\" popovertarget=\"search-filters-popover\" tabindex=\"0\" aria-label=\"Search filters\"><span aria-hidden=\"true\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -318,7 +318,7 @@ func searchBox() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></button> <el-popover popover id=\"search-filters-popover\" anchor=\"bottom end\" class=\"w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:12px] p-4 sm:p-6 max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span></button> <el-popover popover id=\"search-filters-popover\" anchor=\"bottom end\" class=\"w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:12px] p-4 sm:p-6 max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

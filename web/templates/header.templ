@@ -33,7 +33,9 @@ templ header(user *models.User) {
 					<div class="flex lg:hidden">
 						<button type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5">
 							<span class="sr-only">Open main menu</span>
-							@tabler.Menu2(i.Props{Class: "text-primary"})
+							<span aria-hidden="true">
+								@tabler.Menu2(i.Props{Class: "text-primary"})
+							</span>
 						</button>
 					</div>
 					<div class="hidden lg:flex lg:gap-x-12">
@@ -64,7 +66,9 @@ templ header(user *models.User) {
 									</a>
 									<button type="button" command="close" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-neutral">
 										<span class="sr-only">Close menu</span>
-										@tabler.X()
+										<span aria-hidden="true">
+											@tabler.X()
+										</span>
 									</button>
 								</div>
 								<div class="mt-6 flow-root">

@@ -217,9 +217,9 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 templ searchBox() {
 	<el-popover-group class="w-full sm:max-w-3xl">
 		<div class="w-full input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-300 brightness-95">
-			<div aria-hidden="true">
+			<span aria-hidden="true">
 				@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
-			</div>
+			</span>
 			<input
 				hx-post="/search"
 				hx-target={ ContentID.Target() }
@@ -265,9 +265,9 @@ templ searchBox() {
 				tabindex="0"
 				aria-label="Search filters"
 			>
-				<div aria-hidden="true">
+				<span aria-hidden="true">
 					@tabler.Filter(i.Props{Class: "flex-none text-primary"})
-				</div>
+				</span>
 			</button>
 			<el-popover
 				popover
