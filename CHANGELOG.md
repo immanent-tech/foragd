@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.76.1](https://github.com/immanent-tech/foragd/compare/v0.76.0...v0.76.1) (2026-03-06)
+
+
+### Bug Fixes
+
+* **scheduler:** :bug: always use feed URLs from feed object ([4883170](https://github.com/immanent-tech/foragd/commit/4883170b6fac389ea2067294b76e804379702182))
+
 ## [0.76.0](https://github.com/immanent-tech/foragd/compare/v0.75.0...v0.76.0) (2026-03-06)
 
 
