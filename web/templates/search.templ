@@ -259,6 +259,7 @@ templ searchBox() {
 				role="listbox"
 				class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px] h-fit max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm divide-y divide-primary/80 outline-1 -outline-offset-1 outline-base-content/15"
 			></el-popover>
+			// _="on keydown[event.key == 'ArrowDown'] from #global-search if document.activeElement != me then focus() me"
 			<button
 				type="button"
 				popovertarget="search-filters-popover"
@@ -283,7 +284,10 @@ templ searchBox() {
 
 // SearchSuggestions will render suggestions for a given search.
 templ SearchSuggestions(suggestions *models.SearchResults) {
-	<ul class="menu w-full" role="listbox">
+	<ul
+		class="menu w-full"
+		role="listbox"
+	>
 		<li role="option">
 			// _="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
 			<form
