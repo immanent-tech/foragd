@@ -122,6 +122,8 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			// Defer loading: https://web.dev/articles/defer-non-critical-css.
 			<link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.Version } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 			<noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/></noscript>
+			<link rel="preload" as="font" type="font/woff2" href="/content/fonts/inter/InterVariable.woff2"/>
+			<link rel="preload" as="font" type="font/woff2" href="/content/fonts/inter/InterVariable-Italic.woff2"/>
 			// <link href={ "/content/fonts/inter/inter.css?v=" + config.Version } rel="stylesheet" hx-preserve="true"/>
 			if config.CurrentEnvironment == config.EnvProduction {
 				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous" hx-preserve="true"></script>
