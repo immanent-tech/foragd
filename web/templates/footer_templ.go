@@ -46,7 +46,7 @@ func footer() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</a></nav></footer><footer class=\"footer bg-base-200 text-base-content p-4\"><aside class=\"mx-auto text-center\"><p>Copyright © ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</a></nav></footer><footer class=\"footer bg-base-200 text-base-content pt-4 pb-safe\"><aside class=\"mx-auto text-center\"><p>Copyright © ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

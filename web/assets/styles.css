@@ -1,4 +1,5 @@
 @import 'tailwindcss' source('../templates/**/*.{html,templ}');
+@import "tailwindcss-safe-area";
 @plugin '@tailwindcss/typography';
 @plugin 'daisyui' {
   themes:
