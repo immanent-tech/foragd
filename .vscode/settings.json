@@ -71,7 +71,8 @@
     "opml",
     "reverseproxy",
     "client",
-    "opengraph"
+    "opengraph",
+    "templates/partials"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

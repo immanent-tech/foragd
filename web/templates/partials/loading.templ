@@ -8,7 +8,7 @@ templ LoadingIndicator(id string) {
 	if id == "" {
 		{{ id = "content-loading" }}
 	}
-	<div id={ id } class="flex my-auto mx-auto justify-center items-center space-x-2 htmx-indicator">
+	<div id={ id } class="flex my-6 sm:my-8 mx-auto justify-center items-center space-x-2 htmx-indicator">
 		<span class="loading loading-bars loading-xl"></span>
 		<p class="text-lg/loose font-semibold">Loading content...</p>
 	</div>
