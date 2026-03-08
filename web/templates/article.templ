@@ -188,68 +188,74 @@ templ (a *Article) Card() {
 							_="on htmx:afterRequest(successful) hidePopover() on me"
 							class="w-fit"
 						>
-							// View original article action.
-							<a
-								href={ a.GetLink() }
-								target="_blank"
-								rel="noopener"
-								_="on click halt the event's bubbling"
-								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-								role="menuitem"
-								tabindex="-1"
-							>
-								@tabler.ExternalLink(i.Props{Class: "size-4"})
-								Go To Article
-							</a>
-							// Find similar action.
-							<a
-								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-								role="menuitem"
-								tabindex="-1"
-								{ a.SimilarArticlesAttributes()... }
-							>
-								@tabler.FileSearch(i.Props{Class: "size-4"})
-								Find similar...
-							</a>
-							// Mobile share action via navigator API.
-							<div _="init if not navigator.share then hide me">
-								<a
-									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-									role="menuitem"
-									tabindex="-1"
-									_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
-								>
-									@tabler.Share(i.Props{Class: "size-4"})
-									Share
-								</a>
-							</div>
-							// Desktop share action with modal and options.
-							<form _="init if navigator.share then hide me">
-								<input type="hidden" name="item_id" value={ a.GetID() }/>
-								<input type="hidden" name="title" value={ a.GetTitle() }/>
-								<input type="hidden" name="link" value={ a.GetLink() }/>
-								<a
-									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-									role="menuitem"
-									tabindex="-1"
-									hx-post={ "/share/article/" + a.GetID() }
-									hx-target={ partials.ModalContainerID.Target() }
-									hx-trigger="click consume"
-								>
-									@tabler.Share(i.Props{Class: "size-4"})
-									Share
-								</a>
-							</form>
-							// Report issue action.
-							<a
-								class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
-								role="menuitem"
-								tabindex="-1"
-								{ a.ReportIssueAttributes()... }
-							>
-								@tabler.FlagFilled(i.Props{Class: "size-4"})
-								Report an issue
-							</a>
+							<ul class="menu">
+								// View original article action.
+								<li>
+									<a
+										href={ a.GetLink() }
+										target="_blank"
+										rel="noopener"
+										_="on click halt the event's bubbling"
+										role="menuitem"
+										tabindex="-1"
+									>
+										@tabler.ExternalLink(i.Props{Class: "size-4"})
+										Go To Article
+									</a>
+								</li>
+								// Find similar action.
+								<li>
+									<a
+										role="menuitem"
+										tabindex="-1"
+										{ a.SimilarArticlesAttributes()... }
+									>
+										@tabler.FileSearch(i.Props{Class: "size-4"})
+										Find similar...
+									</a>
+								</li>
+								// Mobile share action via navigator API.
+								<li _="init if not navigator.share then hide me">
+									<a
+										role="menuitem"
+										tabindex="-1"
+										_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
+									>
+										@tabler.Share(i.Props{Class: "size-4"})
+										Share
+									</a>
+								</li>
+								// Desktop share action with modal and options.
+								<li _="init if navigator.share then hide me">
+									<form>
+										<input type="hidden" name="item_id" value={ a.GetID() }/>
+										<input type="hidden" name="title" value={ a.GetTitle() }/>
+										<input type="hidden" name="link" value={ a.GetLink() }/>
+										<a
+											role="menuitem"
+											tabindex="-1"
+											hx-post={ "/share/article/" + a.GetID() }
+											hx-target={ partials.ModalContainerID.Target() }
+											hx-trigger="click consume"
+											class="flex items-center gap-x-2"
+										>
+											@tabler.Share(i.Props{Class: "size-4"})
+											Share
+										</a>
+									</form>
+								</li>
+								// Report issue action.
+								<li>
+									<a
+										role="menuitem"
+										tabindex="-1"
+										{ a.ReportIssueAttributes()... }
+									>
+										@tabler.FlagFilled(i.Props{Class: "size-4"})
+										Report an issue
+									</a>
+								</li>
+							</ul>
 						</el-menu>
 					</el-dropdown>
 				</div>
