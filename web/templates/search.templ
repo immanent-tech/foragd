@@ -204,7 +204,7 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 							Title: subscription.GetTitle(),
 						},
 						subscription.GetTitle(),
-						24,
+						"size-6",
 					)
 				}
 			</div>
@@ -328,10 +328,10 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 										Title: subscription.GetTitle(),
 									},
 									subscription.GetTitle(),
-									24,
+									"size-6",
 								)
 							} else {
-								@tabler.Rss(i.Props{Class: "group-hover:text-primary"})
+								@tabler.Rss(i.Props{Class: "group-hover:text-primary size-6"})
 							}
 							<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
 							<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
@@ -364,10 +364,10 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 									Title: article.GetTitle(),
 								},
 								article.GetTitle(),
-								24,
+								"size-6",
 							)
 						} else {
-							@tabler.FileRssFilled(i.Props{Class: "group-hover:text-primary"})
+							@tabler.FileRssFilled(i.Props{Class: "group-hover:text-primary size-6"})
 						}
 						<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
 						<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>

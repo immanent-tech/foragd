@@ -232,7 +232,7 @@ func ActionSuggestionSubscriptions(subscriptions models.Subscriptions) templ.Com
 						Title: subscription.GetTitle(),
 					},
 					subscription.GetTitle(),
-					24,
+					"size-6",
 				).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -432,13 +432,13 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 							Title: subscription.GetTitle(),
 						},
 						subscription.GetTitle(),
-						24,
+						"size-6",
 					).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = tabler.Rss(i.Props{Class: "group-hover:text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = tabler.Rss(i.Props{Class: "group-hover:text-primary size-6"}).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -518,13 +518,13 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 							Title: article.GetTitle(),
 						},
 						article.GetTitle(),
-						24,
+						"size-6",
 					).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = tabler.FileRssFilled(i.Props{Class: "group-hover:text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = tabler.FileRssFilled(i.Props{Class: "group-hover:text-primary size-6"}).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

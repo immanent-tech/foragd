@@ -18,7 +18,6 @@ import (
 	"sync"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-resty/resty/v2"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
@@ -28,11 +27,11 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/google/gcs"
 	"github.com/immanent-tech/foragd/reverseproxy"
+	"github.com/immanent-tech/foragd/web"
 )
 
 func ImageProxy(proxyURLBase string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-
 		// Load the image cache.
 		if err := loadImageCache(); err != nil {
 			res.WriteHeader(http.StatusInternalServerError)
@@ -97,8 +96,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		}
 
 		// Fetch the remote image.
-		resp, err := requestRemoteImage(req.Context(), proxiedURL)
-		if err != nil {
+		if err := getRemoteImage(req.Context(), proxiedURL, imgBuf); err != nil {
 			if apiErr, ok := errors.AsType[*models.APIError](err); ok {
 				res.WriteHeader(apiErr.StatusCode)
 			} else {
@@ -107,16 +105,7 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Error("Fetch remote image failed.",
 				slog.Any("error", err),
 			)
-			return
-		}
-		defer resp.RawBody().Close()
-
-		_, err = io.Copy(imgBuf, resp.RawBody())
-		if err != nil {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Read image proxy response failed.",
-				slog.Any("error", err),
-			)
+			sendImagePlaceholder(req.Context(), res, imgBuf)
 			return
 		}
 
@@ -124,9 +113,9 @@ func ImageProxy(proxyURLBase string) http.HandlerFunc {
 		defer jobCtx.Done()
 		// Write the image to the response.
 		wg.Go(func() error {
-			_, err = res.Write(imgBuf.Bytes())
-			if err != nil {
+			if _, err := res.Write(imgBuf.Bytes()); err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
+				sendImagePlaceholder(req.Context(), res, imgBuf)
 				return fmt.Errorf("write image: %w", err)
 			}
 			res.WriteHeader(http.StatusOK)
@@ -232,7 +221,8 @@ func LoadCachedImage(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 }
 
-func requestRemoteImage(ctx context.Context, remoteURL string) (*resty.Response, error) {
+// getRemoteImage fetches the image at the given url writes it into the image buffer.
+func getRemoteImage(ctx context.Context, remoteURL string, buf *bytes.Buffer) error {
 	// Load the http client used for making requests to the image proxy.
 	httpClient := client.LoadHTTPClient()
 
@@ -242,7 +232,8 @@ func requestRemoteImage(ctx context.Context, remoteURL string) (*resty.Response,
 		SetDoNotParseResponse(true).
 		Get(remoteURL)
 	if err != nil {
-		return nil, &models.APIError{
+
+		return &models.APIError{
 			InternalError: err,
 			StatusCode:    http.StatusInternalServerError,
 		}
@@ -252,19 +243,53 @@ func requestRemoteImage(ctx context.Context, remoteURL string) (*resty.Response,
 		if resp.StatusCode() == http.StatusForbidden || resp.StatusCode() == http.StatusTooManyRequests {
 			proxiedURL, err := reverseproxy.GenerateProxyURL(remoteURL)
 			if err != nil {
-				return nil, &models.APIError{
+				return &models.APIError{
 					InternalError: fmt.Errorf("generate proxy url: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 				}
 			}
-			return requestRemoteImage(ctx, proxiedURL)
+			return getRemoteImage(ctx, proxiedURL, buf)
 		}
-		return nil, &models.APIError{
+		return &models.APIError{
 			InternalError: errors.New(resp.Status()),
 			StatusCode:    resp.StatusCode(),
 		}
 	}
-	return resp, nil
+
+	// Copy the image data to the buffer.
+	defer resp.RawBody().Close()
+	_, err = io.Copy(buf, resp.RawBody())
+	if err != nil {
+		return &models.APIError{
+			InternalError: errors.New(resp.Status()),
+			StatusCode:    resp.StatusCode(),
+		}
+	}
+	return nil
+}
+
+// getPlaceholderImage fetches the placeholder image and writes it into the image buffer.
+func getPlaceholderImage(buf *bytes.Buffer) error {
+	placeholder, err := web.StaticContentFS.ReadFile("content/images/placeholder.webp")
+	if err != nil {
+		return fmt.Errorf("read placeholder: %w", err)
+	}
+	if _, err := buf.Write(placeholder); err != nil {
+		return fmt.Errorf("write placeholder: %w", err)
+	}
+	return nil
+}
+
+// sendPlaceholder writes a placeholder image to the http response. If the placeholder image cannot be retrieved, no
+// response body is written.
+func sendImagePlaceholder(ctx context.Context, res http.ResponseWriter, buf *bytes.Buffer) {
+	if err := getPlaceholderImage(buf); err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not write placeholder image to buffer.",
+			slog.Any("error", err))
+		return
+	}
+	res.Header().Set("Content-Type", "image/webp")
+	res.Write(buf.Bytes())
 }
 
 var imgCache objectCache
