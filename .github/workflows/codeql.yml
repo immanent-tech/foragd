@@ -64,14 +64,11 @@ jobs:
         uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v5
         with:
           go-version-file: "go.mod"
-      - name: Setup bun
-        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2.1.2
-      - name: Install frontend tools
-        run: bun install
-      - name: Bundle javascript
-        run: bun build ./web/assets/scripts.js --outdir=./web/content/ --target browser --splitting --sourcemap=linked
-      - name: Bundle css
-        run: bunx tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify --map
+      - name: Build frontend files
+        run: |
+          npm install
+          npm run build:js
+          npm run build:css
       - name: Initialize CodeQL
         uses: github/codeql-action/init@0d579ffd059c29b07949a3cce3983f0780820c98 # v3.29.5
         with:
