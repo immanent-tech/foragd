@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,6 +25,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
@@ -710,11 +712,20 @@ func ProcessSubscriptionRequest(
 					slog.String("feed", newFeed.GetTitle()),
 				)
 			}
-			newFeed.Image = &types.ImageInfo{
-				URL:   og.Image,
-				Title: newFeed.GetDescription(),
+			if err := og.Valid(); err != nil {
+				newFeed.Image = &types.ImageInfo{
+					URL:   os.Getenv("FORAGD_BASEURL") + "/content/images/placeholder.webp",
+					Title: newFeed.GetDescription(),
+				}
+			} else {
+				newFeed.Image = &types.ImageInfo{
+					URL:   og.Image,
+					Title: newFeed.GetDescription(),
+				}
 			}
+			godump.Dump(og)
 		}
+		godump.Dump(newFeed)
 		// Validate the new feed data.
 		err = validation.Validate.Struct(newFeed)
 		if err != nil {
