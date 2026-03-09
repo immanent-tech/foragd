@@ -68,32 +68,19 @@ templ FilterControls(path string, filters *models.ListFilters) {
 							<button
 								type="button"
 								command="--toggle"
-								commandfor="filter-section-view"
+								commandfor="mobile-view-filters"
 								class="flex w-full items-center justify-between px-2 py-3 text-sm"
 							>
 								<span class="font-medium">View</span>
-								<span class="ml-6 flex items-center">
+								<span class="ml-6">
 									@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
 								</span>
 							</button>
 						</h4>
-						<el-disclosure id="filter-section-view" hidden class="block pt-4">
-							<ul>
-								<li>
-									@viewFilter(path, "filter-mobile-view-unread", models.ViewUnread, filters)
-								</li>
-								<li>
-									@viewFilter(path, "filter-mobile-view-read", models.ViewRead, filters)
-								</li>
-								<li>
-									@viewFilter(path, "filter-mobile-view-all", models.ViewAll, filters)
-								</li>
-								if path == "/list/subscriptions" {
-									<li>
-										@viewFilterOnlyFavorites(path, "filter-mobile-only-favorites", filters)
-									</li>
-								}
-							</ul>
+						<el-disclosure id="mobile-view-filters" hidden class="block pt-4">
+							<div class="space-y-6">
+								@viewFilters(path, filters)
+							</div>
 						</el-disclosure>
 					</div>
 					// Sorting (mobile).
@@ -166,23 +153,20 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								<span id="load-categories-desktop" class="htmx-indicator loading loading-spinner loading-sm"></span>
 							</el-menu>
 						</el-dropdown>
-						// View filters.
-						<el-dropdown class="inline-block">
-							<button class="inline-flex btn btn-wide">
-								View
-								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
-							</button>
-							<el-menu id="filters-categories-desktop-menu" anchor="bottom end" popover class="w-fit">
-								<ul class="menu">
-									@viewFilter(path, "filter-view-unread-desktop", models.ViewUnread, filters)
-									@viewFilter(path, "filter-view-read-desktop", models.ViewRead, filters)
-									@viewFilter(path, "filter-view-all-desktop", models.ViewAll, filters)
-									if path == "/list/subscriptions" {
-										@viewFilterOnlyFavorites(path, "filter-only-favorites-desktop", filters)
-									}
-								</ul>
-							</el-menu>
-						</el-dropdown>
+						// View filters (desktop).
+						<div class="relative inline-block text-left">
+							<div>
+								<button class="inline-flex btn btn-wide" popovertarget="desktop-view-filters-popover">
+									View
+									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+								</button>
+								<el-popover id="desktop-view-filters-popover" anchor="bottom end" popover class="p-2 w-fit bg-base-300 rounded-box shadow-xl [--anchor-gap:4px]">
+									<div class="space-y-4">
+										@viewFilters(path, filters)
+									</div>
+								</el-popover>
+							</div>
+						</div>
 						// Sorting.
 						<el-dropdown class="inline-block">
 							<button class="inline-flex btn btn-wide">
@@ -258,9 +242,47 @@ templ ListCategoryFilters(filters *models.CategoryFilters) {
 	}
 }
 
+templ viewFilters(path string, filters *models.ListFilters) {
+	<div class="flex gap-3">
+		<div class="flex h-5 shrink-0 items-center">
+			<div class="group grid grid-cols-1">
+				@viewFilter(path, "filter-mobile-view-unread", models.ViewUnread, filters)
+			</div>
+		</div>
+	</div>
+	<div class="flex gap-3">
+		<div class="flex h-5 shrink-0 items-center">
+			<div class="group grid grid-cols-1">
+				@viewFilter(path, "filter-mobile-view-unread", models.ViewRead, filters)
+			</div>
+		</div>
+	</div>
+	<div class="flex gap-3">
+		<div class="flex h-5 shrink-0 items-center">
+			<div class="group grid grid-cols-1">
+				@viewFilter(path, "filter-mobile-view-unread", models.ViewAll, filters)
+			</div>
+		</div>
+	</div>
+	<div class="flex gap-3">
+		<div class="flex h-5 shrink-0 items-center">
+			<div class="group grid grid-cols-1">
+				@viewFilterOnlyFavorites(path, "filter-mobile-only-favorites", filters)
+			</div>
+		</div>
+	</div>
+}
+
 // viewFilter renders a checkbox for a view filter.
 templ viewFilter(path, id string, view models.View, filters *models.ListFilters) {
-	<form id={ "view-filter-" + view }>
+	<form
+		id={ "view-filter-" + view }
+		hx-post={ path }
+		hx-target={ ContentID.Target() }
+		hx-replace-url="true"
+		hx-swap="innerHTML transition:true"
+		hx-trigger="change"
+	>
 		<input type="hidden" name={ models.ParamView } value={ view }/>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
@@ -270,34 +292,32 @@ templ viewFilter(path, id string, view models.View, filters *models.ListFilters)
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		<li>
-			<a
-				hx-post={ path }
-				hx-target={ ContentID.Target() }
-				hx-replace-url="true"
-				hx-swap="innerHTML transition:true"
-				class={ "capitalize", templ.KV("text-primary font-semibold", view == filters.GetView()) }
-				role="menuitem"
-				tabindex="-1"
-			>
-				switch view {
-					case models.ViewUnread:
-						@tabler.Mail()
-					case models.ViewRead:
-						@tabler.MailOpened()
-					case models.ViewAll:
-						@tabler.Inbox()
+		<label for={ "view-" + view } class="flex items-center gap-x-2">
+			<input
+				id={ "view-" + view }
+				type="checkbox"
+				if view == filters.GetView() {
+					checked
 				}
-				<span class="ml-2">
-					{ view }
-				</span>
-			</a>
-		</li>
+				class="checkbox checkbox-sm"
+			/>
+			<span class="capitalize">
+				{ view }
+			</span>
+		</label>
 	</form>
 }
 
 templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
-	<form id={ id }>
+	<form
+		id={ id }
+		hx-post={ path }
+		hx-target={ ContentID.Target() }
+		hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
+		hx-replace-url="true"
+		hx-swap="innerHTML transition:true"
+		hx-trigger="change"
+	>
 		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
@@ -307,30 +327,19 @@ templ viewFilterOnlyFavorites(path, id string, filters *models.ListFilters) {
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		<li>
-			<a
-				hx-post={ path }
-				hx-target={ ContentID.Target() }
-				hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
-				hx-replace-url="true"
-				hx-swap="innerHTML transition:true"
-				class={ templ.KV(filters.OnlyFavorites, "text-primary font-semibold") }
-				role="menuitem"
-				tabindex="-1"
-			>
+		<label for="view-favorites" class="flex items-center gap-x-2">
+			<input
+				id="view-favorites"
+				type="checkbox"
 				if filters.OnlyFavorites {
-					@tabler.Heart()
-					<span class="ml-2">
-						All
-					</span>
-				} else {
-					@tabler.HeartFilled()
-					<span class="ml-2">
-						Favorites
-					</span>
+					checked
 				}
-			</a>
-		</li>
+				class="checkbox checkbox-sm"
+			/>
+			<span class="capitalize">
+				Favorites
+			</span>
+		</label>
 	</form>
 }
 
