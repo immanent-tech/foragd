@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.77.0](https://github.com/immanent-tech/foragd/compare/v0.76.2...v0.77.0) (2026-03-09)
+
+
+### Features
+
+* :sparkles: graceful handling of image proxy problems ([099db50](https://github.com/immanent-tech/foragd/commit/099db50eda8354bee27ad82f232eb699d01e18a8))
+* **config:** :recycle: more flexible parsing env config variables ([8b77084](https://github.com/immanent-tech/foragd/commit/8b7708436df9901f66fd8b9bbab7306a47240e3c))
+* **models:** :sparkles: for reddit posts, extract content out of table if necessary ([df0e38c](https://github.com/immanent-tech/foragd/commit/df0e38c23dad7a15ead138a4571a2e6e5b01cdf7))
+
+
+### Bug Fixes
+
+* **templates:** :lipstick: fix styling of action menu on article cards ([a6c6fba](https://github.com/immanent-tech/foragd/commit/a6c6fbaf436f96c9fe0c385956631eb378baf651))
+
 ## [0.76.2](https://github.com/immanent-tech/foragd/compare/v0.76.1...v0.76.2) (2026-03-06)
 
 
