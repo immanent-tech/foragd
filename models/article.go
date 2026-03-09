@@ -364,10 +364,44 @@ func (a *Article) GetContent() string {
 	case a.ShowFullContent && a.Content != nil:
 		return *a.Content
 	case a.Item.GetContent() != "":
-		return a.Item.GetContent()
+		return a.formatContent()
 	default:
 		return a.Item.GetDescription()
 	}
+}
+
+func (a *Article) formatContent() string {
+	content := a.Item.GetContent()
+	switch {
+	case strings.Contains(a.Item.GetLink(), "reddit.com"):
+		// For reddit posts, check if the content is HTML.
+		if IsHTML(a.Item.GetContent()) {
+			doc, err := html.Parse(strings.NewReader(content))
+			if err != nil {
+				return content
+			}
+
+			row := FindHTMLNode(doc, "tr")
+			if row == nil {
+				return content
+			}
+
+			cells := FindAllHTMLNodes(row, "td")
+			if cells == nil {
+				return content
+			}
+
+			var str strings.Builder
+			for cell := range slices.Values(cells) {
+				if html.Render(&str, cell); err != nil {
+					return content
+				}
+			}
+
+			return str.String()
+		}
+	}
+	return content
 }
 
 // IsRemoteContent returns a boolean indicating whether the full content of the article should be shown.

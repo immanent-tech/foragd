@@ -14,7 +14,8 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
-	"github.com/yuin/goldmark/renderer/html"
+	goldmarkhtml "github.com/yuin/goldmark/renderer/html"
+	"golang.org/x/net/html"
 )
 
 // Common HTML tags.
@@ -59,7 +60,7 @@ var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
 			parser.WithAutoHeadingID(),
 		),
 		goldmark.WithRendererOptions(
-			html.WithUnsafe(),
+			goldmarkhtml.WithUnsafe(),
 		),
 	)
 })
@@ -173,6 +174,31 @@ func IsHTMLElement(str, tag string) bool {
 	default:
 		return false
 	}
+}
+
+// FindHTMLNode does a depth-first search for the first node matching the tag.
+func FindHTMLNode(n *html.Node, tag string) *html.Node {
+	if n.Type == html.ElementNode && n.Data == tag {
+		return n
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if result := FindHTMLNode(c, tag); result != nil {
+			return result
+		}
+	}
+	return nil
+}
+
+// FindAllHTMLNodes returns all nodes matching the tag within n.
+func FindAllHTMLNodes(n *html.Node, tag string) []*html.Node {
+	var results []*html.Node
+	if n.Type == html.ElementNode && n.Data == tag {
+		results = append(results, n)
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		results = append(results, FindAllHTMLNodes(c, tag)...)
+	}
+	return results
 }
 
 func buildTagPattern() *regexp.Regexp {
