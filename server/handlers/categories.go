@@ -27,7 +27,7 @@ func ListCategories() http.HandlerFunc {
 					slog.Any("error", err),
 				)
 				RenderPartial(&PartialTemplate{
-					template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+					template: templates.CategoryFilters(&models.CategoryFilters{}),
 				}).ServeHTTP(res, req)
 				return
 			}
@@ -41,7 +41,7 @@ func ListCategories() http.HandlerFunc {
 						slog.Any("error", err),
 					)
 					RenderPartial(&PartialTemplate{
-						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+						template: templates.CategoryFilters(&models.CategoryFilters{}),
 					}).ServeHTTP(res, req)
 					return
 				}
@@ -50,7 +50,7 @@ func ListCategories() http.HandlerFunc {
 						slog.Any("error", err),
 					)
 					RenderPartial(&PartialTemplate{
-						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+						template: templates.CategoryFilters(&models.CategoryFilters{}),
 					}).ServeHTTP(res, req)
 					return
 				}
@@ -62,14 +62,14 @@ func ListCategories() http.HandlerFunc {
 						slog.Any("error", err),
 					)
 					RenderPartial(&PartialTemplate{
-						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+						template: templates.CategoryFilters(&models.CategoryFilters{}),
 					}).ServeHTTP(res, req)
 					return
 				}
 
 				// Generate the categories list template.
 				RenderPartial(&PartialTemplate{
-					template: templates.ListCategoryFilters(
+					template: templates.CategoryFilters(
 						&models.CategoryFilters{
 							Categories: counts,
 							Path:       "/list/subscriptions",
@@ -82,7 +82,7 @@ func ListCategories() http.HandlerFunc {
 				if user == nil {
 					slogctx.FromCtx(req.Context()).Warn("Could not get user data.")
 					RenderPartial(&PartialTemplate{
-						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+						template: templates.CategoryFilters(&models.CategoryFilters{}),
 					}).ServeHTTP(res, req)
 					return
 				}
@@ -95,7 +95,7 @@ func ListCategories() http.HandlerFunc {
 						slog.Any("error", err),
 					)
 					RenderPartial(&PartialTemplate{
-						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+						template: templates.CategoryFilters(&models.CategoryFilters{}),
 					}).ServeHTTP(res, req)
 					return
 				}
@@ -112,14 +112,14 @@ func ListCategories() http.HandlerFunc {
 						slog.Any("error", err),
 					)
 					RenderPartial(&PartialTemplate{
-						template: templates.ListCategoryFilters(&models.CategoryFilters{}),
+						template: templates.CategoryFilters(&models.CategoryFilters{}),
 					}).ServeHTTP(res, req)
 					return
 				}
 
 				// Generate the categories list template.
 				RenderPartial(&PartialTemplate{
-					template: templates.ListCategoryFilters(
+					template: templates.CategoryFilters(
 						&models.CategoryFilters{
 							Categories: counts,
 							Path:       "/list/articles",
