@@ -45,6 +45,6 @@
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "release-please": "^17.3.0",
-    "wrangler": "^4.65.0"
+    "wrangler": "^4.71.0"
   }
 }
