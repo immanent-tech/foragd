@@ -297,7 +297,7 @@ var imgCache objectCache
 var loadImageCache = sync.OnceValue(func() error {
 	switch config.CurrentEnvironment {
 	case config.EnvProduction:
-		bucketName := os.Getenv("FORAGD_IMAGEPROXY_BUCKET")
+		bucketName := os.Getenv("IMAGEPROXY_BUCKET")
 		var err error
 		imgCache, err = gcs.Connect(context.Background(), bucketName, "")
 		if err != nil {
