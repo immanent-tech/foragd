@@ -593,7 +593,7 @@ templ EditSubscription(request *models.EditFeedSubscriptionRequest) {
 templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
-			@container() {
+			@container(element.WithClasses("mb-6")) {
 				<div class="min-w-0 flex-1 pb-8">
 					@partials.Heading2() {
 						Add A Subscription
@@ -610,14 +610,14 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 					>
 						// URL.
 						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
+							<label for="url">
 								@partials.Heading3() {
 									Feed Website or URL
 								}
 								@partials.Paragraph() {
 									Required. The feed's URL or website (feed detection from a website URL may or may not work).
 								}
-							</div>
+							</label>
 							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 								<div class="col-span-full mt-2">
 									<input
@@ -625,8 +625,9 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 										required
 										type="url"
 										name="url"
+										autocomplete="url"
 										value={ request.URL }
-										placeholder="https://my-favorite-site/feed"
+										placeholder="https://my-favorite-site/feed…"
 										class="input input-primary bg-base-content/10 w-full"
 									/>
 								</div>
@@ -634,14 +635,14 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 						</div>
 						// Nickname.
 						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
+							<label for="nickname">
 								@partials.Heading3() {
 									Feed Nickname
 								}
 								@partials.Paragraph() {
 									Optional. A Friendly name for the subscription. Will use the feed's name if not specified.
 								}
-							</div>
+							</label>
 							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 								<div class="sm:col-span-4 mt-2">
 									<input
@@ -651,7 +652,7 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 										if request.Nickname != nil {
 											value={ *request.Nickname }
 										}
-										placeholder="My cool subscription"
+										placeholder="My cool subscription…"
 										class="input input-primary bg-base-content/10"
 									/>
 								</div>
@@ -1271,10 +1272,14 @@ templ subscriptionNicknameField(nickname string) {
 
 templ subscriptionThumbnailField(img *types.ImageInfo, name string) {
 	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-		<div>
-			<label for="thumbnail" class="text-base/7 font-semibold">Thumbnail</label>
-			<p class="mt-1 text-sm/6">Use a JPG, PNG or WEBP image. Max size 1MB.</p>
-		</div>
+		<label for="thumbnail">
+			@partials.Heading3() {
+				Thumbnail
+			}
+			@partials.Paragraph() {
+				Use a JPG, PNG or WEBP image. Max size 1MB.
+			}
+		</label>
 		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 			<div class="col-span-full mt-2 flex items-center gap-x-2">
 				@subscriptionThumbnail(img, name)

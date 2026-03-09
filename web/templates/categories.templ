@@ -14,14 +14,12 @@ import (
 
 templ CategoryManagement(path, inputName string, suggested []models.Category, existing []models.Category) {
 	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-		<div>
-			<label for="add-categories">
-				@partials.Heading3() {
-					Add Categories
-				}
-			</label>
+		<label for="add-categories">
+			@partials.Heading3() {
+				Add Categories
+			}
 			<p class="mt-1 text-sm/6">Optional. Add additional categories to the subscription.</p>
-		</div>
+		</label>
 		// Add categories.
 		<div class="grid sm:max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 			// Add from suggested categories.
@@ -63,47 +61,6 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 					}
 				</el-options>
 			</el-autocomplete>
-			// if len(suggested) > 0 {
-			// 	<div class="sm:col-span-4 mt-2">
-			// 		<form
-			// 			id="add-categories"
-			// 			hx-post={ path }
-			// 			hx-on::after-request="if(event.detail.successful) this.reset()"
-			// 			hx-include="[name='categories']"
-			// 			hx-target="#current-categories"
-			// 			hx-swap="beforeend"
-			// 			hx-trigger="change"
-			// 		>
-			// 			<select class="select select-primary bg-base-content/10" name="category">
-			// 				<option disabled selected>Suggested Categories</option>
-			// 				for category := range slices.Values(suggested) {
-			// 					<option class="text-sm/6" value={ category }>{ category }</option>
-			// 				}
-			// 			</select>
-			// 		</form>
-			// 	</div>
-			// }
-			// // Add custom categories.
-			// <div class="sm:col-span-6 mt-2">
-			// 	<form
-			// 		id="add-categories"
-			// 		hx-post={ path }
-			// 		hx-on::after-request="if(event.detail.successful) this.reset()"
-			// 		hx-include="[name='categories']"
-			// 		hx-vals={ templ.JSONString(map[string]any{"inputName": inputName}) }
-			// 		hx-target="#current-categories"
-			// 		hx-swap="beforeend"
-			// 	>
-			// 		<div class="join">
-			// 			<label class="input input-primary bg-base-content/10 join-item">
-			// 				<input type="text" placeholder="Custom Category" name="category"/>
-			// 			</label>
-			// 			<button type="submit" class="btn btn-primary join-item">
-			// 				@tabler.Plus()
-			// 			</button>
-			// 		</div>
-			// 	</form>
-			// </div>
 		</div>
 	</div>
 	// Manage categories.
