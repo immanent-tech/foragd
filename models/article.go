@@ -393,7 +393,7 @@ func (a *Article) formatContent() string {
 
 			var str strings.Builder
 			for cell := range slices.Values(cells) {
-				if html.Render(&str, cell); err != nil {
+				if err := html.Render(&str, cell); err != nil {
 					return content
 				}
 			}
