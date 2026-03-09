@@ -26,7 +26,7 @@ require (
 	github.com/samber/slog-multi v1.7.1
 	github.com/sebasvil20/templicons v1.1.0
 	github.com/stripe/stripe-go/v83 v83.2.1
-	github.com/zeebo/xxh3 v1.0.2
+	github.com/zeebo/xxh3 v1.1.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.16.0
 	go.opentelemetry.io/otel/sdk v1.40.0
 	go.opentelemetry.io/otel/sdk/metric v1.40.0
@@ -184,7 +184,6 @@ require (
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
-	github.com/goforj/godump v1.9.1
 	github.com/google/go-github/v75 v75.0.0
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/immanent-tech/go-syndication v0.0.0
