@@ -139,7 +139,7 @@ func content(options ...element.Option) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		var templ_7745c5c3_Var5 = []any{"mb-24 sm:mb-auto scroll-mt-16 pt-16", templ.KV("lg:pl-36", user != nil), templ.KV(e.GetClasses(), len(e.GetClasses()) > 0)}
+		var templ_7745c5c3_Var5 = []any{"mb-12 sm:mb-24 scroll-mt-16 pt-16", templ.KV("lg:pl-36", user != nil), templ.KV(e.GetClasses(), len(e.GetClasses()) > 0)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
