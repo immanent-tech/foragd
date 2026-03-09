@@ -3,6 +3,7 @@
 .github/
 .vscode/
 .devcontainer
+.frontmatter
 node_modules/
 bin/
 tmp/
@@ -24,3 +25,14 @@ Dockerfile
 *.md
 *.out
 cosign.*
+.env*
+*.air.toml
+.prettier*
+.golangci.yml
+.custom-gcl.yaml
+.markdownlint.json
+*release-please*
+eslint.config.js
+frontmatter.json
+jsconfig.json
+
