@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.78.0](https://github.com/immanent-tech/foragd/compare/v0.77.0...v0.78.0) (2026-03-09)
+
+
+### Features
+
+* **templates:** :sparkles: redo filters as radio controls ([99e7cf8](https://github.com/immanent-tech/foragd/commit/99e7cf85e73c94c59d581d4f421b6724f97499fd))
+
+
+### Bug Fixes
+
+* **models:** :bug: fix error checking ([a5f4979](https://github.com/immanent-tech/foragd/commit/a5f49791092afaba452950f12a1213be9bafb5e6))
+
 ## [0.77.0](https://github.com/immanent-tech/foragd/compare/v0.76.2...v0.77.0) (2026-03-09)
 
 
