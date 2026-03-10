@@ -7,7 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 	"strings"
@@ -252,7 +251,7 @@ templ ViewerError(msg *models.UserMessage) {
 // inspectorItemCard renders a feed item in a card.
 templ viewerItemCard(item models.Item) {
 	<div class="card bg-base-200 w-full shadow-sm">
-		{{ var img *types.ImageInfo }}
+		{{ var img *models.RemoteImage }}
 		{{ img = item.GetImage() }}
 		if img == nil {
 			{{ img, _ = models.ExtractImageFromContent(item.GetContent()) }}

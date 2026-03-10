@@ -421,11 +421,12 @@ func UpdateTitle(title string) templ.Component {
 // NewMetadata creates a new opengraph Metadata object with properties set to values given by the options. Where a
 // property is not set by an option, a default value will be used.
 func NewOpenGraphMetadata(options ...opengraph.Option) *opengraph.OpenGraph {
+	baseURL := os.Getenv("FORAGD_BASEURL")
 	og := &opengraph.OpenGraph{
 		Title:       config.AppName,
 		ObjectType:  "website",
-		URL:         os.Getenv("FORAGD_BASEURL"),
-		Image:       os.Getenv("FORAGD_BASEURL") + "/content/logo-color.webp",
+		URL:         baseURL,
+		Image:       baseURL + "/content/logo-color.webp",
 		Description: new(config.AppDescription),
 	}
 	for option := range slices.Values(options) {

@@ -7,7 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
@@ -108,9 +107,9 @@ templ UserHome(data *models.HomeResponse) {
 														@subscriptionThumbnail(nil, subscription.GetTitle())
 													} else {
 														@subscriptionThumbnail(
-															&types.ImageInfo{
-																URL:   subscription.GetImage(),
-																Title: subscription.GetTitle(),
+															&models.RemoteImage{
+																URL:   new(subscription.GetImage()),
+																Title: new(subscription.GetTitle()),
 															},
 															subscription.GetTitle(),
 														)

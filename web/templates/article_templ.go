@@ -140,7 +140,7 @@ func (a *Article) Card() templ.Component {
 		if img := a.GetImage(); img != nil {
 			img := a.GetImage()
 			if img.GetTitle() == "" {
-				img.Title = a.GetTitle()
+				img.Title = new(a.GetTitle())
 			}
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " <figure>")
 			if templ_7745c5c3_Err != nil {

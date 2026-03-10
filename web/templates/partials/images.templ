@@ -9,8 +9,8 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"github.com/immanent-tech/go-syndication/types"
 	"slices"
 	"strconv"
 	"strings"
@@ -20,7 +20,7 @@ type ProxiedImage struct {
 	*element.Element
 }
 
-templ NewProxiedImage(img *types.ImageInfo, props string, options ...element.Option) {
+templ NewProxiedImage(img *models.RemoteImage, props string, options ...element.Option) {
 	{{ elem := &ProxiedImage{Element: element.New()} }}
 	for option := range slices.Values(options) {
 		{{ option(elem.Element) }}
@@ -73,7 +73,7 @@ func GenerateImageProxyURL(ctx context.Context, url, props string) string {
 	return "/img-proxy/" + signature + path
 }
 
-templ Thumbnail(img *types.ImageInfo, name string, size string) {
+templ Thumbnail(img *models.RemoteImage, name string, size string) {
 	{{ px := strconv.Itoa(sizeToPx(size)) }}
 	if img != nil {
 		// If the source has an image, use that as the avatar.

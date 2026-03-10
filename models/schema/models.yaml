@@ -50,6 +50,17 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'omitempty,url'
         json: 'url'
+    RemoteImage:
+      description: >
+        contains details about a remote image.
+      type: object
+      properties:
+        title:
+          description: >
+            the description of the image
+          type: string
+        url:
+          $ref: '#/components/schemas/URL'
     Mark:
       description: >
         applies the given mark action to objects.
@@ -537,7 +548,7 @@ components:
         source_type:
           $ref: '#/components/schemas/SourceType'
         image:
-          $ref: '../../pkg/go-syndication/schema/types.yaml#/components/schemas/ImageInfo'
+          $ref: '#/components/schemas/RemoteImage'
     Feed:
       description: represents a feed object.
       type: object

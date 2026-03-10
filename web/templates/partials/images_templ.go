@@ -18,8 +18,8 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"github.com/immanent-tech/go-syndication/types"
 	"slices"
 	"strconv"
 	"strings"
@@ -29,7 +29,7 @@ type ProxiedImage struct {
 	*element.Element
 }
 
-func NewProxiedImage(img *types.ImageInfo, props string, options ...element.Option) templ.Component {
+func NewProxiedImage(img *models.RemoteImage, props string, options ...element.Option) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -173,7 +173,7 @@ func GenerateImageProxyURL(ctx context.Context, url, props string) string {
 	return "/img-proxy/" + signature + path
 }
 
-func Thumbnail(img *types.ImageInfo, name string, size string) templ.Component {
+func Thumbnail(img *models.RemoteImage, name string, size string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

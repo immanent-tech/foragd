@@ -7,7 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
@@ -128,13 +127,7 @@ templ (s *Subscription) Card() {
 					if s.GetImage() == "" {
 						@subscriptionThumbnail(nil, s.GetTitle())
 					} else {
-						@subscriptionThumbnail(
-							&types.ImageInfo{
-								URL:   s.GetImage(),
-								Title: s.GetTitle(),
-							},
-							s.GetTitle(),
-						)
+						@subscriptionThumbnail(models.NewRemoteImage(s.GetImage(), s.GetTitle()), s.GetTitle())
 					}
 				</div>
 				<div class="text-pretty line-clamp-3 tracking-tight">{ s.Subscription.GetTitle() }</div>
@@ -517,10 +510,10 @@ templ EditSubscription(request *models.EditFeedSubscriptionRequest) {
 						// Thumbnail
 						if request.Customisation.ImageURL != nil {
 							@subscriptionThumbnailField(
-								&types.ImageInfo{
-									URL:   *request.Customisation.ImageURL,
-									Title: request.Customisation.Nickname,
-								},
+								models.NewRemoteImage(
+									*request.Customisation.ImageURL,
+									request.Customisation.Nickname,
+								),
 								request.Customisation.Nickname,
 							)
 						} else {
@@ -954,10 +947,12 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					@subscriptionNicknameField(request.Customisation.Nickname)
 					// Image.
 					if request.Customisation.ImageURL != nil {
-						@subscriptionThumbnailField(&types.ImageInfo{
-							URL:   *request.Customisation.ImageURL,
-							Title: request.Customisation.Nickname,
-						}, request.Customisation.Nickname)
+						@subscriptionThumbnailField(
+							models.NewRemoteImage(
+								*request.Customisation.ImageURL,
+								request.Customisation.Nickname,
+							),
+							request.Customisation.Nickname)
 					} else {
 						@subscriptionThumbnailField(nil, request.Customisation.Nickname)
 					}
@@ -1104,10 +1099,10 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 					// Image.
 					if request.Customisation.ImageURL != nil {
 						@subscriptionThumbnailField(
-							&types.ImageInfo{
-								URL:   *request.Customisation.ImageURL,
-								Title: request.Customisation.Nickname,
-							},
+							models.NewRemoteImage(
+								*request.Customisation.ImageURL,
+								request.Customisation.Nickname,
+							),
 							request.Customisation.Nickname,
 						)
 					} else {
@@ -1217,10 +1212,10 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 					// Image.
 					if request.Customisation.ImageURL != nil {
 						@subscriptionThumbnailField(
-							&types.ImageInfo{
-								URL:   *request.Customisation.ImageURL,
-								Title: request.Customisation.Nickname,
-							},
+							models.NewRemoteImage(
+								*request.Customisation.ImageURL,
+								request.Customisation.Nickname,
+							),
 							request.Customisation.Nickname,
 						)
 					} else {
@@ -1270,7 +1265,7 @@ templ subscriptionNicknameField(nickname string) {
 	</div>
 }
 
-templ subscriptionThumbnailField(img *types.ImageInfo, name string) {
+templ subscriptionThumbnailField(img *models.RemoteImage, name string) {
 	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 		<label for="thumbnail">
 			@partials.Heading3() {
@@ -1588,7 +1583,7 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 	}
 }
 
-templ subscriptionThumbnail(img *types.ImageInfo, name string) {
+templ subscriptionThumbnail(img *models.RemoteImage, name string) {
 	if img != nil {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar" aria-hidden="true">

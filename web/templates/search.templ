@@ -5,7 +5,6 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
@@ -199,9 +198,9 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 					@tabler.Rss()
 				} else {
 					@partials.Thumbnail(
-						&types.ImageInfo{
-							URL:   subscription.GetImage(),
-							Title: subscription.GetTitle(),
+						&models.RemoteImage{
+							URL:   new(subscription.GetImage()),
+							Title: new(subscription.GetTitle()),
 						},
 						subscription.GetTitle(),
 						"size-6",
@@ -323,9 +322,9 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 						>
 							if subscription.GetImage() != "" {
 								@partials.Thumbnail(
-									&types.ImageInfo{
-										URL:   subscription.GetImage(),
-										Title: subscription.GetTitle(),
+									&models.RemoteImage{
+										URL:   new(subscription.GetImage()),
+										Title: new(subscription.GetTitle()),
 									},
 									subscription.GetTitle(),
 									"size-6",
@@ -359,9 +358,9 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					>
 						if article.GetImage() != nil {
 							@partials.Thumbnail(
-								&types.ImageInfo{
-									URL:   article.GetImage().GetURL(),
-									Title: article.GetTitle(),
+								&models.RemoteImage{
+									URL:   new(article.GetImage().GetURL()),
+									Title: new(article.GetTitle()),
 								},
 								article.GetTitle(),
 								"size-6",

@@ -8,7 +8,6 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"os"
@@ -101,7 +100,7 @@ templ DeactivateAccountModal() {
 }
 
 templ UserAvatar(user *models.User, attributes templ.Attributes) {
-	@partials.NewProxiedImage(&types.ImageInfo{URL: user.GetAvatar(), Title: "Avatar for user " + user.GetNickname()},
+	@partials.NewProxiedImage(models.NewRemoteImage(user.GetAvatar(), "Avatar for user "+user.GetNickname()),
 		"rs:auto:48:48/sh:0.5/ext:webp",
 		element.WithClasses("mask mask-squircle"),
 		element.WithAttribute("width", "48"),

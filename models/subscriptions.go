@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"net/mail"
 	"net/url"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -30,7 +29,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/immanent-tech/go-syndication/opengraph"
-	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -711,16 +709,9 @@ func ProcessSubscriptionRequest(
 					slog.String("feed", newFeed.GetTitle()),
 				)
 			}
-			if err := og.Valid(); err != nil {
-				newFeed.Image = &types.ImageInfo{
-					URL:   os.Getenv("FORAGD_BASEURL") + "/content/images/placeholder.webp",
-					Title: newFeed.GetDescription(),
-				}
-			} else {
-				newFeed.Image = &types.ImageInfo{
-					URL:   og.Image,
-					Title: newFeed.GetDescription(),
-				}
+			newFeed.Image = &RemoteImage{
+				URL:   new(og.Image),
+				Title: new(newFeed.GetDescription()),
 			}
 		}
 		// Validate the new feed data.
@@ -2087,7 +2078,7 @@ func newSubscription(
 
 func newSubscriptionCustomisation(
 	nickname string,
-	image *types.ImageInfo,
+	image *RemoteImage,
 	categories Categories,
 ) *SubscriptionCustomisation {
 	customisation := &SubscriptionCustomisation{

@@ -22,7 +22,6 @@ import (
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/opengraph"
-	"github.com/immanent-tech/go-syndication/types"
 
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -314,7 +313,7 @@ func (i *Item) GetCategories() []string {
 }
 
 // GetImage returns an image that can represent the item, if any.
-func (i *Item) GetImage() *types.ImageInfo {
+func (i *Item) GetImage() *RemoteImage {
 	return i.Image
 }
 
@@ -385,17 +384,20 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 	var wg sync.WaitGroup
 
 	// Set the image.
-	if source.GetImage() != nil {
+	if sourceImg := source.GetImage(); sourceImg != nil {
 		// Source has an image, use that.
-		item.Image = source.GetImage()
+		item.Image = &RemoteImage{
+			URL:   new(sourceImg.GetURL()),
+			Title: new(sourceImg.GetTitle()),
+		}
 	} else {
 		wg.Go(func() {
 			og, err := opengraph.ParseURL(ctx, source.GetLink())
 			if err != nil {
 				return
 			}
-			item.Image = &types.ImageInfo{
-				URL: og.Image,
+			item.Image = &RemoteImage{
+				URL: new(og.Image),
 			}
 		})
 	}

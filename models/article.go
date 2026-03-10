@@ -19,8 +19,6 @@ import (
 
 	"golang.org/x/net/html/atom"
 
-	"github.com/immanent-tech/go-syndication/types"
-
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
@@ -410,7 +408,7 @@ func (a *Article) IsRemoteContent() bool {
 }
 
 // GetImage returns the image associated with the article.
-func (a *Article) GetImage() *types.ImageInfo {
+func (a *Article) GetImage() *RemoteImage {
 	if a.Item.GetImage() != nil && a.Item.GetImage().GetURL() != "" {
 		return a.Item.GetImage()
 	}
@@ -420,8 +418,8 @@ func (a *Article) GetImage() *types.ImageInfo {
 	case err != nil:
 		return nil
 	case img != nil:
-		if img.Title == "" {
-			img.Title = a.GetTitle()
+		if img.GetTitle() == "" {
+			img.Title = new(a.GetTitle())
 		}
 		return img
 	}
@@ -476,25 +474,25 @@ func (a *Article) GetObjectType() ObjectType {
 	return ObjectTypeArticle
 }
 
-func ExtractImageFromContent(content string) (*types.ImageInfo, error) {
+func ExtractImageFromContent(content string) (*RemoteImage, error) {
 	doc, err := html.Parse(strings.NewReader(content))
 	if err != nil {
 		return nil, fmt.Errorf("parse content: %w", err)
 	}
 	for n := range doc.Descendants() {
 		if n.Type == html.ElementNode && n.DataAtom == atom.Img {
-			img := &types.ImageInfo{}
+			img := &RemoteImage{}
 
 			for a := range slices.Values(n.Attr) {
 				switch a.Key {
 				case "src":
-					img.URL = a.Val
+					img.URL = new(a.Val)
 				case "alt":
-					img.Title = a.Val
+					img.Title = new(a.Val)
 				}
 			}
 
-			if img.URL != "" {
+			if img.URL != nil {
 				return img, nil
 			}
 		}

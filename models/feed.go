@@ -300,7 +300,7 @@ func (f *Feed) GetCategories() []string {
 }
 
 // GetImage returns an image object that can visually represent the feed.
-func (f *Feed) GetImage() *types.ImageInfo {
+func (f *Feed) GetImage() *RemoteImage {
 	return f.Image
 }
 
@@ -459,7 +459,10 @@ func FindFeedImage(ctx context.Context, feed *Feed) error {
 		return fmt.Errorf("unable to find feed image: %w", err)
 	}
 	if image != nil {
-		feed.Image = image
+		feed.Image = &RemoteImage{
+			URL:   new(image.GetURL()),
+			Title: new(image.GetTitle()),
+		}
 	}
 	return nil
 }
@@ -496,8 +499,11 @@ func NewSyndicationFeed(ctx context.Context, url string, id FeedID, source *feed
 		feed.SourceURLs = append(feed.SourceURLs, url)
 	}
 	// Add any image found.
-	if source.GetImage() != nil {
-		feed.Image = source.GetImage()
+	if sourceImg := source.GetImage(); sourceImg != nil {
+		feed.Image = &RemoteImage{
+			URL:   new(sourceImg.GetURL()),
+			Title: new(sourceImg.GetTitle()),
+		}
 	}
 
 	return feed
