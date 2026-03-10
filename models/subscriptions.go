@@ -25,7 +25,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
@@ -723,9 +722,7 @@ func ProcessSubscriptionRequest(
 					Title: newFeed.GetDescription(),
 				}
 			}
-			godump.Dump(og)
 		}
-		godump.Dump(newFeed)
 		// Validate the new feed data.
 		err = validation.Validate.Struct(newFeed)
 		if err != nil {
