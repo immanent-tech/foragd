@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.79.0](https://github.com/immanent-tech/foragd/compare/v0.78.0...v0.79.0) (2026-03-10)
+
+
+### Features
+
+* **posts:** :sparkles: add author frontmatter field for post authorship ([0bc7487](https://github.com/immanent-tech/foragd/commit/0bc7487a96656046025cff740ecdcd8d18ca160b))
+* **server:** :sparkles: add posts index to sitemap ([8e5ba81](https://github.com/immanent-tech/foragd/commit/8e5ba81e65d51e7612de54917df7c54e254f3452))
+* **server:** :wrench: server config includes a baseurl setting ([a1e7bee](https://github.com/immanent-tech/foragd/commit/a1e7bee893b4aab56e12dec77ad375fc3a44f16c))
+
+
+### Bug Fixes
+
+* **handlers:** :truck: update environment variable ([86dde27](https://github.com/immanent-tech/foragd/commit/86dde2737c35308c96b4b8a9992edb44492fc38c))
+* **models:** :bug: validate opengraph data before using ([f9a6f87](https://github.com/immanent-tech/foragd/commit/f9a6f875ce77f6041c47388f77e81f6fa622e499))
+* **models:** :fire: remove debugging output ([1020c37](https://github.com/immanent-tech/foragd/commit/1020c37e415d5af93a3f2567287511c69f4741df))
+* **posts:** :recycle: don't use relative urls for links to assets and pages ([73ede37](https://github.com/immanent-tech/foragd/commit/73ede37fc9eb6d6f1f8f039f870bc5fda8d3eb9e))
+* **templates:** :bug: fix preloading assets ([b5414a9](https://github.com/immanent-tech/foragd/commit/b5414a990e4a159143fedb45f8993d4305e80680))
+
+
+### Performance Improvements
+
+* **assets:** :zap: reduce post image sizes and use webp format ([42a8a58](https://github.com/immanent-tech/foragd/commit/42a8a5857af04b112841f26b14614a7d235edceb))
+
 ## [0.78.0](https://github.com/immanent-tech/foragd/compare/v0.77.0...v0.78.0) (2026-03-09)
 
 
