@@ -4,6 +4,7 @@ description = "How to manage content in the era of information overload."
 created_at = "2026-01-27"
 updated_at = "2026-02-06"
 image = "/content/images/posts/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.webp"
+author = "Joshua Rich <joshua.rich@gmail.com>"
 +++
 
 <figure>
@@ -37,7 +38,8 @@ these services demand you make the number go down.
 hiding them by default is a deliberate design decision to create space for discovery and novel navigation, not frantic
 “number must go down” skimming.
 
-**Look for a feed reader where you can turn off unread counts. Foragd can, but many of the popular readers unfortunately don’t.**
+**Look for a feed reader where you can turn off unread counts. Foragd can, but many of the popular readers unfortunately
+don’t.**
 
 ### Post Filtering
 
@@ -63,7 +65,7 @@ Foragd makes this very easy. For any subscription, you can filter with “this n
 ### Group, then Divide and Conquer
 
 Another useful trick for a feed reader is a way to aggregate or combine multiple subscription sources into a single
-view. That allows for less context switching and potentially de-duplication. In Foragd, we call this a *Group
+view. That allows for less context switching and potentially deduplication. In Foragd, we call this a *Group
 Subscription*.
 
 <figure>
@@ -121,3 +123,5 @@ As an example In Foragd:
 - Apply categories, but keep the number small.
 
 [Sign up](https://foragd.app/signup) for Foragd to easily tame the stream of content.
+
+License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

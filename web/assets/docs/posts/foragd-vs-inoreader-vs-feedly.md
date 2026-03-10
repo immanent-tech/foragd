@@ -3,13 +3,14 @@ title = "Foragd vs Inoreader vs Feedly: a feed reader comparison"
 description = "An in-depth comparison to help you choose the best RSS reader for your needs."
 created_at = "2026-02-18"
 updated_at = "2026-02-18"
-image = "/content/images/posts/scribe-comparing-manuscripts.webp"
+image = "https://foragd.app/content/images/posts/scribe-comparing-manuscripts.webp"
+author = "Joshua Rich <joshua.rich@gmail.com>"
 +++
 
 
 <figure>
   <img
-    src="/content/images/posts/scribe-comparing-manuscripts.webp"
+    src="https://foragd.app/content/images/posts/scribe-comparing-manuscripts.webp"
     alt="A medieval scribe comparing manuscripts" />
   <figcaption>
     Interpretation of a medieval scribe comparing manuscripts, Google Gemini.
@@ -96,10 +97,12 @@ on a given word or phrase.
 Foragd offers generous inclusions and cuts below both Feedly and Inoreader for pricing. And most features found in the
 former services have complementary and more intuitive functionality in Foragd. For example, Foragd makes it extremely
 easy to filter by keyword or phrase on a per-subscription basis, giving you [more
-control](/posts/managing-feed-overload) over what is shown. If you find yourself wanting simplicity without sacrificing
-power, Foragd is worth a look.
+control](https://foragd.app/posts/managing-feed-overload) over what is shown. If you find yourself wanting simplicity
+without sacrificing power, Foragd is worth a look.
 
 In an age of algorithmic feeds designed to maximize engagement rather than inform, all these readers share something in
 common and increasingly valuable: tools that put you back in control of your content consumption.
 
 Curious? Foragd is currently free to try — no commitment needed. [Sign up](https://foragd.app/signup).
+
+License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
