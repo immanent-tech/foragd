@@ -1865,13 +1865,15 @@ components:
             is the path in an embedded FS to the file.
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "file"
+            toml: 'file'
+            validate: 'required,filepath'
         path:
           description: >
             is the relative URL path from where this document should be served.
           type: string
           x-oapi-codegen-extra-tags:
-            toml: "path"
+            toml: 'path'
+            validate: 'required,filepath'
     FileIndex:
       description: >
         contains a listing of files in a directory of an embedded FS.
@@ -1900,8 +1902,6 @@ components:
         - title
         - description
         - created_at
-        - file
-        - path
       properties:
         title:
           description: >
@@ -1909,30 +1909,41 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             toml: "title"
+            validate: 'required'
         description:
           description: >
             is a description of the document, used in metadata headers of the page.
           type: string
           x-oapi-codegen-extra-tags:
             toml: "description"
+            validate: 'required'
         created_at:
           description: >
             is when the post was created.
           type: string
           x-oapi-codegen-extra-tags:
             toml: 'created_at'
+            validate: 'required,datetime=2006-01-02'
         updated_at:
           description: >
             is when the post was updated.
           type: string
           x-oapi-codegen-extra-tags:
             toml: 'updated_at'
+            validate: 'omitempty,datetime=2006-01-02'
+        author:
+          description: >
+            the person who wrote or is responsible for the document.
+          type: string
+          x-oapi-codegen-extra-tags:
+            toml: 'author'
         image:
           description: >
             is a URL to an image to represent the file.
           type: string
           x-oapi-codegen-extra-tags:
             toml: 'image'
+            validate: 'omitempty,url'
       x-oapi-codegen-extra-tags:
         toml: "doc_metadata"
     MarkdownFile:

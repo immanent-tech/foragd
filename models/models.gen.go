@@ -654,10 +654,10 @@ type FeedSubscription struct {
 // FileDetails contains a mapping of a file in an embedded FS to the URL path it is served from.
 type FileDetails struct {
 	// File is the path in an embedded FS to the file.
-	File string `json:"file" toml:"file"`
+	File string `json:"file" toml:"file" validate:"required,filepath"`
 
 	// Path is the relative URL path from where this document should be served.
-	Path string `json:"path" toml:"path"`
+	Path string `json:"path" toml:"path" validate:"required,filepath"`
 }
 
 // FileIndex contains a listing of files in a directory of an embedded FS.
@@ -954,20 +954,23 @@ type MarkdownFile struct {
 
 // MarkdownFrontMatter contains metadata about a markdown file that allows mapping it to a path under a documentation directory.
 type MarkdownFrontMatter struct {
+	// Author the person who wrote or is responsible for the document.
+	Author *string `json:"author,omitempty" toml:"author"`
+
 	// CreatedAt is when the post was created.
-	CreatedAt string `json:"created_at" toml:"created_at"`
+	CreatedAt string `json:"created_at" toml:"created_at" validate:"required,datetime=2006-01-02"`
 
 	// Description is a description of the document, used in metadata headers of the page.
-	Description string `json:"description" toml:"description"`
+	Description string `json:"description" toml:"description" validate:"required"`
 
 	// Image is a URL to an image to represent the file.
-	Image *string `json:"image,omitempty" toml:"image"`
+	Image *string `json:"image,omitempty" toml:"image" validate:"omitempty,url"`
 
 	// Title is the title to display for the document.
-	Title string `json:"title" toml:"title"`
+	Title string `json:"title" toml:"title" validate:"required"`
 
 	// UpdatedAt is when the post was updated.
-	UpdatedAt *string `json:"updated_at,omitempty" toml:"updated_at"`
+	UpdatedAt *string `json:"updated_at,omitempty" toml:"updated_at" validate:"omitempty,datetime=2006-01-02"`
 }
 
 // Nickname is an optional friendly name.

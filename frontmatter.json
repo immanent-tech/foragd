@@ -36,6 +36,16 @@
           "title": "updated_at",
           "name": "updated_at",
           "type": "datetime"
+        },
+        {
+          "title": "image",
+          "name": "image",
+          "type": "image"
+        },
+        {
+          "title": "author",
+          "name": "author",
+          "type": "string"
         }
       ]
     }

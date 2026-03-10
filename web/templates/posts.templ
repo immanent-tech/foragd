@@ -39,7 +39,10 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 								}
 								<div class="card-body">
 									<h2 class="card-title">{ post.Frontmatter.Title }</h2>
-									<p>{ post.Frontmatter.Description }</p>
+									if post.Frontmatter.Author != nil {
+										<span class="label text-sm">{ *post.Frontmatter.Author }</span>
+									}
+									<p class="mt-4">{ post.Frontmatter.Description }</p>
 									<div class="card-actions justify-end">
 										<time datetime={ post.Frontmatter.CreatedAt } class="label">{ post.Frontmatter.CreatedAt }</time>
 									</div>
@@ -69,6 +72,9 @@ templ Post(post *models.MarkdownFile) {
 			<article itemscope itemtype="https://schema.org/NewsArticle" class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">
 				<h1 itemprop="headline">{ post.Frontmatter.Title }</h1>
 				<p class="font-semibold">{ post.Frontmatter.Description }</p>
+				if post.Frontmatter.Author != nil {
+					<span class="label text-sm">{ *post.Frontmatter.Author }</span>
+				}
 				<div class="mx-auto flex flex-1 space-x-2 mb-4 text-sm">
 					<time datetime={ post.Frontmatter.CreatedAt } class="label">
 						Published
