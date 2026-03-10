@@ -8,20 +8,15 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"encoding/xml"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/BurntSushi/toml"
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -32,17 +27,12 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 	"go.abhg.dev/goldmark/frontmatter"
 
-	"github.com/immanent-tech/go-syndication/opengraph"
-	"github.com/immanent-tech/go-syndication/sitemap"
-
-	"github.com/immanent-tech/foragd/config"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
-	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -54,7 +44,7 @@ var (
 )
 
 var defaultHandlerChain = alice.New(storePath)
-var listHandlerChain = defaultHandlerChain.Append(parseFilters)
+var listHandlerChain = defaultHandlerChain.Append(parseListFilters, refreshOnHistoryRestore)
 
 var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
 	return goldmark.New(
@@ -128,203 +118,6 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 	})
 }
 
-//nolint:mnd // thes are individual page priorities.
-var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
-	// Set up default URLs.
-	site := sitemap.NewURLSet(
-		sitemap.URL{
-			Loc:      "https://foragd.app",
-			Priority: 1.0,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/viewer",
-			Priority: 0.9,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/about",
-			Priority: 0.75,
-		},
-		sitemap.URL{
-			Loc:      "https://foragd.app/help",
-			Priority: 0.75,
-		},
-	)
-	// Add all posts.
-	posts, err := getPosts()
-	if err != nil {
-		return nil, fmt.Errorf("generate sitemap.xml: %w", err)
-	}
-	for post := range slices.Values(posts.Files) {
-		site.URLs = append(site.URLs,
-			sitemap.URL{
-				Loc:      sitemap.LOC("https://foragd.app/posts/" + post.Path),
-				Priority: 0.5,
-			})
-	}
-
-	data, err := xml.Marshal(site)
-	if err != nil {
-		return nil, fmt.Errorf("generate sitemap.xml: %w", err)
-	}
-	return []byte(xml.Header + string(data)), nil
-})
-
-// HandleSitemap handles requests for sitemap.xml. In the future, it may handle more requests from non natural human
-// clients...
-func HandleSitemap() http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-
-		sitemap, err := loadSitemapXML()
-		if err != nil {
-			http.NotFound(res, req)
-			return
-		}
-		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200, must-revalidate")
-		res.Header().Set("Content-Type", "application/xml")
-		res.WriteHeader(http.StatusOK)
-		if _, err := res.Write(sitemap); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Unable to send sitemap.xml response.",
-				slog.Any("error", err),
-			)
-		}
-	})
-}
-
-var getPolicyDocs = sync.OnceValues(func() (*models.FileIndex, error) {
-	var policies models.FileIndex
-	if _, err := toml.DecodeFS(web.DocsFS, "assets/docs/policies/directory.toml", &policies); err != nil {
-		return nil, fmt.Errorf("read policy docs directory.toml: %w", err)
-	}
-	return &policies, nil
-})
-
-// PolicyDocsHandler handles serving policy Markdown documents from directory in the embedded fs.
-func PolicyDocsHandler() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		doc := chi.URLParam(req, "*")
-		// Check, if the requested file is existing.
-		polices, err := getPolicyDocs()
-		if err != nil {
-			// If file is not found, return HTTP 404 error.
-			slogctx.FromCtx(req.Context()).Error("Could not read policy document.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-			http.NotFound(res, req)
-		}
-
-		idx := slices.IndexFunc(polices.Files, func(e models.FileDetails) bool {
-			return strings.HasPrefix(e.File, doc)
-		})
-		if idx == -1 {
-			res.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-		metadata := polices.Files[idx]
-		contents, err := web.DocsFS.ReadFile(filepath.Join("assets/docs/policies", metadata.File))
-		if err != nil {
-			// If file is not found, return HTTP 404 error.
-			slogctx.FromCtx(req.Context()).Error("Could not read policy document.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		mdw := loadMarkdownWriter()
-
-		policyBuf, ok := bufPool.Get().(*bytes.Buffer)
-		if !ok {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Could not write policy.")
-			return
-		}
-		policyBuf.Reset()
-		defer bufPool.Put(policyBuf)
-
-		parserCtx := parser.NewContext()
-		if err := mdw.Convert(contents, policyBuf, parser.WithContext(parserCtx)); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Could not convert policy markdown.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		d := frontmatter.Get(parserCtx)
-		var fm models.MarkdownFrontMatter
-		if err := d.Decode(&fm); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Could not convert policy markdown.",
-				slog.String("doc", doc),
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
-		template := templates.CreatePage(
-			templates.Document(policyBuf.Bytes()),
-			templates.WithPageTitle(fm.Title),
-			templates.WithPageDescription(fm.Description),
-			templates.WithOpenGraphMetadata(opengraph.New(
-				fm.Title,
-				"website",
-				os.Getenv("FORAGD_BASEURL")+"/"+metadata.Path,
-				os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
-				opengraph.WithDescription(fm.Description),
-				opengraph.WithSiteName(config.AppName),
-			)),
-		)
-		templ.Handler(template).ServeHTTP(res, req)
-	}
-}
-
-// DocumentationHandler handles serving Markdown documents for help/documentation from directory in the embedded fs.
-func DocumentationHandler() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// doc := chi.URLParam(req, "*")
-		// Check, if the requested file is existing.
-		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "help", "index.md"))
-		if err != nil {
-			// If file is not found, return HTTP 404 error.
-			slogctx.FromCtx(req.Context()).Error("Could not read document.",
-				slog.Any("error", err),
-			)
-			http.NotFound(res, req)
-		}
-		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
-
-		mdw := loadMarkdownWriter()
-
-		docsBuf, ok := bufPool.Get().(*bytes.Buffer)
-		if !ok {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Could not write docs.")
-			return
-		}
-		docsBuf.Reset()
-		defer bufPool.Put(docsBuf)
-
-		if err := mdw.Convert(contents, docsBuf); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Could not convert docs markdown.",
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		template := templates.CreatePage(
-			templates.Document(docsBuf.Bytes()),
-			templates.WithPageTitle("Documentation"),
-		)
-		templ.Handler(template).ServeHTTP(res, req)
-	}
-}
-
 // setRedirect adds the HX-Location header with the given values to the response, which triggers a client side
 // redirection without reloading the whole page.
 //
@@ -338,7 +131,19 @@ func setRedirect(res http.ResponseWriter, request htmxext.HXLocationRequest) err
 	return nil
 }
 
-func parseFilters(next http.Handler) http.Handler {
+// refreshOnHistoryRestore will trigger a full client-side refresh on a HTMX history restore request.
+func refreshOnHistoryRestore(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if htmx.IsHistoryRestoreRequest(req) {
+			res.Header().Set(htmx.HeaderRefresh, "true")
+		}
+		next.ServeHTTP(res, req)
+	})
+}
+
+// parseListFilters will extract filters for (subscription/article) lists from the request and updated any stored
+// filters.
+func parseListFilters(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		sessionKey := "path_" + req.URL.Path
 
@@ -369,6 +174,7 @@ func parseFilters(next http.Handler) http.Handler {
 	})
 }
 
+// storePath stores the current request path in the context.
 func storePath(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := models.PathToCtx(req.Context(), req.URL.Path)
@@ -378,7 +184,7 @@ func storePath(next http.Handler) http.Handler {
 
 // WatchList handles watching a list of object for any updates and rendering a notification to the user to refresh the page.
 func WatchList() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return defaultHandlerChain.Append(parseListFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve current filters.
 		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 		// Create a query to find new items.

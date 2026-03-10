@@ -15,7 +15,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-// GetSubscriptionFilterSuggestions handles showing a list of subscriptions as suggestions when building a search query.
+// GetSubscriptionActionSuggestions handles showing a list of subscriptions as suggestions when building a search query.
 func GetSubscriptionActionSuggestions() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		defaultSuggestionCount := 3
