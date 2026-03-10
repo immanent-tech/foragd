@@ -14,7 +14,9 @@ templ HelpPopover(id, anchor string) {
 	<button id={ id + "-button" } popovertarget={ id } type="button" class="btn btn-circle btn-ghost btn-xs text-info">
 		@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
 	</button>
-	<el-popover popover id={ id } anchor={ anchor } class="mx-4 sm:mx-auto sm:max-w-prose [--anchor-gap:4px]">
-		{ children... }
+	<el-popover ppover id={ id } anchor={ anchor } class="mx-4 sm:mx-auto sm:max-w-prose [--anchor-gap:4px]">
+		<div class="card-body bg-base-300 shadow-sm rounded-box outline-1 -outline-offset-1 outline-base-content/15">
+			{ children... }
+		</div>
 	</el-popover>
 }
