@@ -3,11 +3,7 @@
 
 package templates
 
-import (
-	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
-)
+import "github.com/immanent-tech/foragd/web/templates/partials"
 
 // NotFound renders a layout appropriate to use for a 404 response.
 templ NotFound() {
@@ -28,15 +24,4 @@ templ NotFound() {
 			}
 		}
 	}
-}
-
-// HelpPopover can be used to render a help icon, that when clicked, will open a popover displaying informational or
-// help text.
-templ HelpPopover(id, anchor string) {
-	<button id={ id + "-button" } popovertarget={ id } type="button" class="btn btn-circle btn-ghost btn-xs text-info">
-		@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
-	</button>
-	<el-popover popover id={ id } anchor={ anchor } class="[--anchor-gap:4px]">
-		{ children... }
-	</el-popover>
 }

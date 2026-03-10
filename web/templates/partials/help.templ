@@ -1,0 +1,20 @@
+// Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+)
+
+// HelpPopover can be used to render a help icon, that when clicked, will open a popover displaying informational or
+// help text.
+templ HelpPopover(id, anchor string) {
+	<button id={ id + "-button" } popovertarget={ id } type="button" class="btn btn-circle btn-ghost btn-xs text-info">
+		@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
+	</button>
+	<el-popover popover id={ id } anchor={ anchor } class="mx-4 sm:mx-auto sm:max-w-prose [--anchor-gap:4px]">
+		{ children... }
+	</el-popover>
+}

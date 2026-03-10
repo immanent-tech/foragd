@@ -534,7 +534,7 @@ templ EditSubscription(request *models.EditFeedSubscriptionRequest) {
 									<p class="mt-1 text-sm/6 ">
 										Always fetch and show article content from original site.
 									</p>
-									@HelpPopover("show-full-article-help", "top end") {
+									@partials.HelpPopover("show-full-article-help", "top end") {
 										<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
 											<p>
 												If articles in the subscription are only showing a summary, set this
@@ -702,7 +702,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 					}
 					// Help dialog.
 					<div class="ml-4">
-						@HelpPopover("subscription-filter-operators-help", "bottom end") {
+						@partials.HelpPopover("subscription-filter-operators-help", "bottom end") {
 							<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
 								<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 								<p>+ signifies AND operation (i.e., food AND beverages)</p>
@@ -1298,8 +1298,8 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 			}
 			<div class="flex items-center">
 				<p class="mt-1 text-sm/6 ">Filter articles by keywords/text in fields.</p>
-				@HelpPopover("subscription-filters-help", "top end") {
-					<div class="card-body bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15">
+				@partials.HelpPopover("subscription-filters-help", "top end") {
+					<div class="card-body bg-base-300 shadow-sm rounded-box outline-1 -outline-offset-1 outline-base-content/15">
 						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 						<p>+ signifies AND operation (i.e., food AND beverages)</p>
 						<p>| signifies OR operation (i.e., food OR beverages)</p>
@@ -1310,56 +1310,53 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 				}
 			</div>
 		</div>
-		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+		<fieldset class="fieldset grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 			<div class="sm:col-span-full mt-2">
-				<div class="input input-primary bg-base-content/10 w-full">
-					<label for="article_text_filters" class="block text-xs font-medium">Text:</label>
-					<input
-						id="article_text_filters"
-						type="text"
-						name="article_filters.text"
-						if filters != nil && filters.Text != nil {
-							value={ *filters.Text }
-						}
-						placeholder="Text..."
-						class="block w-full"
-						spellcheck="false"
-					/>
-				</div>
+				<label for="article_text_filters" class="block text-xs font-medium">Text:</label>
+				<textarea
+					rows="2"
+					id="article_text_filters"
+					name="article_filters.text"
+					placeholder={ `+keyword -"some phrase"` }
+					class="textarea textarea-primary bg-base-content/10 w-full"
+					spellcheck="false"
+				>
+					if filters != nil && filters.Text != nil {
+						{ *filters.Text }
+					}
+				</textarea>
 			</div>
 			<div class="sm:col-span-full mt-2">
-				<div class="input input-primary bg-base-content/10 w-full">
-					<label for="article_category_filters" class="block text-xs font-medium">Categories:</label>
-					<input
-						id="article_category_filters"
-						type="text"
-						name="article_filters.categories"
-						if filters != nil && filters.Categories != nil {
-							value={ *filters.Categories }
-						}
-						placeholder="Categories..."
-						class="block w-full"
-						spellcheck="false"
-					/>
-				</div>
+				<label for="article_category_filters" class="block text-xs font-medium">Categories:</label>
+				<textarea
+					rows="2"
+					id="article_category_filters"
+					name="article_filters.categories"
+					placeholder="favorite-category -unwanted"
+					class="textarea textarea-primary bg-base-content/10 w-full"
+					spellcheck="false"
+				>
+					if filters != nil && filters.Categories != nil {
+						{ *filters.Categories }
+					}
+				</textarea>
 			</div>
 			<div class="sm:col-span-full mt-2">
-				<div class="input input-primary bg-base-content/10 w-full">
-					<label for="article_author_filters" class="block text-xs font-medium">Authors:</label>
-					<input
-						id="article_author_filters"
-						type="text"
-						name="article_filters.authors"
-						if filters != nil && filters.Authors != nil {
-							value={ *filters.Authors }
-						}
-						placeholder="Authors..."
-						class="block w-full"
-						spellcheck="false"
-					/>
-				</div>
+				<label for="article_author_filters" class="block text-xs font-medium">Authors:</label>
+				<textarea
+					rows="2"
+					id="article_author_filters"
+					name="article_filters.authors"
+					placeholder="bob +jenny@blog.me"
+					class="textarea textarea-primary bg-base-content/10 w-full"
+					spellcheck="false"
+				>
+					if filters != nil && filters.Authors != nil {
+						{ *filters.Authors }
+					}
+				</textarea>
 			</div>
-		</div>
+		</fieldset>
 	</div>
 }
 
