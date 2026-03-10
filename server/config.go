@@ -33,6 +33,7 @@ var cfg = Config{
 type Config struct {
 	Port                 uint64         `koanf:"port"                 validate:"required,port"`
 	Host                 string         `koanf:"host"                 validate:"required,hostname|fqdn|ip"`
+	BaseURL              string         `koanf:"baseurl"              validate:"required,url"`
 	CompressionLevel     int            `koanf:"compressionlevel"     validate:"number"`
 	CompressionMimetypes []string       `koanf:"compressionmimetypes"`
 	CertFile             string         `koanf:"crt"                  validate:"omitempty,file"`
