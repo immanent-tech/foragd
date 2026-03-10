@@ -58,7 +58,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></button></h4><el-disclosure id=\"mobile-category-filters\" hidden class=\"pt-4 flex flex-col\"><div id=\"category-filters-mobile\" class=\"space-y-6\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></button></h4><el-disclosure id=\"mobile-category-filters\" hidden class=\"pt-4 flex flex-col\"><div id=\"category-filters-mobile\" class=\"space-y-6 text-sm\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -92,7 +92,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</span></button></h4><el-disclosure id=\"mobile-view-filters\" hidden class=\"block pt-4\"><div class=\"space-y-6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</span></button></h4><el-disclosure id=\"mobile-view-filters\" hidden class=\"block pt-4\"><div class=\"space-y-6 text-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -108,7 +108,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span></button></h4><el-disclosure id=\"mobile-sort-filters\" hidden class=\"block pt-4\"><div class=\"space-y-6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span></button></h4><el-disclosure id=\"mobile-sort-filters\" hidden class=\"block pt-4\"><div class=\"space-y-6 text-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -158,7 +158,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-target=\"#desktop-category-filters-list\" hx-indicator=\"#load-categories-desktop\" hx-trigger=\"click from:#desktop-category-filters-button\"><div id=\"desktop-category-filters-list\" class=\"space-y-4\"></div><span id=\"load-categories-desktop\" class=\"htmx-indicator loading loading-spinner loading-sm\"></span></el-popover></div></div><div class=\"relative inline-block text-left\"><div><button class=\"inline-flex btn btn-wide\" popovertarget=\"desktop-view-filters\">View")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-target=\"#desktop-category-filters-list\" hx-indicator=\"#load-categories-desktop\" hx-trigger=\"click from:#desktop-category-filters-button\"><div id=\"desktop-category-filters-list\" class=\"space-y-4 text-sm\"></div><span id=\"load-categories-desktop\" class=\"htmx-indicator loading loading-spinner loading-sm\"></span></el-popover></div></div><div class=\"relative inline-block text-left\"><div><button class=\"inline-flex btn btn-wide\" popovertarget=\"desktop-view-filters\">View")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -166,7 +166,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</button> <el-popover id=\"desktop-view-filters\" anchor=\"bottom end\" popover class=\"p-4 w-fit bg-base-300 rounded-box shadow-xl [--anchor-gap:4px]\"><div class=\"space-y-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</button> <el-popover id=\"desktop-view-filters\" anchor=\"bottom end\" popover class=\"p-4 w-fit bg-base-300 rounded-box shadow-xl [--anchor-gap:4px]\"><div class=\"space-y-4 text-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -182,7 +182,7 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</button> <el-popover id=\"desktop-sort-filters\" anchor=\"bottom end\" popover class=\"p-4 w-fit bg-base-300 rounded-box shadow-xl [--anchor-gap:4px]\"><div class=\"space-y-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</button> <el-popover id=\"desktop-sort-filters\" anchor=\"bottom end\" popover class=\"p-4 w-fit bg-base-300 rounded-box shadow-xl [--anchor-gap:4px]\"><div class=\"space-y-4 text-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

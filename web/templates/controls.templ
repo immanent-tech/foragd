@@ -51,7 +51,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 						<el-disclosure id="mobile-category-filters" hidden class="pt-4 flex flex-col">
 							<div
 								id="category-filters-mobile"
-								class="space-y-6"
+								class="space-y-6 text-sm"
 								hx-get={ path + "/categories" }
 								hx-include="[name='displayed_subscriptions']"
 								hx-vals={ generateHXVals(filters.Values()) }
@@ -77,7 +77,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 							</button>
 						</h4>
 						<el-disclosure id="mobile-view-filters" hidden class="block pt-4">
-							<div class="space-y-6">
+							<div class="space-y-6 text-sm">
 								@viewFilters(path, filters)
 							</div>
 						</el-disclosure>
@@ -98,7 +98,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 							</button>
 						</h4>
 						<el-disclosure id="mobile-sort-filters" hidden class="block pt-4">
-							<div class="space-y-6">
+							<div class="space-y-6 text-sm">
 								@sortFilters(path, filters)
 							</div>
 						</el-disclosure>
@@ -144,7 +144,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									hx-indicator="#load-categories-desktop"
 									hx-trigger="click from:#desktop-category-filters-button"
 								>
-									<div id="desktop-category-filters-list" class="space-y-4"></div>
+									<div id="desktop-category-filters-list" class="space-y-4 text-sm"></div>
 									<span id="load-categories-desktop" class="htmx-indicator loading loading-spinner loading-sm"></span>
 								</el-popover>
 							</div>
@@ -157,7 +157,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 								</button>
 								<el-popover id="desktop-view-filters" anchor="bottom end" popover class="p-4 w-fit bg-base-300 rounded-box shadow-xl [--anchor-gap:4px]">
-									<div class="space-y-4">
+									<div class="space-y-4 text-sm">
 										@viewFilters(path, filters)
 									</div>
 								</el-popover>
@@ -171,7 +171,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 								</button>
 								<el-popover id="desktop-sort-filters" anchor="bottom end" popover class="p-4 w-fit bg-base-300 rounded-box shadow-xl [--anchor-gap:4px]">
-									<div class="space-y-4">
+									<div class="space-y-4 text-sm">
 										@sortFilters(path, filters)
 									</div>
 								</el-popover>
