@@ -3,12 +3,12 @@ title = "RSS & Atom vs Social Media"
 description = "Social Media dominates where we source our content from. But RSS and Atom feeds offer compelling freedom and control over the content that Social Media cannot."
 created_at = "2026-01-27"
 updated_at = "2026-02-11"
-image = "/content/images/posts/Raphaels School of Athens.jpg"
+image = "/content/images/posts/Raphaels School of Athens.webp"
 +++
 
 <figure>
   <img
-    src="/content/images/posts/Raphaels School of Athens.jpg"
+    src="/content/images/posts/Raphaels School of Athens.webp"
     alt="Raphael's School of Athens" />
   <figcaption>
     Raphael's School of Athens (1508–11).
@@ -19,7 +19,7 @@ image = "/content/images/posts/Raphaels School of Athens.jpg"
 
 Most of us spend a lot of time on Social Media services like Facebook, X/Twitter, Reddit and others. You might not spend much time looking at RSS and Atom feeds, even though they are very similar in a lot of ways. RSS and Atom pre-date most Social Media. But their usage and interest has declined over time as the web moved to be dominated by Social Media. [Google Trends](https://trends.google.com.au/trends/explore?date=all&q=%2Fm%2F0n5tx,%2Fm%2F0fch0p&hl=en-AU) doesn’t lie:
 
-<img src="/content/images/posts/rss-atom-social-media-trends.png" alt="Screenshot from Google Trends of the keywords RSS and Social Media"/>
+<img src="/content/images/posts/rss-atom-social-media-trends.webp" alt="Screenshot from Google Trends of the keywords RSS and Social Media"/>
 
 While interest in RSS and Atom has waned from the turn of the century, it still has immense (IMHO) value. Claims that these feeds are dead or dying are greatly exaggerated. What is more likely, is that the information we see is driven by market forces that favor Social Media platforms [1](https://disa.org/dominance-of-major-technology-companies-over-information-access-fuels-critical-discussions-at-the-2025-internet-governance-forum-in-norway/),[2](https://www.dw.com/en/how-tech-giants-are-hijacking-the-internet/a-67037639). Feeds are still out there, waiting to be found. In this post, we’ll take a look at what RSS and Atom can offer and compare that to Social Media.
 
@@ -51,7 +51,7 @@ Social Media services often have controls that may allow some degree of filterin
 
 The most popular Social Media services are run by companies and companies don’t like working together. As such, Social Media is fractured, and you most likely have multiple accounts across different services to track all the content you are interested in.
 
-Feeds, while sourced from many places, can be collated into a single location, your feed reader. As such, it's much easier to gather and group the content, and view it all in one place, without needing to switch apps or websites. You get a consistent and familiar interface for all content.
+Feeds, while sourced from many places, can be collated into a single location, your feed reader. As such, it’s much easier to gather and group the content, and view it all in one place, without needing to switch apps or websites. You get a consistent and familiar interface for all content.
 
 ## Portability
 

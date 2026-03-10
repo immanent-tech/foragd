@@ -3,12 +3,12 @@ title = "Managing Feed Overload"
 description = "How to manage content in the era of information overload."
 created_at = "2026-01-27"
 updated_at = "2026-02-06"
-image = "/content/images/posts/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.jpg"
+image = "/content/images/posts/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.webp"
 +++
 
 <figure>
   <img
-    src="/content/images/posts/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.jpg"
+    src="/content/images/posts/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.webp"
     alt="Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome" />
   <figcaption>
     Picture Gallery with Views of Modern Rome. Giovanni Paolo Panini, 1757. Museum of Fine Arts, Boston
@@ -28,28 +28,28 @@ In this article, we go through some strategies on how to manage this overload, a
 ### Stop Caring About Unread Counts
 
 Remember “Inbox Zero”? Where you tried to keep your email inbox empty? Hands up if you actually achieved, let alone
-maintained it? If you didn't raise your hand, don't worry, you are in the majority. While a noble concept, this was
+maintained it? If you didn’t raise your hand, don’t worry, you are in the majority. While a noble concept, this was
 practically impossible. Similarly, why do feed readers insist on showing you an unread count? It is a [phantom
-obligation](https://www.terrygodier.com/phantom-obligation); you didn't ask for the cognitive pressure from it, yet
+obligation](https://www.terrygodier.com/phantom-obligation); you didn’t ask for the cognitive pressure from it, yet
 these services demand you make the number go down.
 
 [Foragd](https://foragd.app) does not display unread counts by default. You can turn them on if you want them, but
 hiding them by default is a deliberate design decision to create space for discovery and novel navigation, not frantic
 “number must go down” skimming.
 
-**Look for a feed reader where you can turn off unread counts. Foragd can, but many of the popular readers unfortunately don't.**
+**Look for a feed reader where you can turn off unread counts. Foragd can, but many of the popular readers unfortunately don’t.**
 
 ### Post Filtering
 
-Often different subscription sources will contain some posts that you don't want to see. Maybe it's a topic or area you
-aren't interested in, or, worse, promoted or sponsored content. In these cases, you need a way to filter posts. Ideally
+Often different subscription sources will contain some posts that you don’t want to see. Maybe it’s a topic or area you
+aren’t interested in, or, worse, promoted or sponsored content. In these cases, you need a way to filter posts. Ideally
 a good feed reader will offer this post filtering for you, and you should be able to filter by phrase, keyword, category,
 or, author.
 
-This shouldn't be an add-on, it is mandatory in the modern age of information overload. Secondly, it shouldn't be
-difficult or complicated. Most of the time, you'll probably just want to filter out posts with a particular keyword,
-phrase, or category. You shouldn't need to learn programming constructs or use a complicated filter building interface
-just to say “don't show me posts mentioning secret pizza parties”.
+This shouldn’t be an add-on, it is mandatory in the modern age of information overload. Secondly, it shouldn’t be
+difficult or complicated. Most of the time, you’ll probably just want to filter out posts with a particular keyword,
+phrase, or category. You shouldn’t need to learn programming constructs or use a complicated filter building interface
+just to say “don’t show me posts mentioning secret pizza parties”.
 
 Foragd makes this very easy. For any subscription, you can filter with “this not that” logic:
 
@@ -58,7 +58,7 @@ Foragd makes this very easy. For any subscription, you can filter with “this n
   <figcaption>In this example, we are filtering for posts/articles containing the word Android, in the category "Samsung", but not in the category "Galaxy Watch".</figcaption>
 </figure>
 
-**Look for a feed reader that allows filtering by default and doesn't make it overly complicated.**
+**Look for a feed reader that allows filtering by default and doesn’t make it overly complicated.**
 
 ### Group, then Divide and Conquer
 
@@ -72,7 +72,7 @@ Subscription*.
 </figure>
 
 You can then apply [article/post filtering](#post-filtering) to the group subscription to filter across all
-the grouped subscriptions. This makes it easy to apply a “divide and conquer" approach across similar topics or sources.
+the grouped subscriptions. This makes it easy to apply a “divide and conquer” approach across similar topics or sources.
 
 ### Search to Find that Needle in a Haystack
 
@@ -98,10 +98,10 @@ assigned by the publisher. Foragd exposes these, and you can filter posts by the
 assign categories to subscriptions as well, allowing you another way to group and organize them.
 
 A lot of feed readers use “folders” to organize your subscriptions. Often however, a subscription can only be in one
-folder, when in reality, subscriptions don't necessarily neatly fall under one thing. Foragd does not have this limit
+folder, when in reality, subscriptions don’t necessarily neatly fall under one thing. Foragd does not have this limit
 you can apply as many categories as you need to each subscription.
 
-On the other side of this, categories can easily become messy and stop serving a useful purpose. So it's important, when
+On the other side of this, categories can easily become messy and stop serving a useful purpose. So it’s important, when
 categorizing, to consider having a limit on them. Something similar to the [Johnny Decimal](https://johnnydecimal.com/)
 system is useful in this regard. Have just 10 broad, high-level categories you apply across your subscriptions. Within
 each of those, consider 10 more specific categories to narrow things down. As an example, you might have broad

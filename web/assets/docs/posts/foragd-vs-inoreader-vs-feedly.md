@@ -3,13 +3,13 @@ title = "Foragd vs Inoreader vs Feedly: a feed reader comparison"
 description = "An in-depth comparison to help you choose the best RSS reader for your needs."
 created_at = "2026-02-18"
 updated_at = "2026-02-18"
-image = "/content/images/posts/scribe-comparing-manuscripts.jpg"
+image = "/content/images/posts/scribe-comparing-manuscripts.webp"
 +++
 
 
 <figure>
   <img
-    src="/content/images/posts/scribe-comparing-manuscripts.jpg"
+    src="/content/images/posts/scribe-comparing-manuscripts.webp"
     alt="A medieval scribe comparing manuscripts" />
   <figcaption>
     Interpretation of a medieval scribe comparing manuscripts, Google Gemini.
