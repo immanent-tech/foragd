@@ -201,7 +201,6 @@ func Start(logger *slog.Logger) error {
 		// Subscription specific.
 		r.Route("/list/subscriptions", func(r chi.Router) {
 			r.Get("/", handlers.HandleListSubscriptions())
-			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.HandleMarkSubscriptions())
 			// r.Get("/updates", handlers.WatchList())
@@ -237,7 +236,6 @@ func Start(logger *slog.Logger) error {
 		// Article specific.
 		r.Route("/list/articles", func(r chi.Router) {
 			r.Get("/", handlers.HandleListArticles())
-			r.Post("/", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())
 			// r.Get("/updates", handlers.WatchList())

@@ -257,7 +257,7 @@ templ viewFilters(path string, filters *models.ListFilters) {
 templ viewFilterOption(path, id string, view models.View, filters *models.ListFilters) {
 	<form
 		id={ "view-filter-" + view }
-		hx-post={ path }
+		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
@@ -291,7 +291,7 @@ templ viewFilterOption(path, id string, view models.View, filters *models.ListFi
 templ viewFilterOptionFavorites(path, id string, filters *models.ListFilters) {
 	<form
 		id={ id }
-		hx-post={ path }
+		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
 		hx-replace-url="true"
@@ -358,7 +358,7 @@ templ CategoryFilters(filters *models.CategoryFilters) {
 templ categoryFilterOption(path, id string, category models.CategoryCount, filters *models.ListFilters) {
 	<form
 		id={ "filter-category-" + strings.ToLower(strings.ReplaceAll(category.Category, " ", "_")) }
-		hx-post={ path }
+		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
@@ -390,7 +390,7 @@ templ categoryFilterOption(path, id string, category models.CategoryCount, filte
 templ clearCategoryFiltersOption(path, id string, filters *models.ListFilters) {
 	<form
 		id={ id }
-		hx-post={ path }
+		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
@@ -418,7 +418,7 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 				}
 				<li>
 					<a
-						hx-post={ path }
+						hx-get={ path }
 						hx-target={ ContentID.Target() }
 						hx-replace-url="true"
 						hx-swap="innerHTML transition:true"
@@ -468,7 +468,7 @@ templ sortFilters(path string, filters *models.ListFilters) {
 templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
 	<form
 		id={ "sort-" + string(sort) }
-		hx-post={ path }
+		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
