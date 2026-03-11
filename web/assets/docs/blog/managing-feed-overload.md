@@ -3,13 +3,13 @@ title = "Managing Feed Overload"
 description = "How to manage content in the era of information overload."
 created_at = "2026-01-27"
 updated_at = "2026-02-06"
-image = "/content/images/posts/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.webp"
+image = "/content/images/blog/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.webp"
 author = "Joshua Rich <joshua.rich@gmail.com>"
 +++
 
 <figure>
   <img
-    src="/content/images/posts/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.webp"
+    src="/content/images/blog/Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome.webp"
     alt="Giovanni Paolo Pannini - Picture Gallery with Views of Modern Rome" />
   <figcaption>
     Picture Gallery with Views of Modern Rome. Giovanni Paolo Panini, 1757. Museum of Fine Arts, Boston
@@ -22,7 +22,7 @@ In any modern social media or feed viewer service, your feed is a central stream
 volume of content and rate of updates can be overwhelming, to downright crippling.
 
 In this article, we go through some strategies on how to manage this overload, and talk about how
-[Foragd](https://foragd.app) can help.
+[Foragd](/) can help.
 
 ## Strategies For Managing your Feed
 
@@ -34,7 +34,7 @@ practically impossible. Similarly, why do feed readers insist on showing you an 
 obligation](https://www.terrygodier.com/phantom-obligation); you didn’t ask for the cognitive pressure from it, yet
 these services demand you make the number go down.
 
-[Foragd](https://foragd.app) does not display unread counts by default. You can turn them on if you want them, but
+[Foragd](/) does not display unread counts by default. You can turn them on if you want them, but
 hiding them by default is a deliberate design decision to create space for discovery and novel navigation, not frantic
 “number must go down” skimming.
 
@@ -122,6 +122,6 @@ As an example In Foragd:
 - Create *Search Subscriptions* for finding specific content across disparate subscriptions.
 - Apply categories, but keep the number small.
 
-[Sign up](https://foragd.app/signup) for Foragd to easily tame the stream of content.
+[Sign up](/signup) for Foragd to easily tame the stream of content.
 
 License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).

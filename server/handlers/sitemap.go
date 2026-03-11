@@ -28,7 +28,7 @@ var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
 			Priority: 0.9,
 		},
 		sitemap.URL{
-			Loc:      "https://foragd.app/posts",
+			Loc:      "https://foragd.app/blog",
 			Priority: 0.9,
 		},
 		sitemap.URL{
@@ -48,7 +48,7 @@ var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
 	for post := range slices.Values(posts.Files) {
 		site.URLs = append(site.URLs,
 			sitemap.URL{
-				Loc:      sitemap.LOC("https://foragd.app/posts/" + post.Path),
+				Loc:      sitemap.LOC("https://foragd.app/blog/" + post.Path),
 				Priority: 0.5,
 			})
 	}

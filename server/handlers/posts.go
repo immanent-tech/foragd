@@ -34,7 +34,7 @@ import (
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
-var postsPath = "assets/docs/posts"
+var postsPath = "assets/docs/blog"
 
 var getPosts = sync.OnceValues(func() (*models.FileIndex, error) {
 	var posts models.FileIndex
@@ -60,7 +60,7 @@ func (p *PostsIndex) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.WithOpenGraphMetadata(opengraph.New(
 			title,
 			"website",
-			os.Getenv("FORAGD_BASEURL")+"/posts",
+			os.Getenv("FORAGD_BASEURL")+"/blog",
 			os.Getenv("FORAGD_BASEURL")+"/content/logo-color.webp",
 			opengraph.WithDescription(description),
 			opengraph.WithSiteName(config.AppName),
@@ -80,11 +80,11 @@ func (p *Post) FullResponse(res http.ResponseWriter, req *http.Request) {
 		templates.Post(p.MarkdownFile),
 		templates.WithPageTitle(p.Frontmatter.Title),
 		templates.WithPageDescription(p.Frontmatter.Description),
-		templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+"/posts/"+p.Details.Path),
+		templates.WithCanonicalLink(os.Getenv("FORAGD_BASEURL")+"/blog/"+p.Details.Path),
 		templates.WithOpenGraphMetadata(opengraph.New(
 			p.Frontmatter.Title,
 			"article",
-			os.Getenv("FORAGD_BASEURL")+"/posts/"+p.Details.Path,
+			os.Getenv("FORAGD_BASEURL")+"/blog/"+p.Details.Path,
 			os.Getenv("FORAGD_BASEURL")+*p.Frontmatter.Image,
 			opengraph.WithDescription(p.Frontmatter.Description),
 			opengraph.WithSiteName(config.AppName),
@@ -252,8 +252,8 @@ func HandlePostsFeed() http.HandlerFunc {
 			item := rss.NewItem(
 				rss.WithItemTitle(data.Frontmatter.Title),
 				rss.WithItemDescription(data.Frontmatter.Description),
-				rss.WithItemLink(baseURL+"/posts/"+data.Details.Path),
-				rss.WithItemGUID(rss.GenerateGUID(baseURL+"/posts/"+data.Details.Path, true)),
+				rss.WithItemLink(baseURL+"/blog/"+data.Details.Path),
+				rss.WithItemGUID(rss.GenerateGUID(baseURL+"/blog/"+data.Details.Path, true)),
 				rss.WithItemImage(&types.ImageInfo{
 					Title: data.Frontmatter.Title,
 					URL:   baseURL + *data.Frontmatter.Image,

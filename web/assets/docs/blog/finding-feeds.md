@@ -3,14 +3,14 @@ title = "How to Find RSS and Atom Feeds for any website"
 description = "RSS and Atom are formats that are “hiding in plain sight”. Lots of websites have them, but it might not be obvious how to get them."
 created_at = "2026-02-02"
 updated_at = "2026-02-11"
-image = "https://foragd.app/content/images/posts/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp"
+image = "/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp"
 author = "Joshua Rich <joshua.rich@gmail.com>"
 +++
 
 
 <figure>
   <img
-    src="https://foragd.app/content/images/posts/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp"
+    src="/content/images/blog/Ferdinand-Magellan-Portuguese-fleet-departure-ships-wood-September-20-1519.webp"
     alt="Ferdinand Magellan's fleet" />
   <figcaption>
     Portuguese explorer Ferdinand Magellan's fleet of five ships after their departure from Spain on September 20, 1519; wood engraving, 19th century.
@@ -30,13 +30,13 @@ this article.
 
 ## Technique 1: Use Your Feed Reader
 
-A good feed reader, like [Foragd](https://foragd.app) can utilize the autodiscovery process, along with other sleuthing
+A good feed reader, like [Foragd](/) can utilize the autodiscovery process, along with other sleuthing
 techniques to find feeds for your favorite sites. So in a lot of cases, it may be as simple as just providing the URL of
 the site to the feed reader and let it do its magic. No need to parse the site’s HTML or scan the content or find a site
 directory; just enter the URL, and in most cases, 💥 you have your favorite site’s content streaming to your feed
 reader.
 
-ℹ️ **You can use Foragd’s [Feed Viewer](https://foragd.app/viewer) to find and parse the feed content of any website.**
+ℹ️ **You can use Foragd’s [Feed Viewer](/viewer) to find and parse the feed content of any website.**
 
 ## Technique 2: Where’s Waldo
 
@@ -44,8 +44,8 @@ A lot of times, the site will stick the feed link in its footer. Sometimes it’
 or “Atom”. Other times, it’ll be the RSS icon, for example one of the following:
 
 <div class="flex mx-auto space-x-4 justify-center">
-<img class="flex size-8" src="https://foragd.app/content/rss-dark.svg" alt="Typical RSS icon"/>
-<img class="flex size-8" src="https://foragd.app/content/file-rss-dark.svg" alt="Typical RSS alternative icon"/>
+<img class="flex size-8" src="/content/rss-dark.svg" alt="Typical RSS icon"/>
+<img class="flex size-8" src="/content/file-rss-dark.svg" alt="Typical RSS alternative icon"/>
 </div>
 
 Such links usually return the raw feed content, so they can be copied and pasted into your feed reader to add them.

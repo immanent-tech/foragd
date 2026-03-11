@@ -138,8 +138,10 @@ func Start(logger *slog.Logger) error {
 		r.Get("/policies/*", handlers.PolicyDocsHandler())
 		// Posts index.
 		r.Get("/posts", handlers.HandlePosts())
+		r.Get("/blog", handlers.HandlePosts())
 		// Individual posts.
 		r.Get("/posts/*", handlers.HandlePosts())
+		r.Get("/blog/*", handlers.HandlePosts())
 		// Posts RSS feed.
 		r.Get("/feed", handlers.HandlePostsFeed())
 		// Sign-up/Login routes.
