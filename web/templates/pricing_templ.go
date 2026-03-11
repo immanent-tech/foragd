@@ -101,7 +101,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div></div><div class=\"card w-full sm:w-lg bg-base-200 shadow-sm\"><div class=\"card-body\"><h2 class=\"text-lg/7 font-semibold text-primary\">The One <span class=\"sr-only\">plan</span> (yearly)</h2><p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-4 mb-auto flex items-center gap-4\"><div class=\"text-5xl font-semibold\">$59</div><div class=\"text-sm\"><p>USD</p><p>annually (pay nothing during beta, price on launch)</p></div></div><p class=\"mt-2 text-sm/6 text-pretty text-neutral font-semibold\"><span class=\"badge badge-sm badge-warning text-black\">Best value</span> ~30% discount vs. monthly subscription.</p>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div></div><div class=\"card w-full sm:w-lg bg-base-200 shadow-sm\"><div class=\"card-body\"><h2 class=\"text-lg/7 font-semibold text-primary\">The One <span class=\"sr-only\">plan</span> (yearly)</h2><p class=\"mt-2 text-sm/6 text-pretty text-neutral\">Single plan, all features, generous inclusions.</p><div class=\"mt-4 mb-auto flex items-center gap-4\"><div class=\"text-5xl font-semibold\">$59</div><div class=\"text-sm\"><p>USD</p><p>annually (pay nothing during beta, price on launch)</p></div></div><p class=\"mt-2 text-sm/6 text-pretty text-neutral font-semibold\"><span class=\"badge badge-sm badge-warning text-warning-content\">Best value</span> Save ~30% discount vs. monthly subscription.</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

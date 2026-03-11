@@ -5,7 +5,6 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/go-syndication/types"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
@@ -16,8 +15,7 @@ templ Landing() {
 		<header aria-label="Header" class="absolute inset-x-0 top-0 z-50">
 			<nav aria-label="Global" class="flex items-center justify-between p-6 lg:px-8 w-full">
 				<div class="flex lg:hidden">
-					<button type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5">
-						<span class="sr-only">Open main menu</span>
+					<button aria-label="Open main menu" type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5">
 						@tabler.Menu2(i.Props{Class: "text-primary"})
 					</button>
 				</div>
@@ -47,8 +45,7 @@ templ Landing() {
 										<p class="font-bold text-primary hidden lg:flex">Foragd</p>
 									</div>
 								</a>
-								<button type="button" command="close" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-neutral">
-									<span class="sr-only">Close menu</span>
+								<button aria-label="Close menu" type="button" command="close" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-neutral">
 									@tabler.X()
 								</button>
 							</div>
@@ -108,18 +105,18 @@ templ Landing() {
 								class="mt-10 flex items-center
 							justify-center gap-x-6"
 							>
-								<button
+								<a
 									class="btn btn-primary text-sm/6 font-semibold"
 									_="on click go to #features smoothly"
 								>
 									See features
-								</button>
-								<button
+								</a>
+								<a
 									class="btn btn-primary text-sm/6 font-semibold"
 									_="on click go to #pricing smoothly"
 								>
 									Start a free trial
-								</button>
+								</a>
 							</div>
 							<div class="text-sm/6 font-semibold mt-5">
 								Already have an account?<a href="/login" class="link">&nbsp;Log in</a>
@@ -162,7 +159,6 @@ templ Landing() {
 								width="1900"
 								height="1440"
 								decoding="async"
-								fetchpriority="high"
 								alt="Foragd desktop/mobile screenshots"
 								class="mx-auto w-full sm:max-w-360 object-scale-down"
 							/>
@@ -171,7 +167,7 @@ templ Landing() {
 					<div class="space-y-8">
 						<div class="sm:flex rounded-box shadow-xl items-center justify-center bg-base-200">
 							<div class="p-4 max-w-prose">
-								<h4 class="text-lg font-medium">Powerful Search</h4>
+								<h3 class="text-lg font-medium">Powerful Search</h3>
 								<p class="mt-1 text-sm">
 									Full-text search across subscriptions and articles. Easy filtering by keyword or
 									phrase.
@@ -186,7 +182,7 @@ templ Landing() {
 											width="514"
 											height="328"
 											decoding="async"
-											alt="Thubnail from video demostrating search."
+											alt="Thumbnail from video demostrating search."
 											class="block rounded-box object-scale-down"
 										/>
 										@tabler.PlayerPlayFilled(i.Props{Class: "absolute top-[45%] left-[45%]"})
@@ -232,7 +228,7 @@ templ Landing() {
 								}
 							</div>
 							<div class="p-4 max-w-prose">
-								<h4 class="text-lg font-medium">Designed for content</h4>
+								<h3 class="text-lg font-medium">Designed for content</h3>
 								<p class="mt-1 text-sm">
 									Pixel perfect text, clear formatting and big pictures. Content takes center stage in
 									the user interface.
@@ -242,7 +238,7 @@ templ Landing() {
 						// Customization features highlight.
 						<div class="sm:flex rounded-box shadow-xl items-center justify-center bg-base-200">
 							<div class="p-4 max-w-prose">
-								<h4 class="text-lg font-medium">Customisation and Filtering</h4>
+								<h3 class="text-lg font-medium">Customisation and Filtering</h3>
 								<p class="mt-1 text-sm">
 									Add a nickname and custom categories to a subscription. Filter articles by
 									text/phrase, category or authors, with easy to use operators.
@@ -283,7 +279,9 @@ templ Landing() {
 						<dl class="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									@tabler.Heart(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									<div aria-hidden="true">
+										@tabler.Heart(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									</div>
 									Subscription and article favorites.
 								</dt>
 								<dd class="inline ml-2">
@@ -292,7 +290,9 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									@tabler.CategoryPlus(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									<div aria-hidden="true">
+										@tabler.CategoryPlus(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									</div>
 									Group subscriptions.
 								</dt>
 								<dd class="inline ml-2">
@@ -304,7 +304,9 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									@tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									<div aria-hidden="true">
+										@tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									</div>
 									Search subscriptions.
 								</dt>
 								<dd class="inline ml-2">
@@ -316,7 +318,9 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									@tabler.Mail(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									<div aria-hidden="true">
+										@tabler.Mail(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									</div>
 									Email Newsletters.
 								</dt>
 								<dd class="inline ml-2">
@@ -325,7 +329,9 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									<div aria-hidden="true">
+										@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									</div>
 									Get remote article content.
 								</dt>
 								<dd class="inline ml-2">
@@ -334,7 +340,9 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									@tabler.ColorSwatch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									<div aria-hidden="true">
+										@tabler.ColorSwatch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									</div>
 									Themes.
 								</dt>
 								<dd class="inline ml-2">
@@ -541,7 +549,7 @@ templ Landing() {
 						Rediscover the web. Start using Foragd today.
 					</h2>
 					<div class="mt-10 flex items-center justify-center gap-x-6">
-						<a href="#pricing" role="button" class="btn btn-primary">Start a free trial</a>
+						<a href="#pricing" class="btn btn-primary">Start a free trial</a>
 					</div>
 				</div>
 			</div>
@@ -549,13 +557,6 @@ templ Landing() {
 		// Footer.
 	</div>
 	@footer()
-}
-
-type Image struct {
-	*types.ImageInfo
-	Width  int
-	Height int
-	Class  string
 }
 
 templ imagePopup(id string) {
