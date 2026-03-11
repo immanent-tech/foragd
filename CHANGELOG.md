@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.80.2](https://github.com/immanent-tech/foragd/compare/v0.80.1...v0.80.2) (2026-03-11)
+
+
+### Bug Fixes
+
+* **templates:** :recycle: use heading tags in footer link sections ([9b686fb](https://github.com/immanent-tech/foragd/commit/9b686fbecea7851be9fa6bbf6f2b1d59d56221b1))
+
+
+### Performance Improvements
+
+* **templates:** :zap: prefetch font ([7de4c5f](https://github.com/immanent-tech/foragd/commit/7de4c5f4f08b31658a08b620e7d7bcd749e223af))
+
 ## [0.80.1](https://github.com/immanent-tech/foragd/compare/v0.80.0...v0.80.1) (2026-03-11)
 
 
