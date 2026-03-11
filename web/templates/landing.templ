@@ -155,48 +155,19 @@ templ Landing() {
 								class="rounded-box object-scale-down shadow-xl"
 							/>
 						</button>
-						<el-dialog>
-							<dialog id="main-screenshot" class="relative z-10 backdrop:bg-transparent">
-								<el-dialog-backdrop class="fixed inset-0 hidden bg-primary transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in md:block"></el-dialog-backdrop>
-								<div tabindex="0" class="fixed inset-0 z-10 w-screen overflow-y-auto focus:outline-none">
-									<div class="flex min-h-full items-stretch justify-center text-center md:items-center">
-										<span aria-hidden="true" class="hidden md:inline-block md:h-screen md:align-middle">&#8203;</span>
-										<el-dialog-panel
-											class="flex w-full transform text-left text-base transition data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:md:translate-y-0 data-closed:md:scale-95"
-											_="on click remove @open from  the closest <el-dialog/>"
-										>
-											<img
-												src="/content/screenshots/screenshot-main.webp"
-												width="1900"
-												height="1440"
-												decoding="async"
-												fetchpriority="high"
-												alt="Foragd desktop/mobile screenshots"
-												class="w-full max-h-screen object-scale-down shadow-xl"
-											/>
-										</el-dialog-panel>
-									</div>
-								</div>
-							</dialog>
-						</el-dialog>
+						@imagePopup("main-screenshot") {
+							<img
+								src="/content/screenshots/screenshot-main-nobg.webp"
+								width="1900"
+								height="1440"
+								decoding="async"
+								fetchpriority="high"
+								alt="Foragd desktop/mobile screenshots"
+								class="w-full max-h-screen object-scale-down shadow-xl"
+							/>
+						}
 					</div>
 					<div class="space-y-8">
-						<div class="sm:flex rounded-box shadow-xl items-center bg-base-200">
-							<div class="mb-4 sm:mr-4 sm:mb-0 justify-self-center">
-								<img
-									src="/content/screenshots/screenshot-article.webp"
-									srcset="/content/screenshots/screenshot-article.webp 1440w"
-									sizes="(max-width: 900px) 100vw, 1440px"
-									decoding="async"
-									alt="Screenshots of an article in mobile and desktop screen sizes."
-									class="object-scale-down"
-								/>
-							</div>
-							<div class="p-4 max-w-prose">
-								<h4 class="text-lg font-medium">Mobile and Desktop friendly</h4>
-								<p class="mt-1">Foragd is a web based online app. It has a responsive design that works in any browser on any device, anywhere.</p>
-							</div>
-						</div>
 						<div class="sm:flex rounded-box shadow-xl items-center justify-center bg-base-200">
 							<div class="p-4 max-w-prose">
 								<h4 class="text-lg font-medium">Powerful Search</h4>
@@ -205,32 +176,101 @@ templ Landing() {
 									perform actions from the search bar.
 								</p>
 							</div>
-							<div class="p-4 mt-4 sm:ml-4 justify-self-center mx-auto">
-								<video controls loop width="900">
-									<source
-										src="/content/screenshots/video-search.webm"
-										type="video/webm"
+							<div class="p-4 mt-4 sm:ml-4 sm:mt-0 justify-self-center mx-auto">
+								<button command="show-modal" commandfor="feature-search" type="button">
+									<figure>
+										<img
+											src="/content/screenshots/video-thumbnail-search.webp"
+											width="514"
+											height="328"
+											decoding="async"
+											alt="Thubnail from video demostrating search."
+											class="rounded-box object-scale-down"
+										/>
+										<figcaption class="italic text-sm">Click/tap to view video</figcaption>
+									</figure>
+								</button>
+								@imagePopup("feature-search") {
+									<video
+										controls
+										height="1128"
+										width="720"
+										class="w-full max-h-screen object-scale-down shadow-xl"
+									>
+										<source
+											src="/content/screenshots/video-search.webm"
+											type="video/webm"
+										/>
+									</video>
+								}
+							</div>
+						</div>
+						<div class="sm:flex rounded-box shadow-xl items-center bg-base-200">
+							<div class="p-4 mb-4 sm:mr-4 sm:mb-0 justify-self-center">
+								<button command="show-modal" commandfor="feature-typography" type="button">
+									<figure>
+										<img
+											src="/content/screenshots/article-content-typography.webp"
+											width="514"
+											height="328"
+											decoding="async"
+											alt="Screenshot of article content showing text and picture formatting."
+											class="rounded-box object-scale-down shadow-xl"
+										/>
+										<figcaption class="italic text-sm">Click/tap to enlarge</figcaption>
+									</figure>
+								</button>
+								@imagePopup("feature-typography") {
+									<img
+										src="/content/screenshots/article-content-typography.webp"
+										width="1440"
+										height="900"
+										decoding="async"
+										alt="Screenshot of article content showing text and picture formatting."
+										class="rounded-box object-scale-down"
 									/>
-								</video>
+								}
+							</div>
+							<div class="p-4 max-w-prose">
+								<h4 class="text-lg font-medium">Designed for content</h4>
+								<p class="mt-1">
+									Pixel perfect text, clear formatting and big pictures. Content takes center stage in
+									the user interface.
+								</p>
 							</div>
 						</div>
 						<div class="sm:flex rounded-box shadow-xl items-center justify-center bg-base-200">
-							<div class="px-4 mb-4 sm:mr-4 justify-self-center mx-auto">
-								<img
-									src="/content/screenshots/screenshot-subscription-edit.webp"
-									srcset="/content/screenshots/screenshot-subscription-edit.webp 900w"
-									sizes="(max-width: 900px) 75vw, 350px"
-									decoding="async"
-									alt="Screenshot of a subscription edit form with filtering options shown."
-									class="rounded-box object-scale-down"
-								/>
-							</div>
 							<div class="p-4 max-w-prose">
 								<h4 class="text-lg font-medium">Customisation and Filtering</h4>
 								<p class="mt-1">
 									Add a nickname and custom categories to a subscription. Filter articles by
 									text/phrase, category or authors, with easy to use operators.
 								</p>
+							</div>
+							<div class="p-4 mt-4 sm:ml-4 sm:mt-0 justify-self-center mx-auto">
+								<button command="show-modal" commandfor="feature-customization" type="button">
+									<figure>
+										<img
+											src="/content/screenshots/edit-subscription.webp"
+											width="514"
+											height="328"
+											decoding="async"
+											alt="Screenshot of a subscription edit form with filtering options shown."
+											class="rounded-box object-scale-down shadow-xl"
+										/>
+										<figcaption class="italic text-sm">Click/tap to enlarge</figcaption>
+									</figure>
+								</button>
+								@imagePopup("feature-customization") {
+									<img
+										src="/content/screenshots/edit-subscription.webp"
+										width="1440"
+										height="900"
+										decoding="async"
+										alt="Screenshot of a subscription edit form with filtering options shown."
+										class="rounded-box object-scale-down"
+									/>
+								}
 							</div>
 						</div>
 					</div>
@@ -520,17 +560,7 @@ type Image struct {
 	Class  string
 }
 
-templ imagePopup(id string, img Image) {
-	<button command="show-modal" commandfor={ id } type="button">
-		<img
-			width={ img.Width }
-			height={ img.Height }
-			decoding="async"
-			src={ img.GetURL() }
-			alt={ img.GetTitle() }
-			class={ img.Class }
-		/>
-	</button>
+templ imagePopup(id string) {
 	<el-dialog>
 		<dialog id={ id } class="relative z-10 backdrop:bg-transparent">
 			<el-dialog-backdrop class="fixed inset-0 hidden bg-primary transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in md:block"></el-dialog-backdrop>
@@ -541,14 +571,7 @@ templ imagePopup(id string, img Image) {
 						class="flex w-full transform text-left text-base transition data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:md:translate-y-0 data-closed:md:scale-95"
 						_="on click remove @open from  the closest <el-dialog/>"
 					>
-						<img
-							width={ img.Width }
-							height={ img.Height }
-							decoding="async"
-							src={ img.GetURL() }
-							alt={ img.GetTitle() }
-							class="w-full max-h-screen object-scale-down shadow-xl"
-						/>
+						{ children... }
 					</el-dialog-panel>
 				</div>
 			</div>
