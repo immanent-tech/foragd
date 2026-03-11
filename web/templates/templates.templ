@@ -119,10 +119,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="preconnect" href="https://imgproxy.foragd.app"/>
 			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
 			<link rel="dns-prefetch" href="//auth.foragd.app"/>
-			// Defer loading: https://web.dev/articles/defer-non-critical-css.
-			<link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.Version } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-			<noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/></noscript>
-			// <link href={ "/content/fonts/inter/inter.css?v=" + config.Version } rel="stylesheet" hx-preserve="true"/>
+			<link href={ "/content/fonts/inter/inter.css?v=" + config.Version } rel="stylesheet" hx-preserve="true"/>
 			if config.CurrentEnvironment == config.EnvProduction {
 				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous" hx-preserve="true"></script>
 			}
