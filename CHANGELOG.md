@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.80.0](https://github.com/immanent-tech/foragd/compare/v0.79.1...v0.80.0) (2026-03-11)
+
+
+### Features
+
+* **templates:** :sparkles: update features on landing page ([e64b382](https://github.com/immanent-tech/foragd/commit/e64b382fb3a7a9b729a2babda01e51a8024dc83c))
+* **templates:** :sparkles: update screenshots on landing page ([0fdf831](https://github.com/immanent-tech/foragd/commit/0fdf8314b160a1e05a675dc85217d88f9cca362a))
+
+
+### Bug Fixes
+
+* **templates:** :bug: add loading indicator on article content pages ([ca3a58f](https://github.com/immanent-tech/foragd/commit/ca3a58fb463ee8f5d80d9cec4616aa54e0c13c4d))
+* **templates:** :bug: straight up load css files to avoid flash of unstyled content ([ffe93b1](https://github.com/immanent-tech/foragd/commit/ffe93b15a57d3782445eb9b286f8ca1958d1afad))
+
 ## [0.79.1](https://github.com/immanent-tech/foragd/compare/v0.79.0...v0.79.1) (2026-03-11)
 
 
