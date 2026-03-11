@@ -134,9 +134,9 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			// Load style bundles from embedded FS.
 			// Defer loading: https://web.dev/articles/defer-non-critical-css.
 			for styleFile := range slices.Values(web.GetStyleFilenames()) {
-				<link rel="preload" href={ filepath.Join("/content", styleFile+"?v="+config.Version) } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-				<noscript><link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.Version) }/></noscript>
-				// <link href={ filepath.Join("/content", styleFile+"?v="+config.Version) } rel="stylesheet" hx-preserve="true"/>
+				// <link rel="preload" href={ filepath.Join("/content", styleFile+"?v="+config.Version) } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+				// <noscript><link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.Version) }/></noscript>
+				<link href={ filepath.Join("/content", styleFile+"?v="+config.Version) } rel="stylesheet" hx-preserve="true"/>
 			}
 			// Site-wide htmx config.
 			<meta
