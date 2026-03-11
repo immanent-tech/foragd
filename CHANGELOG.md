@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.79.1](https://github.com/immanent-tech/foragd/compare/v0.79.0...v0.79.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* **templates:** :bug: quick fix/hack to refresh content on browser back navigation ([42f9aeb](https://github.com/immanent-tech/foragd/commit/42f9aeba8615bdc48dbf3ad93696cca331d360c4))
+
 ## [0.79.0](https://github.com/immanent-tech/foragd/compare/v0.78.0...v0.79.0) (2026-03-10)
 
 
