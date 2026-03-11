@@ -482,6 +482,7 @@ templ (a *Article) Content() {
 							</nav>
 					}
 				</article>
+				@partials.LoadingIndicator("")
 				@partials.ButtonBackToTop()
 				// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 				// read and mark it so (when the user has set this option).
@@ -516,6 +517,7 @@ templ getRemoteContentButton(a *Article) {
 		hx-swap="innerHTML transition:true"
 		hx-replace-url="true"
 		hx-trigger="click consume"
+		hx-indicator="#content-loading"
 		hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
 	>
 		// _="on htmx:afterResponse[detail.failed] add @disabled to me"
