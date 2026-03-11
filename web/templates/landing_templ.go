@@ -189,11 +189,19 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
+		templ_7745c5c3_Err = tabler.Mail(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "Email Newsletters.</dt><dd class=\"inline\">Subscribe to email newsletters as feeds using a custom personal foragd.app address.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
 		templ_7745c5c3_Err = tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "Get remote article content.</dt><dd class=\"inline\">Fetch the remote article content where the feed only shows a summary.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "Get remote article content.</dt><dd class=\"inline\">Fetch the remote article content where the feed only shows a summary.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -201,15 +209,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "Themes.</dt><dd class=\"inline\">Choose between a selection of dark and light themes to your preference.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "Cloud sync.</dt><dd class=\"inline\">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</dd></div></dl></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><p class=\"text-lg/8 text-base-content/80 font-semibold\">And more features planned, such as email newsletters to RSS, semantic search (i.e., show me all articles about android)...</p></div></div></div></div><div class=\"py-24 sm:pt-48\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><h2 id=\"pricing\" class=\"text-base/7 font-semibold text-primary\">Subscriptions and Pricing.</h2><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Keep up to date without breaking the bank</p></div><div class=\"mx-auto my-8 card card-xl bg-base-300 max-w-96 shadow-sm\"><div class=\"card-body\"><h2 class=\"card-title mx-auto\"><span aria-hidden=\"true\">📢</span> Beta Now Open</h2><p>Sign up during the beta period pay nothing now, provide feedback, and get a year free when we launch!</p><span aria-hidden=\"true\" class=\"mx-auto\">🎉 🎉 🎉</span></div></div><div class=\"mt-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "Themes.</dt><dd class=\"inline\">Choose between a selection of dark and light themes to your preference.</dd></div></dl></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><p class=\"text-lg/8 text-base-content/80 font-semibold\">All your preferences and state is synced to the cloud, so you are always up to date with your read/unread content.</p></div></div></div></div><div class=\"py-24 sm:pt-48\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><h2 id=\"pricing\" class=\"text-base/7 font-semibold text-primary\">Subscriptions and Pricing.</h2><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Keep up to date without breaking the bank</p></div><div class=\"mx-auto my-8 card card-xl bg-base-300 max-w-96 shadow-sm\"><div class=\"card-body\"><h2 class=\"card-title mx-auto\"><span aria-hidden=\"true\">📢</span> Beta Now Open</h2><p>Sign up during the beta period pay nothing now, provide feedback, and get a year free when we launch!</p><span aria-hidden=\"true\" class=\"mx-auto\">🎉 🎉 🎉</span></div></div><div class=\"mt-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

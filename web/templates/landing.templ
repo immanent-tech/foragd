@@ -318,6 +318,15 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
+									@tabler.Mail(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
+									Email Newsletters.
+								</dt>
+								<dd class="inline">
+									Subscribe to email newsletters as feeds using a custom personal foragd.app address.
+								</dd>
+							</div>
+							<div class="relative pl-9">
+								<dt class="inline font-semibold">
 									@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 									Get remote article content.
 								</dt>
@@ -334,22 +343,13 @@ templ Landing() {
 									Choose between a selection of dark and light themes to your preference.
 								</dd>
 							</div>
-							<div class="relative pl-9">
-								<dt class="inline font-semibold">
-									@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-									Cloud sync.
-								</dt>
-								<dd class="inline">
-									All your preferences and state is synced to the cloud, so you are always up to date with
-									your read/unread content.
-								</dd>
-							</div>
 						</dl>
 					</div>
 					<div class="mt-16">
 						<div class="mx-auto max-w-4xl sm:text-center">
 							<p class="text-lg/8 text-base-content/80 font-semibold">
-								And more features planned, such as email newsletters to RSS, semantic search (i.e., show me all articles about android)...
+								All your preferences and state is synced to the cloud, so you are always up to date with
+								your read/unread content.
 							</p>
 						</div>
 					</div>
