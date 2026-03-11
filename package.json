@@ -40,7 +40,7 @@
     "esbuild": "^0.27.2",
     "eslint": "^10.0.1",
     "eslint-config-prettier": "^10.1.8",
-    "hono": "^4.12.4",
+    "hono": "^4.12.7",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
