@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.80.1](https://github.com/immanent-tech/foragd/compare/v0.80.0...v0.80.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* :recycle: do not use post requests for list filtering ([208c79e](https://github.com/immanent-tech/foragd/commit/208c79eeeb7b128174d61d522c62497088cbc3ee))
+* **templates:** :bug: straight load fonts css ([5cc540e](https://github.com/immanent-tech/foragd/commit/5cc540e33cf1eaa01cd190d6ca228be84537c336))
+
 ## [0.80.0](https://github.com/immanent-tech/foragd/compare/v0.79.1...v0.80.0) (2026-03-11)
 
 
