@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build:js": "esbuild --bundle --minify ./web/assets/scripts.js --outdir=./web/content/ --format=esm --entry-names=[name]-[hash]",
-    "build:js:dev": "esbuild --bundle --sourcemap ./web/assets/scripts.js --outdir=./web/content/ --format=esm --entry-names=[name]-[hash]",
+    "build:js:dev": "esbuild --bundle --sourcemap ./web/assets/scripts.js --outdir=./web/content/ --format=esm",
     "build:css": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify",
     "build:css:dev": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --map"
   },
