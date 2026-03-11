@@ -143,6 +143,7 @@ templ Landing() {
 							searchable, always in sync, never algorithmic.
 						</p>
 					</div>
+					// Main screenshot.
 					<div class="mt-16 flow-root sm:mt-24">
 						<button command="show-modal" commandfor="main-screenshot" type="button">
 							<img
@@ -163,7 +164,7 @@ templ Landing() {
 								decoding="async"
 								fetchpriority="high"
 								alt="Foragd desktop/mobile screenshots"
-								class="w-full max-h-screen object-scale-down shadow-xl"
+								class="mx-auto w-full sm:max-w-360 object-scale-down"
 							/>
 						}
 					</div>
@@ -171,31 +172,32 @@ templ Landing() {
 						<div class="sm:flex rounded-box shadow-xl items-center justify-center bg-base-200">
 							<div class="p-4 max-w-prose">
 								<h4 class="text-lg font-medium">Powerful Search</h4>
-								<p class="mt-1">
-									Full-text search across subscriptions and articles. Quickly access subscriptions and
-									perform actions from the search bar.
+								<p class="mt-1 text-sm">
+									Full-text search across subscriptions and articles. Easy filtering by keyword or
+									phrase.
 								</p>
 							</div>
+							// Search features highlight.
 							<div class="p-4 mt-4 sm:ml-4 sm:mt-0 justify-self-center mx-auto">
 								<button command="show-modal" commandfor="feature-search" type="button">
-									<figure>
+									<div class="relative inline-block">
 										<img
 											src="/content/screenshots/video-thumbnail-search.webp"
 											width="514"
 											height="328"
 											decoding="async"
 											alt="Thubnail from video demostrating search."
-											class="rounded-box object-scale-down"
+											class="block rounded-box object-scale-down"
 										/>
-										<figcaption class="italic text-sm">Click/tap to view video</figcaption>
-									</figure>
+										@tabler.PlayerPlayFilled(i.Props{Class: "absolute top-[45%] left-[45%]"})
+									</div>
 								</button>
 								@imagePopup("feature-search") {
 									<video
 										controls
 										height="1128"
 										width="720"
-										class="w-full max-h-screen object-scale-down shadow-xl"
+										class="mx-auto w-full sm:max-w-180 h-auto"
 									>
 										<source
 											src="/content/screenshots/video-search.webm"
@@ -205,20 +207,18 @@ templ Landing() {
 								}
 							</div>
 						</div>
+						// Typography features highlight.
 						<div class="sm:flex rounded-box shadow-xl items-center bg-base-200">
 							<div class="p-4 mb-4 sm:mr-4 sm:mb-0 justify-self-center">
 								<button command="show-modal" commandfor="feature-typography" type="button">
-									<figure>
-										<img
-											src="/content/screenshots/article-content-typography.webp"
-											width="514"
-											height="328"
-											decoding="async"
-											alt="Screenshot of article content showing text and picture formatting."
-											class="rounded-box object-scale-down shadow-xl"
-										/>
-										<figcaption class="italic text-sm">Click/tap to enlarge</figcaption>
-									</figure>
+									<img
+										src="/content/screenshots/article-content-typography.webp"
+										width="514"
+										height="328"
+										decoding="async"
+										alt="Screenshot of article content showing text and picture formatting."
+										class="rounded-box object-scale-down shadow-xl"
+									/>
 								</button>
 								@imagePopup("feature-typography") {
 									<img
@@ -227,39 +227,37 @@ templ Landing() {
 										height="900"
 										decoding="async"
 										alt="Screenshot of article content showing text and picture formatting."
-										class="rounded-box object-scale-down"
+										class="mx-auto w-full sm:max-w-360 rounded-box object-scale-down"
 									/>
 								}
 							</div>
 							<div class="p-4 max-w-prose">
 								<h4 class="text-lg font-medium">Designed for content</h4>
-								<p class="mt-1">
+								<p class="mt-1 text-sm">
 									Pixel perfect text, clear formatting and big pictures. Content takes center stage in
 									the user interface.
 								</p>
 							</div>
 						</div>
+						// Customization features highlight.
 						<div class="sm:flex rounded-box shadow-xl items-center justify-center bg-base-200">
 							<div class="p-4 max-w-prose">
 								<h4 class="text-lg font-medium">Customisation and Filtering</h4>
-								<p class="mt-1">
+								<p class="mt-1 text-sm">
 									Add a nickname and custom categories to a subscription. Filter articles by
 									text/phrase, category or authors, with easy to use operators.
 								</p>
 							</div>
 							<div class="p-4 mt-4 sm:ml-4 sm:mt-0 justify-self-center mx-auto">
 								<button command="show-modal" commandfor="feature-customization" type="button">
-									<figure>
-										<img
-											src="/content/screenshots/edit-subscription.webp"
-											width="514"
-											height="328"
-											decoding="async"
-											alt="Screenshot of a subscription edit form with filtering options shown."
-											class="rounded-box object-scale-down shadow-xl"
-										/>
-										<figcaption class="italic text-sm">Click/tap to enlarge</figcaption>
-									</figure>
+									<img
+										src="/content/screenshots/edit-subscription.webp"
+										width="514"
+										height="328"
+										decoding="async"
+										alt="Screenshot of a subscription edit form with filtering options shown."
+										class="rounded-box object-scale-down shadow-xl"
+									/>
 								</button>
 								@imagePopup("feature-customization") {
 									<img
@@ -268,7 +266,7 @@ templ Landing() {
 										height="900"
 										decoding="async"
 										alt="Screenshot of a subscription edit form with filtering options shown."
-										class="rounded-box object-scale-down"
+										class="mx-auto w-full sm:max-w-360 rounded-box object-scale-down"
 									/>
 								}
 							</div>
@@ -288,7 +286,7 @@ templ Landing() {
 									@tabler.Heart(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 									Subscription and article favorites.
 								</dt>
-								<dd class="inline">
+								<dd class="inline ml-2">
 									Mark subscriptions and articles as favorites, to quickly access them later.
 								</dd>
 							</div>
@@ -297,7 +295,7 @@ templ Landing() {
 									@tabler.CategoryPlus(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 									Group subscriptions.
 								</dt>
-								<dd class="inline">
+								<dd class="inline ml-2">
 									Combine multiple feeds into a
 									<a href="/help#group-subscriptions" class="link">
 										group subscription
@@ -309,7 +307,7 @@ templ Landing() {
 									@tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 									Search subscriptions.
 								</dt>
-								<dd class="inline">
+								<dd class="inline ml-2">
 									Save the search terms as a
 									<a href="/help#search-subscriptions" class="link">
 										search subscription
@@ -321,7 +319,7 @@ templ Landing() {
 									@tabler.Mail(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 									Email Newsletters.
 								</dt>
-								<dd class="inline">
+								<dd class="inline ml-2">
 									Subscribe to email newsletters as feeds using a custom personal foragd.app address.
 								</dd>
 							</div>
@@ -330,7 +328,7 @@ templ Landing() {
 									@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 									Get remote article content.
 								</dt>
-								<dd class="inline">
+								<dd class="inline ml-2">
 									Fetch the remote article content where the feed only shows a summary.
 								</dd>
 							</div>
@@ -339,7 +337,7 @@ templ Landing() {
 									@tabler.ColorSwatch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
 									Themes.
 								</dt>
-								<dd class="inline">
+								<dd class="inline ml-2">
 									Choose between a selection of dark and light themes to your preference.
 								</dd>
 							</div>
@@ -348,8 +346,8 @@ templ Landing() {
 					<div class="mt-16">
 						<div class="mx-auto max-w-4xl sm:text-center">
 							<p class="text-lg/8 text-base-content/80 font-semibold">
-								All your preferences and state is synced to the cloud, so you are always up to date with
-								your read/unread content.
+								All your preferences and state is synced across your devices, so you are always up to
+								date with your feeds.
 							</p>
 						</div>
 					</div>
