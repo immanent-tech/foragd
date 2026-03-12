@@ -190,7 +190,14 @@ templ FilterControls(path string, filters *models.ListFilters) {
 					<div id="active-filters" class="-m-1 flex flex-wrap items-center">
 						// Add favorites filter badge if listing subscriptions and favorites filter is active.
 						if path == "/list/subscriptions" && filters.OnlyFavorites {
-							<form id="filter-clear-only-favorites" class="flex items-center">
+							<form
+								id="filter-clear-only-favorites"
+								class="flex items-center"
+								hx-get={ PathFromCtx(ctx) }
+								hx-replace-url="true"
+								hx-target={ ContentID.Target() }
+								hx-vals={ `{"only_favorites": "false"}` }
+							>
 								<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 								<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 								<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
@@ -200,16 +207,12 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								for category := range slices.Values(filters.GetCategories()) {
 									<input type="hidden" name={ models.ParamCategories } value={ category }/>
 								}
-								@NewCategoryBadge("Favorites").Render("badge-secondary", "m-1") {
-									<button
-										hx-get={ PathFromCtx(ctx) }
-										hx-replace-url="true"
-										hx-target={ ContentID.Target() }
-										hx-vals={ `{"only_favorites": "false"}` }
-									>
+								<div class="badge badge-secondary m-1 flex items-center">
+									Favorites
+									<button type="submit" aria-label="Clear favorites filter">
 										@tabler.X(i.Props{Class: "size-4"})
 									</button>
-								}
+								</div>
 							</form>
 						}
 						if len(filters.GetCategories()) > 0 {
