@@ -363,9 +363,9 @@ func FilterControls(path string, filters *models.ListFilters) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var17 string
-					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(models.PathFromCtx(ctx))
+					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(PathFromCtx(ctx))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/controls.templ`, Line: 205, Col: 42}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/controls.templ`, Line: 205, Col: 35}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 					if templ_7745c5c3_Err != nil {

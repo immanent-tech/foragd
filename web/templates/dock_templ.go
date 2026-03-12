@@ -41,7 +41,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		pageURL := models.PathFromCtx(ctx)
+		pageURL := PathFromCtx(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<footer aria-label=\"Footer Navigation\" id=\"page-dock\" class=\"dock bg-base-200 border-t border-base-content/10 lg:hidden text-primary\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

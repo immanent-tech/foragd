@@ -141,7 +141,7 @@ func refreshOnHistoryRestore(next http.Handler) http.Handler {
 // storePath stores the current request path in the context.
 func storePath(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := models.PathToCtx(req.Context(), req.URL.Path)
+		ctx := templates.PathToCtx(req.Context(), req.URL.Path)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }

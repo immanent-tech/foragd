@@ -202,7 +202,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								}
 								@NewCategoryBadge("Favorites").Render("badge-secondary", "m-1") {
 									<button
-										hx-get={ models.PathFromCtx(ctx) }
+										hx-get={ PathFromCtx(ctx) }
 										hx-replace-url="true"
 										hx-target={ ContentID.Target() }
 										hx-vals={ `{"only_favorites": "false"}` }

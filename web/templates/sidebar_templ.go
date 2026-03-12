@@ -73,7 +73,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 = []any{"text-primary", templ.KV("underline underline-offset-4 decoration-4", models.PathFromCtx(ctx) == models.RouteHome)}
+		var templ_7745c5c3_Var3 = []any{"text-primary", templ.KV("underline underline-offset-4 decoration-4", PathFromCtx(ctx) == models.RouteHome)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var3...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -125,7 +125,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var7 = []any{"text-primary", templ.KV("underline underline-offset-4 decoration-4", models.PathFromCtx(ctx) == models.RouteListSubscriptions)}
+		var templ_7745c5c3_Var7 = []any{"text-primary", templ.KV("underline underline-offset-4 decoration-4", PathFromCtx(ctx) == models.RouteListSubscriptions)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var7...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -177,7 +177,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var11 = []any{"text-primary", templ.KV("underline underline-offset-4 decoration-4", models.PathFromCtx(ctx) == models.RouteListArticles)}
+		var templ_7745c5c3_Var11 = []any{"text-primary", templ.KV("underline underline-offset-4 decoration-4", PathFromCtx(ctx) == models.RouteListArticles)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var11...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -216,7 +216,7 @@ func SideBar(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var14 = []any{"text-primary", templ.KV("underline underline-offset-4 decoration-4", models.PathFromCtx(ctx) == models.RouteListFavorites)}
+		var templ_7745c5c3_Var14 = []any{"text-primary", templ.KV("underline underline-offset-4 decoration-4", PathFromCtx(ctx) == models.RouteListFavorites)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var14...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

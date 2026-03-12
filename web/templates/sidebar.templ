@@ -30,7 +30,7 @@ templ SideBar(attributes templ.Attributes) {
 						>
 							<span class="sr-only">Go to Home Page</span>
 							@tabler.HomeFilled(i.Props{Class: "size-10 shrink-0 text-primary"})
-							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",models.PathFromCtx(ctx) == models.RouteHome) }>Home</span>
+							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",PathFromCtx(ctx) == models.RouteHome) }>Home</span>
 						</a>
 					</li>
 					<li>
@@ -45,7 +45,7 @@ templ SideBar(attributes templ.Attributes) {
 						>
 							<span class="sr-only">Go to Subscriptions</span>
 							@tabler.Rss(i.Props{Class: "size-10 shrink-0 text-primary"})
-							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",models.PathFromCtx(ctx) == models.RouteListSubscriptions) }>Subscriptions</span>
+							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",PathFromCtx(ctx) == models.RouteListSubscriptions) }>Subscriptions</span>
 						</a>
 					</li>
 					<li>
@@ -60,7 +60,7 @@ templ SideBar(attributes templ.Attributes) {
 						>
 							<span class="sr-only">Go to Articles</span>
 							@tabler.FileRssFilled(i.Props{Class: "size-10 shrink-0 text-primary"})
-							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",models.PathFromCtx(ctx) == models.RouteListArticles) }>Articles</span>
+							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",PathFromCtx(ctx) == models.RouteListArticles) }>Articles</span>
 						</a>
 					</li>
 					<li>
@@ -74,7 +74,7 @@ templ SideBar(attributes templ.Attributes) {
 						>
 							<span class="sr-only">Go to Favorites</span>
 							@tabler.HeartFilled(i.Props{Class: "size-10 shrink-0 text-primary"})
-							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",models.PathFromCtx(ctx) == models.RouteListFavorites) }>Favorites</span>
+							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",PathFromCtx(ctx) == models.RouteListFavorites) }>Favorites</span>
 						</a>
 					</li>
 				</ul>
