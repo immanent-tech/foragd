@@ -7,6 +7,10 @@
   "containerEnv": {
     "HOME": "/home/vscode"
   },
+  "forwardPorts": [
+    6060,
+    6061
+  ],
   "remoteEnv": {
     "PODMAN_COMPOSE_WARNING_LOGS": "false",
     "TZ": "${localEnv:TZ:Australia/Brisbane}",

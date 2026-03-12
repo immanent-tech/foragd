@@ -28,9 +28,7 @@ services:
       - seccomp:unconfined
     hostname: devcontainer
     ports:
-      - $FORAGD_SERVER_PORT:$FORAGD_SERVER_PORT
-      - 6060:6060
-      - 6061:6061
+      - $PORT:$PORT
     ulimits:
       nofile:
         soft: 65535
@@ -358,10 +356,10 @@ services:
     image: ghcr.io/imgproxy/imgproxy:$IMAGEPROXY_VERSION
     env_file:
       - .env
-      - ../.env.development
     environment:
-      IMGPROXY_KEY: 7c3e9eecb5f62436587d86aba82b16a1efcbcaa95469e9923a72822bcacb284d77bd16f1427e20693733c5f24fadfb2c468dabe533d94152006f04e8121080b2
-      IMGPROXY_SALT: d94a9bf2767e97c0d28e6514b3ebfb2a6eb82e0929bc0d028df93bf337ce99899f9077edf4dfc67c57fdee1c50a1f9f860277930725234d6c814ab0c66712d2f
+      IMGPROXY_KEY: $IMGPROXY_KEY
+      IMGPROXY_SALT: $IMGPROXY_SALT
+      IMGPROXY_FALLBACK_IMAGE_URL: $IMGPROXY_FALLBACK_IMAGE_URL
       IMGPROXY_USE_ETAG: "true"
       IMGPROXY_USE_LAST_MODIFIED: "true"
       IMGPROXY_CACHE_CONTROL_PASSTHROUGH: "true"
