@@ -8,8 +8,8 @@
       "path": "[[workspace]]/web/assets/docs/policies"
     },
     {
-      "title": "posts",
-      "path": "[[workspace]]/web/assets/docs/posts"
+      "title": "blog",
+      "path": "[[workspace]]/web/assets/docs/blog"
     }
   ],
   "frontMatter.taxonomy.contentTypes": [
