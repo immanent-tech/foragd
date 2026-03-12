@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/session"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"strings"
@@ -28,7 +29,7 @@ templ Dock(attributes templ.Attributes) {
 		<a
 			hx-get="/list/subscriptions"
 			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
+			hx-vals={ templ.JSONString(session.GetListSubscriptionFiltersFromSession(ctx)) }
 			hx-params={ "not " + models.ParamSubscriptions }
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/list/subscriptions")) }
@@ -37,11 +38,10 @@ templ Dock(attributes templ.Attributes) {
 			<span class="sr-only">Go to Subscriptions</span>
 			<span class="dock-label">Subscriptions</span>
 		</a>
-		{{ filters := models.NewListDisplayFilters() }}
 		<a
 			hx-get="/list/articles"
 			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(filters.Values()) }
+			hx-vals={ templ.JSONString(session.GetListArticleFiltersFromSession(ctx)) }
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/list/articles")) }
 			if strings.HasPrefix(pageURL, "/view/article") {

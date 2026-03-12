@@ -114,7 +114,9 @@ func NewCategoryBadge(category models.Category) CategoryBadge {
 // Render will render the CategoryBadge.
 templ (c CategoryBadge) Render(classes ...string) {
 	<div class={ "badge", templ.KV(strings.Join(classes," "),len(classes)>0) }>
-		{ c }
-		{ children... }
+		<span class="flex items-center">
+			{ c }
+			{ children... }
+		</span>
 	</div>
 }

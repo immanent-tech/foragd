@@ -18,22 +18,11 @@ import (
 
 // ListCategories handles returning a list of categories that can be used for filtering subscriptions or articles.
 func ListCategories() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseListFilters).
+	return defaultHandlerChain.
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Decode filters.
-			filters, _, err := forms.DecodeForm[*models.ListFilters](req)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to parse list categories request",
-					slog.Any("error", err),
-				)
-				RenderPartial(&PartialTemplate{
-					template: templates.CategoryFilters(&models.CategoryFilters{}),
-				}).ServeHTTP(res, req)
-				return
-			}
-
 			switch {
 			case strings.HasPrefix(req.URL.Path, "/list/subscriptions"):
+				filters := getListSubscriptionsFilters(req)
 				// Parse the list of displayed subscriptions.
 				request, valid, err := forms.DecodeForm[*models.ListSubscriptionCategoriesRequest](req)
 				if err != nil {
@@ -78,6 +67,7 @@ func ListCategories() http.HandlerFunc {
 					),
 				}).ServeHTTP(res, req)
 			case strings.HasPrefix(req.URL.Path, "/list/articles"):
+				filters := getListArticleFilters(req)
 				user := models.UserFromCtx(req.Context())
 				if user == nil {
 					slogctx.FromCtx(req.Context()).Warn("Could not get user data.")

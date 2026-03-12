@@ -26,6 +26,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/validation"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
@@ -62,10 +63,10 @@ func (p *ListArticles) PartialResponse(res http.ResponseWriter, req *http.Reques
 
 // HandleListArticles handles fetching articles based on the given page filters and displaying them.
 func HandleListArticles() http.HandlerFunc {
-	return listHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Build request object.
 		pagination := req.FormValue(models.ParamPagination)
-		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+		filters := getListArticleFilters(req)
 		request := &models.ListRequest{
 			Filters:    *filters,
 			Pagination: &pagination,
@@ -660,4 +661,25 @@ func updateFavoriteArticle(
 		}
 	}
 	return nil
+}
+
+func getListArticleFilters(req *http.Request) *models.ListFilters {
+	// Parse and process filters.
+	filters, valid, err := forms.DecodeForm[*models.ListFilters](req)
+	switch {
+	case err != nil:
+		slogctx.FromCtx(req.Context()).Warn("Unable to decode article filters. Using filters from session.",
+			slog.Any("error", err),
+			slog.Any("filters", filters),
+		)
+		// Try to restore filters from session.
+		filters = session.GetListArticleFiltersFromSession(req.Context())
+	case !valid:
+		slogctx.FromCtx(req.Context()).Warn("Invalid subscription filters. Creating new filters.")
+		session.StoreListArticleFiltersInSession(req.Context(), models.NewListDisplayFilters())
+	default:
+		session.StoreListArticleFiltersInSession(req.Context(), *filters)
+	}
+
+	return filters
 }

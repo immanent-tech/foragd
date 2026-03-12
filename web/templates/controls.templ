@@ -363,6 +363,7 @@ templ categoryFilterOption(path, id string, category models.CategoryCount, filte
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
 		hx-trigger="change"
+		hx-params="not displayed_subscriptions,subscriptions,subscription_id"
 	>
 		<input type="hidden" name={ models.ParamCategories } value={ category.Category }/>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
@@ -408,27 +409,27 @@ templ clearCategoryFiltersOption(path, id string, filters *models.ListFilters) {
 
 templ activeCategoryFilterBadge(path string, category models.Category, filters *models.ListFilters) {
 	<div hx-swap-oob="beforeend:#active-filters">
-		@NewCategoryBadge(category).Render("badge-secondary", "m-1") {
-			<form id={ "clear-filter-category-" + strings.ToLower(strings.ReplaceAll(category, " ", "_")) }>
-				<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-				<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-				<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-				for subscription := range slices.Values(filters.GetSubscriptions()) {
-					<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
-				}
-				<li>
-					<a
-						hx-get={ path }
-						hx-target={ ContentID.Target() }
-						hx-replace-url="true"
-						hx-swap="innerHTML transition:true"
-						hx-params="not categories"
-					>
-						@tabler.X(i.Props{Class: "size-4"})
-					</a>
-				</li>
-			</form>
-		}
+		<form
+			id={ "clear-filter-category-" + strings.ToLower(strings.ReplaceAll(category, " ", "_")) }
+			hx-get={ path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-params="not categories"
+		>
+			<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
+			<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
+			<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
+			for subscription := range slices.Values(filters.GetSubscriptions()) {
+				<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+			}
+			<div class="badge badge-secondary m-1 flex items-center">
+				{ category }
+				<button type="submit" aria-label={ "Clear category filter " + category }>
+					@tabler.X(i.Props{Class: "size-4"})
+				</button>
+			</div>
+		</form>
 	</div>
 }
 

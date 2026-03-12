@@ -137,18 +137,22 @@ templ (s *Subscription) Card() {
 				<div class="flex justify-start my-2">
 					<div class="flex flex-row flex-wrap p-2 gap-2">
 						for category := range slices.Values(s.Subscription.GetCategories(5)) {
-							{{ filters := models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values() }}
-							{{ filters[models.ParamCategories] = category }}
-							<a
+							{{ filters := models.NewListDisplayFilters() }}
+							{{ filters.Categories = append(filters.Categories, category) }}
+							<form
 								hx-get="/list/subscriptions"
 								hx-target={ ContentID.Target() }
 								hx-vals={ templ.JSONString(filters) }
-								hx-trigger="click consume"
-								hx-params="not subscriptions"
-								class="link link-hover"
+								hx-params="not subscriptions,subscription_id"
 							>
-								<span class="badge badge-sm badge-outline">{ category }</span>
-							</a>
+								<button
+									type="submit"
+									class="link link-hover"
+									_="on click halt the event's bubbling"
+								>
+									<span class="badge badge-sm badge-outline">{ category }</span>
+								</button>
+							</form>
 						}
 					</div>
 				</div>
@@ -1440,7 +1444,7 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 		<button
 			hx-get="/list/subscriptions"
 			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
+			hx-vals={ templ.JSONString(models.NewListDisplayFilters()) }
 			class="btn-primary"
 		>
 			Go to your subscriptions

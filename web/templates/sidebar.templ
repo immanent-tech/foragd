@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/session"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
@@ -36,7 +37,7 @@ templ SideBar(attributes templ.Attributes) {
 						<a
 							hx-trigger="click,globalShortcutSubscriptions"
 							hx-get="/list/subscriptions"
-							hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/subscriptions").Values()) }
+							hx-vals={ templ.JSONString(session.GetListSubscriptionFiltersFromSession(ctx).Values()) }
 							hx-target={ ContentID.Target() }
 							hx-swap="innerHTML show:window:top transition:true"
 							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
@@ -51,7 +52,7 @@ templ SideBar(attributes templ.Attributes) {
 						<a
 							hx-trigger="click,globalShortcutArticles"
 							hx-get="/list/articles"
-							hx-vals={ templ.JSONString(models.PageFiltersFromCtx(ctx, "/list/articles").Values()) }
+							hx-vals={ templ.JSONString(session.GetListArticleFiltersFromSession(ctx).Values()) }
 							hx-target={ ContentID.Target() }
 							hx-swap="innerHTML show:window:top transition:true"
 							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"

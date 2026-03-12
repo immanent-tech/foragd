@@ -14,11 +14,15 @@ import (
 	"github.com/alexedwards/scs/v2"
 
 	"github.com/immanent-tech/foragd/config"
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/server/session/store"
 )
 
 const (
 	sessionLifetime = 24 * time.Hour
+
+	listSubscriptionFiltersKey = "listSubscriptionFilters"
+	listArticleFiltersKey      = "listArticleFilters"
 )
 
 var manager *scs.SessionManager
@@ -78,4 +82,32 @@ func Clear(ctx context.Context) error {
 // LoadAndSave middleware handles loading the session data for a request and saving any modifications.
 func LoadAndSave(next http.Handler) http.Handler {
 	return manager.LoadAndSave(next)
+}
+
+func GetListSubscriptionFiltersFromSession(ctx context.Context) *models.ListFilters {
+	restored, err := Restore[models.ListFilters](ctx, listSubscriptionFiltersKey)
+	if err != nil {
+		// Use new filters if unable to restore from session or form data.
+		restored = models.NewListDisplayFilters()
+	}
+
+	return &restored
+}
+
+func StoreListSubscriptionFiltersInSession(ctx context.Context, filters models.ListFilters) {
+	Save(ctx, listSubscriptionFiltersKey, filters)
+}
+
+func GetListArticleFiltersFromSession(ctx context.Context) *models.ListFilters {
+	restored, err := Restore[models.ListFilters](ctx, listArticleFiltersKey)
+	if err != nil {
+		// Use new filters if unable to restore from session or form data.
+		restored = models.NewListDisplayFilters()
+	}
+
+	return &restored
+}
+
+func StoreListArticleFiltersInSession(ctx context.Context, filters models.ListFilters) {
+	Save(ctx, listArticleFiltersKey, filters)
 }

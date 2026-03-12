@@ -33,6 +33,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/server/forms"
+	"github.com/immanent-tech/foragd/server/session"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -68,10 +69,12 @@ func (p *ListSubscriptions) PartialResponse(res http.ResponseWriter, req *http.R
 
 // HandleListSubscriptions handles displaying a list of subscriptions.
 func HandleListSubscriptions() http.HandlerFunc {
-	return listHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		filters := getListSubscriptionsFilters(req)
+
 		// Generate request object.
 		request := &models.ListRequest{
-			Filters:    *models.PageFiltersFromCtx(req.Context(), req.URL.Path),
+			Filters:    *filters,
 			Pagination: new(req.FormValue(models.ParamPagination)),
 		}
 		if err := request.Valid(); err != nil {
@@ -175,7 +178,7 @@ func HandleMarkSubscription() http.HandlerFunc {
 				if err := setRedirect(res, htmxext.HXLocationRequest{
 					Path:   "/list/subscriptions",
 					Target: templates.ContentID.Target(),
-					Values: models.PageFiltersFromCtx(req.Context(), "/list/subscriptions").Values(),
+					Values: getListSubscriptionsFilters(req).Values(),
 				}); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Unable to set redirect", slog.Any("error", err))
 				}
@@ -230,7 +233,7 @@ func HandleMarkSubscriptions() http.HandlerFunc {
 			err = setRedirect(res, htmxext.HXLocationRequest{
 				Path:   "/list/subscriptions",
 				Target: templates.ContentID.Target(),
-				Values: models.PageFiltersFromCtx(req.Context(), req.URL.Path).Values(),
+				Values: getListSubscriptionsFilters(req).Values(),
 			})
 		}
 		if err != nil {
@@ -1371,4 +1374,25 @@ func getSubscriptionCategorySuggestions(
 	}
 
 	return suggestions
+}
+
+func getListSubscriptionsFilters(req *http.Request) *models.ListFilters {
+	// Parse and process filters.
+	filters, valid, err := forms.DecodeForm[*models.ListFilters](req)
+	switch {
+	case err != nil:
+		slogctx.FromCtx(req.Context()).Warn("Unable to subscription filters. Using filters from session.",
+			slog.Any("error", err),
+			slog.Any("filters", filters),
+		)
+		// Try to restore filters from session.
+		filters = session.GetListSubscriptionFiltersFromSession(req.Context())
+	case !valid:
+		slogctx.FromCtx(req.Context()).Warn("Invalid subscription filters. Creating new filters.")
+		session.StoreListSubscriptionFiltersInSession(req.Context(), models.NewListDisplayFilters())
+	default:
+		session.StoreListSubscriptionFiltersInSession(req.Context(), *filters)
+	}
+
+	return filters
 }

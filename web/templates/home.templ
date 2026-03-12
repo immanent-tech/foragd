@@ -160,8 +160,8 @@ templ UserHome(data *models.HomeResponse) {
 								<div class="flex justify-center gap-2 p-2 m-2">
 									<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
 										for category := range data.TopCategories {
-											{{ params := models.PageFiltersFromCtx(ctx, "/list/articles").Values() }}
-											{{ params[models.ParamCategories] = category.Category }}
+											{{ params := models.NewListDisplayFilters() }}
+											{{ params.Categories = append(params.Categories, category.Category) }}
 											<a
 												hx-get="/list/articles"
 												hx-target={ ContentID.Target() }

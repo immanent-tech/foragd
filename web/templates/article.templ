@@ -6,6 +6,7 @@ package templates
 import (
 	"fmt"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
@@ -294,7 +295,7 @@ templ (a *Article) Content() {
 					// Subscription link.
 					<div class="flex flex-1 pb-4">
 						<form>
-							{{ filters := models.PageFiltersFromCtx(ctx, "/list/articles") }}
+							{{ filters := session.GetListArticleFiltersFromSession(ctx) }}
 							<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 							<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 							<input type="hidden" name={ models.ParamSort } value={ filters.GetSort() }/>

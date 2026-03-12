@@ -121,8 +121,9 @@ func HandleHome() http.HandlerFunc {
 // WatchHome handles watching the home page content (namely, latest articles) for updates.
 func WatchHome() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
-		query, err := models.BuildItemsQuery(req.Context(), filters)
+		// filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+		filters := models.NewListDisplayFilters()
+		query, err := models.BuildItemsQuery(req.Context(), &filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
 				slog.Any("error", err))

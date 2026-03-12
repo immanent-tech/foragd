@@ -39,7 +39,7 @@ func (p *Favorites) PartialResponse(res http.ResponseWriter, req *http.Request) 
 
 // HandleListFavorites handles fetching the favorite subscriptions and articles of a user and showing them in a grid layout.
 func HandleListFavorites() http.HandlerFunc {
-	return listHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		var (
 			articles      models.Articles
 			subscriptions models.Subscriptions

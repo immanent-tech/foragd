@@ -31,8 +31,6 @@ import (
 
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
-	"github.com/immanent-tech/foragd/server/forms"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
@@ -44,7 +42,6 @@ var (
 )
 
 var defaultHandlerChain = alice.New(storePath)
-var listHandlerChain = defaultHandlerChain.Append(parseListFilters, refreshOnHistoryRestore)
 
 var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
 	return goldmark.New(
@@ -141,39 +138,6 @@ func refreshOnHistoryRestore(next http.Handler) http.Handler {
 	})
 }
 
-// parseListFilters will extract filters for (subscription/article) lists from the request and updated any stored
-// filters.
-func parseListFilters(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		sessionKey := "path_" + req.URL.Path
-
-		filters, valid, err := forms.DecodeForm[*models.ListFilters](req)
-		switch {
-		case err != nil:
-			slogctx.FromCtx(req.Context()).Warn("Unable to parse new filters. Using filters from session.",
-				slog.Any("error", err),
-				slog.Any("filters", filters),
-			)
-			// Try to restore filters from session.
-			restored, err := session.Restore[models.ListFilters](req.Context(), sessionKey)
-			if err != nil {
-				// Use new filters if unable to restore from session or form data.
-				restored = models.NewListDisplayFilters()
-			}
-			filters = &restored
-		case !valid:
-			slogctx.FromCtx(req.Context()).Warn("Invalid filters. Creating new filters.")
-			newFilters := models.NewListDisplayFilters()
-			session.Save(req.Context(), sessionKey, newFilters)
-		default:
-			session.Save(req.Context(), sessionKey, *filters)
-		}
-
-		ctx := models.PageFiltersToCtx(req.Context(), req.URL.Path, filters)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
 // storePath stores the current request path in the context.
 func storePath(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -184,11 +148,12 @@ func storePath(next http.Handler) http.Handler {
 
 // WatchList handles watching a list of object for any updates and rendering a notification to the user to refresh the page.
 func WatchList() http.HandlerFunc {
-	return defaultHandlerChain.Append(parseListFilters).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Retrieve current filters.
-		filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		filters := models.NewListDisplayFilters()
+		// // Retrieve current filters.
+		// filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 		// Create a query to find new items.
-		query, err := models.BuildItemsQuery(req.Context(), filters)
+		query, err := models.BuildItemsQuery(req.Context(), &filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
 				slog.Any("error", err))

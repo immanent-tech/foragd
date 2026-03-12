@@ -527,8 +527,8 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								return templ_7745c5c3_Err
 							}
 							for category := range data.TopCategories {
-								params := models.PageFiltersFromCtx(ctx, "/list/articles").Values()
-								params[models.ParamCategories] = category.Category
+								params := models.NewListDisplayFilters()
+								params.Categories = append(params.Categories, category.Category)
 								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<a hx-get=\"/list/articles\" hx-target=\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
