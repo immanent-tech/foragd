@@ -127,7 +127,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module" crossorigin="anonymous" hx-preserve="true"></script>
 			// Load script bundles from embedded FS.
 			for scriptFile := range slices.Values(web.GetScriptFilenames()) {
-				<script src={ filepath.Join("/content", scriptFile) } type="module" hx-preserve="true"></script>
+				<script src={ filepath.Join("/content", scriptFile+"?v="+config.Version) } type="module" hx-preserve="true"></script>
 			}
 			// Load style bundles from embedded FS.
 			// Defer loading: https://web.dev/articles/defer-non-critical-css.
