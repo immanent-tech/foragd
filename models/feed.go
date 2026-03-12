@@ -625,10 +625,10 @@ func FeedURLParser(ctx context.Context, urlStr string) (*url.URL, error) {
 		}
 	case strings.HasSuffix(feedURL.Host, "tumblr.com"):
 		switch {
-		case !strings.HasPrefix(feedURL.Path, "feed") && !strings.HasPrefix(feedURL.Path, "feed/"):
+		case !strings.HasPrefix(feedURL.Path, "rss") && !strings.HasPrefix(feedURL.Path, "rss/"):
 			// Tumblr blogs usually have their feed at the "/feed" path.
 			var err error
-			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/feed"); err != nil {
+			if feedURL.Path, err = url.JoinPath(feedURL.Path, "/rss"); err != nil {
 				slogctx.FromCtx(ctx).Warn("Could not create create canonical Tumblr RSS url.",
 					slog.Any("err", err),
 				)
