@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.80.3](https://github.com/immanent-tech/foragd/compare/v0.80.2...v0.80.3) (2026-03-12)
+
+
+### Bug Fixes
+
+* :bug: improved session save/restore on list pages ([992e229](https://github.com/immanent-tech/foragd/commit/992e22928f759b63b02c6e7b3d59f77050a421bc))
+* **templates:** :wheelchair: hide decorative app icons ([73968ea](https://github.com/immanent-tech/foragd/commit/73968ea47fb1f66b1893b93c8ac6ba43ecff39ea))
+* **templates/partials:** :lipstick: improved styling of headers ([86c4a41](https://github.com/immanent-tech/foragd/commit/86c4a4114545d7c42c3ebfe94e36c3577aa65b9a))
+
+
+### Performance Improvements
+
+* **templates:** :zap: add cache-busting param to scripts bundle ([3e7cc2b](https://github.com/immanent-tech/foragd/commit/3e7cc2bf007859247326036a60ee61d132cfefd1))
+
 ## [0.80.2](https://github.com/immanent-tech/foragd/compare/v0.80.1...v0.80.2) (2026-03-11)
 
 
