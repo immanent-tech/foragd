@@ -611,10 +611,35 @@ type Options struct {
 	Indices []string `arg:"" default:"all" enum:"all,feeds,feed_status,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
 }
 
-// CreateSchemas performs all requested schema migrations.
+// CreateIndices creates indices and appropriate read/write aliases.
+func CreateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
+	// If no indices are specified, create indices for all items.
+	if slices.Contains(opts.Indices, "all") {
+		opts.Indices = allIndices
+	}
+	for prefix := range slices.Values(opts.Indices) {
+		index := generateIndexName(prefix)
+		writeAlias := prefix + indexWriteSuffix
+		readAlias := prefix + indexReadSuffix
+		// Create a scheduler index if one doesn't exist.
+		if _, err := createIndexIfNotExists(ctx, api, prefix); err != nil {
+			return fmt.Errorf("create index: %w", err)
+		}
+		// Add appropriate aliases.
+		if err := updateAlias(ctx, api, readAlias, index); err != nil {
+			return fmt.Errorf("add read alias: %w", err)
+		}
+		if err := updateAlias(ctx, api, writeAlias, index); err != nil {
+			return fmt.Errorf("add write alias: %w", err)
+		}
+	}
+	return nil
+}
+
+// UpdateSchemas performs all requested schema migrations.
 //
 //nolint:maintidx // will not reduce size
-func CreateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
+func UpdateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
 		opts.Indices = allIndices
@@ -762,28 +787,23 @@ func migrateIndexTemplates(
 	return nil
 }
 
-func getStatusCode(err error) int {
-	var esErr *types.ElasticsearchError
-	if errors.As(err, &esErr) {
-		return esErr.Status
-	}
-	return http.StatusInternalServerError
-}
-
-// Migrate performs all requested schema migrations.
-func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
+// MigrateData performs all requested schema migrations.
+func MigrateData(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
 		opts.Indices = allIndices
 	}
 
 	for index := range slices.Values(opts.Indices) {
-		var err error
 		switch index {
 		case itemsSchemaPrefix:
-			err = migrateIndexData(ctx, api, itemsSchemaPrefix, nil)
+			if err := migrateIndexData(ctx, api, itemsSchemaPrefix, nil); err != nil {
+				return fmt.Errorf("migrate items: %w", err)
+			}
 		case usersSchemaPrefix:
-			err = migrateIndexData(ctx, api, usersSchemaPrefix, nil)
+			if err := migrateIndexData(ctx, api, usersSchemaPrefix, nil); err != nil {
+				return fmt.Errorf("migrate users: %w", err)
+			}
 			// ingest.NewIngestPipeline(
 			// 	ingest.WithProcessor(types.ProcessorContainer{
 			// 		Rename: &types.RenameProcessor{
@@ -799,18 +819,23 @@ func Migrate(ctx context.Context, api *elasticsearch.TypedClient, opts *Options)
 			// 	}),
 			// ),
 		case schedulerIndexPrefix:
-			err = migrateIndexData(ctx, api, schedulerIndexPrefix, nil)
+			if err := migrateIndexData(ctx, api, schedulerIndexPrefix, nil); err != nil {
+				return fmt.Errorf("migrate scheduler: %w", err)
+			}
 		// case feedStatusIndexPrefix:
 		// 	err = migrateIndexData(ctx, api, feedStatusIndexPrefix, nil)
 		case feedsIndexPrefix:
-			err = migrateIndexData(ctx, api, feedsIndexPrefix, nil)
+			if err := migrateIndexData(ctx, api, feedsIndexPrefix, nil); err != nil {
+				return fmt.Errorf("migrate feeds: %w", err)
+			}
 		case subscriptionsSchemaPrefix:
-			err = migrateIndexData(ctx, api, subscriptionsSchemaPrefix, nil)
+			if err := migrateIndexData(ctx, api, subscriptionsSchemaPrefix, nil); err != nil {
+				return fmt.Errorf("migrated subscriptions: %w", err)
+			}
 		case sessionsSchemaPrefix:
-			err = migrateIndexData(ctx, api, sessionsSchemaPrefix, nil)
-		}
-		if err != nil {
-			return fmt.Errorf("could not migrate users: %w", err)
+			if err := migrateIndexData(ctx, api, sessionsSchemaPrefix, nil); err != nil {
+				return fmt.Errorf("migrate sessions: %w", err)
+			}
 		}
 	}
 	return nil
@@ -822,7 +847,7 @@ func migrateIndexData(
 	prefix string,
 	pipeline *putpipeline.Request,
 ) error {
-	index := strings.Join([]string{prefix, config.Version, time.Now().Format("20060102150405")}, "-")
+	index := generateIndexName(prefix)
 	writeAlias := prefix + indexWriteSuffix
 	readAlias := prefix + indexReadSuffix
 
@@ -836,7 +861,7 @@ func migrateIndexData(
 	}
 
 	// Create index.
-	if err := createIndexIfNotExists(ctx, api, prefix); err != nil {
+	if _, err := createIndexIfNotExists(ctx, api, prefix); err != nil {
 		return fmt.Errorf("could not create index %s: %w", index, err)
 	}
 	// Update the write alias.
@@ -920,17 +945,17 @@ func updateAlias(ctx context.Context, api *elasticsearch.TypedClient, alias stri
 	return nil
 }
 
-func createIndexIfNotExists(ctx context.Context, api *elasticsearch.TypedClient, prefix string) error {
-	index := strings.Join([]string{prefix, config.Version, time.Now().Format("20060102150405")}, "-")
+func createIndexIfNotExists(ctx context.Context, api *elasticsearch.TypedClient, prefix string) (bool, error) {
+	index := generateIndexName(prefix)
 	// Create index.
 	found, err := api.Indices.Exists(index).Do(ctx)
 	if err != nil {
-		return fmt.Errorf("could not determine %s index state: %w", index, err)
+		return found, fmt.Errorf("could not determine %s index state: %w", index, err)
 	}
 	if !found {
 		_, err = api.Indices.Create(index).Do(ctx)
 		if err != nil {
-			return fmt.Errorf("could not create index %s: %w", index, err)
+			return found, fmt.Errorf("could not create index %s: %w", index, err)
 		}
 		slogctx.FromCtx(ctx).Info("New index created.",
 			slog.String("name", index),
@@ -940,5 +965,17 @@ func createIndexIfNotExists(ctx context.Context, api *elasticsearch.TypedClient,
 		slog.String("name", index),
 	)
 
-	return nil
+	return found, nil
+}
+
+func generateIndexName(prefix string) string {
+	return strings.Join([]string{prefix, config.Version, time.Now().Format("20060102150405")}, "-")
+}
+
+func getStatusCode(err error) int {
+	var esErr *types.ElasticsearchError
+	if errors.As(err, &esErr) {
+		return esErr.Status
+	}
+	return http.StatusInternalServerError
 }

@@ -15,15 +15,16 @@ import (
 )
 
 type SchemaCmd struct {
-	Update  UpdateCmd  `cmd:"update"  help:"Update schema(s)"`
-	Migrate MigrateCmd `cmd:"migrate" help:"Migrate schema(s)"`
+	Update  UpdateSchemaCmd  `cmd:"update"  help:"Update schema(s)"`
+	Migrate MigrateDataCmd   `cmd:"migrate" help:"Migrate data"`
+	Create  CreateIndciesCmd `cmd:"create"  help:"Create indices"`
 }
 
-type UpdateCmd struct {
+type UpdateSchemaCmd struct {
 	schema.Options
 }
 
-func (r *UpdateCmd) Run(opts *UpdateCmd) error {
+func (r *UpdateSchemaCmd) Run(opts *UpdateSchemaCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
@@ -33,18 +34,18 @@ func (r *UpdateCmd) Run(opts *UpdateCmd) error {
 		return fmt.Errorf("update schemas: %w", err)
 	}
 	// Perform migrations.
-	err = schema.CreateSchemas(ctx, elasticClient.TypedClient, &opts.Options)
+	err = schema.UpdateSchemas(ctx, elasticClient.TypedClient, &opts.Options)
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}
 	return nil
 }
 
-type MigrateCmd struct {
+type MigrateDataCmd struct {
 	schema.Options
 }
 
-func (r *MigrateCmd) Run(opts *MigrateCmd) error {
+func (r *MigrateDataCmd) Run(opts *MigrateDataCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
@@ -54,9 +55,30 @@ func (r *MigrateCmd) Run(opts *MigrateCmd) error {
 		return fmt.Errorf("update schemas: %w", err)
 	}
 	// Perform migrations.
-	err = schema.Migrate(ctx, elasticClient.TypedClient, &opts.Options)
+	err = schema.MigrateData(ctx, elasticClient.TypedClient, &opts.Options)
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
+	}
+	return nil
+}
+
+type CreateIndciesCmd struct {
+	schema.Options
+}
+
+func (r *CreateIndciesCmd) Run(opts *CreateIndciesCmd) error {
+	// Set up context.
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
+	// Load the Elastic backend
+	elasticClient, err := elastic.NewConnection()
+	if err != nil {
+		return fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+	// Perform migrations.
+	err = schema.CreateIndices(ctx, elasticClient.TypedClient, &opts.Options)
+	if err != nil {
+		return fmt.Errorf("create indices: %w", err)
 	}
 	return nil
 }
