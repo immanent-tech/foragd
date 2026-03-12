@@ -142,7 +142,7 @@ templ (s *Subscription) Card() {
 							<form
 								hx-get="/list/subscriptions"
 								hx-target={ ContentID.Target() }
-								hx-vals={ templ.JSONString(filters) }
+								hx-vals={ templ.JSONString(filters.Values()) }
 								hx-params="not subscriptions,subscription_id"
 							>
 								<button
@@ -1441,10 +1441,11 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 		}
 	</ul>
 	<div class="py-4">
+		{{ filters := models.NewListDisplayFilters() }}
 		<button
 			hx-get="/list/subscriptions"
 			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(models.NewListDisplayFilters()) }
+			hx-vals={ templ.JSONString(filters.Values()) }
 			class="btn-primary"
 		>
 			Go to your subscriptions
