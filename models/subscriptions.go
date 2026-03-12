@@ -703,15 +703,15 @@ func ProcessSubscriptionRequest(
 
 		// Try to find an image for the feed if it does not supply one.
 		if newFeed.GetImage() == nil {
-			og, err := opengraph.ParseURL(ctx, newFeed.GetLink())
-			if err != nil {
+			if og, err := opengraph.ParseURL(ctx, newFeed.GetLink()); err != nil {
 				slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
 					slog.String("feed", newFeed.GetTitle()),
 				)
-			}
-			newFeed.Image = &RemoteImage{
-				URL:   new(og.Image),
-				Title: new(newFeed.GetDescription()),
+			} else {
+				newFeed.Image = &RemoteImage{
+					URL:   new(og.Image),
+					Title: new(newFeed.GetDescription()),
+				}
 			}
 		}
 		// Validate the new feed data.
