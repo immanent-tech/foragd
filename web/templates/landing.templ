@@ -13,20 +13,20 @@ import (
 templ Landing() {
 	<div class="bg-base-100">
 		<header aria-label="Header" class="absolute inset-x-0 top-0 z-50">
-			<nav aria-label="Global" class="flex items-center justify-between p-6 lg:px-8 w-full">
+			<nav aria-label="Global" class="flex w-full items-center justify-between p-6 lg:px-8">
 				<div class="flex lg:hidden">
 					<button aria-label="Open main menu" type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5">
 						@tabler.Menu2(i.Props{Class: "text-primary"})
 					</button>
 				</div>
 				<div class="hidden lg:flex lg:gap-x-12">
-					<a href="/about" class="link link-hover text-sm/6 font-semibold text-primary">About</a>
-					<a href="#features" class="link link-hover text-sm/6 font-semibold text-primary" _="on click go to #features smoothly">Features</a>
-					<a href="#pricing" class="link link-hover text-sm/6 font-semibold text-primary" _="on click go to #pricing smoothly">Pricing</a>
-					<a href="/viewer" class="link link-hover text-sm/6 font-semibold text-primary">Feed Viewer</a>
+					<a href="/about" class="link text-sm/6 font-semibold text-primary link-hover">About</a>
+					<a href="#features" class="link text-sm/6 font-semibold text-primary link-hover" _="on click go to #features smoothly">Features</a>
+					<a href="#pricing" class="link text-sm/6 font-semibold text-primary link-hover" _="on click go to #pricing smoothly">Pricing</a>
+					<a href="/viewer" class="link text-sm/6 font-semibold text-primary link-hover">Feed Viewer</a>
 				</div>
 				<div class="hidden lg:flex lg:flex-1 lg:justify-end">
-					<a href="/login" class="link link-hover text-sm/6 font-semibold text-primary">Log in <span aria-hidden="true">&rarr;</span></a>
+					<a href="/login" class="link text-sm/6 font-semibold text-primary link-hover">Log in <span aria-hidden="true">&rarr;</span></a>
 				</div>
 			</nav>
 			<el-dialog>
@@ -42,7 +42,7 @@ templ Landing() {
 												<path id="path1" class="st0" d="m480.01 31.996c-133.45-70.359-271.75-15.094-360.02 73.172-80.391 80.406-109.95 236.17-63.719 314.2l-56.281 56.281 36.359 36.344 56.281-56.266c78.031 46.219 233.8 16.672 314.19-63.718 88.281-88.265 143.55-226.58 73.188-360.02zm-58.328 195.42-107.66-2.516-81.641 81.641 123.03 3.984-1.234 38.063-158.72-5.109-64.188 64.172-26.922-26.922 64.172-64.188-5.109-158.72 38.063-1.234 3.969 123.03 81.641-81.641-2.5-107.66 38.078-0.875 1.656 71.297 70.859-70.859 26.938 26.922-70.859 70.875 71.313 1.656z" fill="#7b9984" stroke="#7b9984" stroke-width=".99853"></path>
 											</g><ellipse id="path33" cx="53.02" cy="94.191" rx="9.253" ry="9.2525" fill="#7b9984" stroke="#7b9984" stroke-width="10"></ellipse>
 										</svg>
-										<p class="font-bold text-primary hidden lg:flex">Foragd</p>
+										<p class="hidden font-bold text-primary lg:flex">Foragd</p>
 									</div>
 								</a>
 								<button aria-label="Close menu" type="button" command="close" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-neutral">
@@ -52,13 +52,13 @@ templ Landing() {
 							<div class="mt-6 flow-root">
 								<div class="-my-6 divide-y divide-neutral">
 									<div class="space-y-2 py-6">
-										<a href="/about" class="link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary">About</a>
-										<a href="/#features" class="link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary">Features</a>
-										<a href="/#pricing" class="link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary">Pricing</a>
-										<a href="/viewer" class="link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary">Feed Viewer</a>
+										<a href="/about" class="-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover">About</a>
+										<a href="/#features" class="-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover">Features</a>
+										<a href="/#pricing" class="-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover">Pricing</a>
+										<a href="/viewer" class="-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover">Feed Viewer</a>
 									</div>
 									<div class="py-6">
-										<a href="/login" class="link link-hover -mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral">Log in</a>
+										<a href="/login" class="-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral link-hover">Log in</a>
 									</div>
 								</div>
 							</div>
@@ -90,35 +90,33 @@ templ Landing() {
 								</g>
 							</svg>
 						</div>
-						<div class="mx-auto max-w-2xl mt-16 sm:mt-24 text-center">
+						<div class="mx-auto mt-16 max-w-2xl text-center sm:mt-24">
 							<h1 class="text-5xl font-semibold tracking-tight text-balance sm:text-7xl">
 								Foragd&nbsp;<sup class="text-sm uppercase">beta</sup>
 							</h1>
 							<p
-								class="mt-8 text-lg font-medium text-pretty
-							sm:text-xl/8"
+								class="mt-8 text-lg font-medium text-pretty sm:text-xl/8"
 							>
 								Tired of algorithmic feeds deciding what you see? Take back control of your reading.
 								Follow any website, blog, or newsletter in one place.
 							</p>
 							<div
-								class="mt-10 flex items-center
-							justify-center gap-x-6"
+								class="mt-10 flex items-center justify-center gap-x-6"
 							>
 								<a
-									class="btn btn-primary text-sm/6 font-semibold"
+									class="btn text-sm/6 font-semibold btn-primary"
 									_="on click go to #features smoothly"
 								>
 									See features
 								</a>
 								<a
-									class="btn btn-primary text-sm/6 font-semibold"
+									class="btn text-sm/6 font-semibold btn-primary"
 									_="on click go to #pricing smoothly"
 								>
 									Start a free trial
 								</a>
 							</div>
-							<div class="text-sm/6 font-semibold mt-5">
+							<div class="mt-5 text-sm/6 font-semibold">
 								Already have an account?<a href="/login" class="link">&nbsp;Log in</a>
 							</div>
 						</div>
@@ -130,12 +128,12 @@ templ Landing() {
 			</div>
 			// Features.
 			<div id="features" class="mt-32 sm:mt-56">
-				<div class="mx-auto max-w-7xl px-6 mb-12 lg:px-8">
+				<div class="mx-auto mb-12 max-w-7xl px-6 lg:px-8">
 					<div class="mx-auto max-w-4xl text-center">
 						<h2 class="mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
 							A beautiful, web based, online feed reader.
 						</h2>
-						<p class="mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">
+						<p class="mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">
 							Your internet, your way. One place for every feed, newsletter, and article. All fully
 							searchable, always in sync, never algorithmic.
 						</p>
@@ -160,13 +158,13 @@ templ Landing() {
 								height="1440"
 								decoding="async"
 								alt="Foragd desktop/mobile screenshots"
-								class="mx-auto w-full sm:max-w-360 object-scale-down"
+								class="mx-auto w-full object-scale-down sm:max-w-360"
 							/>
 						}
 					</div>
 					<div class="space-y-8">
-						<div class="sm:flex rounded-box shadow-xl items-center justify-center bg-base-200">
-							<div class="p-4 max-w-prose">
+						<div class="items-center justify-center rounded-box bg-base-200 shadow-xl sm:flex">
+							<div class="max-w-prose p-4">
 								<h3 class="text-lg font-medium">Powerful Search</h3>
 								<p class="mt-1 text-sm">
 									Full-text search across subscriptions and articles. Easy filtering by keyword or
@@ -174,7 +172,7 @@ templ Landing() {
 								</p>
 							</div>
 							// Search features highlight.
-							<div class="p-4 mt-4 sm:ml-4 sm:mt-0 justify-self-center mx-auto">
+							<div class="mx-auto mt-4 justify-self-center p-4 sm:mt-0 sm:ml-4">
 								<button command="show-modal" commandfor="feature-search" type="button">
 									<div class="relative inline-block">
 										<img
@@ -193,7 +191,7 @@ templ Landing() {
 										controls
 										height="1128"
 										width="720"
-										class="mx-auto w-full sm:max-w-180 h-auto"
+										class="mx-auto h-auto w-full sm:max-w-180"
 									>
 										<source
 											src="/content/screenshots/video-search.webm"
@@ -204,8 +202,8 @@ templ Landing() {
 							</div>
 						</div>
 						// Typography features highlight.
-						<div class="sm:flex rounded-box shadow-xl items-center bg-base-200">
-							<div class="p-4 mb-4 sm:mr-4 sm:mb-0 justify-self-center">
+						<div class="items-center rounded-box bg-base-200 shadow-xl sm:flex">
+							<div class="mb-4 justify-self-center p-4 sm:mr-4 sm:mb-0">
 								<button command="show-modal" commandfor="feature-typography" type="button">
 									<img
 										src="/content/screenshots/article-content-typography.webp"
@@ -223,11 +221,11 @@ templ Landing() {
 										height="900"
 										decoding="async"
 										alt="Screenshot of article content showing text and picture formatting."
-										class="mx-auto w-full sm:max-w-360 rounded-box object-scale-down"
+										class="mx-auto w-full rounded-box object-scale-down sm:max-w-360"
 									/>
 								}
 							</div>
-							<div class="p-4 max-w-prose">
+							<div class="max-w-prose p-4">
 								<h3 class="text-lg font-medium">Designed for content</h3>
 								<p class="mt-1 text-sm">
 									Pixel perfect text, clear formatting and big pictures. Content takes center stage in
@@ -236,15 +234,15 @@ templ Landing() {
 							</div>
 						</div>
 						// Customization features highlight.
-						<div class="sm:flex rounded-box shadow-xl items-center justify-center bg-base-200">
-							<div class="p-4 max-w-prose">
+						<div class="items-center justify-center rounded-box bg-base-200 shadow-xl sm:flex">
+							<div class="max-w-prose p-4">
 								<h3 class="text-lg font-medium">Customisation and Filtering</h3>
 								<p class="mt-1 text-sm">
 									Add a nickname and custom categories to a subscription. Filter articles by
 									text/phrase, category or authors, with easy to use operators.
 								</p>
 							</div>
-							<div class="p-4 mt-4 sm:ml-4 sm:mt-0 justify-self-center mx-auto">
+							<div class="mx-auto mt-4 justify-self-center p-4 sm:mt-0 sm:ml-4">
 								<button command="show-modal" commandfor="feature-customization" type="button">
 									<img
 										src="/content/screenshots/edit-subscription.webp"
@@ -262,7 +260,7 @@ templ Landing() {
 										height="900"
 										decoding="async"
 										alt="Screenshot of a subscription edit form with filtering options shown."
-										class="mx-auto w-full sm:max-w-360 rounded-box object-scale-down"
+										class="mx-auto w-full rounded-box object-scale-down sm:max-w-360"
 									/>
 								}
 							</div>
@@ -270,7 +268,7 @@ templ Landing() {
 					</div>
 					<div class="mt-16">
 						<div class="mx-auto max-w-4xl sm:text-center">
-							<h3 class="text-lg/8 text-base-content/80 font-semibold">
+							<h3 class="text-lg/8 font-semibold text-base-content/80">
 								And additional features:
 							</h3>
 						</div>
@@ -284,7 +282,7 @@ templ Landing() {
 									</div>
 									Subscription and article favorites.
 								</dt>
-								<dd class="inline ml-2">
+								<dd class="ml-2 inline">
 									Mark subscriptions and articles as favorites, to quickly access them later.
 								</dd>
 							</div>
@@ -295,7 +293,7 @@ templ Landing() {
 									</div>
 									Group subscriptions.
 								</dt>
-								<dd class="inline ml-2">
+								<dd class="ml-2 inline">
 									Combine multiple feeds into a
 									<a href="/help#group-subscriptions" class="link">
 										group subscription
@@ -309,7 +307,7 @@ templ Landing() {
 									</div>
 									Search subscriptions.
 								</dt>
-								<dd class="inline ml-2">
+								<dd class="ml-2 inline">
 									Save the search terms as a
 									<a href="/help#search-subscriptions" class="link">
 										search subscription
@@ -323,7 +321,7 @@ templ Landing() {
 									</div>
 									Email Newsletters.
 								</dt>
-								<dd class="inline ml-2">
+								<dd class="ml-2 inline">
 									Subscribe to email newsletters as feeds using a custom personal foragd.app address.
 								</dd>
 							</div>
@@ -334,7 +332,7 @@ templ Landing() {
 									</div>
 									Get remote article content.
 								</dt>
-								<dd class="inline ml-2">
+								<dd class="ml-2 inline">
 									Fetch the remote article content where the feed only shows a summary.
 								</dd>
 							</div>
@@ -345,7 +343,7 @@ templ Landing() {
 									</div>
 									Themes.
 								</dt>
-								<dd class="inline ml-2">
+								<dd class="ml-2 inline">
 									Choose between a selection of dark and light themes to your preference.
 								</dd>
 							</div>
@@ -353,7 +351,7 @@ templ Landing() {
 					</div>
 					<div class="mt-16">
 						<div class="mx-auto max-w-4xl sm:text-center">
-							<p class="text-lg/8 text-base-content/80 font-semibold">
+							<p class="text-lg/8 font-semibold text-base-content/80">
 								All your preferences and state is synced across your devices, so you are always up to
 								date with your feeds.
 							</p>
@@ -375,9 +373,9 @@ templ Landing() {
 					// <p class="mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">
 					// 	All subscription plans come with a 14-day free trial. Cancel any time.
 					// </p>
-					<div class="mx-auto my-8 card card-xl bg-base-300 max-w-96 shadow-sm">
+					<div class="card mx-auto my-8 max-w-96 bg-base-300 shadow-sm card-xl">
 						<div class="card-body">
-							<h2 class="card-title mx-auto"><span aria-hidden="true">📢</span> Beta Now Open</h2>
+							<h2 class="mx-auto card-title"><span aria-hidden="true">📢</span> Beta Now Open</h2>
 							<p>Sign up during the beta period pay nothing now, provide feedback, and get a year free when we launch!</p>
 							<span aria-hidden="true" class="mx-auto">🎉 🎉 🎉</span>
 						</div>
@@ -386,13 +384,12 @@ templ Landing() {
 						@pricingGrid(models.RouteSignup, "get", "TheOne-85297d6", "")
 					</div>
 					<div class="mx-auto max-w-4xl text-center">
-						<p class="mt-6 mx-auto max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">
+						<p class="mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80">
 							Beta pricing. Sign up to lock in the price before launch. Got questions about pricing or
 							features?
 							<a
 								href="mailto:hello@immanent.tech&subject=Pricing"
-								class="link
-							text-base-content/80"
+								class="link text-base-content/80"
 							>
 								Email Us.
 							</a>
@@ -517,8 +514,7 @@ templ Landing() {
 									type="button"
 									command="--toggle"
 									commandfor="faq-opensource"
-									class="flex w-full
-								items-start justify-between text-left"
+									class="flex w-full items-start justify-between text-left"
 								>
 									<span class="text-base/7 font-semibold">Is Foragd open source?</span>
 									<span class="ml-6 flex h-7 items-center">
@@ -531,8 +527,7 @@ templ Landing() {
 								<dd class="mt-2 pr-12">
 									<p class="text-base/7">
 										Yes! Foragd is open source. You can find the source code <a
-	class="link
-										link-hover"
+	class="link link-hover"
 	href="https://github.com/immanent-tech/foragd"
 >on GitHub</a>.
 									</p>
@@ -543,7 +538,7 @@ templ Landing() {
 				</div>
 			</div>
 			// CTA.
-			<div class="relative -z-10 py-10 px-6 lg:px-8">
+			<div class="relative -z-10 px-6 py-10 lg:px-8">
 				<div class="mx-auto max-w-2xl text-center">
 					<h2 class="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
 						Rediscover the web. Start using Foragd today.
