@@ -25,7 +25,7 @@ templ searchCommands() {
 			<div tabindex="0" class="fixed inset-0 w-screen overflow-y-auto p-4 focus:outline-none sm:p-6 md:p-20">
 				<el-dialog-panel class="mx-auto block max-w-2xl transform overflow-hidden rounded-xl bg-base-300 shadow-2xl outline-1 outline-primary/5 backdrop-blur-sm backdrop-filter transition-all data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in">
 					<el-command-palette>
-						<div class="grid grid-cols-1 border-b border-primary/10 items-center">
+						<div class="grid grid-cols-1 items-center border-b border-primary/10">
 							<input
 								id="command-text"
 								name="command-text"
@@ -82,7 +82,7 @@ templ searchCommands() {
 								hx-trigger="keyup changed delay:500ms from:#command-text"
 							></el-command-group>
 							<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="pages-group-label">
-								<div id="pages-group-label" class="text-base-content/80 font-semibold px-3 py-4">Pages</div>
+								<div id="pages-group-label" class="px-3 py-4 font-semibold text-base-content/80">Pages</div>
 								<a
 									href="/home"
 									hidden
@@ -130,7 +130,7 @@ templ searchCommands() {
 								</a>
 							</el-command-group>
 							<el-command-group hidden class="block text-sm text-base-content" aria-labelledby="actions-group-label">
-								<div id="actions-group-label" class="text-base-content/80 font-semibold px-3 py-4">Actions</div>
+								<div id="actions-group-label" class="px-3 py-4 font-semibold text-base-content/80">Actions</div>
 								<a
 									href="/user/subscription/add/feed"
 									hx-get="/user/subscription/add/feed"
@@ -185,7 +185,7 @@ templ searchCommands() {
 }
 
 templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
-	<div id="subscriptions-group-label" class="text-base-content/80 font-semibold px-3 py-4">Subscriptions</div>
+	<div id="subscriptions-group-label" class="px-3 py-4 font-semibold text-base-content/80">Subscriptions</div>
 	for subscription := range slices.Values(subscriptions) {
 		<a
 			href={ subscriptionViewArticlesLink(subscription) }
@@ -207,78 +207,70 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 					)
 				}
 			</div>
-			<div class="ml-3 flex-auto text-pretty line-clamp-1 tracking-tight">{ subscription.GetTitle() }</div>
+			<div class="ml-3 line-clamp-1 flex-auto tracking-tight text-pretty">{ subscription.GetTitle() }</div>
 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Go to...</span>
 		</a>
 	}
 }
 
-templ searchBox() {
-	<el-popover-group class="w-full sm:max-w-3xl">
-		<div class="w-full input input-primary text-base sm:text-sm/6 placeholder:text-base-content/80 bg-base-300 brightness-95">
-			<span aria-hidden="true">
-				@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
-			</span>
-			<input
-				hx-get="/search"
-				hx-target={ ContentID.Target() }
-				hx-include="#search-filters,[id='timezone']"
-				hx-trigger="keydown[key=='Enter'] consume"
-				hx-sync="#search-suggestions-popover:replace"
-				id="global-search"
-				type="search"
-				name="text"
-				placeholder="Search..."
-				spellcheck="false"
-				autocomplete="off"
-				aria-label="Search"
-				_="
+templ Search() {
+	<div class="input w-full bg-base-300 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6">
+		<span aria-hidden="true">
+			@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
+		</span>
+		<input
+			hx-get="/search"
+			hx-target={ ContentID.Target() }
+			hx-include="#search-filters,[id='timezone']"
+			hx-trigger="keydown[key=='Enter'] consume"
+			hx-sync="#search-suggestions-popover:replace"
+			id="global-search"
+			type="search"
+			name="text"
+			placeholder="Search..."
+			spellcheck="false"
+			autocomplete="off"
+			aria-label="Search"
+			_="
 				on keydown from body if the event's key is 'q' and event.altKey then focus() me end
 				"
-			/>
-			<button
-				hx-post="/search/suggestions"
-				hx-target="#search-suggestions-popover"
-				hx-include="#search-filters,[id='timezone'],[id='global-search']"
-				hx-trigger="keyup changed delay:500ms from:#global-search"
-				hx-sync="#global-search:drop"
-				hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
-				popovertarget="search-suggestions-popover"
-				type="button"
-				aria-label="Search suggestions"
-			>
-				<div aria-hidden="true">
-					@tabler.ChevronDown(i.Props{Class: "pointer-events-none flex-none text-primary"})
-				</div>
-			</button>
-			<el-popover
-				id="search-suggestions-popover"
-				anchor="bottom end"
-				popover
-				role="listbox"
-				class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px] h-fit max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm divide-y divide-primary/80 outline-1 -outline-offset-1 outline-base-content/15"
-			></el-popover>
-			// _="on keydown[event.key == 'ArrowDown'] from #global-search if document.activeElement != me then focus() me"
-			<button
-				type="button"
-				popovertarget="search-filters-popover"
-				tabindex="0"
-				aria-label="Search filters"
-			>
-				<span aria-hidden="true">
-					@tabler.Filter(i.Props{Class: "flex-none text-primary"})
-				</span>
-			</button>
-			<el-popover
-				popover
-				id="search-filters-popover"
-				anchor="bottom end"
-				class="w-full [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:12px] p-4 sm:p-6 max-h-9/10 overflow-y-auto bg-base-300 rounded-box shadow-sm outline-1 -outline-offset-1 outline-base-content/15"
-			>
-				@SearchFilters(models.NewSearchRequest(), nil)
-			</el-popover>
-		</div>
-	</el-popover-group>
+		/>
+		<button
+			hx-post="/search/suggestions"
+			hx-target="#search-suggestions-popover"
+			hx-include="#search-filters,[id='timezone'],[id='global-search']"
+			hx-trigger="keyup changed delay:500ms from:#global-search"
+			hx-sync="#global-search:drop"
+			hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
+			popovertarget="search-suggestions-popover"
+			type="button"
+			aria-label="Search suggestions"
+		>
+			<div aria-hidden="true">
+				@tabler.ChevronDown(i.Props{Class: "pointer-events-none flex-none text-primary"})
+			</div>
+		</button>
+		<el-popover
+			id="search-suggestions-popover"
+			anchor="bottom end"
+			popover
+			role="listbox"
+			class="h-fit max-h-9/10 w-full divide-y divide-primary/80 rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px]"
+		></el-popover>
+		<button command="show-modal" commandfor="advanced-search-dialog">
+			@tabler.Adjustments(i.Props{Class: "text-primary"})
+		</button>
+	</div>
+	<el-dialog>
+		<dialog id="advanced-search-dialog" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
+			<el-dialog-backdrop></el-dialog-backdrop>
+			<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-left focus:outline-none sm:items-center sm:p-0">
+				<el-dialog-panel class="relative w-full transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:max-w-3xl sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
+					@AdvancedSearch(models.NewSearchRequest(), nil)
+				</el-dialog-panel>
+			</div>
+		</dialog>
+	</el-dialog>
 }
 
 // SearchSuggestions will render suggestions for a given search.
@@ -382,7 +374,7 @@ templ SearchResults(results *models.SearchResults) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<div id="header" class="flex items-center justify-between mt-4">
+				<div id="header" class="mt-4 flex items-center justify-between">
 					// Page title.
 					<div class="min-w-0 flex-1">
 						@partials.Heading1() {
@@ -404,7 +396,7 @@ templ SearchResults(results *models.SearchResults) {
 									hx-post="/list/articles/mark/read"
 									hx-target={ ContentID.Target() }
 									hx-include="#grid-objects"
-									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
 									role="menuitem"
 									tabindex="-1"
 								>
@@ -421,7 +413,7 @@ templ SearchResults(results *models.SearchResults) {
 									hx-post="/list/articles/mark/unread"
 									hx-target={ ContentID.Target() }
 									hx-include="#grid-objects"
-									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
 									role="menuitem"
 									tabindex="-1"
 								>
@@ -436,7 +428,7 @@ templ SearchResults(results *models.SearchResults) {
 									hx-get={ "/edit/subscription/" + *results.Search.SubscriptionID }
 									hx-target={ ContentID.Target() }
 									hx-swap="innerHTML show:window:top transition:true"
-									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
 									role="menuitem"
 									tabindex="-1"
 								>
@@ -448,7 +440,7 @@ templ SearchResults(results *models.SearchResults) {
 									hx-get="/user/subscription/add/search"
 									hx-target={ ContentID.Target() }
 									hx-include="#search-filters"
-									class="group/item link link-hover flex items-center rounded-md px-3 py-2 text-sm focus:outline-hidden focus:bg-primary focus:text-primary-content gap-x-2"
+									class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
 									role="menuitem"
 									tabindex="-1"
 								>
@@ -478,8 +470,8 @@ templ SearchResults(results *models.SearchResults) {
 					// 	class="toast toast-center z-50"
 					// ></div>
 					if len(results.Articles) > 1 {
-						<div class="flex justify-center gap-2 p-2 m-2">
-							<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+						<div class="m-2 flex justify-center gap-2 p-2">
+							<div id="top-categories" class="flex flex-row flex-wrap place-content-center gap-2 p-2">
 								for category := range slices.Values(results.Categories) {
 									{{ search := results.Search }}
 									{{ search.Categories = &category }}
@@ -489,7 +481,7 @@ templ SearchResults(results *models.SearchResults) {
 										hx-vals={ search.HXVals() }
 										class="link link-hover"
 									>
-										<span class="badge badge-secondary badge-lg line-clamp-1">
+										<span class="badge line-clamp-1 badge-lg badge-secondary">
 											{ category }
 										</span>
 									</a>
@@ -532,66 +524,56 @@ templ SearchResults(results *models.SearchResults) {
 	}
 }
 
-templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) {
+templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) {
 	// Search form.
 	<div id="search-filters" { attributes... }>
-		<div class="grid grid-cols-1 gap-x-6 gap-y-2 sm:gap-y-8 sm:grid-cols-6 md:col-span-2">
+		<h3 id="search-filters-dialog-title" class="text-base font-semibold">Advanced Search</h3>
+		<div class="grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-6 sm:gap-y-8 md:col-span-2">
 			// Full text search filter.
-			<fieldset class="fieldset col-span-full">
+			<fieldset class="col-span-full fieldset">
 				<legend class="fieldset-legend">Includes the words</legend>
-				<label class="input input-sm input-primary w-full bg-base-300 brightness-95 mt-2">
-					<input
-						id="search-text"
-						type="text"
-						name="text"
-						if request.Text != "" {
-							value={ request.Text }
-						}
-						placeholder="e.g. cat dog -mouse..."
-						_="on change from #global-search set my value to #global-search.value"
-					/>
-					<button
-						id="clear-search-text"
-						type="button"
-						tabindex="0"
-						_="on click set #search-text.value to ''"
-						aria-label="Clear search text"
-					>
-						<div aria-hidden="true">
-							@tabler.CircleX(i.Props{Class: "flex-none text-primary"})
-						</div>
-					</button>
-				</label>
+				<textarea
+					rows="2"
+					id="search-text"
+					type="text"
+					name="text"
+					placeholder={ `+keyword -"some phrase"` }
+					class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+				>
+					if request.Text != "" {
+						{ request.Text }
+					}
+				</textarea>
 			</fieldset>
 			// Categories filter.
 			<fieldset class="fieldset sm:col-span-3">
 				<legend class="fieldset-legend">Categories</legend>
-				<label for="search-categories" class="input input-sm input-primary bg-base-300 brightness-95">
-					<input
-						id="search-categories"
-						type="text"
-						name="categories"
-						autocomplete="off"
-						if request.Categories != nil {
-							value={ *request.Categories }
-						}
-					/>
-				</label>
+				<textarea
+					id="search-categories"
+					type="text"
+					name="categories"
+					placeholder="favorite-category -unwanted-category"
+					class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+				>
+					if request.Categories != nil {
+						{ *request.Categories }
+					}
+				</textarea>
 			</fieldset>
 			// Authors filter.
 			<fieldset class="fieldset sm:col-span-3">
 				<legend class="fieldset-legend">Authors</legend>
-				<label for="search-authors" class="input input-sm input-primary bg-base-300 brightness-95">
-					<input
-						id="search-authors"
-						type="text"
-						name="authors"
-						autocomplete="off"
-						if request.Authors != nil {
-							value={ *request.Authors }
-						}
-					/>
-				</label>
+				<textarea
+					id="search-authors"
+					type="text"
+					name="authors"
+					placeholder="bob +jenny@blog.me"
+					class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+				>
+					if request.Authors != nil {
+						{ *request.Authors }
+					}
+				</textarea>
 			</fieldset>
 			// Subscriptions filter.
 			<fieldset class="fieldset sm:col-span-full">
@@ -603,7 +585,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 					hx-params="subscription-text"
 					hx-swap="innerHTML"
 				>
-					<label for="search-subscriptions-suggest" class="flex items-center input input-sm input-primary bg-base-300 brightness-95 w-full">
+					<label for="search-subscriptions-suggest" class="input input-sm flex w-full items-center bg-base-300 brightness-95 input-primary">
 						<div aria-hidden="true">
 							@tabler.Search(i.Props{Class: "text-primary"})
 						</div>
@@ -616,7 +598,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 					</label>
 				</form>
 				<div
-					class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+					class="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3 sm:px-6 lg:px-8"
 					id="search-subscriptions-options"
 					hx-target="#search-subscriptions"
 					hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
@@ -625,7 +607,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 				></div>
 				<div
 					id="search-subscriptions"
-					class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+					class="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3 sm:px-6 lg:px-8"
 					aria-live="polite"
 				>
 					for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
@@ -683,7 +665,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			// Date range filter.
 			<fieldset class="fieldset sm:col-span-2">
 				<legend class="fieldset-legend">Published Within</legend>
-				<select id="search-published-within" name="published_within" class="select select-sm select-primary my-2 bg-base-300 brightness-95">
+				<select id="search-published-within" name="published_within" class="select my-2 bg-base-300 select-sm brightness-95 select-primary">
 					<option
 						value="last_hour"
 						if request.PublishedWithin == models.SearchRequestPublishedWithinLastHour {
@@ -725,7 +707,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			// Sort option.
 			<fieldset class="fieldset sm:col-span-2">
 				<legend class="fieldset-legend">Sort By</legend>
-				<select id="search-sort" name="sort" class="select select-sm select-primary my-2 bg-base-300 brightness-95">
+				<select id="search-sort" name="sort" class="select my-2 bg-base-300 select-sm brightness-95 select-primary">
 					<option
 						value={ string(models.SortMostRelevant) }
 						if request.Sort == models.SortMostRelevant {
@@ -748,52 +730,51 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 					>Oldest First</option>
 				</select>
 			</fieldset>
-		</div>
-		<div class="mt-6 flex items-center justify-end gap-x-6">
-			<button
-				type="button"
-				class="btn btn-sm btn-secondary hover:btn-error"
-				_="on click hidePopover() on #search-filters-popover"
-			>Cancel</button>
-			<form
-				id="search-results"
-				hx-get="/search"
-				hx-target={ ContentID.Target() }
-				hx-include="[id='timezone'],#search-filters"
-				hx-params="not subscription-text"
-				hx-on::before-request="document.getElementById('search-filters-popover').hidePopover()"
-			>
+			<div class="col-span-full mt-6 flex items-center justify-end gap-x-6">
 				<button
-					type="submit"
-					class="btn btn-sm btn-primary"
-				>Search</button>
-			</form>
-		</div>
-		// Help dialog.
-		<div class="absolute right-2 top-2">
-			<button
-				id="filter-operators-help-button"
-				popovertarget="filter-operators-help"
-				type="button"
-				class="btn btn-circle btn-ghost btn-xs text-info"
-				aria-label="Search filters help"
-			>
-				<div aria-hidden="true">
+					type="button"
+					class="btn btn-sm btn-secondary hover:btn-error"
+					command="close"
+					commandfor="advanced-search-dialog"
+				>Cancel</button>
+				<form
+					id="search-results"
+					hx-get="/search"
+					hx-target={ ContentID.Target() }
+					hx-include="[id='timezone'],#search-filters"
+					hx-params="not subscription-text"
+					hx-on::before-request="document.getElementById('advanced-search-dialog').close()"
+				>
+					<button
+						type="submit"
+						class="btn btn-sm btn-primary"
+					>Search</button>
+				</form>
+			</div>
+			// Help dialog.
+			<div class="absolute top-2 right-2">
+				<button
+					id="filter-operators-help-button"
+					popovertarget="filter-operators-help"
+					type="button"
+					class="btn btn-circle text-info btn-ghost btn-xs"
+					aria-label="Search filters help"
+				>
 					@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
-				</div>
-			</button>
-			<el-popover popover="hint" id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
-				<div class="card-body bg-base-300 shadow-md max-w-full border border-primary rounded-box text-xs text-wrap">
-					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-					<ul>
-						<li>+ signifies AND operation (i.e., food AND beverages)</li>
-						<li>| signifies OR operation (i.e., food OR beverages)</li>
-						<li>- negates the word (i.e., NOT alcoholic)</li>
-						<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
-						<li>* at the end of a term indicates a prefix match (i.e., match bird, birding and birds)</li>
-					</ul>
-				</div>
-			</el-popover>
+				</button>
+				<el-popover popover="hint" id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
+					<div class="card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap shadow-md">
+						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
+						<ul>
+							<li>+ signifies AND operation (i.e., food AND beverages)</li>
+							<li>| signifies OR operation (i.e., food OR beverages)</li>
+							<li>- negates the word (i.e., NOT alcoholic)</li>
+							<li>"" represents an exact phrase match (i.e., "rum-based drinks")</li>
+							<li>* at the end of a term indicates a prefix match (i.e., match bird, birding and birds)</li>
+						</ul>
+					</div>
+				</el-popover>
+			</div>
 		</div>
 	</div>
 }
@@ -807,7 +788,7 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 			hx-params="subscription_id,subscription_name,subscriptions-input-name"
 			_="on htmx:afterRequest(successful) remove me"
 		>
-			<div class="badge hover:badge-success hover:cursor-pointer badge-sm">
+			<div class="badge badge-sm hover:cursor-pointer hover:badge-success">
 				{ subscription.GetTitle() }
 				@tabler.Plus(i.Props{Class: "size-4"})
 			</div>
@@ -818,7 +799,7 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequest) {
 	<button _="on click remove me then halt">
 		<input type="hidden" name={ filter.InputName } value={ filter.SubscriptionID }/>
-		<div class="badge hover:badge-error hover:cursor-pointer badge-sm">
+		<div class="badge badge-sm hover:cursor-pointer hover:badge-error">
 			{ filter.SubscriptionName }
 			@tabler.X(i.Props{Class: "size-4"})
 		</div>
