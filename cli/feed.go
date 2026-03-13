@@ -31,7 +31,7 @@ type FeedCmd struct {
 type FetchFeedCmd struct {
 	FeedArgs
 
-	Validate bool `default:"true" help:"validate the feed"`
+	Validate bool `default:"false" help:"validate the feed"`
 }
 
 func (c *FetchFeedCmd) Run() error {
