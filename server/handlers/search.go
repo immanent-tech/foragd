@@ -161,7 +161,7 @@ func (h *SearchResults) PartialResponse(res http.ResponseWriter, req *http.Reque
 			// Also update the search filters element.
 			template = templ.Join(
 				template,
-				templates.SearchFilters(&h.results.Search, templ.Attributes{"hx-swap-oob": "true"}),
+				templates.AdvancedSearch(&h.results.Search, templ.Attributes{"hx-swap-oob": "true"}),
 			)
 		}
 		templ.Handler(template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
