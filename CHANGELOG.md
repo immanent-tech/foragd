@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.81.1](https://github.com/immanent-tech/foragd/compare/v0.81.0...v0.81.1) (2026-03-13)
+
+
+### Reverts
+
+* **templates:** :rewind: simple loading of bundled styles and scripts ([c6cc00b](https://github.com/immanent-tech/foragd/commit/c6cc00b0244394b285539be46d231b5e2908a1e6))
+
 ## [0.81.0](https://github.com/immanent-tech/foragd/compare/v0.80.3...v0.81.0) (2026-03-13)
 
 
