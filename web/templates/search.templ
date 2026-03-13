@@ -220,7 +220,7 @@ templ searchBox() {
 				@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
 			</span>
 			<input
-				hx-post="/search"
+				hx-get="/search"
 				hx-target={ ContentID.Target() }
 				hx-include="#search-filters,[id='timezone']"
 				hx-trigger="keydown[key=='Enter'] consume"
@@ -291,7 +291,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			// _="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
 			<form
 				id="show-search-results"
-				hx-post="/search"
+				hx-get="/search"
 				hx-target={ ContentID.Target() }
 				hx-include="#search-filters,[id='timezone']"
 				hx-sync="#search-suggestions-popover:drop"
@@ -484,7 +484,7 @@ templ SearchResults(results *models.SearchResults) {
 									{{ search := results.Search }}
 									{{ search.Categories = &category }}
 									<a
-										hx-post="/search"
+										hx-get="/search"
 										hx-target={ ContentID.Target() }
 										hx-vals={ search.HXVals() }
 										class="link link-hover"
@@ -757,7 +757,7 @@ templ SearchFilters(request *models.SearchRequest, attributes templ.Attributes) 
 			>Cancel</button>
 			<form
 				id="search-results"
-				hx-post="/search"
+				hx-get="/search"
 				hx-target={ ContentID.Target() }
 				hx-include="[id='timezone'],#search-filters"
 				hx-params="not subscription-text"

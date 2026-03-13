@@ -185,7 +185,6 @@ func Start(logger *slog.Logger) error {
 		// Searching.
 		r.Route("/search", func(r chi.Router) {
 			r.Get("/", handlers.HandleSearchResults())
-			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleSearchResults())
 			r.With(middlewares.RequireHTMX).Post("/suggestions", handlers.HandleSearchSuggestions())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleSearchResults())
 			r.With(middlewares.RequireHTMX).
