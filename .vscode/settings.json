@@ -114,6 +114,7 @@
   "gopls": {
     "ui.semanticTokens": true
   },
+  "html.format.wrapAttributes": "force-expand-multiline",
   "languageToolLinter.external.url": "http://host.containers.internal:8010",
   "languageToolLinter.languageTool.ignoredWordsInWorkspace": [
     "autodiscovery",
@@ -126,6 +127,8 @@
   "languageToolLinter.languageTool.language": "auto",
   "languageToolLinter.languageTool.level": "picky",
   "languageToolLinter.languageTool.motherTongue": "en-US",
+  "languageToolLinter.lintOnSave": true,
+  "languageToolLinter.smartFormat.onSave": true,
   "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
   "licenser.license": "AGPLv3",
   "licenser.useSPDXLicenseFormat": true,
@@ -139,8 +142,5 @@
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000,
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
-  "xmlTools.splitAttributesOnFormat": true,
-  "languageToolLinter.lintOnSave": true,
-  "languageToolLinter.smartFormat.onSave": true,
-  "html.format.wrapAttributes": "force-expand-multiline"
+  "xmlTools.splitAttributesOnFormat": true
 }

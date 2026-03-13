@@ -1,17 +1,19 @@
 import js from '@eslint/js'
-import eslintConfigPrettier from 'eslint-config-prettier/flat'
 import { defineConfig } from 'eslint/config'
 import globals from 'globals'
 
 export default defineConfig([
-  eslintConfigPrettier,
   {
-    files: ['web/*.{js,mjs,cjs}'],
+    files: ['**/*.{js,mjs,cjs}'],
     plugins: { js },
     extends: ['js/recommended'],
-  },
-  {
-    files: ['web/*.{js,mjs,cjs}'],
     languageOptions: { globals: globals.browser },
   },
 ])
+
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
+
+module.exports = [
+  // Any other config imports go at the top
+  eslintPluginPrettierRecommended,
+]

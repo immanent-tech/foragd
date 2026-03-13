@@ -38,12 +38,15 @@
     "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
     "@tailwindcss/typography": "^0.5.19",
     "esbuild": "^0.27.2",
-    "eslint": "^10.0.1",
+    "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.4.0",
     "hono": "^4.12.4",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "prettier-plugin-tailwindcss-extra-plus": "^0.3.1",
     "release-please": "^17.3.0",
     "wrangler": "^4.65.0"
   }
