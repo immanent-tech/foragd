@@ -12,11 +12,11 @@ import (
 templ header(user *models.User) {
 	<header
 		aria-label="Header"
-		class="fixed w-full top-0 z-50 flex h-16 items-center bg-base-200 border-b border-base-content/30 pt-safe"
+		class="fixed top-0 z-50 flex h-16 w-full items-center border-b border-base-content/30 bg-base-200 pt-safe"
 	>
 		switch user {
 			case nil:
-				<nav aria-label="Global" class="flex items-center justify-between p-6 lg:px-8 w-full">
+				<nav aria-label="Global" class="flex w-full items-center justify-between p-6 lg:px-8">
 					<div class="flex lg:flex-1">
 						<a href="/" class="link link-hover">
 							<div class="flex items-center">
@@ -26,7 +26,7 @@ templ header(user *models.User) {
 										<path id="path1" class="st0" d="M 480.01,31.996 C 346.56,-38.363 208.26,16.902 119.99,105.168 39.599,185.574 10.04,341.338 56.271,419.368 L -0.01,475.649 36.349,511.993 92.63,455.727 c 78.031,46.219 233.8,16.672 314.19,-63.718 88.281,-88.265 143.55,-226.58 73.188,-360.02 z m -58.328,195.42 -107.66,-2.516 -81.641,81.641 123.03,3.984 -1.234,38.063 -158.72,-5.109 -64.188,64.172 -26.922,-26.922 64.172,-64.188 -5.109,-158.72 38.063,-1.234 3.969,123.03 81.641,-81.641 -2.5,-107.66 38.078,-0.875 1.656,71.297 70.859,-70.859 26.938,26.922 -70.859,70.875 71.313,1.656 z" fill="#7b9984" style="stroke:#7b9984;stroke-opacity:1;fill:#7b9984;fill-opacity:1;stroke-width:0.998526;stroke-dasharray:none"></path>
 									</g><ellipse id="path33" cx="53.019997" cy="94.19101" rx="9.2530003" ry="9.2524996" fill="#7b9984" stroke="#7b9984" stroke-width="10"></ellipse>
 								</svg>
-								<p class="font-bold text-primary hidden lg:flex">Foragd</p>
+								<p class="hidden font-bold text-primary lg:flex">Foragd</p>
 							</div>
 						</a>
 					</div>
@@ -39,13 +39,13 @@ templ header(user *models.User) {
 						</button>
 					</div>
 					<div class="hidden lg:flex lg:gap-x-12">
-						<a href="/about" class="link link-hover text-sm/6 font-semibold text-primary">About</a>
-						<a href="/#features" class="link link-hover text-sm/6 font-semibold text-primary">Features</a>
-						<a href="/#pricing" class="link link-hover text-sm/6 font-semibold text-primary">Pricing</a>
-						<a href="/viewer" class="link link-hover text-sm/6 font-semibold text-primary">Feed Viewer</a>
+						<a href="/about" class="link text-sm/6 font-semibold text-primary link-hover">About</a>
+						<a href="/#features" class="link text-sm/6 font-semibold text-primary link-hover">Features</a>
+						<a href="/#pricing" class="link text-sm/6 font-semibold text-primary link-hover">Pricing</a>
+						<a href="/viewer" class="link text-sm/6 font-semibold text-primary link-hover">Feed Viewer</a>
 					</div>
 					<div class="hidden lg:flex lg:flex-1 lg:justify-end">
-						<a href="/login" class="link link-hover text-sm/6 font-semibold text-primary">Log in <span aria-hidden="true">&rarr;</span></a>
+						<a href="/login" class="link text-sm/6 font-semibold text-primary link-hover">Log in <span aria-hidden="true">&rarr;</span></a>
 					</div>
 				</nav>
 				<el-dialog>
@@ -61,7 +61,7 @@ templ header(user *models.User) {
 													<path id="path1" class="st0" d="M 480.01,31.996 C 346.56,-38.363 208.26,16.902 119.99,105.168 39.599,185.574 10.04,341.338 56.271,419.368 L -0.01,475.649 36.349,511.993 92.63,455.727 c 78.031,46.219 233.8,16.672 314.19,-63.718 88.281,-88.265 143.55,-226.58 73.188,-360.02 z m -58.328,195.42 -107.66,-2.516 -81.641,81.641 123.03,3.984 -1.234,38.063 -158.72,-5.109 -64.188,64.172 -26.922,-26.922 64.172,-64.188 -5.109,-158.72 38.063,-1.234 3.969,123.03 81.641,-81.641 -2.5,-107.66 38.078,-0.875 1.656,71.297 70.859,-70.859 26.938,26.922 -70.859,70.875 71.313,1.656 z" fill="#7b9984" style="stroke:#7b9984;stroke-opacity:1;fill:#7b9984;fill-opacity:1;stroke-width:0.998526;stroke-dasharray:none"></path>
 												</g><ellipse id="path33" cx="53.019997" cy="94.19101" rx="9.2530003" ry="9.2524996" fill="#7b9984" stroke="#7b9984" stroke-width="10"></ellipse>
 											</svg>
-											<p class="font-bold text-primary hidden lg:flex">Foragd</p>
+											<p class="hidden font-bold text-primary lg:flex">Foragd</p>
 										</div>
 									</a>
 									<button type="button" command="close" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-neutral">
@@ -74,13 +74,13 @@ templ header(user *models.User) {
 								<div class="mt-6 flow-root">
 									<div class="-my-6 divide-y divide-neutral">
 										<div class="space-y-2 py-6">
-											<a href="/about" class="link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary">About</a>
-											<a href="/#features" class="link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary">Features</a>
-											<a href="/#pricing" class="link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary">Pricing</a>
-											<a href="/viewer" class="link link-hover -mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-primary">Feed Viewer</a>
+											<a href="/about" class="-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover">About</a>
+											<a href="/#features" class="-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover">Features</a>
+											<a href="/#pricing" class="-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover">Pricing</a>
+											<a href="/viewer" class="-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover">Feed Viewer</a>
 										</div>
 										<div class="py-6">
-											<a href="/login" class="link link-hover -mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral">Log in</a>
+											<a href="/login" class="-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral link-hover">Log in</a>
 										</div>
 									</div>
 								</div>
@@ -89,106 +89,108 @@ templ header(user *models.User) {
 					</dialog>
 				</el-dialog>
 			default:
-				<a
-					hx-get="/home"
-					hx-target={ ContentID.Target() }
-					hx-swap="innerHTML show:window:top transition:true"
-					class="link link-hover"
-				>
-					<div class="flex flex-row shrink-0 p-2 items-center">
-						<svg class="flex size-10" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" id="svg1" width="200mm" height="200mm" version="1.1" viewBox="0 0 200 200" xml:space="preserve" sodipodi:docname="favicon.svg" inkscape:version="1.4.3 (0d15f75042, 2025-12-25)">
-							<defs id="defs1"></defs><sodipodi:namedview id="namedview1" pagecolor="#505050" bordercolor="#ffffff" borderopacity="1" inkscape:showpageshadow="0" inkscape:pageopacity="0" inkscape:pagecheckerboard="1" inkscape:deskcolor="#505050" inkscape:document-units="mm" inkscape:zoom="1.2911667" inkscape:cx="378.72724" inkscape:cy="378.72724" inkscape:window-width="2991" inkscape:window-height="1179" inkscape:window-x="0" inkscape:window-y="0" inkscape:window-maximized="1" inkscape:current-layer="svg1"></sodipodi:namedview><g id="g1" transform="translate(-118.24,-66.2315)" fill="none" stroke="#7b9984"><ellipse id="path2-36-0" cx="171.11" cy="230.67999" rx="14.302" ry="14.911" stroke-width="10"></ellipse><path id="path21" d="M 171.11,215.77 V 171.05" stroke-width="10.017"></path></g>
-							<g id="leaf-right" transform="matrix(0.1924,0.044136,-0.041879,0.18256,73.37,1.489)" fill="#7b9984" style="stroke:#7b9984;stroke-opacity:1;fill:#7b9984;fill-opacity:1;stroke-width:0.998526;stroke-dasharray:none">
-								<path id="path1" class="st0" d="M 480.01,31.996 C 346.56,-38.363 208.26,16.902 119.99,105.168 39.599,185.574 10.04,341.338 56.271,419.368 L -0.01,475.649 36.349,511.993 92.63,455.727 c 78.031,46.219 233.8,16.672 314.19,-63.718 88.281,-88.265 143.55,-226.58 73.188,-360.02 z m -58.328,195.42 -107.66,-2.516 -81.641,81.641 123.03,3.984 -1.234,38.063 -158.72,-5.109 -64.188,64.172 -26.922,-26.922 64.172,-64.188 -5.109,-158.72 38.063,-1.234 3.969,123.03 81.641,-81.641 -2.5,-107.66 38.078,-0.875 1.656,71.297 70.859,-70.859 26.938,26.922 -70.859,70.875 71.313,1.656 z" fill="#7b9984" style="stroke:#7b9984;stroke-opacity:1;fill:#7b9984;fill-opacity:1;stroke-width:0.998526;stroke-dasharray:none"></path>
-							</g><ellipse id="path33" cx="53.019997" cy="94.19101" rx="9.2530003" ry="9.2524996" fill="#7b9984" stroke="#7b9984" stroke-width="10"></ellipse>
-						</svg>
-						<p class="font-bold text-primary hidden lg:flex">Foragd</p>
+				<div class="flex w-full items-center justify-between">
+					<a
+						hx-get="/home"
+						hx-target={ ContentID.Target() }
+						hx-swap="innerHTML show:window:top transition:true"
+						class="flex shrink link link-hover"
+					>
+						<div class="flex shrink-0 flex-row items-center p-2">
+							<svg class="flex size-10" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" id="svg1" width="200mm" height="200mm" version="1.1" viewBox="0 0 200 200" xml:space="preserve" sodipodi:docname="favicon.svg" inkscape:version="1.4.3 (0d15f75042, 2025-12-25)">
+								<defs id="defs1"></defs><sodipodi:namedview id="namedview1" pagecolor="#505050" bordercolor="#ffffff" borderopacity="1" inkscape:showpageshadow="0" inkscape:pageopacity="0" inkscape:pagecheckerboard="1" inkscape:deskcolor="#505050" inkscape:document-units="mm" inkscape:zoom="1.2911667" inkscape:cx="378.72724" inkscape:cy="378.72724" inkscape:window-width="2991" inkscape:window-height="1179" inkscape:window-x="0" inkscape:window-y="0" inkscape:window-maximized="1" inkscape:current-layer="svg1"></sodipodi:namedview><g id="g1" transform="translate(-118.24,-66.2315)" fill="none" stroke="#7b9984"><ellipse id="path2-36-0" cx="171.11" cy="230.67999" rx="14.302" ry="14.911" stroke-width="10"></ellipse><path id="path21" d="M 171.11,215.77 V 171.05" stroke-width="10.017"></path></g>
+								<g id="leaf-right" transform="matrix(0.1924,0.044136,-0.041879,0.18256,73.37,1.489)" fill="#7b9984" style="stroke:#7b9984;stroke-opacity:1;fill:#7b9984;fill-opacity:1;stroke-width:0.998526;stroke-dasharray:none">
+									<path id="path1" class="st0" d="M 480.01,31.996 C 346.56,-38.363 208.26,16.902 119.99,105.168 39.599,185.574 10.04,341.338 56.271,419.368 L -0.01,475.649 36.349,511.993 92.63,455.727 c 78.031,46.219 233.8,16.672 314.19,-63.718 88.281,-88.265 143.55,-226.58 73.188,-360.02 z m -58.328,195.42 -107.66,-2.516 -81.641,81.641 123.03,3.984 -1.234,38.063 -158.72,-5.109 -64.188,64.172 -26.922,-26.922 64.172,-64.188 -5.109,-158.72 38.063,-1.234 3.969,123.03 81.641,-81.641 -2.5,-107.66 38.078,-0.875 1.656,71.297 70.859,-70.859 26.938,26.922 -70.859,70.875 71.313,1.656 z" fill="#7b9984" style="stroke:#7b9984;stroke-opacity:1;fill:#7b9984;fill-opacity:1;stroke-width:0.998526;stroke-dasharray:none"></path>
+								</g><ellipse id="path33" cx="53.019997" cy="94.19101" rx="9.2530003" ry="9.2524996" fill="#7b9984" stroke="#7b9984" stroke-width="10"></ellipse>
+							</svg>
+							<p class="hidden font-bold text-primary lg:flex">Foragd</p>
+						</div>
+					</a>
+					// Global search bar.
+					<div class="flex flex-1 justify-center">
+						@Search()
+						@searchCommands()
 					</div>
-				</a>
-				// Global search bar.
-				<div class="flex flex-1 justify-center">
-					@searchBox()
-					@searchCommands()
-				</div>
-				// User settings menu.
-				<div class="flex items-center justify-end mx-2 sm:mr-4 space-x-2">
-					<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10"></div>
-					<el-dropdown id="header-user-menu" class="relative">
-						<button class="btn-ghost btn-square">
-							<span class="sr-only">Open settings menu</span>
-							@UserAvatar(user, nil)
-						</button>
-						<el-menu id="header-menu" anchor="bottom end" popover>
-							<ul class="menu">
-								<li>
-									// Open settings menu.
-									<a
-										hx-get="/user/settings"
-										hx-target={ ContentID.Target() }
-										_="on click remove @open from #header-menu"
-										role="menuitem"
-										tabindex="-1"
-									>
-										<div class="flex flex-1 items-center gap-x-2">
-											@tabler.SettingsFilled()
-											Settings
-										</div>
-									</a>
-								</li>
-								<li>
-									// Help documentation.
-									<a
-										href="/help"
-										rel="noopener"
-										target="_blank"
-										role="menuitem"
-										tabindex="-1"
-										_="on click remove @open from #header-menu"
-									>
-										<div class="flex flex-1 items-center gap-x-2">
-											@tabler.Help()
-											Help/Documentation
-										</div>
-									</a>
-								</li>
-								// Report issue.
-								<li>
-									<a
-										hx-get="/issue"
-										hx-target={ ContentID.Target() }
-										hx-replace-url="true"
-										role="menuitem"
-										tabindex="-1"
-										_="on click remove @open from #header-menu"
-									>
-										<div class="flex flex-1 items-center gap-x-2">
-											@tabler.FlagFilled()
-											Report an issue
-										</div>
-									</a>
-								</li>
-								// Logout
-								<li>
-									<a
-										href="/logout"
-										role="menuitem"
-										tabindex="-1"
-										_="on click remove @open from #header-menu then call window.sessionStorage.removeItem('htmx-history-cache')"
-									>
-										<div class="flex flex-1 items-center gap-x-2">
-											@tabler.Logout()
-											Log out
-										</div>
-									</a>
-								</li>
-							</ul>
-						</el-menu>
-					</el-dropdown>
+					// User settings menu.
+					<div class="mx-2 flex items-center justify-end space-x-2 sm:mr-4">
+						<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10"></div>
+						<el-dropdown id="header-user-menu" class="relative">
+							<button class="btn-square btn-ghost">
+								<span class="sr-only">Open settings menu</span>
+								@UserAvatar(user, nil)
+							</button>
+							<el-menu id="header-menu" anchor="bottom end" popover>
+								<ul class="menu">
+									<li>
+										// Open settings menu.
+										<a
+											hx-get="/user/settings"
+											hx-target={ ContentID.Target() }
+											_="on click remove @open from #header-menu"
+											role="menuitem"
+											tabindex="-1"
+										>
+											<div class="flex flex-1 items-center gap-x-2">
+												@tabler.SettingsFilled()
+												Settings
+											</div>
+										</a>
+									</li>
+									<li>
+										// Help documentation.
+										<a
+											href="/help"
+											rel="noopener"
+											target="_blank"
+											role="menuitem"
+											tabindex="-1"
+											_="on click remove @open from #header-menu"
+										>
+											<div class="flex flex-1 items-center gap-x-2">
+												@tabler.Help()
+												Help/Documentation
+											</div>
+										</a>
+									</li>
+									// Report issue.
+									<li>
+										<a
+											hx-get="/issue"
+											hx-target={ ContentID.Target() }
+											hx-replace-url="true"
+											role="menuitem"
+											tabindex="-1"
+											_="on click remove @open from #header-menu"
+										>
+											<div class="flex flex-1 items-center gap-x-2">
+												@tabler.FlagFilled()
+												Report an issue
+											</div>
+										</a>
+									</li>
+									// Logout
+									<li>
+										<a
+											href="/logout"
+											role="menuitem"
+											tabindex="-1"
+											_="on click remove @open from #header-menu then call window.sessionStorage.removeItem('htmx-history-cache')"
+										>
+											<div class="flex flex-1 items-center gap-x-2">
+												@tabler.Logout()
+												Log out
+											</div>
+										</a>
+									</li>
+								</ul>
+							</el-menu>
+						</el-dropdown>
+					</div>
 				</div>
 		}
 		//  else {
 		// 	<div class="flex flex-1"></div>
-		// 	<div class="flex items-center justify-end mx-2 sm:mr-4">
+		// 	<div class="mx-2 flex items-center justify-end sm:mr-4">
 		// 		@NewLink(
 		// 			WithAttribute("href", "/login"),
 		// 			WithAttribute("role", "button"),
