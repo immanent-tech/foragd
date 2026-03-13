@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.81.2](https://github.com/immanent-tech/foragd/compare/v0.81.1...v0.81.2) (2026-03-13)
+
+
+### Bug Fixes
+
+* :bug: fix sizing of youtube videos on mobile ([447d682](https://github.com/immanent-tech/foragd/commit/447d682a97e48440fb7cee0b513808302c4e203d))
+
 ## [0.81.1](https://github.com/immanent-tech/foragd/compare/v0.81.0...v0.81.1) (2026-03-13)
 
 
