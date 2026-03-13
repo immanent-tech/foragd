@@ -72,6 +72,13 @@ class EmbedYoutube extends HTMLElement {
           width: ${this.width}px;
           height: ${this.height}px;
         }
+        #player {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+        }
       </style>
       <div id="player-container">
         <div id="player"></div>

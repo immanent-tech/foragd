@@ -72,6 +72,10 @@
     @apply transition duration-200 data-closed:scale-95 data-closed:opacity-0;
   }
 
+  embed-youtube {
+    @apply relative h-auto max-w-full overflow-hidden p-8;
+  }
+
   @media screen and (prefers-reduced-motion: reduce) {
     * {
       animation-duration: 0.001ms !important;
