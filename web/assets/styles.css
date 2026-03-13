@@ -1,12 +1,12 @@
 @import 'tailwindcss' source('../templates/**/*.{html,templ}');
-@import "tailwindcss-safe-area";
+@import 'tailwindcss-safe-area';
 @plugin '@tailwindcss/typography';
 @plugin 'daisyui' {
   themes:
     light,
     dark,
     dracula --prefersdark,
-    nord,
+    nord;
   exclude: properties;
 }
 
@@ -61,11 +61,11 @@
   }
 
   dialog {
-    @apply backdrop:bg-transparent overscroll-contain;
+    @apply overscroll-contain backdrop:bg-transparent;
   }
 
   el-dialog-backdrop {
-    @apply fixed inset-0 bg-base-100/25 transition-opacity duration-300 ease-linear data-closed:opacity-0;
+    @apply fixed inset-0 bg-base-300/30 transition-opacity duration-300 ease-linear data-closed:opacity-0;
   }
 
   el-dialog-panel {
@@ -73,12 +73,12 @@
   }
 
   @media screen and (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+    * {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
   }
-}
 }
 
 /* Custom Component Classes */
