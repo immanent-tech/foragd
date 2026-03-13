@@ -120,12 +120,14 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			<link rel="preconnect" href="https://cdn.jsdelivr.net" hx-preserve="true"/>
 			<link rel="dns-prefetch" href="//auth.foragd.app" hx-preserve="true"/>
 			<link rel="preload" href="/content/fonts/inter/InterVariable.woff2" crossorigin as="font" hx-preserve="true"/>
-			<link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.Version } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-			<noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/></noscript>
+			// <link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.Version } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+			// <noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/></noscript>
+			<link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/>
 			// Load style bundles from embedded FS.
 			for styleFile := range slices.Values(web.GetStyleFilenames()) {
-				<link rel="preload" href={ filepath.Join("/content", styleFile+"?v="+config.Version) } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
-				<noscript><link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.Version) }/></noscript>
+				// <link rel="preload" href={ filepath.Join("/content", styleFile+"?v="+config.Version) } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+				// <noscript><link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.Version) }/></noscript>
+				<link rel="stylesheet" href={ filepath.Join("/content", styleFile+"?v="+config.Version) }/>
 			}
 			// Load script bundles from embedded FS.
 			for scriptFile := range slices.Values(web.GetScriptFilenames()) {
