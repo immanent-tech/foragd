@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.81.0](https://github.com/immanent-tech/foragd/compare/v0.80.3...v0.81.0) (2026-03-13)
+
+
+### Features
+
+* :sparkles: schema generate improvements ([4a46e3d](https://github.com/immanent-tech/foragd/commit/4a46e3ddf607a6408a04ffce368716737389e90a))
+
+
+### Bug Fixes
+
+* **cli:** :bug: fix display of commands ([ff71f8f](https://github.com/immanent-tech/foragd/commit/ff71f8f5cb99559051f7f6c8ee37f29fcb147777))
+* **models:** :bug: fix tumblr feed url handling ([c61d4b3](https://github.com/immanent-tech/foragd/commit/c61d4b395aadfce7612da13a15bcfb951a189c9f))
+* **models:** :bug: handle unable to find a feed image properly ([cd8842f](https://github.com/immanent-tech/foragd/commit/cd8842f34e3960e4ad6d157c72cca1f44c20f641))
+* **templates:** :bug: fix generating hx-vals from filters without null values ([4efa71f](https://github.com/immanent-tech/foragd/commit/4efa71f4d007ac477bcf77278022c9b193eeba38))
+
+
+### Performance Improvements
+
+* :zap: improved loading of bundled styles and scripts ([615b95b](https://github.com/immanent-tech/foragd/commit/615b95bb68cbee388b6cf6a687c397ee1671ecd3))
+
 ## [0.80.3](https://github.com/immanent-tech/foragd/compare/v0.80.2...v0.80.3) (2026-03-12)
 
 
