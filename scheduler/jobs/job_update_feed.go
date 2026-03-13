@@ -106,7 +106,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	)
 	for feedURL = range slices.Values(details.GetSourceURLs()) {
 		var err error
-		feed, err = models.NewFeedFromURL(ctx, feedURL, jobData.FeedID, true)
+		feed, err = models.NewFeedFromURL(ctx, feedURL, jobData.FeedID, false)
 		if err != nil {
 			var httpErr feeds.ParseError
 			status := &models.FeedStatus{
