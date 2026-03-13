@@ -302,32 +302,29 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			<li id="subscription-suggestions" class="menu-title" tabindex="-1" role="none">Subscriptions</li>
 			for subscription := range slices.Values(suggestions.Subscriptions) {
 				<li role="option">
-					<form
+					// href={ subscriptionViewArticlesLink(subscription) }
+					<button
+						class="group flex items-center"
+						tabindex="0"
+						type="submit"
 						{ subscriptionViewArticlesAttributes(subscription)... }
 						hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
 					>
-						// href={ subscriptionViewArticlesLink(subscription) }
-						<button
-							class="group flex items-center"
-							tabindex="0"
-							type="submit"
-						>
-							if subscription.GetImage() != "" {
-								@partials.Thumbnail(
-									&models.RemoteImage{
-										URL:   new(subscription.GetImage()),
-										Title: new(subscription.GetTitle()),
-									},
-									subscription.GetTitle(),
-									"size-6",
-								)
-							} else {
-								@tabler.Rss(i.Props{Class: "group-hover:text-primary size-6"})
-							}
-							<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
-							<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
-						</button>
-					</form>
+						if subscription.GetImage() != "" {
+							@partials.Thumbnail(
+								&models.RemoteImage{
+									URL:   new(subscription.GetImage()),
+									Title: new(subscription.GetTitle()),
+								},
+								subscription.GetTitle(),
+								"size-6",
+							)
+						} else {
+							@tabler.Rss(i.Props{Class: "group-hover:text-primary size-6"})
+						}
+						<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
+						<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
+					</button>
 				</li>
 			}
 		}
