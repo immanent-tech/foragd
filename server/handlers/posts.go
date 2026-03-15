@@ -30,6 +30,7 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -162,7 +163,7 @@ func readPost(details models.FileDetails) (*models.MarkdownFile, error) {
 		return nil, fmt.Errorf("read file contents: %w", err)
 	}
 
-	mdw := loadMarkdownWriter()
+	mdw := markdown.LoadMarkdownWriter()
 	buf, ok := bufPool.Get().(*bytes.Buffer)
 	if !ok {
 		return nil, fmt.Errorf("allocate buffer: %w", err)

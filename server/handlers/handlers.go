@@ -21,11 +21,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/parser"
-	"github.com/yuin/goldmark/renderer/html"
-	"go.abhg.dev/goldmark/frontmatter"
 
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 
@@ -42,22 +37,6 @@ var (
 )
 
 var defaultHandlerChain = alice.New(storePath)
-
-var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
-	return goldmark.New(
-		goldmark.WithExtensions(
-			extension.GFM,
-			extension.Typographer,
-			&frontmatter.Extender{},
-		),
-		goldmark.WithParserOptions(
-			parser.WithAutoHeadingID(),
-		),
-		goldmark.WithRendererOptions(
-			html.WithUnsafe(),
-		),
-	)
-})
 
 var bufPool = sync.Pool{
 	New: func() any {

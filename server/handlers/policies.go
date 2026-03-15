@@ -24,6 +24,7 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -71,7 +72,7 @@ func PolicyDocsHandler() http.HandlerFunc {
 			return
 		}
 
-		mdw := loadMarkdownWriter()
+		mdw := markdown.LoadMarkdownWriter()
 
 		policyBuf, ok := bufPool.Get().(*bytes.Buffer)
 		if !ok {

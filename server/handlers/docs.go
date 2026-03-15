@@ -4,7 +4,6 @@
 package handlers
 
 import (
-	"bytes"
 	"log/slog"
 	"net/http"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -31,18 +31,19 @@ func DocumentationHandler() http.HandlerFunc {
 		}
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 
-		mdw := loadMarkdownWriter()
+		// mdw := loadMarkdownWriter()
 
-		docsBuf, ok := bufPool.Get().(*bytes.Buffer)
-		if !ok {
-			res.WriteHeader(http.StatusInternalServerError)
-			slogctx.FromCtx(req.Context()).Error("Could not write docs.")
-			return
-		}
-		docsBuf.Reset()
-		defer bufPool.Put(docsBuf)
+		// docsBuf, ok := bufPool.Get().(*bytes.Buffer)
+		// if !ok {
+		// 	res.WriteHeader(http.StatusInternalServerError)
+		// 	slogctx.FromCtx(req.Context()).Error("Could not write docs.")
+		// 	return
+		// }
+		// docsBuf.Reset()
+		// defer bufPool.Put(docsBuf)
 
-		if err := mdw.Convert(contents, docsBuf); err != nil {
+		mdHTML, err := markdown.ToHTML(contents)
+		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not convert docs markdown.",
 				slog.Any("error", err),
 			)
@@ -51,7 +52,7 @@ func DocumentationHandler() http.HandlerFunc {
 		}
 
 		template := templates.CreatePage(
-			templates.Document(docsBuf.Bytes()),
+			templates.Document(mdHTML),
 			templates.WithPageTitle("Documentation"),
 		)
 		templ.Handler(template).ServeHTTP(res, req)
