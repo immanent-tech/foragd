@@ -270,7 +270,7 @@ templ viewerItemCard(item models.Item) {
 			</figure>
 		}
 		<div class="card-body">
-			<div class="card-title">{ item.GetTitle() }</div>
+			<div class="card-title line-clamp-3">{ item.GetTitle() }</div>
 			<div class="flex-1 inline-grid">
 				// Author(s) and Published Time.
 				if len(item.GetAuthors()) > 0 {
