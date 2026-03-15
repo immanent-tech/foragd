@@ -144,6 +144,8 @@ func RefreshTokenIfNeeded(next http.Handler) http.Handler {
 				slogctx.FromCtx(req.Context()).Error("Unable to refresh token.",
 					slog.Any("error", err),
 				)
+				http.Redirect(res, req, "/login", http.StatusSeeOther)
+				return
 			}
 
 			// Save the new token into the session data.
