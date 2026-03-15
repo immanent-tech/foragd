@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.82.0](https://github.com/immanent-tech/foragd/compare/v0.81.2...v0.82.0) (2026-03-15)
+
+
+### Features
+
+* **cli:** :sparkles: use strings.Builder to create feed output ([b074662](https://github.com/immanent-tech/foragd/commit/b07466252f802466558c22c7c9ca0ce5bd2a3692))
+* **models:** :sparkles: feed/item image finding improvements ([b6d0f56](https://github.com/immanent-tech/foragd/commit/b6d0f566a73e75418e9ee885b44ee7a521e280db))
+* **pkg/formats/html:** :sparkles: add method to find "main" image in page content using readability parser ([bf10b35](https://github.com/immanent-tech/foragd/commit/bf10b353077be94e8c7fc942a498f63f497c1ea1))
+* **scheduler:** :sparkles: update additional feed data when new items have been fetched ([240f172](https://github.com/immanent-tech/foragd/commit/240f17274a8c5d4b1d114f72c42d44645c217008))
+
+
+### Bug Fixes
+
+* **middlewares:** :bug: fix refresh token failure flow ([43ae677](https://github.com/immanent-tech/foragd/commit/43ae6776a461d2017fa80690cf74628610e61f0a))
+* **templates:** :bug: fix clicking subscription suggestion ([8d9f47a](https://github.com/immanent-tech/foragd/commit/8d9f47a485f1384cb7f6bb83db624f32c22b6f2b))
+* **templates:** :lipstick: clamp article titles to three lines in feed viewer ([1866cee](https://github.com/immanent-tech/foragd/commit/1866cee41fad9cf363a0325380baef243c6a77b4))
+
 ## [0.81.2](https://github.com/immanent-tech/foragd/compare/v0.81.1...v0.81.2) (2026-03-13)
 
 
