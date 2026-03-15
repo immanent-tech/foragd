@@ -70,22 +70,57 @@ func (c *FetchFeedCmd) Run() error {
 }
 
 func showFeedDetails(feed *models.Feed) {
-	fmt.Fprintf(os.Stdout, "Feed: %s\n", feed.GetTitle())
-	fmt.Fprintf(os.Stdout, "Link: %s\n", feed.GetLink())
-	fmt.Fprintf(os.Stdout, "Type: %s\n", feed.GetLink())
-	fmt.Fprintf(os.Stdout, "Description: %s\n", feed.GetDescription())
-	fmt.Fprintf(os.Stdout, "Updated: %s\n", feed.GetTimestamp())
-	fmt.Fprintf(os.Stdout, "Categories: %v\n", feed.GetCategories())
-	fmt.Fprintf(os.Stdout, "Image: %v\n", feed.GetImage())
+	var str strings.Builder
+
+	str.WriteString("Feed: " + feed.GetTitle())
+	str.WriteRune('\n')
+	str.WriteString("Link: " + feed.GetLink())
+	str.WriteRune('\n')
+	str.WriteString("Type: " + string(feed.SourceType))
+	str.WriteRune('\n')
+	if feed.GetDescription() != "" {
+		str.WriteString("Description:")
+		str.WriteRune('\n')
+		str.WriteString(feed.GetDescription())
+		str.WriteRune('\n')
+	}
+	str.WriteString("Updated: " + feed.GetTimestamp().String())
+	str.WriteRune('\n')
+	if len(feed.GetCategories()) > 0 {
+		str.WriteString("Categories: " + strings.Join(feed.GetCategories(), ","))
+		str.WriteRune('\n')
+	}
+	str.WriteString("Image: " + feed.GetImage().String())
+	str.WriteRune('\n')
+	str.WriteRune('\n')
 
 	for article := range slices.Values(feed.GetItems()) {
-		fmt.Fprintf(os.Stdout, "ID: %s\n", article.GetID())
-		fmt.Fprintf(os.Stdout, "Title: %s\n", article.GetTitle())
-		fmt.Fprintf(os.Stdout, "Link: %s\n", article.GetLink())
-		fmt.Fprintf(os.Stdout, "Published: %s\n", article.GetTimestamp())
-		fmt.Fprintf(os.Stdout, "Categories: %v\n", article.GetCategories())
-		fmt.Fprintf(os.Stdout, "Description: %s\n", article.GetDescription())
-		fmt.Fprintf(os.Stdout, "Content: %s\n", article.GetContent())
-		fmt.Fprintf(os.Stdout, "\n")
+		str.WriteString("Item ID: " + article.GetID())
+		str.WriteRune('\n')
+		str.WriteString("Title: " + article.GetTitle())
+		str.WriteRune('\n')
+		str.WriteString("Link: " + article.GetLink())
+		str.WriteRune('\n')
+		if article.GetDescription() != "" {
+			str.WriteString("Description:")
+			str.WriteRune('\n')
+			str.WriteString(article.GetDescription())
+			str.WriteRune('\n')
+		}
+		str.WriteString("Published: " + article.GetTimestamp().String())
+		str.WriteRune('\n')
+		if len(article.GetCategories()) > 0 {
+			str.WriteString("Categories: " + strings.Join(article.GetCategories(), ","))
+			str.WriteRune('\n')
+		}
+		if article.GetContent() != "" {
+			str.WriteString("Content:")
+			str.WriteRune('\n')
+			str.WriteString(article.GetContent())
+			str.WriteRune('\n')
+		}
+		str.WriteRune('\n')
 	}
+
+	fmt.Fprintf(os.Stdout, "%s", str.String())
 }
