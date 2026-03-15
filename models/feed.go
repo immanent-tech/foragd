@@ -21,7 +21,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-playground/validator/v10"
-	"github.com/goforj/godump"
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/opengraph"
 	"github.com/immanent-tech/go-syndication/types"
@@ -481,7 +480,6 @@ func FindFeedImage(ctx context.Context, feedURL string) (*RemoteImage, error) {
 
 	// Try to find a favicon to use.
 	if _, url, _, err := html.FindFavicon(resp.Body(), feedURL); err == nil {
-		godump.Dump(url)
 		return &RemoteImage{
 			URL: new(url),
 		}, nil
