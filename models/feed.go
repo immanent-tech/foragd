@@ -14,6 +14,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -442,12 +443,12 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 		}
 		return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
 	}
-	feed = NewSyndicationFeed(ctx, url, id, result)
+	feed = newSyndicationFeed(ctx, url, id, result)
 
 	// Try to find an image for the feed if it does not supply one.
 	if feed.GetImage() == nil {
 		// Fetch and extract image from opengraph data (if any).
-		if img, err := FindFeedImage(ctx, feed.GetLink()); err != nil {
+		if img, err := findFeedImage(ctx, feed.GetLink()); err != nil {
 			slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
 				slog.String("feed", feed.GetTitle()),
 			)
@@ -459,9 +460,9 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 	return feed, nil
 }
 
-// FindFeedImage will try to find an image to represent the feed. Useful to call if the feed does not define an image
+// findFeedImage will try to find an image to represent the feed. Useful to call if the feed does not define an image
 // itself.
-func FindFeedImage(ctx context.Context, feedURL string) (*RemoteImage, error) {
+func findFeedImage(ctx context.Context, feedURL string) (*RemoteImage, error) {
 	// Retrieve the content from the feed's site page.
 	resp, err := client.LoadHTTPClient().R().SetContext(ctx).Get(feedURL)
 	if err != nil {
@@ -472,14 +473,34 @@ func FindFeedImage(ctx context.Context, feedURL string) (*RemoteImage, error) {
 	}
 
 	// Try to parse opengraph data out of the page content.
-	if og, err := opengraph.ParseBytes(resp.Body()); err == nil {
+	if og, err := opengraph.ParseBytes(resp.Body()); err != nil {
+		slogctx.FromCtx(ctx).Debug("Could not parse opengraph data for URL.",
+			slog.String("url", feedURL),
+			slog.Any("error", err))
+	} else {
 		return &RemoteImage{
 			URL: new(og.Image),
+		}, nil
+
+	}
+
+	// Try to find the "main" image in the page content.
+	if imgURL, err := html.FindMainImage(resp.Body(), feedURL); err != nil {
+		slogctx.FromCtx(ctx).Debug("Could not find main image for URL.",
+			slog.String("url", feedURL),
+			slog.Any("error", err))
+	} else {
+		return &RemoteImage{
+			URL: new(imgURL),
 		}, nil
 	}
 
 	// Try to find a favicon to use.
-	if _, url, _, err := html.FindFavicon(resp.Body(), feedURL); err == nil {
+	if _, url, _, err := html.FindFavicon(resp.Body(), feedURL); err != nil {
+		slogctx.FromCtx(ctx).Debug("Could not find favicon for URL.",
+			slog.String("url", feedURL),
+			slog.Any("error", err))
+	} else {
 		return &RemoteImage{
 			URL: new(url),
 		}, nil
@@ -488,8 +509,8 @@ func FindFeedImage(ctx context.Context, feedURL string) (*RemoteImage, error) {
 	return nil, errors.New("unable to find an image for feed")
 }
 
-// NewSyndicationFeed converts the raw types.FeedSource into a Feed object.
-func NewSyndicationFeed(ctx context.Context, url string, id FeedID, source *feeds.Feed) *Feed {
+// newSyndicationFeed converts the raw types.FeedSource into a Feed object.
+func newSyndicationFeed(ctx context.Context, url string, id FeedID, source *feeds.Feed) *Feed {
 	if id == "" {
 		id = "feed_" + strconv.FormatUint(xxh3.Hash([]byte(source.GetLink())), 10)
 	}
@@ -510,9 +531,22 @@ func NewSyndicationFeed(ctx context.Context, url string, id FeedID, source *feed
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
 	}
-	// Extract Items from source and add to Feed.
+	// Extract Items from source and add to Feed. We do this in parallel as generation of some items may involve network
+	// calls to fetch additional information (e.g., images).
+	var wg sync.WaitGroup
+	itemCh := make(chan Item)
 	for i := range slices.Values(source.GetItems()) {
-		feed.Items = append(feed.Items, *NewFeedItem(ctx, &i, feed))
+		wg.Go(func() {
+			item := NewFeedItem(ctx, &i, feed)
+			itemCh <- *item
+		})
+	}
+	go func() {
+		defer close(itemCh)
+		wg.Wait()
+	}()
+	for item := range itemCh {
+		feed.Items = append(feed.Items, item)
 	}
 
 	// Add the url used to find the feed to the source URLs if needed.

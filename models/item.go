@@ -5,15 +5,17 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log/slog"
 	"maps"
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -23,6 +25,7 @@ import (
 	"github.com/immanent-tech/go-syndication/atom"
 	"github.com/immanent-tech/go-syndication/opengraph"
 
+	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
@@ -383,8 +386,6 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 	// Add youtube extension data if found.
 	addYoutubeExtension(source, item)
 
-	var wg sync.WaitGroup
-
 	// Set the image.
 	if sourceImg := source.GetImage(); sourceImg != nil {
 		// Source has an image, use that.
@@ -393,15 +394,12 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 			Title: new(sourceImg.GetTitle()),
 		}
 	} else {
-		wg.Go(func() {
-			og, err := opengraph.ParseURL(ctx, source.GetLink())
-			if err != nil {
-				return
-			}
-			item.Image = &RemoteImage{
-				URL: new(og.Image),
-			}
-		})
+		if img, err := findItemImage(ctx, source.GetLink()); err != nil {
+			slogctx.FromCtx(ctx).Debug("Item has no image.",
+				slog.String("item_id", item.GetID()))
+		} else {
+			item.Image = img
+		}
 	}
 
 	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.
@@ -410,6 +408,44 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 	}
 
 	return item
+}
+
+// FindItemImage will try to find an image to represent the item. Useful to call if the item does not define an image
+// itself.
+func findItemImage(ctx context.Context, link string) (*RemoteImage, error) {
+	// Retrieve the content from the feed's site page.
+	resp, err := client.LoadHTTPClient().R().SetContext(ctx).Get(link)
+	if err != nil {
+		return nil, fmt.Errorf("get url: %w", err)
+	}
+	if resp.IsError() {
+		return nil, fmt.Errorf("%s: %s", resp.Status(), resp.Error())
+	}
+
+	// Try to parse opengraph data out of the page content.
+	if og, err := opengraph.ParseBytes(resp.Body()); err != nil {
+		slogctx.FromCtx(ctx).Debug("Could not parse opengraph data for URL.",
+			slog.String("url", link),
+			slog.Any("error", err))
+	} else {
+		return &RemoteImage{
+			URL: new(og.Image),
+		}, nil
+
+	}
+
+	// Try to find the "main" image in the page content.
+	if imgURL, err := html.FindMainImage(resp.Body(), link); err != nil {
+		slogctx.FromCtx(ctx).Debug("Could not find main image for URL.",
+			slog.String("url", link),
+			slog.Any("error", err))
+	} else {
+		return &RemoteImage{
+			URL: new(imgURL),
+		}, nil
+	}
+
+	return nil, errors.New("unable to find an image for feed")
 }
 
 // NewEmailItem generates a new Item from an email.
