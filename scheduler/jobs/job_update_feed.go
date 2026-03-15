@@ -164,10 +164,10 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			)
 			// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
 			// newer articles where a feed lags behind real-time.
-			if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, map[string]any{
-				"last_fetched": newItems.SortByTimestamp()[0].GetTimestamp(),
-			}); err != nil {
-				return fmt.Errorf("update feed last fetched: %w", err)
+			updates := generateFeedUpdates(feed, details)
+			updates["last_fetched"] = newItems.SortByTimestamp()[0].GetTimestamp()
+			if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, updates); err != nil {
+				return fmt.Errorf("update feed: %w", err)
 			}
 			// Update FeedStatus.
 
@@ -189,6 +189,25 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	}
 
 	return nil
+}
+
+func generateFeedUpdates(newData, oldData *models.Feed) map[string]any {
+	updates := make(map[string]any)
+	// Always update updated timestamp.
+	updates["updated"] = newData.Updated
+	// Update the feed image if it has changed.
+	if oldData.GetImage().GetURL() != newData.GetImage().GetURL() {
+		updates["image"] = newData.GetImage()
+	}
+	// Update the title if it has changed.
+	if oldData.GetTitle() != newData.GetTitle() {
+		updates["title"] = newData.GetTitle()
+	}
+	// Update the description if it has changed.
+	if oldData.GetDescription() != newData.GetDescription() {
+		updates["description"] = newData.GetDescription()
+	}
+	return updates
 }
 
 var updateFeedBufPool = sync.Pool{
