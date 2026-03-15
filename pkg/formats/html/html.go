@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 
+	"codeberg.org/readeck/go-readability/v2"
 	"github.com/immanent-tech/go-syndication/client"
 	"golang.org/x/net/html"
 )
@@ -273,4 +274,22 @@ func FindFavicon(
 		return resp.Body(), abs, cand, nil
 	}
 	return nil, "", Favicon{}, errors.New("no reachable favicon found")
+}
+
+func FindMainImage(page []byte, rawURL string) (string, error) {
+	pageURL, err := url.Parse(rawURL)
+	if err != nil {
+		return "", fmt.Errorf("parse url: %w", err)
+	}
+
+	buf, err := html.Parse(bytes.NewReader(page))
+	if err != nil {
+		return "", fmt.Errorf("parse html: %w", err)
+	}
+	// Parse using readability to find main content details.
+	rd, err := readability.FromDocument(buf, pageURL)
+	if err != nil {
+		return "", fmt.Errorf("find image: %w", err)
+	}
+	return rd.ImageURL(), nil
 }
