@@ -90,11 +90,15 @@ func showFeedDetails(feed *models.Feed) {
 		str.WriteString("Categories: " + strings.Join(feed.GetCategories(), ","))
 		str.WriteRune('\n')
 	}
-	str.WriteString("Image: " + feed.GetImage().String())
+	if feed.GetImage() != nil {
+		str.WriteString("Image: " + feed.GetImage().String())
+	}
 	str.WriteRune('\n')
 	str.WriteRune('\n')
 
 	for article := range slices.Values(feed.GetItems()) {
+		str.WriteString("---")
+		str.WriteRune('\n')
 		str.WriteString("Item ID: " + article.GetID())
 		str.WriteRune('\n')
 		str.WriteString("Title: " + article.GetTitle())
@@ -113,13 +117,15 @@ func showFeedDetails(feed *models.Feed) {
 			str.WriteString("Categories: " + strings.Join(article.GetCategories(), ","))
 			str.WriteRune('\n')
 		}
+		if article.GetImage() != nil {
+			str.WriteString("Image: " + article.GetImage().String())
+		}
 		if article.GetContent() != "" {
 			str.WriteString("Content:")
 			str.WriteRune('\n')
 			str.WriteString(article.GetContent())
 			str.WriteRune('\n')
 		}
-		str.WriteRune('\n')
 	}
 
 	fmt.Fprintf(os.Stdout, "%s", str.String())
