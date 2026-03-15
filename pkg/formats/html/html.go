@@ -276,6 +276,7 @@ func FindFavicon(
 	return nil, "", Favicon{}, errors.New("no reachable favicon found")
 }
 
+// FindMainImage tries to find a "main" image for the page, using the readability parser.
 func FindMainImage(page []byte, rawURL string) (string, error) {
 	pageURL, err := url.Parse(rawURL)
 	if err != nil {
