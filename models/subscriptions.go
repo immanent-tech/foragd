@@ -28,8 +28,6 @@ import (
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/immanent-tech/go-syndication/opengraph"
-
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
@@ -700,20 +698,6 @@ func ProcessSubscriptionRequest(
 		result.Feed = feeds[0]
 	} else {
 		// Otherwise create a new feed.
-
-		// Try to find an image for the feed if it does not supply one.
-		if newFeed.GetImage() == nil {
-			if og, err := opengraph.ParseURL(ctx, newFeed.GetLink()); err != nil {
-				slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
-					slog.String("feed", newFeed.GetTitle()),
-				)
-			} else {
-				newFeed.Image = &RemoteImage{
-					URL:   new(og.Image),
-					Title: new(newFeed.GetDescription()),
-				}
-			}
-		}
 		// Validate the new feed data.
 		err = validation.Validate.Struct(newFeed)
 		if err != nil {

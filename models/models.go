@@ -5,14 +5,12 @@
 package models
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"iter"
 	"maps"
 	"net/mail"
 	"slices"
-	"sync"
 	"time"
 
 	"github.com/immanent-tech/foragd/validation"
@@ -130,10 +128,4 @@ func (a ElementID) Target() string {
 // String returns the id attribute as a string.
 func (a ElementID) String() string {
 	return string(a)
-}
-
-var bufPool = sync.Pool{
-	New: func() any {
-		return new(bytes.Buffer)
-	},
 }

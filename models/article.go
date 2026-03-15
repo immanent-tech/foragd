@@ -19,6 +19,8 @@ import (
 
 	"golang.org/x/net/html/atom"
 
+	htmlparser "github.com/immanent-tech/foragd/pkg/formats/html"
+
 	estypes "github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
@@ -373,18 +375,18 @@ func (a *Article) formatContent() string {
 	switch {
 	case strings.Contains(a.Item.GetLink(), "reddit.com"):
 		// For reddit posts, check if the content is HTML.
-		if IsHTML(a.Item.GetContent()) {
+		if htmlparser.IsHTML(a.Item.GetContent()) {
 			doc, err := html.Parse(strings.NewReader(content))
 			if err != nil {
 				return content
 			}
 
-			row := FindHTMLNode(doc, "tr")
+			row := htmlparser.FindHTMLNode(doc, "tr")
 			if row == nil {
 				return content
 			}
 
-			cells := FindAllHTMLNodes(row, "td")
+			cells := htmlparser.FindAllHTMLNodes(row, "td")
 			if cells == nil {
 				return content
 			}

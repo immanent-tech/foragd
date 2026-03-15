@@ -24,6 +24,8 @@ import (
 	"github.com/immanent-tech/go-syndication/opengraph"
 
 	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/pkg/formats/html"
+	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -283,10 +285,10 @@ func (i *Item) GetTitle() string {
 func (i *Item) GetDescription() string {
 	if i.Description != nil {
 		switch {
-		case IsHTML(*i.Description):
+		case html.IsHTML(*i.Description):
 			return *i.Description
 		default:
-			if formatted, err := MarkdownToHTML([]byte(*i.Description)); err != nil {
+			if formatted, err := markdown.ToHTML([]byte(*i.Description)); err != nil {
 				return *i.Description
 			} else {
 				return string(formatted)

@@ -21,13 +21,16 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/calendarinterval"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-playground/validator/v10"
+	"github.com/goforj/godump"
 	feeds "github.com/immanent-tech/go-syndication"
+	"github.com/immanent-tech/go-syndication/opengraph"
 	"github.com/immanent-tech/go-syndication/types"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
 	"github.com/immanent-tech/foragd/client"
 	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/pkg/formats/html"
 	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
@@ -442,29 +445,49 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 	}
 	feed = NewSyndicationFeed(ctx, url, id, result)
 
+	// Try to find an image for the feed if it does not supply one.
+	if feed.GetImage() == nil {
+		// Fetch and extract image from opengraph data (if any).
+		if img, err := FindFeedImage(ctx, feed.GetLink()); err != nil {
+			slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
+				slog.String("feed", feed.GetTitle()),
+			)
+		} else {
+			feed.Image = img
+		}
+	}
+
 	return feed, nil
 }
 
 // FindFeedImage will try to find an image to represent the feed. Useful to call if the feed does not define an image
 // itself.
-func FindFeedImage(ctx context.Context, feed *Feed) error {
-	var timeout time.Duration
-	if deadline, ok := ctx.Deadline(); !ok {
-		timeout = client.DefaultHTTPRequestTimeout
-	} else {
-		timeout = time.Until(deadline)
-	}
-	image, err := feeds.DiscoverPageImage(feed.GetLink(), timeout)
+func FindFeedImage(ctx context.Context, feedURL string) (*RemoteImage, error) {
+	// Retrieve the content from the feed's site page.
+	resp, err := client.LoadHTTPClient().R().SetContext(ctx).Get(feedURL)
 	if err != nil {
-		return fmt.Errorf("unable to find feed image: %w", err)
+		return nil, fmt.Errorf("get url: %w", err)
 	}
-	if image != nil {
-		feed.Image = &RemoteImage{
-			URL:   new(image.GetURL()),
-			Title: new(image.GetTitle()),
-		}
+	if resp.IsError() {
+		return nil, fmt.Errorf("%s: %s", resp.Status(), resp.Error())
 	}
-	return nil
+
+	// Try to parse opengraph data out of the page content.
+	if og, err := opengraph.ParseBytes(resp.Body()); err == nil {
+		return &RemoteImage{
+			URL: new(og.Image),
+		}, nil
+	}
+
+	// Try to find a favicon to use.
+	if _, url, _, err := html.FindFavicon(resp.Body(), feedURL); err == nil {
+		godump.Dump(url)
+		return &RemoteImage{
+			URL: new(url),
+		}, nil
+	}
+
+	return nil, errors.New("unable to find an image for feed")
 }
 
 // NewSyndicationFeed converts the raw types.FeedSource into a Feed object.

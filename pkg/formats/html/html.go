@@ -1,20 +1,17 @@
 // Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package models
+package html
 
 import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
-	"sync"
 
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/parser"
-	goldmarkhtml "github.com/yuin/goldmark/renderer/html"
+	"github.com/immanent-tech/go-syndication/client"
 	"golang.org/x/net/html"
 )
 
@@ -51,40 +48,9 @@ var (
 	tagPattern = buildTagPattern()
 )
 
-var loadMarkdownWriter = sync.OnceValue(func() goldmark.Markdown {
-	return goldmark.New(
-		goldmark.WithExtensions(
-			extension.GFM,
-		),
-		goldmark.WithParserOptions(
-			parser.WithAutoHeadingID(),
-		),
-		goldmark.WithRendererOptions(
-			goldmarkhtml.WithUnsafe(),
-		),
-	)
-})
-
-// MarkdownToHTML treats the given string data input as markdown formatted plain-text and returns an appropriate HTML
-// representation.
-func MarkdownToHTML(input []byte) ([]byte, error) {
-	converter := loadMarkdownWriter()
-	buf, ok := bufPool.Get().(*bytes.Buffer)
-	if !ok {
-		return input, errors.New("unable to retrieve buffer")
-	}
-	defer func() {
-		buf.Reset()
-		defer bufPool.Put(buf)
-	}()
-	if err := converter.Convert(input, buf); err != nil {
-		return nil, fmt.Errorf("format as markdown: %w", err)
-	}
-	return buf.Bytes(), nil
-}
-
 // IsHTML returns a boolean indicating whether the given string contains HTML. It can detect both a full HTML document
 // or partial HTML content.
+
 func IsHTML(s string) bool {
 	score := 0
 
@@ -135,14 +101,13 @@ func IsHTML(s string) bool {
 	}
 
 	// Signal 6: Common HTML attribute patterns (href, src, class, id, style)
-	attrRe := regexp.MustCompile(`(?i)\s(?:href|src|class|id|style|alt|type|name|value|placeholder)\s*=\s*["']`)
-	if attrRe.MatchString(trimmed) {
+	if regexp.MustCompile(`(?i)\s(?:href|src|class|id|style|alt|type|name|value|placeholder)\s*=\s*["']`).
+		MatchString(trimmed) {
 		score += 10
 	}
 
 	// Signal 7: Self-closing tags like <br/>, <img/>, <input/>
-	selfClosingRe := regexp.MustCompile(`(?i)<(?:br|hr|img|input|meta|link)\b[^>]*?/?>`)
-	if selfClosingRe.MatchString(trimmed) {
+	if regexp.MustCompile(`(?i)<(?:br|hr|img|input|meta|link)\b[^>]*?/?>`).MatchString(trimmed) {
 		score += 5
 	}
 
@@ -206,4 +171,106 @@ func buildTagPattern() *regexp.Regexp {
 	// Match opening tags (with optional attrs) or closing tags
 	pattern := `(?i)<(/?)(?:` + joined + `)(?:\s[^>]*)?>`
 	return regexp.MustCompile(pattern)
+}
+
+// Favicon is a favicon link found in <head>.
+type Favicon struct {
+	href string
+	rel  string // e.g. "icon", "apple-touch-icon", "shortcut icon"
+	typ  string // e.g. "image/png"
+	size string // e.g. "32x32"
+}
+
+// findFaviconCandidates fetches the page and parses <link> tags in <head> that look
+// like favicon declarations, plus synthesises the conventional /favicon.ico path.
+func findFaviconCandidates(page []byte) []Favicon {
+	limited := client.NewHeadReader(bytes.NewReader(page), 256*1024)
+
+	tokenizer := html.NewTokenizer(limited)
+
+	var candidates []Favicon
+	for {
+		tt := tokenizer.Next()
+		if tt == html.ErrorToken {
+			break
+		}
+		if tt != html.StartTagToken && tt != html.SelfClosingTagToken {
+			continue
+		}
+		tok := tokenizer.Token()
+		if tok.Data == "body" {
+			break
+		}
+		if tok.Data != "link" {
+			continue
+		}
+
+		var rel, href, typ, size string
+		for _, a := range tok.Attr {
+			switch strings.ToLower(a.Key) {
+			case "rel":
+				rel = strings.ToLower(a.Val)
+			case "href":
+				href = a.Val
+			case "type":
+				typ = a.Val
+			case "sizes":
+				size = a.Val
+			}
+		}
+
+		if href == "" {
+			continue
+		}
+		// Accept any rel that contains "icon"
+		if !strings.Contains(rel, "icon") {
+			continue
+		}
+		candidates = append(candidates, Favicon{href: href, rel: rel, typ: typ, size: size})
+	}
+
+	// Always append the conventional fallback last.
+	candidates = append(candidates, Favicon{href: "/favicon.ico", rel: "conventional"})
+	return candidates
+}
+
+// resolve turns a possibly relative href into an absolute URL based on the page origin.
+func resolve(pageURL, href string) (string, error) {
+	base, err := url.Parse(pageURL)
+	if err != nil {
+		return "", fmt.Errorf("parse url %s: %w", pageURL, err)
+	}
+	ref, err := url.Parse(href)
+	if err != nil {
+		return "", fmt.Errorf("parse url %s: %w", href, err)
+	}
+	return base.ResolveReference(ref).String(), nil
+}
+
+// FindFavicon tries each candidate in order and returns the first one that
+// responds with a 2xx status and a non-empty body.
+func FindFavicon(
+	page []byte,
+	pageURL string,
+) ([]byte, string, Favicon, error) {
+	candidates := findFaviconCandidates(page)
+	if len(candidates) == 0 {
+		return nil, "", Favicon{}, errors.New("no favicon candidates found")
+	}
+
+	for _, cand := range candidates {
+		abs, err := resolve(pageURL, cand.href)
+		if err != nil {
+			continue
+		}
+		resp, err := client.LoadHTTPClient().R().Get(abs)
+		if err != nil {
+			continue
+		}
+		if resp.StatusCode() < 200 || resp.StatusCode() >= 300 || len(resp.Body()) == 0 {
+			continue
+		}
+		return resp.Body(), abs, cand, nil
+	}
+	return nil, "", Favicon{}, errors.New("no reachable favicon found")
 }

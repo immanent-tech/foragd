@@ -3,6 +3,17 @@
 
 package models
 
+import "strings"
+
+// NewRemoteImage creates a new RemoteImage object.
+func NewRemoteImage(url, title string) *RemoteImage {
+	return &RemoteImage{
+		URL:   new(url),
+		Title: new(title),
+	}
+}
+
+// GetURL returns the URL to the image.
 func (i *RemoteImage) GetURL() string {
 	if i.URL != nil {
 		return *i.URL
@@ -10,6 +21,7 @@ func (i *RemoteImage) GetURL() string {
 	return ""
 }
 
+// GetTitle returns the title (i.e., alt text) of the image, if any.
 func (i *RemoteImage) GetTitle() string {
 	if i.Title != nil {
 		return *i.Title
@@ -17,9 +29,6 @@ func (i *RemoteImage) GetTitle() string {
 	return ""
 }
 
-func NewRemoteImage(url, title string) *RemoteImage {
-	return &RemoteImage{
-		URL:   new(url),
-		Title: new(title),
-	}
+func (i *RemoteImage) String() string {
+	return strings.Join([]string{i.GetURL(), i.GetTitle()}, " ")
 }
