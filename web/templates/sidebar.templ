@@ -15,9 +15,9 @@ type SideBarComponent struct {
 }
 
 templ SideBar(attributes templ.Attributes) {
-	<nav id="page-sidebar" class="hidden mt-16 bg-base-200 border-r border-base-content/30 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col" { attributes... }>
+	<nav aria-label="Sidebar Navigation" id="page-sidebar" class="hidden mt-16 bg-base-200 border-r border-base-content/30 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-36 lg:flex-col" { attributes... }>
 		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4">
-			<div aria-label="Sidebar Navigation" class="flex flex-1 flex-col place-items-center">
+			<div class="flex flex-1 flex-col place-items-center">
 				<ul role="list" class="flex flex-1 flex-col py-16 gap-y-8 my-auto">
 					<li>
 						<a
