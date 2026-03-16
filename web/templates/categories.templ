@@ -13,7 +13,7 @@ import (
 
 templ CategoryManagement(path, inputName string, suggested []models.Category, existing []models.Category) {
 	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-		<label for="add-categories">
+		<label for="add-category">
 			@partials.Heading3() {
 				Add Categories
 			}
@@ -34,6 +34,7 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 					class="join"
 				>
 					<input
+						id="add-category"
 						name="category"
 						class="input input-primary bg-base-content/10 join-item"
 						placeholder="Category"
