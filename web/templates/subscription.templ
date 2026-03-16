@@ -400,6 +400,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									<a
 										hx-get="/user/subscription/add/feed"
 										hx-target={ ContentID.Target() }
+										hx-push-url="true"
 										role="menuitem"
 										tabindex="-1"
 									>
@@ -412,6 +413,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										hx-get="/user/subscription/add/search"
 										hx-target={ ContentID.Target() }
 										hx-include="#search-filters"
+										hx-push-url="true"
 										role="menuitem"
 										tabindex="-1"
 									>
@@ -423,6 +425,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 									<a
 										hx-get="/user/subscription/add/group"
 										hx-target={ ContentID.Target() }
+										hx-push-url="true"
 										role="menuitem"
 										tabindex="-1"
 									>
@@ -1057,40 +1060,53 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 					// Subscriptions.
 					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
 						<div>
-							<span class="text-base/7 font-semibold">In Subscriptions</span>
+							<label for="suggest-subscription" class="text-base/7 font-semibold">In Subscriptions</label>
 						</div>
 						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-							<div class="col-span-full mt-2">
-								<label class="input input-primary bg-base-content/10 w-full">
-									@tabler.Search(i.Props{Class: "size-5"})
-									<form
+							// Autocomplete input for showing subscription suggestions.
+							<div class="col-span-full mt-2 join">
+								<el-autocomplete class="w-full join join-item">
+									<input
 										hx-post="/subscription/group/suggest"
 										hx-trigger="input changed delay:500ms,consume"
 										hx-target="#subscription-suggestions"
 										hx-include="#subscriptions"
 										hx-encoding="application/x-www-form-urlencoded"
 										hx-swap="innerHTML"
+										_="on htmx:afterRequest if event.detail.successful then trigger showPopover() on #subscription-suggestions"
+										id="suggest-subscription"
+										name="text"
+										class="input input-primary bg-base-content/10 w-full join-item"
+										placeholder="Subscription"
+									/>
+									<button
+										type="button"
+										class="btn bg-base-content/10 join-item"
 									>
-										<input
-											id="suggest-subscription"
-											name="text"
-											placeholder="Search subscriptions..."
-											autocomplete="off"
-										/>
-									</form>
-								</label>
-								<div
-									id="subscription-suggestions"
-									class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-								></div>
-								<div
-									id="subscriptions"
-									class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+										@tabler.ChevronDown()
+									</button>
+									<el-options id="subscription-suggestions" popover anchor="bottom start" class="w-(--input-width) overflow-auto"></el-options>
+								</el-autocomplete>
+								<button
+									hx-post="/subscription/group/add"
+									hx-target="#subscriptions"
+									hx-encoding="application/x-www-form-urlencoded"
+									hx-include="#subscription-suggestions"
+									hx-swap="beforeend"
+									class="btn btn-primary join-item"
+									_="on htmx:afterRequest if event.detail.successful then set #suggest-subscription.value to ''"
 								>
-									for id, name := range request.Subscriptions {
-										@GroupSubscriptionAddSubscription(id, name)
-									}
-								</div>
+									@tabler.Plus()
+								</button>
+							</div>
+							// Already added subscriptions as badges with ability to remove.
+							<div
+								id="subscriptions"
+								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+							>
+								for id, name := range request.Subscriptions {
+									@GroupSubscriptionAddSubscription(id, name)
+								}
 							</div>
 						</div>
 					</div>
@@ -1133,7 +1149,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 							}
 							hx-swap="none"
 							hx-include="[name='customisation.categories'],#group-subscription-details"
-							hx-params="not text"
+							hx-params="not text,subscription_id,subscription_name"
 							hx-indicator="#processing"
 							hx-encoding="multipart/form-data"
 						>
@@ -1154,24 +1170,31 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 
 templ GroupSubscriptionSuggestions(subscriptions models.Subscriptions) {
 	for subscription := range slices.Values(subscriptions) {
-		<form
-			hx-post="/subscription/group/add"
-			hx-target="#subscriptions"
-			hx-encoding="application/x-www-form-urlencoded"
-			hx-swap="beforeend"
-			_="on htmx:afterRequest(sucessful) set #suggest-subscription.value to '' then remove me"
-		>
+		<el-option value={ subscription.GetTitle() }>
 			<input type="hidden" name="subscription_id" value={ subscription.GetID() }/>
 			<input type="hidden" name="subscription_name" value={ subscription.GetTitle() }/>
-			<button
-				type="submit"
-				class="btn btn-primary hover:btn-success"
-			>
-				{ subscription.GetTitle() }
-				@tabler.Plus()
-			</button>
-		</form>
+			{ subscription.GetTitle() }
+		</el-option>
 	}
+	// for subscription := range slices.Values(subscriptions) {
+	// 	<form
+	// 		hx-post="/subscription/group/add"
+	// 		hx-target="#subscriptions"
+	// 		hx-encoding="application/x-www-form-urlencoded"
+	// 		hx-swap="beforeend"
+	// 		_="on htmx:afterRequest(sucessful) set #suggest-subscription.value to '' then remove me"
+	// 	>
+	// 		<input type="hidden" name="subscription_id" value={ subscription.GetID() }/>
+	// 		<input type="hidden" name="subscription_name" value={ subscription.GetTitle() }/>
+	// 		<button
+	// 			type="submit"
+	// 			class="btn btn-primary hover:btn-success"
+	// 		>
+	// 			{ subscription.GetTitle() }
+	// 			@tabler.Plus()
+	// 		</button>
+	// 	</form>
+	// }
 }
 
 templ GroupSubscriptionAddSubscription(id, name string) {
