@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.82.1](https://github.com/immanent-tech/foragd/compare/v0.82.0...v0.82.1) (2026-03-16)
+
+
+### Bug Fixes
+
+* **scheduler:** :bug: fix check for updating feed image ([1ec9928](https://github.com/immanent-tech/foragd/commit/1ec9928eb475b2860fc40dacdc4c3e392772d53f))
+* **templates:** :bug: fix label reference ([a6325f5](https://github.com/immanent-tech/foragd/commit/a6325f5105729f12c49876f4437b9d0ef28919be))
+* **templates:** :wheelchair: fix aria-label ([79b1a41](https://github.com/immanent-tech/foragd/commit/79b1a41b69c2498cb1b919c1b9931f8f1eeb1614))
+* **templates/articles:** :lipstick: force width of email newsletters to avoid horizontal overscroll ([7726d88](https://github.com/immanent-tech/foragd/commit/7726d88d08ce87e37685b1669093406c6d2677cb))
+* **templates/viewer:** :recycle: use own feed as example ([75f39a2](https://github.com/immanent-tech/foragd/commit/75f39a2015a3e7e5084a282a23b97b974c3134dd))
+
 ## [0.82.0](https://github.com/immanent-tech/foragd/compare/v0.81.2...v0.82.0) (2026-03-15)
 
 
