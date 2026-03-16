@@ -196,7 +196,9 @@ func generateFeedUpdates(newData, oldData *models.Feed) map[string]any {
 	// Always update updated timestamp.
 	updates["updated"] = newData.Updated
 	// Update the feed image if it has changed.
-	if oldData.GetImage().GetURL() != newData.GetImage().GetURL() {
+	if oldData.GetImage() == nil {
+		updates["image"] = newData.GetImage()
+	} else if img := oldData.GetImage(); img.GetURL() != newData.GetImage().GetURL() {
 		updates["image"] = newData.GetImage()
 	}
 	// Update the title if it has changed.

@@ -72,7 +72,8 @@
     "reverseproxy",
     "client",
     "opengraph",
-    "templates/partials"
+    "templates/partials",
+    "pkg/formats/html"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
