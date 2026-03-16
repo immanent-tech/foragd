@@ -48,6 +48,6 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "prettier-plugin-tailwindcss-extra-plus": "^0.3.1",
     "release-please": "^17.3.0",
-    "wrangler": "^4.65.0"
+    "wrangler": "^4.73.0"
   }
 }
