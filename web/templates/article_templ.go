@@ -1481,7 +1481,7 @@ func (a *Article) Content() templ.Component {
 					}
 					switch {
 					case a.SourceType == models.SourceTypeEmail:
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 122, " <div class=\"prose-email mt-4\" data-disable-scripting hx-disable>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 122, " <div class=\"prose-email mt-4 forced-width\" data-disable-scripting hx-disable>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
