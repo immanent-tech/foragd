@@ -91,7 +91,7 @@ func showFeedDetails(feed *models.Feed) {
 	str.WriteRune('\n')
 	str.WriteRune('\n')
 
-	for article := range slices.Values(feed.GetItems()) {
+	for article := range slices.Values(feed.GetItems().SortByTimestamp()) {
 		str.WriteString("---")
 		str.WriteRune('\n')
 		str.WriteString("Item ID: " + article.GetID())
