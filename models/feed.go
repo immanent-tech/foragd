@@ -548,6 +548,10 @@ func newSyndicationFeed(ctx context.Context, url string, id FeedID, source *feed
 	for item := range itemCh {
 		feed.Items = append(feed.Items, item)
 	}
+	slices.SortFunc(feed.Items, func(itemA, itemB Item) int {
+		return itemA.GetTimestamp().Compare(itemB.GetTimestamp())
+	})
+	slices.Reverse(feed.Items)
 
 	// Add the url used to find the feed to the source URLs if needed.
 	if !slices.Contains(feed.SourceURLs, url) {
