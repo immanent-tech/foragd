@@ -427,7 +427,7 @@ func findItemImage(ctx context.Context, link string) (*RemoteImage, error) {
 		slogctx.FromCtx(ctx).Debug("Could not parse opengraph data for URL.",
 			slog.String("url", link),
 			slog.Any("error", err))
-	} else {
+	} else if og.Image != "" {
 		return &RemoteImage{
 			URL: new(og.Image),
 		}, nil
@@ -439,7 +439,7 @@ func findItemImage(ctx context.Context, link string) (*RemoteImage, error) {
 		slogctx.FromCtx(ctx).Debug("Could not find main image for URL.",
 			slog.String("url", link),
 			slog.Any("error", err))
-	} else {
+	} else if imgURL != "" {
 		return &RemoteImage{
 			URL: new(imgURL),
 		}, nil
