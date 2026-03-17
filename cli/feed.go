@@ -17,11 +17,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 )
 
-type FeedArgs struct {
-	FeedID  models.UserID `arg:"id"  optional:"" help:"ID of feed"`
-	FeedURL string        `arg:"url" optional:"" help:"URL of feed"`
-}
-
 // FeedCmd contains sub commands for interacting with feeds.
 type FeedCmd struct {
 	Fetch FetchFeedCmd `cmd:"fetch" help:"fetch a feed (by either URL or ID)"`
@@ -29,9 +24,9 @@ type FeedCmd struct {
 
 // FetchFeedCmd is a command that will fetch a feed, by either URL or its Feed ID.
 type FetchFeedCmd struct {
-	FeedArgs
-
-	Validate bool `default:"false" help:"validate the feed"`
+	FeedID   models.FeedID `help:"ID of feed"`
+	FeedURL  string        `help:"URL of feed"`
+	Validate bool          `help:"validate the feed" default:"false"`
 }
 
 func (c *FetchFeedCmd) Run() error {
@@ -42,8 +37,8 @@ func (c *FetchFeedCmd) Run() error {
 	var results *models.Feed
 
 	switch {
-	case c.FeedArgs.FeedID != "" && strings.HasPrefix(c.FeedArgs.FeedID, "feed_"):
-		feed, err := models.GetFeedByID(ctx, c.FeedArgs.FeedID)
+	case c.FeedID != "" && strings.HasPrefix(c.FeedID, "feed_"):
+		feed, err := models.GetFeedByID(ctx, c.FeedID)
 		if err != nil {
 			return fmt.Errorf("get feed by id: %w", err)
 		}
@@ -51,8 +46,8 @@ func (c *FetchFeedCmd) Run() error {
 		if err != nil {
 			return fmt.Errorf("get feed by id: %w", err)
 		}
-	case c.FeedArgs.FeedURL != "":
-		feedURL, err := url.Parse(c.FeedArgs.FeedURL)
+	case c.FeedURL != "":
+		feedURL, err := url.Parse(c.FeedURL)
 		if err != nil {
 			return fmt.Errorf("parse url: %w", err)
 		}
