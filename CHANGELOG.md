@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.82.2](https://github.com/immanent-tech/foragd/compare/v0.82.1...v0.82.2) (2026-03-17)
+
+
+### Bug Fixes
+
+* **cli:** :bug: fix command-line handling for feed command ([14cb3e7](https://github.com/immanent-tech/foragd/commit/14cb3e7b9aa3129a9667ac8a30a7e6fa822b0082))
+* **cli:** :bug: show items sorted by timestamp (newest first) ([ffc61e7](https://github.com/immanent-tech/foragd/commit/ffc61e76139432eea45885b5a3b01cf26c84fc33))
+* **models:** :bug: don't return image if image url is empty string ([d1ca16a](https://github.com/immanent-tech/foragd/commit/d1ca16a96b821a8c594ec8c32e42bd6570711aa0))
+
+
+### Reverts
+
+* **models:** :rewind: don't automatically sort feed items ([ca8ff72](https://github.com/immanent-tech/foragd/commit/ca8ff72c48fe350beb06a4a935dca7e1e2b50d68))
+
 ## [0.82.1](https://github.com/immanent-tech/foragd/compare/v0.82.0...v0.82.1) (2026-03-16)
 
 
