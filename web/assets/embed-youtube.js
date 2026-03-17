@@ -17,6 +17,7 @@ class EmbedYoutube extends HTMLElement {
       'playsinline',
       'origin',
       'credentialless',
+      'allow',
     ]
   }
 
@@ -60,6 +61,10 @@ class EmbedYoutube extends HTMLElement {
 
   get credentialless() {
     return this.hasAttribute('credentialless')
+  }
+
+  get allow() {
+    return this.hasAttribute('allow') || 'compute-pressure'
   }
 
   _render() {
