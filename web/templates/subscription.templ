@@ -631,33 +631,34 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 								</div>
 							</div>
 						</div>
-						// Nickname.
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<label for="nickname">
-								@partials.Heading3() {
-									Feed Nickname
-								}
-								@partials.Paragraph() {
-									Optional. A Friendly name for the subscription. Will use the feed's name if not specified.
-								}
-							</label>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="sm:col-span-4 mt-2">
-									<input
-										id="nickname"
-										type="text"
-										name="nickname"
-										if request.Nickname != nil {
-											value={ *request.Nickname }
-										}
-										placeholder="My cool subscription…"
-										class="input input-primary bg-base-content/10"
-									/>
+						@formCustomisationDisclosure("Feed Customisation") {
+							<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+								<label for="nickname">
+									@partials.Heading3() {
+										Feed Nickname
+									}
+									@partials.Paragraph() {
+										Optional. A Friendly name for the subscription. Will use the feed's name if not specified.
+									}
+								</label>
+								<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+									<div class="sm:col-span-4 mt-2">
+										<input
+											id="nickname"
+											type="text"
+											name="nickname"
+											if request.Nickname != nil {
+												value={ *request.Nickname }
+											}
+											placeholder="My cool subscription…"
+											class="input input-primary bg-base-content/10"
+										/>
+									</div>
 								</div>
 							</div>
-						</div>
-						// Thumbnail.
-						@subscriptionThumbnailField(nil, "")
+							// Thumbnail.
+							@subscriptionThumbnailField(nil, "")
+						}
 					</form>
 					// Categories
 					{{ categoryMgmtPath := "/user/subscription/category" }}
@@ -784,36 +785,6 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 						</div>
 						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 							<div class="col-span-full mt-2">
-								// <label class="input input-primary bg-base-content/10 w-full">
-								// 	@tabler.Search(i.Props{Class: "size-5"})
-								// 	<form
-								// 		hx-post="/subscription/group/suggest"
-								// 		hx-trigger="input changed delay:500ms,consume"
-								// 		hx-target="#subscription-suggestions"
-								// 		hx-include="#subscriptions"
-								// 		hx-encoding="application/x-www-form-urlencoded"
-								// 		hx-swap="innerHTML"
-								// 	>
-								// 		<input
-								// 			id="suggest-subscription"
-								// 			name="text"
-								// 			placeholder="Search subscriptions..."
-								// 			autocomplete="off"
-								// 		/>
-								// 	</form>
-								// </label>
-								// <div
-								// 	id="subscription-suggestions"
-								// 	class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-								// ></div>
-								// <div
-								// 	id="subscriptions"
-								// 	class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-								// >
-								// 	for id, name := range request.Subscriptions {
-								// 		@GroupSubscriptionAddSubscription(id, name)
-								// 	}
-								// </div>
 								<label class="input input-primary bg-base-content/10 w-full">
 									@tabler.Search(i.Props{Class: "size-5"})
 									<form
@@ -1263,6 +1234,25 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 			}
 		}
 	}
+}
+
+templ formCustomisationDisclosure(label string) {
+	<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
+		@partials.Heading3() {
+			{ label }
+		}
+		<span class="ml-6 flex h-7 items-center">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 in-aria-expanded:hidden">
+				<path d="M12 6v12m6-6H6" stroke-linecap="round" stroke-linejoin="round"></path>
+			</svg>
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 not-in-aria-expanded:hidden">
+				<path d="M18 12H6" stroke-linecap="round" stroke-linejoin="round"></path>
+			</svg>
+		</span>
+	</button>
+	<el-disclosure hidden id="customisation">
+		{ children... }
+	</el-disclosure>
 }
 
 templ subscriptionNicknameField(nickname string) {
