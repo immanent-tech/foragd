@@ -288,9 +288,12 @@ func FindMainImage(page []byte, rawURL string) (string, error) {
 		return "", fmt.Errorf("parse html: %w", err)
 	}
 	// Parse using readability to find main content details.
-	rd, err := readability.FromDocument(buf, pageURL)
+	rdData, err := readability.FromDocument(buf, pageURL)
 	if err != nil {
 		return "", fmt.Errorf("find image: %w", err)
 	}
-	return rd.ImageURL(), nil
+	if rdData.ImageURL() == "" {
+		return "", errors.New("no main image found")
+	}
+	return rdData.ImageURL(), nil
 }
