@@ -394,10 +394,8 @@ func NewFeedItem(ctx context.Context, source *feeds.Item, feed *Feed) *Item {
 			Title: new(sourceImg.GetTitle()),
 		}
 	} else {
-		if img, err := findItemImage(ctx, source.GetLink()); err != nil {
-			slogctx.FromCtx(ctx).Debug("Item has no image.",
-				slog.String("item_id", item.GetID()))
-		} else {
+		// Find an appropriate image for the item and use it.
+		if img, err := findItemImage(ctx, source.GetLink()); err == nil && img != nil {
 			item.Image = img
 		}
 	}
