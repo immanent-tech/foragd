@@ -3,6 +3,18 @@
 
 package partials
 
+templ FormSection() {
+	<div class="mt-10 space-y-8 border-b border-base-300 pb-12 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300 sm:pb-0">
+		{ children... }
+	</div>
+}
+
+templ FormField() {
+	<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+		{ children... }
+	</div>
+}
+
 templ FormDisclosure(label string) {
 	<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
 		@Heading3() {

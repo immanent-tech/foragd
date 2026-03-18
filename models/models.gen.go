@@ -655,9 +655,6 @@ type FeedSubscription struct {
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-
-	// URL is a URL pointing to the original website that publishes the feed.
-	URL string `json:"url" validate:"required,url"`
 }
 
 // FileDetails contains a mapping of a file in an embedded FS to the URL path it is served from.

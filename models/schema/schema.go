@@ -458,7 +458,6 @@ var (
 						templates.WithFlattenedMapping("settings"),
 						templates.WithObjectMapping("feed_data",
 							templates.WithKeywordMapping("feed_id"),
-							templates.WithKeywordMapping("url"),
 							templates.WithFlattenedMapping("article_states"),
 							templates.WithObjectMapping("article_filters",
 								templates.WithKeywordMapping("text"),

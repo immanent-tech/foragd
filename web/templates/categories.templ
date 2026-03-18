@@ -12,17 +12,12 @@ import (
 )
 
 templ CategoryManagement(path, inputName string, suggested []models.Category, existing []models.Category) {
-	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-		<label for="add-category">
-			@partials.Heading3() {
-				Add Categories
-			}
-			<p class="mt-1 text-sm/6">Optional. Add additional categories to the subscription.</p>
-		</label>
-		// Add categories.
-		<div class="grid sm:max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-			// Add from suggested categories.
-			<div class="mt-2 join">
+	<h2 class="text-base/7 font-semibold">Categories</h2>
+	<p class="mt-1 max-w-2xl text-sm/6">Manage the categories for the subscription.</p>
+	@partials.FormSection() {
+		@partials.FormField() {
+			<label for="category-suggestions" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Add category</label>
+			<div class="mt-2 sm:col-span-2 sm:mt-0 join">
 				<el-autocomplete class="sm:col-span-4 join join-item">
 					<input
 						id="category-suggestion"
@@ -58,30 +53,49 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 					@tabler.Plus()
 				</button>
 			</div>
-		</div>
-	</div>
-	// Manage categories.
-	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-		<div>
-			<label for="current-categories">
-				@partials.Heading3() {
-					Manage Existing Categories
+		}
+		@partials.FormField() {
+			<label for="categories" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Categories</label>
+			<div id="current-categories" class="mt-2 sm:col-span-2 sm:mt-0 flex flex-row flex-wrap p-2 gap-2">
+				for category := range slices.Values(existing) {
+					@AddCategory(path, inputName, category)
 				}
-			</label>
-			<p class="mt-1 text-sm/6">Existing categories. Click the X to remove them from the subscription.</p>
-		</div>
-		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-			<div class="sm:col-span-4">
-				<div class="flex gap-2 p-2 m-2">
-					<div id="current-categories" class="flex flex-row flex-wrap p-2 gap-2">
-						for category := range slices.Values(existing) {
-							@AddCategory(path, inputName, category)
-						}
-					</div>
-				</div>
 			</div>
-		</div>
-	</div>
+		}
+	}
+	// <div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+	// 	@partials.Heading3() {
+	// 		Add Categories
+	// 	}
+	// 	<p class="mt-1 text-sm/6">Optional. Add additional categories to the subscription.</p>
+	// 	// Add categories.
+	// 	<div class="grid sm:max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+	// 		// Add from suggested categories.
+	// 		<div class="mt-2 w-full join"></div>
+	// 	</div>
+	// </div>
+	// Manage categories.
+	// <div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+	// 	<div>
+	// 		<label for="current-categories">
+	// 			@partials.Heading3() {
+	// 				Manage Existing Categories
+	// 			}
+	// 		</label>
+	// 		<p class="mt-1 text-sm/6">Existing categories. Click the X to remove them from the subscription.</p>
+	// 	</div>
+	// 	<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
+	// 		<div class="sm:col-span-4">
+	// 			<div class="flex gap-2 p-2 m-2">
+	// 				<div id="current-categories" class="flex flex-row flex-wrap p-2 gap-2">
+	// 					for category := range slices.Values(existing) {
+	// 						@AddCategory(path, inputName, category)
+	// 					}
+	// 				</div>
+	// 			</div>
+	// 		</div>
+	// 	</div>
+	// </div>
 }
 
 // AddCategory renders a new category item to the list of categories of a subscription.

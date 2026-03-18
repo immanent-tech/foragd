@@ -766,8 +766,7 @@ func HandleAddFeedSubscription() http.HandlerFunc {
 					)
 				}
 			} else {
-				err = models.CreateFeedSubscriptions(req.Context(), &result)
-				if err != nil {
+				if err = models.CreateFeedSubscriptions(req.Context(), &result); err != nil {
 					HandleInternalError(&models.APIError{
 						InternalError: fmt.Errorf("add subscription: %w", err),
 						StatusCode:    http.StatusInternalServerError,
@@ -1240,8 +1239,8 @@ func HandleExportSubscriptions() http.HandlerFunc {
 				if subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
 					outlines = append(
 						outlines,
-						*opml.NewSubscriptionOutline(subscription.Customisation.Nickname, subscription.FeedData.URL,
-							opml.WithHTMLURL(subscription.FeedData.URL),
+						*opml.NewSubscriptionOutline(subscription.Customisation.Nickname, subscription.GetLink(),
+							opml.WithHTMLURL(subscription.GetLink()),
 							opml.WithOutlineTitle(subscription.Customisation.Nickname),
 						),
 					)

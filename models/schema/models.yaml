@@ -838,13 +838,13 @@ components:
       properties:
         feed_id:
           $ref: '#/components/schemas/FeedID'
-        url:
-          description: >
-            is a URL pointing to the original website that publishes the feed.
-          type: string
-          x-go-name: URL
-          x-oapi-codegen-extra-tags:
-            validate: 'required,url'
+        # url:
+        #   description: >
+        #     is a URL pointing to the original website that publishes the feed.
+        #   type: string
+        #   x-go-name: URL
+        #   x-oapi-codegen-extra-tags:
+        #     validate: 'required,url'
         article_states:
           description: >
             contains the states of items marked explicitly as read/unread/saved by the user.

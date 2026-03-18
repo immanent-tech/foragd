@@ -670,8 +670,16 @@ func ProcessSubscriptionRequest(
 	var terms []query.Option
 	for url := range slices.Values(newFeed.SourceURLs) {
 		terms = append(terms, query.Term("source_urls", url))
+		// Also match url with trailing slash.
+		if !strings.HasSuffix(url, "/") {
+			terms = append(terms, query.Term("source_urls", url+"/"))
+		}
 	}
 	terms = append(terms, query.Term("url", newFeed.URL))
+	// Also match url with trailing slash.
+	if !strings.HasSuffix(newFeed.URL, "/") {
+		terms = append(terms, query.Term("source_urls", newFeed.URL+"/"))
+	}
 	// Find any existing feed.
 	feeds, _, err := elastic.Search[*Feed](ctx,
 		schema.FeedsIndexRO,
@@ -755,7 +763,6 @@ func ProcessSubscriptionRequest(
 		slog.String("feed_title", result.Feed.GetTitle()),
 		slog.String("feed_id", result.Feed.GetID()),
 	)
-
 	// New subscription required.
 	resultsCh <- result
 }
@@ -1249,7 +1256,7 @@ func ArticleFiltersQueryClause(source ItemSource) query.BoolOption {
 func NewFeedSubscription(ctx context.Context, feed *Feed, request *AddFeedSubscriptionRequest) (*Subscription, error) {
 	// Create state based on feed and user data.
 	feedSubscription := &FeedSubscription{
-		URL:           feed.GetLink(),
+		// URL:           feed.GetLink(),
 		FeedID:        feed.GetID(),
 		ArticleStates: make(map[ItemID]ArticleState),
 	}
@@ -1513,7 +1520,7 @@ func (s *Subscription) GetImage() URL {
 func (s *Subscription) GetLink() string {
 	switch s.Type {
 	case SubscriptionTypeFeed:
-		return s.FeedData.URL
+		return ""
 	default:
 		return ""
 	}

@@ -596,74 +596,94 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 						Add A Subscription
 					}
 				</div>
-				<div class="space-y-8">
-					<form
-						id="add-subscription"
-						hx-post="/user/subscription/add/feed"
-						hx-swap="none"
-						hx-include="[name='user_categories']"
-						hx-indicator="#processing"
-						hx-on::after-request="if(event.detail.successful) this.reset()"
-					>
-						// URL.
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<label for="url">
-								@partials.Heading3() {
-									Feed Website or URL
-								}
-								@partials.Paragraph() {
-									Required. The feed's URL or website (feed detection from a website URL may or may not work).
-								}
-							</label>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full mt-2">
-									<input
-										id="url"
-										required
-										type="url"
-										name="url"
-										autocomplete="url"
-										value={ request.URL }
-										placeholder="https://my-favorite-site/feed…"
-										class="input input-primary bg-base-content/10 w-full"
-									/>
-								</div>
-							</div>
-						</div>
-						@partials.FormDisclosure("Feed Customisation") {
-							<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-								<label for="nickname">
-									@partials.Heading3() {
-										Feed Nickname
-									}
-									@partials.Paragraph() {
-										Optional. A Friendly name for the subscription. Will use the feed's name if not specified.
-									}
-								</label>
-								<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-									<div class="sm:col-span-4 mt-2">
+				<form
+					id="add-subscription"
+					hx-post="/user/subscription/add/feed"
+					hx-swap="none"
+					hx-include="[name='user_categories']"
+					hx-indicator="#processing"
+					hx-on::after-request="if(event.detail.successful) this.reset()"
+				>
+					<div class="space-y-12 sm:space-y-16">
+						<div>
+							<h2 class="text-base/7 font-semibold">Source</h2>
+							// <p class="mt-1 max-w-2xl text-sm/6 text-gray-600 dark:text-gray-400">This information will be displayed publicly so be careful what you share.</p>
+							@partials.FormSection() {
+								@partials.FormField() {
+									<label for="url" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Feed website or URL</label>
+									<div class="mt-2 sm:col-span-2 sm:mt-0">
 										<input
-											id="nickname"
-											type="text"
-											name="nickname"
-											if request.Nickname != nil {
-												value={ *request.Nickname }
-											}
-											placeholder="My cool subscription…"
-											class="input input-primary bg-base-content/10"
+											id="url"
+											required
+											type="url"
+											name="url"
+											autocomplete="url"
+											value={ request.URL }
+											placeholder="https://my-favorite-site/feed…"
+											class="input input-primary bg-base-content/10 w-full"
 										/>
 									</div>
+								}
+							}
+						</div>
+						<div>
+							<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
+								<div>
+									<h2 class="text-base/7 font-semibold">Customisation</h2>
+									<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
 								</div>
-							</div>
-							// Thumbnail.
-							@subscriptionThumbnailField(nil, "")
-						}
-					</form>
-					// Categories
-					{{ categoryMgmtPath := "/user/subscription/category" }}
-					@CategoryManagement(categoryMgmtPath, "categories", request.SuggestedCategories, request.Categories)
-					// Action buttons.
-					<div class="flex flex-1 items-center justify-end gap-x-6">
+								<span class="ml-6 flex h-7 items-center">
+									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+									</svg>
+									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
+									</svg>
+								</span>
+							</button>
+							@partials.FormSection() {
+								<el-disclosure hidden id="customisation">
+									<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+										@partials.FormField() {
+											<label for="nickname" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Nickname</label>
+											<div class="mt-2 sm:col-span-2 sm:mt-0">
+												<input
+													id="nickname"
+													type="text"
+													name="nickname"
+													if request.Nickname != nil {
+														value={ *request.Nickname }
+													}
+													placeholder="My cool subscription…"
+													class="input input-primary bg-base-content/10"
+												/>
+											</div>
+										}
+										@partials.FormField() {
+											<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
+											<div class="mt-2 sm:col-span-2 sm:mt-0">
+												<div class="col-span-full mt-2 flex items-center gap-x-2">
+													@subscriptionThumbnail(nil, "")
+													<input
+														id="thumbnail"
+														type="file"
+														class="flex file-input file-input-primary bg-base-content/10"
+														name={ models.ParamThumbnail }
+														accept=".jpg,.png,.webp"
+													/>
+												</div>
+											</div>
+										}
+									</div>
+								</el-disclosure>
+							}
+						</div>
+						<div>
+							{{ categoryMgmtPath := "/user/subscription/category" }}
+							@CategoryManagement(categoryMgmtPath, "categories", request.SuggestedCategories, request.Categories)
+						</div>
+					</div>
+					<div class="mt-6 flex items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
 							Processing...
 							<span class="loading loading-spinner loading-md"></span>
@@ -671,7 +691,7 @@ templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
 						@partials.ButtonBack()
 						<button type="submit" class="btn btn-primary" form="add-subscription">Add</button>
 					</div>
-				</div>
+				</form>
 			}
 		}
 	}
