@@ -481,7 +481,6 @@ func findFeedImage(ctx context.Context, feedURL string) (*RemoteImage, error) {
 		return &RemoteImage{
 			URL: new(og.Image),
 		}, nil
-
 	}
 
 	// Try to find the "main" image in the page content.

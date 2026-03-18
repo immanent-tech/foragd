@@ -22,22 +22,13 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 		// Add categories.
 		<div class="grid sm:max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
 			// Add from suggested categories.
-			<el-autocomplete class="sm:col-span-4 mt-2">
-				<form
-					id="add-categories"
-					hx-post={ path }
-					hx-on::after-request="if(event.detail.successful) this.reset()"
-					hx-include="[name='categories']"
-					hx-vals={ templ.JSONString(map[string]any{"inputName": inputName}) }
-					hx-target="#current-categories"
-					hx-swap="beforeend"
-					class="join"
-				>
+			<div class="mt-2 join">
+				<el-autocomplete class="sm:col-span-4 join join-item">
 					<input
-						id="add-category"
+						id="category-suggestion"
 						name="category"
 						class="input input-primary bg-base-content/10 join-item"
-						placeholder="Category"
+						placeholder="Category..."
 					/>
 					<button
 						type="button"
@@ -48,19 +39,25 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 					>
 						@tabler.ChevronDown()
 					</button>
-					<button
-						type="submit"
-						class="btn btn-primary join-item"
-					>
-						@tabler.Plus()
-					</button>
-				</form>
-				<el-options popover anchor="bottom start" class="w-(--input-width) overflow-auto">
-					for category := range slices.Values(suggested) {
-						<el-option value={ category }>{ category }</el-option>
-					}
-				</el-options>
-			</el-autocomplete>
+					<el-options popover anchor="bottom start" class="w-(--input-width) overflow-auto">
+						for category := range slices.Values(suggested) {
+							<el-option value={ category }>{ category }</el-option>
+						}
+					</el-options>
+				</el-autocomplete>
+				<button
+					hx-post={ path }
+					hx-include="[id='category-suggestion']"
+					hx-vals={ templ.JSONString(map[string]any{"inputName": inputName}) }
+					hx-target="#current-categories"
+					hx-swap="beforeend"
+					type="button"
+					class="btn btn-primary join-item"
+					_="on htmx:afterRequest if event.detail.successful then set #category-suggestion.value to ''"
+				>
+					@tabler.Plus()
+				</button>
+			</div>
 		</div>
 	</div>
 	// Manage categories.
@@ -89,17 +86,17 @@ templ CategoryManagement(path, inputName string, suggested []models.Category, ex
 
 // AddCategory renders a new category item to the list of categories of a subscription.
 templ AddCategory(path, inputName string, category models.Category) {
-	<form
-		hx-delete={ path }
-		hx-target="closest button"
-		hx-swap="delete"
-	>
+	<div class="badge badge-outline m-1 flex items-center">
 		<input type="hidden" name={ inputName } value={ category }/>
-		<div class="badge badge-outline m-1 flex items-center">
-			{ category }
-			<button type="submit" aria-label={ "Remove category " + category }>
-				@tabler.X(i.Props{Class: "size-4"})
-			</button>
-		</div>
-	</form>
+		{ category }
+		<button
+			hx-delete={ path }
+			hx-target="closest div"
+			hx-swap="delete"
+			type="button"
+			aria-label={ "Remove category " + category }
+		>
+			@tabler.X(i.Props{Class: "size-4"})
+		</button>
+	</div>
 }

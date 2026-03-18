@@ -129,20 +129,6 @@ func (r *AddSubscriptionSearchFilterRequest) Sanitise() error {
 	return nil
 }
 
-// Valid returns a boolean indicating whether the add subscription search filter data is valid.
-func (r *GetSubscriptionsSuggestionRequest) Valid() error {
-	if err := validation.Validate.Struct(r); err != nil {
-		return fmt.Errorf("subscription suggestion is invalid: %w", err)
-	}
-	return nil
-}
-
-// Sanitise will sanitise the add subscription search filter request.
-func (r *GetSubscriptionsSuggestionRequest) Sanitise() error {
-	r.Text = sanitization.SanitizeString(r.Text)
-	return nil
-}
-
 func SearchResultsClause(search *SearchRequest) query.BoolOption {
 	// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
 	// search suggestion).
@@ -236,9 +222,10 @@ func BuildSearchResultsQuery(
 		pivot = "3d"
 	}
 
-	subscriptions, err := GetSubscriptions(ctx,
-		GetSubscriptionsByIDs(request.Subscriptions...),
-	)
+	subscriptions, err := GetSubscriptions(ctx)
+	// subscriptions, err := GetSubscriptions(ctx,
+	// 	GetSubscriptionsByIDs(request.Subscriptions...),
+	// )
 	switch {
 	case err != nil:
 		return nil, fmt.Errorf("build search query: get subscriptions: %w", err)

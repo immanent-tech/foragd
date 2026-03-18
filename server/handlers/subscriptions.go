@@ -36,6 +36,7 @@ import (
 	"github.com/immanent-tech/foragd/server/session"
 	htmxext "github.com/immanent-tech/foragd/web/htmx"
 	"github.com/immanent-tech/foragd/web/templates"
+	"github.com/immanent-tech/foragd/web/templates/partials"
 )
 
 // ListSubscriptions holds data for generating the subscriptions list page.
@@ -874,7 +875,7 @@ func HandleAddSearchSubscription() http.HandlerFunc {
 
 func HandleSuggestSubscriptionForSearch() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		request, valid, err := forms.DecodeForm[*models.GroupSubscriptionSuggestionRequest](req)
+		request, valid, err := forms.DecodeForm[*models.GetSubscriptionsSuggestionRequest](req)
 		if err != nil || !valid {
 			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
 				slog.Any("error", err),
@@ -886,9 +887,10 @@ func HandleSuggestSubscriptionForSearch() http.HandlerFunc {
 			req.Context(),
 			request.Text,
 			10,
-			models.IgnoreSubscriptions(
-				slices.Collect(maps.Keys(request.IgnoredSubscriptions))...,
-			))
+			models.IgnoreSubscriptions(request.IgnoredSubscriptions...),
+			// 	slices.Collect(maps.Keys(request.IgnoredSubscriptions))...,
+			// ))
+		)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
 				slog.Any("error", err),
@@ -897,23 +899,34 @@ func HandleSuggestSubscriptionForSearch() http.HandlerFunc {
 			return
 		}
 		RenderPartial(&PartialTemplate{
-			template: templates.SearchSubscriptionSuggestions(subscriptions),
+			template: partials.SubscriptionSuggestions(subscriptions),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
 func HandleAddSubscriptionToSearch() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscriptionID := sanitization.SanitizeString(req.FormValue("subscription_id"))
-		subscriptionName := sanitization.SanitizeString(req.FormValue("subscription_name"))
-		if subscriptionID == "" || subscriptionName == "" {
-			slogctx.FromCtx(req.Context()).Error("Invalid subscription details.")
+		request, valid, err := forms.DecodeForm[*models.AddSubscriptionSuggestionRequest](req)
+		if err != nil || !valid {
+			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
+				slog.Any("error", err),
+			)
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-		RenderPartial(&PartialTemplate{
-			template: templates.SearchSubscriptionAddSubscription(subscriptionID, subscriptionName),
-		}).ServeHTTP(res, req)
+		for key, value := range request.SuggestedSubscriptions {
+			if value == request.SelectedSubscription {
+				RenderPartial(&PartialTemplate{
+					template: templates.AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
+						InputName:        "search.subscriptions",
+						SubscriptionID:   key,
+						SubscriptionName: value,
+					}),
+				}).ServeHTTP(res, req)
+				return
+			}
+		}
+		res.WriteHeader(http.StatusNoContent)
 	}).ServeHTTP
 }
 

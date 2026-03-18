@@ -73,7 +73,10 @@
     "client",
     "opengraph",
     "templates/partials",
-    "pkg/formats/html"
+    "pkg/formats/html",
+    "templates/articles",
+    "templates/viewer",
+    "templates/subscriptions"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

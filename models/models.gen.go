@@ -336,6 +336,15 @@ type AddSubscriptionSearchFilterRequest struct {
 	SubscriptionName string `form:"subscription_name" json:"subscription_name"`
 }
 
+// AddSubscriptionSuggestionRequest contains the data for adding a subscription suggestion.
+type AddSubscriptionSuggestionRequest struct {
+	// SelectedSubscription is the name of the subscription that was selected from the suggestions.
+	SelectedSubscription string `form:"subscription-suggestion-text" json:"selected_subscription"`
+
+	// SuggestedSubscriptions is a list of the subscription suggestions.
+	SuggestedSubscriptions map[SubscriptionID]string `form:"subscription_suggestions" json:"suggested_subscriptions,omitempty"`
+}
+
 // Article defines model for Article.
 type Article struct {
 	// Content contains the full article content, when it has been fetched from the origin link.
@@ -680,8 +689,11 @@ type FileUpload struct {
 
 // GetSubscriptionsSuggestionRequest contains the data for finding matching subscriptions as suggestion results.
 type GetSubscriptionsSuggestionRequest struct {
+	// IgnoredSubscriptions is a list of subscription IDs to ignore for suggestions.
+	IgnoredSubscriptions []SubscriptionID `form:"subscription_id" json:"ignored_subscriptions,omitempty"`
+
 	// Text is a string that should match a subscription.
-	Text string `form:"subscription-text" json:"text"`
+	Text string `form:"subscription-suggestion-text" json:"text"`
 }
 
 // GroupSubscription represents a subscription that combines other subscriptions.

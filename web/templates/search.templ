@@ -572,50 +572,99 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					}
 				</textarea>
 			</fieldset>
-			// Subscriptions filter.
-			<fieldset class="fieldset sm:col-span-full">
-				<legend class="fieldset-legend">In subscriptions</legend>
-				<form
-					hx-post="/search/subscription/suggestions"
-					hx-trigger="input changed delay:500ms,consume"
-					hx-target="#search-subscriptions-options"
-					hx-params="subscription-text"
-					hx-swap="innerHTML"
-				>
-					<label for="search-subscriptions-suggest" class="input input-sm flex w-full items-center bg-base-300 brightness-95 input-primary">
-						<div aria-hidden="true">
-							@tabler.Search(i.Props{Class: "text-primary"})
-						</div>
-						<input
-							id="search-subscriptions-suggest"
-							name="subscription-text"
-							placeholder="Search subscriptions..."
-							autocomplete="off"
-						/>
-					</label>
-				</form>
-				<div
-					class="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3 sm:px-6 lg:px-8"
-					id="search-subscriptions-options"
-					hx-target="#search-subscriptions"
-					hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
-					_="on htmx:afterRequest set #search-subscriptions-suggest.value to ''"
-					aria-live="polite"
-				></div>
-				<div
-					id="search-subscriptions"
-					class="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3 sm:px-6 lg:px-8"
-					aria-live="polite"
-				>
-					for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
-						@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
-							InputName:        "subscriptions",
-							SubscriptionID:   subscription.GetID(),
-							SubscriptionName: subscription.GetTitle(),
-						})
-					}
-				</div>
-			</fieldset>
+			// // Subscriptions filter.
+			// <fieldset class="fieldset sm:col-span-full">
+			// 	<legend class="fieldset-legend">In subscriptions</legend>
+			// 	<div class="col-span-full mt-2 join">
+			// 		<el-autocomplete class="w-full join join-item">
+			// 			<input
+			// 				hx-post="/subscription/search/suggest"
+			// 				hx-trigger="input changed delay:500ms,consume"
+			// 				hx-target="#subscription-suggestions"
+			// 				hx-encoding="application/x-www-form-urlencoded"
+			// 				hx-swap="innerHTML"
+			// 				hx-params="subscription-suggestion-text,subscription_id"
+			// 				id="suggest-subscription"
+			// 				name="subscription-suggestion-text"
+			// 				class="input input-primary bg-base-content/10 w-full join-item"
+			// 				placeholder="Subscription"
+			// 				_="on htmx:afterRequest if event.detail.successful then trigger showPopover() on #subscription-suggestions"
+			// 			/>
+			// 			<button
+			// 				type="button"
+			// 				class="btn bg-base-content/10 join-item"
+			// 				aria-label="Show subscription suggestions"
+			// 			>
+			// 				@tabler.ChevronDown()
+			// 			</button>
+			// 			<el-options id="subscription-suggestions" popover anchor="bottom start" class="w-(--input-width) overflow-auto"></el-options>
+			// 		</el-autocomplete>
+			// 		<button
+			// 			id="add-subscription-suggestion"
+			// 			hx-post="/subscription/search/add"
+			// 			hx-target="#subscriptions"
+			// 			hx-encoding="application/x-www-form-urlencoded"
+			// 			hx-swap="beforeend"
+			// 			class="btn btn-primary join-item"
+			// 			_="on htmx:afterRequest if event.detail.successful then set #suggest-subscription.value to ''"
+			// 			aria-label="Add selected subscription"
+			// 		>
+			// 			@tabler.Plus()
+			// 		</button>
+			// 	</div>
+			// 	<ul
+			// 		id="subscriptions"
+			// 		class="mt-2 col-span-full inline-grid sm:grid-cols-2 justify-center gap-4 max-h-md overflow-y-scroll"
+			// 	>
+			// 		for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
+			// 			@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
+			// 				InputName:        "search.subscriptions",
+			// 				SubscriptionID:   subscription.GetID(),
+			// 				SubscriptionName: subscription.GetTitle(),
+			// 			})
+			// 		}
+			// 	</ul>
+			// 	// <form
+			// 	// 	hx-post="/search/subscription/suggestions"
+			// 	// 	hx-trigger="input changed delay:500ms,consume"
+			// 	// 	hx-target="#search-subscriptions-options"
+			// 	// 	hx-params="subscription-text"
+			// 	// 	hx-swap="innerHTML"
+			// 	// >
+			// 	// 	<label for="search-subscriptions-suggest" class="input input-sm flex w-full items-center bg-base-300 brightness-95 input-primary">
+			// 	// 		<div aria-hidden="true">
+			// 	// 			@tabler.Search(i.Props{Class: "text-primary"})
+			// 	// 		</div>
+			// 	// 		<input
+			// 	// 			id="search-subscriptions-suggest"
+			// 	// 			name="subscription-text"
+			// 	// 			placeholder="Search subscriptions..."
+			// 	// 			autocomplete="off"
+			// 	// 		/>
+			// 	// 	</label>
+			// 	// </form>
+			// 	// <div
+			// 	// 	class="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3 sm:px-6 lg:px-8"
+			// 	// 	id="search-subscriptions-options"
+			// 	// 	hx-target="#search-subscriptions"
+			// 	// 	hx-vals={ templ.JSONString(map[string]any{"subscriptions-input-name": "subscriptions"}) }
+			// 	// 	_="on htmx:afterRequest set #search-subscriptions-suggest.value to ''"
+			// 	// 	aria-live="polite"
+			// 	// ></div>
+			// 	// <div
+			// 	// 	id="search-subscriptions"
+			// 	// 	class="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3 sm:px-6 lg:px-8"
+			// 	// 	aria-live="polite"
+			// 	// >
+			// 	// 	for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
+			// 	// 		@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
+			// 	// 			InputName:        "subscriptions",
+			// 	// 			SubscriptionID:   subscription.GetID(),
+			// 	// 			SubscriptionName: subscription.GetTitle(),
+			// 	// 		})
+			// 	// 	}
+			// 	// </div>
+			// </fieldset>
 			// View filter.
 			<fieldset class="fieldset sm:col-span-2">
 				<legend class="fieldset-legend">View</legend>
@@ -794,13 +843,15 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 }
 
 templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequest) {
-	<button _="on click remove me then halt">
-		<input type="hidden" name={ filter.InputName } value={ filter.SubscriptionID }/>
-		<div class="badge badge-sm hover:cursor-pointer hover:badge-error">
+	<li>
+		<button _="on click remove the closest <li/>" type="button" class="btn btn-wide">
+			<input type="hidden" name={ filter.InputName } value={ filter.SubscriptionID }/>
+			// <div class="badge badge-sm hover:cursor-pointer hover:badge-error">
 			{ filter.SubscriptionName }
 			@tabler.X(i.Props{Class: "size-4"})
-		</div>
-	</button>
+			// </div>
+		</button>
+	</li>
 }
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
