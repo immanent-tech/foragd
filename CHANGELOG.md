@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.82.3](https://github.com/immanent-tech/foragd/compare/v0.82.2...v0.82.3) (2026-03-18)
+
+
+### Bug Fixes
+
+* **pkg/formats/html:** :bug: return a non-nil error if no main image found ([288e720](https://github.com/immanent-tech/foragd/commit/288e72034298f2c862dd40ab9621a22677e584e4))
+* **templates:** :bug: remove weird transition artifacts ([76ac3b7](https://github.com/immanent-tech/foragd/commit/76ac3b737f2a96632532b5662625c7877ce38986))
+* **templates:** :bug: sidebar/dock subscriptions/articles links always show unfiltered content ([05a1093](https://github.com/immanent-tech/foragd/commit/05a1093b65a2c54a17dcb5098374eb94dcf5962f))
+
+
+### Performance Improvements
+
+* **assets:** :zap: add 'allow' attribute and default to allowing access to compute-pressure api for youtube embeds ([bdd7924](https://github.com/immanent-tech/foragd/commit/bdd7924b932953c5a000c2869416a1568c233d40))
+
 ## [0.82.2](https://github.com/immanent-tech/foragd/compare/v0.82.1...v0.82.2) (2026-03-17)
 
 
