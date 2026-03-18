@@ -5,7 +5,6 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"strings"
@@ -26,10 +25,11 @@ templ Dock(attributes templ.Attributes) {
 			@tabler.HomeFilled(i.Props{Class: "size-6 text-primary"})
 			<span class="dock-label">Home</span>
 		</a>
+		{{ filters := models.NewListDisplayFilters() }}
 		<a
 			hx-get="/list/subscriptions"
 			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(session.GetListSubscriptionFiltersFromSession(ctx).Values()) }
+			hx-vals={ templ.JSONString(filters.Values()) }
 			hx-params={ "not " + models.ParamSubscriptions }
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/list/subscriptions")) }
@@ -41,7 +41,7 @@ templ Dock(attributes templ.Attributes) {
 		<a
 			hx-get="/list/articles"
 			hx-target={ ContentID.Target() }
-			hx-vals={ templ.JSONString(session.GetListArticleFiltersFromSession(ctx).Values()) }
+			hx-vals={ templ.JSONString(filters.Values()) }
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("dock-active", strings.HasPrefix(pageURL, "/list/articles")) }
 			if strings.HasPrefix(pageURL, "/view/article") {

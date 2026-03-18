@@ -5,7 +5,6 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/server/session"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
@@ -33,11 +32,12 @@ templ SideBar(attributes templ.Attributes) {
 							<span class={ "text-primary", templ.KV("underline underline-offset-4 decoration-4",PathFromCtx(ctx) == models.RouteHome) }>Home</span>
 						</a>
 					</li>
+					{{ filters := models.NewListDisplayFilters() }}
 					<li>
 						<a
 							hx-trigger="click,globalShortcutSubscriptions"
 							hx-get="/list/subscriptions"
-							hx-vals={ templ.JSONString(session.GetListSubscriptionFiltersFromSession(ctx).Values()) }
+							hx-vals={ templ.JSONString(filters.Values()) }
 							hx-target={ ContentID.Target() }
 							hx-swap="innerHTML show:window:top transition:true"
 							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
@@ -52,7 +52,7 @@ templ SideBar(attributes templ.Attributes) {
 						<a
 							hx-trigger="click,globalShortcutArticles"
 							hx-get="/list/articles"
-							hx-vals={ templ.JSONString(session.GetListArticleFiltersFromSession(ctx).Values()) }
+							hx-vals={ templ.JSONString(filters.Values()) }
 							hx-target={ ContentID.Target() }
 							hx-swap="innerHTML show:window:top transition:true"
 							class="group link no-underline flex flex-col items-center p-2 text-xs/5 font-semibold text-center"
