@@ -13,56 +13,77 @@ import (
 )
 
 templ CategoryManagement(suggested []models.Category, existing []models.Category) {
-	<h2 class="text-base/7 font-semibold">Categories</h2>
-	<p class="mt-1 max-w-2xl text-sm/6">Manage the categories for the subscription.</p>
-	@partials.FormSection() {
-		@partials.FormField() {
-			<label for="category-suggestions" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Add category</label>
-			<div class="mt-2 sm:col-span-2 sm:mt-0 join">
-				<el-autocomplete class="sm:col-span-4 join join-item">
-					<input
-						id="category"
-						name="category"
-						class="input input-primary bg-base-300 brightness-95 join-item"
-						placeholder="Category..."
-					/>
-					<button
-						type="button"
-						if len(suggested) == 0 {
-							disabled
-						}
-						class="btn bg-base-100 brightness-95 join-item"
-					>
-						@tabler.ChevronDown()
-					</button>
-					<el-options popover anchor="bottom start" class="w-(--input-width) overflow-auto">
-						for category := range slices.Values(suggested) {
-							<el-option value={ category }>{ category }</el-option>
-						}
-					</el-options>
-				</el-autocomplete>
-				<button
-					hx-post="/subscription/category"
-					hx-params={ strings.Join([]string{"category", models.ParamCustomisationCategories}, ",") }
-					hx-target="#current-categories"
-					hx-swap="beforeend"
-					type="button"
-					class="btn btn-primary join-item"
-					_="on htmx:afterRequest if event.detail.successful then set #category.value to ''"
-				>
-					@tabler.Plus()
-				</button>
+	<div>
+		<button type="button" command="--toggle" commandfor="categories" class="flex w-full items-center justify-between text-left">
+			<div>
+				<h2 class="text-base/7 font-semibold">Categories</h2>
+				<p class="mt-1 max-w-2xl text-sm/6">Add/remove categories to the subscription.</p>
 			</div>
+			<span class="ml-6 flex h-7 items-center">
+				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+				</svg>
+				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
+				</svg>
+			</span>
+		</button>
+		@partials.FormSection() {
+			<el-disclosure
+				hidden
+				id="categories"
+			>
+				<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+					@partials.FormField() {
+						<label for="category-suggestions" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Add category</label>
+						<div class="mt-2 sm:col-span-2 sm:mt-0 join">
+							<el-autocomplete class="sm:col-span-4 join join-item">
+								<input
+									id="category"
+									name="category"
+									class="input input-primary bg-base-300 brightness-95 join-item"
+									placeholder="Category..."
+								/>
+								<button
+									type="button"
+									if len(suggested) == 0 {
+										disabled
+									}
+									class="btn bg-base-100 brightness-95 join-item"
+								>
+									@tabler.ChevronDown()
+								</button>
+								<el-options popover anchor="bottom start" class="w-(--input-width) overflow-auto">
+									for category := range slices.Values(suggested) {
+										<el-option value={ category }>{ category }</el-option>
+									}
+								</el-options>
+							</el-autocomplete>
+							<button
+								hx-post="/subscription/category"
+								hx-params={ strings.Join([]string{"category", models.ParamCustomisationCategories}, ",") }
+								hx-target="#current-categories"
+								hx-swap="beforeend"
+								type="button"
+								class="btn btn-primary join-item"
+								_="on htmx:afterRequest if event.detail.successful then set #category.value to ''"
+							>
+								@tabler.Plus()
+							</button>
+						</div>
+					}
+					@partials.FormField() {
+						<label for="categories" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Categories</label>
+						<div id="current-categories" class="mt-2 sm:col-span-2 sm:mt-0 flex flex-row flex-wrap p-2 gap-2">
+							for category := range slices.Values(existing) {
+								@AddCategory(category)
+							}
+						</div>
+					}
+				</div>
+			</el-disclosure>
 		}
-		@partials.FormField() {
-			<label for="categories" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Categories</label>
-			<div id="current-categories" class="mt-2 sm:col-span-2 sm:mt-0 flex flex-row flex-wrap p-2 gap-2">
-				for category := range slices.Values(existing) {
-					@AddCategory(category)
-				}
-			</div>
-		}
-	}
+	</div>
 }
 
 // AddCategory renders a new category item to the list of categories of a subscription.

@@ -492,70 +492,6 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	}
 }
 
-templ subscriptionCustomisationFields(action string, customisation *models.SubscriptionCustomisation) {
-	<div>
-		<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
-			<div>
-				<h2 class="text-base/7 font-semibold">Customisation</h2>
-				<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
-			</div>
-			<span class="ml-6 flex h-7 items-center">
-				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-				</svg>
-				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
-					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
-				</svg>
-			</span>
-		</button>
-		@partials.FormSection() {
-			<el-disclosure
-				if action == "add" {
-					hidden
-				}
-				id="customisation"
-			>
-				<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
-					@partials.FormField() {
-						<label for="nickname" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Nickname</label>
-						<div class="mt-2 sm:col-span-2 sm:mt-0">
-							<input
-								id="nickname"
-								type="text"
-								name="customisation.nickname"
-								if customisation != nil && customisation.GetNickname() != "" {
-									value={ customisation.GetNickname() }
-								}
-								placeholder="My cool subscription…"
-								class="input input-primary bg-base-content/10"
-							/>
-						</div>
-					}
-					@partials.FormField() {
-						<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
-						<div class="mt-2 sm:col-span-2 sm:mt-0">
-							<div class="col-span-full mt-2 flex items-center gap-x-2">
-								if customisation != nil && customisation.ImageURL != nil {
-									@subscriptionThumbnail(&models.RemoteImage{URL: customisation.ImageURL}, "")
-								} else {
-									@subscriptionThumbnail(nil, "")
-								}
-								<input
-									id="thumbnail"
-									type="file"
-									class="flex file-input file-input-primary bg-base-content/10"
-									name="customisation.thumbnail"
-									accept=".jpg,.png,.webp"
-								/>
-							</div>
-						</div>
-					}
-				</div>
-			</el-disclosure>
-		}
-	</div>
-}
-
 templ subscriptionArticleFiltersFields(action string, filters *models.SubscriptionArticleFilters) {
 	<div>
 		<button type="button" command="--toggle" commandfor="filtering" class="flex w-full items-center justify-between text-left">
@@ -686,15 +622,15 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 		hx-encoding="multipart/form-data"
 		hx-disinherit="*"
 	>
+		// Add hidden inputs when editing a subscription to know which subscription we are editing.
 		if action == "edit" {
 			<input type="hidden" name={ models.ParamSubscriptionID } value={ subscriptionID }/>
 			<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
 		}
 		<div class="space-y-12 sm:space-y-16">
+			// Only show the feed URL when adding a subscription.
 			if action == "add" {
 				<div>
-					<h2 class="text-base/7 font-semibold">Source</h2>
-					<p class="mt-1 max-w-2xl text-sm/6">Enter a website URL or the URL to a feed.</p>
 					@partials.FormSection() {
 						@partials.FormField() {
 							<label for="url" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">URL</label>
@@ -714,13 +650,13 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 					}
 				</div>
 			}
-			<div>
-				if customisation != nil {
-					@CategoryManagement(suggestedCategories, customisation.GetCategories())
-				} else {
-					@CategoryManagement(suggestedCategories, nil)
-				}
-			</div>
+			// Subscription category management.
+			if customisation != nil {
+				@CategoryManagement(suggestedCategories, customisation.GetCategories())
+			} else {
+				@CategoryManagement(suggestedCategories, nil)
+			}
+			// Subscription settings.
 			if action == "edit" {
 				<div>
 					<h2 class="text-base/7 font-semibold">Settings</h2>
@@ -758,7 +694,69 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 					}
 				</div>
 			}
-			@subscriptionCustomisationFields(action, customisation)
+			// Optional subscription customisation.
+			<div>
+				<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
+					<div>
+						<h2 class="text-base/7 font-semibold">Customisation</h2>
+						<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
+					</div>
+					<span class="ml-6 flex h-7 items-center">
+						<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+						</svg>
+						<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
+						</svg>
+					</span>
+				</button>
+				@partials.FormSection() {
+					<el-disclosure
+						if action == "add" {
+							hidden
+						}
+						id="customisation"
+					>
+						<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+							@partials.FormField() {
+								<label for="nickname" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Nickname</label>
+								<div class="mt-2 sm:col-span-2 sm:mt-0">
+									<input
+										id="nickname"
+										type="text"
+										name="customisation.nickname"
+										if customisation != nil && customisation.GetNickname() != "" {
+											value={ customisation.GetNickname() }
+										}
+										placeholder="My cool subscription…"
+										class="input input-primary bg-base-content/10"
+									/>
+								</div>
+							}
+							@partials.FormField() {
+								<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
+								<div class="mt-2 sm:col-span-2 sm:mt-0">
+									<div class="col-span-full mt-2 flex items-center gap-x-2">
+										if customisation != nil && customisation.ImageURL != nil {
+											@subscriptionThumbnail(&models.RemoteImage{URL: customisation.ImageURL}, "")
+										} else {
+											@subscriptionThumbnail(nil, "")
+										}
+										<input
+											id="thumbnail"
+											type="file"
+											class="flex file-input file-input-primary bg-base-content/10"
+											name="customisation.thumbnail"
+											accept=".jpg,.png,.webp"
+										/>
+									</div>
+								</div>
+							}
+						</div>
+					</el-disclosure>
+				}
+			</div>
+			// Optional article filtering.
 			@subscriptionArticleFiltersFields(action, filters)
 		</div>
 		<div class="mt-6 flex items-center justify-end gap-x-6">
@@ -779,304 +777,285 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 
 // AddSearchSubscription is a page for adding a new search subscription.
 templ AddSearchSubscription(request *models.SearchSubscriptionRequest) {
-	@manageSearchSubscription(request, "add")
+	@manageSearchSubscription("add", request)
 }
 
 // EditSearchSubscription is a page for editing a search subscription.
 templ EditSearchSubscription(request *models.SearchSubscriptionRequest) {
-	@manageSearchSubscription(request, "edit")
+	@manageSearchSubscription("edit", request)
 }
 
-templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action string) {
+templ manageSearchSubscription(action string, request *models.SearchSubscriptionRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
-					@partials.Heading2() {
-						switch action {
-							case "add":
+					switch action {
+						case "add":
+							@partials.Heading2() {
 								Add A Search Subscription
-							case "edit":
+							}
+						case "edit":
+							@partials.Heading2() {
 								{ "Editing " + request.Customisation.GetNickname() }
-						}
+							}
 					}
 				</div>
+				// hx-on::after-request="if(event.detail.successful) this.reset()"
 				<form
-					id="manage-search-subscription"
+					id="add-subscription"
 					if action == "add" {
-						hx-post="/user/subscription/add/search"
+						hx-post="/subscription/add/search"
 					} else {
-						hx-post={ "/edit/subscription/" + *request.Search.SubscriptionID }
+						hx-post={ "/subscription/save/" + string(*request.Search.SubscriptionID) }
 					}
 					hx-swap="none"
-					hx-include="[name='customisation.categories'],#search-subscription-details"
-					hx-params="not text"
 					hx-indicator="#processing"
 					hx-encoding="multipart/form-data"
-					hx-vals="js:{'search.timezone': Intl.DateTimeFormat().resolvedOptions().timeZone}"
+					hx-disinherit="*"
 				>
-					<div class="flex items-center border-b border-base-content/60">
-						@partials.Heading3() {
-							Search Filters
-						}
-						// Help dialog.
-						<div class="ml-4">
-							@partials.HelpPopover("subscription-filter-operators-help", "bottom end") {
-								<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-								<p>+ signifies AND operation (i.e., food AND beverages)</p>
-								<p>| signifies OR operation (i.e., food OR beverages)</p>
-								<p>- negates a the word (i.e., NOT alcoholic)</p>
-								<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
-								<p>* at the end of indicates a prefix match (i.e., match bird, birding and birds)</p>
-							}
-						</div>
-					</div>
-					<div id="search-subscription-details" class="space-y-8">
-						// hx-on::after-request="if(event.detail.successful) this.reset()"
+					// Add hidden inputs when editing a subscription to know which subscription we are editing.
+					if action == "edit" {
+						<input type="hidden" name={ models.ParamSubscriptionID } value={ string(*request.Search.SubscriptionID) }/>
 						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeSearch) }/>
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="subscription-filter-text" class="text-base/7 font-semibold">Includes the words</label>
-								// <p class="mt-1 text-sm/6 "></p>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full mt-2">
-									<input
-										id="subscription-filter-text"
-										type="text"
-										name="search.text"
-										value={ request.Search.Text }
-										placeholder={ `e.g., "Breaking News" | Live` }
-										class="input input-primary bg-base-content/10 w-full"
-									/>
-								</div>
-							</div>
-						</div>
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="subscription-filter-categories" class="text-base/7 font-semibold">Article Category Filters</label>
-								// <p class="mt-1 text-sm/6 "></p>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full mt-2">
-									<input
-										id="subscription-filter-categories"
-										type="text"
-										name="search.categories"
-										if request.Search.Categories != nil {
-											value={ *request.Search.Categories }
-										}
-										placeholder="e.g., drinks + mediation"
-										class="input input-primary bg-base-content/10 w-full"
-									/>
-								</div>
-							</div>
-						</div>
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="subscription-filter-authors" class="text-base/7 font-semibold">Article Author Filters</label>
-								// <p class="mt-1 text-sm/6 "></p>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full mt-2">
-									<input
-										id="subscription-filter-authors"
-										type="text"
-										name="search.authors"
-										if request.Search.Authors != nil {
-											value={ *request.Search.Authors }
-										}
-										placeholder={ `e.g., -"John Smith"` }
-										class="input input-primary bg-base-content/10 w-full"
-									/>
-								</div>
-							</div>
-						</div>
-						// <div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-						// 	<div>
-						// 		<span class="text-base/7 font-semibold">In Subscriptions</span>
-						// 	</div>
-						// 	<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-						// 		<div class="col-span-full mt-2 join">
-						// 			<el-autocomplete class="w-full join join-item">
-						// 				<input
-						// 					hx-post="/subscription/search/suggest"
-						// 					hx-trigger="input changed delay:500ms,consume"
-						// 					hx-target="#subscription-suggestions"
-						// 					hx-encoding="application/x-www-form-urlencoded"
-						// 					hx-swap="innerHTML"
-						// 					hx-params="subscription-suggestion-text,subscription_id"
-						// 					id="suggest-subscription"
-						// 					name="subscription-suggestion-text"
-						// 					class="input input-primary bg-base-content/10 w-full join-item"
-						// 					placeholder="Subscription"
-						// 					_="on htmx:afterRequest if event.detail.successful then trigger showPopover() on #subscription-suggestions"
-						// 				/>
-						// 				<button
-						// 					type="button"
-						// 					class="btn bg-base-content/10 join-item"
-						// 					aria-label="Show subscription suggestions"
-						// 				>
-						// 					@tabler.ChevronDown()
-						// 				</button>
-						// 				<el-options id="subscription-suggestions" popover anchor="bottom start" class="w-(--input-width) overflow-auto"></el-options>
-						// 			</el-autocomplete>
-						// 			<button
-						// 				id="add-subscription-suggestion"
-						// 				hx-post="/subscription/search/add"
-						// 				hx-target="#subscriptions"
-						// 				hx-encoding="application/x-www-form-urlencoded"
-						// 				hx-swap="beforeend"
-						// 				class="btn btn-primary join-item"
-						// 				_="on htmx:afterRequest if event.detail.successful then set #suggest-subscription.value to ''"
-						// 				aria-label="Add selected subscription"
-						// 			>
-						// 				@tabler.Plus()
-						// 			</button>
-						// 		</div>
-						// 		<ul
-						// 			id="subscriptions"
-						// 			class="mt-2 col-span-full inline-grid sm:grid-cols-2 justify-center gap-4 max-h-md overflow-y-scroll"
-						// 		>
-						// 			for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
-						// 				@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
-						// 					InputName:        "search.subscriptions",
-						// 					SubscriptionID:   subscription.GetID(),
-						// 					SubscriptionName: subscription.GetTitle(),
-						// 				})
-						// 			}
-						// 		</ul>
-						// 	</div>
-						// </div>
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="subscription-filter-published-within" class="text-base/7 font-semibold">Published Within</label>
-								// <p class="mt-1 text-sm/6 "></p>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full">
-									<select id="subscription-filter-published-within" name="search.published_within" class="select select-primary my-2 bg-base-300">
-										<option
-											value="last_hour"
-										>Last hour</option>
-										<option
-											value="last_half_day"
-										>Last 12 hours</option>
-										<option
-											value="last_day"
-										>Last day</option>
-										<option
-											value="last_week"
-											selected
-										>Last week</option>
-										<option
-											value="last_month"
-										>Last month</option>
-									</select>
-								</div>
-							</div>
-						</div>
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="subscription-filter-view" class="text-base/7 font-semibold">View</label>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full">
-									<select id="subscription-filter-view" name="search.view" class="select select-primary my-2 bg-base-300">
-										<option
-											value={ string(models.ViewUnread) }
-											if request.Search.View == models.ViewUnread {
-												selected
+					}
+					<div class="space-y-12 sm:space-y-16">
+						// Subscription nickname and search text.
+						<div>
+							@partials.FormSection() {
+								@partials.FormField() {
+									<label for="nickname" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Nickname</label>
+									<div class="mt-2 sm:col-span-2 sm:mt-0">
+										<input
+											id="nickname"
+											type="text"
+											name="customisation.nickname"
+											if request.Customisation != nil && request.Customisation.GetNickname() != "" {
+												value={ request.Customisation.GetNickname() }
 											}
+											placeholder="My cool subscription…"
+											class="input input-primary bg-base-300 brightness-95"
+										/>
+									</div>
+								}
+								@partials.FormField() {
+									<label for="search-text" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Includes the words</label>
+									<div class="mt-2 sm:col-span-2 sm:mt-0">
+										<textarea
+											rows="2"
+											id="search-text"
+											type="text"
+											name="search.text"
+											placeholder={ `+keyword -"some phrase"` }
+											class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
 										>
-											Unread
-										</option>
-										<option
-											value={ string(models.ViewRead) }
-											if request.Search.View == models.ViewRead {
-												selected
+											if request.Search.Text != "" {
+												{ request.Search.Text }
 											}
-										>Read</option>
-										<option
-											value={ string(models.ViewAll) }
-											if request.Search.View == models.ViewAll {
-												selected
-											}
-										>All</option>
-									</select>
-								</div>
-							</div>
-						</div>
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="subscription-filter-sort" class="text-base/7 font-semibold">Sort By</label>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full">
-									<select id="subscription-filter-sort" name="search.sort" class="select select-primary my-2 bg-base-300">
-										<option
-											value={ string(models.SortMostRelevant) }
-											if request.Search.Sort == models.SortMostRelevant {
-												selected
-											}
-										>
-											Most Relevant
-										</option>
-										<option
-											value={ string(models.SortNewestFirst) }
-											if request.Search.Sort == models.SortNewestFirst {
-												selected
-											}
-										>Newest First</option>
-										<option
-											value={ string(models.SortOldestFirst) }
-											if request.Search.Sort == models.SortOldestFirst {
-												selected
-											}
-										>Oldest First</option>
-									</select>
-								</div>
-							</div>
-						</div>
-						<div class="border-b border-base-content/60">
-							@partials.Heading3() {
-								Subscription Info
+										</textarea>
+									</div>
+								}
 							}
 						</div>
-						// Nickname.
-						@subscriptionNicknameField(request.Customisation.GetNickname())
-						// Image.
-						if request.Customisation.ImageURL != nil {
-							@subscriptionThumbnailField(
-								models.NewRemoteImage(
-									*request.Customisation.ImageURL,
-									request.Customisation.GetNickname(),
-								),
-								request.Customisation.GetNickname())
-						} else {
-							@subscriptionThumbnailField(nil, request.Customisation.GetNickname())
-						}
-						// Categories
+						// Optional additional filtering.
+						<div>
+							<button type="button" command="--toggle" commandfor="filtering" class="flex w-full items-center justify-between text-left">
+								<div>
+									<h2 class="text-base/7 font-semibold">Additional Filtering</h2>
+									<p class="mt-1 max-w-2xl text-sm/6">Add additional filters to the search.</p>
+								</div>
+								<span class="ml-6 flex h-7 items-center">
+									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+									</svg>
+									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
+									</svg>
+								</span>
+							</button>
+							@partials.FormSection() {
+								<el-disclosure
+									id="filtering"
+								>
+									<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+										@partials.FormField() {
+											<label for="search-categories" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Categories</label>
+											<div class="mt-2 sm:col-span-2 sm:mt-0">
+												<textarea
+													rows="2"
+													id="search-categories"
+													type="text"
+													name="search.categories"
+													placeholder={ `+keyword -"some phrase"` }
+													class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+												>
+													if request.Search.Categories != nil {
+														{ *request.Search.Categories }
+													}
+												</textarea>
+											</div>
+										}
+										@partials.FormField() {
+											<label for="search-authors" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Authors</label>
+											<div class="mt-2 sm:col-span-2 sm:mt-0">
+												<textarea
+													rows="2"
+													id="search-authors"
+													type="text"
+													name="search.authors"
+													placeholder={ `+keyword -"some phrase"` }
+													class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+												>
+													if request.Search.Authors != nil {
+														{ *request.Search.Authors }
+													}
+												</textarea>
+											</div>
+										}
+										@partials.FormField() {
+											<label for="search-published-within" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Published within</label>
+											<div class="mt-2 sm:col-span-2 sm:mt-0">
+												<select id="subscription-published-within" name="search.published_within" class="select select-primary my-2 bg-base-300">
+													<option
+														value="last_hour"
+													>Last hour</option>
+													<option
+														value="last_half_day"
+													>Last 12 hours</option>
+													<option
+														value="last_day"
+													>Last day</option>
+													<option
+														value="last_week"
+														selected
+													>Last week</option>
+													<option
+														value="last_month"
+													>Last month</option>
+												</select>
+											</div>
+										}
+										@partials.FormField() {
+											<label for="search-view" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">View</label>
+											<div class="mt-2 sm:col-span-2 sm:mt-0">
+												<select id="search-view" name="search.view" class="select select-primary my-2 bg-base-300">
+													<option
+														value={ string(models.ViewUnread) }
+														if request.Search.View == models.ViewUnread {
+															selected
+														}
+													>
+														Unread
+													</option>
+													<option
+														value={ string(models.ViewRead) }
+														if request.Search.View == models.ViewRead {
+															selected
+														}
+													>Read</option>
+													<option
+														value={ string(models.ViewAll) }
+														if request.Search.View == models.ViewAll {
+															selected
+														}
+													>All</option>
+												</select>
+											</div>
+										}
+										@partials.FormField() {
+											<label for="search-sort" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Sort</label>
+											<div class="mt-2 sm:col-span-2 sm:mt-0">
+												<select id="search-sort" name="search.sort" class="select select-primary my-2 bg-base-300">
+													<option
+														value={ string(models.SortMostRelevant) }
+														if request.Search.Sort == models.SortMostRelevant {
+															selected
+														}
+													>
+														Most Relevant
+													</option>
+													<option
+														value={ string(models.SortNewestFirst) }
+														if request.Search.Sort == models.SortNewestFirst {
+															selected
+														}
+													>Newest First</option>
+													<option
+														value={ string(models.SortOldestFirst) }
+														if request.Search.Sort == models.SortOldestFirst {
+															selected
+														}
+													>Oldest First</option>
+												</select>
+											</div>
+										}
+									</div>
+								</el-disclosure>
+							}
+						</div>
+						// Optional customisation.
+						<div>
+							<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
+								<div>
+									<h2 class="text-base/7 font-semibold">Customisation</h2>
+									<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
+								</div>
+								<span class="ml-6 flex h-7 items-center">
+									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+									</svg>
+									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
+									</svg>
+								</span>
+							</button>
+							@partials.FormSection() {
+								<el-disclosure
+									id="customisation"
+								>
+									<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+										@partials.FormField() {
+											<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
+											<div class="mt-2 sm:col-span-2 sm:mt-0">
+												<div class="col-span-full mt-2 flex items-center gap-x-2">
+													if request.Customisation != nil && request.Customisation.ImageURL != nil {
+														@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "")
+													} else {
+														@subscriptionThumbnail(nil, "")
+													}
+													<input
+														id="thumbnail"
+														type="file"
+														class="flex file-input file-input-primary bg-base-content/10"
+														name="customisation.thumbnail"
+														accept=".jpg,.png,.webp"
+													/>
+												</div>
+											</div>
+										}
+									</div>
+								</el-disclosure>
+							}
+						</div>
+						// Subscription category management.
 						if request.Customisation != nil {
-							@CategoryManagement(request.SuggestedCategories, request.Customisation.Categories)
+							@CategoryManagement(request.SuggestedCategories, request.Customisation.GetCategories())
 						} else {
 							@CategoryManagement(request.SuggestedCategories, nil)
 						}
-						// Action buttons.
-						<div class="flex flex-1 items-center justify-end gap-x-6">
-							<div id="processing" class="htmx-indicator">
-								Processing...
-								<span class="loading loading-spinner loading-md"></span>
-							</div>
-							@partials.ButtonBack()
-							<button type="submit" class="btn btn-primary">
-								if action == "add" {
-									Add
-								} else {
-									Save
-								}
-							</button>
+					</div>
+					<div class="mt-6 flex items-center justify-end gap-x-6">
+						<div id="processing" class="htmx-indicator">
+							Processing...
+							<span class="loading loading-spinner loading-md"></span>
 						</div>
+						@partials.ButtonBack()
+						switch action {
+							case "add":
+								<button type="submit" class="btn btn-primary">Add</button>
+							case "edit":
+								<button type="submit" class="btn btn-primary">Save</button>
+						}
 					</div>
 				</form>
 			}
