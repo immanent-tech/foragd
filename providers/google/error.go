@@ -27,12 +27,13 @@ var initErrorClient = func(ctx context.Context) error {
 			ServiceName:    cfg.Service,
 			ServiceVersion: config.Version,
 			OnError: func(err error) {
-				slogctx.FromCtx(ctx).Error("Error reporting failed.", slog.Any("error", err))
+				slogctx.FromCtx(ctx).Error("Create new error client failed.", slog.Any("error", err))
 			},
 		})
 		if err != nil {
 			return fmt.Errorf("load error reporting client: %w", err)
 		}
+		slogctx.FromCtx(ctx).Info("GCP error client created.")
 		return nil
 	})()
 	if err != nil {
@@ -43,12 +44,14 @@ var initErrorClient = func(ctx context.Context) error {
 
 // ReportError reports an error to the Cloud Console. The error client autopopulates the error context of the error. For
 // more details about the context see: https://cloud.google.com/error-reporting/reference/rest/v1beta1/ErrorContext.
-func ReportError(ctx context.Context, err error) {
+func ReportError(ctx context.Context, rawErr error) {
 	if err := initErrorClient(ctx); err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to report error to google cloud console.", slog.Any("error", err))
+		slogctx.FromCtx(ctx).Warn("Unable to report error to google cloud console.",
+			slog.Any("error", err),
+		)
 		return
 	}
 	errorClient.Report(errorreporting.Entry{
-		Error: err,
+		Error: rawErr,
 	})
 }
