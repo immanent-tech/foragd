@@ -70,7 +70,7 @@ components:
           x-go-name: SubscriptionID
           x-oapi-codegen-extra-tags:
             form: 'subscription_id'
-            validate: 'required_without=URL,startswith=sub_'
+            validate: 'required_without=URL,omitempty,startswith=sub_'
         customisation:
           $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
         settings:

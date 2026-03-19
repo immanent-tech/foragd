@@ -1177,7 +1177,7 @@ type SubscriptionCustomisation struct {
 	Categories []Category `form:"categories" json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// ImageURL is a custom image to represent the object.
-	ImageURL *string `json:"image_url,omitempty" validate:"omitempty,url"`
+	ImageURL *string `json:"image_url,omitempty" validate:"omitzero,url"`
 
 	// Nickname is an optional alias or label for an object.
 	Nickname *string `form:"nickname" json:"nickname,omitempty" validate:"omitempty"`

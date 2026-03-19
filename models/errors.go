@@ -32,7 +32,7 @@ var (
 	}
 )
 
-func (e *APIError) Error() string { return e.UserMessage.String() }
+func (e *APIError) Error() string { return e.InternalError.Error() }
 func (e *APIError) Unwrap() error { return e.InternalError }
 
 // HTTPStatus returns the status code of the API error.

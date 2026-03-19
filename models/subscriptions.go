@@ -22,7 +22,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
@@ -1878,7 +1877,6 @@ func (c *SubscriptionCustomisation) Valid() error {
 }
 
 func (c *SubscriptionCustomisation) Sanitise() error {
-	godump.Dump(c)
 	if c != nil {
 		for idx := range c.Categories {
 			c.Categories[idx] = sanitization.SanitizeString(c.Categories[idx])

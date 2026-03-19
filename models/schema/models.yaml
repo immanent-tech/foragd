@@ -706,7 +706,7 @@ components:
           type: string
           x-go-name: ImageURL
           x-oapi-codegen-extra-tags:
-            validate: 'omitempty,url'
+            validate: 'omitzero,url'
       x-oapi-codegen-extra-tags:
         form: 'customisation'
     SubscriptionArticleFilters:

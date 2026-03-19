@@ -22,7 +22,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
-	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -580,7 +579,6 @@ func HandleSaveSubscription() http.HandlerFunc {
 		case models.SubscriptionTypeFeed:
 			request, valid, err := forms.DecodeMultiPartForm[*models.FeedSubscriptionRequest](req)
 			if err != nil || !valid {
-				godump.Dump(request)
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode subscription request: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,

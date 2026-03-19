@@ -64,7 +64,7 @@ type FeedSubscriptionRequest struct {
 	Settings      *SubscriptionSettings      `form:"settings" json:"settings,omitempty"`
 
 	// SubscriptionID is the existing subscription ID. Will be empty when adding a new feed subscription.
-	SubscriptionID string `form:"subscription_id" json:"subscription_id" validate:"required_without=URL,startswith=sub_"`
+	SubscriptionID string `form:"subscription_id" json:"subscription_id" validate:"required_without=URL,omitempty,startswith=sub_"`
 
 	// SuggestedCategories is a list of suggested categories for the subscription.
 	SuggestedCategories []Category `form:"-" json:"-"`
