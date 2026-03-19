@@ -75,7 +75,7 @@ templ (a *Article) Card() {
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + a.GetSubscriptionID() + "]" } value={ a.GetID() }/>
 		<div class="card-body">
-			<div class="card-title text-pretty line-clamp-3 tracking-tight mt-auto">
+			<div class="mt-auto card-title line-clamp-3 tracking-tight text-pretty">
 				if a.GetTitle() != "" {
 					{ a.GetTitle() }
 				} else {
@@ -83,20 +83,20 @@ templ (a *Article) Card() {
 				}
 			</div>
 			// Author and subscription details.
-			<div class="grid grid-cols-1 grid-flow-row mb-4">
+			<div class="mb-4 grid grid-flow-row grid-cols-1">
 				if len(a.GetAuthors()) > 0 {
-					<p class="inline-block text-xs/4 italic truncate">
+					<p class="inline-block truncate text-xs/4 italic">
 						{ strings.Join(a.GetAuthors(),",") }
 					</p>
 				}
-				<p class="inline-block text-xs/4 truncate">
+				<p class="inline-block truncate text-xs/4">
 					<a
 						hx-get="/list/articles"
 						hx-target={ ContentID.Target() }
 						hx-swap="innerHTML show:window:top transition:true"
 						hx-trigger="click consume"
 						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: a.GetSubscriptionID()}) }
-						class="link link-hover truncate"
+						class="link truncate link-hover"
 					>
 						{ a.GetFeedTitle() }
 					</a>
@@ -108,7 +108,7 @@ templ (a *Article) Card() {
 					@templ.Raw(a.GetDescription())
 				</div>
 			}
-			<div class="card-actions mt-auto justify-between items-center">
+			<div class="mt-auto card-actions items-center justify-between">
 				// Timestamp.
 				<div class="flex flex-1 gap-x-2">
 					<span class="label text-xs/4 capitalize">
@@ -179,7 +179,7 @@ templ (a *Article) Card() {
 				// Actions menu.
 				<div class="flex flex-none">
 					<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
-						<button class="btn btn-sm btn-ghost btn-square">
+						<button class="btn btn-square btn-ghost btn-sm">
 							<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
 							@tabler.Menu2(i.Props{Class: "size-5 text-primary"})
 						</button>
@@ -272,7 +272,7 @@ templ (a *Article) Content() {
 			@container() {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
 				<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
-				<article id={ a.GetID() } class="w-full sm:max-w-prose sm:mx-auto">
+				<article id={ a.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
 					// Article title.
 					<div class="flex flex-1 pb-2">
 						if a.SourceType != models.SourceTypeEmail {
@@ -315,11 +315,11 @@ templ (a *Article) Content() {
 						</form>
 					</div>
 					<div class="flex items-center">
-						<div class="flex-1 inline-grid">
+						<div class="inline-grid flex-1">
 							if a.SourceType != models.SourceTypeEmail {
 								// Show authors if found.
 								if len(a.GetAuthors()) > 0 {
-									<p class="col-span-full text-sm/6 italic truncate">
+									<p class="col-span-full truncate text-sm/6 italic">
 										{ strings.Join(a.GetAuthors(),",") }
 									</p>
 								}
@@ -393,7 +393,7 @@ templ (a *Article) Content() {
 						<div class="flex items-center justify-end">
 							<el-dropdown>
 								<button
-									class="btn btn-ghost btn-square"
+									class="btn btn-square btn-ghost"
 								>
 									<span class="sr-only">Article Actions</span>
 									@tabler.Menu2(i.Props{Class: "size-6"})
@@ -457,7 +457,7 @@ templ (a *Article) Content() {
 									@templ.Raw(a.GetDescription())
 								</div>
 							}
-							<nav class="my-16 flex flex-col sm:flex-row gap-2 items-center justify-center text-sm">
+							<nav class="my-16 flex flex-col items-center justify-center gap-2 text-sm sm:flex-row">
 								@shareArticleButton(a)
 							</nav>
 						default:
@@ -476,7 +476,7 @@ templ (a *Article) Content() {
 									}
 								</div>
 							}
-							<nav class="my-16 flex flex-col sm:flex-row gap-2 items-center justify-center text-sm">
+							<nav class="my-16 flex flex-col items-center justify-center gap-2 text-sm sm:flex-row">
 								@getRemoteContentButton(a)
 								@viewRemoteContentButton(a)
 								@shareArticleButton(a)
@@ -512,7 +512,7 @@ templ getRemoteContentButton(a *Article) {
 	// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
 	<a
 		role="button"
-		class="btn btn-primary"
+		class="btn btn-wide btn-outline"
 		hx-get={ "/view/article/" + a.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-swap="innerHTML transition:true"
@@ -536,7 +536,7 @@ templ viewRemoteContentButton(a *Article) {
 	// View original article action.
 	<a
 		role="button"
-		class="btn btn-primary"
+		class="btn btn-wide btn-outline"
 		href={ a.GetLink() }
 		target="_blank"
 		rel="noopener"
@@ -549,9 +549,9 @@ templ viewRemoteContentButton(a *Article) {
 
 templ shareArticleButton(a *Article) {
 	// Mobile share action via navigator API.
-	<div _="init if not navigator.share then hide me">
+	<div class="flex w-full justify-center" _="init if not navigator.share then hide me">
 		<button
-			class="btn btn-primary"
+			class="btn btn-wide btn-outline"
 			_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
 		>
 			@tabler.Share()
@@ -559,12 +559,12 @@ templ shareArticleButton(a *Article) {
 		</button>
 	</div>
 	// Desktop share action with modal and options.
-	<form _="init if navigator.share then hide me">
+	<form class="flex w-full justify-center" _="init if navigator.share then hide me">
 		<input type="hidden" name="item_id" value={ a.GetID() }/>
 		<input type="hidden" name="title" value={ a.GetTitle() }/>
 		<input type="hidden" name="link" value={ a.GetLink() }/>
 		<button
-			class="btn btn-primary"
+			class="btn btn-wide btn-outline"
 			hx-post={ "/share/article/" + a.GetID() }
 			hx-target={ partials.ModalContainerID.Target() }
 			hx-trigger="click consume"
@@ -600,7 +600,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							{ title }
 						}
 					</div>
-					<div class="mt-4 flex md:mt-0 md:ml-4 space-x-4">
+					<div class="mt-4 flex space-x-4 md:mt-0 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
 					</div>
@@ -612,7 +612,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				>
 					@FilterControls("/list/articles", &response.Filters) {
 						<el-dropdown class="inline-block flex-none">
-							<button id="articles-actions-button" class="inline-flex btn btn-wide">
+							<button id="articles-actions-button" class="btn inline-flex btn-wide">
 								Actions
 								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
 							</button>
@@ -630,7 +630,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 									if response.Subscription == nil {
 										if len(response.Articles) > 0 {
 											// Mark all articles action.
-											<form class="flex items-center w-full">
+											<form class="flex w-full items-center">
 												<li>
 													<a
 														role="menuitem"
@@ -659,14 +659,14 @@ templ ListArticles(response *models.ListArticlesResponse) {
 											</form>
 										} else {
 											<li>
-												<p class="italic px-4 py-2">No actions.</p>
+												<p class="px-4 py-2 italic">No actions.</p>
 											</li>
 										}
 									} else {
 										// Show mark read/unread action when not viewing all articles.
 										if response.Filters.GetView() != models.ViewAll {
 											// Mark subscription action.
-											<form id={ "mark-" + response.Subscription.GetID() } class="flex items-center w-full">
+											<form id={ "mark-" + response.Subscription.GetID() } class="flex w-full items-center">
 												<input type="hidden" name={ models.ParamSubscriptionID } value={ response.Subscription.GetID() }/>
 												<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
 												// MarkURL returns the app URL for marking the subscription.
@@ -783,7 +783,7 @@ templ ShareArticleModal(request *models.ShareArticleRequest) {
 				</div>
 			</div>
 		</div>
-		<div class="grid grid-flow-row grid-cols-3 mt-5 items-center justify-center sm:mt-4 gap-y-2 gap-x-2">
+		<div class="mt-5 grid grid-flow-row grid-cols-3 items-center justify-center gap-x-2 gap-y-2 sm:mt-4">
 			// @NewLink(
 			// 	WithAttribute("href", fmt.Sprintf("https://twitter.com/intent/tweet?text=%s&url%s", html.EscapeString(obj.GetTitle()), html.EscapeString(obj.GetLink()))),
 			// 	WithClasses("btn", "col-span-1", "twitter-share-button"),
