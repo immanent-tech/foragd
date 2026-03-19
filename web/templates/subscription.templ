@@ -115,7 +115,7 @@ func (s *Subscription) ReportIssueAttributes() templ.Attributes {
 templ (s *Subscription) Card() {
 	<article
 		id={ s.Subscription.GetID() }
-		class="card bg-base-200 mx-auto h-full w-full max-w-prose shadow-md cursor-pointer touch-manipulation"
+		class="card mx-auto h-full w-full max-w-prose cursor-pointer touch-manipulation bg-base-200 shadow-md"
 		{ s.ViewArticlesAttributes()... }
 		hx-disinherit="*"
 	>
@@ -130,12 +130,12 @@ templ (s *Subscription) Card() {
 						@subscriptionThumbnail(models.NewRemoteImage(s.GetImage(), s.GetTitle()), s.GetTitle())
 					}
 				</div>
-				<div class="text-pretty line-clamp-3 tracking-tight">{ s.Subscription.GetTitle() }</div>
+				<div class="line-clamp-3 tracking-tight text-pretty">{ s.Subscription.GetTitle() }</div>
 			</div>
 			// Display up to 5 of the subscription categories.
 			if len(s.Subscription.GetCategories(0)) > 0 {
-				<div class="flex justify-start my-2">
-					<div class="flex flex-row flex-wrap p-2 gap-2">
+				<div class="my-2 flex justify-start">
+					<div class="flex flex-row flex-wrap gap-2 p-2">
 						for category := range slices.Values(s.Subscription.GetCategories(5)) {
 							{{ filters := models.NewListDisplayFilters() }}
 							{{ filters.Categories = append(filters.Categories, category) }}
@@ -150,14 +150,14 @@ templ (s *Subscription) Card() {
 									class="link link-hover"
 									_="on click halt the event's bubbling"
 								>
-									<span class="badge badge-sm badge-outline">{ category }</span>
+									<span class="badge badge-outline badge-sm">{ category }</span>
 								</button>
 							</form>
 						}
 					</div>
 				</div>
 			}
-			<div class="card-actions mt-auto items-center">
+			<div class="mt-auto card-actions items-center">
 				// Timestamp.
 				<div class="flex flex-1 gap-x-2">
 					<span class="label text-xs/4 capitalize">
@@ -171,7 +171,7 @@ templ (s *Subscription) Card() {
 					</span>
 				</div>
 				// Show stats if user requested.
-				<div class="label inline-grid grid-flow-row text-xs justify-items-start">
+				<div class="label inline-grid grid-flow-row justify-items-start text-xs">
 					if user := models.UserFromCtx(ctx); user != nil && user.GetSettings().ShowSubscriptionStats {
 						if s.Subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
 							<span class="col-span-full justify-start">
@@ -185,7 +185,7 @@ templ (s *Subscription) Card() {
 					}
 				</div>
 				// Favorite action.
-				<div class="flex flex-1 space-x-2 items-center justify-end">
+				<div class="flex flex-1 items-center justify-end space-x-2">
 					<form>
 						<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
 						<label class="swap touch-manipulation" _="on click halt the event's bubbling">
@@ -247,7 +247,7 @@ templ (s *Subscription) Card() {
 						<el-dropdown class="relative touch-manipulation" _="on click halt the event's bubbling">
 							<button
 								id={ "btn-" + s.GetID() + "-actions" }
-								class="btn btn-sm btn-ghost"
+								class="btn btn-ghost btn-sm"
 							>
 								<span class="sr-only">{ s.GetTitle() + " Actions" }</span>
 								@tabler.Menu2(i.Props{Class: "size-5 text-primary"})
@@ -340,7 +340,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							Subscriptions
 						}
 					</div>
-					<div class="mt-4 flex md:mt-0 md:ml-4 space-x-4">
+					<div class="mt-4 flex space-x-4 md:mt-0 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
 					</div>
@@ -365,7 +365,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							<ul class="menu w-full">
 								// Mark all subscriptions action.
 								if len(response.Subscriptions) > 0 {
-									<form class="flex flex-1 items-center w-full">
+									<form class="flex w-full flex-1 items-center">
 										<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
 										{{ var markText string }}
 										{{ var markURL string }}
@@ -519,7 +519,7 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 								id="article-text-filters"
 								name="article_filters.text"
 								placeholder={ `+keyword -"some phrase"` }
-								class="textarea textarea-primary bg-base-content/10 w-full"
+								class="textarea w-full bg-base-content/10 textarea-primary"
 								spellcheck="false"
 							>
 								if filters != nil && filters.Text != nil {
@@ -536,7 +536,7 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 								id="article-category-filters"
 								name="article_filters.categories"
 								placeholder={ `+keyword -"some phrase"` }
-								class="textarea textarea-primary bg-base-content/10 w-full"
+								class="textarea w-full bg-base-content/10 textarea-primary"
 								spellcheck="false"
 							>
 								if filters != nil && filters.Categories != nil {
@@ -553,7 +553,7 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 								id="article-author-filters"
 								name="article_filters.authors"
 								placeholder={ `+keyword -"some phrase"` }
-								class="textarea textarea-primary bg-base-content/10 w-full"
+								class="textarea w-full bg-base-content/10 textarea-primary"
 								spellcheck="false"
 							>
 								if filters != nil && filters.Authors != nil {
@@ -638,7 +638,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 									autocomplete="url"
 									value={ request.URL }
 									placeholder="https://my-favorite-site/feed…"
-									class="input input-primary bg-base-300 brightness-95 w-full"
+									class="input w-full bg-base-300 brightness-95 input-primary"
 								/>
 							</div>
 						}
@@ -680,7 +680,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 											value={ request.Customisation.GetNickname() }
 										}
 										placeholder="My cool subscription…"
-										class="input input-primary bg-base-content/10"
+										class="input bg-base-content/10 input-primary"
 									/>
 								</div>
 							}
@@ -696,7 +696,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 										<input
 											id="thumbnail"
 											type="file"
-											class="flex file-input file-input-primary bg-base-content/10"
+											class="file-input flex bg-base-content/10 file-input-primary"
 											name="customisation.thumbnail"
 											accept=".jpg,.png,.webp"
 										/>
@@ -763,7 +763,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 												checked="checked"
 											}
 											name="show_full_article_content"
-											class="toggle toggle-sm toggle-primary"
+											class="toggle toggle-primary toggle-sm"
 										/>
 									</div>
 								}
@@ -776,7 +776,7 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 		<div class="mt-6 flex items-center justify-end gap-x-6">
 			<div id="processing" class="htmx-indicator">
 				Processing...
-				<span class="loading loading-spinner loading-md"></span>
+				<span class="loading loading-md loading-spinner"></span>
 			</div>
 			@partials.ButtonBack()
 			switch action {
@@ -849,7 +849,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 												value={ request.Customisation.GetNickname() }
 											}
 											placeholder="My cool subscription…"
-											class="input input-primary bg-base-300 brightness-95"
+											class="input bg-base-300 brightness-95 input-primary"
 										/>
 									</div>
 								}
@@ -931,7 +931,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 										@partials.FormField() {
 											<label for="search-published-within" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Published within</label>
 											<div class="mt-2 sm:col-span-2 sm:mt-0">
-												<select id="subscription-published-within" name="search.published_within" class="select select-primary my-2 bg-base-300">
+												<select id="subscription-published-within" name="search.published_within" class="select my-2 bg-base-300 select-primary">
 													<option
 														value="last_hour"
 													>Last hour</option>
@@ -954,7 +954,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 										@partials.FormField() {
 											<label for="search-view" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">View</label>
 											<div class="mt-2 sm:col-span-2 sm:mt-0">
-												<select id="search-view" name="search.view" class="select select-primary my-2 bg-base-300">
+												<select id="search-view" name="search.view" class="select my-2 bg-base-300 select-primary">
 													<option
 														value={ string(models.ViewUnread) }
 														if request.Search.View == models.ViewUnread {
@@ -981,7 +981,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 										@partials.FormField() {
 											<label for="search-sort" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Sort</label>
 											<div class="mt-2 sm:col-span-2 sm:mt-0">
-												<select id="search-sort" name="search.sort" class="select select-primary my-2 bg-base-300">
+												<select id="search-sort" name="search.sort" class="select my-2 bg-base-300 select-primary">
 													<option
 														value={ string(models.SortMostRelevant) }
 														if request.Search.Sort == models.SortMostRelevant {
@@ -1043,7 +1043,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 													<input
 														id="thumbnail"
 														type="file"
-														class="flex file-input file-input-primary bg-base-content/10"
+														class="file-input flex bg-base-content/10 file-input-primary"
 														name="customisation.thumbnail"
 														accept=".jpg,.png,.webp"
 													/>
@@ -1064,7 +1064,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 					<div class="mt-6 flex items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
 							Processing...
-							<span class="loading loading-spinner loading-md"></span>
+							<span class="loading loading-md loading-spinner"></span>
 						</div>
 						@partials.ButtonBack()
 						switch action {
@@ -1141,27 +1141,27 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 												value={ request.Customisation.GetNickname() }
 											}
 											placeholder="My cool subscription…"
-											class="input input-primary bg-base-300 brightness-95"
+											class="input bg-base-300 brightness-95 input-primary"
 										/>
 									</div>
 								}
 								@partials.FormField() {
 									<label for="subscription-suggestion" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Add subscription</label>
-									<div class="mt-2 sm:col-span-2 sm:mt-0 join">
-										<el-autocomplete id="suggestions" class="sm:col-span-4 join join-item">
+									<div class="join mt-2 sm:col-span-2 sm:mt-0">
+										<el-autocomplete id="suggestions" class="join join-item sm:col-span-4">
 											<input
 												id="subscription-suggestion"
 												name="suggestion_text"
-												class="input input-primary bg-base-300 brightness-95 join-item"
+												class="input join-item bg-base-300 brightness-95 input-primary"
 												placeholder="Subscription..."
 											/>
 											<button
 												type="button"
-												class="btn bg-base-100 brightness-95 join-item"
+												class="btn join-item bg-base-100 brightness-95"
 											>
 												@tabler.ChevronDown()
 											</button>
-											<el-options popover anchor="bottom start" class="w-(--input-width) h-fit max-h-5/10 overflow-auto">
+											<el-options popover anchor="bottom start" class="h-fit max-h-5/10 w-(--input-width) overflow-auto">
 												for subscription := range slices.Values(request.SuggestedSubscriptions) {
 													<el-option value={ subscription.GetTitle() }>
 														<input type="hidden" name={ "suggestions[" + subscription.GetID() + "]" } value={ subscription.GetTitle() }/>
@@ -1177,7 +1177,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 											hx-include="#suggestions,#subscriptions"
 											hx-swap="beforeend"
 											type="button"
-											class="btn btn-primary join-item"
+											class="btn join-item btn-primary"
 											_="on htmx:afterRequest set #subscription-suggestion.value to ''"
 										>
 											@tabler.Plus()
@@ -1188,7 +1188,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 									<div class="block text-sm/6 font-medium text-base-content sm:pt-1.5">In subscriptions</div>
 									<div
 										id="subscriptions"
-										class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+										class="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-3 sm:px-6 lg:px-8"
 									>
 										for id, name := range request.Subscriptions {
 											@AddSubscriptionToGroup(id, name)
@@ -1231,7 +1231,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 													<input
 														id="thumbnail"
 														type="file"
-														class="flex file-input file-input-primary bg-base-content/10"
+														class="file-input flex bg-base-content/10 file-input-primary"
 														name="customisation.thumbnail"
 														accept=".jpg,.png,.webp"
 													/>
@@ -1254,7 +1254,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 					<div class="mt-6 flex items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
 							Processing...
-							<span class="loading loading-spinner loading-md"></span>
+							<span class="loading loading-md loading-spinner"></span>
 						</div>
 						@partials.ButtonBack()
 						switch action {
@@ -1319,7 +1319,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 												value={ request.Customisation.GetNickname() }
 											}
 											placeholder="My cool subscription…"
-											class="input input-primary bg-base-300 brightness-95"
+											class="input bg-base-300 brightness-95 input-primary"
 										/>
 									</div>
 								}
@@ -1335,7 +1335,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 											<input
 												id="thumbnail"
 												type="file"
-												class="flex file-input file-input-primary bg-base-content/10"
+												class="file-input flex bg-base-content/10 file-input-primary"
 												name="customisation.thumbnail"
 												accept=".jpg,.png,.webp"
 											/>
@@ -1354,7 +1354,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 					<div class="mt-6 flex items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
 							Processing...
-							<span class="loading loading-spinner loading-md"></span>
+							<span class="loading loading-md loading-spinner"></span>
 						</div>
 						@partials.ButtonBack()
 						<button type="submit" class="btn btn-primary">Save</button>
@@ -1385,6 +1385,7 @@ templ ImportSubscriptions() {
 					hx-post="/user/import"
 					hx-target="#import-results"
 					hx-indicator="#processing"
+					hx-push-url="false"
 				>
 					<div class="space-y-12 sm:space-y-16">
 						// Subscription name, suggestions and existing subscriptions.
@@ -1392,7 +1393,7 @@ templ ImportSubscriptions() {
 							@partials.FormSection() {
 								<label for="opml-file" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">OPML File</label>
 								<div class="mt-2 sm:col-span-2 sm:mt-0">
-									<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10 w-full"/>
+									<input id="source" type="file" required name="source" class="file-input w-full bg-base-content/10 file-input-primary"/>
 								</div>
 							}
 						</div>
@@ -1400,7 +1401,7 @@ templ ImportSubscriptions() {
 					<div class="mt-6 flex items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
 							Processing...
-							<span class="loading loading-spinner loading-md"></span>
+							<span class="loading loading-md loading-spinner"></span>
 						</div>
 						@partials.ButtonBack()
 						<button type="submit" class="btn btn-primary">Import</button>
@@ -1423,23 +1424,23 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 		}
 	</div>
 	// Import results summary.
-	<ul class="py-4 space-y-8">
+	<ul class="space-y-8 py-4">
 		if len(successfulResults) > 0 {
 			<li class="flex items-center">
 				@tabler.CircleCheck(i.Props{Class: "size-10 text-success"})
-				<p class="text-success font-semibold">{ strconv.Itoa(len(successfulResults)) } Created</p>
+				<p class="font-semibold text-success">{ strconv.Itoa(len(successfulResults)) } Created</p>
 			</li>
 		}
 		if len(failedResults) > 0 {
 			<li class="flex items-center">
 				@tabler.ExclamationCircle(i.Props{Class: "size-10 text-error"})
-				<p class="text-error font-semibold">{ strconv.Itoa(len(failedResults)) } Failed</p>
+				<p class="font-semibold text-error">{ strconv.Itoa(len(failedResults)) } Failed</p>
 			</li>
 		}
 		if len(warningResults) > 0 {
 			<li class="flex items-center">
 				@tabler.AlertTriangle(i.Props{Class: "size-10 text-warning"})
-				<p class="text-warning font-semibold">{ strconv.Itoa(len(warningResults)) } Warnings</p>
+				<p class="font-semibold text-warning">{ strconv.Itoa(len(warningResults)) } Warnings</p>
 			</li>
 		}
 	</ul>
@@ -1454,7 +1455,7 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 			Go to your subscriptions
 		</button>
 	</div>
-	<div class="py-4 space-y-8">
+	<div class="space-y-8 py-4">
 		<ul class="list">
 			for result := range slices.Values(successfulResults) {
 				<li class="list-row items-center">
@@ -1527,7 +1528,7 @@ templ ExportSubscriptions() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<div class="md:flex md:items-center md:justify-between mt-8">
+				<div class="mt-8 md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
 						@partials.Heading2() {
 							Export Subscriptions
@@ -1547,7 +1548,7 @@ templ ExportSubscriptions() {
 				</div>
 				<center id="processing" class="htmx-indicator">
 					Processing, this could take a few minutes...
-					<span class="loading loading-spinner loading-md"></span>
+					<span class="loading loading-md loading-spinner"></span>
 				</center>
 			}
 		}
@@ -1569,7 +1570,7 @@ templ RemoveSubscriptionModal(request *models.RemoveSubscriptionRequest) {
 				</div>
 			</div>
 		</div>
-		<div class="flex flex-row-reverse mt-5 sm:mt-4 gap-x-2 justify-center items-center">
+		<div class="mt-5 flex flex-row-reverse items-center justify-center gap-x-2 sm:mt-4">
 			<form
 				hx-post={ "/remove/subscription/" + string(request.SubscriptionID) }
 				hx-target={ "#" + request.SubscriptionID }
@@ -1613,7 +1614,7 @@ templ subscriptionThumbnail(img *models.RemoteImage, name string) {
 	} else {
 		// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
 		<div class="avatar avatar-placeholder" aria-hidden="true">
-			<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
+			<div class="mask w-12 bg-neutral mask-squircle text-neutral-content">
 				if name != "" {
 					<span class="text-3xl capitalize">{ name[0:1] }</span>
 				} else {
