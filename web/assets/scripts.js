@@ -23,5 +23,3 @@ import '@github/relative-time-element'
 
 // custom element for youtube player.
 import './embed-youtube'
-
-import 'transition-style'

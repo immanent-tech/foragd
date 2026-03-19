@@ -467,6 +467,9 @@ templ (a *Article) Content() {
 									data-disable-scripting
 									hx-disable
 									class="prose-article mt-4 forced-width"
+									if a.ShowFullContent {
+										transition-style="in:wipe:down"
+									}
 								>
 									switch  {
 										case a.GetContent() != "":

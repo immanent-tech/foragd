@@ -14,6 +14,7 @@
 @plugin './catppuccinTheme.mocha.ts';
 
 @import './daisyui.css';
+@import 'transition-style';
 
 /* Inter font styling */
 /* https://tailwindcss.com/plus/ui-blocks/documentation#add-the-inter-font-family */
