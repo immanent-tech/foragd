@@ -74,7 +74,7 @@ func CategoryManagement(suggested []models.Category, existing []models.Category)
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<label for=\"category-suggestions\" class=\"block text-sm/6 font-medium text-base-content sm:pt-1.5\">Add category</label><div class=\"mt-2 sm:col-span-2 sm:mt-0 join\"><el-autocomplete class=\"sm:col-span-4 join join-item\"><input id=\"category\" name=\"category\" class=\"input input-primary bg-base-300 brightness-95 join-item\" placeholder=\"Category...\"> <button type=\"button\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<label for=\"category-suggestion\" class=\"block text-sm/6 font-medium text-base-content sm:pt-1.5\">Add category</label><div class=\"mt-2 sm:col-span-2 sm:mt-0 join\"><el-autocomplete class=\"sm:col-span-4 join join-item\"><input id=\"category-suggestion\" name=\"category\" class=\"input input-primary bg-base-300 brightness-95 join-item\" placeholder=\"Category...\" _=\"on keydown[key=='Enter'] send categorySuggestionSelected then halt the event\"> <button type=\"button\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -104,7 +104,7 @@ func CategoryManagement(suggested []models.Category, existing []models.Category)
 					var templ_7745c5c3_Var4 string
 					templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(category)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 58, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 59, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 					if templ_7745c5c3_Err != nil {
@@ -117,7 +117,7 @@ func CategoryManagement(suggested []models.Category, existing []models.Category)
 					var templ_7745c5c3_Var5 string
 					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(category)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 58, Col: 50}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 59, Col: 50}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 					if templ_7745c5c3_Err != nil {
@@ -135,13 +135,13 @@ func CategoryManagement(suggested []models.Category, existing []models.Category)
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(strings.Join([]string{"category", models.ParamCustomisationCategories}, ","))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 64, Col: 96}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 65, Col: 96}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-target=\"#current-categories\" hx-swap=\"beforeend\" type=\"button\" class=\"btn btn-primary join-item\" _=\"on htmx:afterRequest if event.detail.successful then set #category.value to ''\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-target=\"#current-categories\" hx-swap=\"beforeend\" hx-trigger=\"click, categorySuggestionSelected from:body\" type=\"button\" class=\"btn btn-primary join-item\" _=\"on htmx:afterRequest if event.detail.successful then set #category-suggestion.value to ''\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -238,7 +238,7 @@ func AddCategory(category models.Category) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(models.ParamCustomisationCategories)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 92, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 94, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -251,7 +251,7 @@ func AddCategory(category models.Category) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(category)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 92, Col: 84}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 94, Col: 84}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -264,7 +264,7 @@ func AddCategory(category models.Category) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(category)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 93, Col: 12}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 95, Col: 12}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -277,7 +277,7 @@ func AddCategory(category models.Category) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("Remove category " + category)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 96, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/categories.templ`, Line: 98, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {

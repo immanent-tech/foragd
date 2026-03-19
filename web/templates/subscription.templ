@@ -1154,6 +1154,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 												name="suggestion_text"
 												class="input join-item bg-base-300 brightness-95 input-primary"
 												placeholder="Subscription..."
+												_="on keydown[key=='Enter'] send subscriptionSuggestionSelected then halt the event"
 											/>
 											<button
 												type="button"
@@ -1176,6 +1177,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 											hx-encoding="application/x-www-form-urlencoded"
 											hx-include="#suggestions,#subscriptions"
 											hx-swap="beforeend"
+											hx-trigger="click, subscriptionSuggestionSelected from:body"
 											type="button"
 											class="btn join-item btn-primary"
 											_="on htmx:afterRequest set #subscription-suggestion.value to ''"

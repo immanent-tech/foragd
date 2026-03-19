@@ -35,14 +35,15 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 			>
 				<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 					@partials.FormField() {
-						<label for="category-suggestions" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Add category</label>
+						<label for="category-suggestion" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Add category</label>
 						<div class="mt-2 sm:col-span-2 sm:mt-0 join">
 							<el-autocomplete class="sm:col-span-4 join join-item">
 								<input
-									id="category"
+									id="category-suggestion"
 									name="category"
 									class="input input-primary bg-base-300 brightness-95 join-item"
 									placeholder="Category..."
+									_="on keydown[key=='Enter'] send categorySuggestionSelected then halt the event"
 								/>
 								<button
 									type="button"
@@ -64,9 +65,10 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 								hx-params={ strings.Join([]string{"category", models.ParamCustomisationCategories}, ",") }
 								hx-target="#current-categories"
 								hx-swap="beforeend"
+								hx-trigger="click, categorySuggestionSelected from:body"
 								type="button"
 								class="btn btn-primary join-item"
-								_="on htmx:afterRequest if event.detail.successful then set #category.value to ''"
+								_="on htmx:afterRequest if event.detail.successful then set #category-suggestion.value to ''"
 							>
 								@tabler.Plus()
 							</button>
