@@ -1458,9 +1458,9 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 		<ul class="list">
 			for result := range slices.Values(successfulResults) {
 				<li class="list-row items-center">
-					<div class="flex items-center">
+					<div class="flex items-center space-x-2">
 						@tabler.CircleCheck(i.Props{Class: "size-10 text-success"})
-						<div>
+						<div class="space-y-2">
 							<p>Subscription Created:</p>
 							<p>{ result.Subscription.GetTitle() }</p>
 						</div>
@@ -1469,10 +1469,10 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 			}
 			for result := range slices.Values(failedResults) {
 				<li class="list-row items-center">
-					<div class="flex items-center">
+					<div class="flex items-center space-x-2">
 						@tabler.ExclamationCircle(i.Props{Class: "size-10 text-error"})
 						{{ msg := result.Error.GetUserMessage() }}
-						<div>
+						<div class="space-y-2">
 							<div>{ msg.Summary }</div>
 							if msg.HasDetails() {
 								<p class="list-col-wrap text-xs">
@@ -1485,10 +1485,10 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 			}
 			for result := range slices.Values(warningResults) {
 				<li class="list-row items-center">
-					<div class="flex items-center">
+					<div class="flex items-center space-x-2">
 						@tabler.AlertTriangle(i.Props{Class: "size-10 text-warning"})
 						{{ msg := result.Error.GetUserMessage() }}
-						<div>
+						<div class="space-y-2">
 							<div>{ msg.Summary }</div>
 							if msg.HasDetails() {
 								<p class="list-col-wrap text-xs">

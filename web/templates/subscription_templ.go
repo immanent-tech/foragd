@@ -4295,7 +4295,7 @@ func ImportSubscriptionsResults(results []models.FeedSubscriptionResult) templ.C
 			return templ_7745c5c3_Err
 		}
 		for result := range slices.Values(successfulResults) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 299, "<li class=\"list-row items-center\"><div class=\"flex items-center\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 299, "<li class=\"list-row items-center\"><div class=\"flex items-center space-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -4303,7 +4303,7 @@ func ImportSubscriptionsResults(results []models.FeedSubscriptionResult) templ.C
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 300, "<div><p>Subscription Created:</p><p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 300, "<div class=\"space-y-2\"><p>Subscription Created:</p><p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -4322,7 +4322,7 @@ func ImportSubscriptionsResults(results []models.FeedSubscriptionResult) templ.C
 			}
 		}
 		for result := range slices.Values(failedResults) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 302, "<li class=\"list-row items-center\"><div class=\"flex items-center\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 302, "<li class=\"list-row items-center\"><div class=\"flex items-center space-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -4331,7 +4331,7 @@ func ImportSubscriptionsResults(results []models.FeedSubscriptionResult) templ.C
 				return templ_7745c5c3_Err
 			}
 			msg := result.Error.GetUserMessage()
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 303, "<div><div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 303, "<div class=\"space-y-2\"><div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -4373,7 +4373,7 @@ func ImportSubscriptionsResults(results []models.FeedSubscriptionResult) templ.C
 			}
 		}
 		for result := range slices.Values(warningResults) {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 308, "<li class=\"list-row items-center\"><div class=\"flex items-center\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 308, "<li class=\"list-row items-center\"><div class=\"flex items-center space-x-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -4382,7 +4382,7 @@ func ImportSubscriptionsResults(results []models.FeedSubscriptionResult) templ.C
 				return templ_7745c5c3_Err
 			}
 			msg := result.Error.GetUserMessage()
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 309, "<div><div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 309, "<div class=\"space-y-2\"><div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
