@@ -1078,16 +1078,20 @@ func NewFeedSubscription(
 		ArticleStates: make(map[ItemID]ArticleState),
 	}
 
+	// Set up subscription customisation.
 	if customisation == nil {
 		customisation = &SubscriptionCustomisation{}
 	}
-
 	// Make sure nickname is not empty.
 	if customisation.GetNickname() == "" {
 		customisation.Nickname = new(feed.GetTitle())
 	}
+	// Add the feed image if the user has not specified one.
+	if customisation.ImageURL == nil {
+		customisation.ImageURL = new(feed.GetImage().GetURL())
+	}
 
-	// Create the subscription with the feed data.
+	// Create the subscription with the feed data and customisations.
 	subscription, err := newSubscription(ctx, *customisation, newSubscriptionSettings(), feedSubscription)
 	if err != nil {
 		return nil, fmt.Errorf("new feed subscription: %w", err)
