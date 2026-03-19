@@ -76,11 +76,11 @@ func BulkImportFeeds(ctx context.Context, requests ...FeedSubscriptionRequest) [
 				resultsCh <- FeedSubscriptionResult{
 					Request: &request,
 					Error: &APIError{
-						InternalError: fmt.Errorf("add feed subscription: %w", err),
+						InternalError: fmt.Errorf("create subscription: %w", err),
 						StatusCode:    http.StatusInternalServerError,
 						UserMessage: NewErrorMessage(
-							"Unable to add feed subscription",
-							"This might be a temporary issue, please try again.",
+							"Unable to create subscription",
+							fmt.Sprintf("Could not find feed data for URL: %q", request.URL),
 						),
 					},
 				}
@@ -92,11 +92,11 @@ func BulkImportFeeds(ctx context.Context, requests ...FeedSubscriptionRequest) [
 					resultsCh <- FeedSubscriptionResult{
 						Request: &request,
 						Error: &APIError{
-							InternalError: fmt.Errorf("add feed subscription: %w", err),
+							InternalError: fmt.Errorf("create subscription: %w", err),
 							StatusCode:    http.StatusInternalServerError,
 							UserMessage: NewErrorMessage(
 								"Unable to add feed subscription",
-								"This might be a temporary issue, please try again.",
+								fmt.Sprintf("Could not create a feed for %s (%s)", feed.GetTitle(), request.URL),
 							),
 						},
 					}
@@ -110,11 +110,11 @@ func BulkImportFeeds(ctx context.Context, requests ...FeedSubscriptionRequest) [
 				resultsCh <- FeedSubscriptionResult{
 					Request: &request,
 					Error: &APIError{
-						InternalError: fmt.Errorf("add feed subscription: %w", err),
+						InternalError: fmt.Errorf("create subscription: %w", err),
 						StatusCode:    http.StatusInternalServerError,
 						UserMessage: NewErrorMessage(
-							"Unable to add feed subscription",
-							"This might be a temporary issue, please try again.",
+							"Unable to create subscription",
+							fmt.Sprintf("Could not determine existing subscription status for %s (%s)", feed.GetTitle(), request.URL),
 						),
 					},
 				}
@@ -124,11 +124,11 @@ func BulkImportFeeds(ctx context.Context, requests ...FeedSubscriptionRequest) [
 				resultsCh <- FeedSubscriptionResult{
 					Request: &request,
 					Error: &APIError{
-						InternalError: errors.New("add feed subscription: already subscribed"),
+						InternalError: errors.New("create subscription: already subscribed"),
 						StatusCode:    http.StatusConflict,
 						UserMessage: NewWarningMessage(
 							"Already subscribed to feed",
-							feed.GetTitle(),
+							fmt.Sprintf("%s (%s)", feed.GetTitle(), request.URL),
 						),
 					},
 				}
@@ -141,11 +141,11 @@ func BulkImportFeeds(ctx context.Context, requests ...FeedSubscriptionRequest) [
 				resultsCh <- FeedSubscriptionResult{
 					Request: &request,
 					Error: &APIError{
-						InternalError: fmt.Errorf("add subscription: %w", err),
+						InternalError: fmt.Errorf("create subscription: %w", err),
 						StatusCode:    http.StatusInternalServerError,
 						UserMessage: NewErrorMessage(
 							"Unable to add subscription",
-							"This might be a temporary issue, please try again.",
+							fmt.Sprintf("Could create subscription data for feed %s (%s)", feed.GetTitle(), request.URL),
 						),
 					},
 				}
@@ -159,7 +159,7 @@ func BulkImportFeeds(ctx context.Context, requests ...FeedSubscriptionRequest) [
 						StatusCode:    http.StatusInternalServerError,
 						UserMessage: NewErrorMessage(
 							"Unable to add subscription",
-							"This might be a temporary issue, please try again.",
+							fmt.Sprintf("Could subscribe to feed %s (%s)", feed.GetTitle(), request.URL),
 						),
 					},
 				}
@@ -667,11 +667,7 @@ func findFeedImage(ctx context.Context, feedURL string) (*RemoteImage, error) {
 	}
 
 	// Try to find the "main" image in the page content.
-	if imgURL, err := html.FindMainImage(resp.Body(), feedURL); err != nil {
-		slogctx.FromCtx(ctx).Debug("Could not find main image for URL.",
-			slog.String("url", feedURL),
-			slog.Any("error", err))
-	} else {
+	if imgURL, _ := html.FindMainImage(resp.Body(), feedURL); imgURL != "" {
 		return &RemoteImage{
 			URL: new(imgURL),
 		}, nil
