@@ -1178,60 +1178,60 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 								}
 							}
 						</div>
-					</div>
-					// Optional customisation.
-					<div>
-						<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
-							<div>
-								<h2 class="text-base/7 font-semibold">Customisation</h2>
-								<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
-							</div>
-							<span class="ml-6 flex h-7 items-center">
-								<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
-									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-								</svg>
-								<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
-									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
-								</svg>
-							</span>
-						</button>
-						@partials.FormSection() {
-							<el-disclosure
-								id="customisation"
-								hidden
-							>
-								<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
-									@partials.FormField() {
-										<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
-										<div class="mt-2 sm:col-span-2 sm:mt-0">
-											<div class="col-span-full mt-2 flex items-center gap-x-2">
-												if request.Customisation != nil && request.Customisation.ImageURL != nil {
-													@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "")
-												} else {
-													@subscriptionThumbnail(nil, "")
-												}
-												<input
-													id="thumbnail"
-													type="file"
-													class="flex file-input file-input-primary bg-base-content/10"
-													name="customisation.thumbnail"
-													accept=".jpg,.png,.webp"
-												/>
-											</div>
-										</div>
-									}
+						// Optional customisation.
+						<div>
+							<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
+								<div>
+									<h2 class="text-base/7 font-semibold">Customisation</h2>
+									<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
 								</div>
-							</el-disclosure>
+								<span class="ml-6 flex h-7 items-center">
+									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+									</svg>
+									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
+									</svg>
+								</span>
+							</button>
+							@partials.FormSection() {
+								<el-disclosure
+									id="customisation"
+									hidden
+								>
+									<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+										@partials.FormField() {
+											<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
+											<div class="mt-2 sm:col-span-2 sm:mt-0">
+												<div class="col-span-full mt-2 flex items-center gap-x-2">
+													if request.Customisation != nil && request.Customisation.ImageURL != nil {
+														@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "")
+													} else {
+														@subscriptionThumbnail(nil, "")
+													}
+													<input
+														id="thumbnail"
+														type="file"
+														class="flex file-input file-input-primary bg-base-content/10"
+														name="customisation.thumbnail"
+														accept=".jpg,.png,.webp"
+													/>
+												</div>
+											</div>
+										}
+									</div>
+								</el-disclosure>
+							}
+						</div>
+						// Subscription category management.
+						if request.Customisation != nil {
+							@CategoryManagement(request.SuggestedCategories, request.Customisation.GetCategories())
+						} else {
+							@CategoryManagement(request.SuggestedCategories, nil)
 						}
+						// Optional article filtering.
+						@subscriptionArticleFiltersFields(request.ArticleFilters)
 					</div>
-					// Subscription category management.
-					if request.Customisation != nil {
-						@CategoryManagement(request.SuggestedCategories, request.Customisation.GetCategories())
-					} else {
-						@CategoryManagement(request.SuggestedCategories, nil)
-					}
-					// Optional article filtering.
-					@subscriptionArticleFiltersFields(request.ArticleFilters)
 					<div class="mt-6 flex items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
 							Processing...
