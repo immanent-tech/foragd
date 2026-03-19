@@ -1273,103 +1273,77 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 						{ "Editing " + request.Customisation.GetNickname() }
 					}
 				</div>
-				<div class="space-y-8">
-					<form
-						id="manage-email-subscription"
-						hx-post={ "/edit/subscription/" + request.SubscriptionID }
-						hx-swap="none"
-						hx-include="[name='customisation.categories']"
-						hx-params="not subscription-text"
-						hx-indicator="#processing"
-						hx-encoding="multipart/form-data"
-					>
-						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeEmail) }/>
-						<input type="hidden" name="subscription_id" value={ request.SubscriptionID }/>
-						// Nickname.
-						@subscriptionNicknameField(request.Customisation.GetNickname())
-					</form>
-					// Image.
-					if request.Customisation.ImageURL != nil {
-						@subscriptionThumbnailField(
-							models.NewRemoteImage(
-								*request.Customisation.ImageURL,
-								request.Customisation.GetNickname(),
-							),
-							request.Customisation.GetNickname(),
-						)
-					} else {
-						@subscriptionThumbnailField(
-							nil,
-							request.Customisation.GetNickname(),
-						)
-					}
-					// Categories
-					if request.Customisation != nil {
-						@CategoryManagement(nil, request.Customisation.Categories)
-					} else {
-						@CategoryManagement(nil, nil)
-					}
-					// Action buttons.
-					<div class="flex flex-1 items-center justify-end gap-x-6">
+				// hx-on::after-request="if(event.detail.successful) this.reset()"
+				<form
+					id="add-subscription"
+					hx-post={ "/subscription/save/" + string(request.SubscriptionID) }
+					hx-swap="none"
+					hx-indicator="#processing"
+					hx-encoding="multipart/form-data"
+					hx-disinherit="*"
+				>
+					// Add hidden inputs when editing a subscription to know which subscription we are editing.
+					<input type="hidden" name={ models.ParamSubscriptionID } value={ string(request.SubscriptionID) }/>
+					<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeEmail) }/>
+					<div class="space-y-12 sm:space-y-16">
+						// Subscription name, suggestions and existing subscriptions.
+						<div>
+							@partials.FormSection() {
+								@partials.FormField() {
+									<label for="nickname" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Nickname</label>
+									<div class="mt-2 sm:col-span-2 sm:mt-0">
+										<input
+											id="nickname"
+											type="text"
+											name="customisation.nickname"
+											if request.Customisation != nil && request.Customisation.GetNickname() != "" {
+												value={ request.Customisation.GetNickname() }
+											}
+											placeholder="My cool subscription…"
+											class="input input-primary bg-base-300 brightness-95"
+										/>
+									</div>
+								}
+								@partials.FormField() {
+									<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
+									<div class="mt-2 sm:col-span-2 sm:mt-0">
+										<div class="col-span-full mt-2 flex items-center gap-x-2">
+											if request.Customisation != nil && request.Customisation.ImageURL != nil {
+												@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "")
+											} else {
+												@subscriptionThumbnail(nil, "")
+											}
+											<input
+												id="thumbnail"
+												type="file"
+												class="flex file-input file-input-primary bg-base-content/10"
+												name="customisation.thumbnail"
+												accept=".jpg,.png,.webp"
+											/>
+										</div>
+									</div>
+								}
+							}
+						</div>
+						// Subscription category management.
+						if request.Customisation != nil {
+							@CategoryManagement(request.SuggestedCategories, request.Customisation.GetCategories())
+						} else {
+							@CategoryManagement(request.SuggestedCategories, nil)
+						}
+					</div>
+					<div class="mt-6 flex items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
 							Processing...
 							<span class="loading loading-spinner loading-md"></span>
 						</div>
 						@partials.ButtonBack()
-						<button type="submit" class="btn btn-primary" form="manage-email-subscription">Save</button>
+						<button type="submit" class="btn btn-primary">Save</button>
 					</div>
-				</div>
+				</form>
 			}
 		}
 	}
-}
-
-templ subscriptionNicknameField(nickname string) {
-	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-		<div>
-			<label for="subscription-nickname" class="text-base/7 font-semibold">Nickname</label>
-			// <p class="mt-1 text-sm/6 "></p>
-		</div>
-		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-			<div class="col-span-full mt-2">
-				<input
-					id="subscription-nickname"
-					type="text"
-					required
-					name="customisation.nickname"
-					value={ nickname }
-					placeholder="My Subscription"
-					class="input input-primary bg-base-content/10 w-full"
-					autocomplete="off"
-				/>
-			</div>
-		</div>
-	</div>
-}
-
-templ subscriptionThumbnailField(img *models.RemoteImage, name string) {
-	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-		<label for="thumbnail">
-			@partials.Heading3() {
-				Thumbnail
-			}
-			@partials.Paragraph() {
-				Use a JPG, PNG or WEBP image. Max size 1MB.
-			}
-		</label>
-		<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-			<div class="col-span-full mt-2 flex items-center gap-x-2">
-				@subscriptionThumbnail(img, name)
-				<input
-					id="thumbnail"
-					type="file"
-					class="flex file-input file-input-primary bg-base-content/10"
-					name={ models.ParamThumbnail }
-					accept=".jpg,.png,.webp"
-				/>
-			</div>
-		</div>
-	</div>
 }
 
 // ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
