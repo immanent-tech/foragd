@@ -304,15 +304,6 @@ type AddSubscriptionSearchFilterRequest struct {
 	SubscriptionName string `form:"subscription_name" json:"subscription_name"`
 }
 
-// AddSubscriptionSuggestionRequest contains the data for adding a subscription suggestion.
-type AddSubscriptionSuggestionRequest struct {
-	// SelectedSubscription is the name of the subscription that was selected from the suggestions.
-	SelectedSubscription string `form:"subscription-suggestion-text" json:"selected_subscription"`
-
-	// SuggestedSubscriptions is a list of the subscription suggestions.
-	SuggestedSubscriptions map[SubscriptionID]string `form:"subscription_suggestions" json:"suggested_subscriptions,omitempty"`
-}
-
 // Article defines model for Article.
 type Article struct {
 	// Content contains the full article content, when it has been fetched from the origin link.

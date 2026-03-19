@@ -1269,26 +1269,6 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'subscription_id'
           x-go-type-skip-optional-pointer: true
-    AddSubscriptionSuggestionRequest:
-      description: >
-        contains the data for adding a subscription suggestion.
-      type: object
-      required:
-        - selected_subscription
-      properties:
-        selected_subscription:
-          description: >
-            is the name of the subscription that was selected from the suggestions.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'subscription-suggestion-text'
-        suggested_subscriptions:
-          description: >
-            is a list of the subscription suggestions.
-          x-go-type: map[SubscriptionID]string
-          x-oapi-codegen-extra-tags:
-            form: subscription_suggestions
-          x-go-type-skip-optional-pointer: true
     AddFeedsetRequest:
       description: >
         is a request from a user to add one or more feed sets as subscriptions.

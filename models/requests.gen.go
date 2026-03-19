@@ -24,6 +24,15 @@ type AddSubscriptionToGroupRequest struct {
 	Suggestions map[SubscriptionID]string `form:"suggestions" json:"suggestions"`
 }
 
+// AddSubscriptionToSearchRequest is a request to add a new subscription to a search subscription.
+type AddSubscriptionToSearchRequest struct {
+	// SelectedSubscription is the name of the subscription that was selected from the suggestions.
+	SelectedSubscription string `form:"subscription-suggestion-text" json:"selected_subscription"`
+
+	// SuggestedSubscriptions is a list of the subscription suggestions.
+	SuggestedSubscriptions map[SubscriptionID]string `form:"subscription_suggestions" json:"suggested_subscriptions,omitempty"`
+}
+
 // FeedSubscriptionRequest is a request to add a new feed subscription.
 type FeedSubscriptionRequest struct {
 	// URL is the URL of the feed data. Used when adding a new feed subscription.

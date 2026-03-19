@@ -23,14 +23,14 @@ func (r *GetSubscriptionsSuggestionRequest) Sanitise() error {
 	return nil
 }
 
-func (r *AddSubscriptionSuggestionRequest) Valid() error {
+func (r *AddSubscriptionToSearchRequest) Valid() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("subscription suggestion is invalid: %w", err)
 	}
 	return nil
 }
 
-func (r *AddSubscriptionSuggestionRequest) Sanitise() error {
+func (r *AddSubscriptionToSearchRequest) Sanitise() error {
 	r.SelectedSubscription = sanitization.SanitizeString(r.SelectedSubscription)
 	return nil
 }

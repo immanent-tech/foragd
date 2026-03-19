@@ -910,7 +910,7 @@ func HandleSuggestSubscriptionForSearch() http.HandlerFunc {
 
 func HandleAddSubscriptionToSearch() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		request, valid, err := forms.DecodeForm[*models.AddSubscriptionSuggestionRequest](req)
+		request, valid, err := forms.DecodeForm[*models.AddSubscriptionToSearchRequest](req)
 		if err != nil || !valid {
 			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
 				slog.Any("error", err),
