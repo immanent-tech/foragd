@@ -13,7 +13,6 @@ import (
 	"os"
 	"slices"
 	"strconv"
-	"sync"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -472,7 +471,7 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 			return
 		}
 		// Process requested feedsets and generate subscription requests.
-		var subscriptionRequests []*models.AddFeedSubscriptionRequest
+		var subscriptionRequests []models.NewFeedSubscriptionRequest
 		for set := range slices.Values(request.Feedset) {
 			var data []byte
 			switch set {
@@ -514,48 +513,26 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 				subscriptionRequests,
 				models.GenerateRequestsFromOutlines(opmlImport.Body...)...)
 		}
+
 		// Process requests.
-		resultsCh := make(chan models.AddFeedSubscriptionResult)
-		var wg sync.WaitGroup
-		for request := range slices.Values(subscriptionRequests) {
-			wg.Go(func() {
-				models.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
-			})
-		}
-		// Wait for all request processing to complete.
-		go func() {
-			defer close(resultsCh)
-			wg.Wait()
-		}()
+		results := models.BulkImportFeeds(req.Context(), subscriptionRequests...)
+
 		// Process results
-		for result := range resultsCh {
+		for result := range slices.Values(results) {
 			if result.Error != nil {
-				switch result.Message.Status {
-				case models.UserMessageStatusError:
+				switch {
+				case result.Error.UserMessage.IsError():
 					slogctx.FromCtx(req.Context()).Error("Error occurred during subscription request processing.",
-						slog.String("url", result.Request.GetURL()),
+						slog.String("url", result.Request.URL),
 						slog.Any("error", result.Error),
 					)
-				case models.UserMessageStatusWarning:
+				case result.Error.UserMessage.IsWarning():
 					fallthrough
 				default:
 					slogctx.FromCtx(req.Context()).Warn("Warning occurred during subscription request processing.",
-						slog.String("url", result.Request.GetURL()),
+						slog.String("url", result.Request.URL),
 						slog.Any("error", result.Error),
 					)
-				}
-			} else {
-				err = models.CreateFeedSubscriptions(req.Context(), &result)
-				if err != nil {
-					HandleInternalError(&models.APIError{
-						InternalError: fmt.Errorf("create subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to add feedset",
-							"This might be a temporary issue, please try again.",
-						),
-					}).ServeHTTP(res, req)
-					return
 				}
 			}
 		}

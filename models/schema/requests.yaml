@@ -1,0 +1,89 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Request Objects
+  description: >
+    Request objects used within the service.
+  license:
+    name: AGPL 3.0
+    idenfiier: AGPL-3.0-or-later
+  contact:
+    name: Immanent Tech
+components:
+  schemas:
+    AddSubscriptionCategoryRequest:
+      description: >
+        is a request to add a new category to a subscription.
+      type: object
+      required:
+        - category
+      properties:
+        category:
+          $ref: 'models.yaml#/components/schemas/Category'
+        existing_categories:
+          description: >
+            is a list of categories already assigned to the subscription.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: 'customisation.categories'
+          x-go-type-skip-optional-pointer: true
+    NewFeedSubscriptionRequest:
+      description: >
+        is a request to add a new feed subscription.
+      type: object
+      required:
+        - URL
+      properties:
+        URL:
+          description: is the URL of the feed data.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            form: 'url'
+            validate: 'required,url'
+        customisation:
+          $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
+    NewFeedSubscriptionResult:
+      description: >
+        is the result of adding a feed subscription.
+      type: object
+      properties:
+        request:
+          $ref: '#/components/schemas/NewFeedSubscriptionRequest'
+        error:
+          $ref: 'models.yaml#/components/schemas/APIError'
+        subscription:
+          $ref: 'models.yaml#/components/schemas/Subscription'
+    EditFeedSubscriptionRequest:
+      description: >
+        is the request details for editing a feed subscription.
+      type: object
+      required:
+        - subscription_id
+      properties:
+        subscription_id:
+          $ref: 'models.yaml#/components/schemas/SubscriptionID'
+        customisation:
+          allOf:
+            - $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
+          x-oapi-codegen-extra-tags:
+            form: 'customisation'
+        settings:
+          allOf:
+            - $ref: 'models.yaml#/components/schemas/SubscriptionSettings'
+          x-oapi-codegen-extra-tags:
+            form: 'settings'
+        article_filters:
+          $ref: 'models.yaml#/components/schemas/SubscriptionArticleFilters'
+        suggestedCategories:
+          description: >
+            is a list of suggested categories for the subscription.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true

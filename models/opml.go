@@ -37,7 +37,7 @@ func (f *OPMLFile) Valid() (bool, error) {
 }
 
 // GenerateRequests extracts the feed outlines from the OPML file and returns a slice of subscription requests.
-func (f *OPMLFile) GenerateRequests() ([]*AddFeedSubscriptionRequest, error) {
+func (f *OPMLFile) GenerateRequests() ([]NewFeedSubscriptionRequest, error) {
 	importfile, err := f.parse()
 	if err != nil {
 		return nil, fmt.Errorf("could not generate requests from opml file: %w", err)
@@ -61,11 +61,11 @@ func (f *OPMLFile) parse() (*opml.OPML, error) {
 	return opmlImport, nil
 }
 
-func GenerateRequestsFromOutlines(outlines ...opml.Outline) []*AddFeedSubscriptionRequest {
-	requests := make([]*AddFeedSubscriptionRequest, 0, len(outlines))
+func GenerateRequestsFromOutlines(outlines ...opml.Outline) []NewFeedSubscriptionRequest {
+	requests := make([]NewFeedSubscriptionRequest, 0, len(outlines))
 	for outline := range slices.Values(outlines) {
 		if outline.Type == "rss" {
-			requests = append(requests, &AddFeedSubscriptionRequest{URL: outline.XMLURL})
+			requests = append(requests, NewFeedSubscriptionRequest{URL: outline.XMLURL})
 		}
 		if len(outline.Outlines) > 0 {
 			requests = append(requests, GenerateRequestsFromOutlines(outline.Outlines...)...)

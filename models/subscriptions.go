@@ -11,9 +11,7 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
-	"net/http"
 	"net/mail"
-	"net/url"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,9 +22,12 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operator"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/goforj/godump"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/immanent-tech/go-syndication/sanitization"
 
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -620,153 +621,6 @@ func FilterSubscriptions(
 	return subscriptions, pagination, nil
 }
 
-// ProcessSubscriptionRequest manages parsing a subscription request and turning it into a subscription that can be
-// added to a user. It handles finding a existing matching feed or creating a new one, checking the user isn't already
-// subscribed and generating an appropriate subscription object. It returns an object that includes the request and new
-// subscription data, or the request and an error if subscription data could not be generated.
-func ProcessSubscriptionRequest(
-	ctx context.Context,
-	request *AddFeedSubscriptionRequest,
-	resultsCh chan AddFeedSubscriptionResult,
-) {
-	result := AddFeedSubscriptionResult{
-		Request: *request,
-	}
-
-	var (
-		newFeed *Feed
-		err     error
-	)
-
-	feedURL, err := FeedURLParser(ctx, request.GetURL())
-	if err != nil {
-		result.Error = err
-		result.Message = NewErrorMessage(
-			"Unable to create subscription",
-			fmt.Sprintf(
-				"The feed URL %q cannot be parsed as a feed source or is not a valid URL.",
-				request.GetURL(),
-			),
-		)
-		resultsCh <- result
-		return
-	}
-
-	newFeed, err = NewFeedFromURL(ctx, feedURL.String(), "", false)
-	if err != nil {
-		result.Error = err
-		result.Message = NewErrorMessage(
-			"Unable to create subscription",
-			fmt.Sprintf(
-				"The feed URL %q cannot be parsed as a feed source or is not a valid URL.",
-				request.GetURL(),
-			),
-		)
-		resultsCh <- result
-		return
-	}
-
-	// Create terms queries to match the new feed to an existing feed.
-	var terms []query.Option
-	for url := range slices.Values(newFeed.SourceURLs) {
-		terms = append(terms, query.Term("source_urls", url))
-		// Also match url with trailing slash.
-		if !strings.HasSuffix(url, "/") {
-			terms = append(terms, query.Term("source_urls", url+"/"))
-		}
-	}
-	terms = append(terms, query.Term("url", newFeed.URL))
-	// Also match url with trailing slash.
-	if !strings.HasSuffix(newFeed.URL, "/") {
-		terms = append(terms, query.Term("source_urls", newFeed.URL+"/"))
-	}
-	// Find any existing feed.
-	feeds, _, err := elastic.Search[*Feed](ctx,
-		schema.FeedsIndexRO,
-		query.Bool(
-			query.Filter(
-				query.Bool(
-					query.Should(terms...),
-				),
-			),
-		),
-		1,
-	)
-	if err != nil {
-		result.Error = err
-		result.Message = NewErrorMessage(
-			"Unable to determine existing subscription status",
-			"The backend produced an error. This might be temporary, please try again.",
-		)
-		resultsCh <- result
-		return
-	}
-	if len(feeds) == 1 {
-		// If an existing feed is found, use that feed.
-		result.Feed = feeds[0]
-	} else {
-		// Otherwise create a new feed.
-		// Validate the new feed data.
-		err = validation.Validate.Struct(newFeed)
-		if err != nil {
-			result.Error = err
-			result.Message = NewErrorMessage(
-				"Unable to create subscription",
-				fmt.Sprintf(
-					"The feed URL %q cannot be parsed as a feed source or is not a valid URL.",
-					request.GetURL(),
-				),
-			)
-			resultsCh <- result
-			return
-		}
-		// Index the new feed.
-		if err := elastic.CreateDoc(ctx, schema.FeedsIndexRW, newFeed.GetID(), newFeed); err != nil {
-			result.Error = err
-			result.Message = NewErrorMessage(
-				"Unable to create new feed for subscription",
-				"The backend produced an error. This might be temporary, please try again.",
-			)
-			resultsCh <- result
-			return
-		}
-		slogctx.FromCtx(ctx).Debug("Created new feed for request.",
-			slog.String("name", newFeed.GetTitle()),
-			slog.String("urls", strings.Join(newFeed.GetSourceURLs(), ",")),
-		)
-		result.Feed = newFeed
-	}
-
-	// Check for an existing subscription.
-	subscription, err := GetSubscriptionByFeedID(ctx, result.Feed.GetID())
-	if err != nil && HTTPStatus(err) != http.StatusNotFound {
-		result.Error = err
-		result.Message = NewErrorMessage(
-			"Unable to check for existing subscription for "+result.Feed.GetTitle(),
-			"The backend produced an error. This might be temporary, please try again.",
-		)
-		resultsCh <- result
-		return
-	}
-	if subscription != nil {
-		// Existing subscription to feed found, ignore new feed.
-		result.Error = &APIError{
-			InternalError: errors.New("already subscribed"),
-			StatusCode:    http.StatusConflict,
-		}
-		result.Message = NewWarningMessage("Already subscribed to feed", result.Feed.GetTitle())
-		resultsCh <- result
-		return
-	}
-
-	slogctx.FromCtx(ctx).Debug("New subscription required.",
-		slog.String("feed_title", result.Feed.GetTitle()),
-		slog.String("feed_id", result.Feed.GetID()),
-	)
-	// New subscription required.
-	resultsCh <- result
-}
-
 // AddSubscriptions adds the given subscriptions to a user.
 func AddSubscriptions(ctx context.Context, subscriptions ...*Subscription) error {
 	user := UserFromCtx(ctx)
@@ -873,52 +727,12 @@ func MarkSubscriptions(
 	return nil
 }
 
-// CreateFeedSubscriptions will create new FeedSubscriptions for the user from the given requests.
-func CreateFeedSubscriptions(ctx context.Context, results ...*AddFeedSubscriptionResult) error {
-	if len(results) == 0 {
-		return nil
-	}
-	subscriptions := make(Subscriptions, 0, len(results))
-	for result := range slices.Values(results) {
-		slogctx.FromCtx(ctx).Debug("Creating new subscription.",
-			slog.String("feed", result.Feed.GetTitle()),
-			slog.String("url", result.Feed.GetLink()),
-		)
-		// Generate metadata.
-		subscription, err := NewFeedSubscription(ctx, result.Feed, &result.Request)
-		if err != nil {
-			slogctx.FromCtx(ctx).Error("Could not create subscription",
-				slog.Any("error", err))
-			result.Error = fmt.Errorf("unable to create subscription: invalid metadata: %w", err)
-			continue
-		}
-		err = subscription.Valid()
-		if err != nil {
-			slogctx.FromCtx(ctx).Error("Could not create subscription",
-				slog.Any("error", err))
-			result.Error = fmt.Errorf("unable to create subscription: invalid metadata: %w", err)
-			continue
-		}
-		result.Subscription = subscription
-		subscriptions = append(subscriptions, subscription)
-		result.Message = NewSuccessMessage(
-			"Subscription Created: "+result.Feed.GetTitle(),
-			"Articles will be fetched shortly...",
-		)
-	}
-	// Add subscriptions
-	if err := AddSubscriptions(ctx, subscriptions...); err != nil {
-		return fmt.Errorf("unable to create subscriptions: %w", err)
-	}
-	return nil
-}
-
 // CreateSearchSubscriptions will create new SearchSubscriptions for the user from the given requests.
 func CreateSearchSubscriptions(ctx context.Context, requests ...*SearchSubscriptionRequest) error {
 	subscriptions := make(Subscriptions, 0, len(requests))
 	for request := range slices.Values(requests) {
 		slogctx.FromCtx(ctx).Debug("Creating new search subscription.",
-			slog.String("feed", request.Customisation.Nickname),
+			slog.String("feed", request.Customisation.GetNickname()),
 		)
 		// Generate metadata.
 		subscription, err := NewSearchSubscription(ctx, request)
@@ -1252,30 +1066,35 @@ func ArticleFiltersQueryClause(source ItemSource) query.BoolOption {
 	)
 }
 
-// NewFeedSubscription creates a new subscription for a feed from the request and feed details.
-func NewFeedSubscription(ctx context.Context, feed *Feed, request *AddFeedSubscriptionRequest) (*Subscription, error) {
+// NewFeedSubscription creates a new subscription for a feed with any user customisations given.
+func NewFeedSubscription(
+	ctx context.Context,
+	feed *Feed,
+	customisation *SubscriptionCustomisation,
+) (*Subscription, error) {
 	// Create state based on feed and user data.
 	feedSubscription := &FeedSubscription{
-		// URL:           feed.GetLink(),
 		FeedID:        feed.GetID(),
 		ArticleStates: make(map[ItemID]ArticleState),
 	}
 
-	settings := newSubscriptionSettings()
-
-	customisation := newSubscriptionCustomisation(feed.GetTitle(), feed.GetImage(), feed.GetCategories())
-	// Override with any user customisations.
-	if request != nil {
-		if request.Nickname != nil {
-			customisation.Nickname = *request.Nickname
-		}
-		if len(request.Categories) > 0 {
-			customisation.Categories = request.Categories
-		}
+	if customisation == nil {
+		customisation = &SubscriptionCustomisation{}
 	}
 
-	subscription, err := newSubscription(ctx, *customisation, settings, feedSubscription)
+	// Make sure nickname is not empty.
+	if customisation.GetNickname() == "" {
+		customisation.Nickname = new(feed.GetTitle())
+	}
+
+	// Create the subscription with the feed data.
+	subscription, err := newSubscription(ctx, *customisation, newSubscriptionSettings(), feedSubscription)
 	if err != nil {
+		return nil, fmt.Errorf("new feed subscription: %w", err)
+	}
+
+	// Validate.
+	if err := subscription.Valid(); err != nil {
 		return nil, fmt.Errorf("new feed subscription: %w", err)
 	}
 
@@ -1433,15 +1252,7 @@ func (r *EditEmailSubscriptionRequest) Valid() error {
 
 // Sanitise will sanitise the input values of the SubscriptionRequest.
 func (r *EditEmailSubscriptionRequest) Sanitise() error {
-	if r.Customisation.Nickname != "" {
-		r.Customisation.Nickname = validation.SanitizeString(r.Customisation.Nickname)
-	}
-	categories := make([]Category, 0, len(r.Customisation.Categories))
-	for category := range slices.Values(r.Customisation.Categories) {
-		category = validation.SanitizeString(category)
-		categories = append(categories, category)
-	}
-	r.Customisation.Categories = categories
+	r.Customisation.Sanitise()
 	return nil
 }
 
@@ -1450,6 +1261,10 @@ func (r *EditEmailSubscriptionRequest) Sanitise() error {
 func (s *Subscription) Valid() error {
 	if err := validation.Validate.Struct(s); err != nil {
 		return fmt.Errorf("subscription is invalid: %w", err)
+	}
+	// Subscriptions require a nickname set.
+	if s.Customisation.GetNickname() == "" {
+		return fmt.Errorf("%w: nickname is required", validation.ErrInvalid)
 	}
 	return nil
 }
@@ -1484,10 +1299,7 @@ func (s *Subscription) GetUpdatedDate() time.Time {
 
 // GetTitle returns the title (or user nickname if assigned) of the subscription.
 func (s *Subscription) GetTitle() string {
-	if s.Customisation != nil {
-		return s.Customisation.Nickname
-	}
-	return ""
+	return s.Customisation.GetNickname()
 }
 
 // GetCategories returns the categories of the subscription. It is the combined list of any user-assigned categories and
@@ -1890,54 +1702,6 @@ func (r *ListRequest) Valid() error {
 	return nil
 }
 
-// Valid returns a boolean indicating whether the SubscriptionRequest is valid,
-// and any validation errors if applicable.
-func (r *AddFeedSubscriptionRequest) Valid() error {
-	if err := validation.Validate.Struct(r); err != nil {
-		return fmt.Errorf("subscription validation error: %w", err)
-	}
-	return nil
-}
-
-// Sanitise will sanitise the input values of the SubscriptionRequest.
-func (r *AddFeedSubscriptionRequest) Sanitise() error {
-	r.URL = validation.SanitizeString(r.URL) // sanitise string.
-	r.URL = strings.TrimPrefix(r.URL, "/")   // remove trailing slash.
-	rssURL, err := url.Parse(r.URL)
-	if err != nil {
-		return fmt.Errorf("unable to parse url: %w", err)
-	}
-	// Ensure scheme is set.
-	if rssURL.Scheme != "https" && rssURL.Scheme != "http" {
-		rssURL.Scheme = "https"
-		r.URL = rssURL.String()
-	}
-	if r.Nickname != nil {
-		sanitizedNickname := validation.SanitizeString(*r.Nickname)
-		r.Nickname = &sanitizedNickname
-	}
-	categories := make([]Category, 0, len(r.Categories))
-	for category := range slices.Values(r.Categories) {
-		category = validation.SanitizeString(category)
-		categories = append(categories, category)
-	}
-	r.Categories = categories
-	return nil
-}
-
-// GetURL returns the (feed) URL for the request.
-func (r *AddFeedSubscriptionRequest) GetURL() string {
-	return strings.TrimSpace(r.URL)
-}
-
-// GetNickname returns the nickname chosen for the subscription.
-func (r *AddFeedSubscriptionRequest) GetNickname() string {
-	if r.Nickname != nil {
-		return *r.Nickname
-	}
-	return ""
-}
-
 // Valid checks that the MarkSubscriptionRequest contains valid data.
 func (s *MarkSubscriptionRequest) Valid() error {
 	if err := validation.Validate.Struct(s); err != nil {
@@ -2032,7 +1796,7 @@ func newSubscription(
 	ts := time.Now().UTC()
 	mr := user.GetMaxHistory()
 	subscription := &Subscription{
-		SubscriptionID: "sub_" + strconv.FormatUint(xxh3.Hash([]byte(user.GetID()+customisation.Nickname)), 10),
+		SubscriptionID: "sub_" + strconv.FormatUint(xxh3.Hash([]byte(user.GetID()+customisation.GetNickname())), 10),
 		UserID:         user.GetID(),
 		UpdatedAt:      &ts,
 		CreatedAt:      ts,
@@ -2067,19 +1831,83 @@ func newSubscription(
 	return subscription, nil
 }
 
+const (
+	ParamCustomisationCategories = "customisation.categories"
+	ParamCustomisationNickname   = "customisation.nickname"
+)
+
 func newSubscriptionCustomisation(
 	nickname string,
 	image *RemoteImage,
 	categories Categories,
 ) *SubscriptionCustomisation {
 	customisation := &SubscriptionCustomisation{
-		Nickname:   nickname,
+		Nickname:   new(nickname),
 		Categories: categories,
 	}
 	if image != nil {
 		customisation.ImageURL = new(image.GetURL())
 	}
 	return customisation
+}
+
+func (c *SubscriptionCustomisation) GetNickname() string {
+	if c.Nickname != nil {
+		return *c.Nickname
+	}
+	return ""
+}
+
+func (c *SubscriptionCustomisation) GetImageURL() string {
+	if c.ImageURL != nil {
+		return *c.ImageURL
+	}
+	return ""
+}
+
+func (c *SubscriptionCustomisation) GetCategories() Categories {
+	return c.Categories
+}
+
+func (c *SubscriptionCustomisation) Valid() error {
+	return validation.Validate.Struct(c)
+}
+
+func (c *SubscriptionCustomisation) Sanitise() error {
+	godump.Dump(c)
+	if c != nil {
+		for idx := range c.Categories {
+			c.Categories[idx] = sanitization.SanitizeString(c.Categories[idx])
+		}
+		slices.Sort(c.Categories)
+		c.Categories = slices.Compact(c.Categories)
+		if c.Nickname != nil {
+			c.Nickname = new(sanitization.SanitizeString(*c.Nickname))
+		}
+	}
+	return nil
+}
+
+func (f *SubscriptionArticleFilters) Valid() error {
+	return validation.Validate.Struct(f)
+}
+
+func (f *SubscriptionArticleFilters) Sanitise() error {
+	if f != nil {
+		if f.Authors != nil {
+			cleanAuthorFilters := validation.SanitizeString(*f.Authors)
+			f.Authors = &cleanAuthorFilters
+		}
+		if f.Categories != nil {
+			cleanCategoryFilters := validation.SanitizeString(*f.Categories)
+			f.Categories = &cleanCategoryFilters
+		}
+		if f.Text != nil {
+			cleanTextFilters := validation.SanitizeString(*f.Text)
+			f.Text = &cleanTextFilters
+		}
+	}
+	return nil
 }
 
 func newSubscriptionSettings() *SubscriptionSettings {

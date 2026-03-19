@@ -68,10 +68,6 @@ func (p *ViewerError) PartialResponse(res http.ResponseWriter, req *http.Request
 // HandleViewer handles powering the feed viewer page.
 func HandleViewer() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		parseErr := models.NewErrorMessage(
-			"Unable to parse provided URL",
-			"The URL does not appear to be valid, please check and try again.",
-		)
 		fetchErr := models.NewErrorMessage(
 			"Unable to find feed at provided URL",
 			"No feed details could be fetched from the given URL. This could be a temporary error.",
@@ -83,18 +79,8 @@ func HandleViewer() http.HandlerFunc {
 				RenderExternalPage(&Viewer{}).ServeHTTP(res, req)
 				return
 			}
-			feedURL, err := models.FeedURLParser(req.Context(), chi.URLParam(req, "*"))
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Could not parse URL for viewer.",
-					slog.Any("error", err),
-				)
-				RenderExternalPage(&Viewer{
-					errMsg: parseErr,
-				}).ServeHTTP(res, req)
-				return
-			}
 			// Parse the URL and find feed content.
-			feed, err := models.NewFeedFromURL(req.Context(), feedURL.String(), "", false)
+			feed, err := models.NewFeedFromURL(req.Context(), chi.URLParam(req, "*"), "", false)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Could not fetch feed details.",
 					slog.Any("error", err),
@@ -110,20 +96,8 @@ func HandleViewer() http.HandlerFunc {
 			}).ServeHTTP(res, req)
 
 		case http.MethodPost:
-			// Get the submitted URL.
-			feedURL, err := models.FeedURLParser(req.Context(), req.FormValue("url"))
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
-					slog.Any("error", err),
-				)
-				RenderPartial(&ViewerError{
-					msg: parseErr,
-				}).ServeHTTP(res, req)
-				return
-			}
-
 			// Parse the URL and find feed content.
-			feed, err := models.NewFeedFromURL(req.Context(), feedURL.String(), "", false)
+			feed, err := models.NewFeedFromURL(req.Context(), req.FormValue("url"), "", false)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Viewer failed to parse feed.",
 					slog.Any("error", err),

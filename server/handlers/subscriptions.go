@@ -17,7 +17,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/a-h/templ"
@@ -433,7 +432,7 @@ func HandleEditSubscription() http.HandlerFunc {
 				existingSubscription.Customisation.Categories,
 			)
 			// Generate page template.
-			template = templates.EditSubscription(request)
+			template = templates.EditFeedSubscription(request)
 			pageTitle = "Editing " + existingSubscription.GetTitle()
 		case models.SubscriptionTypeSearch:
 			// Editing SearchSubscription.
@@ -472,7 +471,7 @@ func HandleEditSubscription() http.HandlerFunc {
 			}
 			// Generate page template.
 			template = templates.EditSearchSubscription(request)
-			pageTitle = "Editing " + request.Customisation.Nickname
+			pageTitle = "Editing " + request.Customisation.GetNickname()
 		case models.SubscriptionTypeGroup:
 			subscriptions, err := models.GetSubscriptions(
 				req.Context(),
@@ -513,7 +512,7 @@ func HandleEditSubscription() http.HandlerFunc {
 			)
 			// Generate page template.
 			template = templates.EditGroupSubscription(request)
-			pageTitle = "Editing " + request.Customisation.Nickname
+			pageTitle = "Editing " + request.Customisation.GetNickname()
 		case models.SubscriptionTypeEmail:
 			// Editing SearchSubscription.
 			request := &models.EditEmailSubscriptionRequest{
@@ -531,7 +530,7 @@ func HandleEditSubscription() http.HandlerFunc {
 			request.SuggestedCategories = categoryCounts.Limit(10).GetCategories()
 
 			template = templates.EditEmailSubscription(request)
-			pageTitle = "Editing " + request.Customisation.Nickname
+			pageTitle = "Editing " + request.Customisation.GetNickname()
 		}
 		// Render the page.
 		RenderInternalPage(
@@ -717,70 +716,36 @@ func HandleAddFeedSubscription() http.HandlerFunc {
 			res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 			RenderInternalPage(
 				&AddSubscription{
-					title: "Add Feed Subscription",
-					template: templates.AddFeedSubscription(&models.AddFeedSubscriptionRequest{
-						SuggestedCategories: suggestedCategories,
-					}),
+					title:    "Add Feed Subscription",
+					template: templates.AddFeedSubscription(&models.NewFeedSubscriptionRequest{}, suggestedCategories),
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:
-			request, valid, err := forms.DecodeForm[*models.AddFeedSubscriptionRequest](req)
+			request, valid, err := forms.DecodeMultiPartForm[*models.NewFeedSubscriptionRequest](req)
 			if err != nil || !valid {
 				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("decode add subscription request: %w", err),
+					InternalError: fmt.Errorf("decode add feed subscription request: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
 					UserMessage: models.NewErrorMessage(
-						"Unable to add subscription",
+						"Unable to add feed subscription",
 						"This might be a temporary issue, please try again.",
 					),
 				}).ServeHTTP(res, req)
 				return
 			}
 
-			// Process requests.
-			resultsCh := make(chan models.AddFeedSubscriptionResult)
-			var wg sync.WaitGroup
-			wg.Go(func() {
-				models.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
-			})
-			// Wait for all request processing to complete.
-			go func() {
-				defer close(resultsCh)
-				wg.Wait()
-			}()
-			result := <-resultsCh
-			// Process results
-			if result.Error != nil {
-				switch result.Message.Status {
-				case models.UserMessageStatusError:
-					slogctx.FromCtx(req.Context()).Error("Error occurred during subscription request processing.",
-						slog.String("url", result.Request.GetURL()),
-						slog.Any("error", result.Error),
-					)
-				case models.UserMessageStatusWarning:
-					fallthrough
-				default:
-					slogctx.FromCtx(req.Context()).Warn("Warning occurred during subscription request processing.",
-						slog.String("url", result.Request.GetURL()),
-						slog.Any("error", result.Error),
-					)
-				}
-			} else {
-				if err = models.CreateFeedSubscriptions(req.Context(), &result); err != nil {
-					HandleInternalError(&models.APIError{
-						InternalError: fmt.Errorf("add subscription: %w", err),
-						StatusCode:    http.StatusInternalServerError,
-						UserMessage: models.NewErrorMessage(
-							"Unable to add subscription",
-							"This might be a temporary issue, please try again.",
-						),
-					}).ServeHTTP(res, req)
-					return
-				}
+			// Process the request.
+			results := models.BulkImportFeeds(req.Context(), *request)
+			if results[0].Error != nil {
+				HandleInternalError(results[0].Error).ServeHTTP(res, req)
+				return
 			}
 
 			RenderPartial(&Notification{
-				msg: result.Message,
+				msg: models.NewSuccessMessage(
+					"Subscription Created!",
+					results[0].Subscription.GetTitle(),
+				),
 			}).ServeHTTP(res, req)
 		}
 	}).ServeHTTP
@@ -1120,48 +1085,9 @@ func HandleImportSubscriptions() http.HandlerFunc {
 				return
 			}
 
-			// Process requests.
-			resultsCh := make(chan models.AddFeedSubscriptionResult)
-			var wg sync.WaitGroup
-			for request := range slices.Values(requests) {
-				wg.Go(func() {
-					models.ProcessSubscriptionRequest(req.Context(), request, resultsCh)
-				})
-			}
-			// Wait for all request processing to complete.
-			go func() {
-				defer close(resultsCh)
-				wg.Wait()
-			}()
-			results := make([]*models.AddFeedSubscriptionResult, 0, len(requests))
-			// Process results
-			for result := range resultsCh {
-				results = append(results, &result)
-			}
-			// Create the subscriptions for any results that don't already indicate an error.
-			err = models.CreateFeedSubscriptions(req.Context(), slices.Collect(models.FilterSlice(results,
-				func(r *models.AddFeedSubscriptionResult) bool {
-					if r.Message == nil {
-						return true
-					}
-					if r.Message != nil && r.Message.Status != models.UserMessageStatusError &&
-						r.Message.Status != models.UserMessageStatusWarning {
-						return true
-					}
-					return false
-				},
-			))...)
-			if err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("create subscriptions: %w", err),
-					StatusCode:    http.StatusInternalServerError,
-					UserMessage: models.NewErrorMessage(
-						"Failed to import.",
-						"The backend produced an error. This might be temporary, please try again.",
-					),
-				}).ServeHTTP(res, req)
-				return
-			}
+			// Perform bulk import.
+			results := models.BulkImportFeeds(req.Context(), requests...)
+
 			// Display all results.
 			RenderPartial(&ImportSubscriptionsResults{
 				template: templates.ImportResults(results),
@@ -1239,9 +1165,9 @@ func HandleExportSubscriptions() http.HandlerFunc {
 				if subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
 					outlines = append(
 						outlines,
-						*opml.NewSubscriptionOutline(subscription.Customisation.Nickname, subscription.GetLink(),
+						*opml.NewSubscriptionOutline(subscription.Customisation.GetNickname(), subscription.GetLink(),
 							opml.WithHTMLURL(subscription.GetLink()),
-							opml.WithOutlineTitle(subscription.Customisation.Nickname),
+							opml.WithOutlineTitle(subscription.Customisation.GetNickname()),
 						),
 					)
 				}
@@ -1274,51 +1200,29 @@ func HandleExportSubscriptions() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-type SubscriptionCategory struct {
-	inputName string
-	category  models.Category
-}
-
-func (c *SubscriptionCategory) PartialResponse(res http.ResponseWriter, req *http.Request) {
-	templ.Handler(templates.AddCategory(req.URL.Path, c.inputName, c.category)).ServeHTTP(res, req)
-}
-
 // HandleSubscriptionCategories handles adding and removing categories from a subscription, either when editing or
 // adding.
 func HandleSubscriptionCategories() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		switch req.Method {
-		case http.MethodPost: // Add category.
-			// Parse form values.
-			if err := req.ParseForm(); err != nil {
-				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("parse form: %w", err),
-					StatusCode:    http.StatusUnprocessableEntity,
-					UserMessage: models.NewErrorMessage(
-						"Adjust categories failed.",
-						"The backend produced an error. This might be temporary, please try again.",
-					),
-				}).ServeHTTP(res, req)
-				return
-			}
-			currentCategories := req.PostForm["user_categories"]
-			inputName := req.FormValue("inputName")
-			// Only add a category if it isn't already added.
-			if category := req.FormValue("category"); category == "" ||
-				(currentCategories != nil && slices.Contains(currentCategories, category)) ||
-				inputName == "" {
-				res.WriteHeader(http.StatusNoContent)
-			} else {
-				RenderPartial(&SubscriptionCategory{
-					inputName: inputName,
-					category:  category,
-				}).ServeHTTP(res, req)
-			}
-		case http.MethodDelete: // Remove a category.
-			res.WriteHeader(http.StatusOK)
-		default: // Unsupported, do nothing.
-			res.WriteHeader(http.StatusNoContent)
+		request, valid, err := forms.DecodeForm[*models.AddSubscriptionCategoryRequest](req)
+		if err != nil || !valid {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("decode add subscription category request: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to category to subscription",
+					"This might be a temporary issue, please try again.",
+				),
+			}).ServeHTTP(res, req)
+			return
 		}
+
+		// Ignore existing categories.
+		if slices.Contains(request.ExistingCategories, request.Category) {
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		RenderPartial(&PartialTemplate{template: templates.AddCategory(request.Category)}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 

@@ -46,12 +46,143 @@ func GetFeedByID(ctx context.Context, id FeedID) (*Feed, error) {
 	return feed, nil
 }
 
+// AddFeed adds the given feed.
+func AddFeed(ctx context.Context, feed *Feed) error {
+	if err := elastic.CreateDoc(ctx, schema.FeedsIndexRW, feed.GetID(), feed); err != nil {
+		return fmt.Errorf("add feed: %w", err)
+	}
+	return nil
+}
+
 // UpdateFeed applies the given updates to a Feed.
 func UpdateFeed(ctx context.Context, id FeedID, updates map[string]any) error {
 	if err := elastic.UpdateDoc(ctx, schema.SchedulerIndexRW, id, updates); err != nil {
 		return fmt.Errorf("update feed: %w", err)
 	}
 	return nil
+}
+
+// BulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
+func BulkImportFeeds(ctx context.Context, requests ...NewFeedSubscriptionRequest) []NewFeedSubscriptionResult {
+	// Process requests.
+	resultsCh := make(chan NewFeedSubscriptionResult)
+	var wg sync.WaitGroup
+
+	for request := range slices.Values(requests) {
+		wg.Go(func() {
+			// Find an existing or create a new feed from the requested URL.
+			feed, isNew, err := FindOrCreateFeed(ctx, request.URL)
+			if err != nil {
+				resultsCh <- NewFeedSubscriptionResult{
+					Request: &request,
+					Error: &APIError{
+						InternalError: fmt.Errorf("add feed subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: NewErrorMessage(
+							"Unable to add feed subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					},
+				}
+				return
+			}
+			if isNew {
+				// Add the feed if it is new.
+				if err := AddFeed(ctx, feed); err != nil {
+					resultsCh <- NewFeedSubscriptionResult{
+						Request: &request,
+						Error: &APIError{
+							InternalError: fmt.Errorf("add feed subscription: %w", err),
+							StatusCode:    http.StatusInternalServerError,
+							UserMessage: NewErrorMessage(
+								"Unable to add feed subscription",
+								"This might be a temporary issue, please try again.",
+							),
+						},
+					}
+					return
+				}
+			}
+
+			// Check for an existing subscription.
+			subscription, err := GetSubscriptionByFeedID(ctx, feed.GetID())
+			if err != nil && HTTPStatus(err) != http.StatusNotFound {
+				resultsCh <- NewFeedSubscriptionResult{
+					Request: &request,
+					Error: &APIError{
+						InternalError: fmt.Errorf("add feed subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: NewErrorMessage(
+							"Unable to add feed subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					},
+				}
+				return
+			}
+			if subscription != nil {
+				resultsCh <- NewFeedSubscriptionResult{
+					Request: &request,
+					Error: &APIError{
+						InternalError: errors.New("add feed subscription: already subscribed"),
+						StatusCode:    http.StatusConflict,
+						UserMessage: NewWarningMessage(
+							"Already subscribed to feed",
+							feed.GetTitle(),
+						),
+					},
+				}
+				return
+			}
+
+			// Create feed subscription.
+			subscription, err = NewFeedSubscription(ctx, feed, nil)
+			if err != nil {
+				resultsCh <- NewFeedSubscriptionResult{
+					Request: &request,
+					Error: &APIError{
+						InternalError: fmt.Errorf("add subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					},
+				}
+				return
+			}
+			if err := AddSubscriptions(ctx, subscription); err != nil {
+				resultsCh <- NewFeedSubscriptionResult{
+					Request: &request,
+					Error: &APIError{
+						InternalError: fmt.Errorf("add subscription: %w", err),
+						StatusCode:    http.StatusInternalServerError,
+						UserMessage: NewErrorMessage(
+							"Unable to add subscription",
+							"This might be a temporary issue, please try again.",
+						),
+					},
+				}
+				return
+			}
+			resultsCh <- NewFeedSubscriptionResult{
+				Request:      &request,
+				Subscription: subscription,
+			}
+		})
+	}
+	// Wait for all request processing to complete.
+	go func() {
+		defer close(resultsCh)
+		wg.Wait()
+	}()
+	results := make([]NewFeedSubscriptionResult, 0, len(requests))
+	// Gather results.
+	for result := range resultsCh {
+		results = append(results, result)
+	}
+
+	return results
 }
 
 // GetID retrieves (generates) a unique ID for a FeedStatus object.
@@ -382,9 +513,61 @@ func (f *Feed) SetUpdateInterval(ctx context.Context) error {
 	return nil
 }
 
+// FindOrCreateFeed will either generate a new feed or return the existing feed for the given URL. If the feed is new,
+// the boolean return value will be true.
+func FindOrCreateFeed(ctx context.Context, feedURL string) (*Feed, bool, error) {
+	// Fetch from URL as feed.
+	newFeed, err := NewFeedFromURL(ctx, feedURL, "", false)
+	if err != nil {
+		return nil, false, fmt.Errorf("fetch new feed: %w", err)
+	}
+
+	// Create terms queries to match the new feed to an existing feed.
+	var terms []query.Option
+	for url := range slices.Values(newFeed.SourceURLs) {
+		terms = append(terms, query.Term("source_urls", url))
+		// Also match url with trailing slash.
+		if !strings.HasSuffix(url, "/") {
+			terms = append(terms, query.Term("source_urls", url+"/"))
+		}
+	}
+	terms = append(terms, query.Term("url", newFeed.URL))
+	// Also match url with trailing slash.
+	if !strings.HasSuffix(newFeed.URL, "/") {
+		terms = append(terms, query.Term("source_urls", newFeed.URL+"/"))
+	}
+	// Find any existing feed.
+	existingFeeds, _, err := elastic.Search[*Feed](ctx,
+		schema.FeedsIndexRO,
+		query.Bool(
+			query.Filter(
+				query.Bool(
+					query.Should(terms...),
+				),
+			),
+		),
+		1,
+	)
+	if err != nil {
+		return nil, false, fmt.Errorf("search existing feeds: %w", err)
+	}
+	if len(existingFeeds) == 1 {
+		// If an existing feed is found, use that feed.
+		return existingFeeds[0], false, nil
+	}
+	// Otherwise use the new feed.
+	return newFeed, true, nil
+}
+
 // NewFeedFromURL generates a new Feed object from the given URL. If there is a problem generating the object, a non-nil
 // error is returned.
-func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (*Feed, error) {
+func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool) (*Feed, error) {
+	// Parse the raw URL and make any adjustments based on the domain for specific canonical sources.
+	feedURL, err := feedURLParser(ctx, rawURL)
+	if err != nil {
+		fmt.Errorf("parse url: %w", err)
+	}
+
 	var feed *Feed
 
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
@@ -392,31 +575,31 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 
 	result, err := feeds.NewFeedFromURL(
 		ctx,
-		url,
+		feedURL.String(),
 		feeds.PerformValidation(validate),
 		feeds.WithClient(client.LoadHTTPClient()),
 	)
 	if err != nil {
 		if validateErrs, ok := errors.AsType[validator.ValidationErrors](err); ok && validate {
 			slogctx.FromCtx(ctx).Warn("Feed is invalid, continuing without validation",
-				slog.String("url", url),
+				slog.String("url", feedURL.String()),
 				slog.Any("error", validateErrs),
 			)
 			// On validation errors, try again without validation.
-			return NewFeedFromURL(ctx, url, id, false)
+			return NewFeedFromURL(ctx, feedURL.String(), id, false)
 		}
 		// If the error is StatusForbidden, try proxying the request.
 		if httpErr, ok := errors.AsType[feeds.ParseError](
 			err,
 		); ok &&
 			(httpErr.Code == http.StatusForbidden || httpErr.Code == http.StatusTooManyRequests) {
-			if !strings.HasPrefix(url, os.Getenv("FORAGD_REVERSEPROXY_BASEURL")) {
+			if !strings.HasPrefix(feedURL.String(), os.Getenv("FORAGD_REVERSEPROXY_BASEURL")) {
 				slogctx.FromCtx(ctx).Warn("Error response, trying with proxy",
 					slog.Int("response_code", httpErr.Code),
-					slog.String("url", url),
+					slog.String("url", feedURL.String()),
 				)
 				// Generate a proxied URL.
-				proxiedURL, err := reverseproxy.GenerateProxyURL(url)
+				proxiedURL, err := reverseproxy.GenerateProxyURL(feedURL.String())
 				if err != nil {
 					return nil, fmt.Errorf("proxy url: %w", err)
 				}
@@ -437,13 +620,13 @@ func NewFeedFromURL(ctx context.Context, url string, id FeedID, validate bool) (
 					}
 					return false
 				})
-				feed.SourceURLs = append(feed.SourceURLs, url)
+				feed.SourceURLs = append(feed.SourceURLs, feedURL.String())
 				return feed, err
 			}
 		}
-		return nil, fmt.Errorf("could not create feed from URL %s: %w", url, err)
+		return nil, fmt.Errorf("could not create feed from URL %s: %w", feedURL.String(), err)
 	}
-	feed = newSyndicationFeed(ctx, url, id, result)
+	feed = newSyndicationFeed(ctx, feedURL.String(), id, result)
 
 	// Try to find an image for the feed if it does not supply one.
 	if feed.GetImage() == nil {
@@ -653,7 +836,7 @@ func newFeedSortCombinations(sort *Sort) []estypes.SortCombinations {
 
 // FeedURLParser parses the given URL string into a url.URL object, applying some additional rules for known domains on where
 // to find their feeds.
-func FeedURLParser(ctx context.Context, urlStr string) (*url.URL, error) {
+func feedURLParser(ctx context.Context, urlStr string) (*url.URL, error) {
 	// Parse the URL.
 	feedURL, err := url.Parse(urlStr)
 	if err != nil {

@@ -8,7 +8,7 @@ info:
     name: "AGPL 3.0"
     idenfiier: AGPL-3.0-or-later
   contact:
-    name: "Immanet Tech"
+    name: "Immanent Tech"
 components:
   schemas:
     # Common Fields.
@@ -158,6 +158,8 @@ components:
       description: >
         represents a taxonomy applied to an object.
       type: string
+      x-oapi-codegen-extra-tags:
+        form: 'category'
     CategoryCount:
       description: >
         holds a category and the count of its occurence. The count will be
@@ -687,8 +689,7 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'nickname'
-            validate: 'required'
-          x-go-type-skip-optional-pointer: true
+            validate: 'omitempty'
         categories:
           description: >
             is a custom list of categories for an object.
@@ -838,13 +839,6 @@ components:
       properties:
         feed_id:
           $ref: '#/components/schemas/FeedID'
-        # url:
-        #   description: >
-        #     is a URL pointing to the original website that publishes the feed.
-        #   type: string
-        #   x-go-name: URL
-        #   x-oapi-codegen-extra-tags:
-        #     validate: 'required,url'
         article_states:
           description: >
             contains the states of items marked explicitly as read/unread/saved by the user.
@@ -931,61 +925,6 @@ components:
               $ref: '#/components/schemas/EmailSubscription'
             stats:
               $ref: '#/components/schemas/SubscriptionStats'
-    AddFeedSubscriptionRequest:
-      description: >
-        represents a request to create a subscription to a feed.
-      type: object
-      required:
-        - URL
-      properties:
-        URL:
-          description: is the URL of the feed data.
-          type: string
-          x-go-name: URL
-          x-oapi-codegen-extra-tags:
-            form: 'url'
-            validate: 'required,url'
-        nickname:
-          description: a custom name for the subscription. Overrides the feed name.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'user_nickname'
-        categories:
-          description: a list custom categories for the subscription. Combined with the feed's own categories.
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-          x-go-type-skip-optional-pointer: true
-          x-oapi-codegen-extra-tags:
-            form: 'user_categories'
-        suggestedCategories:
-          description: >
-            is a list of suggested categories for the subscription.
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
-          x-go-type-skip-optional-pointer: true
-    AddFeedSubscriptionResult:
-      description: >
-        contains the result of adding/importing a subscription from a request.
-      type: object
-      required:
-        - request
-      properties:
-        request:
-          $ref: '#/components/schemas/AddFeedSubscriptionRequest'
-        feed:
-          $ref: '#/components/schemas/Feed'
-        subscription:
-          $ref: '#/components/schemas/Subscription'
-        message:
-          $ref: '#/components/schemas/UserMessage'
-        error:
-          x-go-type: error
-          x-go-type-skip-optional-pointer: true
     SearchSubscriptionRequest:
       description: >
         represents a request to create a search subscription.
@@ -1094,37 +1033,6 @@ components:
             - $ref: '#/components/schemas/SubscriptionSettings'
           x-oapi-codegen-extra-tags:
             form: 'settings'
-        suggestedCategories:
-          description: >
-            is a list of suggested categories for the subscription.
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
-          x-go-type-skip-optional-pointer: true
-    EditFeedSubscriptionRequest:
-      description: >
-        is the request details for editing a feed subscription.
-      type: object
-      required:
-        - subscription_id
-      properties:
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
-        customisation:
-          allOf:
-            - $ref: '#/components/schemas/SubscriptionCustomisation'
-          x-oapi-codegen-extra-tags:
-            form: 'customisation'
-        settings:
-          allOf:
-            - $ref: '#/components/schemas/SubscriptionSettings'
-          x-oapi-codegen-extra-tags:
-            form: 'settings'
-        article_filters:
-          $ref: '#/components/schemas/SubscriptionArticleFilters'
         suggestedCategories:
           description: >
             is a list of suggested categories for the subscription.

@@ -287,38 +287,6 @@ type APIError struct {
 	UserMessage *UserMessage `json:"user_message,omitempty"`
 }
 
-// AddFeedSubscriptionRequest represents a request to create a subscription to a feed.
-type AddFeedSubscriptionRequest struct {
-	// URL is the URL of the feed data.
-	URL string `form:"url" json:"URL" validate:"required,url"`
-
-	// Categories a list custom categories for the subscription. Combined with the feed's own categories.
-	Categories []Category `form:"user_categories" json:"categories,omitempty"`
-
-	// Nickname a custom name for the subscription. Overrides the feed name.
-	Nickname *string `form:"user_nickname" json:"nickname,omitempty"`
-
-	// SuggestedCategories is a list of suggested categories for the subscription.
-	SuggestedCategories []Category `form:"-" json:"-"`
-}
-
-// AddFeedSubscriptionResult contains the result of adding/importing a subscription from a request.
-type AddFeedSubscriptionResult struct {
-	Error error `json:"error,omitempty"`
-
-	// Feed represents a feed object.
-	Feed *Feed `json:"feed,omitempty"`
-
-	// Message represents a message that can be displayed to the user as the result of an action.
-	Message *UserMessage `json:"message,omitempty"`
-
-	// Request represents a request to create a subscription to a feed.
-	Request AddFeedSubscriptionRequest `json:"request"`
-
-	// Subscription represents any kind of subscription.
-	Subscription *Subscription `json:"subscription,omitempty"`
-}
-
 // AddFeedsetRequest is a request from a user to add one or more feed sets as subscriptions.
 type AddFeedsetRequest struct {
 	Feedset []string `form:"feedset,unique" json:"feedset,omitempty"`
@@ -478,7 +446,7 @@ type Category = string
 // CategoryCount holds a category and the count of its occurence. The count will be contextual. i.e., across subscriptions, items, etc.
 type CategoryCount struct {
 	// Category represents a taxonomy applied to an object.
-	Category Category `json:"category"`
+	Category Category `form:"category" json:"category"`
 	Count    int      `json:"count"`
 }
 
@@ -513,20 +481,6 @@ type DeletedAt = time.Time
 type EditEmailSubscriptionRequest struct {
 	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
 	Settings      *SubscriptionSettings      `form:"settings" json:"settings,omitempty"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-
-	// SuggestedCategories is a list of suggested categories for the subscription.
-	SuggestedCategories []Category `form:"-" json:"-"`
-}
-
-// EditFeedSubscriptionRequest is the request details for editing a feed subscription.
-type EditFeedSubscriptionRequest struct {
-	// ArticleFilters holds filters to apply to the articles within a subscription.
-	ArticleFilters *SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
-	Customisation  *SubscriptionCustomisation  `form:"customisation" json:"customisation,omitempty"`
-	Settings       *SubscriptionSettings       `form:"settings" json:"settings,omitempty"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -1264,7 +1218,7 @@ type SubscriptionCustomisation struct {
 	ImageURL *string `json:"image_url,omitempty" validate:"omitempty,url"`
 
 	// Nickname is an optional alias or label for an object.
-	Nickname string `form:"nickname" json:"nickname,omitempty" validate:"required"`
+	Nickname *string `form:"nickname" json:"nickname,omitempty" validate:"omitempty"`
 }
 
 // SubscriptionID is the unique ID of a subscription.

@@ -215,22 +215,32 @@ func Start(logger *slog.Logger) error {
 			Post("/remove/subscription/{subscription_id}", handlers.HandleRemoveSubscription())
 		r.With(middlewares.RequireHTMX).
 			Delete("/remove/subscription/{subscription_id}", handlers.HandleRemoveSubscription())
-		r.Route("/edit/subscription/{subscription_id}", func(r chi.Router) {
-			r.Get("/", handlers.HandleEditSubscription())
-			r.With(middlewares.RequireHTMX).Post("/", handlers.HandleSaveSubscription())
-			r.With(middlewares.RequireHTMX).Post("/category", handlers.HandleSubscriptionCategories())
-			r.With(middlewares.RequireHTMX).Delete("/category", handlers.HandleSubscriptionCategories())
-		})
 		r.Route("/subscription", func(r chi.Router) {
+			r.Route("/add", func(r chi.Router) {
+				r.Get("/feed", handlers.HandleAddFeedSubscription())
+				r.With(middlewares.RequireHTMX).Post("/feed", handlers.HandleAddFeedSubscription())
+				// Add search subscription.
+				r.Get("/search", handlers.HandleAddSearchSubscription())
+				r.With(middlewares.RequireHTMX).Post("/search", handlers.HandleAddSearchSubscription())
+				// Add group subscription.
+				r.Get("/group", handlers.HandleAddGroupSubscription())
+				r.With(middlewares.RequireHTMX).Post("/group", handlers.HandleAddGroupSubscription())
+			})
+			r.Get("/edit/{subscription_id}", handlers.HandleEditSubscription())
+			r.With(middlewares.RequireHTMX).Post("/save/{subscription_id}", handlers.HandleSaveSubscription())
+			// Group subscription management.
 			r.Route("/group", func(r chi.Router) {
-				// Suggest a subscription for the group.
 				r.With(middlewares.RequireHTMX).Post("/suggest", handlers.HandleSuggestSubscriptionForGroup())
 				r.With(middlewares.RequireHTMX).Post("/add", handlers.HandleAddSubscriptionToGroup())
 			})
+			// Search subscription management.
 			r.Route("/search", func(r chi.Router) {
-				// Suggest a subscription for a search.
 				r.With(middlewares.RequireHTMX).Post("/suggest", handlers.HandleSuggestSubscriptionForSearch())
 				r.With(middlewares.RequireHTMX).Post("/add", handlers.HandleAddSubscriptionToSearch())
+			})
+			// Subscription category management.
+			r.Route("/category", func(r chi.Router) {
+				r.With(middlewares.RequireHTMX).Post("/", handlers.HandleSubscriptionCategories())
 			})
 		})
 
@@ -263,21 +273,6 @@ func Start(logger *slog.Logger) error {
 			// 	updatesHandler(res, req)
 			// })
 			r.Get("/account-issue", handlers.HandleAccountIssue())
-			// Subscription.
-			r.Route("/subscription", func(r chi.Router) {
-				// Add feed subscription.
-				r.Get("/add/feed", handlers.HandleAddFeedSubscription())
-				r.With(middlewares.RequireHTMX).Post("/add/feed", handlers.HandleAddFeedSubscription())
-				// Add search subscription.
-				r.Get("/add/search", handlers.HandleAddSearchSubscription())
-				r.With(middlewares.RequireHTMX).Post("/add/search", handlers.HandleAddSearchSubscription())
-				// Add group subscription.
-				r.Get("/add/group", handlers.HandleAddGroupSubscription())
-				r.With(middlewares.RequireHTMX).Post("/add/group", handlers.HandleAddGroupSubscription())
-				// Category management for add/edit subscription.
-				r.With(middlewares.RequireHTMX).Post("/category", handlers.HandleSubscriptionCategories())
-				r.With(middlewares.RequireHTMX).Delete("/category", handlers.HandleSubscriptionCategories())
-			})
 			r.Post("/feedset", handlers.HandleAddFeedset(web.StaticContentFS))
 			// Import/export.
 			r.Get("/import", handlers.HandleImportSubscriptions())

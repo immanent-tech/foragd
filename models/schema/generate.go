@@ -4,3 +4,4 @@
 package schema
 
 //go:generate go tool oapi-codegen -config models-cfg.yaml models.yaml
+//go:generate go tool oapi-codegen -config requests-cfg.yaml requests.yaml

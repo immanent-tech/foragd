@@ -94,7 +94,7 @@ func (s *Subscription) MarkAttributes() templ.Attributes {
 // EditAttributes generates a templ.Attributes object containing htmx directives for editing a subscription.
 func (s *Subscription) EditAttributes() templ.Attributes {
 	attrs := make(templ.Attributes)
-	attrs["hx-get"] = "/edit/subscription/" + s.GetID()
+	attrs["hx-get"] = "/subscription/edit/" + s.GetID()
 	attrs["hx-target"] = ContentID.Target()
 	attrs["hx-swap"] = "innerHTML show:window:top transition:true"
 	attrs["hx-trigger"] = "click consume"
@@ -398,7 +398,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								}
 								<li>
 									<a
-										hx-get="/user/subscription/add/feed"
+										hx-get="/subscription/add/feed"
 										hx-target={ ContentID.Target() }
 										hx-push-url="true"
 										role="menuitem"
@@ -410,7 +410,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								</li>
 								<li>
 									<a
-										hx-get="/user/subscription/add/search"
+										hx-get="/subscription/add/search"
 										hx-target={ ContentID.Target() }
 										hx-include="#search-filters"
 										hx-push-url="true"
@@ -423,7 +423,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 								</li>
 								<li>
 									<a
-										hx-get="/user/subscription/add/group"
+										hx-get="/subscription/add/group"
 										hx-target={ ContentID.Target() }
 										hx-push-url="true"
 										role="menuitem"
@@ -492,209 +492,289 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	}
 }
 
-templ EditSubscription(request *models.EditFeedSubscriptionRequest) {
-	@content() {
-		@templ.Fragment(ContentFragment) {
-			@container() {
-				<div class="min-w-0 flex-1 pb-8">
-					@partials.Heading2() {
-						{ "Editing " + request.Customisation.Nickname }
+templ subscriptionCustomisationFields(action string, customisation *models.SubscriptionCustomisation) {
+	<div>
+		<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
+			<div>
+				<h2 class="text-base/7 font-semibold">Customisation</h2>
+				<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
+			</div>
+			<span class="ml-6 flex h-7 items-center">
+				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+				</svg>
+				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
+				</svg>
+			</span>
+		</button>
+		@partials.FormSection() {
+			<el-disclosure
+				if action == "add" {
+					hidden
+				}
+				id="customisation"
+			>
+				<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+					@partials.FormField() {
+						<label for="nickname" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Nickname</label>
+						<div class="mt-2 sm:col-span-2 sm:mt-0">
+							<input
+								id="nickname"
+								type="text"
+								name="customisation.nickname"
+								if customisation != nil && customisation.GetNickname() != "" {
+									value={ customisation.GetNickname() }
+								}
+								placeholder="My cool subscription…"
+								class="input input-primary bg-base-content/10"
+							/>
+						</div>
+					}
+					@partials.FormField() {
+						<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
+						<div class="mt-2 sm:col-span-2 sm:mt-0">
+							<div class="col-span-full mt-2 flex items-center gap-x-2">
+								if customisation != nil && customisation.ImageURL != nil {
+									@subscriptionThumbnail(&models.RemoteImage{URL: customisation.ImageURL}, "")
+								} else {
+									@subscriptionThumbnail(nil, "")
+								}
+								<input
+									id="thumbnail"
+									type="file"
+									class="flex file-input file-input-primary bg-base-content/10"
+									name="customisation.thumbnail"
+									accept=".jpg,.png,.webp"
+								/>
+							</div>
+						</div>
 					}
 				</div>
-				<div class="space-y-8">
-					<form
-						id="edit-subscription"
-						hx-post={ "/edit/subscription/" + request.SubscriptionID }
-						hx-swap="none"
-						hx-indicator="#processing"
-						hx-encoding="multipart/form-data"
-					>
-						<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
-						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
-						// Nickname.
-						@subscriptionNicknameField(request.Customisation.Nickname)
-						// Thumbnail
-						if request.Customisation.ImageURL != nil {
-							@subscriptionThumbnailField(
-								models.NewRemoteImage(
-									*request.Customisation.ImageURL,
-									request.Customisation.Nickname,
-								),
-								request.Customisation.Nickname,
-							)
-						} else {
-							@subscriptionThumbnailField(
-								nil,
-								request.Customisation.Nickname,
-							)
-						}
-						// Filtering.
-						@subscriptionArticleFiltersFields(request.ArticleFilters)
-						// Full article content toggle.
-						<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-							<div>
-								<label for="show-full-article-content" class="text-base/7 font-semibold">
-									Always Show	Full Article Content
-								</label>
-								<div class="flex items-center">
-									<p class="mt-1 text-sm/6 ">
-										Always fetch and show article content from original site.
-									</p>
-									@partials.HelpPopover("show-full-article-help", "top end") {
-										<p>
-											If articles in the subscription are only showing a summary, set this
-											toggle to attempt to fetch the full content from the website.
-										</p>
-										<p>
-											Note: fetching full content is based on a heuristic that tries to locate
-											the article content on the page. It does not always produce optimal
-											results.
-										</p>
-									}
-								</div>
-							</div>
-							<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-								<div class="col-span-full mt-2">
-									<input
-										id="show-full-article-content"
-										type="checkbox"
-										if request.Settings != nil && request.Settings.ShowFullArticleContent {
-											checked="checked"
-										}
-										name="show_full_article_content"
-										class="toggle toggle-sm toggle-primary"
-									/>
-								</div>
-							</div>
+			</el-disclosure>
+		}
+	</div>
+}
+
+templ subscriptionArticleFiltersFields(action string, filters *models.SubscriptionArticleFilters) {
+	<div>
+		<button type="button" command="--toggle" commandfor="filtering" class="flex w-full items-center justify-between text-left">
+			<div>
+				<h2 class="text-base/7 font-semibold">Article Filtering</h2>
+				<p class="mt-1 max-w-2xl text-sm/6">Optional filtering of articles.</p>
+			</div>
+			<span class="ml-6 flex h-7 items-center">
+				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+				</svg>
+				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
+				</svg>
+			</span>
+		</button>
+		@partials.FormSection() {
+			<el-disclosure
+				if action == "add" {
+					hidden
+				}
+				id="filtering"
+			>
+				<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+					@partials.FormField() {
+						<label for="article-text-filters" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Text</label>
+						<div class="mt-2 sm:col-span-2 sm:mt-0">
+							<textarea
+								rows="2"
+								id="article-text-filters"
+								name="article_filters.text"
+								placeholder={ `+keyword -"some phrase"` }
+								class="textarea textarea-primary bg-base-content/10 w-full"
+								spellcheck="false"
+							>
+								if filters != nil && filters.Text != nil {
+									{ *filters.Text }
+								}
+							</textarea>
 						</div>
-						// Categories
-						{{ categoryMgmtPath := "/user/subscription/category" }}
-						@CategoryManagement(categoryMgmtPath, "customisation.categories", request.SuggestedCategories, request.Customisation.Categories)
-						// Action buttons.
-						<div class="flex flex-1 items-center justify-end gap-x-6">
-							<div id="processing" class="htmx-indicator">
-								Processing...
-								<span class="loading loading-spinner loading-md"></span>
-							</div>
-							@partials.ButtonBack()
-							<button type="submit" class="btn btn-primary">Save</button>
+					}
+					@partials.FormField() {
+						<label for="article-category-filters" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Categories</label>
+						<div class="mt-2 sm:col-span-2 sm:mt-0">
+							<textarea
+								rows="2"
+								id="article-category-filters"
+								name="article_filters.categories"
+								placeholder={ `+keyword -"some phrase"` }
+								class="textarea textarea-primary bg-base-content/10 w-full"
+								spellcheck="false"
+							>
+								if filters != nil && filters.Categories != nil {
+									{ *filters.Categories }
+								}
+							</textarea>
 						</div>
-					</form>
+					}
+					@partials.FormField() {
+						<label for="article-author-filters" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Authors</label>
+						<div class="mt-2 sm:col-span-2 sm:mt-0">
+							<textarea
+								rows="2"
+								id="article-author-filters"
+								name="article_filters.authors"
+								placeholder={ `+keyword -"some phrase"` }
+								class="textarea textarea-primary bg-base-content/10 w-full"
+								spellcheck="false"
+							>
+								if filters != nil && filters.Authors != nil {
+									{ *filters.Authors }
+								}
+							</textarea>
+						</div>
+					}
 				</div>
+			</el-disclosure>
+		}
+	</div>
+}
+
+// AddFeedSubscription is a page for adding a new subscription to a feed.
+templ AddFeedSubscription(request *models.NewFeedSubscriptionRequest, suggestedCategories models.Categories) {
+	@content() {
+		@templ.Fragment(ContentFragment) {
+			@container(element.WithClasses("mb-6")) {
+				@manageFeedSubscription("add", request.URL, "", request.Customisation, nil, nil, suggestedCategories)
 			}
 		}
 	}
 }
 
-// AddFeedSubscription is a page for adding a new subscription to a feed.
-templ AddFeedSubscription(request *models.AddFeedSubscriptionRequest) {
+// EditFeedSubscription is a page for editing an existing feed subscription.
+templ EditFeedSubscription(request *models.EditFeedSubscriptionRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
-			@container(element.WithClasses("mb-6")) {
-				<div class="min-w-0 flex-1 pb-8">
-					@partials.Heading2() {
-						Add A Subscription
-					}
-				</div>
-				<form
-					id="add-subscription"
-					hx-post="/user/subscription/add/feed"
-					hx-swap="none"
-					hx-include="[name='user_categories']"
-					hx-indicator="#processing"
-					hx-on::after-request="if(event.detail.successful) this.reset()"
-				>
-					<div class="space-y-12 sm:space-y-16">
-						<div>
-							<h2 class="text-base/7 font-semibold">Source</h2>
-							// <p class="mt-1 max-w-2xl text-sm/6 text-gray-600 dark:text-gray-400">This information will be displayed publicly so be careful what you share.</p>
-							@partials.FormSection() {
-								@partials.FormField() {
-									<label for="url" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Feed website or URL</label>
-									<div class="mt-2 sm:col-span-2 sm:mt-0">
-										<input
-											id="url"
-											required
-											type="url"
-											name="url"
-											autocomplete="url"
-											value={ request.URL }
-											placeholder="https://my-favorite-site/feed…"
-											class="input input-primary bg-base-content/10 w-full"
-										/>
-									</div>
-								}
-							}
-						</div>
-						<div>
-							<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
-								<div>
-									<h2 class="text-base/7 font-semibold">Customisation</h2>
-									<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
-								</div>
-								<span class="ml-6 flex h-7 items-center">
-									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
-									</svg>
-									<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
-										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
-									</svg>
-								</span>
-							</button>
-							@partials.FormSection() {
-								<el-disclosure hidden id="customisation">
-									<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
-										@partials.FormField() {
-											<label for="nickname" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Nickname</label>
-											<div class="mt-2 sm:col-span-2 sm:mt-0">
-												<input
-													id="nickname"
-													type="text"
-													name="nickname"
-													if request.Nickname != nil {
-														value={ *request.Nickname }
-													}
-													placeholder="My cool subscription…"
-													class="input input-primary bg-base-content/10"
-												/>
-											</div>
-										}
-										@partials.FormField() {
-											<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
-											<div class="mt-2 sm:col-span-2 sm:mt-0">
-												<div class="col-span-full mt-2 flex items-center gap-x-2">
-													@subscriptionThumbnail(nil, "")
-													<input
-														id="thumbnail"
-														type="file"
-														class="flex file-input file-input-primary bg-base-content/10"
-														name={ models.ParamThumbnail }
-														accept=".jpg,.png,.webp"
-													/>
-												</div>
-											</div>
-										}
-									</div>
-								</el-disclosure>
-							}
-						</div>
-						<div>
-							{{ categoryMgmtPath := "/user/subscription/category" }}
-							@CategoryManagement(categoryMgmtPath, "categories", request.SuggestedCategories, request.Categories)
-						</div>
-					</div>
-					<div class="mt-6 flex items-center justify-end gap-x-6">
-						<div id="processing" class="htmx-indicator">
-							Processing...
-							<span class="loading loading-spinner loading-md"></span>
-						</div>
-						@partials.ButtonBack()
-						<button type="submit" class="btn btn-primary" form="add-subscription">Add</button>
-					</div>
-				</form>
+			@container() {
+				@manageFeedSubscription("edit", "", request.SubscriptionID, request.Customisation, request.Settings, request.ArticleFilters, request.SuggestedCategories)
 			}
 		}
 	}
+}
+
+// manageFeedSubscription generates the appropriate form layout for either adding or editing a feed subscription.
+templ manageFeedSubscription(action, url string, subscriptionID models.SubscriptionID, customisation *models.SubscriptionCustomisation, settings *models.SubscriptionSettings, filters *models.SubscriptionArticleFilters, suggestedCategories models.Categories) {
+	<div class="min-w-0 flex-1 pb-8">
+		switch action {
+			case "add":
+				@partials.Heading2() {
+					Add A Subscription
+				}
+			case "edit":
+				@partials.Heading2() {
+					{ "Editing " + customisation.GetNickname() }
+				}
+		}
+	</div>
+	// hx-on::after-request="if(event.detail.successful) this.reset()"
+	<form
+		id="add-subscription"
+		if action == "add" {
+			hx-post="/subscription/add/feed"
+		} else {
+			hx-post={ "/subscription/save/" + subscriptionID }
+		}
+		hx-swap="none"
+		hx-indicator="#processing"
+		hx-encoding="multipart/form-data"
+		hx-disinherit="*"
+	>
+		if action == "edit" {
+			<input type="hidden" name={ models.ParamSubscriptionID } value={ subscriptionID }/>
+			<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
+		}
+		<div class="space-y-12 sm:space-y-16">
+			if action == "add" {
+				<div>
+					<h2 class="text-base/7 font-semibold">Source</h2>
+					<p class="mt-1 max-w-2xl text-sm/6">Enter a website URL or the URL to a feed.</p>
+					@partials.FormSection() {
+						@partials.FormField() {
+							<label for="url" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">URL</label>
+							<div class="mt-2 sm:col-span-2 sm:mt-0">
+								<input
+									id="url"
+									required
+									type="url"
+									name="url"
+									autocomplete="url"
+									value={ url }
+									placeholder="https://my-favorite-site/feed…"
+									class="input input-primary bg-base-300 brightness-95 w-full"
+								/>
+							</div>
+						}
+					}
+				</div>
+			}
+			<div>
+				if customisation != nil {
+					@CategoryManagement(suggestedCategories, customisation.GetCategories())
+				} else {
+					@CategoryManagement(suggestedCategories, nil)
+				}
+			</div>
+			if action == "edit" {
+				<div>
+					<h2 class="text-base/7 font-semibold">Settings</h2>
+					<p class="mt-1 max-w-2xl text-sm/6">Settings that control subscription/article display.</p>
+					@partials.FormSection() {
+						@partials.FormField() {
+							<div class="flex items-center">
+								<label for="show-full-article-content" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">
+									Show full article content.
+								</label>
+								@partials.HelpPopover("show-full-article-help", "top center") {
+									<p>
+										If articles in the subscription are only showing a summary, set this
+										toggle to attempt to fetch the full content from the website.
+									</p>
+									<p>
+										Note: fetching full content is based on a heuristic that tries to locate
+										the article content on the page. It does not always produce optimal
+										results.
+									</p>
+								}
+							</div>
+							<div class="mt-2 sm:col-span-2 sm:mt-0">
+								<input
+									id="show-full-article-content"
+									type="checkbox"
+									if settings != nil && settings.ShowFullArticleContent {
+										checked="checked"
+									}
+									name="show_full_article_content"
+									class="toggle toggle-sm toggle-primary"
+								/>
+							</div>
+						}
+					}
+				</div>
+			}
+			@subscriptionCustomisationFields(action, customisation)
+			@subscriptionArticleFiltersFields(action, filters)
+		</div>
+		<div class="mt-6 flex items-center justify-end gap-x-6">
+			<div id="processing" class="htmx-indicator">
+				Processing...
+				<span class="loading loading-spinner loading-md"></span>
+			</div>
+			@partials.ButtonBack()
+			switch action {
+				case "add":
+					<button type="submit" class="btn btn-primary">Add</button>
+				case "edit":
+					<button type="submit" class="btn btn-primary">Save</button>
+			}
+		</div>
+	</form>
 }
 
 // AddSearchSubscription is a page for adding a new search subscription.
@@ -717,7 +797,7 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 							case "add":
 								Add A Search Subscription
 							case "edit":
-								{ "Editing " + request.Customisation.Nickname }
+								{ "Editing " + request.Customisation.GetNickname() }
 						}
 					}
 				</div>
@@ -964,21 +1044,24 @@ templ manageSearchSubscription(request *models.SearchSubscriptionRequest, action
 							}
 						</div>
 						// Nickname.
-						@subscriptionNicknameField(request.Customisation.Nickname)
+						@subscriptionNicknameField(request.Customisation.GetNickname())
 						// Image.
 						if request.Customisation.ImageURL != nil {
 							@subscriptionThumbnailField(
 								models.NewRemoteImage(
 									*request.Customisation.ImageURL,
-									request.Customisation.Nickname,
+									request.Customisation.GetNickname(),
 								),
-								request.Customisation.Nickname)
+								request.Customisation.GetNickname())
 						} else {
-							@subscriptionThumbnailField(nil, request.Customisation.Nickname)
+							@subscriptionThumbnailField(nil, request.Customisation.GetNickname())
 						}
 						// Categories
-						{{ categoryMgmtPath := "/user/subscription/category" }}
-						@CategoryManagement(categoryMgmtPath, "customisation.categories", request.SuggestedCategories, request.Customisation.Categories)
+						if request.Customisation != nil {
+							@CategoryManagement(request.SuggestedCategories, request.Customisation.Categories)
+						} else {
+							@CategoryManagement(request.SuggestedCategories, nil)
+						}
 						// Action buttons.
 						<div class="flex flex-1 items-center justify-end gap-x-6">
 							<div id="processing" class="htmx-indicator">
@@ -1021,7 +1104,7 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 							case "add":
 								Add A Group Subscription
 							case "edit":
-								{ "Editing " + request.Customisation.Nickname }
+								{ "Editing " + request.Customisation.GetNickname() }
 						}
 					}
 				</div>
@@ -1081,28 +1164,31 @@ templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action s
 						</div>
 					</div>
 					// Nickname.
-					@subscriptionNicknameField(request.Customisation.Nickname)
+					@subscriptionNicknameField(request.Customisation.GetNickname())
 					// Image.
 					if request.Customisation.ImageURL != nil {
 						@subscriptionThumbnailField(
 							models.NewRemoteImage(
 								*request.Customisation.ImageURL,
-								request.Customisation.Nickname,
+								request.Customisation.GetNickname(),
 							),
-							request.Customisation.Nickname,
+							request.Customisation.GetNickname(),
 						)
 					} else {
 						@subscriptionThumbnailField(
 							nil,
-							request.Customisation.Nickname,
+							request.Customisation.GetNickname(),
 						)
 					}
 					if action == "edit" {
-						@subscriptionArticleFiltersFields(request.ArticleFilters)
+						@subscriptionArticleFiltersFields(action, request.ArticleFilters)
 					}
 					// Categories
-					{{ categoryMgmtPath := "/user/subscription/category" }}
-					@CategoryManagement(categoryMgmtPath, "customisation.categories", request.SuggestedCategories, request.Customisation.Categories)
+					if request.Customisation != nil {
+						@CategoryManagement(request.SuggestedCategories, request.Customisation.Categories)
+					} else {
+						@CategoryManagement(request.SuggestedCategories, nil)
+					}
 					// Action buttons.
 					<div class="flex flex-1 items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
@@ -1184,7 +1270,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
 					@partials.Heading2() {
-						{ "Editing " + request.Customisation.Nickname }
+						{ "Editing " + request.Customisation.GetNickname() }
 					}
 				</div>
 				<div class="space-y-8">
@@ -1200,26 +1286,29 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeEmail) }/>
 						<input type="hidden" name="subscription_id" value={ request.SubscriptionID }/>
 						// Nickname.
-						@subscriptionNicknameField(request.Customisation.Nickname)
+						@subscriptionNicknameField(request.Customisation.GetNickname())
 					</form>
 					// Image.
 					if request.Customisation.ImageURL != nil {
 						@subscriptionThumbnailField(
 							models.NewRemoteImage(
 								*request.Customisation.ImageURL,
-								request.Customisation.Nickname,
+								request.Customisation.GetNickname(),
 							),
-							request.Customisation.Nickname,
+							request.Customisation.GetNickname(),
 						)
 					} else {
 						@subscriptionThumbnailField(
 							nil,
-							request.Customisation.Nickname,
+							request.Customisation.GetNickname(),
 						)
 					}
 					// Categories
-					{{ categoryMgmtPath := "/user/subscription/category" }}
-					@CategoryManagement(categoryMgmtPath, "customisation.categories", nil, request.Customisation.Categories)
+					if request.Customisation != nil {
+						@CategoryManagement(nil, request.Customisation.Categories)
+					} else {
+						@CategoryManagement(nil, nil)
+					}
 					// Action buttons.
 					<div class="flex flex-1 items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
@@ -1283,74 +1372,6 @@ templ subscriptionThumbnailField(img *models.RemoteImage, name string) {
 	</div>
 }
 
-templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilters) {
-	<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
-		<div>
-			@partials.Heading3() {
-				Filtering
-			}
-			<div class="flex items-center">
-				<p class="mt-1 text-sm/6 ">Filter articles by keywords/text in fields.</p>
-				@partials.HelpPopover("subscription-filters-help", "top end") {
-					<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
-					<p>+ signifies AND operation (i.e., food AND beverages)</p>
-					<p>| signifies OR operation (i.e., food OR beverages)</p>
-					<p>- negates a the word (i.e., NOT alcoholic)</p>
-					<p>"" represents an exact phrase match (i.e., "rum-based drinks")</p>
-					<p>* at thez end of indicates a prefix match (i.e., match bird, birding and birds)</p>
-				}
-			</div>
-		</div>
-		<fieldset class="fieldset grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-			<div class="sm:col-span-full mt-2">
-				<label for="article_text_filters" class="block text-xs font-medium">Text:</label>
-				<textarea
-					rows="2"
-					id="article_text_filters"
-					name="article_filters.text"
-					placeholder={ `+keyword -"some phrase"` }
-					class="textarea textarea-primary bg-base-content/10 w-full"
-					spellcheck="false"
-				>
-					if filters != nil && filters.Text != nil {
-						{ *filters.Text }
-					}
-				</textarea>
-			</div>
-			<div class="sm:col-span-full mt-2">
-				<label for="article_category_filters" class="block text-xs font-medium">Categories:</label>
-				<textarea
-					rows="2"
-					id="article_category_filters"
-					name="article_filters.categories"
-					placeholder="favorite-category -unwanted"
-					class="textarea textarea-primary bg-base-content/10 w-full"
-					spellcheck="false"
-				>
-					if filters != nil && filters.Categories != nil {
-						{ *filters.Categories }
-					}
-				</textarea>
-			</div>
-			<div class="sm:col-span-full mt-2">
-				<label for="article_author_filters" class="block text-xs font-medium">Authors:</label>
-				<textarea
-					rows="2"
-					id="article_author_filters"
-					name="article_filters.authors"
-					placeholder="bob +jenny@blog.me"
-					class="textarea textarea-primary bg-base-content/10 w-full"
-					spellcheck="false"
-				>
-					if filters != nil && filters.Authors != nil {
-						{ *filters.Authors }
-					}
-				</textarea>
-			</div>
-		</fieldset>
-	</div>
-}
-
 // ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
 templ ImportSubscriptions() {
 	@content() {
@@ -1403,7 +1424,7 @@ templ ImportSubscriptions() {
 }
 
 // ImportResults is a partial template that displays the results of an import.
-templ ImportResults(results []*models.AddFeedSubscriptionResult) {
+templ ImportResults(results []models.NewFeedSubscriptionResult) {
 	{{ successfulResults := filterSuccessfulResults(results) }}
 	{{ failedResults := filterUnsuccessfulResults(results) }}
 	{{ warningResults := filterWarningResults(results) }}
@@ -1446,57 +1467,59 @@ templ ImportResults(results []*models.AddFeedSubscriptionResult) {
 	</div>
 	<div class="py-4 space-y-8">
 		<ul class="list">
-			for response := range slices.Values(slices.Concat(successfulResults,failedResults,warningResults)) {
+			for result := range slices.Values(successfulResults) {
 				<li class="list-row items-center">
-					switch response.Message.Status {
-						case models.UserMessageStatusSuccess:
-							@tabler.CircleCheck(i.Props{Class: "size-10 text-success"})
-							<div>
-								<div>{ response.Message.Summary }</div>
-							</div>
-						case models.UserMessageStatusError:
-							@tabler.ExclamationCircle(i.Props{Class: "size-10 text-error"})
-							<div>
-								<div>{ response.Message.Summary }</div>
-								if response.Message.HasDetails() {
-									<p class="list-col-wrap text-xs">
-										{ *response.Message.Details }
-									</p>
-								}
-							</div>
-						case models.UserMessageStatusWarning:
-							@tabler.AlertTriangle(i.Props{Class: "size-10 text-warning"})
-							<div>
-								<div>{ response.Message.Summary }</div>
-								if response.Message.HasDetails() {
-									<p class="list-col-wrap text-xs">
-										{ *response.Message.Details }
-									</p>
-								}
-							</div>
-					}
+					<div>
+						@tabler.CircleCheck(i.Props{Class: "size-10 text-success"})
+						<p>Subscription Created:</p>
+						<p>{ result.Subscription.GetTitle() }</p>
+					</div>
 				</li>
+			}
+			for result := range slices.Values(failedResults) {
+				@tabler.ExclamationCircle(i.Props{Class: "size-10 text-error"})
+				{{ msg := result.Error.GetUserMessage() }}
+				<div>
+					<div>{ msg.Summary }</div>
+					if msg.HasDetails() {
+						<p class="list-col-wrap text-xs">
+							{ *msg.Details }
+						</p>
+					}
+				</div>
+			}
+			for result := range slices.Values(failedResults) {
+				@tabler.AlertTriangle(i.Props{Class: "size-10 text-warning"})
+				{{ msg := result.Error.GetUserMessage() }}
+				<div>
+					<div>{ msg.Summary }</div>
+					if msg.HasDetails() {
+						<p class="list-col-wrap text-xs">
+							{ *msg.Details }
+						</p>
+					}
+				</div>
 			}
 		</ul>
 	</div>
 	@partials.ButtonBackToTop()
 }
 
-func filterSuccessfulResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result *models.AddFeedSubscriptionResult) bool {
-		return result.Message != nil && result.Message.Status == models.UserMessageStatusSuccess
+func filterSuccessfulResults(results []models.NewFeedSubscriptionResult) []models.NewFeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result models.NewFeedSubscriptionResult) bool {
+		return result.Error == nil && result.Subscription != nil
 	}))
 }
 
-func filterWarningResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result *models.AddFeedSubscriptionResult) bool {
-		return result.Message != nil && result.Message.Status == models.UserMessageStatusWarning
+func filterWarningResults(results []models.NewFeedSubscriptionResult) []models.NewFeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result models.NewFeedSubscriptionResult) bool {
+		return result.Error != nil && result.Error.UserMessage.IsWarning()
 	}))
 }
 
-func filterUnsuccessfulResults(results []*models.AddFeedSubscriptionResult) []*models.AddFeedSubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result *models.AddFeedSubscriptionResult) bool {
-		return result.Message != nil && result.Message.Status == models.UserMessageStatusError
+func filterUnsuccessfulResults(results []models.NewFeedSubscriptionResult) []models.NewFeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result models.NewFeedSubscriptionResult) bool {
+		return result.Error != nil && result.Error.UserMessage.IsError()
 	}))
 }
 
