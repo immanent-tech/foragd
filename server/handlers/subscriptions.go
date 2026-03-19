@@ -1144,7 +1144,7 @@ func HandleImportSubscriptions() http.HandlerFunc {
 
 			// Display all results.
 			RenderPartial(&ImportSubscriptionsResults{
-				template: templates.ImportResults(results),
+				template: templates.ImportSubscriptionsResults(results),
 			}).ServeHTTP(res, req)
 			// Display notification.
 			RenderPartial(&Notification{

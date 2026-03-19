@@ -1370,58 +1370,54 @@ templ ImportSubscriptions() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<div class="mx-auto max-w-3xl">
-					<div class="min-w-0 flex-1 pb-8">
-						@partials.Heading2() {
-							Import Subscriptions
-						}
-					</div>
-					<div class="md:flex md:items-center md:justify-between">
-						<p class="mt-2 max-w-4xl text-sm text-base-content/80">
-							You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.
-						</p>
-					</div>
-					<form
-						id="import-subscriptions-form"
-						hx-encoding="multipart/form-data"
-						hx-post="/user/import"
-						hx-target="#import-results"
-						hx-indicator="#processing"
-					>
-						<div class="grid max-w-7xl grid-cols-1 items-center gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-							@partials.Heading3() {
-								OPML File
-							}
-							<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:place-items-center sm:grid-cols-6 md:col-span-2">
-								<div class="sm:col-span-full w-full">
+				<div class="min-w-0 flex-1 pb-8">
+					@partials.Heading2() {
+						Import Subscriptions
+					}
+					@partials.Paragraph() {
+						You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.
+					}
+				</div>
+				// hx-on::after-request="if(event.detail.successful) this.reset()"
+				<form
+					id="import-subscriptions-form"
+					hx-encoding="multipart/form-data"
+					hx-post="/user/import"
+					hx-target="#import-results"
+					hx-indicator="#processing"
+				>
+					<div class="space-y-12 sm:space-y-16">
+						// Subscription name, suggestions and existing subscriptions.
+						<div>
+							@partials.FormSection() {
+								<label for="opml-file" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">OPML File</label>
+								<div class="mt-2 sm:col-span-2 sm:mt-0">
 									<input id="source" type="file" required name="source" class="file-input file-input-primary bg-base-content/10 w-full"/>
 								</div>
-							</div>
-							<div class="grid col-span-full justify-end">
-								<div class="flex gap-x-2 items-center">
-									<div id="processing" class="htmx-indicator">
-										Processing...
-										<span class="loading loading-spinner loading-md"></span>
-									</div>
-									@partials.ButtonBack()
-									<button type="submit" class="btn btn-primary">Import</button>
-								</div>
-							</div>
+							}
 						</div>
-					</form>
-					<div id="import-results" class="space-y-4"></div>
-				</div>
+					</div>
+					<div class="mt-6 flex items-center justify-end gap-x-6">
+						<div id="processing" class="htmx-indicator">
+							Processing...
+							<span class="loading loading-spinner loading-md"></span>
+						</div>
+						@partials.ButtonBack()
+						<button type="submit" class="btn btn-primary">Import</button>
+					</div>
+				</form>
+				<div id="import-results"></div>
 			}
 		}
 	}
 }
 
-// ImportResults is a partial template that displays the results of an import.
-templ ImportResults(results []models.FeedSubscriptionResult) {
+// ImportSubscriptionsResults is a partial template that displays the results of an import.
+templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 	{{ successfulResults := filterSuccessfulResults(results) }}
 	{{ failedResults := filterUnsuccessfulResults(results) }}
 	{{ warningResults := filterWarningResults(results) }}
-	<div class="min-w-0 flex-1">
+	<div class="min-w-0 flex-1 pb-8">
 		@partials.Heading2() {
 			Import Results
 		}
@@ -1462,36 +1458,46 @@ templ ImportResults(results []models.FeedSubscriptionResult) {
 		<ul class="list">
 			for result := range slices.Values(successfulResults) {
 				<li class="list-row items-center">
-					<div>
+					<div class="flex items-center">
 						@tabler.CircleCheck(i.Props{Class: "size-10 text-success"})
-						<p>Subscription Created:</p>
-						<p>{ result.Subscription.GetTitle() }</p>
+						<div>
+							<p>Subscription Created:</p>
+							<p>{ result.Subscription.GetTitle() }</p>
+						</div>
 					</div>
 				</li>
 			}
 			for result := range slices.Values(failedResults) {
-				@tabler.ExclamationCircle(i.Props{Class: "size-10 text-error"})
-				{{ msg := result.Error.GetUserMessage() }}
-				<div>
-					<div>{ msg.Summary }</div>
-					if msg.HasDetails() {
-						<p class="list-col-wrap text-xs">
-							{ *msg.Details }
-						</p>
-					}
-				</div>
+				<li class="list-row items-center">
+					<div class="flex items-center">
+						@tabler.ExclamationCircle(i.Props{Class: "size-10 text-error"})
+						{{ msg := result.Error.GetUserMessage() }}
+						<div>
+							<div>{ msg.Summary }</div>
+							if msg.HasDetails() {
+								<p class="list-col-wrap text-xs">
+									{ *msg.Details }
+								</p>
+							}
+						</div>
+					</div>
+				</li>
 			}
-			for result := range slices.Values(failedResults) {
-				@tabler.AlertTriangle(i.Props{Class: "size-10 text-warning"})
-				{{ msg := result.Error.GetUserMessage() }}
-				<div>
-					<div>{ msg.Summary }</div>
-					if msg.HasDetails() {
-						<p class="list-col-wrap text-xs">
-							{ *msg.Details }
-						</p>
-					}
-				</div>
+			for result := range slices.Values(warningResults) {
+				<li class="list-row items-center">
+					<div class="flex items-center">
+						@tabler.AlertTriangle(i.Props{Class: "size-10 text-warning"})
+						{{ msg := result.Error.GetUserMessage() }}
+						<div>
+							<div>{ msg.Summary }</div>
+							if msg.HasDetails() {
+								<p class="list-col-wrap text-xs">
+									{ *msg.Details }
+								</p>
+							}
+						</div>
+					</div>
+				</li>
 			}
 		</ul>
 	</div>
