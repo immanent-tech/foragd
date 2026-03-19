@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.82.4](https://github.com/immanent-tech/foragd/compare/v0.82.3...v0.82.4) (2026-03-19)
+
+
+### Bug Fixes
+
+* **models:** :bug: more descriptive user facing error messages when importing/adding feed subscriptions ([389e2f4](https://github.com/immanent-tech/foragd/commit/389e2f40e20daf7d18a3b291e15b228e2af0883d))
+* **models:** :bug: set the subscription thumbnail to the feed thumbnail when the user has not specified a thumbnail ([0fe2ca5](https://github.com/immanent-tech/foragd/commit/0fe2ca5793bee6117beb5fdc04bb171d06655c18))
+* **templates:** :lipstick: add some space in import results list ([9289370](https://github.com/immanent-tech/foragd/commit/928937057978072ffb764193cd3fc3b33e48761c))
+* **templates/subscriptions:** :lipstick: fix layout spacing for group subscription management ([eb9ce67](https://github.com/immanent-tech/foragd/commit/eb9ce675ab4646f658a9c124e95fa4a30e674ddc))
+
 ## [0.82.3](https://github.com/immanent-tech/foragd/compare/v0.82.2...v0.82.3) (2026-03-18)
 
 
