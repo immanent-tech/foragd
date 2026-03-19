@@ -76,7 +76,8 @@
     "pkg/formats/html",
     "templates/articles",
     "templates/viewer",
-    "templates/subscriptions"
+    "templates/subscriptions",
+    "templates/search"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

@@ -222,8 +222,8 @@ templ Search() {
 			hx-get="/search"
 			hx-target={ ContentID.Target() }
 			hx-include="#search-filters,[id='timezone']"
-			hx-trigger="keydown[key=='Enter'] consume"
-			hx-sync="#search-suggestions-popover:replace"
+			hx-trigger="keyup[key=='Enter'] consume"
+			hx-sync="#search-suggestions-popover:drop"
 			id="global-search"
 			type="search"
 			name="text"
@@ -232,16 +232,16 @@ templ Search() {
 			autocomplete="off"
 			aria-label="Search"
 			_="
-				on keydown from body if the event's key is 'q' and event.altKey then focus() me end
-				"
+			  on keydown from body if the event's key is 'q' and event.altKey then focus() me end
+			  "
 		/>
 		<button
 			hx-post="/search/suggestions"
 			hx-target="#search-suggestions-popover"
 			hx-include="#search-filters,[id='timezone'],[id='global-search']"
-			hx-trigger="keyup changed delay:500ms from:#global-search"
-			hx-sync="#global-search:drop"
+			hx-trigger="keyup[key!='Enter'] delay:500ms from:#global-search"
 			hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
+			_="on htmx:trigger if event.detail.triggeringEvent.key == 'Enter' then halt the event end"
 			popovertarget="search-suggestions-popover"
 			type="button"
 			aria-label="Search suggestions"
@@ -575,8 +575,8 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 			// // Subscriptions filter.
 			// <fieldset class="fieldset sm:col-span-full">
 			// 	<legend class="fieldset-legend">In subscriptions</legend>
-			// 	<div class="col-span-full mt-2 join">
-			// 		<el-autocomplete class="w-full join join-item">
+			// 	<div class="join col-span-full mt-2">
+			// 		<el-autocomplete class="join join-item w-full">
 			// 			<input
 			// 				hx-post="/subscription/search/suggest"
 			// 				hx-trigger="input changed delay:500ms,consume"
@@ -586,13 +586,13 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 			// 				hx-params="subscription-suggestion-text,subscription_id"
 			// 				id="suggest-subscription"
 			// 				name="subscription-suggestion-text"
-			// 				class="input input-primary bg-base-content/10 w-full join-item"
+			// 				class="input join-item w-full bg-base-content/10 input-primary"
 			// 				placeholder="Subscription"
 			// 				_="on htmx:afterRequest if event.detail.successful then trigger showPopover() on #subscription-suggestions"
 			// 			/>
 			// 			<button
 			// 				type="button"
-			// 				class="btn bg-base-content/10 join-item"
+			// 				class="btn join-item bg-base-content/10"
 			// 				aria-label="Show subscription suggestions"
 			// 			>
 			// 				@tabler.ChevronDown()
@@ -605,7 +605,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 			// 			hx-target="#subscriptions"
 			// 			hx-encoding="application/x-www-form-urlencoded"
 			// 			hx-swap="beforeend"
-			// 			class="btn btn-primary join-item"
+			// 			class="btn join-item btn-primary"
 			// 			_="on htmx:afterRequest if event.detail.successful then set #suggest-subscription.value to ''"
 			// 			aria-label="Add selected subscription"
 			// 		>
@@ -614,7 +614,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 			// 	</div>
 			// 	<ul
 			// 		id="subscriptions"
-			// 		class="mt-2 col-span-full inline-grid sm:grid-cols-2 justify-center gap-4 max-h-md overflow-y-scroll"
+			// 		class="max-h-md col-span-full mt-2 inline-grid justify-center gap-4 overflow-y-scroll sm:grid-cols-2"
 			// 	>
 			// 		for subscription := range slices.Values(models.SubscriptionsFromCtx(ctx)) {
 			// 			@AddSearchSubscriptionFilter(&models.AddSubscriptionSearchFilterRequest{
