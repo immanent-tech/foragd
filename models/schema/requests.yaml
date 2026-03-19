@@ -11,7 +11,7 @@ info:
     name: Immanent Tech
 components:
   schemas:
-    AddSubscriptionCategoryRequest:
+    AddCategoryToSubscriptionRequest:
       description: >
         is a request to add a new category to a subscription.
       type: object
@@ -29,47 +29,30 @@ components:
           x-oapi-codegen-extra-tags:
             form: 'customisation.categories'
           x-go-type-skip-optional-pointer: true
-    NewFeedSubscriptionRequest:
+    FeedSubscriptionRequest:
       description: >
         is a request to add a new feed subscription.
       type: object
       required:
         - URL
+        - subscription_id
       properties:
         URL:
-          description: is the URL of the feed data.
+          description: is the URL of the feed data. Used when adding a new feed subscription.
           type: string
           x-go-name: URL
           x-oapi-codegen-extra-tags:
             form: 'url'
-            validate: 'required,url'
+            validate: 'required_without=SubscriptionID,omitempty,url'
+        subscription_id:
+          description: is the existing subscription ID. Will be empty when adding a new feed subscription.
+          type: string
+          x-go-name: SubscriptionID
+          x-oapi-codegen-extra-tags:
+            form: 'subscription_id'
+            validate: 'required_without=URL,startswith=sub_'
         customisation:
           $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
-    NewFeedSubscriptionResult:
-      description: >
-        is the result of adding a feed subscription.
-      type: object
-      properties:
-        request:
-          $ref: '#/components/schemas/NewFeedSubscriptionRequest'
-        error:
-          $ref: 'models.yaml#/components/schemas/APIError'
-        subscription:
-          $ref: 'models.yaml#/components/schemas/Subscription'
-    EditFeedSubscriptionRequest:
-      description: >
-        is the request details for editing a feed subscription.
-      type: object
-      required:
-        - subscription_id
-      properties:
-        subscription_id:
-          $ref: 'models.yaml#/components/schemas/SubscriptionID'
-        customisation:
-          allOf:
-            - $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
-          x-oapi-codegen-extra-tags:
-            form: 'customisation'
         settings:
           allOf:
             - $ref: 'models.yaml#/components/schemas/SubscriptionSettings'
@@ -87,6 +70,17 @@ components:
             form: '-'
             json: '-'
           x-go-type-skip-optional-pointer: true
+    FeedSubscriptionResult:
+      description: >
+        is the result of adding a feed subscription.
+      type: object
+      properties:
+        request:
+          $ref: '#/components/schemas/FeedSubscriptionRequest'
+        error:
+          $ref: 'models.yaml#/components/schemas/APIError'
+        subscription:
+          $ref: 'models.yaml#/components/schemas/Subscription'
     GroupSubscriptionRequest:
       description: >
         represents a request to create a group subscription.

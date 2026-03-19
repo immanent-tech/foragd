@@ -63,9 +63,9 @@ func UpdateFeed(ctx context.Context, id FeedID, updates map[string]any) error {
 }
 
 // BulkImportFeeds handles processing any number of NewFeedSubscriptionRequest requests.
-func BulkImportFeeds(ctx context.Context, requests ...NewFeedSubscriptionRequest) []NewFeedSubscriptionResult {
+func BulkImportFeeds(ctx context.Context, requests ...FeedSubscriptionRequest) []FeedSubscriptionResult {
 	// Process requests.
-	resultsCh := make(chan NewFeedSubscriptionResult)
+	resultsCh := make(chan FeedSubscriptionResult)
 	var wg sync.WaitGroup
 
 	for request := range slices.Values(requests) {
@@ -73,7 +73,7 @@ func BulkImportFeeds(ctx context.Context, requests ...NewFeedSubscriptionRequest
 			// Find an existing or create a new feed from the requested URL.
 			feed, isNew, err := FindOrCreateFeed(ctx, request.URL)
 			if err != nil {
-				resultsCh <- NewFeedSubscriptionResult{
+				resultsCh <- FeedSubscriptionResult{
 					Request: &request,
 					Error: &APIError{
 						InternalError: fmt.Errorf("add feed subscription: %w", err),
@@ -89,7 +89,7 @@ func BulkImportFeeds(ctx context.Context, requests ...NewFeedSubscriptionRequest
 			if isNew {
 				// Add the feed if it is new.
 				if err := AddFeed(ctx, feed); err != nil {
-					resultsCh <- NewFeedSubscriptionResult{
+					resultsCh <- FeedSubscriptionResult{
 						Request: &request,
 						Error: &APIError{
 							InternalError: fmt.Errorf("add feed subscription: %w", err),
@@ -107,7 +107,7 @@ func BulkImportFeeds(ctx context.Context, requests ...NewFeedSubscriptionRequest
 			// Check for an existing subscription.
 			subscription, err := GetSubscriptionByFeedID(ctx, feed.GetID())
 			if err != nil && HTTPStatus(err) != http.StatusNotFound {
-				resultsCh <- NewFeedSubscriptionResult{
+				resultsCh <- FeedSubscriptionResult{
 					Request: &request,
 					Error: &APIError{
 						InternalError: fmt.Errorf("add feed subscription: %w", err),
@@ -121,7 +121,7 @@ func BulkImportFeeds(ctx context.Context, requests ...NewFeedSubscriptionRequest
 				return
 			}
 			if subscription != nil {
-				resultsCh <- NewFeedSubscriptionResult{
+				resultsCh <- FeedSubscriptionResult{
 					Request: &request,
 					Error: &APIError{
 						InternalError: errors.New("add feed subscription: already subscribed"),
@@ -138,7 +138,7 @@ func BulkImportFeeds(ctx context.Context, requests ...NewFeedSubscriptionRequest
 			// Create feed subscription.
 			subscription, err = NewFeedSubscription(ctx, feed, nil)
 			if err != nil {
-				resultsCh <- NewFeedSubscriptionResult{
+				resultsCh <- FeedSubscriptionResult{
 					Request: &request,
 					Error: &APIError{
 						InternalError: fmt.Errorf("add subscription: %w", err),
@@ -152,7 +152,7 @@ func BulkImportFeeds(ctx context.Context, requests ...NewFeedSubscriptionRequest
 				return
 			}
 			if err := AddSubscriptions(ctx, subscription); err != nil {
-				resultsCh <- NewFeedSubscriptionResult{
+				resultsCh <- FeedSubscriptionResult{
 					Request: &request,
 					Error: &APIError{
 						InternalError: fmt.Errorf("add subscription: %w", err),
@@ -165,7 +165,7 @@ func BulkImportFeeds(ctx context.Context, requests ...NewFeedSubscriptionRequest
 				}
 				return
 			}
-			resultsCh <- NewFeedSubscriptionResult{
+			resultsCh <- FeedSubscriptionResult{
 				Request:      &request,
 				Subscription: subscription,
 			}
@@ -176,7 +176,7 @@ func BulkImportFeeds(ctx context.Context, requests ...NewFeedSubscriptionRequest
 		defer close(resultsCh)
 		wg.Wait()
 	}()
-	results := make([]NewFeedSubscriptionResult, 0, len(requests))
+	results := make([]FeedSubscriptionResult, 0, len(requests))
 	// Gather results.
 	for result := range resultsCh {
 		results = append(results, result)

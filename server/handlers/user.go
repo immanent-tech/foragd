@@ -471,7 +471,7 @@ func HandleAddFeedset(static embed.FS) http.HandlerFunc {
 			return
 		}
 		// Process requested feedsets and generate subscription requests.
-		var subscriptionRequests []models.NewFeedSubscriptionRequest
+		var subscriptionRequests []models.FeedSubscriptionRequest
 		for set := range slices.Values(request.Feedset) {
 			var data []byte
 			switch set {

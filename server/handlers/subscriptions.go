@@ -22,6 +22,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -417,7 +418,7 @@ func HandleEditSubscription() http.HandlerFunc {
 		switch existingSubscription.GetSubscriptionType() {
 		case models.SubscriptionTypeFeed:
 			// Convert metadata into edit request data.
-			request := &models.EditFeedSubscriptionRequest{
+			request := &models.FeedSubscriptionRequest{
 				SubscriptionID: id,
 				Customisation:  existingSubscription.Customisation,
 				Settings:       &existingSubscription.Settings,
@@ -577,8 +578,9 @@ func HandleSaveSubscription() http.HandlerFunc {
 		// Generate the appropriate subscription edit request.
 		switch models.SubscriptionType(req.FormValue("subscription_type")) {
 		case models.SubscriptionTypeFeed:
-			request, valid, err := forms.DecodeMultiPartForm[*models.EditFeedSubscriptionRequest](req)
+			request, valid, err := forms.DecodeMultiPartForm[*models.FeedSubscriptionRequest](req)
 			if err != nil || !valid {
+				godump.Dump(request)
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode subscription request: %w", err),
 					StatusCode:    http.StatusUnprocessableEntity,
@@ -752,12 +754,14 @@ func HandleAddFeedSubscription() http.HandlerFunc {
 			res.Header().Set(htmx.HeaderPushURL, req.URL.String())
 			RenderInternalPage(
 				&AddSubscription{
-					title:    "Add Feed Subscription",
-					template: templates.AddFeedSubscription(&models.NewFeedSubscriptionRequest{}, suggestedCategories),
+					title: "Add Feed Subscription",
+					template: templates.AddFeedSubscription(
+						&models.FeedSubscriptionRequest{SuggestedCategories: suggestedCategories},
+					),
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:
-			request, valid, err := forms.DecodeMultiPartForm[*models.NewFeedSubscriptionRequest](req)
+			request, valid, err := forms.DecodeMultiPartForm[*models.FeedSubscriptionRequest](req)
 			if err != nil || !valid {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("decode add feed subscription request: %w", err),
@@ -1058,7 +1062,7 @@ func HandleAddSubscriptionToGroup() http.HandlerFunc {
 		for subscriptionID, subscriptionName := range request.Suggestions {
 			if subscriptionName == request.SuggestionText {
 				RenderPartial(&PartialTemplate{
-					template: templates.GroupSubscriptionAddSubscription(
+					template: templates.AddSubscriptionToGroup(
 						subscriptionID,
 						subscriptionName,
 					),
@@ -1254,7 +1258,7 @@ func HandleExportSubscriptions() http.HandlerFunc {
 // adding.
 func HandleSubscriptionCategories() http.HandlerFunc {
 	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		request, valid, err := forms.DecodeForm[*models.AddSubscriptionCategoryRequest](req)
+		request, valid, err := forms.DecodeForm[*models.AddCategoryToSubscriptionRequest](req)
 		if err != nil || !valid {
 			HandleInternalError(&models.APIError{
 				InternalError: fmt.Errorf("decode add subscription category request: %w", err),

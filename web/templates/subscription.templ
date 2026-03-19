@@ -569,29 +569,29 @@ templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilter
 }
 
 // AddFeedSubscription is a page for adding a new subscription to a feed.
-templ AddFeedSubscription(request *models.NewFeedSubscriptionRequest, suggestedCategories models.Categories) {
+templ AddFeedSubscription(request *models.FeedSubscriptionRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container(element.WithClasses("mb-6")) {
-				@manageFeedSubscription("add", request.URL, "", request.Customisation, nil, nil, suggestedCategories)
+				@manageFeedSubscription("add", request)
 			}
 		}
 	}
 }
 
 // EditFeedSubscription is a page for editing an existing feed subscription.
-templ EditFeedSubscription(request *models.EditFeedSubscriptionRequest) {
+templ EditFeedSubscription(request *models.FeedSubscriptionRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				@manageFeedSubscription("edit", "", request.SubscriptionID, request.Customisation, request.Settings, request.ArticleFilters, request.SuggestedCategories)
+				@manageFeedSubscription("edit", request)
 			}
 		}
 	}
 }
 
 // manageFeedSubscription generates the appropriate form layout for either adding or editing a feed subscription.
-templ manageFeedSubscription(action, url string, subscriptionID models.SubscriptionID, customisation *models.SubscriptionCustomisation, settings *models.SubscriptionSettings, filters *models.SubscriptionArticleFilters, suggestedCategories models.Categories) {
+templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequest) {
 	<div class="min-w-0 flex-1 pb-8">
 		switch action {
 			case "add":
@@ -600,7 +600,7 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 				}
 			case "edit":
 				@partials.Heading2() {
-					{ "Editing " + customisation.GetNickname() }
+					{ "Editing " + request.Customisation.GetNickname() }
 				}
 		}
 	</div>
@@ -610,7 +610,7 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 		if action == "add" {
 			hx-post="/subscription/add/feed"
 		} else {
-			hx-post={ "/subscription/save/" + subscriptionID }
+			hx-post={ "/subscription/save/" + request.SubscriptionID }
 		}
 		hx-swap="none"
 		hx-indicator="#processing"
@@ -619,7 +619,7 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 	>
 		// Add hidden inputs when editing a subscription to know which subscription we are editing.
 		if action == "edit" {
-			<input type="hidden" name={ models.ParamSubscriptionID } value={ subscriptionID }/>
+			<input type="hidden" name={ models.ParamSubscriptionID } value={ request.SubscriptionID }/>
 			<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeFeed) }/>
 		}
 		<div class="space-y-12 sm:space-y-16">
@@ -636,7 +636,7 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 									type="url"
 									name="url"
 									autocomplete="url"
-									value={ url }
+									value={ request.URL }
 									placeholder="https://my-favorite-site/feed…"
 									class="input input-primary bg-base-300 brightness-95 w-full"
 								/>
@@ -646,10 +646,10 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 				</div>
 			}
 			// Subscription category management.
-			if customisation != nil {
-				@CategoryManagement(suggestedCategories, customisation.GetCategories())
+			if request.Customisation != nil {
+				@CategoryManagement(request.SuggestedCategories, request.Customisation.GetCategories())
 			} else {
-				@CategoryManagement(suggestedCategories, nil)
+				@CategoryManagement(request.SuggestedCategories, nil)
 			}
 			// Subscription settings.
 			if action == "edit" {
@@ -678,7 +678,7 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 								<input
 									id="show-full-article-content"
 									type="checkbox"
-									if settings != nil && settings.ShowFullArticleContent {
+									if request.Settings != nil && request.Settings.ShowFullArticleContent {
 										checked="checked"
 									}
 									name="show_full_article_content"
@@ -720,8 +720,8 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 										id="nickname"
 										type="text"
 										name="customisation.nickname"
-										if customisation != nil && customisation.GetNickname() != "" {
-											value={ customisation.GetNickname() }
+										if request.Customisation != nil && request.Customisation.GetNickname() != "" {
+											value={ request.Customisation.GetNickname() }
 										}
 										placeholder="My cool subscription…"
 										class="input input-primary bg-base-content/10"
@@ -732,8 +732,8 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 								<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
 								<div class="mt-2 sm:col-span-2 sm:mt-0">
 									<div class="col-span-full mt-2 flex items-center gap-x-2">
-										if customisation != nil && customisation.ImageURL != nil {
-											@subscriptionThumbnail(&models.RemoteImage{URL: customisation.ImageURL}, "")
+										if request.Customisation != nil && request.Customisation.ImageURL != nil {
+											@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "")
 										} else {
 											@subscriptionThumbnail(nil, "")
 										}
@@ -752,7 +752,7 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 				}
 			</div>
 			// Optional article filtering.
-			@subscriptionArticleFiltersFields(filters)
+			@subscriptionArticleFiltersFields(request.ArticleFilters)
 		</div>
 		<div class="mt-6 flex items-center justify-end gap-x-6">
 			<div id="processing" class="htmx-indicator">
@@ -780,6 +780,7 @@ templ EditSearchSubscription(request *models.SearchSubscriptionRequest) {
 	@manageSearchSubscription("edit", request)
 }
 
+// manageSearchSubscription generates the appropriate form layout for either adding or editing a search subscription.
 templ manageSearchSubscription(action string, request *models.SearchSubscriptionRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
@@ -1070,6 +1071,7 @@ templ EditGroupSubscription(request *models.GroupSubscriptionRequest) {
 	@manageGroupSubscription("edit", request)
 }
 
+// manageGroupSubscription generates the appropriate form layout for either adding or editing a group subscription.
 templ manageGroupSubscription(action string, request *models.GroupSubscriptionRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
@@ -1170,7 +1172,7 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 										class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
 									>
 										for id, name := range request.Subscriptions {
-											@GroupSubscriptionAddSubscription(id, name)
+											@AddSubscriptionToGroup(id, name)
 										}
 									</div>
 								}
@@ -1249,7 +1251,9 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 	}
 }
 
-templ GroupSubscriptionAddSubscription(id, name string) {
+// AddSubscriptionToGroup renders a button indicating a subscription is part of a group subscription. Clicking the
+// button removes it from the group.
+templ AddSubscriptionToGroup(id, name string) {
 	<button
 		class="btn btn-outline hover:btn-error"
 		_="on click remove me"
@@ -1420,7 +1424,7 @@ templ ImportSubscriptions() {
 }
 
 // ImportResults is a partial template that displays the results of an import.
-templ ImportResults(results []models.NewFeedSubscriptionResult) {
+templ ImportResults(results []models.FeedSubscriptionResult) {
 	{{ successfulResults := filterSuccessfulResults(results) }}
 	{{ failedResults := filterUnsuccessfulResults(results) }}
 	{{ warningResults := filterWarningResults(results) }}
@@ -1501,20 +1505,20 @@ templ ImportResults(results []models.NewFeedSubscriptionResult) {
 	@partials.ButtonBackToTop()
 }
 
-func filterSuccessfulResults(results []models.NewFeedSubscriptionResult) []models.NewFeedSubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result models.NewFeedSubscriptionResult) bool {
+func filterSuccessfulResults(results []models.FeedSubscriptionResult) []models.FeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
 		return result.Error == nil && result.Subscription != nil
 	}))
 }
 
-func filterWarningResults(results []models.NewFeedSubscriptionResult) []models.NewFeedSubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result models.NewFeedSubscriptionResult) bool {
+func filterWarningResults(results []models.FeedSubscriptionResult) []models.FeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
 		return result.Error != nil && result.Error.UserMessage.IsWarning()
 	}))
 }
 
-func filterUnsuccessfulResults(results []models.NewFeedSubscriptionResult) []models.NewFeedSubscriptionResult {
-	return slices.Collect(models.FilterSlice(results, func(result models.NewFeedSubscriptionResult) bool {
+func filterUnsuccessfulResults(results []models.FeedSubscriptionResult) []models.FeedSubscriptionResult {
+	return slices.Collect(models.FilterSlice(results, func(result models.FeedSubscriptionResult) bool {
 		return result.Error != nil && result.Error.UserMessage.IsError()
 	}))
 }
