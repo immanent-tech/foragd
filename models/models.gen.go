@@ -1387,7 +1387,7 @@ type UserSettings struct {
 	SubscriptionEmail *string `form:"subscription_email" json:"subscription_email,omitempty" validate:"omitempty,email"`
 
 	// Theme the user interface theme chosen by the user.
-	Theme string `form:"-" json:"theme"`
+	Theme string `form:"theme" json:"theme"`
 
 	// UpdatesInterval is the interval on which to check for new updates.
 	UpdatesInterval time.Duration `form:"update_interval" json:"updates_interval" validate:"gte=0"`

@@ -247,9 +247,9 @@ components:
           description: >
             the user interface theme chosen by the user.
           type: string
-          default: silk
+          default: greenhouse
           x-oapi-codegen-extra-tags:
-            form: '-'
+            form: 'theme'
         show_onboarding:
           description: >
             indicates whether to show onboarding information (i.e., for a new user).
