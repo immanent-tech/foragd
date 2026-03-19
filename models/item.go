@@ -433,11 +433,7 @@ func findItemImage(ctx context.Context, link string) (*RemoteImage, error) {
 	}
 
 	// Try to find the "main" image in the page content.
-	if imgURL, err := html.FindMainImage(resp.Body(), link); err != nil {
-		slogctx.FromCtx(ctx).Debug("Could not find main image for URL.",
-			slog.String("url", link),
-			slog.Any("error", err))
-	} else if imgURL != "" {
+	if imgURL, _ := html.FindMainImage(resp.Body(), link); imgURL != "" {
 		return &RemoteImage{
 			URL: new(imgURL),
 		}, nil
