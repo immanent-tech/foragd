@@ -492,9 +492,9 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 	}
 }
 
-templ subscriptionArticleFiltersFields(action string, filters *models.SubscriptionArticleFilters) {
+templ subscriptionArticleFiltersFields(filters *models.SubscriptionArticleFilters) {
 	<div>
-		<button type="button" command="--toggle" commandfor="filtering" class="flex w-full items-center justify-between text-left">
+		<button type="button" command="--toggle" commandfor="subscription-article-filtering" class="flex w-full items-center justify-between text-left">
 			<div>
 				<h2 class="text-base/7 font-semibold">Article Filtering</h2>
 				<p class="mt-1 max-w-2xl text-sm/6">Optional filtering of articles.</p>
@@ -509,12 +509,7 @@ templ subscriptionArticleFiltersFields(action string, filters *models.Subscripti
 			</span>
 		</button>
 		@partials.FormSection() {
-			<el-disclosure
-				if action == "add" {
-					hidden
-				}
-				id="filtering"
-			>
+			<el-disclosure id="subscription-article-filtering" hidden>
 				<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 					@partials.FormField() {
 						<label for="article-text-filters" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Text</label>
@@ -757,7 +752,7 @@ templ manageFeedSubscription(action, url string, subscriptionID models.Subscript
 				}
 			</div>
 			// Optional article filtering.
-			@subscriptionArticleFiltersFields(action, filters)
+			@subscriptionArticleFiltersFields(filters)
 		</div>
 		<div class="mt-6 flex items-center justify-end gap-x-6">
 			<div id="processing" class="htmx-indicator">
@@ -876,6 +871,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 							@partials.FormSection() {
 								<el-disclosure
 									id="filtering"
+									hidden
 								>
 									<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 										@partials.FormField() {
@@ -1012,6 +1008,7 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 							@partials.FormSection() {
 								<el-disclosure
 									id="customisation"
+									hidden
 								>
 									<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 										@partials.FormField() {
@@ -1065,176 +1062,196 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 
 // AddGroupSubscription is a page for adding a new group subscription.
 templ AddGroupSubscription(request *models.GroupSubscriptionRequest) {
-	@manageGroupSubscription(request, "add")
+	@manageGroupSubscription("add", request)
 }
 
 // EditGroupSubscription is a page for editing a group subscription.
 templ EditGroupSubscription(request *models.GroupSubscriptionRequest) {
-	@manageGroupSubscription(request, "edit")
+	@manageGroupSubscription("edit", request)
 }
 
-templ manageGroupSubscription(request *models.GroupSubscriptionRequest, action string) {
+templ manageGroupSubscription(action string, request *models.GroupSubscriptionRequest) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
-					@partials.Heading2() {
-						switch action {
-							case "add":
+					switch action {
+						case "add":
+							@partials.Heading2() {
 								Add A Group Subscription
-							case "edit":
+							}
+						case "edit":
+							@partials.Heading2() {
 								{ "Editing " + request.Customisation.GetNickname() }
-						}
+							}
 					}
 				</div>
-				<div id="group-subscription-details" class="space-y-8">
-					<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
-					// Subscriptions.
-					<div class="grid grid-cols-1 gap-x-8 py-6 md:grid-cols-3 items-center">
+				// hx-on::after-request="if(event.detail.successful) this.reset()"
+				<form
+					id="add-subscription"
+					if action == "add" {
+						hx-post="/subscription/add/group"
+					} else {
+						hx-post={ "/subscription/save/" + string(*request.SubscriptionID) }
+					}
+					hx-swap="none"
+					hx-indicator="#processing"
+					hx-encoding="multipart/form-data"
+					hx-params="not suggestion_text,suggestions,category"
+					hx-disinherit="*"
+				>
+					// Add hidden inputs when editing a subscription to know which subscription we are editing.
+					if action == "edit" {
+						<input type="hidden" name={ models.ParamSubscriptionID } value={ string(*request.SubscriptionID) }/>
+						<input type="hidden" name="subscription_type" value={ string(models.SubscriptionTypeGroup) }/>
+					}
+					<div class="space-y-12 sm:space-y-16">
+						// Subscription name, suggestions and existing subscriptions.
 						<div>
-							<label for="suggest-subscription" class="text-base/7 font-semibold">In Subscriptions</label>
-						</div>
-						<div class="grid max-w-2xl grid-cols-1 sm:grid-cols-6 md:col-span-2">
-							// Autocomplete input for showing subscription suggestions.
-							<div class="col-span-full mt-2 join">
-								<el-autocomplete class="w-full join join-item">
-									<input
-										hx-post="/subscription/group/suggest"
-										hx-trigger="input changed delay:500ms,consume"
-										hx-target="#subscription-suggestions"
-										hx-include="#subscriptions"
-										hx-encoding="application/x-www-form-urlencoded"
-										hx-swap="innerHTML"
-										_="on htmx:afterRequest if event.detail.successful then trigger showPopover() on #subscription-suggestions"
-										id="suggest-subscription"
-										name="text"
-										class="input input-primary bg-base-content/10 w-full join-item"
-										placeholder="Subscription"
-									/>
-									<button
-										type="button"
-										class="btn bg-base-content/10 join-item"
-									>
-										@tabler.ChevronDown()
-									</button>
-									<el-options id="subscription-suggestions" popover anchor="bottom start" class="w-(--input-width) overflow-auto"></el-options>
-								</el-autocomplete>
-								<button
-									hx-post="/subscription/group/add"
-									hx-target="#subscriptions"
-									hx-encoding="application/x-www-form-urlencoded"
-									hx-include="#subscription-suggestions"
-									hx-swap="beforeend"
-									class="btn btn-primary join-item"
-									_="on htmx:afterRequest if event.detail.successful then set #suggest-subscription.value to ''"
-								>
-									@tabler.Plus()
-								</button>
-							</div>
-							// Already added subscriptions as badges with ability to remove.
-							<div
-								id="subscriptions"
-								class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
-							>
-								for id, name := range request.Subscriptions {
-									@GroupSubscriptionAddSubscription(id, name)
+							@partials.FormSection() {
+								@partials.FormField() {
+									<label for="nickname" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Nickname</label>
+									<div class="mt-2 sm:col-span-2 sm:mt-0">
+										<input
+											id="nickname"
+											type="text"
+											name="customisation.nickname"
+											if request.Customisation != nil && request.Customisation.GetNickname() != "" {
+												value={ request.Customisation.GetNickname() }
+											}
+											placeholder="My cool subscription…"
+											class="input input-primary bg-base-300 brightness-95"
+										/>
+									</div>
 								}
-							</div>
+								@partials.FormField() {
+									<label for="subscription-suggestion" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Add subscription</label>
+									<div class="mt-2 sm:col-span-2 sm:mt-0 join">
+										<el-autocomplete id="suggestions" class="sm:col-span-4 join join-item">
+											<input
+												id="subscription-suggestion"
+												name="suggestion_text"
+												class="input input-primary bg-base-300 brightness-95 join-item"
+												placeholder="Subscription..."
+											/>
+											<button
+												type="button"
+												class="btn bg-base-100 brightness-95 join-item"
+											>
+												@tabler.ChevronDown()
+											</button>
+											<el-options popover anchor="bottom start" class="w-(--input-width) h-fit max-h-5/10 overflow-auto">
+												for subscription := range slices.Values(request.SuggestedSubscriptions) {
+													<el-option value={ subscription.GetTitle() }>
+														<input type="hidden" name={ "suggestions[" + subscription.GetID() + "]" } value={ subscription.GetTitle() }/>
+														{ subscription.GetTitle() }
+													</el-option>
+												}
+											</el-options>
+										</el-autocomplete>
+										<button
+											hx-post="/subscription/group/add"
+											hx-target="#subscriptions"
+											hx-encoding="application/x-www-form-urlencoded"
+											hx-include="#suggestions,#subscriptions"
+											hx-swap="beforeend"
+											type="button"
+											class="btn btn-primary join-item"
+											_="on htmx:afterRequest set #subscription-suggestion.value to ''"
+										>
+											@tabler.Plus()
+										</button>
+									</div>
+								}
+								@partials.FormField() {
+									<div class="block text-sm/6 font-medium text-base-content sm:pt-1.5">In subscriptions</div>
+									<div
+										id="subscriptions"
+										class="flex flex-wrap items-center mx-auto gap-2 max-w-7xl px-4 py-3 sm:px-6 lg:px-8"
+									>
+										for id, name := range request.Subscriptions {
+											@GroupSubscriptionAddSubscription(id, name)
+										}
+									</div>
+								}
+							}
 						</div>
 					</div>
-					// Nickname.
-					@subscriptionNicknameField(request.Customisation.GetNickname())
-					// Image.
-					if request.Customisation.ImageURL != nil {
-						@subscriptionThumbnailField(
-							models.NewRemoteImage(
-								*request.Customisation.ImageURL,
-								request.Customisation.GetNickname(),
-							),
-							request.Customisation.GetNickname(),
-						)
-					} else {
-						@subscriptionThumbnailField(
-							nil,
-							request.Customisation.GetNickname(),
-						)
-					}
-					if action == "edit" {
-						@subscriptionArticleFiltersFields(action, request.ArticleFilters)
-					}
-					// Categories
+					// Optional customisation.
+					<div>
+						<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
+							<div>
+								<h2 class="text-base/7 font-semibold">Customisation</h2>
+								<p class="mt-1 max-w-2xl text-sm/6">Optional customisation for the subscription.</p>
+							</div>
+							<span class="ml-6 flex h-7 items-center">
+								<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+								</svg>
+								<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
+								</svg>
+							</span>
+						</button>
+						@partials.FormSection() {
+							<el-disclosure
+								id="customisation"
+								hidden
+							>
+								<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
+									@partials.FormField() {
+										<label for="thumbnail" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Thumbnail</label>
+										<div class="mt-2 sm:col-span-2 sm:mt-0">
+											<div class="col-span-full mt-2 flex items-center gap-x-2">
+												if request.Customisation != nil && request.Customisation.ImageURL != nil {
+													@subscriptionThumbnail(&models.RemoteImage{URL: request.Customisation.ImageURL}, "")
+												} else {
+													@subscriptionThumbnail(nil, "")
+												}
+												<input
+													id="thumbnail"
+													type="file"
+													class="flex file-input file-input-primary bg-base-content/10"
+													name="customisation.thumbnail"
+													accept=".jpg,.png,.webp"
+												/>
+											</div>
+										</div>
+									}
+								</div>
+							</el-disclosure>
+						}
+					</div>
+					// Subscription category management.
 					if request.Customisation != nil {
-						@CategoryManagement(request.SuggestedCategories, request.Customisation.Categories)
+						@CategoryManagement(request.SuggestedCategories, request.Customisation.GetCategories())
 					} else {
 						@CategoryManagement(request.SuggestedCategories, nil)
 					}
-					// Action buttons.
-					<div class="flex flex-1 items-center justify-end gap-x-6">
+					// Optional article filtering.
+					@subscriptionArticleFiltersFields(request.ArticleFilters)
+					<div class="mt-6 flex items-center justify-end gap-x-6">
 						<div id="processing" class="htmx-indicator">
 							Processing...
 							<span class="loading loading-spinner loading-md"></span>
 						</div>
 						@partials.ButtonBack()
-						<form
-							id="manage-group-subscription"
-							if action == "add" {
-								hx-post="/user/subscription/add/group"
-							} else {
-								hx-post={ "/edit/subscription/" + *request.SubscriptionID }
-							}
-							hx-swap="none"
-							hx-include="[name='customisation.categories'],#group-subscription-details"
-							hx-params="not text,subscription_id,subscription_name"
-							hx-indicator="#processing"
-							hx-encoding="multipart/form-data"
-						>
-							<button type="submit" class="btn btn-primary">
-								if action == "add" {
-									Add
-								} else {
-									Save
-								}
-							</button>
-						</form>
+						switch action {
+							case "add":
+								<button type="submit" class="btn btn-primary">Add</button>
+							case "edit":
+								<button type="submit" class="btn btn-primary">Save</button>
+						}
 					</div>
-				</div>
+				</form>
 			}
 		}
 	}
 }
 
-templ GroupSubscriptionSuggestions(subscriptions models.Subscriptions) {
-	for subscription := range slices.Values(subscriptions) {
-		<el-option value={ subscription.GetTitle() }>
-			<input type="hidden" name="subscription_id" value={ subscription.GetID() }/>
-			<input type="hidden" name="subscription_name" value={ subscription.GetTitle() }/>
-			{ subscription.GetTitle() }
-		</el-option>
-	}
-	// for subscription := range slices.Values(subscriptions) {
-	// 	<form
-	// 		hx-post="/subscription/group/add"
-	// 		hx-target="#subscriptions"
-	// 		hx-encoding="application/x-www-form-urlencoded"
-	// 		hx-swap="beforeend"
-	// 		_="on htmx:afterRequest(sucessful) set #suggest-subscription.value to '' then remove me"
-	// 	>
-	// 		<input type="hidden" name="subscription_id" value={ subscription.GetID() }/>
-	// 		<input type="hidden" name="subscription_name" value={ subscription.GetTitle() }/>
-	// 		<button
-	// 			type="submit"
-	// 			class="btn btn-primary hover:btn-success"
-	// 		>
-	// 			{ subscription.GetTitle() }
-	// 			@tabler.Plus()
-	// 		</button>
-	// 	</form>
-	// }
-}
-
 templ GroupSubscriptionAddSubscription(id, name string) {
 	<button
-		class="btn btn-success hover:btn-error"
+		class="btn btn-outline hover:btn-error"
 		_="on click remove me"
 	>
 		<input type="hidden" name={ "subscriptions[" + id + "]" } value={ name }/>

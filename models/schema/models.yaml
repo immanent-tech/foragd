@@ -680,7 +680,7 @@ components:
           type: integer
     SubscriptionCustomisation:
       description: >
-        contains object fields that can be customised (overridden) by a user
+        contains object fields that can be customised (overridden) by a user.
       type: object
       properties:
         nickname:
@@ -938,52 +938,6 @@ components:
           $ref: '#/components/schemas/SubscriptionCustomisation'
         settings:
           $ref: '#/components/schemas/SubscriptionSettings'
-        suggestedCategories:
-          description: >
-            is a list of suggested categories for the subscription.
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
-          x-go-type-skip-optional-pointer: true
-    GroupSubscriptionRequest:
-      description: >
-        represents a request to create a group subscription.
-      type: object
-      required:
-        - subscriptions
-      properties:
-        subscription_id:
-          description: >
-            will be a subscription ID if the user is editing an existing group subscription.
-          allOf:
-            - $ref: '#/components/schemas/SubscriptionID'
-          x-go-name: SubscriptionID
-          x-oapi-codegen-extra-tags:
-            json: '-'
-            form: 'subscription_id'
-            validate: 'omitempty,startswith=sub_'
-        subscriptions:
-          description: >
-            contains details of the subscriptions in the group.
-          x-go-type: 'map[SubscriptionID]string'
-          x-oapi-codegen-extra-tags:
-            form: 'subscriptions'
-            validate: 'required'
-        customisation:
-          allOf:
-            - $ref: '#/components/schemas/SubscriptionCustomisation'
-          x-oapi-codegen-extra-tags:
-            form: 'customisation'
-        settings:
-          allOf:
-            - $ref: '#/components/schemas/SubscriptionSettings'
-          x-oapi-codegen-extra-tags:
-            form: 'settings'
-        article_filters:
-          $ref: '#/components/schemas/SubscriptionArticleFilters'
         suggestedCategories:
           description: >
             is a list of suggested categories for the subscription.

@@ -87,3 +87,85 @@ components:
             form: '-'
             json: '-'
           x-go-type-skip-optional-pointer: true
+    GroupSubscriptionRequest:
+      description: >
+        represents a request to create a group subscription.
+      type: object
+      required:
+        - subscriptions
+      properties:
+        subscription_id:
+          description: >
+            will be a subscription ID if the user is editing an existing group subscription.
+          allOf:
+            - $ref: 'models.yaml#/components/schemas/SubscriptionID'
+          x-go-name: SubscriptionID
+          x-oapi-codegen-extra-tags:
+            json: '-'
+            form: 'subscription_id'
+            validate: 'omitempty,startswith=sub_'
+        subscriptions:
+          description: >
+            contains details of the subscriptions in the group.
+          x-go-type: 'map[SubscriptionID]string'
+          x-oapi-codegen-extra-tags:
+            form: 'subscriptions'
+            validate: 'required'
+        customisation:
+          allOf:
+            - $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
+          x-oapi-codegen-extra-tags:
+            form: 'customisation'
+        settings:
+          allOf:
+            - $ref: 'models.yaml#/components/schemas/SubscriptionSettings'
+          x-oapi-codegen-extra-tags:
+            form: 'settings'
+        article_filters:
+          $ref: 'models.yaml#/components/schemas/SubscriptionArticleFilters'
+        suggestedCategories:
+          description: >
+            is a list of suggested categories for the subscription.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true
+        suggestedSubscriptions:
+          description: >
+            is a list of suggested subscriptions for the subscription.
+          x-go-type: 'Subscriptions'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true
+    AddSubscriptionToGroupRequest:
+      description: >
+        is a request to add a new subscription to a group subscription.
+      type: object
+      required:
+        - suggestion_text
+        - suggestions
+      properties:
+        suggestion_text:
+          description: >
+            is the name of the new subscription to add.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'suggestion_text'
+            validate: 'required'
+        suggestions:
+          description: >
+            is the subscription suggestions.
+          x-go-type: 'map[SubscriptionID]string'
+          x-oapi-codegen-extra-tags:
+            form: 'suggestions'
+        existing_subscriptions:
+          description: >
+            is the existing subscriptions in the group.
+          x-go-type: 'map[SubscriptionID]string'
+          x-oapi-codegen-extra-tags:
+            form: 'subscriptions'
+          x-go-type-skip-optional-pointer: true

@@ -656,23 +656,6 @@ type GroupSubscription struct {
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"required,dive,startswith=sub_"`
 }
 
-// GroupSubscriptionRequest represents a request to create a group subscription.
-type GroupSubscriptionRequest struct {
-	// ArticleFilters holds filters to apply to the articles within a subscription.
-	ArticleFilters *SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
-	Customisation  *SubscriptionCustomisation  `form:"customisation" json:"customisation,omitempty"`
-	Settings       *SubscriptionSettings       `form:"settings" json:"settings,omitempty"`
-
-	// SubscriptionID will be a subscription ID if the user is editing an existing group subscription.
-	SubscriptionID *SubscriptionID `form:"subscription_id" json:"-" validate:"omitempty,startswith=sub_"`
-
-	// Subscriptions contains details of the subscriptions in the group.
-	Subscriptions map[SubscriptionID]string `form:"subscriptions" json:"subscriptions" validate:"required"`
-
-	// SuggestedCategories is a list of suggested categories for the subscription.
-	SuggestedCategories []Category `form:"-" json:"-"`
-}
-
 // GroupSubscriptionSuggestionRequest contains details for suggesting a subscription to add to a group.
 type GroupSubscriptionSuggestionRequest struct {
 	// IgnoredSubscriptions contains subscriptions that can be ignored and not suggested.
@@ -1110,7 +1093,7 @@ type SearchSubscription struct {
 
 // SearchSubscriptionRequest represents a request to create a search subscription.
 type SearchSubscriptionRequest struct {
-	// Customisation contains object fields that can be customised (overridden) by a user
+	// Customisation contains object fields that can be customised (overridden) by a user.
 	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
 
 	// Search represents a search request by the user.
@@ -1154,7 +1137,7 @@ type Subscription struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
-	// Customisation contains object fields that can be customised (overridden) by a user
+	// Customisation contains object fields that can be customised (overridden) by a user.
 	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
 
 	// EmailData is a subscription to an email newsletter source.
@@ -1209,7 +1192,7 @@ type SubscriptionArticleFilters struct {
 	Text *string `form:"text" json:"text,omitempty"`
 }
 
-// SubscriptionCustomisation contains object fields that can be customised (overridden) by a user
+// SubscriptionCustomisation contains object fields that can be customised (overridden) by a user.
 type SubscriptionCustomisation struct {
 	// Categories is a custom list of categories for an object.
 	Categories []Category `form:"categories" json:"categories,omitempty" validate:"omitempty,unique"`
@@ -1229,7 +1212,7 @@ type SubscriptionMetadata struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
-	// Customisation contains object fields that can be customised (overridden) by a user
+	// Customisation contains object fields that can be customised (overridden) by a user.
 	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
 
 	// Favorite indicates whether this subscription has been marked as a favorite by the user.

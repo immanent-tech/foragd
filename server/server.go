@@ -230,7 +230,6 @@ func Start(logger *slog.Logger) error {
 			r.With(middlewares.RequireHTMX).Post("/save/{subscription_id}", handlers.HandleSaveSubscription())
 			// Group subscription management.
 			r.Route("/group", func(r chi.Router) {
-				r.With(middlewares.RequireHTMX).Post("/suggest", handlers.HandleSuggestSubscriptionForGroup())
 				r.With(middlewares.RequireHTMX).Post("/add", handlers.HandleAddSubscriptionToGroup())
 			})
 			// Search subscription management.

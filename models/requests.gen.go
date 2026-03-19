@@ -12,6 +12,18 @@ type AddSubscriptionCategoryRequest struct {
 	ExistingCategories []Category `form:"customisation.categories" json:"existing_categories,omitempty"`
 }
 
+// AddSubscriptionToGroupRequest is a request to add a new subscription to a group subscription.
+type AddSubscriptionToGroupRequest struct {
+	// ExistingSubscriptions is the existing subscriptions in the group.
+	ExistingSubscriptions map[SubscriptionID]string `form:"subscriptions" json:"existing_subscriptions,omitempty"`
+
+	// SuggestionText is the name of the new subscription to add.
+	SuggestionText string `form:"suggestion_text" json:"suggestion_text" validate:"required"`
+
+	// Suggestions is the subscription suggestions.
+	Suggestions map[SubscriptionID]string `form:"suggestions" json:"suggestions"`
+}
+
 // EditFeedSubscriptionRequest is the request details for editing a feed subscription.
 type EditFeedSubscriptionRequest struct {
 	// ArticleFilters holds filters to apply to the articles within a subscription.
@@ -26,12 +38,32 @@ type EditFeedSubscriptionRequest struct {
 	SuggestedCategories []Category `form:"-" json:"-"`
 }
 
+// GroupSubscriptionRequest represents a request to create a group subscription.
+type GroupSubscriptionRequest struct {
+	// ArticleFilters holds filters to apply to the articles within a subscription.
+	ArticleFilters *SubscriptionArticleFilters `form:"article_filters" json:"article_filters"`
+	Customisation  *SubscriptionCustomisation  `form:"customisation" json:"customisation,omitempty"`
+	Settings       *SubscriptionSettings       `form:"settings" json:"settings,omitempty"`
+
+	// SubscriptionID will be a subscription ID if the user is editing an existing group subscription.
+	SubscriptionID *SubscriptionID `form:"subscription_id" json:"-" validate:"omitempty,startswith=sub_"`
+
+	// Subscriptions contains details of the subscriptions in the group.
+	Subscriptions map[SubscriptionID]string `form:"subscriptions" json:"subscriptions" validate:"required"`
+
+	// SuggestedCategories is a list of suggested categories for the subscription.
+	SuggestedCategories []Category `form:"-" json:"-"`
+
+	// SuggestedSubscriptions is a list of suggested subscriptions for the subscription.
+	SuggestedSubscriptions Subscriptions `form:"-" json:"-"`
+}
+
 // NewFeedSubscriptionRequest is a request to add a new feed subscription.
 type NewFeedSubscriptionRequest struct {
 	// URL is the URL of the feed data.
 	URL string `form:"url" json:"URL" validate:"required,url"`
 
-	// Customisation contains object fields that can be customised (overridden) by a user
+	// Customisation contains object fields that can be customised (overridden) by a user.
 	Customisation *SubscriptionCustomisation `form:"customisation" json:"customisation,omitempty"`
 }
 

@@ -23,7 +23,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
-	"github.com/immanent-tech/go-syndication/sanitization"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
@@ -510,6 +509,21 @@ func HandleEditSubscription() http.HandlerFunc {
 				subscriptions.GetFeedIDs(),
 				subscriptions.GetCategories(),
 			)
+			// Get suggested suggested subscriptions.
+			suggestedSubscriptions, err := models.GetSubscriptions(req.Context())
+			if err != nil {
+				HandleInternalError(&models.APIError{
+					InternalError: fmt.Errorf("get subscriptions: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to edit group subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+				return
+			}
+			request.SuggestedSubscriptions = suggestedSubscriptions.FilterByType(models.SubscriptionTypeFeed)
+
 			// Generate page template.
 			template = templates.EditGroupSubscription(request)
 			pageTitle = "Editing " + request.Customisation.GetNickname()
@@ -580,7 +594,18 @@ func HandleSaveSubscription() http.HandlerFunc {
 				subscription.Settings = *request.Settings
 			}
 			if request.ArticleFilters != nil {
-				subscription.FeedData.ArticleFilters = request.ArticleFilters
+				if subscription.FeedData.ArticleFilters == nil {
+					subscription.FeedData.ArticleFilters = &models.SubscriptionArticleFilters{}
+				}
+				if request.ArticleFilters.Text != nil {
+					subscription.FeedData.ArticleFilters.Text = request.ArticleFilters.Text
+				}
+				if request.ArticleFilters.Authors != nil {
+					subscription.FeedData.ArticleFilters.Authors = request.ArticleFilters.Authors
+				}
+				if request.ArticleFilters.Categories != nil {
+					subscription.FeedData.ArticleFilters.Categories = request.ArticleFilters.Categories
+				}
 			}
 		case models.SubscriptionTypeSearch:
 			request, valid, err := forms.DecodeMultiPartForm[*models.SearchSubscriptionRequest](req)
@@ -619,9 +644,20 @@ func HandleSaveSubscription() http.HandlerFunc {
 				subscription.Settings = *request.Settings
 			}
 			subscription.GroupData.Subscriptions = slices.Collect(maps.Keys(request.Subscriptions))
-			subscription.GroupData.ArticleFilters.Text = request.ArticleFilters.Text
-			subscription.GroupData.ArticleFilters.Authors = request.ArticleFilters.Authors
-			subscription.GroupData.ArticleFilters.Categories = request.ArticleFilters.Categories
+			if request.ArticleFilters != nil {
+				if subscription.GroupData.ArticleFilters == nil {
+					subscription.GroupData.ArticleFilters = &models.SubscriptionArticleFilters{}
+				}
+				if request.ArticleFilters.Text != nil {
+					subscription.GroupData.ArticleFilters.Text = request.ArticleFilters.Text
+				}
+				if request.ArticleFilters.Authors != nil {
+					subscription.GroupData.ArticleFilters.Authors = request.ArticleFilters.Authors
+				}
+				if request.ArticleFilters.Categories != nil {
+					subscription.GroupData.ArticleFilters.Categories = request.ArticleFilters.Categories
+				}
+			}
 		case models.SubscriptionTypeEmail:
 			request, valid, err := forms.DecodeMultiPartForm[*models.EditEmailSubscriptionRequest](req)
 			if err != nil || !valid {
@@ -908,10 +944,27 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 			}
 			suggestedCategories := categoryCounts.Limit(10).GetCategories()
 
+			// Get suggested suggested subscriptions.
+			suggestedSubscriptions, err := models.GetSubscriptions(req.Context())
+			if err != nil {
+				HandleInternalError(&models.APIError{
+					InternalError: fmt.Errorf("get subscriptions: %w", err),
+					StatusCode:    http.StatusUnprocessableEntity,
+					UserMessage: models.NewErrorMessage(
+						"Unable to add group subscription",
+						"This might be a temporary issue, please try again.",
+					),
+				}).ServeHTTP(res, req)
+				return
+			}
+			suggestedSubscriptions = suggestedSubscriptions.FilterByType(models.SubscriptionTypeFeed)
+
 			RenderInternalPage(
 				&AddSubscription{
-					title:    "Add Group Subscription",
-					template: templates.AddGroupSubscription(models.NewGroupSubscriptionRequest(suggestedCategories)),
+					title: "Add Group Subscription",
+					template: templates.AddGroupSubscription(
+						models.NewGroupSubscriptionRequest(suggestedSubscriptions, suggestedCategories),
+					),
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:
@@ -975,48 +1028,45 @@ func HandleAddGroupSubscription() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-func HandleSuggestSubscriptionForGroup() http.HandlerFunc {
-	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		request, valid, err := forms.DecodeForm[*models.GroupSubscriptionSuggestionRequest](req)
-		if err != nil || !valid {
-			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
-		subscriptions, err := models.GetSubscriptionSuggestions(
-			req.Context(),
-			request.Text,
-			10,
-			models.IgnoreSubscriptions(
-				slices.Collect(maps.Keys(request.IgnoredSubscriptions))...,
-			))
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Could not suggest subscriptions.",
-				slog.Any("error", err),
-			)
-			res.WriteHeader(http.StatusNoContent)
-			return
-		}
-		RenderPartial(&PartialTemplate{
-			template: templates.GroupSubscriptionSuggestions(subscriptions),
-		}).ServeHTTP(res, req)
-	}).ServeHTTP
-}
-
 func HandleAddSubscriptionToGroup() http.HandlerFunc {
 	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscriptionID := sanitization.SanitizeString(req.FormValue("subscription_id"))
-		subscriptionName := sanitization.SanitizeString(req.FormValue("subscription_name"))
-		if subscriptionID == "" || subscriptionName == "" {
-			slogctx.FromCtx(req.Context()).Error("Invalid subscription details.")
-			res.WriteHeader(http.StatusNoContent)
+		// Parse add subscription to group request.
+		request, valid, err := forms.DecodeForm[*models.AddSubscriptionToGroupRequest](req)
+		if err != nil || !valid {
+			HandleInternalError(&models.APIError{
+				InternalError: fmt.Errorf("add subscription to group request: %w", err),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Unable to add subscription to group",
+					"This might be a temporary issue, please try again.",
+				),
+			}).ServeHTTP(res, req)
 			return
 		}
-		RenderPartial(&PartialTemplate{
-			template: templates.GroupSubscriptionAddSubscription(subscriptionID, subscriptionName),
-		}).ServeHTTP(res, req)
+		// Ignore request to add subscription that is already in the group.
+		if slices.Contains(slices.Collect(maps.Values(request.ExistingSubscriptions)), request.SuggestionText) {
+			HandleInternalError(&models.APIError{
+				InternalError: errors.New("subscription already in group"),
+				StatusCode:    http.StatusConflict,
+				UserMessage: models.NewWarningMessage(
+					"Not adding subscription",
+					"Already in group.",
+				),
+			}).ServeHTTP(res, req)
+			return
+		}
+		for subscriptionID, subscriptionName := range request.Suggestions {
+			if subscriptionName == request.SuggestionText {
+				RenderPartial(&PartialTemplate{
+					template: templates.GroupSubscriptionAddSubscription(
+						subscriptionID,
+						subscriptionName,
+					),
+				}).ServeHTTP(res, req)
+				return
+			}
+		}
+		res.WriteHeader(http.StatusNoContent)
 	}).ServeHTTP
 }
 

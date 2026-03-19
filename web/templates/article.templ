@@ -696,8 +696,9 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										// Edit subscription action.
 										<li>
 											<a
-												hx-get={ "/edit/subscription/" + response.Subscription.GetID() }
+												hx-get={ "/subscription/edit/" + response.Subscription.GetID() }
 												hx-target={ ContentID.Target() }
+												hx-params="not subscription_id"
 												role="menuitem"
 												tabindex="-1"
 											>

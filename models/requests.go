@@ -77,3 +77,44 @@ func (s *EditFeedSubscriptionRequest) Sanitise() error {
 	}
 	return nil
 }
+
+func NewGroupSubscriptionRequest(
+	suggestedSubscriptions Subscriptions,
+	suggestedCategories []Category,
+) *GroupSubscriptionRequest {
+	return &GroupSubscriptionRequest{
+		Customisation:          &SubscriptionCustomisation{},
+		Settings:               newSubscriptionSettings(),
+		SuggestedSubscriptions: suggestedSubscriptions,
+		SuggestedCategories:    suggestedCategories,
+	}
+}
+
+func (r *GroupSubscriptionRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("group subscription error: %w", err)
+	}
+	return nil
+}
+
+func (r *GroupSubscriptionRequest) Sanitise() error {
+	if r.Customisation != nil {
+		r.Customisation.Sanitise()
+	}
+	if r.ArticleFilters != nil {
+		r.ArticleFilters.Sanitise()
+	}
+	return nil
+}
+
+func (r *AddSubscriptionToGroupRequest) Valid() error {
+	if err := validation.Validate.Struct(r); err != nil {
+		return fmt.Errorf("add subscription to group error: %w", err)
+	}
+	return nil
+}
+
+func (r *AddSubscriptionToGroupRequest) Sanitise() error {
+	r.SuggestionText = sanitization.SanitizeString(r.SuggestionText)
+	return nil
+}

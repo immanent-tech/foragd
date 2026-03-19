@@ -9,26 +9,6 @@ import (
 	"github.com/immanent-tech/foragd/validation"
 )
 
-func NewGroupSubscriptionRequest(suggestedCategories []Category) *GroupSubscriptionRequest {
-	return &GroupSubscriptionRequest{
-		Customisation:       &SubscriptionCustomisation{},
-		Settings:            newSubscriptionSettings(),
-		SuggestedCategories: suggestedCategories,
-	}
-}
-
-func (r *GroupSubscriptionRequest) Valid() error {
-	if err := validation.Validate.Struct(r); err != nil {
-		return fmt.Errorf("group subscription error: %w", err)
-	}
-	return nil
-}
-
-func (r *GroupSubscriptionRequest) Sanitise() error {
-	r.Customisation.Sanitise()
-	return nil
-}
-
 func (r *GroupSubscriptionSuggestionRequest) Valid() error {
 	if err := validation.Validate.Struct(r); err != nil {
 		return fmt.Errorf("subscription suggestion request is invalid: %w", err)
