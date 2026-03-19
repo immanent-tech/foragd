@@ -11,6 +11,26 @@ info:
     name: Immanent Tech
 components:
   schemas:
+    APIError:
+      description: >
+        represents an error returned from any API within the service/application.
+      type: object
+      required:
+        - status_code
+      properties:
+        internal_error:
+          description: >
+            is the low-level, internal error.
+          x-go-type: error
+          x-go-type-skip-optional-pointer: true
+          x-omit-zero: true
+        status_code:
+          description: >
+            is the status code associated with the error. Usually, this is a HTTP status code.
+          type: integer
+        user_message:
+          $ref: 'models.yaml#/components/schemas/UserMessage'
+      additionalProperties: true
     AddCategoryToSubscriptionRequest:
       description: >
         is a request to add a new category to a subscription.

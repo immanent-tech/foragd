@@ -32,7 +32,7 @@ var (
 	}
 )
 
-func (e *APIError) Error() string { return e.InternalError.Error() }
+func (e *APIError) Error() string { return e.UserMessage.String() }
 func (e *APIError) Unwrap() error { return e.InternalError }
 
 // HTTPStatus returns the status code of the API error.
@@ -77,11 +77,10 @@ func HTTPStatus(err error) int {
 	if err == nil {
 		return 0
 	}
-	var apiErr interface {
-		error
+	if apiErr, ok := errors.AsType[interface {
 		HTTPStatus() int
-	}
-	if errors.As(err, &apiErr) {
+		error
+	}](err); ok {
 		return apiErr.HTTPStatus()
 	}
 	return http.StatusInternalServerError
@@ -91,8 +90,7 @@ func HTTPStatus(err error) int {
 // containing its pertinent information. If the given error does not contain types.ElasticsearchError, the given error
 // is wrapped in a generic APIError is created.
 func ElasticsearchToAPIError(err error) error {
-	var esErr *types.ElasticsearchError
-	if errors.As(err, &esErr) {
+	if esErr, ok := errors.AsType[*types.ElasticsearchError](err); ok {
 		var str strings.Builder
 
 		str.WriteString(*esErr.ErrorCause.Reason)

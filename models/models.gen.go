@@ -275,18 +275,6 @@ func (e View) Valid() bool {
 	}
 }
 
-// APIError represents an error returned from any API within the service/application.
-type APIError struct {
-	// InternalError is the low-level, internal error.
-	InternalError error `json:"internal_error,omitempty"`
-
-	// StatusCode is the status code associated with the error. Usually, this is a HTTP status code.
-	StatusCode int `json:"status_code"`
-
-	// UserMessage represents a message that can be displayed to the user as the result of an action.
-	UserMessage *UserMessage `json:"user_message,omitempty"`
-}
-
 // AddFeedsetRequest is a request from a user to add one or more feed sets as subscriptions.
 type AddFeedsetRequest struct {
 	Feedset []string `form:"feedset,unique" json:"feedset,omitempty"`
