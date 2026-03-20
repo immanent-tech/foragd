@@ -5,26 +5,19 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"slices"
 )
 
 templ PostsIndex(posts []*models.MarkdownFile) {
 	@content() {
-		@container() {
-			<div class="mx-auto max-w-2xl lg:mx-0">
-				@partials.Heading2() {
-					Posts
-				}
-				@partials.Paragraph() {
-					Posts from the Foragd team.
-				}
-			</div>
-			<div class="mt-8">
-				@grid(
-					element.WithClasses("place-items-start sm:min-h-svh"),
-				) {
+		<main class="py-24 sm:pt-12 sm:pb-32">
+			@container() {
+				<div class="mx-auto max-w-2xl lg:mx-0">
+					<h1>From the blog</h1>
+					<p class="sub-heading">Posts from the makers of Foragd.</p>
+				</div>
+				<div class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-base-300 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3">
 					for post := range slices.Values(posts) {
 						<a href={ "/posts/" + post.Details.Path }>
 							<article class="card card-border bg-base-200 max-w-prose h-fit cursor-pointer touch-manipulation">
@@ -50,10 +43,10 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 							</article>
 						</a>
 					}
-				}
-			</div>
+				</div>
+			}
 			@partials.ButtonBackToTop()
-		}
+		</main>
 	}
 }
 
