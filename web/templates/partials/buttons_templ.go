@@ -12,8 +12,6 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/sebasvil20/templicons/tabler"
-
 // ButtonBackToTop adds a "back to top" button that is only shown when the user has scrolled down the page.
 func ButtonBackToTop() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -36,15 +34,7 @@ func ButtonBackToTop() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button class=\"btn btn-circle btn-secondary hidden fixed bottom-20 right-5 lg:bottom-10 sm:right-10\" _=\"\n\t\ton scroll from window queue last\n  \t\t\tif the window's pageYOffset is greater than 20\n    \t\t\tremove .hidden\n  \t\t\totherwise\n    \t\t\tadd .hidden\n\t\tend\n\t\ton click go to the top of the body smoothly\n\t\t\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.ArrowUp().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button class=\"btn fixed right-5 bottom-20 hidden btn-circle btn-secondary sm:right-10 lg:bottom-10\" _=\"\n\t\ton scroll from window queue last\n  \t\t\tif the window's pageYOffset is greater than 20\n    \t\t\tremove .hidden\n  \t\t\totherwise\n    \t\t\tadd .hidden\n\t\tend\n\t\ton click go to the top of the body smoothly\n\t\t\" aria-label=\"Scroll to top\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-arrow-up\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M18 11l-6 -6\"></path><path d=\"M6 11l6 -6\"></path></svg></button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -74,7 +64,7 @@ func ButtonBack() templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<button type=\"button\" class=\"btn btn-secondary hover:btn-error\" _=\"on click call history.back()\">Back</button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button type=\"button\" class=\"btn btn-secondary hover:btn-error\" _=\"on click call history.back()\">Back</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

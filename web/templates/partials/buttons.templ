@@ -3,12 +3,10 @@
 
 package partials
 
-import "github.com/sebasvil20/templicons/tabler"
-
 // ButtonBackToTop adds a "back to top" button that is only shown when the user has scrolled down the page.
 templ ButtonBackToTop() {
 	<button
-		class="btn btn-circle btn-secondary hidden fixed bottom-20 right-5 lg:bottom-10 sm:right-10"
+		class="btn fixed right-5 bottom-20 hidden btn-circle btn-secondary sm:right-10 lg:bottom-10"
 		_="
 		on scroll from window queue last
   			if the window's pageYOffset is greater than 20
@@ -18,8 +16,11 @@ templ ButtonBackToTop() {
 		end
 		on click go to the top of the body smoothly
 		"
+		aria-label="Scroll to top"
 	>
-		@tabler.ArrowUp()
+		<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-up" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M18 11l-6 -6"></path><path d="M6 11l6 -6"></path>
+		</svg>
 	</button>
 }
 
