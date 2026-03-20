@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.83.1](https://github.com/immanent-tech/foragd/compare/v0.83.0...v0.83.1) (2026-03-20)
+
+
+### Bug Fixes
+
+* **templates:** :bug: correct merging of existing with new attributes in element WithAttributes option ([321c5a0](https://github.com/immanent-tech/foragd/commit/321c5a07476d456e3fa7c04e918be76abd3923b0))
+* **templates:** :bug: improve navigation accessibility for cards ([a9bb379](https://github.com/immanent-tech/foragd/commit/a9bb379371d65357303923fe3861bf76579e0a38))
+* **templates/header:** :bug: user avatar should be loaded eagerly ([cb3c047](https://github.com/immanent-tech/foragd/commit/cb3c047bc78fcf12303bdd8e04803f91b06c3a60))
+* **templates/home:** :bug: fix width of recently updated subscriptions cards ([7a859d1](https://github.com/immanent-tech/foragd/commit/7a859d1ccac336d12068d54c5884d9eafd192fb9))
+* **templates/partials:** :bug: don't override existing attributes when setting reasonable defaults for proxied images ([cc67347](https://github.com/immanent-tech/foragd/commit/cc67347c8d3aa63d6b098a24d2c89d7b3c4971bd))
+
+
+### Performance Improvements
+
+* **templates:** :zap: user `content-visibility: auto` on home page and subscription/article lists ([c1329c4](https://github.com/immanent-tech/foragd/commit/c1329c452440360e00660e04d499fb75d825f268))
+
 ## [0.83.0](https://github.com/immanent-tech/foragd/compare/v0.82.4...v0.83.0) (2026-03-20)
 
 
