@@ -9,17 +9,40 @@ import (
 	"path/filepath"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/pkg/formats/markdown"
 	"github.com/immanent-tech/foragd/web"
 	"github.com/immanent-tech/foragd/web/templates"
 )
 
+type Help struct {
+	template templ.Component
+}
+
+// FullResponse renders a full page (headers, footers and list of subscriptions).
+func (p *Help) FullResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(
+		templates.CreatePage(p.template,
+			templates.WithPageTitle("Documentation"),
+		)).ServeHTTP(res, req)
+}
+
+// PartialResponse will either render the list of subscriptions, the controls and update the title/dock/sidebar or, when
+// paginating, just the list of subscriptions.
+func (p *Help) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set(htmx.HeaderPushURL, req.URL.String())
+	templ.Handler(p.template, templ.WithFragments(templates.ContentFragment)).ServeHTTP(res, req)
+	templ.Handler(templates.UpdateTitle("Documentation")).ServeHTTP(res, req)
+	templ.Handler(templates.SideBar(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+	templ.Handler(templates.Dock(templ.Attributes{"hx-swap-oob": "true"})).ServeHTTP(res, req)
+}
+
 // DocumentationHandler handles serving Markdown documents for help/documentation from directory in the embedded fs.
 func DocumentationHandler() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// doc := chi.URLParam(req, "*")
 		// Check, if the requested file is existing.
 		contents, err := web.DocsFS.ReadFile(filepath.Join("assets", "docs", "help", "index.md"))
 		if err != nil {
@@ -31,17 +54,7 @@ func DocumentationHandler() http.HandlerFunc {
 		}
 		res.Header().Set("Cache-Control", "public, max-age=604800, s-maxage=43200")
 
-		// mdw := loadMarkdownWriter()
-
-		// docsBuf, ok := bufPool.Get().(*bytes.Buffer)
-		// if !ok {
-		// 	res.WriteHeader(http.StatusInternalServerError)
-		// 	slogctx.FromCtx(req.Context()).Error("Could not write docs.")
-		// 	return
-		// }
-		// docsBuf.Reset()
-		// defer bufPool.Put(docsBuf)
-
+		// Render help documentation.
 		mdHTML, err := markdown.ToHTML(contents)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Could not convert docs markdown.",
@@ -50,11 +63,14 @@ func DocumentationHandler() http.HandlerFunc {
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		page := &Help{
+			template: templates.Document(mdHTML),
+		}
 
-		template := templates.CreatePage(
-			templates.Document(mdHTML),
-			templates.WithPageTitle("Documentation"),
-		)
-		templ.Handler(template).ServeHTTP(res, req)
+		if user := models.UserFromCtx(req.Context()); user != nil {
+			RenderInternalPage(page).ServeHTTP(res, req)
+			return
+		}
+		RenderExternalPage(page).ServeHTTP(res, req)
 	}
 }
