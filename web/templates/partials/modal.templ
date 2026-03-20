@@ -3,11 +3,7 @@
 
 package partials
 
-import (
-	"github.com/immanent-tech/foragd/models"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
-)
+import "github.com/immanent-tech/foragd/models"
 
 // ModalContainerID points to an element that holds a modal.
 const ModalContainerID = models.ElementID("modals")
@@ -35,7 +31,9 @@ templ Modal(id string, open bool) {
 							class="rounded-md hover:text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-hidden"
 						>
 							<span class="sr-only">Close</span>
-							@tabler.X(i.Props{Class: "size-6"})
+							<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-6" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+							</svg>
 						</button>
 					</div>
 					{ children... }
