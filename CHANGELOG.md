@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.83.0](https://github.com/immanent-tech/foragd/compare/v0.82.4...v0.83.0) (2026-03-20)
+
+
+### Features
+
+* **assets:** :lipstick: add default heading styles ([9c4b72f](https://github.com/immanent-tech/foragd/commit/9c4b72f6600aa2c199b04ba75015e9c4d40ba0e6))
+* **models:** :sparkles: allow APIError to support additionalProperties ([6c90db2](https://github.com/immanent-tech/foragd/commit/6c90db238b91100bb445587a7bf6929e39231fb8))
+* **templates/articles:** :sparkles: nicer transition when showing full content ([a809e81](https://github.com/immanent-tech/foragd/commit/a809e815ac21dcec461bd15325f600876a3b5f2a))
+* **templates/favorites:** :sparkles: favorites page tweaks ([e3e3e2e](https://github.com/immanent-tech/foragd/commit/e3e3e2ea1395d15d496314f28af1e5a76c959aca))
+* **templates/home:** :sparkles: improved home page ([f9bd268](https://github.com/immanent-tech/foragd/commit/f9bd268d2530418a9f9b5f0f3a9a89d5a85d510d))
+* **templates/home:** :sparkles: more home page tweaks ([9b01f01](https://github.com/immanent-tech/foragd/commit/9b01f01f9268c7c24b5752559d2a244aa857874c))
+* **templates/posts:** :lipstick: improved posts page layout ([adbeb1f](https://github.com/immanent-tech/foragd/commit/adbeb1f811d23968d15e68446c4b395224720283))
+
+
+### Bug Fixes
+
+* :bug: correct validation ([87f4def](https://github.com/immanent-tech/foragd/commit/87f4def1b7ade28c886aaf5f7fe4bc3b1008d59a))
+* :bug: when saving display settings, also ensure current theme is saved ([684e8d2](https://github.com/immanent-tech/foragd/commit/684e8d232c691db758f7fe67050cceb4c2624914))
+* **models:** :bug: if item content/description is HTML, try to sanitize it so it is well-formed ([e084418](https://github.com/immanent-tech/foragd/commit/e0844186453b5b860904eece7d3592bf546c210a))
+* **templates:** :bug: allow hitting enter key after selected a suggestion trigger adding the category/subscription suggestion without submitting the entire form ([e876087](https://github.com/immanent-tech/foragd/commit/e8760879362148592cab10247c75c688dcdf03a7))
+* **templates:** :bug: fix header alignment ([88be211](https://github.com/immanent-tech/foragd/commit/88be2111b215e298e9fb1f149a2c1c66386b58c2))
+
 ## [0.82.4](https://github.com/immanent-tech/foragd/compare/v0.82.3...v0.82.4) (2026-03-19)
 
 
