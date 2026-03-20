@@ -118,6 +118,8 @@ templ (s *Subscription) Card() {
 		class="card mx-auto h-full w-full max-w-prose cursor-pointer touch-manipulation bg-base-200 shadow-md"
 		{ s.ViewArticlesAttributes()... }
 		hx-disinherit="*"
+		tabindex="0"
+		role="button"
 	>
 		// Hidden input used for acting on all displayed subscriptions.
 		<input type="hidden" name="displayed_subscriptions" value={ s.GetID() }/>

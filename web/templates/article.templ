@@ -52,6 +52,8 @@ templ (a *Article) Card() {
 		hx-trigger="click"
 		hx-push-url="true"
 		hx-disinherit="*"
+		tabindex="0"
+		role="button"
 		id={ a.GetID() }
 		class={
 			"card bg-base-200 h-full w-full max-w-prose shadow-md cursor-pointer touch-manipulation",
