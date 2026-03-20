@@ -47,13 +47,13 @@ templ UserHome(data *models.HomeResponse) {
 									<h2 id="section-latest-articles">Latest Articles</h2>
 									<div>
 										// Grid of latest articles on large displays.
-										<div class="hidden sm:inline-grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8">
+										<div class="hidden sm:inline-grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 content-auto">
 											for article := range slices.Values(data.LatestArticles) {
 												@NewArticleView(article).Card()
 											}
 										</div>
 										// Carousel of latest articles on small displays.
-										<div class="sm:hidden carousel carousel-center w-full space-x-4 p-4">
+										<div class="sm:hidden carousel carousel-center w-full space-x-4 p-4 content-auto">
 											for idx, article := range data.LatestArticles {
 												<div id={ "article" + strconv.Itoa(idx+1) } class="carousel-item max-w-9/10">
 													@NewArticleView(article).Card()

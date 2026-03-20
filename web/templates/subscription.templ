@@ -439,7 +439,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				}
 				<section class="mt-4">
 					if len(response.Subscriptions) > 0 {
-						@grid() {
+						@grid(element.WithClasses("content-auto")) {
 							@templ.Fragment(PaginateFragment) {
 								for subscription := range slices.Values(response.Subscriptions) {
 									@NewSubscriptionView(subscription).Card()

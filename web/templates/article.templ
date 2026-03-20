@@ -711,7 +711,10 @@ templ ListArticles(response *models.ListArticlesResponse) {
 				</div>
 				<section class="mt-4">
 					if len(response.Articles) > 0 {
-						@grid(element.WithAttribute("hx-indicator", "")) {
+						@grid(
+							element.WithAttribute("hx-indicator", ""),
+							element.WithClasses("content-auto"),
+						) {
 							@templ.Fragment(PaginateFragment) {
 								for article := range slices.Values(response.Articles) {
 									@NewArticleView(article).Card()

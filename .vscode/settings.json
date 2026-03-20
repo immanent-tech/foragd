@@ -79,7 +79,10 @@
     "templates/subscriptions",
     "templates/search",
     "providers/google",
-    "templates/home"
+    "templates/home",
+    "templates/posts",
+    "templates/favorites",
+    "templates/header"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
