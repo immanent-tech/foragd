@@ -5,7 +5,6 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
 
@@ -33,9 +32,9 @@ templ header(user *models.User) {
 					<div class="flex lg:hidden">
 						<button type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5">
 							<span class="sr-only">Open main menu</span>
-							<span aria-hidden="true">
-								@tabler.Menu2(i.Props{Class: "text-primary"})
-							</span>
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 text-primary">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
+							</svg>
 						</button>
 					</div>
 					<div class="hidden lg:flex lg:gap-x-12">
@@ -117,7 +116,9 @@ templ header(user *models.User) {
 						<el-dropdown id="header-user-menu" class="relative">
 							<button class="btn-square btn-ghost">
 								<span class="sr-only">Open settings menu</span>
-								@UserAvatar(user, nil)
+								@UserAvatar(user, templ.Attributes{
+									"loading": "eager",
+								})
 							</button>
 							<el-menu id="header-menu" anchor="bottom end" popover>
 								<ul class="menu">
