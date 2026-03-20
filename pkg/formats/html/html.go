@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"sync"
 
 	"codeberg.org/readeck/go-readability/v2"
 	"github.com/immanent-tech/go-syndication/client"
@@ -283,12 +284,12 @@ func FindMainImage(page []byte, rawURL string) (string, error) {
 		return "", fmt.Errorf("parse url: %w", err)
 	}
 
-	buf, err := html.Parse(bytes.NewReader(page))
+	node, err := html.Parse(bytes.NewReader(page))
 	if err != nil {
 		return "", fmt.Errorf("parse html: %w", err)
 	}
 	// Parse using readability to find main content details.
-	rdData, err := readability.FromDocument(buf, pageURL)
+	rdData, err := readability.FromDocument(node, pageURL)
 	if err != nil {
 		return "", fmt.Errorf("find image: %w", err)
 	}
@@ -296,4 +297,34 @@ func FindMainImage(page []byte, rawURL string) (string, error) {
 		return "", errors.New("no main image found")
 	}
 	return rdData.ImageURL(), nil
+}
+
+// SanitizeHTMLString will parse and re-render the given string containing HTML. In doing so, the HTML is hopefully
+// sanitized and reformatted to be well-formed HTML.
+func SanitizeHTMLString(rawStr string) (string, error) {
+	rawHTML, err := html.Parse(strings.NewReader(rawStr))
+	if err != nil {
+		return "", fmt.Errorf("unable to parse data as HTML: %w", err)
+	}
+
+	buf, ok := bufPool.Get().(*bytes.Buffer)
+	if !ok {
+		return "", errors.New("unable to retrieve buffer")
+	}
+	defer func() {
+		buf.Reset()
+		defer bufPool.Put(buf)
+	}()
+
+	if err := html.Render(buf, rawHTML); err != nil {
+		return "", fmt.Errorf("cannot write sanitized HTML: %w", err)
+	}
+
+	return buf.String(), nil
+}
+
+var bufPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
 }

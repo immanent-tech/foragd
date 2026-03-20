@@ -289,7 +289,11 @@ func (i *Item) GetDescription() string {
 	if i.Description != nil {
 		switch {
 		case html.IsHTML(*i.Description):
-			return *i.Description
+			sanitizedDesc, err := html.SanitizeHTMLString(*i.Description)
+			if err != nil {
+				return ""
+			}
+			return sanitizedDesc
 		default:
 			if formatted, err := markdown.ToHTML([]byte(*i.Description)); err != nil {
 				return *i.Description
@@ -334,7 +338,20 @@ func (i *Item) GetRights() string {
 
 // GetContent returns the full item content, if set.
 func (i *Item) GetContent() string {
-	return i.Content
+	switch {
+	case html.IsHTML(i.Content):
+		sanitizedDesc, err := html.SanitizeHTMLString(i.Content)
+		if err != nil {
+			return ""
+		}
+		return sanitizedDesc
+	default:
+		if formatted, err := markdown.ToHTML([]byte(i.Content)); err != nil {
+			return i.Content
+		} else {
+			return string(formatted)
+		}
+	}
 }
 
 // GetTimestamp returns a timestamp indicating when the item was last updated. This will be either, the updated
