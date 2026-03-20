@@ -54,8 +54,12 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.O
 		for option := range slices.Values(options) {
 			option(elem.Element)
 		}
-		elem.SetAttribute("loading", "lazy")
-		elem.SetAttribute("decoding", "async")
+		if !elem.HasAttribute("loading") {
+			elem.SetAttribute("loading", "lazy")
+		}
+		if !elem.HasAttribute("decoding") {
+			elem.SetAttribute("decoding", "async")
+		}
 		var templ_7745c5c3_Var2 = []any{templ.KV(elem.GetClasses(), elem.GetClasses() != "")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
@@ -73,7 +77,7 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.O
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(elem.GetID())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 32, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 37, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -91,7 +95,7 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.O
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(GenerateImageProxyURL(ctx, img.GetURL(), props))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 34, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 39, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -104,7 +108,7 @@ func NewProxiedImage(img *models.RemoteImage, props string, options ...element.O
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(img.GetTitle())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 35, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 40, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -247,7 +251,7 @@ func Thumbnail(img *models.RemoteImage, name string, size string) templ.Componen
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(name[0:1])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 98, Col: 50}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 103, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {

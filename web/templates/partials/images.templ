@@ -25,8 +25,13 @@ templ NewProxiedImage(img *models.RemoteImage, props string, options ...element.
 	for option := range slices.Values(options) {
 		{{ option(elem.Element) }}
 	}
-	{{ elem.SetAttribute("loading", "lazy") }}
-	{{ elem.SetAttribute("decoding", "async") }}
+	// Set some reasonable defaults for important attributes.
+	if !elem.HasAttribute("loading") {
+		{{ elem.SetAttribute("loading", "lazy") }}
+	}
+	if !elem.HasAttribute("decoding") {
+		{{ elem.SetAttribute("decoding", "async") }}
+	}
 	<img
 		if elem.GetID() != "" {
 			id={ elem.GetID() }
