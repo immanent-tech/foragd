@@ -763,7 +763,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "        <div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h1>Subscriptions</h1></div><div class=\"mt-4 flex space-x-4 md:mt-0 md:ml-4\"><span class=\"text-lg font-medium capitalize\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "        <div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h1>Subscriptions</h1></div><div class=\"mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4\"><span class=\"text-lg font-medium capitalize\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

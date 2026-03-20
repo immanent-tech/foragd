@@ -338,7 +338,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					<div class="min-w-0 flex-1">
 						<h1>Subscriptions</h1>
 					</div>
-					<div class="mt-4 flex space-x-4 md:mt-0 md:ml-4">
+					<div class="mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
 					</div>
