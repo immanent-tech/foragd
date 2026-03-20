@@ -40,6 +40,15 @@ func (e *Element) SetID(id string) {
 	e.ID = models.ElementID(id)
 }
 
+func (e *Element) GetAttribute(key string) any {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if value, ok := e.Attributes[key]; ok {
+		return value
+	}
+	return nil
+}
+
 func (e *Element) SetAttribute(key string, value any) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -49,7 +58,7 @@ func (e *Element) SetAttribute(key string, value any) {
 func (e *Element) MergeAttributes(attributes templ.Attributes) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	maps.Copy(attributes, e.Attributes)
+	maps.Copy(e.Attributes, attributes)
 }
 
 func (e *Element) HasAttribute(key string) bool {
