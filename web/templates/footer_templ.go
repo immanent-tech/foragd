@@ -12,10 +12,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import (
-	"github.com/sebasvil20/templicons/tabler"
-	"time"
-)
+import "time"
 
 func footer() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -38,28 +35,20 @@ func footer() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<footer class=\"footer sm:footer-horizontal bg-base-200 text-base-content p-10\"><nav><h3 class=\"footer-title\">App</h3><a href=\"/about\" class=\"link link-hover\">About</a> <a href=\"/blog\" class=\"link link-hover\">Blog</a> <a href=\"/viewer\" class=\"link link-hover\">Feed Viewer</a> <a href=\"/help\" class=\"link link-hover\">Help/Documentation</a> <a href=\"https://github.com/immanent-tech/foragd/security\" class=\"link link-hover\">Report Security Issues</a></nav><nav><h3 class=\"footer-title\">Policies</h3><a href=\"/policies/tos\" class=\"link link-hover\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover\">Acceptable Use</a> <a href=\"/policies/privacy\" class=\"link link-hover\">Privacy Policy</a></nav><nav><h3 class=\"footer-title\">Connect</h3><a href=\"https://github.com/immanent-tech/foragd\" class=\"link link-hover flex items-center\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-brand-github\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5\"></path></svg> <span>Github</span></a> <a href=\"mailto:hello@immanent.tech\" class=\"link link-hover flex items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Mail().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<span>Email us</span></a></nav></footer><footer class=\"footer bg-base-200 text-base-content pt-4 pb-safe-or-4\"><aside class=\"mx-auto text-center\"><p>Copyright © ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<footer class=\"footer bg-base-200 p-10 text-base-content sm:footer-horizontal\"><nav><h3 class=\"footer-title\">App</h3><a href=\"/about\" class=\"link link-hover\">About</a> <a href=\"/blog\" class=\"link link-hover\">Blog</a> <a href=\"/viewer\" class=\"link link-hover\">Feed Viewer</a> <a href=\"/help\" class=\"link link-hover\">Help/Documentation</a> <a href=\"https://github.com/immanent-tech/foragd/security\" class=\"link link-hover\">Report Security Issues</a></nav><nav><h3 class=\"footer-title\">Policies</h3><a href=\"/policies/tos\" class=\"link link-hover\">Terms of Service</a> <a href=\"/policies/acceptable-use\" class=\"link link-hover\">Acceptable Use</a> <a href=\"/policies/privacy\" class=\"link link-hover\">Privacy Policy</a></nav><nav><h3 class=\"footer-title\">Connect</h3><a href=\"https://github.com/immanent-tech/foragd\" class=\"flex link items-center link-hover\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-brand-github\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5\"></path></svg> <span>Github</span></a> <a href=\"mailto:hello@immanent.tech\" class=\"flex link items-center link-hover\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-send-2\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M4.698 4.034l16.302 7.966l-16.302 7.966a.503 .503 0 0 1 -.546 -.124a.555 .555 0 0 1 -.12 -.568l2.468 -7.274l-2.468 -7.274a.555 .555 0 0 1 .12 -.568a.503 .503 0 0 1 .546 -.124\"></path><path d=\"M6.5 12h14.5\"></path></svg> <span>Email us</span></a></nav></footer><footer class=\"footer bg-base-200 pt-4 pb-safe-or-4 text-base-content\"><aside class=\"mx-auto text-center\"><p>Copyright © ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("2006"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/footer.templ`, Line: 41, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/footer.templ`, Line: 42, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " - <a class=\"link\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></aside></footer>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " - <a class=\"link\" href=\"https://immanent.tech\">Immanent Tech.</a> All rights reserved.</p></aside></footer>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

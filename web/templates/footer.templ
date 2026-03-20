@@ -3,13 +3,10 @@
 
 package templates
 
-import (
-	"github.com/sebasvil20/templicons/tabler"
-	"time"
-)
+import "time"
 
 templ footer() {
-	<footer class="footer sm:footer-horizontal bg-base-200 text-base-content p-10">
+	<footer class="footer bg-base-200 p-10 text-base-content sm:footer-horizontal">
 		<nav>
 			<h3 class="footer-title">App</h3>
 			<a href="/about" class="link link-hover">About</a>
@@ -26,17 +23,21 @@ templ footer() {
 		</nav>
 		<nav>
 			<h3 class="footer-title">Connect</h3>
-			<a href="https://github.com/immanent-tech/foragd" class="link link-hover flex items-center">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-github"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"></path></svg>
+			<a href="https://github.com/immanent-tech/foragd" class="flex link items-center link-hover">
+				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-brand-github" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"></path>
+				</svg>
 				<span>Github</span>
 			</a>
-			<a href="mailto:hello@immanent.tech" class="link link-hover flex items-center">
-				@tabler.Mail()
+			<a href="mailto:hello@immanent.tech" class="flex link items-center link-hover">
+				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-send-2" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4.698 4.034l16.302 7.966l-16.302 7.966a.503 .503 0 0 1 -.546 -.124a.555 .555 0 0 1 -.12 -.568l2.468 -7.274l-2.468 -7.274a.555 .555 0 0 1 .12 -.568a.503 .503 0 0 1 .546 -.124"></path><path d="M6.5 12h14.5"></path>
+				</svg>
 				<span>Email us</span>
 			</a>
 		</nav>
 	</footer>
-	<footer class="footer bg-base-200 text-base-content pt-4 pb-safe-or-4">
+	<footer class="footer bg-base-200 pt-4 pb-safe-or-4 text-base-content">
 		<aside class="mx-auto text-center">
 			<p>Copyright © { time.Now().Format("2006") } - <a class="link" href="https://immanent.tech">Immanent Tech.</a> All rights reserved.</p>
 		</aside>
