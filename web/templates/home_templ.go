@@ -111,7 +111,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"grid grid-cols-1 items-start gap-4 lg:grid-cols-3 lg:gap-8\"><div class=\"grid grid-cols-1 gap-4 lg:col-span-2\"><section aria-labelledby=\"section-latest-articles\"><h2 id=\"section-latest-articles\">Latest Articles</h2><div><div class=\"hidden sm:inline-grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 content-auto\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"grid grid-cols-1 items-start gap-4 lg:grid-cols-3 lg:gap-8\"><div class=\"grid grid-cols-1 gap-4 lg:col-span-2\"><section aria-labelledby=\"section-latest-articles\"><h2 id=\"section-latest-articles\">Latest Articles</h2><div><div class=\"hidden grid-cols-1 place-items-center gap-4 content-auto sm:inline-grid sm:grid-cols-2 sm:gap-8\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -121,7 +121,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"sm:hidden carousel carousel-center w-full space-x-4 p-4 content-auto\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div class=\"carousel w-full carousel-center space-x-4 p-4 content-auto sm:hidden\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -157,7 +157,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 							return templ_7745c5c3_Err
 						}
 						if len(data.Subscriptions) > 0 {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<section aria-labelledby=\"section-last-updated-subscriptions\"><h2 id=\"section-last-updated-subscriptions\">Last Updated Subscriptions</h2><div class=\"inline-grid grid-cols-1 grid-flow-row gap-y-4 px-4 py-6 sm:px-6 lg:px-8\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<section aria-labelledby=\"section-last-updated-subscriptions\"><h2 id=\"section-last-updated-subscriptions\">Last Updated Subscriptions</h2><div class=\"inline-grid w-full grid-flow-row grid-cols-1 gap-y-4 px-4 py-6 sm:px-6 lg:px-8\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -165,7 +165,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								if idx >= 6 {
 									break
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " <div class=\"card mx-auto h-fit w-full max-w-prose bg-base-200 shadow-md card-sm cursor-pointer\"")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, " <div class=\"card mx-auto h-fit w-full max-w-prose cursor-pointer bg-base-200 shadow-md card-sm\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -194,7 +194,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 										return templ_7745c5c3_Err
 									}
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><div class=\"text-pretty line-clamp-3 tracking-tight\">")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div><div class=\"line-clamp-3 tracking-tight text-pretty\">")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -207,7 +207,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div></div><div class=\"card-actions mt-auto items-center\"><div class=\"flex flex-1 gap-x-2\"><span class=\"label text-xs/4 capitalize\">Updated&nbsp; <relative-time datetime=\"")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div></div><div class=\"mt-auto card-actions items-center\"><div class=\"flex flex-1 gap-x-2\"><span class=\"label text-xs/4 capitalize\">Updated&nbsp; <relative-time datetime=\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -267,7 +267,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 							}
 						}
 						if len(data.TopCategories) > 0 {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<section aria-labelledby=\"section-top-categories\"><h2 id=\"section-top-categories\">Top Categories</h2><div id=\"top-categories\" class=\"flex flex-row flex-wrap justify-center gap-2 p-2 m-2\">")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<section aria-labelledby=\"section-top-categories\"><h2 id=\"section-top-categories\">Top Categories</h2><div id=\"top-categories\" class=\"m-2 flex flex-row flex-wrap justify-center gap-2 p-2\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -300,7 +300,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" class=\"link link-hover\"><span class=\"badge badge-secondary badge-lg line-clamp-1\">")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\" class=\"link link-hover\"><span class=\"badge line-clamp-1 badge-lg badge-secondary\">")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -429,7 +429,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</h1><p class=\"py-2\">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p><div class=\"py-4\"><h2>Add/Import Subscriptions</h2><p class=\"py-2\">Import your subscriptions from an external service or start fresh.</p><div class=\"relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content max-w-prose\"><div class=\"flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</h1><p class=\"py-2\">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p><div class=\"py-4\"><h2>Add/Import Subscriptions</h2><p class=\"py-2\">Import your subscriptions from an external service or start fresh.</p><div class=\"relative flex max-w-prose items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content\"><div class=\"flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -450,7 +450,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-push-url=\"true\" class=\"focus:outline-hidden\"><span aria-hidden=\"true\" class=\"absolute inset-0\"></span> <span>Add a feed subscription</span> <span aria-hidden=\"true\">&rarr;</span></a></h4><p class=\"mt-1 text-sm text-base-content\">Add a single subscription from a URL or webpage.</p></div></div><div class=\"relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content max-w-prose\"><div class=\"flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-push-url=\"true\" class=\"focus:outline-hidden\"><span aria-hidden=\"true\" class=\"absolute inset-0\"></span> <span>Add a feed subscription</span> <span aria-hidden=\"true\">&rarr;</span></a></h4><p class=\"mt-1 text-sm text-base-content\">Add a single subscription from a URL or webpage.</p></div></div><div class=\"relative flex max-w-prose items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content\"><div class=\"flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -471,7 +471,7 @@ func NewUserHome() templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-push-url=\"true\" class=\"focus:outline-hidden\"><span aria-hidden=\"true\" class=\"absolute inset-0\"></span> <span>Import subscriptions</span> <span aria-hidden=\"true\">&rarr;</span></a></h4><p class=\"mt-1 text-sm text-base-content\">Import multiple subscriptions using an OPML file.</p></div></div></div><div class=\"py-4\"><h2>Start With Curated Subscription Sets</h2><p class=\"py-2\">Or try one or more curated starter sets (you can also add these later in settings).</p><form hx-post=\"/user/feedset\" hx-swap=\"none\" hx-indicator=\"#processing\"><fieldset><div class=\"mt-6 space-y-6\"><div class=\"flex gap-3\"><div class=\"flex h-6 shrink-0 items-center\"><div class=\"group grid size-4 grid-cols-1\"><input id=\"informed\" type=\"checkbox\" name=\"feedset\" value=\"informed\" aria-describedby=\"informed-description\" class=\"checkbox checkbox-sm checkbox-primary\"></div></div><div class=\"text-sm/6\"><label for=\"informed\" class=\"font-medium\">Informed</label><p id=\"inspired-description\" class=\"text-base-content/80\">News and information sites.</p></div></div><div class=\"flex gap-3\"><div class=\"flex h-6 shrink-0 items-center\"><div class=\"group grid size-4 grid-cols-1\"><input id=\"inspired\" type=\"checkbox\" name=\"feedset\" value=\"inspired\" aria-describedby=\"inspired-description\" class=\"checkbox checkbox-sm checkbox-primary\"></div></div><div class=\"text-sm/6\"><label for=\"inspired\" class=\"font-medium\">Inspired</label><p id=\"inspired-description\" class=\"text-base-content/80\">Digital art and other oddities.</p></div></div><div class=\"flex gap-3\"><div class=\"flex h-6 shrink-0 items-center\"><div class=\"group grid size-4 grid-cols-1\"><input id=\"enlightened\" type=\"checkbox\" name=\"feedset\" value=\"enlightened\" aria-describedby=\"enlightened-description\" class=\"checkbox checkbox-sm checkbox-primary\"></div></div><div class=\"text-sm/6\"><label for=\"enlightened\" class=\"font-medium\">Enlightened</label><p id=\"enlightened-description\" class=\"text-base-content/80\">Alternative and fringe sites.</p></div></div></div></fieldset><div class=\"mt-6 flex items-center justify-end gap-x-6 max-w-prose\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div><button type=\"submit\" class=\"btn btn-primary\">Add sets</button></div></form></div><div class=\"py-4\"><h2>Get to know Foragd</h2><p class=\"py-2\">Read the documentation/help to get familiar with the app.</p><ul class=\"list-disc list-inside\"><li><a class=\"link\" href=\"/help\">Documentation Home</a></li></ul></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-push-url=\"true\" class=\"focus:outline-hidden\"><span aria-hidden=\"true\" class=\"absolute inset-0\"></span> <span>Import subscriptions</span> <span aria-hidden=\"true\">&rarr;</span></a></h4><p class=\"mt-1 text-sm text-base-content\">Import multiple subscriptions using an OPML file.</p></div></div></div><div class=\"py-4\"><h2>Start With Curated Subscription Sets</h2><p class=\"py-2\">Or try one or more curated starter sets (you can also add these later in settings).</p><form hx-post=\"/user/feedset\" hx-swap=\"none\" hx-indicator=\"#processing\"><fieldset><div class=\"mt-6 space-y-6\"><div class=\"flex gap-3\"><div class=\"flex h-6 shrink-0 items-center\"><div class=\"group grid size-4 grid-cols-1\"><input id=\"informed\" type=\"checkbox\" name=\"feedset\" value=\"informed\" aria-describedby=\"informed-description\" class=\"checkbox checkbox-sm checkbox-primary\"></div></div><div class=\"text-sm/6\"><label for=\"informed\" class=\"font-medium\">Informed</label><p id=\"inspired-description\" class=\"text-base-content/80\">News and information sites.</p></div></div><div class=\"flex gap-3\"><div class=\"flex h-6 shrink-0 items-center\"><div class=\"group grid size-4 grid-cols-1\"><input id=\"inspired\" type=\"checkbox\" name=\"feedset\" value=\"inspired\" aria-describedby=\"inspired-description\" class=\"checkbox checkbox-sm checkbox-primary\"></div></div><div class=\"text-sm/6\"><label for=\"inspired\" class=\"font-medium\">Inspired</label><p id=\"inspired-description\" class=\"text-base-content/80\">Digital art and other oddities.</p></div></div><div class=\"flex gap-3\"><div class=\"flex h-6 shrink-0 items-center\"><div class=\"group grid size-4 grid-cols-1\"><input id=\"enlightened\" type=\"checkbox\" name=\"feedset\" value=\"enlightened\" aria-describedby=\"enlightened-description\" class=\"checkbox checkbox-sm checkbox-primary\"></div></div><div class=\"text-sm/6\"><label for=\"enlightened\" class=\"font-medium\">Enlightened</label><p id=\"enlightened-description\" class=\"text-base-content/80\">Alternative and fringe sites.</p></div></div></div></fieldset><div class=\"mt-6 flex max-w-prose items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-md loading-spinner\"></span></div><button type=\"submit\" class=\"btn btn-primary\">Add sets</button></div></form></div><div class=\"py-4\"><h2>Get to know Foragd</h2><p class=\"py-2\">Read the documentation/help to get familiar with the app.</p><ul class=\"list-inside list-disc\"><li><a class=\"link\" href=\"/help\">Documentation Home</a></li></ul></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

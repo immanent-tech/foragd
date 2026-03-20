@@ -47,13 +47,13 @@ templ UserHome(data *models.HomeResponse) {
 									<h2 id="section-latest-articles">Latest Articles</h2>
 									<div>
 										// Grid of latest articles on large displays.
-										<div class="hidden sm:inline-grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 content-auto">
+										<div class="hidden grid-cols-1 place-items-center gap-4 content-auto sm:inline-grid sm:grid-cols-2 sm:gap-8">
 											for article := range slices.Values(data.LatestArticles) {
 												@NewArticleView(article).Card()
 											}
 										</div>
 										// Carousel of latest articles on small displays.
-										<div class="sm:hidden carousel carousel-center w-full space-x-4 p-4 content-auto">
+										<div class="carousel w-full carousel-center space-x-4 p-4 content-auto sm:hidden">
 											for idx, article := range data.LatestArticles {
 												<div id={ "article" + strconv.Itoa(idx+1) } class="carousel-item max-w-9/10">
 													@NewArticleView(article).Card()
@@ -68,13 +68,13 @@ templ UserHome(data *models.HomeResponse) {
 								if len(data.Subscriptions) > 0 {
 									<section aria-labelledby="section-last-updated-subscriptions">
 										<h2 id="section-last-updated-subscriptions">Last Updated Subscriptions</h2>
-										<div class="inline-grid grid-cols-1 grid-flow-row gap-y-4 px-4 py-6 sm:px-6 lg:px-8">
+										<div class="inline-grid w-full grid-flow-row grid-cols-1 gap-y-4 px-4 py-6 sm:px-6 lg:px-8">
 											for idx, subscription := range data.Subscriptions {
 												if idx >= 6 {
 													{{ break }}
 												}
 												<div
-													class="card mx-auto h-fit w-full max-w-prose bg-base-200 shadow-md card-sm cursor-pointer"
+													class="card mx-auto h-fit w-full max-w-prose cursor-pointer bg-base-200 shadow-md card-sm"
 													{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
 												>
 													<div class="card-body">
@@ -92,9 +92,9 @@ templ UserHome(data *models.HomeResponse) {
 																	)
 																}
 															</div>
-															<div class="text-pretty line-clamp-3 tracking-tight">{ subscription.GetTitle() }</div>
+															<div class="line-clamp-3 tracking-tight text-pretty">{ subscription.GetTitle() }</div>
 														</div>
-														<div class="card-actions mt-auto items-center">
+														<div class="mt-auto card-actions items-center">
 															// Timestamp.
 															<div class="flex flex-1 gap-x-2">
 																<span class="label text-xs/4 capitalize">
@@ -125,7 +125,7 @@ templ UserHome(data *models.HomeResponse) {
 								if len(data.TopCategories) > 0 {
 									<section aria-labelledby="section-top-categories">
 										<h2 id="section-top-categories">Top Categories</h2>
-										<div id="top-categories" class="flex flex-row flex-wrap justify-center gap-2 p-2 m-2">
+										<div id="top-categories" class="m-2 flex flex-row flex-wrap justify-center gap-2 p-2">
 											for category := range data.TopCategories {
 												{{ params := models.NewListDisplayFilters() }}
 												{{ params.Categories = append(params.Categories, category.Category) }}
@@ -135,7 +135,7 @@ templ UserHome(data *models.HomeResponse) {
 													hx-vals={ templ.JSONString(params) }
 													class="link link-hover"
 												>
-													<span class="badge badge-secondary badge-lg line-clamp-1">
+													<span class="badge line-clamp-1 badge-lg badge-secondary">
 														{ category.Category }
 													</span>
 												</a>
@@ -163,12 +163,12 @@ templ NewUserHome() {
 				<div class="py-4">
 					<h2>Add/Import Subscriptions</h2>
 					<p class="py-2">Import your subscriptions from an external service or start fresh.</p>
-					<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content max-w-prose">
+					<div class="relative flex max-w-prose items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content">
 						<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
 							@tabler.Plus(i.Props{Class: "size-6 text-secondary-content"})
 						</div>
 						<div>
-							<h4 class="text-sm font-medium ">
+							<h4 class="text-sm font-medium">
 								<a
 									hx-get="/user/subscription/add/feed"
 									hx-target={ ContentID.Target() }
@@ -184,7 +184,7 @@ templ NewUserHome() {
 							<p class="mt-1 text-sm text-base-content">Add a single subscription from a URL or webpage.</p>
 						</div>
 					</div>
-					<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content max-w-prose">
+					<div class="relative flex max-w-prose items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content">
 						<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary">
 							@tabler.CloudDownload(i.Props{Class: "size-6 text-secondary-content"})
 						</div>
@@ -251,10 +251,10 @@ templ NewUserHome() {
 								</div>
 							</div>
 						</fieldset>
-						<div class="mt-6 flex items-center justify-end gap-x-6 max-w-prose">
+						<div class="mt-6 flex max-w-prose items-center justify-end gap-x-6">
 							<div id="processing" class="htmx-indicator">
 								Processing...
-								<span class="loading loading-spinner loading-md"></span>
+								<span class="loading loading-md loading-spinner"></span>
 							</div>
 							<button type="submit" class="btn btn-primary">Add sets</button>
 						</div>
@@ -263,7 +263,7 @@ templ NewUserHome() {
 				<div class="py-4">
 					<h2>Get to know Foragd</h2>
 					<p class="py-2">Read the documentation/help to get familiar with the app.</p>
-					<ul class="list-disc list-inside">
+					<ul class="list-inside list-disc">
 						<li><a class="link" href="/help">Documentation Home</a></li>
 					</ul>
 				</div>
