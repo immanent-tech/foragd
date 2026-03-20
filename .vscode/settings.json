@@ -82,7 +82,8 @@
     "templates/home",
     "templates/posts",
     "templates/favorites",
-    "templates/header"
+    "templates/header",
+    "templates/sidebar"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
