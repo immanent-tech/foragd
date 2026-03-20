@@ -35,9 +35,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					if len(response.Subscriptions) > 0 {
 						<section id="subscriptions" class="mt-4">
 							<div class="pb-5">
-								@partials.Heading1() {
-									Subscriptions
-								}
+								<h1>Subscriptions</h1>
 							</div>
 							@grid() {
 								for subscription := range slices.Values(response.Subscriptions) {
@@ -51,9 +49,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					if len(response.Articles) > 0 {
 						<section id="articles" class="mt-4">
 							<div class="pb-5">
-								@partials.Heading1() {
-									Articles
-								}
+								<h1>Articles</h1>
 							</div>
 							@grid() {
 								for article := range slices.Values(response.Articles) {
@@ -67,12 +63,8 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 				} else {
 					<div class="text-center">
 						@tabler.MoodPuzzled(i.Props{Class: "mx-auto text-accent size-12"})
-						@partials.Heading3() {
-							Nothing here.
-						}
-						@partials.Paragraph() {
-							Add a favorite subscription or article and it will show up here.
-						}
+						<h1>Nothing here</h1>
+						<p>Add a favorite subscription or article and it will show up here.</p>
 					</div>
 				}
 			}

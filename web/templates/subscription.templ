@@ -336,9 +336,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 				// Show a page header.
 				<div class="md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
-						@partials.Heading1() {
-							Subscriptions
-						}
+						<h1>Subscriptions</h1>
 					</div>
 					<div class="mt-4 flex space-x-4 md:mt-0 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
@@ -468,12 +466,8 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					} else {
 						<div class="text-center">
 							@tabler.Confetti(i.Props{Class: "mx-auto text-accent size-12"})
-							@partials.Heading3() {
-								All caught up!
-							}
-							@partials.Paragraph() {
-								Congratulations, you've read everything!
-							}
+							<h1>All caught up!</h1>
+							<p>Congratulations, you've read everything!</p>
 							<div class="mt-6">
 								<button
 									hx-get="/list/favorites"
@@ -595,13 +589,9 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 	<div class="min-w-0 flex-1 pb-8">
 		switch action {
 			case "add":
-				@partials.Heading2() {
-					Add A Subscription
-				}
+				<h1>Add a subscription</h1>
 			case "edit":
-				@partials.Heading2() {
-					{ "Editing " + request.Customisation.GetNickname() }
-				}
+				<h1>{ "Editing " + request.Customisation.GetNickname() }</h1>
 		}
 	</div>
 	// hx-on::after-request="if(event.detail.successful) this.reset()"
@@ -807,13 +797,9 @@ templ manageSearchSubscription(action string, request *models.SearchSubscription
 				<div class="min-w-0 flex-1 pb-8">
 					switch action {
 						case "add":
-							@partials.Heading2() {
-								Add A Search Subscription
-							}
+							<h1>Add a search subscription</h1>
 						case "edit":
-							@partials.Heading2() {
-								{ "Editing " + request.Customisation.GetNickname() }
-							}
+							<h1>{ "Editing " + request.Customisation.GetNickname() }</h1>
 					}
 				</div>
 				// hx-on::after-request="if(event.detail.successful) this.reset()"
@@ -1098,13 +1084,9 @@ templ manageGroupSubscription(action string, request *models.GroupSubscriptionRe
 				<div class="min-w-0 flex-1 pb-8">
 					switch action {
 						case "add":
-							@partials.Heading2() {
-								Add A Group Subscription
-							}
+							<h1>Add a group subscription</h1>
 						case "edit":
-							@partials.Heading2() {
-								{ "Editing " + request.Customisation.GetNickname() }
-							}
+							<h1>{ "Editing " + request.Customisation.GetNickname() }</h1>
 					}
 				</div>
 				// hx-on::after-request="if(event.detail.successful) this.reset()"
@@ -1290,9 +1272,7 @@ templ EditEmailSubscription(request *models.EditEmailSubscriptionRequest) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				<div class="min-w-0 flex-1 pb-8">
-					@partials.Heading2() {
-						{ "Editing " + request.Customisation.GetNickname() }
-					}
+					<h1>{ "Editing " + request.Customisation.GetNickname() }</h1>
 				</div>
 				// hx-on::after-request="if(event.detail.successful) this.reset()"
 				<form
@@ -1372,13 +1352,10 @@ templ ImportSubscriptions() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
+				<h1 class="sr-only">Import</h1>
 				<div class="min-w-0 flex-1 pb-8">
-					@partials.Heading2() {
-						Import Subscriptions
-					}
-					@partials.Paragraph() {
-						You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.
-					}
+					<h2>Import Subscriptions</h2>
+					<p>You can import your existing subscriptions from an OPML file. Most feed services support generating an OPML file you can use.</p>
 				</div>
 				// hx-on::after-request="if(event.detail.successful) this.reset()"
 				<form
@@ -1421,9 +1398,7 @@ templ ImportSubscriptionsResults(results []models.FeedSubscriptionResult) {
 	{{ failedResults := filterUnsuccessfulResults(results) }}
 	{{ warningResults := filterWarningResults(results) }}
 	<div class="min-w-0 flex-1 pb-8">
-		@partials.Heading2() {
-			Import Results
-		}
+		<h2>Import Results</h2>
 	</div>
 	// Import results summary.
 	<ul class="space-y-8 py-4">
@@ -1530,11 +1505,10 @@ templ ExportSubscriptions() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
+				<h1 class="sr-only">Export Subscriptions</h1>
 				<div class="mt-8 md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
-						@partials.Heading2() {
-							Export Subscriptions
-						}
+						<h2>Export Subscriptions</h2>
 					</div>
 				</div>
 				<p class="mt-2 max-w-4xl text-sm text-base-content/80">

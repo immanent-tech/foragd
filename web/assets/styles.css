@@ -162,6 +162,10 @@
   }
 }
 
+@utility sub-heading {
+  @apply mt-2 text-lg/8;
+}
+
 /* For formatting articles.  */
 @utility prose-article {
   @apply prose max-w-none text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box;

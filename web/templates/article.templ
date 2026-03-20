@@ -282,14 +282,10 @@ templ (a *Article) Content() {
 								rel="noopener"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
-								@partials.Heading1() {
-									{ a.GetTitle() }
-								}
+								<h1>{ a.GetTitle() }</h1>
 							</a>
 						} else {
-							@partials.Heading1() {
-								{ a.GetTitle() }
-							}
+							<h1>{ a.GetTitle() }</h1>
 						}
 					</div>
 					// Subscription link.
@@ -308,9 +304,7 @@ templ (a *Article) Content() {
 								hx-swap="innerHTML show:window:top transition:true"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
-								@partials.Heading3() {
-									{ a.GetFeedTitle() }
-								}
+								{  a.GetFeedTitle() }
 							</a>
 						</form>
 					</div>
@@ -599,9 +593,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						} else {
 							{{ title = "Articles" }}
 						}
-						@partials.Heading1() {
-							{ title }
-						}
+						<h1>{ title }</h1>
 					</div>
 					<div class="mt-4 flex space-x-4 md:mt-0 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
@@ -747,12 +739,8 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						{{ response.Filters.Subscriptions = nil }}
 						<div class="text-center">
 							@tabler.Confetti(i.Props{Class: "mx-auto text-accent size-12"})
-							@partials.Heading3() {
-								All caught up!
-							}
-							@partials.Paragraph() {
-								Congratulations, you've read everything!
-							}
+							<h1>All caught up!</h1>
+							<p>Congratulations, you've read everything!</p>
 							<div class="mt-6">
 								<button
 									hx-get="/list/favorites"

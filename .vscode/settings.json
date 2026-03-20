@@ -78,7 +78,8 @@
     "templates/viewer",
     "templates/subscriptions",
     "templates/search",
-    "providers/google"
+    "providers/google",
+    "templates/home"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

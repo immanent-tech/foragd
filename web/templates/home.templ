@@ -6,7 +6,6 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates/partials"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
@@ -155,20 +154,11 @@ templ NewUserHome() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				@partials.Heading1() {
-					{ "Welcome to " + config.AppName }
-				}
-				@partials.Paragraph() {
-					This is your home page, where you can find all your subscriptions. At the moment its a little bare!
-				}
-				<p class="py-2"></p>
+				<h1>{ "Welcome to " + config.AppName }</h1>
+				<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
 				<div class="py-4">
-					@partials.Heading2() {
-						Add/Import Subscriptions
-					}
-					@partials.Paragraph() {
-						Import your subscriptions from an external service or start fresh.
-					}
+					<h2>Add/Import Subscriptions</h2>
+					<p class="py-2">Import your subscriptions from an external service or start fresh.</p>
 					<div class="relative flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content max-w-prose">
 						<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
 							@tabler.Plus(i.Props{Class: "size-6 text-secondary-content"})
@@ -213,12 +203,8 @@ templ NewUserHome() {
 					</div>
 				</div>
 				<div class="py-4">
-					@partials.Heading2() {
-						Start With Curated Subscription Sets
-					}
-					@partials.Paragraph() {
-						Or try one or more curated starter sets (you can also add these later in settings).
-					}
+					<h2>Start With Curated Subscription Sets</h2>
+					<p class="py-2">Or try one or more curated starter sets (you can also add these later in settings).</p>
 					<form
 						hx-post="/user/feedset"
 						hx-swap="none"
@@ -271,12 +257,8 @@ templ NewUserHome() {
 					</form>
 				</div>
 				<div class="py-4">
-					@partials.Heading2() {
-						Get to know Foragd
-					}
-					@partials.Paragraph() {
-						Read the documentation/help to get familiar with the app.
-					}
+					<h2>Get to know Foragd</h2>
+					<p class="py-2">Read the documentation/help to get familiar with the app.</p>
 					<ul class="list-disc list-inside">
 						<li><a class="link" href="/help">Documentation Home</a></li>
 					</ul>

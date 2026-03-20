@@ -75,121 +75,95 @@ func ReportPageIssue(details *models.ReportIssueRequest) templ.Component {
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-3xl\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-3xl\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h1>Report an issue</h1></div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.</p><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Alternatively, you can <a class=\"link\" href=\"mailto:feedback@immanent.tech&subject=Foragd Feedback\">email us</a> instead.</p><form id=\"report-app-issue\" hx-post=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Var5 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-						templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-						templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-						if !templ_7745c5c3_IsBuffer {
-							defer func() {
-								templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-								if templ_7745c5c3_Err == nil {
-									templ_7745c5c3_Err = templ_7745c5c3_BufErr
-								}
-							}()
-						}
-						ctx = templ.InitializeContext(ctx)
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "Report An Issue")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						return nil
-					})
-					templ_7745c5c3_Err = partials.Heading2().Render(templ.WithChildren(ctx, templ_7745c5c3_Var5), templ_7745c5c3_Buffer)
+					var templ_7745c5c3_Var5 string
+					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs("/issue")
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 30, Col: 24}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.</p><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Alternatively, you can <a class=\"link\" href=\"mailto:feedback@immanent.tech&subject=Foragd Feedback\">email us</a> instead.</p><form id=\"report-app-issue\" hx-post=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-target=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var6 string
-					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs("/issue")
+					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 32, Col: 24}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 31, Col: 36}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" hx-target-error=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var7 string
 					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 33, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 32, Col: 42}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-target-error=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-indicator=\"#processing\" hx-encoding=\"multipart/form-data\"><input type=\"hidden\" name=\"page_url\" value=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var8 string
-					templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
+					templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(details.PageUrl)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 34, Col: 42}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 36, Col: 66}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-indicator=\"#processing\" hx-encoding=\"multipart/form-data\"><input type=\"hidden\" name=\"page_url\" value=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">Your contact email</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><input type=\"email\" name=\"user_email\" value=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var9 string
-					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(details.PageUrl)
+					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(details.UserEmail)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 38, Col: 66}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 44, Col: 35}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">Your contact email</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><input type=\"email\" name=\"user_email\" value=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var10 string
-					templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(details.UserEmail)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 46, Col: 35}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" class=\"input input-primary\" required></div></div></fieldset><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">Add a screenshot. Can be an jpg or png. Max size 10 MB.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6\"><div class=\"mt-2 sm:col-span-2 sm:mt-0\"><input id=\"source\" type=\"file\" name=\"screenshot\" accept=\"image/png, image/jpeg\" class=\"file-input file-input-primary bg-base-content/10\"></div></div></fieldset><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">What is the problem or issue?</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><textarea id=\"details\" name=\"details\" class=\"textarea textarea-primary w-full\" placeholder=\"What was expected, what is missing, etc.\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" class=\"input input-primary\" required></div></div></fieldset><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">Add a screenshot. Can be an jpg or png. Max size 10 MB.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6\"><div class=\"mt-2 sm:col-span-2 sm:mt-0\"><input id=\"source\" type=\"file\" name=\"screenshot\" accept=\"image/png, image/jpeg\" class=\"file-input file-input-primary bg-base-content/10\"></div></div></fieldset><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">What is the problem or issue?</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><textarea id=\"details\" name=\"details\" class=\"textarea textarea-primary w-full\" placeholder=\"What was expected, what is missing, etc.\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if details.Details != nil {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " value=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " value=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var11 string
-						templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(*details.Details)
+						var templ_7745c5c3_Var10 string
+						templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(*details.Details)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 77, Col: 35}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 75, Col: 35}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "></textarea></div></div></fieldset><div class=\"mt-6 flex items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "></textarea></div></div></fieldset><div class=\"mt-6 flex items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -197,7 +171,7 @@ func ReportPageIssue(details *models.ReportIssueRequest) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<button type=\"submit\" class=\"btn btn-primary\">Submit</button></div></form></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<button type=\"submit\" class=\"btn btn-primary\">Submit</button></div></form></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -239,12 +213,12 @@ func ReportObjectIssues(objectType, id string, details *models.ReportObjectIssue
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var12 == nil {
-			templ_7745c5c3_Var12 = templ.NopComponent
+		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var11 == nil {
+			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var13 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var12 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -256,7 +230,7 @@ func ReportObjectIssues(objectType, id string, details *models.ReportObjectIssue
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Var14 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_Var13 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 				if !templ_7745c5c3_IsBuffer {
@@ -268,7 +242,7 @@ func ReportObjectIssues(objectType, id string, details *models.ReportObjectIssue
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Var15 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_Var14 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 					templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 					templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 					if !templ_7745c5c3_IsBuffer {
@@ -280,177 +254,151 @@ func ReportObjectIssues(objectType, id string, details *models.ReportObjectIssue
 						}()
 					}
 					ctx = templ.InitializeContext(ctx)
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"mx-auto max-w-3xl\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"mx-auto max-w-3xl\"><div class=\"md:flex md:items-center md:justify-between\"><div class=\"min-w-0 flex-1\"><h1>Report an issue</h1></div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.</p><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Alternatively, you can <a class=\"link\" href=\"mailto:feedback@immanent.tech&subject=Foragd Feedback\">email us</a> instead.</p><form id=\"report-subscription-issue\" hx-post=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Var16 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-						templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-						templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-						if !templ_7745c5c3_IsBuffer {
-							defer func() {
-								templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-								if templ_7745c5c3_Err == nil {
-									templ_7745c5c3_Err = templ_7745c5c3_BufErr
-								}
-							}()
-						}
-						ctx = templ.InitializeContext(ctx)
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "Report An Issue")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						return nil
-					})
-					templ_7745c5c3_Err = partials.Heading2().Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
+					var templ_7745c5c3_Var15 string
+					templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs("/issue/" + objectType + "/" + id)
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 114, Col: 49}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div></div><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Use this form to report an issue with the app. We will look into it and get back to you as soon as we can.</p><p class=\"mt-2 max-w-4xl text-sm text-base-content/80\">Alternatively, you can <a class=\"link\" href=\"mailto:feedback@immanent.tech&subject=Foragd Feedback\">email us</a> instead.</p><form id=\"report-subscription-issue\" hx-post=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-encoding=\"multipart/form-data\" hx-target=\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					var templ_7745c5c3_Var16 string
+					templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
+					if templ_7745c5c3_Err != nil {
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 116, Col: 36}
+					}
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-target-error=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var17 string
-					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs("/issue/" + objectType + "/" + id)
+					templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 118, Col: 49}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 117, Col: 42}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" hx-encoding=\"multipart/form-data\" hx-target=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" hx-indicator=\"#processing\" hx-encoding=\"multipart/form-data\"><input type=\"hidden\" name=\"id\" value=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var18 string
-					templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
+					templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(details.ObjectID)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 120, Col: 36}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 121, Col: 61}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" hx-target-error=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"> <input type=\"hidden\" name=\"object\" value=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var19 string
-					templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
+					templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(details.Object)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 121, Col: 42}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 122, Col: 63}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" hx-indicator=\"#processing\" hx-encoding=\"multipart/form-data\"><input type=\"hidden\" name=\"id\" value=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"> <input type=\"hidden\" name=\"page_url\" value=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var20 string
-					templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(details.ObjectID)
+					templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(details.PageUrl)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 125, Col: 61}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 123, Col: 66}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"> <input type=\"hidden\" name=\"object\" value=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">Your contact email</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><input type=\"email\" name=\"user_email\" value=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var21 string
-					templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(details.Object)
+					templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(details.UserEmail)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 126, Col: 63}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 131, Col: 35}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"> <input type=\"hidden\" name=\"page_url\" value=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var22 string
-					templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(details.PageUrl)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 127, Col: 66}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">Your contact email</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><input type=\"email\" name=\"user_email\" value=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_Var23 string
-					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(details.UserEmail)
-					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 135, Col: 35}
-					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" class=\"input\" required></div></div></fieldset><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">Select all that apply.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"missing-image\" type=\"checkbox\" name=\"missing_image\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" class=\"input\" required></div></div></fieldset><fieldset class=\"fieldset p-4\"><p class=\"mt-1 text-sm/6 text-base-content/80\">Select all that apply.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"missing-image\" type=\"checkbox\" name=\"missing_image\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if details.MissingImage {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, " checked")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, " class=\"checkbox checkbox-sm\"> <label for=\"missing-image\" class=\"block text-sm/6 font-medium\">Missing Image</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"mangled-text\" type=\"checkbox\" name=\"mangled_text\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if details.MangledContent {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " checked")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					}
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " class=\"checkbox checkbox-sm\"> <label for=\"mangled-text\" class=\"block text-sm/6 font-medium\">Mangled Text</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"mangled-text\" type=\"checkbox\" name=\"duplicate\"")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+					if details.Duplicate {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " checked")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " class=\"checkbox checkbox-sm\"> <label for=\"missing-image\" class=\"block text-sm/6 font-medium\">Missing Image</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"mangled-text\" type=\"checkbox\" name=\"mangled_text\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					if details.MangledContent {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " checked")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " class=\"checkbox checkbox-sm\"> <label for=\"mangled-text\" class=\"block text-sm/6 font-medium\">Mangled Text</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input id=\"mangled-text\" type=\"checkbox\" name=\"duplicate\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					if details.Duplicate {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " checked")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, " class=\"checkbox checkbox-sm\"> <label for=\"mangled-text\" class=\"block text-sm/6 font-medium\">Duplicate Content</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input type=\"checkbox\" id=\"other\" class=\"checkbox checkbox-sm\"> <label for=\"other\" class=\"block text-sm/6 font-medium\">Other</label></div></div></div></fieldset><p class=\"mt-1 text-sm/6 text-base-content/80\">Add a screenshot. Can be an jpg or png. Max size 10 MB.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6\"><div class=\"mt-2 sm:col-span-2 sm:mt-0\"><input id=\"source\" type=\"file\" name=\"screenshot\" accept=\"image/png, image/jpeg\" class=\"file-input file-input-primary bg-base-content/10\"></div></div><p class=\"mt-1 text-sm/6 text-base-content/80\">Add any other details you think are relevant.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><textarea id=\"details\" name=\"details\" class=\"textarea w-full\" placeholder=\"What was expected, what is missing, etc.\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " class=\"checkbox checkbox-sm\"> <label for=\"mangled-text\" class=\"block text-sm/6 font-medium\">Duplicate Content</label></div></div><div class=\"flex items-center\"><div class=\"flex items-center gap-x-3\"><input type=\"checkbox\" id=\"other\" class=\"checkbox checkbox-sm\"> <label for=\"other\" class=\"block text-sm/6 font-medium\">Other</label></div></div></div></fieldset><p class=\"mt-1 text-sm/6 text-base-content/80\">Add a screenshot. Can be an jpg or png. Max size 10 MB.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6\"><div class=\"mt-2 sm:col-span-2 sm:mt-0\"><input id=\"source\" type=\"file\" name=\"screenshot\" accept=\"image/png, image/jpeg\" class=\"file-input file-input-primary bg-base-content/10\"></div></div><p class=\"mt-1 text-sm/6 text-base-content/80\">Add any other details you think are relevant.</p><div class=\"sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6\"><div class=\"flex items-center col-span-full\"><textarea id=\"details\" name=\"details\" class=\"textarea w-full\" placeholder=\"What was expected, what is missing, etc.\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if details.Details != nil {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, " value=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, " value=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var24 string
-						templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(*details.Details)
+						var templ_7745c5c3_Var22 string
+						templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(*details.Details)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 214, Col: 34}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/issues.templ`, Line: 210, Col: 34}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "></textarea></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "></textarea></div></div><div class=\"mt-6 flex items-center justify-end gap-x-6\"><div id=\"processing\" class=\"htmx-indicator\">Processing... <span class=\"loading loading-spinner loading-md\"></span></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -458,25 +406,25 @@ func ReportObjectIssues(objectType, id string, details *models.ReportObjectIssue
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<button type=\"submit\" class=\"btn btn-primary\">Submit</button></div></form></div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<button type=\"submit\" class=\"btn btn-primary\">Submit</button></div></form></div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = container().Render(templ.WithChildren(ctx, templ_7745c5c3_Var15), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = container().Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = templ.Fragment(ContentFragment).Render(templ.WithChildren(ctx, templ_7745c5c3_Var14), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = templ.Fragment(ContentFragment).Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = content().Render(templ.WithChildren(ctx, templ_7745c5c3_Var13), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = content().Render(templ.WithChildren(ctx, templ_7745c5c3_Var12), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

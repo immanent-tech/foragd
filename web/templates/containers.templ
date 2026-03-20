@@ -72,7 +72,7 @@ templ container(options ...element.Option) {
 		}
 	}}
 	<div
-		class={ "mx-auto max-w-7xl px-4 pt-4 sm:px-6 sm:pt-8", templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
+		class={ "mx-auto max-w-7xl px-4 sm:px-6", templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
 		{ e.GetAttributes()... }
 	>
 		{ children... }

@@ -16,14 +16,12 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 	@content() {
 		@container() {
 			<section id="viewer">
-				@partials.Heading1() {
-					Feed Viewer
-				}
-				@partials.Paragraph() {
+				<h1>Feed Viewer</h1>
+				<p>
 					Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
 					The feed content, if found, will be displayed below.
-				}
-				@partials.Paragraph() {
+				</p>
+				<p>
 					<span class="font-semibold text-primary">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to
 					<span
 						class="font-mono"
@@ -39,11 +37,11 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 					>
 						Bookmarklet
 					</a> (drag to your bookmarks then use on any site).
-				}
-				@partials.Paragraph() {
+				</p>
+				<p>
 					Want to keep track of feeds and email newsletters in one place? Search across content and discover
 					topics and interests? Try out <a href="https://foragd.app" class="link">Foragd</a>.
-				}
+				</p>
 				<form
 					id="viewer-form"
 					hx-post="/viewer"
@@ -176,13 +174,9 @@ templ ViewerResults(feed *models.Feed) {
 								}
 							</div>
 							<div>
-								@partials.Heading2() {
-									{ feed.GetTitle() }
-								}
+								<h2>{ feed.GetTitle() }</h2>
 								if feed.GetDescription() != "" {
-									@partials.Paragraph() {
-										{ feed.GetDescription() }
-									}
+									<p>{ feed.GetDescription() }</p>
 								}
 							</div>
 						</div>
@@ -236,13 +230,9 @@ templ ViewerResults(feed *models.Feed) {
 
 templ ViewerError(msg *models.UserMessage) {
 	<div class="text-center">
-		@partials.Heading2() {
-			{ msg.Summary }
-		}
+		<h2>{ msg.Summary }</h2>
 		if msg.HasDetails() {
-			@partials.Paragraph() {
-				{ *msg.Details }
-			}
+			<p>{ *msg.Details }</p>
 		}
 	</div>
 }

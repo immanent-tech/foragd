@@ -374,9 +374,7 @@ templ SearchResults(results *models.SearchResults) {
 				<div id="header" class="mt-4 flex items-center justify-between">
 					// Page title.
 					<div class="min-w-0 flex-1">
-						@partials.Heading1() {
-							Search Results
-						}
+						<h1>Search Results</h1>
 					</div>
 					// Actions menu.
 					<el-dropdown class="inline-block flex-none">
@@ -451,12 +449,8 @@ templ SearchResults(results *models.SearchResults) {
 				if len(results.Articles) == 0 {
 					<div class="text-center">
 						@tabler.ZoomExclamation(i.Props{Class: "mx-auto text-accent size-12"})
-						@partials.Heading3() {
-							Nothing Found
-						}
-						@partials.Paragraph() {
-							Looks like there are no matches for that search
-						}
+						<h1>Nothing Found</h1>
+						<p>Looks like there are no matches for that search</p>
 					</div>
 				} else {
 					// Watch for updates.
@@ -862,20 +856,14 @@ templ SimilarArticles(articles models.Articles) {
 				// Show a page header.
 				<div class="md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
-						@partials.Heading2() {
-							Similar Articles
-						}
+						<h1>Similar Articles</h1>
 					</div>
 				</div>
 				if len(articles) == 0 {
 					<div class="text-center">
 						@tabler.ZoomExclamation(i.Props{Class: "mx-auto text-accent size-12"})
-						@partials.Heading3() {
-							Nothing Found
-						}
-						@partials.Paragraph() {
-							Looks like there are no matches for that search
-						}
+						<h1>Nothing Found</h1>
+						<p>Looks like there are no matches for that search</p>
 					</div>
 				} else {
 					// Show results.
