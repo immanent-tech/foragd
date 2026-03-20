@@ -17,168 +17,134 @@ import (
 templ UserHome(data *models.HomeResponse) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
-			if len(data.LatestArticles) == 0 {
-				@container() {
-					@partials.Heading1() {
-						Home
-					}
-					// User has no unread content, show a message and link to favorites.
-					<div class="text-center">
-						@tabler.Confetti(i.Props{Class: "mx-auto text-accent size-12"})
-						@partials.Heading1() {
-							All caught up!
-						}
-						@partials.Paragraph() {
-							Congratulations, you've read everything!
-						}
-						<div class="mt-6">
-							<button
-								hx-get="/list/favorites"
-								hx-target={ ContentID.Target() }
-								hx-swap="innerHTML show:window:top transition:true"
-								class="btn btn-accent"
-							>
-								View favorites
-							</button>
+			@container() {
+				<main>
+					<h1 class="sr-only">Home</h1>
+					if len(data.LatestArticles) == 0 {
+						// User has no unread content, show a message and link to favorites.
+						<div class="text-center">
+							@tabler.Confetti(i.Props{Class: "mx-auto text-accent size-12"})
+							<h1>All caught up!</h1>
+							<p>Congratulations, you've read everything!</p>
+							<div class="mt-6">
+								<button
+									hx-get="/list/favorites"
+									hx-target={ ContentID.Target() }
+									hx-swap="innerHTML show:window:top transition:true"
+									class="btn btn-accent"
+								>
+									View favorites
+								</button>
+							</div>
 						</div>
-					</div>
-				}
-			} else {
-				@container() {
-					@partials.Heading1() {
-						Home
-					}
-					<div class="relative mx-auto justify-between">
-						// Show some useful sections for unread content.
-						// <div
-						// 	id="update-notifications"
-						// 	sse-connect="/home/updates"
-						// 	sse-swap="updates"
-						// 	class="toast toast-center z-50"
-						// ></div>
-						if len(data.LatestArticles) > 0 {
-							<div class="flex mb-4 sm:pr-128">
-								@partials.Heading2() {
-									Latest Articles
-								}
-							</div>
-							// Grid of latest articles on large displays.
-							<div class="hidden sm:grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 sm:pr-128">
-								for article := range slices.Values(data.LatestArticles) {
-									@NewArticleView(article).Card()
-								}
-							</div>
-							// Carousel of latest articles on small displays.
-							<div class="sm:hidden w-full">
-								<div class="carousel w-full">
-									for idx, article := range data.LatestArticles {
-										<div id={ "article" + strconv.Itoa(idx+1) } class="carousel-item relative w-full">
-											@NewArticleView(article).Card()
-											<div class="absolute left-2 right-2 top-1/2 flex -translate-y-1/2 transform justify-between">
-												if idx == 0 {
-													<a href={ "#article" + strconv.Itoa(len(data.LatestArticles)) } class="btn btn-sm btn-circle btn-primary btn-outline opacity-50">❮</a>
-												} else {
-													<a href={ "#article" + strconv.Itoa(idx) } class="btn btn-sm btn-circle btn-primary btn-outline opacity-50">❮</a>
-												}
-												if idx == len(data.LatestArticles)-1 {
-													<a href="#article1" class="btn btn-sm btn-circle btn-primary btn-outline opacity-50">❯</a>
-												} else {
-													<a href={ "#article" + strconv.Itoa(idx+2) } class="btn btn-sm btn-circle btn-primary btn-outline opacity-50">❯</a>
-												}
-											</div>
+					} else {
+						<div class="grid grid-cols-1 items-start gap-4 lg:grid-cols-3 lg:gap-8">
+							// Left column
+							<div class="grid grid-cols-1 gap-4 lg:col-span-2">
+								<section aria-labelledby="section-latest-articles">
+									<h2 id="section-latest-articles">Latest Articles</h2>
+									<div>
+										// Grid of latest articles on large displays.
+										<div class="hidden sm:inline-grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8">
+											for article := range slices.Values(data.LatestArticles) {
+												@NewArticleView(article).Card()
+											}
 										</div>
-									}
-								</div>
-							</div>
-						}
-						<aside class="sm:absolute sm:inset-y-0 sm:right-0 sm:w-lg sm:overflow-y-auto sm:block">
-							if len(data.Subscriptions) > 0 {
-								<div class="flex mb-4 px-4 sm:px-6 lg:px-8">
-									@partials.Heading2() {
-										Last Updated Subscriptions
-									}
-								</div>
-								<div class="grid grid-cols-1 grid-flow-row gap-y-4 px-4 py-6 sm:px-6 lg:px-8">
-									for idx, subscription := range data.Subscriptions {
-										if idx >= 6 {
-											{{ break }}
-										}
-										<div
-											class="card mx-auto h-full w-full max-w-prose bg-base-200 shadow-md card-sm cursor-pointer"
-											{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
-										>
-											<div class="card-body">
-												<div class="card-title flex items-center">
-													<div class="mr-4 shrink-0 self-center">
-														if subscription.GetImage() == "" {
-															@subscriptionThumbnail(nil, subscription.GetTitle())
-														} else {
-															@subscriptionThumbnail(
-																&models.RemoteImage{
-																	URL:   new(subscription.GetImage()),
-																	Title: new(subscription.GetTitle()),
-																},
-																subscription.GetTitle(),
-															)
-														}
-													</div>
-													<div class="text-pretty line-clamp-3 tracking-tight">{ subscription.GetTitle() }</div>
+										// Carousel of latest articles on small displays.
+										<div class="sm:hidden carousel carousel-center w-full space-x-4 p-4">
+											for idx, article := range data.LatestArticles {
+												<div id={ "article" + strconv.Itoa(idx+1) } class="carousel-item max-w-9/10">
+													@NewArticleView(article).Card()
 												</div>
-												<div class="card-actions mt-auto items-center">
-													// Timestamp.
-													<div class="flex flex-1 gap-x-2">
-														<span class="label text-xs/4 capitalize">
-															Updated&nbsp;
-															<relative-time
-																datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-																format="relative"
-															>
-																{ subscription.GetUpdatedDate().Format("ANSIC") }
-															</relative-time>
-														</span>
-													</div>
-													if models.UserFromCtx(ctx).GetSettings().ShowSubscriptionStats {
-														<div class="flex flex-none gap-x-2">
-															<span class="label text-xs/4">
-																{ subscription.GetStats().UnreadTotal() }
-																Unread
-															</span>
-														</div>
-													}
-												</div>
-											</div>
+											}
 										</div>
-									}
-								</div>
-							}
-							if len(data.TopCategories) > 0 {
-								<div class="flex my-4 px-4 sm:px-6 lg:px-8">
-									@partials.Heading2() {
-										Top Categories
-									}
-								</div>
-								<div class="flex justify-center gap-2 p-2 m-2">
-									<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-										for category := range data.TopCategories {
-											{{ params := models.NewListDisplayFilters() }}
-											{{ params.Categories = append(params.Categories, category.Category) }}
-											<a
-												hx-get="/list/articles"
-												hx-target={ ContentID.Target() }
-												hx-vals={ templ.JSONString(params) }
-												class="link link-hover"
-											>
-												<span class="badge badge-secondary badge-lg line-clamp-1">
-													{ category.Category }
-												</span>
-											</a>
-										}
 									</div>
-								</div>
-							}
-						</aside>
-					</div>
-				}
+								</section>
+							</div>
+							// Right column
+							<div class="grid grid-cols-1 gap-4">
+								if len(data.Subscriptions) > 0 {
+									<section aria-labelledby="section-last-updated-subscriptions">
+										<h2 id="section-last-updated-subscriptions">Last Updated Subscriptions</h2>
+										<div class="inline-grid grid-cols-1 grid-flow-row gap-y-4 px-4 py-6 sm:px-6 lg:px-8">
+											for idx, subscription := range data.Subscriptions {
+												if idx >= 6 {
+													{{ break }}
+												}
+												<div
+													class="card mx-auto h-fit w-full max-w-prose bg-base-200 shadow-md card-sm cursor-pointer"
+													{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
+												>
+													<div class="card-body">
+														<div class="card-title flex items-center">
+															<div class="mr-4 shrink-0 self-center">
+																if subscription.GetImage() == "" {
+																	@subscriptionThumbnail(nil, subscription.GetTitle())
+																} else {
+																	@subscriptionThumbnail(
+																		&models.RemoteImage{
+																			URL:   new(subscription.GetImage()),
+																			Title: new(subscription.GetTitle()),
+																		},
+																		subscription.GetTitle(),
+																	)
+																}
+															</div>
+															<div class="text-pretty line-clamp-3 tracking-tight">{ subscription.GetTitle() }</div>
+														</div>
+														<div class="card-actions mt-auto items-center">
+															// Timestamp.
+															<div class="flex flex-1 gap-x-2">
+																<span class="label text-xs/4 capitalize">
+																	Updated&nbsp;
+																	<relative-time
+																		datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+																		format="relative"
+																	>
+																		{ subscription.GetUpdatedDate().Format("ANSIC") }
+																	</relative-time>
+																</span>
+															</div>
+															if models.UserFromCtx(ctx).GetSettings().ShowSubscriptionStats {
+																<div class="flex flex-none gap-x-2">
+																	<span class="label text-xs/4">
+																		{ subscription.GetStats().UnreadTotal() }
+																		Unread
+																	</span>
+																</div>
+															}
+														</div>
+													</div>
+												</div>
+											}
+										</div>
+									</section>
+								}
+								if len(data.TopCategories) > 0 {
+									<section aria-labelledby="section-top-categories">
+										<h2 id="section-top-categories">Top Categories</h2>
+										<div id="top-categories" class="flex flex-row flex-wrap justify-center gap-2 p-2 m-2">
+											for category := range data.TopCategories {
+												{{ params := models.NewListDisplayFilters() }}
+												{{ params.Categories = append(params.Categories, category.Category) }}
+												<a
+													hx-get="/list/articles"
+													hx-target={ ContentID.Target() }
+													hx-vals={ templ.JSONString(params) }
+													class="link link-hover"
+												>
+													<span class="badge badge-secondary badge-lg line-clamp-1">
+														{ category.Category }
+													</span>
+												</a>
+											}
+										</div>
+									</section>
+								}
+							</div>
+						</div>
+					}
+				</main>
 			}
 		}
 	}
