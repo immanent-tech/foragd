@@ -65,6 +65,9 @@ templ UserHome(data *models.HomeResponse) {
 												<div
 													class="card mx-auto h-fit w-full max-w-prose cursor-pointer bg-base-200 shadow-md card-sm"
 													{ NewSubscriptionView(subscription).ViewArticlesAttributes()... }
+													tabindex="0"
+													role="button"
+													_="on keydown[key=='Enter' or key==' '] trigger click"
 												>
 													<div class="card-body">
 														<div class="card-title flex items-center">
