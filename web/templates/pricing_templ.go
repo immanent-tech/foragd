@@ -12,11 +12,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import (
-	"github.com/immanent-tech/foragd/models"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
-)
+import "github.com/immanent-tech/foragd/models"
 
 func pricingGrid(action, method, selectedID, selectedText string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -59,7 +55,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 			var templ_7745c5c3_Var2 templ.SafeURL
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(action)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 31, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 27, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -72,7 +68,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(method)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 31, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 27, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -85,7 +81,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(models.ParamPlanID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 32, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 28, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -121,7 +117,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 			var templ_7745c5c3_Var5 templ.SafeURL
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(action)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 63, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 59, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -134,7 +130,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(method)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 63, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 59, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -147,7 +143,7 @@ func pricingGrid(action, method, selectedID, selectedText string) templ.Componen
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(models.ParamPlanID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 64, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pricing.templ`, Line: 60, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -192,79 +188,7 @@ func featureList() templ.Component {
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"mt-8\"><h3 class=\"text-sm/6 font-medium\">Features:</h3><ul class=\"mt-3 space-y-3\"><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</span> 3000 subscriptions.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</span> 50 email newsletters.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span> Fetch remote article content.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span> Add favorite subscriptions and articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span> Group subscriptions (combine multiple feeds into one).</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</span> Search subscriptions (save search results as a subscription).</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span> Full text search through articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span> No ads, no recommended content, ever.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral/90\"><span class=\"inline-flex h-6 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-4 group-data-disabled:text-neutral/90"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span> Personal use only.</li></ul></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<div class=\"mt-8\"><h3 class=\"text-sm/6 font-medium\">Features:</h3><ul class=\"mt-3 space-y-3\"><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 group-data-disabled:text-neutral data-disabled:brightness-95\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></span> 3000 subscriptions.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 group-data-disabled:text-neutral data-disabled:brightness-95\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></span> 50 email newsletters.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 group-data-disabled:text-neutral data-disabled:brightness-95\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></span> Fetch remote article content.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 group-data-disabled:text-neutral data-disabled:brightness-95\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></span> Add favorite subscriptions and articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 group-data-disabled:text-neutral data-disabled:brightness-95\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></span> Group subscriptions (combine multiple feeds into one).</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 group-data-disabled:text-neutral data-disabled:brightness-95\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></span> Search subscriptions (save search results as a subscription).</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 group-data-disabled:text-neutral data-disabled:brightness-95\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></span> Full text search through articles.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 group-data-disabled:text-neutral data-disabled:brightness-95\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></span> No ads, no recommended content, ever.</li><li class=\"group flex items-start gap-4 text-sm/6 data-disabled:text-neutral data-disabled:brightness-95\"><span class=\"inline-flex h-6 items-center\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-4 group-data-disabled:text-neutral data-disabled:brightness-95\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg></span> Personal use only.</li></ul></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
