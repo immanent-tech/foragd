@@ -6,8 +6,6 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 	"strings"
 )
@@ -20,10 +18,10 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 				<p class="mt-1 max-w-2xl text-sm/6">Add/remove categories to the subscription.</p>
 			</div>
 			<span class="ml-6 flex h-7 items-center">
-				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
+				<svg aria-label="Expand section" xmlns="http://www.w3.org/2000/svg" data-slot="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus in-aria-expanded:hidden">
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
 				</svg>
-				<svg xmlns="http://www.w3.org/2000/svg" data-slot="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
+				<svg aria-label="Collapse section" xmlns="http://www.w3.org/2000/svg" data-slot="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-minus not-in-aria-expanded:hidden">
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
 				</svg>
 			</span>
@@ -52,7 +50,10 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 									}
 									class="btn bg-base-100 brightness-95 join-item"
 								>
-									@tabler.ChevronDown()
+									<span class="sr-only">Show category suggestions</span>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-down">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6 9l6 6l6 -6"></path>
+									</svg>
 								</button>
 								<el-options popover anchor="bottom start" class="w-(--input-width) overflow-auto">
 									for category := range slices.Values(suggested) {
@@ -70,7 +71,10 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 								class="btn btn-primary join-item"
 								_="on htmx:afterRequest if event.detail.successful then set #category-suggestion.value to ''"
 							>
-								@tabler.Plus()
+								<span class="sr-only">Add category</span>
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+								</svg>
 							</button>
 						</div>
 					}
@@ -98,7 +102,10 @@ templ AddCategory(category models.Category) {
 			aria-label={ "Remove category " + category }
 			_="on click remove the closest <div/>"
 		>
-			@tabler.X(i.Props{Class: "size-4"})
+			<span class="sr-only">Remove category</span>
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+			</svg>
 		</button>
 	</div>
 }
