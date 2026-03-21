@@ -3,11 +3,7 @@
 
 package templates
 
-import (
-	"github.com/immanent-tech/foragd/models"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
-)
+import "github.com/immanent-tech/foragd/models"
 
 // Landing is the landing page layout.
 templ Landing() {
@@ -16,7 +12,10 @@ templ Landing() {
 			<nav aria-label="Global" class="flex w-full items-center justify-between p-6 lg:px-8">
 				<div class="flex lg:hidden">
 					<button aria-label="Open main menu" type="button" command="show-modal" commandfor="mobile-menu" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5">
-						@tabler.Menu2(i.Props{Class: "text-primary"})
+						<span class="sr-only">Open menu</span>
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 text-primary">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
+						</svg>
 					</button>
 				</div>
 				<div class="hidden lg:flex lg:gap-x-12">
@@ -32,7 +31,7 @@ templ Landing() {
 			<el-dialog>
 				<dialog id="mobile-menu" class="backdrop:bg-transparent lg:hidden">
 					<div tabindex="0" class="fixed inset-0 focus:outline-none">
-						<el-dialog-panel class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-300 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+						<el-dialog-panel class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-300 p-6 sm:max-w-sm sm:ring-1 sm:ring-base-300">
 							<div class="flex items-center justify-between">
 								<a href="#" class="-m-1.5 p-1.5">
 									<div class="flex items-center">
@@ -46,7 +45,10 @@ templ Landing() {
 									</div>
 								</a>
 								<button aria-label="Close menu" type="button" command="close" commandfor="mobile-menu" class="-m-2.5 rounded-md p-2.5 text-neutral">
-									@tabler.X()
+									<span class="sr-only">Close menu</span>
+									<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-x text-primary" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+									</svg>
 								</button>
 							</div>
 							<div class="mt-6 flow-root">
@@ -183,7 +185,9 @@ templ Landing() {
 											alt="Thumbnail from video demostrating search."
 											class="block rounded-box object-scale-down"
 										/>
-										@tabler.PlayerPlayFilled(i.Props{Class: "absolute top-[45%] left-[45%]"})
+										<svg aria-label="Play video" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-player-play absolute top-[45%] left-[45%]">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z"></path>
+										</svg>
 									</div>
 								</button>
 								@imagePopup("feature-search") {
@@ -277,9 +281,9 @@ templ Landing() {
 						<dl class="mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									<div aria-hidden="true">
-										@tabler.Heart(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-									</div>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-heart absolute top-1 left-1 size-5 text-primary" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
+									</svg>
 									Subscription and article favorites.
 								</dt>
 								<dd class="ml-2 inline">
@@ -288,9 +292,9 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									<div aria-hidden="true">
-										@tabler.CategoryPlus(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-									</div>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="icon icon-tabler icons-tabler-outline icon-tabler-category-plus absolute top-1 left-1 size-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 4h6v6h-6v-6"></path><path d="M14 4h6v6h-6v-6"></path><path d="M4 14h6v6h-6v-6"></path><path d="M14 17h6m-3 -3v6"></path>
+									</svg>
 									Group subscriptions.
 								</dt>
 								<dd class="ml-2 inline">
@@ -302,9 +306,9 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									<div aria-hidden="true">
-										@tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-									</div>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="icon icon-tabler icons-tabler-outline icon-tabler-search absolute top-1 left-1 size-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
+									</svg>
 									Search subscriptions.
 								</dt>
 								<dd class="ml-2 inline">
@@ -316,9 +320,9 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									<div aria-hidden="true">
-										@tabler.Mail(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-									</div>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="icon icon-tabler icons-tabler-outline icon-tabler-mail absolute top-1 left-1 size-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+									</svg>
 									Email Newsletters.
 								</dt>
 								<dd class="ml-2 inline">
@@ -327,9 +331,9 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									<div aria-hidden="true">
-										@tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-									</div>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="icon icon-tabler icons-tabler-outline icon-tabler-file-download absolute top-1 left-1 size-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17v-6"></path><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
+									</svg>
 									Get remote article content.
 								</dt>
 								<dd class="ml-2 inline">
@@ -338,9 +342,9 @@ templ Landing() {
 							</div>
 							<div class="relative pl-9">
 								<dt class="inline font-semibold">
-									<div aria-hidden="true">
-										@tabler.ColorSwatch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"})
-									</div>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="icon icon-tabler icons-tabler-outline icon-tabler-color-swatch absolute top-1 left-1 size-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 3h-4a2 2 0 0 0 -2 2v12a4 4 0 0 0 8 0v-12a2 2 0 0 0 -2 -2"></path><path d="M13 7.35l-2 -2a2 2 0 0 0 -2.828 0l-2.828 2.828a2 2 0 0 0 0 2.828l9 9"></path><path d="M7.3 13h-2.3a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h12"></path><path d="M17 17l0 .01"></path>
+									</svg>
 									Themes.
 								</dt>
 								<dd class="ml-2 inline">
@@ -401,139 +405,33 @@ templ Landing() {
 				<div class="mx-auto max-w-4xl">
 					<h2 class="text-4xl font-semibold tracking-tight sm:text-5xl">Frequently asked questions</h2>
 					<dl class="mt-16 divide-y divide-accent">
-						<div class="py-6 first:pt-0 last:pb-0">
-							<dt>
-								<button
-									type="button"
-									command="--toggle"
-									commandfor="faq-whatisit"
-									class="flex w-full items-start justify-between text-left"
-								>
-									<span class="text-base/7 font-semibold">
-										What is a feed reader? How is it different
-										from X, Facebook, Instagram, etc.?
-									</span>
-									<span class="ml-6 flex h-7 items-center">
-										@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
-										@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
-									</span>
-								</button>
-							</dt>
-							<el-disclosure id="faq-whatisit" class="contents">
-								<dd class="mt-2 pr-12">
-									<p class="text-base/7">
-										Feed readers allow you to follow a website, blog or newsletter directly. Rather
-										than going to a central place for content, you pull in content from all across
-										the web. You choose and control what content you see, no suggestions or promoted
-										content by an algorithm or filtered and controlled by a single corporation.
-									</p>
-								</dd>
-							</el-disclosure>
-						</div>
-						<div class="py-6 first:pt-0 last:pb-0">
-							<dt>
-								<button
-									type="button"
-									command="--toggle"
-									commandfor="faq-app"
-									class="flex w-full items-start justify-between text-left"
-								>
-									<span class="text-base/7 font-semibold">Do you have an app?</span>
-									<span class="ml-6 flex h-7 items-center">
-										@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
-										@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
-									</span>
-								</button>
-							</dt>
-							<el-disclosure id="faq-app" hidden class="contents">
-								<dd class="mt-2 pr-12">
-									<p class="text-base/7">
-										Foragd is web-based and works on any browser (Chrome, Safari, Firefox), on any
-										operating system (Windows, Mac, Linux). It has a responsive design to support
-										all screen sizes from desktops down to mobiles. One tab. Every device. No
-										install needed.
-									</p>
-								</dd>
-							</el-disclosure>
-						</div>
-						<div class="py-6 first:pt-0 last:pb-0">
-							<dt>
-								<button
-									type="button"
-									command="--toggle"
-									commandfor="faq-import"
-									class="flex w-full items-start justify-between text-left"
-								>
-									<span class="text-base/7 font-semibold">Can I import my subscriptions from elsewhere?</span>
-									<span class="ml-6 flex h-7 items-center">
-										@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
-										@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
-									</span>
-								</button>
-							</dt>
-							<el-disclosure id="faq-import" hidden class="contents">
-								<dd class="mt-2 pr-12">
-									<p class="text-base/7">
-										Yes, Foragd supports importing (and exporting) with the OPML file format, which
-										all good feed readers support. Switching from Feedly or Inoreader? Import your
-										OPML in seconds and be back up and running.
-									</p>
-								</dd>
-							</el-disclosure>
-						</div>
-						<div class="py-6 first:pt-0 last:pb-0">
-							<dt>
-								<button
-									type="button"
-									command="--toggle"
-									commandfor="faq-privacy"
-									class="flex w-full items-start justify-between text-left"
-								>
-									<span class="text-base/7 font-semibold">Are my subscriptions private?</span>
-									<span class="ml-6 flex h-7 items-center">
-										@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
-										@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
-									</span>
-								</button>
-							</dt>
-							<el-disclosure id="faq-privacy" hidden class="contents">
-								<dd class="mt-2 pr-12">
-									<p class="text-base/7">
-										Foragd does not have any social features, so your subscriptions are private to
-										you. We collect the minimal legally required personal information to provide the
-										service (see our <a href="/policies/privacy" class="link">privacy policy</a>).
-										We don't pass the data on to marketing third-parties and we don't inject ads or
-										show sponsored content in your subscriptions.
-									</p>
-								</dd>
-							</el-disclosure>
-						</div>
-						<div class="py-6 first:pt-0 last:pb-0">
-							<dt>
-								<button
-									type="button"
-									command="--toggle"
-									commandfor="faq-opensource"
-									class="flex w-full items-start justify-between text-left"
-								>
-									<span class="text-base/7 font-semibold">Is Foragd open source?</span>
-									<span class="ml-6 flex h-7 items-center">
-										@tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"})
-										@tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"})
-									</span>
-								</button>
-							</dt>
-							<el-disclosure id="faq-opensource" hidden class="contents">
-								<dd class="mt-2 pr-12">
-									<p class="text-base/7">
-										Yes! Foragd is open source. You can find the source code <a
-	class="link link-hover"
-	href="https://github.com/immanent-tech/foragd"
->on GitHub</a>.
-									</p>
-								</dd>
-							</el-disclosure>
-						</div>
+						@landingFAQEntry("whatisit", "What is a feed reader? How is it different from X, Facebook, Instagram, etc.?") {
+							Feed readers allow you to follow a website, blog or newsletter directly. Rather
+							than going to a central place for content, you pull in content from all across
+							the web. You choose and control what content you see, no suggestions or promoted
+							content by an algorithm or filtered and controlled by a single corporation.
+						}
+						@landingFAQEntry("app", "Do you have an app?") {
+							Foragd is web-based and works on any browser (Chrome, Safari, Firefox), on any
+							operating system (Windows, Mac, Linux). It has a responsive design to support
+							all screen sizes from desktops down to mobiles. One tab. Every device. No
+							install needed.
+						}
+						@landingFAQEntry("import", "Can I import my subscriptions from elsewhere?") {
+							Yes, Foragd supports importing (and exporting) with the OPML file format, which
+							all good feed readers support. Switching from Feedly or Inoreader? Import your
+							OPML in seconds and be back up and running.
+						}
+						@landingFAQEntry("privacy", "Are my subscriptions private?") {
+							Foragd does not have any social features, so your subscriptions are private to
+							you. We collect the minimal legally required personal information to provide the
+							service (see our <a href="/policies/privacy" class="link">privacy policy</a>).
+							We don't pass the data on to marketing third-parties and we don't inject ads or
+							show sponsored content in your subscriptions.
+						}
+						@landingFAQEntry("opensource", "Is Foragd open source?") {
+							Yes! Foragd is open source. You can find the source code <a class="link link-hover" href="https://github.com/immanent-tech/foragd">on GitHub</a>.
+						}
 					</dl>
 				</div>
 			</div>
@@ -552,6 +450,36 @@ templ Landing() {
 		// Footer.
 	</div>
 	@footer()
+}
+
+templ landingFAQEntry(id, question string) {
+	<div class="py-6 first:pt-0 last:pb-0">
+		<dt>
+			<button
+				type="button"
+				command="--toggle"
+				commandfor={ "faq-" + id }
+				class="flex w-full items-start justify-between text-left"
+			>
+				<span class="text-base/7 font-semibold">{ question }</span>
+				<span class="ml-6 flex h-7 items-center">
+					<svg aria-label="Open faq entry" xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-6 in-aria-expanded:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+					</svg>
+					<svg aria-label="Close faq entry" xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="icon icon-tabler icons-tabler-outline icon-tabler-minus size-6 not-in-aria-expanded:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l14 0"></path>
+					</svg>
+				</span>
+			</button>
+		</dt>
+		<el-disclosure id={ "faq-" + id } hidden class="contents">
+			<dd class="mt-2 pr-12">
+				<p class="text-base/7">
+					{ children... }
+				</p>
+			</dd>
+		</el-disclosure>
+	</div>
 }
 
 templ imagePopup(id string) {

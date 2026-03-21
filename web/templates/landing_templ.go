@@ -12,11 +12,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import (
-	"github.com/immanent-tech/foragd/models"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
-)
+import "github.com/immanent-tech/foragd/models"
 
 // Landing is the landing page layout.
 func Landing() templ.Component {
@@ -40,23 +36,7 @@ func Landing() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-base-100\"><header aria-label=\"Header\" class=\"absolute inset-x-0 top-0 z-50\"><nav aria-label=\"Global\" class=\"flex w-full items-center justify-between p-6 lg:px-8\"><div class=\"flex lg:hidden\"><button aria-label=\"Open main menu\" type=\"button\" command=\"show-modal\" commandfor=\"mobile-menu\" class=\"-m-2.5 inline-flex items-center justify-center rounded-md p-2.5\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Menu2(i.Props{Class: "text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button></div><div class=\"hidden lg:flex lg:gap-x-12\"><a href=\"/about\" class=\"link text-sm/6 font-semibold text-primary link-hover\">About</a> <a href=\"#features\" class=\"link text-sm/6 font-semibold text-primary link-hover\" _=\"on click go to #features smoothly\">Features</a> <a href=\"#pricing\" class=\"link text-sm/6 font-semibold text-primary link-hover\" _=\"on click go to #pricing smoothly\">Pricing</a> <a href=\"/viewer\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"hidden lg:flex lg:flex-1 lg:justify-end\"><a href=\"/login\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Log in <span aria-hidden=\"true\">&rarr;</span></a></div></nav><el-dialog><dialog id=\"mobile-menu\" class=\"backdrop:bg-transparent lg:hidden\"><div tabindex=\"0\" class=\"fixed inset-0 focus:outline-none\"><el-dialog-panel class=\"fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-300 p-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10\"><div class=\"flex items-center justify-between\"><a href=\"#\" class=\"-m-1.5 p-1.5\"><div class=\"flex items-center\"><svg aria-hidden=\"true\" class=\"flex size-8\" xmlns=\"http://www.w3.org/2000/svg\" id=\"svg1\" width=\"200mm\" height=\"200mm\" version=\"1.1\" viewBox=\"0 0 200 200\" xml:space=\"preserve\"><g id=\"g1\" transform=\"translate(-118.24 -66.232)\" fill=\"none\" stroke=\"#7b9984\"><ellipse id=\"path2-36-0\" cx=\"171.11\" cy=\"230.68\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"10\"></ellipse><path id=\"path21\" d=\"m171.11 215.77v-44.72\" stroke-width=\"10.017\"></path></g> <g id=\"leaf-right\" transform=\"matrix(.1924 .044136 -.041879 .18256 73.37 1.489)\" fill=\"#7b9984\" stroke=\"#7b9984\" stroke-width=\".99853\"><path id=\"path1\" class=\"st0\" d=\"m480.01 31.996c-133.45-70.359-271.75-15.094-360.02 73.172-80.391 80.406-109.95 236.17-63.719 314.2l-56.281 56.281 36.359 36.344 56.281-56.266c78.031 46.219 233.8 16.672 314.19-63.718 88.281-88.265 143.55-226.58 73.188-360.02zm-58.328 195.42-107.66-2.516-81.641 81.641 123.03 3.984-1.234 38.063-158.72-5.109-64.188 64.172-26.922-26.922 64.172-64.188-5.109-158.72 38.063-1.234 3.969 123.03 81.641-81.641-2.5-107.66 38.078-0.875 1.656 71.297 70.859-70.859 26.938 26.922-70.859 70.875 71.313 1.656z\" fill=\"#7b9984\" stroke=\"#7b9984\" stroke-width=\".99853\"></path></g><ellipse id=\"path33\" cx=\"53.02\" cy=\"94.191\" rx=\"9.253\" ry=\"9.2525\" fill=\"#7b9984\" stroke=\"#7b9984\" stroke-width=\"10\"></ellipse></svg><p class=\"hidden font-bold text-primary lg:flex\">Foragd</p></div></a> <button aria-label=\"Close menu\" type=\"button\" command=\"close\" commandfor=\"mobile-menu\" class=\"-m-2.5 rounded-md p-2.5 text-neutral\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.X().Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</button></div><div class=\"mt-6 flow-root\"><div class=\"-my-6 divide-y divide-neutral\"><div class=\"space-y-2 py-6\"><a href=\"/about\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">About</a> <a href=\"/#features\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/viewer\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"py-6\"><a href=\"/login\" class=\"-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral link-hover\">Log in</a></div></div></div></el-dialog-panel></div></dialog></el-dialog></header><main class=\"isolate bg-base-100\"><div class=\"relative pt-14\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div class=\"soft-gradient-top\"></div></div><div class=\"lg:pb-40\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto flow-root\"><svg aria-hidden=\"true\" class=\"mx-auto size-64 sm:size-96\" xmlns=\"http://www.w3.org/2000/svg\" id=\"svg1\" width=\"350mm\" height=\"350mm\" version=\"1.1\" viewBox=\"0 0 350 350\" xml:space=\"preserve\"><g id=\"layer1\" transform=\"translate(27.069 44.887)\"><g id=\"root-2\" fill=\"none\" stroke=\"#4b443b\"><ellipse id=\"path2-36-0\" cx=\"115.83\" cy=\"245.63\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"10\"></ellipse><path id=\"path21\" d=\"m115.83 230.71v-44.72\" stroke-width=\"10.017\"></path><ellipse id=\"path23-7\" cx=\"115.83\" cy=\"183.24\" rx=\"3.1952\" ry=\"3.043\" stroke-width=\"10\"></ellipse><path id=\"path24\" d=\"m117.56 180.68 35.523-52.48\" stroke-width=\"10\"></path></g><g id=\"root-3\" fill=\"none\" stroke=\"#4b443b\"><ellipse id=\"path2\" cx=\"155.04\" cy=\"282.3\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"9.565\"></ellipse><ellipse id=\"path23-7-3\" cx=\"155.04\" cy=\"203.14\" rx=\"3.1952\" ry=\"3.043\" stroke-width=\"10\"></ellipse><path id=\"path25\" d=\"m155.04 267.39v-61.203\" stroke-width=\"10\"></path><path id=\"path26\" d=\"m155.03 200.1-0.20542-71.41\" stroke-width=\"10\"></path></g><g id=\"root-1\" fill=\"none\" stroke=\"#4b443b\"><ellipse id=\"path2-3\" cx=\"76.625\" cy=\"270.08\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"9.565\"></ellipse><ellipse id=\"path23-7-5\" cx=\"76.625\" cy=\"167.12\" rx=\"3.1952\" ry=\"3.043\" stroke-width=\"10\"></ellipse><path id=\"path27\" d=\"m76.625 255.16v-85.001\" stroke-width=\"10\"></path><path id=\"path28\" d=\"m79.416 165.64 72.61-38.512\" stroke-width=\"10\"></path></g><g id=\"root-4\" fill=\"none\" stroke=\"#4b443b\"><ellipse id=\"path2-36-1\" cx=\"194.25\" cy=\"233.4\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"9.565\"></ellipse><ellipse id=\"path23-7-30\" cx=\"194.25\" cy=\"184.36\" rx=\"3.1952\" ry=\"3.043\" stroke-width=\"10\"></ellipse><path id=\"path29\" d=\"m194.25 218.49v-31.089\" stroke-width=\"10\"></path><path id=\"path30\" d=\"m192.53 181.79-35.988-53.584\" stroke-width=\"10\"></path></g><g id=\"root-5\" fill=\"none\" stroke=\"#4b443b\"><ellipse id=\"path2-36\" cx=\"235.24\" cy=\"257.85\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"9.565\"></ellipse><ellipse id=\"path23-7-8\" cx=\"236.29\" cy=\"159.22\" rx=\"3.1952\" ry=\"3.043\" stroke-width=\"10\"></ellipse><path id=\"path31\" d=\"m235.4 242.94 0.85439-80.675\" stroke-width=\"10\"></path><path id=\"path32\" d=\"m233.35 158.01-75.603-31.158\" stroke-width=\"10\"></path></g> <g id=\"leaf-right\" transform=\"matrix(.1924 .044136 -.041879 .18256 174.64 -11.155)\" fill=\"#eda0b4\"><path id=\"path1\" class=\"st0\" d=\"m480.01 31.996c-133.45-70.359-271.75-15.094-360.02 73.172-80.391 80.406-109.95 236.17-63.719 314.2l-56.281 56.281 36.359 36.344 56.281-56.266c78.031 46.219 233.8 16.672 314.19-63.718 88.281-88.265 143.55-226.58 73.188-360.02zm-58.328 195.42-107.66-2.516-81.641 81.641 123.03 3.984-1.234 38.063-158.72-5.109-64.188 64.172-26.922-26.922 64.172-64.188-5.109-158.72 38.063-1.234 3.969 123.03 81.641-81.641-2.5-107.66 38.078-0.875 1.656 71.297 70.859-70.859 26.938 26.922-70.859 70.875 71.313 1.656z\" fill=\"#eda0b4\"></path></g> <g id=\"leaf-left\" transform=\"matrix(-.097244 .17178 .163 .092271 70.77 36.438)\" fill=\"#7b9984\"><path id=\"path1-6\" class=\"st0\" d=\"m480.01 31.996c-133.45-70.359-271.75-15.094-360.02 73.172-80.391 80.406-109.95 236.17-63.719 314.2l-56.281 56.281 36.359 36.344 56.281-56.266c78.031 46.219 233.8 16.672 314.19-63.718 88.281-88.265 143.55-226.58 73.188-360.02zm-58.328 195.42-107.66-2.516-81.641 81.641 123.03 3.984-1.234 38.063-158.72-5.109-64.188 64.172-26.922-26.922 64.172-64.188-5.109-158.72 38.063-1.234 3.969 123.03 81.641-81.641-2.5-107.66 38.078-0.875 1.656 71.297 70.859-70.859 26.938 26.922-70.859 70.875 71.313 1.656z\" fill=\"#7b9984\"></path></g> <g id=\"leaf-center\" transform=\"matrix(-.17679 -.087814 -.083324 .16775 198.38 -5.0903)\" fill=\"#e5b79b\"><path id=\"path1-6-4\" class=\"st0\" d=\"m480.01 31.996c-133.45-70.359-271.75-15.094-360.02 73.172-80.391 80.406-109.95 236.17-63.719 314.2l-56.281 56.281 36.359 36.344 56.281-56.266c78.031 46.219 233.8 16.672 314.19-63.718 88.281-88.265 143.55-226.58 73.188-360.02zm-58.328 195.42-107.66-2.516-81.641 81.641 123.03 3.984-1.234 38.063-158.72-5.109-64.188 64.172-26.922-26.922 64.172-64.188-5.109-158.72 38.063-1.234 3.969 123.03 81.641-81.641-2.5-107.66 38.078-0.875 1.656 71.297 70.859-70.859 26.938 26.922-70.859 70.875 71.313 1.656z\" fill=\"#e5b79b\"></path></g><g id=\"stem\" fill=\"#4b443b\" stroke=\"#4b443b\" stroke-width=\"10\"><path id=\"path20\" d=\"m154.07 87.874 0.89086 38.567\"></path><ellipse id=\"path23\" cx=\"154.82\" cy=\"125.65\" rx=\"3.1952\" ry=\"3.043\"></ellipse><ellipse id=\"path33\" cx=\"154.28\" cy=\"81.551\" rx=\"9.253\" ry=\"9.2525\"></ellipse></g></g></svg></div><div class=\"mx-auto mt-16 max-w-2xl text-center sm:mt-24\"><h1 class=\"text-5xl font-semibold tracking-tight text-balance sm:text-7xl\">Foragd&nbsp;<sup class=\"text-sm uppercase\">beta</sup></h1><p class=\"mt-8 text-lg font-medium text-pretty sm:text-xl/8\">Tired of algorithmic feeds deciding what you see? Take back control of your reading. Follow any website, blog, or newsletter in one place.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a class=\"btn text-sm/6 font-semibold btn-primary\" _=\"on click go to #features smoothly\">See features</a> <a class=\"btn text-sm/6 font-semibold btn-primary\" _=\"on click go to #pricing smoothly\">Start a free trial</a></div><div class=\"mt-5 text-sm/6 font-semibold\">Already have an account?<a href=\"/login\" class=\"link\">&nbsp;Log in</a></div></div></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div class=\"soft-gradient-bottom\"></div></div></div><div id=\"features\" class=\"mt-32 sm:mt-56\"><div class=\"mx-auto mb-12 max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><h2 class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">A beautiful, web based, online feed reader.</h2><p class=\"mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Your internet, your way. One place for every feed, newsletter, and article. All fully searchable, always in sync, never algorithmic.</p></div><div class=\"mt-16 flow-root sm:mt-24\"><button command=\"show-modal\" commandfor=\"main-screenshot\" type=\"button\"><img src=\"/content/screenshots/screenshot-main.webp\" width=\"1900\" height=\"1440\" decoding=\"async\" fetchpriority=\"high\" alt=\"Foragd desktop/mobile screenshots\" class=\"rounded-box object-scale-down shadow-xl\"></button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-base-100\"><header aria-label=\"Header\" class=\"absolute inset-x-0 top-0 z-50\"><nav aria-label=\"Global\" class=\"flex w-full items-center justify-between p-6 lg:px-8\"><div class=\"flex lg:hidden\"><button aria-label=\"Open main menu\" type=\"button\" command=\"show-modal\" commandfor=\"mobile-menu\" class=\"-m-2.5 inline-flex items-center justify-center rounded-md p-2.5\"><span class=\"sr-only\">Open menu</span> <svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-menu-2 text-primary\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M4 6l16 0\"></path><path d=\"M4 12l16 0\"></path><path d=\"M4 18l16 0\"></path></svg></button></div><div class=\"hidden lg:flex lg:gap-x-12\"><a href=\"/about\" class=\"link text-sm/6 font-semibold text-primary link-hover\">About</a> <a href=\"#features\" class=\"link text-sm/6 font-semibold text-primary link-hover\" _=\"on click go to #features smoothly\">Features</a> <a href=\"#pricing\" class=\"link text-sm/6 font-semibold text-primary link-hover\" _=\"on click go to #pricing smoothly\">Pricing</a> <a href=\"/viewer\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"hidden lg:flex lg:flex-1 lg:justify-end\"><a href=\"/login\" class=\"link text-sm/6 font-semibold text-primary link-hover\">Log in <span aria-hidden=\"true\">&rarr;</span></a></div></nav><el-dialog><dialog id=\"mobile-menu\" class=\"backdrop:bg-transparent lg:hidden\"><div tabindex=\"0\" class=\"fixed inset-0 focus:outline-none\"><el-dialog-panel class=\"fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-base-300 p-6 sm:max-w-sm sm:ring-1 sm:ring-base-300\"><div class=\"flex items-center justify-between\"><a href=\"#\" class=\"-m-1.5 p-1.5\"><div class=\"flex items-center\"><svg aria-hidden=\"true\" class=\"flex size-8\" xmlns=\"http://www.w3.org/2000/svg\" id=\"svg1\" width=\"200mm\" height=\"200mm\" version=\"1.1\" viewBox=\"0 0 200 200\" xml:space=\"preserve\"><g id=\"g1\" transform=\"translate(-118.24 -66.232)\" fill=\"none\" stroke=\"#7b9984\"><ellipse id=\"path2-36-0\" cx=\"171.11\" cy=\"230.68\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"10\"></ellipse><path id=\"path21\" d=\"m171.11 215.77v-44.72\" stroke-width=\"10.017\"></path></g> <g id=\"leaf-right\" transform=\"matrix(.1924 .044136 -.041879 .18256 73.37 1.489)\" fill=\"#7b9984\" stroke=\"#7b9984\" stroke-width=\".99853\"><path id=\"path1\" class=\"st0\" d=\"m480.01 31.996c-133.45-70.359-271.75-15.094-360.02 73.172-80.391 80.406-109.95 236.17-63.719 314.2l-56.281 56.281 36.359 36.344 56.281-56.266c78.031 46.219 233.8 16.672 314.19-63.718 88.281-88.265 143.55-226.58 73.188-360.02zm-58.328 195.42-107.66-2.516-81.641 81.641 123.03 3.984-1.234 38.063-158.72-5.109-64.188 64.172-26.922-26.922 64.172-64.188-5.109-158.72 38.063-1.234 3.969 123.03 81.641-81.641-2.5-107.66 38.078-0.875 1.656 71.297 70.859-70.859 26.938 26.922-70.859 70.875 71.313 1.656z\" fill=\"#7b9984\" stroke=\"#7b9984\" stroke-width=\".99853\"></path></g><ellipse id=\"path33\" cx=\"53.02\" cy=\"94.191\" rx=\"9.253\" ry=\"9.2525\" fill=\"#7b9984\" stroke=\"#7b9984\" stroke-width=\"10\"></ellipse></svg><p class=\"hidden font-bold text-primary lg:flex\">Foragd</p></div></a> <button aria-label=\"Close menu\" type=\"button\" command=\"close\" commandfor=\"mobile-menu\" class=\"-m-2.5 rounded-md p-2.5 text-neutral\"><span class=\"sr-only\">Close menu</span> <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-x text-primary\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M18 6l-12 12\"></path><path d=\"M6 6l12 12\"></path></svg></button></div><div class=\"mt-6 flow-root\"><div class=\"-my-6 divide-y divide-neutral\"><div class=\"space-y-2 py-6\"><a href=\"/about\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">About</a> <a href=\"/#features\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Features</a> <a href=\"/#pricing\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Pricing</a> <a href=\"/viewer\" class=\"-mx-3 block link rounded-lg px-3 py-2 text-base/7 font-semibold text-primary link-hover\">Feed Viewer</a></div><div class=\"py-6\"><a href=\"/login\" class=\"-mx-3 block link rounded-lg px-3 py-2.5 text-base/7 font-semibold text-neutral link-hover\">Log in</a></div></div></div></el-dialog-panel></div></dialog></el-dialog></header><main class=\"isolate bg-base-100\"><div class=\"relative pt-14\"><div aria-hidden=\"true\" class=\"absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80\"><div class=\"soft-gradient-top\"></div></div><div class=\"lg:pb-40\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto flow-root\"><svg aria-hidden=\"true\" class=\"mx-auto size-64 sm:size-96\" xmlns=\"http://www.w3.org/2000/svg\" id=\"svg1\" width=\"350mm\" height=\"350mm\" version=\"1.1\" viewBox=\"0 0 350 350\" xml:space=\"preserve\"><g id=\"layer1\" transform=\"translate(27.069 44.887)\"><g id=\"root-2\" fill=\"none\" stroke=\"#4b443b\"><ellipse id=\"path2-36-0\" cx=\"115.83\" cy=\"245.63\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"10\"></ellipse><path id=\"path21\" d=\"m115.83 230.71v-44.72\" stroke-width=\"10.017\"></path><ellipse id=\"path23-7\" cx=\"115.83\" cy=\"183.24\" rx=\"3.1952\" ry=\"3.043\" stroke-width=\"10\"></ellipse><path id=\"path24\" d=\"m117.56 180.68 35.523-52.48\" stroke-width=\"10\"></path></g><g id=\"root-3\" fill=\"none\" stroke=\"#4b443b\"><ellipse id=\"path2\" cx=\"155.04\" cy=\"282.3\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"9.565\"></ellipse><ellipse id=\"path23-7-3\" cx=\"155.04\" cy=\"203.14\" rx=\"3.1952\" ry=\"3.043\" stroke-width=\"10\"></ellipse><path id=\"path25\" d=\"m155.04 267.39v-61.203\" stroke-width=\"10\"></path><path id=\"path26\" d=\"m155.03 200.1-0.20542-71.41\" stroke-width=\"10\"></path></g><g id=\"root-1\" fill=\"none\" stroke=\"#4b443b\"><ellipse id=\"path2-3\" cx=\"76.625\" cy=\"270.08\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"9.565\"></ellipse><ellipse id=\"path23-7-5\" cx=\"76.625\" cy=\"167.12\" rx=\"3.1952\" ry=\"3.043\" stroke-width=\"10\"></ellipse><path id=\"path27\" d=\"m76.625 255.16v-85.001\" stroke-width=\"10\"></path><path id=\"path28\" d=\"m79.416 165.64 72.61-38.512\" stroke-width=\"10\"></path></g><g id=\"root-4\" fill=\"none\" stroke=\"#4b443b\"><ellipse id=\"path2-36-1\" cx=\"194.25\" cy=\"233.4\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"9.565\"></ellipse><ellipse id=\"path23-7-30\" cx=\"194.25\" cy=\"184.36\" rx=\"3.1952\" ry=\"3.043\" stroke-width=\"10\"></ellipse><path id=\"path29\" d=\"m194.25 218.49v-31.089\" stroke-width=\"10\"></path><path id=\"path30\" d=\"m192.53 181.79-35.988-53.584\" stroke-width=\"10\"></path></g><g id=\"root-5\" fill=\"none\" stroke=\"#4b443b\"><ellipse id=\"path2-36\" cx=\"235.24\" cy=\"257.85\" rx=\"14.302\" ry=\"14.911\" stroke-width=\"9.565\"></ellipse><ellipse id=\"path23-7-8\" cx=\"236.29\" cy=\"159.22\" rx=\"3.1952\" ry=\"3.043\" stroke-width=\"10\"></ellipse><path id=\"path31\" d=\"m235.4 242.94 0.85439-80.675\" stroke-width=\"10\"></path><path id=\"path32\" d=\"m233.35 158.01-75.603-31.158\" stroke-width=\"10\"></path></g> <g id=\"leaf-right\" transform=\"matrix(.1924 .044136 -.041879 .18256 174.64 -11.155)\" fill=\"#eda0b4\"><path id=\"path1\" class=\"st0\" d=\"m480.01 31.996c-133.45-70.359-271.75-15.094-360.02 73.172-80.391 80.406-109.95 236.17-63.719 314.2l-56.281 56.281 36.359 36.344 56.281-56.266c78.031 46.219 233.8 16.672 314.19-63.718 88.281-88.265 143.55-226.58 73.188-360.02zm-58.328 195.42-107.66-2.516-81.641 81.641 123.03 3.984-1.234 38.063-158.72-5.109-64.188 64.172-26.922-26.922 64.172-64.188-5.109-158.72 38.063-1.234 3.969 123.03 81.641-81.641-2.5-107.66 38.078-0.875 1.656 71.297 70.859-70.859 26.938 26.922-70.859 70.875 71.313 1.656z\" fill=\"#eda0b4\"></path></g> <g id=\"leaf-left\" transform=\"matrix(-.097244 .17178 .163 .092271 70.77 36.438)\" fill=\"#7b9984\"><path id=\"path1-6\" class=\"st0\" d=\"m480.01 31.996c-133.45-70.359-271.75-15.094-360.02 73.172-80.391 80.406-109.95 236.17-63.719 314.2l-56.281 56.281 36.359 36.344 56.281-56.266c78.031 46.219 233.8 16.672 314.19-63.718 88.281-88.265 143.55-226.58 73.188-360.02zm-58.328 195.42-107.66-2.516-81.641 81.641 123.03 3.984-1.234 38.063-158.72-5.109-64.188 64.172-26.922-26.922 64.172-64.188-5.109-158.72 38.063-1.234 3.969 123.03 81.641-81.641-2.5-107.66 38.078-0.875 1.656 71.297 70.859-70.859 26.938 26.922-70.859 70.875 71.313 1.656z\" fill=\"#7b9984\"></path></g> <g id=\"leaf-center\" transform=\"matrix(-.17679 -.087814 -.083324 .16775 198.38 -5.0903)\" fill=\"#e5b79b\"><path id=\"path1-6-4\" class=\"st0\" d=\"m480.01 31.996c-133.45-70.359-271.75-15.094-360.02 73.172-80.391 80.406-109.95 236.17-63.719 314.2l-56.281 56.281 36.359 36.344 56.281-56.266c78.031 46.219 233.8 16.672 314.19-63.718 88.281-88.265 143.55-226.58 73.188-360.02zm-58.328 195.42-107.66-2.516-81.641 81.641 123.03 3.984-1.234 38.063-158.72-5.109-64.188 64.172-26.922-26.922 64.172-64.188-5.109-158.72 38.063-1.234 3.969 123.03 81.641-81.641-2.5-107.66 38.078-0.875 1.656 71.297 70.859-70.859 26.938 26.922-70.859 70.875 71.313 1.656z\" fill=\"#e5b79b\"></path></g><g id=\"stem\" fill=\"#4b443b\" stroke=\"#4b443b\" stroke-width=\"10\"><path id=\"path20\" d=\"m154.07 87.874 0.89086 38.567\"></path><ellipse id=\"path23\" cx=\"154.82\" cy=\"125.65\" rx=\"3.1952\" ry=\"3.043\"></ellipse><ellipse id=\"path33\" cx=\"154.28\" cy=\"81.551\" rx=\"9.253\" ry=\"9.2525\"></ellipse></g></g></svg></div><div class=\"mx-auto mt-16 max-w-2xl text-center sm:mt-24\"><h1 class=\"text-5xl font-semibold tracking-tight text-balance sm:text-7xl\">Foragd&nbsp;<sup class=\"text-sm uppercase\">beta</sup></h1><p class=\"mt-8 text-lg font-medium text-pretty sm:text-xl/8\">Tired of algorithmic feeds deciding what you see? Take back control of your reading. Follow any website, blog, or newsletter in one place.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a class=\"btn text-sm/6 font-semibold btn-primary\" _=\"on click go to #features smoothly\">See features</a> <a class=\"btn text-sm/6 font-semibold btn-primary\" _=\"on click go to #pricing smoothly\">Start a free trial</a></div><div class=\"mt-5 text-sm/6 font-semibold\">Already have an account?<a href=\"/login\" class=\"link\">&nbsp;Log in</a></div></div></div></div><div aria-hidden=\"true\" class=\"absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]\"><div class=\"soft-gradient-bottom\"></div></div></div><div id=\"features\" class=\"mt-32 sm:mt-56\"><div class=\"mx-auto mb-12 max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><h2 class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">A beautiful, web based, online feed reader.</h2><p class=\"mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Your internet, your way. One place for every feed, newsletter, and article. All fully searchable, always in sync, never algorithmic.</p></div><div class=\"mt-16 flow-root sm:mt-24\"><button command=\"show-modal\" commandfor=\"main-screenshot\" type=\"button\"><img src=\"/content/screenshots/screenshot-main.webp\" width=\"1900\" height=\"1440\" decoding=\"async\" fetchpriority=\"high\" alt=\"Foragd desktop/mobile screenshots\" class=\"rounded-box object-scale-down shadow-xl\"></button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -72,7 +52,7 @@ func Landing() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<img src=\"/content/screenshots/screenshot-main-nobg.webp\" width=\"1900\" height=\"1440\" decoding=\"async\" alt=\"Foragd desktop/mobile screenshots\" class=\"mx-auto w-full object-scale-down sm:max-w-360\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<img src=\"/content/screenshots/screenshot-main-nobg.webp\" width=\"1900\" height=\"1440\" decoding=\"async\" alt=\"Foragd desktop/mobile screenshots\" class=\"mx-auto w-full object-scale-down sm:max-w-360\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -82,15 +62,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><div class=\"space-y-8\"><div class=\"items-center justify-center rounded-box bg-base-200 shadow-xl sm:flex\"><div class=\"max-w-prose p-4\"><h3 class=\"text-lg font-medium\">Powerful Search</h3><p class=\"mt-1 text-sm\">Full-text search across subscriptions and articles. Easy filtering by keyword or phrase.</p></div><div class=\"mx-auto mt-4 justify-self-center p-4 sm:mt-0 sm:ml-4\"><button command=\"show-modal\" commandfor=\"feature-search\" type=\"button\"><div class=\"relative inline-block\"><img src=\"/content/screenshots/video-thumbnail-search.webp\" width=\"514\" height=\"328\" decoding=\"async\" alt=\"Thumbnail from video demostrating search.\" class=\"block rounded-box object-scale-down\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.PlayerPlayFilled(i.Props{Class: "absolute top-[45%] left-[45%]"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div><div class=\"space-y-8\"><div class=\"items-center justify-center rounded-box bg-base-200 shadow-xl sm:flex\"><div class=\"max-w-prose p-4\"><h3 class=\"text-lg font-medium\">Powerful Search</h3><p class=\"mt-1 text-sm\">Full-text search across subscriptions and articles. Easy filtering by keyword or phrase.</p></div><div class=\"mx-auto mt-4 justify-self-center p-4 sm:mt-0 sm:ml-4\"><button command=\"show-modal\" commandfor=\"feature-search\" type=\"button\"><div class=\"relative inline-block\"><img src=\"/content/screenshots/video-thumbnail-search.webp\" width=\"514\" height=\"328\" decoding=\"async\" alt=\"Thumbnail from video demostrating search.\" class=\"block rounded-box object-scale-down\"> <svg aria-label=\"Play video\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-player-play absolute top-[45%] left-[45%]\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M6 4v16a1 1 0 0 0 1.524 .852l13 -8a1 1 0 0 0 0 -1.704l-13 -8a1 1 0 0 0 -1.524 .852z\"></path></svg></div></button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -106,7 +78,7 @@ func Landing() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/video-search.webm\" type=\"video/webm\"></video>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<video controls height=\"1128\" width=\"720\" class=\"mx-auto h-auto w-full sm:max-w-180\"><source src=\"/content/screenshots/video-search.webm\" type=\"video/webm\"></video>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -116,7 +88,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div><div class=\"items-center rounded-box bg-base-200 shadow-xl sm:flex\"><div class=\"mb-4 justify-self-center p-4 sm:mr-4 sm:mb-0\"><button command=\"show-modal\" commandfor=\"feature-typography\" type=\"button\"><img src=\"/content/screenshots/article-content-typography.webp\" width=\"514\" height=\"328\" decoding=\"async\" alt=\"Screenshot of article content showing text and picture formatting.\" class=\"rounded-box object-scale-down shadow-xl\"></button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div><div class=\"items-center rounded-box bg-base-200 shadow-xl sm:flex\"><div class=\"mb-4 justify-self-center p-4 sm:mr-4 sm:mb-0\"><button command=\"show-modal\" commandfor=\"feature-typography\" type=\"button\"><img src=\"/content/screenshots/article-content-typography.webp\" width=\"514\" height=\"328\" decoding=\"async\" alt=\"Screenshot of article content showing text and picture formatting.\" class=\"rounded-box object-scale-down shadow-xl\"></button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -132,7 +104,7 @@ func Landing() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<img src=\"/content/screenshots/article-content-typography.webp\" width=\"1440\" height=\"900\" decoding=\"async\" alt=\"Screenshot of article content showing text and picture formatting.\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<img src=\"/content/screenshots/article-content-typography.webp\" width=\"1440\" height=\"900\" decoding=\"async\" alt=\"Screenshot of article content showing text and picture formatting.\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -142,7 +114,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div><div class=\"max-w-prose p-4\"><h3 class=\"text-lg font-medium\">Designed for content</h3><p class=\"mt-1 text-sm\">Pixel perfect text, clear formatting and big pictures. Content takes center stage in the user interface.</p></div></div><div class=\"items-center justify-center rounded-box bg-base-200 shadow-xl sm:flex\"><div class=\"max-w-prose p-4\"><h3 class=\"text-lg font-medium\">Customisation and Filtering</h3><p class=\"mt-1 text-sm\">Add a nickname and custom categories to a subscription. Filter articles by text/phrase, category or authors, with easy to use operators.</p></div><div class=\"mx-auto mt-4 justify-self-center p-4 sm:mt-0 sm:ml-4\"><button command=\"show-modal\" commandfor=\"feature-customization\" type=\"button\"><img src=\"/content/screenshots/edit-subscription.webp\" width=\"514\" height=\"328\" decoding=\"async\" alt=\"Screenshot of a subscription edit form with filtering options shown.\" class=\"rounded-box object-scale-down shadow-xl\"></button>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div><div class=\"max-w-prose p-4\"><h3 class=\"text-lg font-medium\">Designed for content</h3><p class=\"mt-1 text-sm\">Pixel perfect text, clear formatting and big pictures. Content takes center stage in the user interface.</p></div></div><div class=\"items-center justify-center rounded-box bg-base-200 shadow-xl sm:flex\"><div class=\"max-w-prose p-4\"><h3 class=\"text-lg font-medium\">Customisation and Filtering</h3><p class=\"mt-1 text-sm\">Add a nickname and custom categories to a subscription. Filter articles by text/phrase, category or authors, with easy to use operators.</p></div><div class=\"mx-auto mt-4 justify-self-center p-4 sm:mt-0 sm:ml-4\"><button command=\"show-modal\" commandfor=\"feature-customization\" type=\"button\"><img src=\"/content/screenshots/edit-subscription.webp\" width=\"514\" height=\"328\" decoding=\"async\" alt=\"Screenshot of a subscription edit form with filtering options shown.\" class=\"rounded-box object-scale-down shadow-xl\"></button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -158,7 +130,7 @@ func Landing() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<img src=\"/content/screenshots/edit-subscription.webp\" width=\"1440\" height=\"900\" decoding=\"async\" alt=\"Screenshot of a subscription edit form with filtering options shown.\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<img src=\"/content/screenshots/edit-subscription.webp\" width=\"1440\" height=\"900\" decoding=\"async\" alt=\"Screenshot of a subscription edit form with filtering options shown.\" class=\"mx-auto w-full rounded-box object-scale-down sm:max-w-360\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -168,55 +140,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></div></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><h3 class=\"text-lg/8 font-semibold text-base-content/80\">And additional features:</h3></div></div><div class=\"mt-16\"><dl class=\"mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16\"><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><div aria-hidden=\"true\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Heart(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div>Subscription and article favorites.</dt><dd class=\"ml-2 inline\">Mark subscriptions and articles as favorites, to quickly access them later.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><div aria-hidden=\"true\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.CategoryPlus(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</div>Group subscriptions.</dt><dd class=\"ml-2 inline\">Combine multiple feeds into a <a href=\"/help#group-subscriptions\" class=\"link\">group subscription</a> to present a unified view of articles from any of them.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><div aria-hidden=\"true\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Search(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div>Search subscriptions.</dt><dd class=\"ml-2 inline\">Save the search terms as a <a href=\"/help#search-subscriptions\" class=\"link\">search subscription</a> to always find new articles that match.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><div aria-hidden=\"true\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Mail(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div>Email Newsletters.</dt><dd class=\"ml-2 inline\">Subscribe to email newsletters as feeds using a custom personal foragd.app address.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><div aria-hidden=\"true\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.FileDownload(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div>Get remote article content.</dt><dd class=\"ml-2 inline\">Fetch the remote article content where the feed only shows a summary.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><div aria-hidden=\"true\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.ColorSwatch(i.Props{Class: "absolute top-1 left-1 size-5 text-primary"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div>Themes.</dt><dd class=\"ml-2 inline\">Choose between a selection of dark and light themes to your preference.</dd></div></dl></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><p class=\"text-lg/8 font-semibold text-base-content/80\">All your preferences and state is synced across your devices, so you are always up to date with your feeds.</p></div></div></div></div><div class=\"py-24 sm:pt-48\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><h2 id=\"pricing\" class=\"text-base/7 font-semibold text-primary\">Subscriptions and Pricing.</h2><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Keep up to date without breaking the bank</p></div><div class=\"card mx-auto my-8 max-w-96 bg-base-300 shadow-sm card-xl\"><div class=\"card-body\"><h2 class=\"mx-auto card-title\"><span aria-hidden=\"true\">📢</span> Beta Now Open</h2><p>Sign up during the beta period pay nothing now, provide feedback, and get a year free when we launch!</p><span aria-hidden=\"true\" class=\"mx-auto\">🎉 🎉 🎉</span></div></div><div class=\"mt-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></div></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><h3 class=\"text-lg/8 font-semibold text-base-content/80\">And additional features:</h3></div></div><div class=\"mt-16\"><dl class=\"mx-auto grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 text-base/7 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16\"><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-heart absolute top-1 left-1 size-5 text-primary\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572\"></path></svg> Subscription and article favorites.</dt><dd class=\"ml-2 inline\">Mark subscriptions and articles as favorites, to quickly access them later.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-category-plus absolute top-1 left-1 size-5 text-primary\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M4 4h6v6h-6v-6\"></path><path d=\"M14 4h6v6h-6v-6\"></path><path d=\"M4 14h6v6h-6v-6\"></path><path d=\"M14 17h6m-3 -3v6\"></path></svg> Group subscriptions.</dt><dd class=\"ml-2 inline\">Combine multiple feeds into a <a href=\"/help#group-subscriptions\" class=\"link\">group subscription</a> to present a unified view of articles from any of them.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-search absolute top-1 left-1 size-5 text-primary\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0\"></path><path d=\"M21 21l-6 -6\"></path></svg> Search subscriptions.</dt><dd class=\"ml-2 inline\">Save the search terms as a <a href=\"/help#search-subscriptions\" class=\"link\">search subscription</a> to always find new articles that match.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-mail absolute top-1 left-1 size-5 text-primary\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10\"></path><path d=\"M3 7l9 6l9 -6\"></path></svg> Email Newsletters.</dt><dd class=\"ml-2 inline\">Subscribe to email newsletters as feeds using a custom personal foragd.app address.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-file-download absolute top-1 left-1 size-5 text-primary\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M14 3v4a1 1 0 0 0 1 1h4\"></path><path d=\"M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2\"></path><path d=\"M12 17v-6\"></path><path d=\"M9.5 14.5l2.5 2.5l2.5 -2.5\"></path></svg> Get remote article content.</dt><dd class=\"ml-2 inline\">Fetch the remote article content where the feed only shows a summary.</dd></div><div class=\"relative pl-9\"><dt class=\"inline font-semibold\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-color-swatch absolute top-1 left-1 size-5 text-primary\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M19 3h-4a2 2 0 0 0 -2 2v12a4 4 0 0 0 8 0v-12a2 2 0 0 0 -2 -2\"></path><path d=\"M13 7.35l-2 -2a2 2 0 0 0 -2.828 0l-2.828 2.828a2 2 0 0 0 0 2.828l9 9\"></path><path d=\"M7.3 13h-2.3a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h12\"></path><path d=\"M17 17l0 .01\"></path></svg> Themes.</dt><dd class=\"ml-2 inline\">Choose between a selection of dark and light themes to your preference.</dd></div></dl></div><div class=\"mt-16\"><div class=\"mx-auto max-w-4xl sm:text-center\"><p class=\"text-lg/8 font-semibold text-base-content/80\">All your preferences and state is synced across your devices, so you are always up to date with your feeds.</p></div></div></div></div><div class=\"py-24 sm:pt-48\"><div class=\"mx-auto max-w-7xl px-6 lg:px-8\"><div class=\"mx-auto max-w-4xl text-center\"><h2 id=\"pricing\" class=\"text-base/7 font-semibold text-primary\">Subscriptions and Pricing.</h2><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Keep up to date without breaking the bank</p></div><div class=\"card mx-auto my-8 max-w-96 bg-base-300 shadow-sm card-xl\"><div class=\"card-body\"><h2 class=\"mx-auto card-title\"><span aria-hidden=\"true\">📢</span> Beta Now Open</h2><p>Sign up during the beta period pay nothing now, provide feedback, and get a year free when we launch!</p><span aria-hidden=\"true\" class=\"mx-auto\">🎉 🎉 🎉</span></div></div><div class=\"mt-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -224,71 +148,201 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Beta pricing. Sign up to lock in the price before launch. Got questions about pricing or features? <a href=\"mailto:hello@immanent.tech&subject=Pricing\" class=\"link text-base-content/80\">Email Us.</a></p></div></div></div><div id=\"faq\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-4xl\"><h2 class=\"text-4xl font-semibold tracking-tight sm:text-5xl\">Frequently asked questions</h2><dl class=\"mt-16 divide-y divide-accent\"><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-whatisit\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">What is a feed reader? How is it different from X, Facebook, Instagram, etc.?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Beta pricing. Sign up to lock in the price before launch. Got questions about pricing or features? <a href=\"mailto:hello@immanent.tech&subject=Pricing\" class=\"link text-base-content/80\">Email Us.</a></p></div></div></div><div id=\"faq\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-4xl\"><h2 class=\"text-4xl font-semibold tracking-tight sm:text-5xl\">Frequently asked questions</h2><dl class=\"mt-16 divide-y divide-accent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Var6 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "Feed readers allow you to follow a website, blog or newsletter directly. Rather than going to a central place for content, you pull in content from all across the web. You choose and control what content you see, no suggestions or promoted content by an algorithm or filtered and controlled by a single corporation.")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = landingFAQEntry("whatisit", "What is a feed reader? How is it different from X, Facebook, Instagram, etc.?").Render(templ.WithChildren(ctx, templ_7745c5c3_Var6), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Var7 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "Foragd is web-based and works on any browser (Chrome, Safari, Firefox), on any operating system (Windows, Mac, Linux). It has a responsive design to support all screen sizes from desktops down to mobiles. One tab. Every device. No install needed.")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = landingFAQEntry("app", "Do you have an app?").Render(templ.WithChildren(ctx, templ_7745c5c3_Var7), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</span></button></dt><el-disclosure id=\"faq-whatisit\" class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Feed readers allow you to follow a website, blog or newsletter directly. Rather than going to a central place for content, you pull in content from all across the web. You choose and control what content you see, no suggestions or promoted content by an algorithm or filtered and controlled by a single corporation.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-app\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Do you have an app?</span> <span class=\"ml-6 flex h-7 items-center\">")
+		templ_7745c5c3_Var8 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "Yes, Foragd supports importing (and exporting) with the OPML file format, which all good feed readers support. Switching from Feedly or Inoreader? Import your OPML in seconds and be back up and running.")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = landingFAQEntry("import", "Can I import my subscriptions from elsewhere?").Render(templ.WithChildren(ctx, templ_7745c5c3_Var8), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Var9 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "Foragd does not have any social features, so your subscriptions are private to you. We collect the minimal legally required personal information to provide the service (see our <a href=\"/policies/privacy\" class=\"link\">privacy policy</a>). We don't pass the data on to marketing third-parties and we don't inject ads or show sponsored content in your subscriptions.")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = landingFAQEntry("privacy", "Are my subscriptions private?").Render(templ.WithChildren(ctx, templ_7745c5c3_Var9), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Var10 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "Yes! Foragd is open source. You can find the source code <a class=\"link link-hover\" href=\"https://github.com/immanent-tech/foragd\">on GitHub</a>.")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = landingFAQEntry("opensource", "Is Foragd open source?").Render(templ.WithChildren(ctx, templ_7745c5c3_Var10), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span></button></dt><el-disclosure id=\"faq-app\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Foragd is web-based and works on any browser (Chrome, Safari, Firefox), on any operating system (Windows, Mac, Linux). It has a responsive design to support all screen sizes from desktops down to mobiles. One tab. Every device. No install needed.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-import\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Can I import my subscriptions from elsewhere?</span> <span class=\"ml-6 flex h-7 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</span></button></dt><el-disclosure id=\"faq-import\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Yes, Foragd supports importing (and exporting) with the OPML file format, which all good feed readers support. Switching from Feedly or Inoreader? Import your OPML in seconds and be back up and running.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-privacy\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Are my subscriptions private?</span> <span class=\"ml-6 flex h-7 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span></button></dt><el-disclosure id=\"faq-privacy\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Foragd does not have any social features, so your subscriptions are private to you. We collect the minimal legally required personal information to provide the service (see our <a href=\"/policies/privacy\" class=\"link\">privacy policy</a>). We don't pass the data on to marketing third-parties and we don't inject ads or show sponsored content in your subscriptions.</p></dd></el-disclosure></div><div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"faq-opensource\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">Is Foragd open source?</span> <span class=\"ml-6 flex h-7 items-center\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Plus(i.Props{Class: "size-6 in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = tabler.Minus(i.Props{Class: "size-6 not-in-aria-expanded:hidden"}).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</span></button></dt><el-disclosure id=\"faq-opensource\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">Yes! Foragd is open source. You can find the source code <a class=\"link link-hover\" href=\"https://github.com/immanent-tech/foragd\">on GitHub</a>.</p></dd></el-disclosure></div></dl></div></div><div class=\"relative -z-10 px-6 py-10 lg:px-8\"><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"#pricing\" class=\"btn btn-primary\">Start a free trial</a></div></div></div></main></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</dl></div></div><div class=\"relative -z-10 px-6 py-10 lg:px-8\"><div class=\"mx-auto max-w-2xl text-center\"><h2 class=\"text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Rediscover the web. Start using Foragd today.</h2><div class=\"mt-10 flex items-center justify-center gap-x-6\"><a href=\"#pricing\" class=\"btn btn-primary\">Start a free trial</a></div></div></div></main></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = footer().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func landingFAQEntry(id, question string) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var11 == nil {
+			templ_7745c5c3_Var11 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div class=\"py-6 first:pt-0 last:pb-0\"><dt><button type=\"button\" command=\"--toggle\" commandfor=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var12 string
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("faq-" + id)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 461, Col: 28}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" class=\"flex w-full items-start justify-between text-left\"><span class=\"text-base/7 font-semibold\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var13 string
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(question)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 464, Col: 54}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span> <span class=\"ml-6 flex h-7 items-center\"><svg aria-label=\"Open faq entry\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-plus size-6 in-aria-expanded:hidden\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 5l0 14\"></path><path d=\"M5 12l14 0\"></path></svg> <svg aria-label=\"Close faq entry\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-minus size-6 not-in-aria-expanded:hidden\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M5 12l14 0\"></path></svg></span></button></dt><el-disclosure id=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var14 string
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("faq-" + id)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 475, Col: 33}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" hidden class=\"contents\"><dd class=\"mt-2 pr-12\"><p class=\"text-base/7\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ_7745c5c3_Var11.Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</p></dd></el-disclosure></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -312,33 +366,33 @@ func imagePopup(id string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var6 == nil {
-			templ_7745c5c3_Var6 = templ.NopComponent
+		templ_7745c5c3_Var15 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var15 == nil {
+			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<el-dialog><dialog id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<el-dialog><dialog id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(id)
+		var templ_7745c5c3_Var16 string
+		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 559, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 487, Col: 17}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" class=\"relative z-10 backdrop:bg-transparent\"><el-dialog-backdrop class=\"fixed inset-0 hidden bg-primary transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in md:block\"></el-dialog-backdrop><div tabindex=\"0\" class=\"fixed inset-0 z-10 w-screen overflow-y-auto focus:outline-none\"><div class=\"flex min-h-full items-stretch justify-center text-center md:items-center\"><span aria-hidden=\"true\" class=\"hidden md:inline-block md:h-screen md:align-middle\">&#8203;</span> <el-dialog-panel class=\"flex w-full transform text-left text-base transition data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:md:translate-y-0 data-closed:md:scale-95\" _=\"on click remove @open from  the closest <el-dialog/>\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var6.Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" class=\"relative z-10 backdrop:bg-transparent\"><el-dialog-backdrop class=\"fixed inset-0 hidden bg-primary transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in md:block\"></el-dialog-backdrop><div tabindex=\"0\" class=\"fixed inset-0 z-10 w-screen overflow-y-auto focus:outline-none\"><div class=\"flex min-h-full items-stretch justify-center text-center md:items-center\"><span aria-hidden=\"true\" class=\"hidden md:inline-block md:h-screen md:align-middle\">&#8203;</span> <el-dialog-panel class=\"flex w-full transform text-left text-base transition data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:md:translate-y-0 data-closed:md:scale-95\" _=\"on click remove @open from  the closest <el-dialog/>\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</el-dialog-panel></div></div></dialog></el-dialog>")
+		templ_7745c5c3_Err = templ_7745c5c3_Var15.Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</el-dialog-panel></div></div></dialog></el-dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
