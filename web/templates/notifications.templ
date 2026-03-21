@@ -5,8 +5,6 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
 	"github.com/zeebo/xxh3"
 	"strconv"
 	"time"
@@ -35,16 +33,26 @@ templ Notification(msg *models.UserMessage, timeout time.Duration) {
 						// Generate appropriate status icon.
 						switch msg.Status {
 							case models.UserMessageStatusSuccess:
-								@tabler.CircleCheck(i.Props{Class: "size-6 text-success"})
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-check size-6 text-success">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M9 12l2 2l4 -4"></path>
+								</svg>
 							case models.UserMessageStatusError:
-								@tabler.ExclamationCircle(i.Props{Class: "size-6 text-error"})
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-exclamation-circle size-6 text-error">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 9v4"></path><path d="M12 16v.01"></path>
+								</svg>
 							case models.UserMessageStatusWarning:
-								@tabler.AlertTriangle(i.Props{Class: "size-6 text-warning"})
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle size-6 text-warning">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 9v4"></path><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0"></path><path d="M12 16h.01"></path>
+								</svg>
 							default:
-								@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-info-circle size-6 text-info">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M12 9h.01"></path><path d="M11 12h1v4h1"></path>
+								</svg>
 						}
 					</div>
-					<h2 class="ml-4 card-title">{ msg.Summary }</h2>
+					<h2 class="ml-4 card-title">
+						{ msg.Summary }
+					</h2>
 				</div>
 				if msg.HasDetails() {
 					<p class="mt-1">
@@ -60,7 +68,9 @@ templ Notification(msg *models.UserMessage, timeout time.Duration) {
 					_={ "on click remove #" + id }
 				>
 					<span class="sr-only">Close</span>
-					@tabler.X(i.Props{Class: "text-neutral"})
+					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x text-neutral">
+						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+					</svg>
 				</button>
 			</div>
 		</div>
@@ -83,11 +93,15 @@ templ UpdatesToast() {
 				hx-swap="innerHTML transition:true show:window:top"
 			>
 				<span class="sr-only">Refresh</span>
-				@tabler.Refresh(i.Props{Class: "size-4 text-info"})
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-refresh size-4 text-info">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
+				</svg>
 			</button>
 			<button class="btn btn-sm btn-square btn-info btn-soft" _="on click remove #updates-toast">
 				<span class="sr-only">Close</span>
-				@tabler.X(i.Props{Class: "size-4 text-info"})
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4 text-info">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+				</svg>
 			</button>
 		</div>
 	</div>
