@@ -17,7 +17,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<h1>Favorites</h1>
+				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Favorites</h1>
 				if len(response.Subscriptions) > 0 || len(response.Articles) > 0 {
 					// Show jump to links for quick access when there are both subscriptions and articles.
 					<div class="mx-auto w-full navbar justify-center">
@@ -29,7 +29,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					if len(response.Subscriptions) > 0 {
 						<section id="subscriptions" class="mt-4">
 							<div class="pb-5">
-								<h2>Subscriptions</h2>
+								<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">Subscriptions</h2>
 							</div>
 							@grid() {
 								for subscription := range slices.Values(response.Subscriptions) {
@@ -43,7 +43,7 @@ templ ListFavorites(response *models.ListFavoritesResponse) {
 					if len(response.Articles) > 0 {
 						<section id="articles" class="mt-4">
 							<div class="pb-5">
-								<h2>Articles</h2>
+								<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">Articles</h2>
 							</div>
 							@grid() {
 								for article := range slices.Values(response.Articles) {

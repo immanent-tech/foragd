@@ -15,7 +15,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 	@content() {
 		@container() {
 			<section id="viewer">
-				<h1>Feed Viewer</h1>
+				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Feed Viewer</h1>
 				<p>
 					Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
 					The feed content, if found, will be displayed below.
@@ -173,7 +173,9 @@ templ ViewerResults(feed *models.Feed) {
 								}
 							</div>
 							<div>
-								<h2>{ feed.GetTitle() }</h2>
+								<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
+									{ feed.GetTitle() }
+								</h2>
 								if feed.GetDescription() != "" {
 									<p>{ feed.GetDescription() }</p>
 								}
@@ -231,7 +233,9 @@ templ ViewerResults(feed *models.Feed) {
 
 templ ViewerError(msg *models.UserMessage) {
 	<div class="text-center">
-		<h2>{ msg.Summary }</h2>
+		<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
+			{ msg.Summary }
+		</h2>
 		if msg.HasDetails() {
 			<p>{ *msg.Details }</p>
 		}

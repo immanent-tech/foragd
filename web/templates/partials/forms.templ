@@ -17,12 +17,12 @@ templ FormField() {
 
 templ FormDisclosure(label string) {
 	<button type="button" command="--toggle" commandfor="customisation" class="flex w-full items-center justify-between text-left">
-		<h3>{ label }</h3>
+		<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">{ label }</h3>
 		<span class="ml-6 flex h-7 items-center">
-			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 in-aria-expanded:hidden">
+			<svg aria-label="Expand section" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" class="size-6 in-aria-expanded:hidden">
 				<path d="M12 6v12m6-6H6" stroke-linecap="round" stroke-linejoin="round"></path>
 			</svg>
-			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 not-in-aria-expanded:hidden">
+			<svg aria-label="Collapse section" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" class="size-6 not-in-aria-expanded:hidden">
 				<path d="M18 12H6" stroke-linecap="round" stroke-linejoin="round"></path>
 			</svg>
 		</span>

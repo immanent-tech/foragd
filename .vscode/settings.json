@@ -85,7 +85,8 @@
     "templates/header",
     "templates/sidebar",
     "templates/dock",
-    "templates/footer"
+    "templates/footer",
+    "templates/landing"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

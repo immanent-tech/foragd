@@ -44,7 +44,9 @@ templ UserHome(data *models.HomeResponse) {
 							// Left column
 							<div class="grid grid-cols-1 gap-4 lg:col-span-2">
 								<section aria-labelledby="section-latest-articles">
-									<h2 id="section-latest-articles">Latest Articles</h2>
+									<h2 id="section-latest-articles" class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
+										Latest Articles
+									</h2>
 									<div>
 										// Grid of latest articles on large displays.
 										<div class="hidden grid-cols-1 place-items-center gap-4 content-auto sm:inline-grid sm:grid-cols-2 sm:gap-8">
@@ -67,7 +69,12 @@ templ UserHome(data *models.HomeResponse) {
 							<div class="grid grid-cols-1 gap-4">
 								if len(data.Subscriptions) > 0 {
 									<section aria-labelledby="section-last-updated-subscriptions">
-										<h2 id="section-last-updated-subscriptions">Last Updated Subscriptions</h2>
+										<h2
+											id="section-last-updated-subscriptions"
+											class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl"
+										>
+											Last Updated Subscriptions
+										</h2>
 										<div class="inline-grid w-full grid-flow-row grid-cols-1 gap-y-4 px-4 py-6 sm:px-6 lg:px-8">
 											for idx, subscription := range data.Subscriptions {
 												if idx >= 6 {
@@ -124,7 +131,12 @@ templ UserHome(data *models.HomeResponse) {
 								}
 								if len(data.TopCategories) > 0 {
 									<section aria-labelledby="section-top-categories">
-										<h2 id="section-top-categories">Top Categories</h2>
+										<h2
+											id="section-top-categories"
+											class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl"
+										>
+											Top Categories
+										</h2>
 										<div id="top-categories" class="m-2 flex flex-row flex-wrap justify-center gap-2 p-2">
 											for category := range data.TopCategories {
 												{{ params := models.NewListDisplayFilters() }}
@@ -158,10 +170,12 @@ templ NewUserHome() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<h1>{ "Welcome to " + config.AppName }</h1>
+				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ "Welcome to " + config.AppName }</h1>
 				<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
 				<div class="py-4">
-					<h2>Add/Import Subscriptions</h2>
+					<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
+						Add/Import Subscriptions
+					</h2>
 					<p class="py-2">Import your subscriptions from an external service or start fresh.</p>
 					<div class="relative flex max-w-prose items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content">
 						<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
@@ -207,7 +221,9 @@ templ NewUserHome() {
 					</div>
 				</div>
 				<div class="py-4">
-					<h2>Start With Curated Subscription Sets</h2>
+					<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
+						Start With Curated Subscription Sets
+					</h2>
 					<p class="py-2">Or try one or more curated starter sets (you can also add these later in settings).</p>
 					<form
 						hx-post="/user/feedset"
@@ -261,7 +277,9 @@ templ NewUserHome() {
 					</form>
 				</div>
 				<div class="py-4">
-					<h2>Get to know Foragd</h2>
+					<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
+						Get to know Foragd
+					</h2>
 					<p class="py-2">Read the documentation/help to get familiar with the app.</p>
 					<ul class="list-inside list-disc">
 						<li><a class="link" href="/help">Documentation Home</a></li>

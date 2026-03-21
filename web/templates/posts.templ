@@ -14,8 +14,8 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 		<main class="py-24 sm:pt-12 sm:pb-32">
 			@container() {
 				<div class="mx-auto max-w-2xl lg:mx-0">
-					<h1>From the blog</h1>
-					<p class="sub-heading">Posts from the makers of Foragd.</p>
+					<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">From the blog</h1>
+					<p class="mt-2 text-lg/8">Posts from the makers of Foragd.</p>
 				</div>
 				<div class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-base-300 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3">
 					for post := range slices.Values(posts) {
@@ -63,7 +63,12 @@ templ Post(post *models.MarkdownFile) {
 				</ul>
 			</div>
 			<article itemscope itemtype="https://schema.org/NewsArticle" class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">
-				<h1 itemprop="headline">{ post.Frontmatter.Title }</h1>
+				<h1
+					class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl"
+					itemprop="headline"
+				>
+					{ post.Frontmatter.Title }
+				</h1>
 				<p class="font-semibold">{ post.Frontmatter.Description }</p>
 				if post.Frontmatter.Author != nil {
 					<span class="label text-sm">{ *post.Frontmatter.Author }</span>

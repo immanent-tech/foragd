@@ -284,10 +284,10 @@ templ (a *Article) Content() {
 								rel="noopener"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
-								<h1>{ a.GetTitle() }</h1>
+								<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ a.GetTitle() }</h1>
 							</a>
 						} else {
-							<h1>{ a.GetTitle() }</h1>
+							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ a.GetTitle() }</h1>
 						}
 					</div>
 					// Subscription link.
@@ -595,7 +595,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						} else {
 							{{ title = "Articles" }}
 						}
-						<h1>{ title }</h1>
+						<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ title }</h1>
 					</div>
 					<div class="mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>

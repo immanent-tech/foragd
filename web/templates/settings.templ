@@ -50,7 +50,9 @@ templ UserSettings() {
 templ AccountSettings(user *models.User) {
 	<div id="account-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 		<div>
-			<h3>Subscription Plan</h3>
+			<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+				Subscription Plan
+			</h3>
 			<p class="mt-1 text-sm/6">
 				if trial, endDate := user.OnTrial(); trial {
 					{ user.GetSubscriptionPlan() +" (trial, ending on "+endDate.Format(time.DateOnly)+")" }
@@ -77,7 +79,9 @@ templ AccountSettings(user *models.User) {
 			</div>
 		</div>
 		<div>
-			<h3>Import/Export</h3>
+			<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+				Import/Export
+			</h3>
 			<p>Import or Export your subscriptions.</p>
 		</div>
 		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
@@ -100,7 +104,9 @@ templ AccountSettings(user *models.User) {
 		</div>
 		if !strings.HasPrefix(user.GetExternalID(),"auth0|") {
 			<div class="col-span-full">
-				<h3>Edit Account</h3>
+				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+					Edit Account
+				</h3>
 				<p>
 					Your account is provided by an external service provider such as Google or Facebook, please log in
 					to your account on the external service to make changes to your nickname, email, avatar or password.
@@ -109,7 +115,9 @@ templ AccountSettings(user *models.User) {
 		} else {
 			// Account customisation.
 			<div>
-				<h3>Edit Account</h3>
+				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+					Edit Account
+				</h3>
 				<p>
 					Use an email address that can receive messages.
 				</p>
@@ -177,7 +185,9 @@ templ AccountSettings(user *models.User) {
 			</form>
 			// Change password.
 			<div>
-				<h3>Change Password</h3>
+				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+					Change Password
+				</h3>
 				<p>Update your password associated with your account.</p>
 			</div>
 			<form
@@ -210,7 +220,9 @@ templ AccountSettings(user *models.User) {
 		}
 		// Subscription Email
 		<div>
-			<h3>Subcribe to Email Newsletters</h3>
+			<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+				Subcribe to Email Newsletters
+			</h3>
 			<p>Use or generate an email for subscribing to email newsletters.</p>
 		</div>
 		<div id="subscription-email" class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
@@ -237,7 +249,9 @@ templ AccountSettings(user *models.User) {
 		</div>
 		if cancelled, _ := user.Cancelled(); cancelled {
 			<div>
-				<h3>Cancel deactivation</h3>
+				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+					Cancel deactivation
+				</h3>
 				<p>
 					Change of mind? You can cancel the deactivation of your account and restore it to full
 					functionality. You'll continue to get billed at the start of your next billing cycle.
@@ -259,7 +273,9 @@ templ AccountSettings(user *models.User) {
 		} else if user.Active() {
 			// Show action to deactivate account.
 			<div>
-				<h3>Deactivate Account</h3>
+				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+					Deactivate Account
+				</h3>
 				<p>No longer want to use our service? You can deactivate your account here.</p>
 			</div>
 			<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
@@ -307,7 +323,9 @@ templ DisplaySettings(user *models.User) {
 		// Display settings.
 		<div id="behaviour-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div>
-				<h3>Behaviour</h3>
+				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+					Behaviour
+				</h3>
 				<p>Settings that control the display behaviour in the app.</p>
 			</div>
 			<form
@@ -395,7 +413,9 @@ templ DisplaySettings(user *models.User) {
 		// Theme settings.
 		<div id="theme-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div class="md:col-span-full">
-				<h3>Theme</h3>
+				<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+					Theme
+				</h3>
 				<p>Choose a theme from the selection below. It will be applied instantly.</p>
 			</div>
 			// * Changing themes here also requires updating the list in styles.css.

@@ -47,21 +47,6 @@
 }
 
 @layer base {
-  h1 {
-    @apply mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl;
-  }
-
-  h2 {
-    @apply mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl;
-  }
-
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4;
-  }
-
   el-menu {
     @apply origin-top-right rounded-md bg-base-300 shadow-lg outline-1 -outline-offset-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
   }
@@ -161,10 +146,6 @@
     visibility: visible;
     transition: opacity 200ms ease-in;
   }
-}
-
-@utility sub-heading {
-  @apply mt-2 text-lg/8;
 }
 
 /* For formatting articles.  */

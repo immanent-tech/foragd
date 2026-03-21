@@ -19,7 +19,7 @@ templ InternalError(user *models.User, msg *models.UserMessage) {
 					<div aria-hidden="true">
 						@tabler.MoodConfuzed(i.Props{Class: "mx-auto text-accent size-12"})
 					</div>
-					<h1>Whoops!</h1>
+					<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Whoops!</h1>
 					<p>{ msg.Summary }</p>
 					if msg.HasDetails() {
 						<p>{ *msg.Details }</p>
@@ -46,7 +46,7 @@ templ ExternalError(user *models.User, msg *models.UserMessage) {
 					<div aria-hidden="true">
 						@tabler.MoodConfuzed(i.Props{Class: "mx-auto text-accent size-12"})
 					</div>
-					<h1>Whoops!</h1>
+					<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Whoops!</h1>
 					<p>{ msg.Summary }</p>
 					if msg.HasDetails() {
 						<p>{ *msg.Details }</p>
