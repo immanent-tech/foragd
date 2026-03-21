@@ -5,8 +5,6 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 	"strconv"
 	"strings"
@@ -29,7 +27,9 @@ templ FilterControls(path string, filters *models.ListFilters) {
 						>
 							<span class="absolute -inset-0.5"></span>
 							<span class="sr-only">Close menu</span>
-							@tabler.X(i.Props{Class: "size-6"})
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-6">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+							</svg>
 						</button>
 					</div>
 					// Category Filters.
@@ -42,10 +42,11 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								commandfor="mobile-category-filters"
 								class="flex w-full items-center justify-between px-2 py-3 text-sm"
 							>
-								<span class="font-medium">Category</span>
-								<span class="ml-6 flex items-center">
-									@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
-								</span>
+								<span class="sr-only">Show category filters</span>
+								<span class="not-sr-only font-medium">Category</span>
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180 ml-6">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+								</svg>
 							</button>
 						</h4>
 						<el-disclosure id="mobile-category-filters" hidden class="pt-4 flex flex-col">
@@ -70,10 +71,11 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								commandfor="mobile-view-filters"
 								class="flex w-full items-center justify-between px-2 py-3 text-sm"
 							>
-								<span class="font-medium">View</span>
-								<span class="ml-6">
-									@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
-								</span>
+								<span class="sr-only">Show view filters</span>
+								<span class="not-sr-only font-medium">View</span>
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180 ml-6">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+								</svg>
 							</button>
 						</h4>
 						<el-disclosure id="mobile-view-filters" hidden class="block pt-4">
@@ -91,10 +93,11 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								commandfor="mobile-sort-filters"
 								class="flex w-full items-center justify-between px-2 py-3 text-sm"
 							>
+								<span class="sr-only">Show sort filters</span>
 								<span class="font-medium">Sort</span>
-								<span class="ml-6 flex items-center">
-									@tabler.ChevronDown(i.Props{Class: "size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180"})
-								</span>
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180 ml-6">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+								</svg>
 							</button>
 						</h4>
 						<el-disclosure id="mobile-sort-filters" hidden class="block pt-4">
@@ -129,8 +132,11 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									class="inline-flex btn btn-wide"
 									popovertarget="desktop-category-filters"
 								>
-									Category
-									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+									<span class="sr-only">Show category filters</span>
+									<span class="not-sr-only">Category</span>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down -mr-1 size-5">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+									</svg>
 								</button>
 								<el-popover
 									id="desktop-category-filters"
@@ -153,8 +159,11 @@ templ FilterControls(path string, filters *models.ListFilters) {
 						<div class="relative inline-block text-left">
 							<div>
 								<button class="inline-flex btn btn-wide" popovertarget="desktop-view-filters">
-									View
-									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+									<span class="sr-only">Show view filters</span>
+									<span class="not-sr-only">View</span>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down -mr-1 size-5">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+									</svg>
 								</button>
 								<el-popover id="desktop-view-filters" anchor="bottom end" popover class="p-4 w-fit bg-base-300 rounded-box shadow-xl [--anchor-gap:4px]">
 									<div class="space-y-4 text-sm">
@@ -167,8 +176,11 @@ templ FilterControls(path string, filters *models.ListFilters) {
 						<div class="relative inline-block text-left">
 							<div>
 								<button class="inline-flex btn btn-wide" popovertarget="desktop-sort-filters">
-									Sort
-									@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+									<span class="sr-only">Show sort filters</span>
+									<span class="not-sr-only">Sort</span>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down -mr-1 size-5">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+									</svg>
 								</button>
 								<el-popover id="desktop-sort-filters" anchor="bottom end" popover class="p-4 w-fit bg-base-300 rounded-box shadow-xl [--anchor-gap:4px]">
 									<div class="space-y-4 text-sm">
@@ -210,7 +222,9 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								<div class="badge badge-secondary m-1 flex items-center">
 									Favorites
 									<button type="submit" aria-label="Clear favorites filter">
-										@tabler.X(i.Props{Class: "size-4"})
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+										</svg>
 									</button>
 								</div>
 							</form>
@@ -429,7 +443,9 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 			<div class="badge badge-secondary m-1 flex items-center">
 				{ category }
 				<button type="submit" aria-label={ "Clear category filter " + category }>
-					@tabler.X(i.Props{Class: "size-4"})
+					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4">
+						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+					</svg>
 				</button>
 			</div>
 		</form>
