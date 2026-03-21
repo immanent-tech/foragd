@@ -5,8 +5,6 @@ package templates
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
 
@@ -34,7 +32,9 @@ templ searchCommands() {
 								placeholder="Search..."
 								class="col-start-1 row-start-1 h-12 w-full bg-transparent pr-4 pl-11 text-base outline-hidden placeholder:text-primary sm:text-sm"
 							/>
-							@tabler.Search(i.Props{Class: "pointer-events-none col-start-1 row-start-1 ml-4 size-5 self-center text-primary"})
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search pointer-events-none col-start-1 row-start-1 ml-4 size-5 self-center text-primary">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
+							</svg>
 						</div>
 						<el-command-list class="block max-h-80 scroll-py-2 overflow-y-auto">
 							// <el-defaults class="block divide-y divide-gray-500/10 dark:divide-white/10">
@@ -88,7 +88,9 @@ templ searchCommands() {
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
-									@tabler.Home(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-home size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l-2 0l9 -9l9 9l-2 0"></path><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"></path><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"></path>
+									</svg>
 									<span class="ml-3 flex-auto truncate">Go to Home</span>
 									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 								</a>
@@ -97,7 +99,9 @@ templ searchCommands() {
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
-									@tabler.Rss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-rss size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path><path d="M4 4a16 16 0 0 1 16 16"></path><path d="M4 11a9 9 0 0 1 9 9"></path>
+									</svg>
 									<span class="ml-3 flex-auto truncate">Go to Subscriptions</span>
 									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 								</a>
@@ -106,7 +110,9 @@ templ searchCommands() {
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
-									@tabler.FileRss(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17a3 3 0 0 0 -3 -3"></path><path d="M15 17a6 6 0 0 0 -6 -6"></path><path d="M9 17h.01"></path>
+									</svg>
 									<span class="ml-3 flex-auto truncate">Go to Articles</span>
 									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 								</a>
@@ -115,7 +121,9 @@ templ searchCommands() {
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
-									@tabler.Heart(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
+									</svg>
 									<span class="ml-3 flex-auto truncate">Go to Favorites</span>
 									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 								</a>
@@ -124,7 +132,9 @@ templ searchCommands() {
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
-									@tabler.Settings(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065"></path><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path>
+									</svg>
 									<span class="ml-3 flex-auto truncate">Go to Settings</span>
 									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 								</a>
@@ -140,7 +150,9 @@ templ searchCommands() {
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
-									@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-plus size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M9 12h6"></path><path d="M12 9v6"></path>
+									</svg>
 									<span class="ml-3 flex-auto truncate">Add a feed subscription</span>
 									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Create...</span>
 								</a>
@@ -154,7 +166,9 @@ templ searchCommands() {
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
-									@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-plus size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M9 12h6"></path><path d="M12 9v6"></path>
+									</svg>
 									<span class="ml-3 flex-auto truncate">Add a search subscription</span>
 									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Create...</span>
 								</a>
@@ -167,14 +181,18 @@ templ searchCommands() {
 									hidden
 									class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
 								>
-									@tabler.CirclePlus(i.Props{Class: "size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]"})
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-plus size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M9 12h6"></path><path d="M12 9v6"></path>
+									</svg>
 									<span class="ml-3 flex-auto truncate">Add a group subscription</span>
 									<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Create...</span>
 								</a>
 							</el-command-group>
 						</el-command-list>
 						<el-no-results hidden class="block px-6 py-14 text-center sm:px-14">
-							@tabler.QuestionMark(i.Props{Class: "mx-auto size-6 text-primary"})
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-question-mark mx-auto size-6 text-primary">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M8 8a3.5 3 0 0 1 3.5 -3h1a3.5 3 0 0 1 3.5 3a3 3 0 0 1 -2 3a3 4 0 0 0 -2 4"></path><path d="M12 19l0 .01"></path>
+							</svg>
 							<p class="mt-4 font-semibold text-primary">We couldn't find any actions with that term. Please try again.</p>
 						</el-no-results>
 					</el-command-palette>
@@ -195,7 +213,9 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 		>
 			<div class="flex-none">
 				if subscription.GetImage() == "" {
-					@tabler.Rss()
+					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-rss">
+						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path><path d="M4 4a16 16 0 0 1 16 16"></path><path d="M4 11a9 9 0 0 1 9 9"></path>
+					</svg>
 				} else {
 					@partials.Thumbnail(
 						&models.RemoteImage{
@@ -215,9 +235,9 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 
 templ Search() {
 	<div class="input w-full bg-base-300 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6">
-		<span aria-hidden="true">
-			@tabler.Search(i.Props{Class: "pointer-events-none flex-none text-primary"})
-		</span>
+		<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search pointer-events-none flex-none text-primary">
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
+		</svg>
 		<input
 			hx-get="/search"
 			hx-target={ ContentID.Target() }
@@ -246,9 +266,9 @@ templ Search() {
 			type="button"
 			aria-label="Search suggestions"
 		>
-			<div aria-hidden="true">
-				@tabler.ChevronDown(i.Props{Class: "pointer-events-none flex-none text-primary"})
-			</div>
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down pointer-events-none flex-none text-primary transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+			</svg>
 		</button>
 		<el-popover
 			id="search-suggestions-popover"
@@ -257,8 +277,14 @@ templ Search() {
 			role="listbox"
 			class="h-fit max-h-9/10 w-full divide-y divide-primary/80 rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px]"
 		></el-popover>
-		<button command="show-modal" commandfor="advanced-search-dialog">
-			@tabler.Adjustments(i.Props{Class: "text-primary"})
+		<button
+			command="show-modal"
+			commandfor="advanced-search-dialog"
+			aria-label="Show advanced search dialog"
+		>
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-adjustments text-primary">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 10a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M6 4v4"></path><path d="M6 12v8"></path><path d="M10 16a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12 4v10"></path><path d="M12 18v2"></path><path d="M16 7a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M18 4v1"></path><path d="M18 9v11"></path>
+			</svg>
 		</button>
 	</div>
 	<el-dialog>
@@ -291,7 +317,9 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			>
 				<input type="hidden" name="text" value={ suggestions.Search.Text }/>
 				<button type="submit" class="group flex items-center" tabindex="0">
-					@tabler.Search(i.Props{Class: "group-hover:text-primary"})
+					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search group-hover:text-primary">
+						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
+					</svg>
 					<span class="ml-3 flex-auto truncate">Search for { suggestions.Search.Text }</span>
 					<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Search...</span>
 				</button>
@@ -320,7 +348,9 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 								"size-6",
 							)
 						} else {
-							@tabler.Rss(i.Props{Class: "group-hover:text-primary size-6"})
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-rss group-hover:text-primary size-6">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path><path d="M4 4a16 16 0 0 1 16 16"></path><path d="M4 11a9 9 0 0 1 9 9"></path>
+							</svg>
 						}
 						<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
 						<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
@@ -355,7 +385,9 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 								"size-6",
 							)
 						} else {
-							@tabler.FileRssFilled(i.Props{Class: "group-hover:text-primary size-6"})
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-file-rss group-hover:text-primary size-6">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 2l.117 .007a1 1 0 0 1 .876 .876l.007 .117v4l.005 .15a2 2 0 0 0 1.838 1.844l.157 .006h4l.117 .007a1 1 0 0 1 .876 .876l.007 .117v9a3 3 0 0 1 -2.824 2.995l-.176 .005h-10a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-14a3 3 0 0 1 2.824 -2.995l.176 -.005zm-3 11a1 1 0 0 0 0 2a2 2 0 0 1 1.995 1.85l.005 .15a1 1 0 0 0 2 0a4 4 0 0 0 -4 -4m0 -3a1 1 0 0 0 0 2a5 5 0 0 1 5 5a1 1 0 0 0 2 0a7 7 0 0 0 -7 -7m.01 6h-.01a1 1 0 0 0 -.117 1.993l.127 .007a1 1 0 0 0 0 -2m5.989 -13.001l4.001 4.001h-4z"></path>
+							</svg>
 						}
 						<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
 						<span aria-hidden="true" class="ml-3 hidden flex-none text-primary group-hover:inline">Jump to...</span>
@@ -371,86 +403,15 @@ templ SearchResults(results *models.SearchResults) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<div id="header" class="mt-4 flex items-center justify-between">
-					// Page title.
-					<div class="min-w-0 flex-1">
-						<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Search Results</h1>
-					</div>
-					// Actions menu.
-					<el-dropdown class="inline-block flex-none">
-						<button class="inline-flex flex-col items-center">
-							<span class="sr-only">Articles Actions</span>
-							@tabler.DotsVertical(i.Props{Class: "size-6"})
-						</button>
-						<el-menu anchor="bottom end" popover>
-							// Mark all read action.
-							<form>
-								<input type="hidden" name={ models.ParamView } value={ models.ViewUnread }/>
-								<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-								<a
-									hx-post="/list/articles/mark/read"
-									hx-target={ ContentID.Target() }
-									hx-include="#grid-objects"
-									class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
-									role="menuitem"
-									tabindex="-1"
-								>
-									@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-									<span class="sr-only">Mark All Read</span>
-									Mark all Read
-								</a>
-							</form>
-							// Mark all unread action.
-							<form>
-								<input type="hidden" name={ models.ParamView } value={ models.ViewRead }/>
-								<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
-								<a
-									hx-post="/list/articles/mark/unread"
-									hx-target={ ContentID.Target() }
-									hx-include="#grid-objects"
-									class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
-									role="menuitem"
-									tabindex="-1"
-								>
-									@tabler.Mail(i.Props{Class: "size-4"})
-									<span class="sr-only">Mark All Unread</span>
-									Mark all Unread
-								</a>
-							</form>
-							if results.Search.SubscriptionID != nil {
-								// Edit action.
-								<a
-									hx-get={ "/edit/subscription/" + *results.Search.SubscriptionID }
-									hx-target={ ContentID.Target() }
-									hx-swap="innerHTML show:window:top transition:true"
-									class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
-									role="menuitem"
-									tabindex="-1"
-								>
-									@tabler.Edit(i.Props{Class: "size-4"})
-									Edit Subscription
-								</a>
-							} else {
-								<a
-									hx-get="/user/subscription/add/search"
-									hx-target={ ContentID.Target() }
-									hx-include="#search-filters"
-									class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
-									role="menuitem"
-									tabindex="-1"
-								>
-									@tabler.Plus(i.Props{Class: "size-4"})
-									Add Subscription
-								</a>
-							}
-						</el-menu>
-					</el-dropdown>
-				</div>
 				if len(results.Articles) == 0 {
-					<div class="text-center">
-						@tabler.ZoomExclamation(i.Props{Class: "mx-auto text-accent size-12"})
-						<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Nothing Found</h1>
-						<p>Looks like there are no matches for that search</p>
+					<div class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
+						<div class="text-center">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-zoom-question mx-auto text-accent size-12">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path><path d="M10 13l0 .01"></path><path d="M10 10a1.5 1.5 0 1 0 -1.14 -2.474"></path>
+							</svg>
+							<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Nothing found</h1>
+							<p class="mt-6 text-lg font-medium text-pretty sm:text-xl/8">Looks like there are no matches for that search.</p>
+						</div>
 					</div>
 				} else {
 					// Watch for updates.
@@ -460,6 +421,89 @@ templ SearchResults(results *models.SearchResults) {
 					// 	sse-swap="updates"
 					// 	class="toast toast-center z-50"
 					// ></div>
+					<div id="header" class="mt-4 flex items-center justify-between">
+						// Page title.
+						<div class="min-w-0 flex-1">
+							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Search Results</h1>
+						</div>
+						// Actions menu.
+						<el-dropdown class="inline-block flex-none">
+							<button class="btn inline-flex flex-col items-center">
+								<span class="sr-only">Articles Actions</span>
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
+								</svg>
+							</button>
+							<el-menu anchor="bottom end" popover>
+								// Mark all read action.
+								<form>
+									<input type="hidden" name={ models.ParamView } value={ models.ViewUnread }/>
+									<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+									<a
+										hx-post="/list/articles/mark/read"
+										hx-target={ ContentID.Target() }
+										hx-include="#grid-objects"
+										class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
+										role="menuitem"
+										tabindex="-1"
+									>
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
+										</svg>
+										Mark all Read
+									</a>
+								</form>
+								// Mark all unread action.
+								<form>
+									<input type="hidden" name={ models.ParamView } value={ models.ViewRead }/>
+									<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+									<a
+										hx-post="/list/articles/mark/unread"
+										hx-target={ ContentID.Target() }
+										hx-include="#grid-objects"
+										class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
+										role="menuitem"
+										tabindex="-1"
+									>
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-4">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+										</svg>
+										Mark all Unread
+									</a>
+								</form>
+								if results.Search.SubscriptionID != nil {
+									// Edit action.
+									<a
+										hx-get={ "/edit/subscription/" + *results.Search.SubscriptionID }
+										hx-target={ ContentID.Target() }
+										hx-swap="innerHTML show:window:top transition:true"
+										class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
+										role="menuitem"
+										tabindex="-1"
+									>
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit size-4">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415"></path><path d="M16 5l3 3"></path>
+										</svg>
+										Edit Subscription
+									</a>
+								} else {
+									<a
+										hx-get="/user/subscription/add/search"
+										hx-target={ ContentID.Target() }
+										hx-include="#search-filters"
+										class="group/item flex link items-center gap-x-2 rounded-md px-3 py-2 text-sm link-hover focus:bg-primary focus:text-primary-content focus:outline-hidden"
+										role="menuitem"
+										tabindex="-1"
+									>
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-4">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+										</svg>
+										Add Subscription
+									</a>
+								}
+							</el-menu>
+						</el-dropdown>
+					</div>
 					if len(results.Articles) > 1 {
 						<div class="m-2 flex justify-center gap-2 p-2">
 							<div id="top-categories" class="flex flex-row flex-wrap place-content-center gap-2 p-2">
@@ -800,7 +844,9 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					class="btn btn-circle text-info btn-ghost btn-xs"
 					aria-label="Search filters help"
 				>
-					@tabler.InfoCircle(i.Props{Class: "size-6 text-info"})
+					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-info-circle size-6 text-info">
+						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M12 9h.01"></path><path d="M11 12h1v4h1"></path>
+					</svg>
 				</button>
 				<el-popover popover="hint" id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
 					<div class="card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap shadow-md">
@@ -827,10 +873,13 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 			hx-vals={ templ.JSONString(map[string]any{"subscription_id": subscription.GetID(), "subscription_name": subscription.GetTitle()}) }
 			hx-params="subscription_id,subscription_name,subscriptions-input-name"
 			_="on htmx:afterRequest(successful) remove me"
+			aria-label={ "Add subscription filter for " + subscription.GetTitle() }
 		>
 			<div class="badge badge-sm hover:cursor-pointer hover:badge-success">
 				{ subscription.GetTitle() }
-				@tabler.Plus(i.Props{Class: "size-4"})
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-4">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+				</svg>
 			</div>
 		</button>
 	}
@@ -838,11 +887,18 @@ templ SearchSubscriptionFilterSuggestions(subscriptions models.Subscriptions) {
 
 templ AddSearchSubscriptionFilter(filter *models.AddSubscriptionSearchFilterRequest) {
 	<li>
-		<button _="on click remove the closest <li/>" type="button" class="btn btn-wide">
+		<button
+			_="on click remove the closest <li/>"
+			type="button"
+			class="btn btn-wide"
+			aria-label={ "Remove subscription filter " + filter.SubscriptionName }
+		>
 			<input type="hidden" name={ filter.InputName } value={ filter.SubscriptionID }/>
 			// <div class="badge badge-sm hover:cursor-pointer hover:badge-error">
 			{ filter.SubscriptionName }
-			@tabler.X(i.Props{Class: "size-4"})
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
+			</svg>
 			// </div>
 		</button>
 	</li>
@@ -856,14 +912,20 @@ templ SimilarArticles(articles models.Articles) {
 				// Show a page header.
 				<div class="md:flex md:items-center md:justify-between">
 					<div class="min-w-0 flex-1">
-						<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Similar Articles</h1>
+						<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
+							Similar Articles
+						</h1>
 					</div>
 				</div>
 				if len(articles) == 0 {
-					<div class="text-center">
-						@tabler.ZoomExclamation(i.Props{Class: "mx-auto text-accent size-12"})
-						<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Nothing Found</h1>
-						<p>Looks like there are no matches for that search</p>
+					<div class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
+						<div class="text-center">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-zoom-question mx-auto text-accent size-12">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path><path d="M10 13l0 .01"></path><path d="M10 10a1.5 1.5 0 1 0 -1.14 -2.474"></path>
+							</svg>
+							<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Nothing found</h1>
+							<p class="mt-6 text-lg font-medium text-pretty sm:text-xl/8">Looks like there are no matches for that search.</p>
+						</div>
 					</div>
 				} else {
 					// Show results.
