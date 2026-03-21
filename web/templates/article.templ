@@ -9,8 +9,6 @@ import (
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
 	"html"
 	"slices"
 	"strconv"
@@ -136,9 +134,14 @@ templ (a *Article) Card() {
 								checked
 							}
 							_="on htmx:afterRequest(failed) toggle @checked on me"
+							aria-label="Toggle favorite status"
 						/>
-						@tabler.HeartFilled(i.Props{Class: "size-5 text-primary swap-on"})
-						@tabler.Heart(i.Props{Class: "size-5 text-primary swap-off"})
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-heart size-5 text-primary swap-on">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"></path>
+						</svg>
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart size-5 text-primary swap-off">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
+						</svg>
 					</label>
 				</form>
 				<form>
@@ -173,9 +176,14 @@ templ (a *Article) Card() {
 						end
 					on htmx:afterRequest(failed) toggle @checked on me
 					"
+							aria-label="Toggle read status"
 						/>
-						@tabler.MailOpened(i.Props{Class: "size-5 text-primary swap-on"})
-						@tabler.Mail(i.Props{Class: "size-5 text-primary swap-off"})
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-5 text-primary swap-on">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
+						</svg>
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-5 text-primary swap-off">
+							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+						</svg>
 					</label>
 				</form>
 				// Actions menu.
@@ -183,7 +191,9 @@ templ (a *Article) Card() {
 					<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
 						<button class="btn btn-square btn-ghost btn-sm">
 							<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
-							@tabler.Menu2(i.Props{Class: "size-5 text-primary"})
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 size-5 text-primary">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
+							</svg>
 						</button>
 						<el-menu
 							anchor="bottom end"
@@ -202,7 +212,9 @@ templ (a *Article) Card() {
 										role="menuitem"
 										tabindex="-1"
 									>
-										@tabler.ExternalLink(i.Props{Class: "size-4"})
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link size-4">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
+										</svg>
 										Go To Article
 									</a>
 								</li>
@@ -213,7 +225,9 @@ templ (a *Article) Card() {
 										tabindex="-1"
 										{ a.SimilarArticlesAttributes()... }
 									>
-										@tabler.FileSearch(i.Props{Class: "size-4"})
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-search size-4">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M12 21h-5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v4.5"></path><path d="M14 17.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M18.5 19.5l2.5 2.5"></path>
+										</svg>
 										Find similar...
 									</a>
 								</li>
@@ -224,7 +238,9 @@ templ (a *Article) Card() {
 										tabindex="-1"
 										_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
 									>
-										@tabler.Share(i.Props{Class: "size-4"})
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
+										</svg>
 										Share
 									</a>
 								</li>
@@ -242,7 +258,9 @@ templ (a *Article) Card() {
 											hx-trigger="click consume"
 											class="flex items-center gap-x-2"
 										>
-											@tabler.Share(i.Props{Class: "size-4"})
+											<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
+												<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
+											</svg>
 											Share
 										</a>
 									</form>
@@ -254,7 +272,9 @@ templ (a *Article) Card() {
 										tabindex="-1"
 										{ a.ReportIssueAttributes()... }
 									>
-										@tabler.FlagFilled(i.Props{Class: "size-4"})
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-flag-2 size-4">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z"></path>
+										</svg>
 										Report an issue
 									</a>
 								</li>
@@ -344,9 +364,14 @@ templ (a *Article) Content() {
 										checked
 									}
 									_="on htmx:afterRequest(failed) toggle @checked on me"
+									aria-label="Toggle favorite status"
 								/>
-								@tabler.HeartFilled(i.Props{Class: "size-5 swap-on"})
-								@tabler.Heart(i.Props{Class: "size-5 swap-off"})
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-heart size-5 text-primary swap-on">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"></path>
+								</svg>
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart size-5 text-primary swap-off">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
+								</svg>
 							</label>
 						</form>
 						<form class="p-2">
@@ -381,9 +406,14 @@ templ (a *Article) Content() {
 						end
 					on htmx:afterRequest(failed) toggle @checked on me
 					"
+									aria-label="Toggle read status"
 								/>
-								@tabler.MailOpened(i.Props{Class: "size-6 swap-on"})
-								@tabler.Mail(i.Props{Class: "size-6 swap-off"})
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened size-5 text-primary swap-on">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
+								</svg>
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-5 text-primary swap-off">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+								</svg>
 							</label>
 						</form>
 						<div class="flex items-center justify-end">
@@ -392,7 +422,9 @@ templ (a *Article) Content() {
 									class="btn btn-square btn-ghost"
 								>
 									<span class="sr-only">Article Actions</span>
-									@tabler.Menu2(i.Props{Class: "size-6"})
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 size-5 text-primary">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
+									</svg>
 								</button>
 								<el-menu
 									anchor="bottom end"
@@ -404,14 +436,18 @@ templ (a *Article) Content() {
 										// Find similar action.
 										<li>
 											<a { a.SimilarArticlesAttributes()... } role="menuitem">
-												@tabler.FileSearch(i.Props{Class: "size-4"})
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-search size-4">
+													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M12 21h-5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v4.5"></path><path d="M14 17.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M18.5 19.5l2.5 2.5"></path>
+												</svg>
 												Find similar...
 											</a>
 										</li>
 										// Report article issue action.
 										<li>
 											<a { a.ReportIssueAttributes()... } role="menuitem">
-												@tabler.FlagFilled(i.Props{Class: "size-4"})
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-flag-2 size-4">
+													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z"></path>
+												</svg>
 												Report an issue
 											</a>
 										</li>
@@ -522,10 +558,14 @@ templ getRemoteContentButton(a *Article) {
 	>
 		// _="on htmx:afterResponse[detail.failed] add @disabled to me"
 		if a.IsRemoteContent() {
-			@tabler.FileRss()
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17a3 3 0 0 0 -3 -3"></path><path d="M15 17a6 6 0 0 0 -6 -6"></path><path d="M9 17h.01"></path>
+			</svg>
 			Show Feed Content
 		} else {
-			@tabler.FileDownload()
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-download">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17v-6"></path><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
+			</svg>
 			Get Remote Content
 		}
 	</a>
@@ -541,7 +581,9 @@ templ viewRemoteContentButton(a *Article) {
 		rel="noopener"
 		_="on click halt the event's bubbling"
 	>
-		@tabler.ExternalLink()
+		<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link size-4">
+			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
+		</svg>
 		View Remote
 	</a>
 }
@@ -553,7 +595,9 @@ templ shareArticleButton(a *Article) {
 			class="btn btn-wide btn-outline"
 			_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
 		>
-			@tabler.Share()
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
+			</svg>
 			Share
 		</button>
 	</div>
@@ -568,7 +612,9 @@ templ shareArticleButton(a *Article) {
 			hx-target={ partials.ModalContainerID.Target() }
 			hx-trigger="click consume"
 		>
-			@tabler.Share()
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
+			</svg>
 			Share
 		</button>
 	</form>
@@ -611,7 +657,9 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						<el-dropdown class="inline-block flex-none">
 							<button id="articles-actions-button" class="btn inline-flex btn-wide">
 								Actions
-								@tabler.ChevronDown(i.Props{Class: "-mr-1 size-5"})
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180 -mr-1">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+								</svg>
 							</button>
 							<el-menu
 								id="articles-actions-menu"
@@ -641,13 +689,15 @@ templ ListArticles(response *models.ListArticlesResponse) {
 														hx-include="article > input"
 													>
 														if response.Filters.GetView() == models.ViewUnread {
-															@tabler.MailOpenedFilled(i.Props{Class: "size-4"})
-															<span class="sr-only">Mark All Read</span>
+															<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4">
+																<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
+															</svg>
 															Mark Articles Read
 															<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 														} else {
-															@tabler.Mail(i.Props{Class: "size-4"})
-															<span class="sr-only">Mark All Unread</span>
+															<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-4">
+																<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+															</svg>
 															Mark Articles Unread
 															<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 														}
@@ -667,25 +717,25 @@ templ ListArticles(response *models.ListArticlesResponse) {
 												<input type="hidden" name={ models.ParamSubscriptionID } value={ response.Subscription.GetID() }/>
 												<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
 												// MarkURL returns the app URL for marking the subscription.
-												{{ var markText string }}
-												{{ var markIcon templ.Component }}
-												if response.Filters.GetView() == models.ViewUnread {
-													{{ markText = "Mark Subscription Read" }}
-													{{ markIcon = tabler.MailOpenedFilled(i.Props{Class: "size-4"}) }}
-													<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
-												} else {
-													{{ markText = "Mark Subscription Unread" }}
-													{{ markIcon = tabler.MailFilled(i.Props{Class: "size-4"}) }}
-													<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
-												}
 												<li>
 													<a
 														hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
 														role="menuitem"
 														tabindex="-1"
 													>
-														@markIcon
-														{ markText }
+														if response.Filters.GetView() == models.ViewUnread {
+															<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4">
+																<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
+															</svg>
+															Mark Subscription Read
+															<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+														} else {
+															<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail size-4">
+																<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M22 7.535v9.465a3 3 0 0 1 -2.824 2.995l-.176 .005h-14a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-9.465l9.445 6.297l.116 .066a1 1 0 0 0 .878 0l.116 -.066l9.445 -6.297z"></path><path d="M19 4c1.08 0 2.027 .57 2.555 1.427l-9.555 6.37l-9.555 -6.37a2.999 2.999 0 0 1 2.354 -1.42l.201 -.007h14z"></path>
+															</svg>
+															Mark Subscription Unread
+															<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+														}
 													</a>
 												</li>
 											</form>
@@ -699,7 +749,9 @@ templ ListArticles(response *models.ListArticlesResponse) {
 												role="menuitem"
 												tabindex="-1"
 											>
-												@tabler.Edit(i.Props{Class: "size-4"})
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-edit size-4">
+													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415"></path><path d="M16 5l3 3"></path>
+												</svg>
 												Edit Subscription
 											</a>
 										</li>
@@ -755,9 +807,11 @@ templ ShareArticleModal(request *models.ShareArticleRequest) {
 	// _={ "on click if navigator.share then " + shareAPIDialog(a.GetTitle(), a.GetLink()) + " else call document.getElementById('share-" + a.GetID() + "').show() then halt the event's bubbling" }
 	@partials.Modal(id, true) {
 		<div class="sm:flex sm:items-start">
-			<div class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
-				@tabler.Share(i.Props{Class: "size-12"})
-			</div>
+			<span class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10">
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-12">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
+				</svg>
+			</span>
 			<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
 				<h3 id="dialog-title" class="text-base font-semibold">Share</h3>
 				<div class="mt-2">
@@ -766,18 +820,13 @@ templ ShareArticleModal(request *models.ShareArticleRequest) {
 			</div>
 		</div>
 		<div class="mt-5 grid grid-flow-row grid-cols-3 items-center justify-center gap-x-2 gap-y-2 sm:mt-4">
-			// @NewLink(
-			// 	WithAttribute("href", fmt.Sprintf("https://twitter.com/intent/tweet?text=%s&url%s", html.EscapeString(obj.GetTitle()), html.EscapeString(obj.GetLink()))),
-			// 	WithClasses("btn", "col-span-1", "twitter-share-button"),
-			// ) {
-			// 	@tabler.Mail(i.Props{Class: "size-4"})
-			// 	Email
-			// }
 			<a
 				href={ fmt.Sprintf("mailto:?subject=%q&body=%s", html.EscapeString(request.Title), request.Link) }
 				class="btn col-span-1 col-start-2"
 			>
-				@tabler.Mail(i.Props{Class: "size-4"})
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-5 text-primary swap-off">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+				</svg>
 				Email
 			</a>
 			<div class="join col-span-3 flex space-x-2">
@@ -790,7 +839,9 @@ templ ShareArticleModal(request *models.ShareArticleRequest) {
 					_={ "on click set currentValue to (my innerHTML) then writeText('" + request.Link + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
 					class="btn join-item flex items-center"
 				>
-					@tabler.Copy(i.Props{Class: "size-4"})
+					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-copy size-4">
+						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667l0 -8.666"></path><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"></path>
+					</svg>
 					Copy Link
 				</button>
 			</div>
