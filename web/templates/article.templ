@@ -742,23 +742,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						@partials.ButtonBackToTop()
 					} else {
 						{{ response.Filters.Subscriptions = nil }}
-						<div class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
-							<div class="text-center">
-								@tabler.Confetti(i.Props{Class: "mx-auto text-accent size-12"})
-								<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance">All caught up!</h1>
-								<p class="mt-6 text-lg font-medium text-pretty">Congratulations, you've read everything!</p>
-								<div class="mt-10 flex items-center justify-center gap-x-6">
-									<a
-										hx-get="/list/favorites"
-										hx-target={ ContentID.Target() }
-										hx-swap="innerHTML show:window:top transition:true"
-										class="btn btn-accent"
-									>
-										View favorites
-									</a>
-								</div>
-							</div>
-						</div>
+						@partials.NoContent()
 					}
 				</section>
 			}

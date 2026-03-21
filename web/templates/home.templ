@@ -7,8 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 	"strconv"
 )
@@ -22,23 +20,7 @@ templ UserHome(data *models.HomeResponse) {
 					<h1 class="sr-only">Home</h1>
 					if len(data.LatestArticles) == 0 {
 						// User has no unread content, show a message and link to favorites.
-						<div class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
-							<div class="text-center">
-								@tabler.Confetti(i.Props{Class: "mx-auto text-accent size-12"})
-								<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance">All caught up!</h1>
-								<p class="mt-6 text-lg font-medium text-pretty">Congratulations, you've read everything!</p>
-								<div class="mt-10 flex items-center justify-center gap-x-6">
-									<a
-										hx-get="/list/favorites"
-										hx-target={ ContentID.Target() }
-										hx-swap="innerHTML show:window:top transition:true"
-										class="btn btn-accent"
-									>
-										View favorites
-									</a>
-								</div>
-							</div>
-						</div>
+						@partials.NoContent()
 					} else {
 						<div class="grid grid-cols-1 items-start gap-4 lg:grid-cols-3 lg:gap-8">
 							// Left column
@@ -170,16 +152,24 @@ templ NewUserHome() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ "Welcome to " + config.AppName }</h1>
-				<p class="py-2">This is your home page, where you can find all your subscriptions. At the moment its a little bare!</p>
+				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">
+					{ "Welcome to " + config.AppName }
+				</h1>
+				<p class="py-2">
+					This is your home page, where you can find all your subscriptions. At the moment its a little bare!
+				</p>
 				<div class="py-4">
 					<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
 						Add/Import Subscriptions
 					</h2>
-					<p class="py-2">Import your subscriptions from an external service or start fresh.</p>
+					<p class="py-2">
+						Import your subscriptions from an external service or start fresh.
+					</p>
 					<div class="relative flex max-w-prose items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-primary/50 hover:text-primary-content">
 						<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
-							@tabler.Plus(i.Props{Class: "size-6 text-secondary-content"})
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-plus size-6 text-secondary-content">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path>
+							</svg>
 						</div>
 						<div>
 							<h4 class="text-sm font-medium">
@@ -191,16 +181,19 @@ templ NewUserHome() {
 									class="focus:outline-hidden"
 								>
 									<span aria-hidden="true" class="absolute inset-0"></span>
-									<span>Add a feed subscription</span>
-									<span aria-hidden="true">&rarr;</span>
+									Add a feed subscription	<span aria-hidden="true">&rarr;</span>
 								</a>
 							</h4>
-							<p class="mt-1 text-sm text-base-content">Add a single subscription from a URL or webpage.</p>
+							<p class="mt-1 text-sm text-base-content">
+								Add a single subscription from a URL or webpage.
+							</p>
 						</div>
 					</div>
 					<div class="relative flex max-w-prose items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-secondary/50 hover:text-secondary-content">
 						<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary">
-							@tabler.CloudDownload(i.Props{Class: "size-6 text-secondary-content"})
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-cloud-download size-6 text-secondary-content">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path><path d="M12 13l0 9"></path><path d="M9 19l3 3l3 -3"></path>
+							</svg>
 						</div>
 						<div>
 							<h4 class="text-sm font-medium">
@@ -212,11 +205,12 @@ templ NewUserHome() {
 									class="focus:outline-hidden"
 								>
 									<span aria-hidden="true" class="absolute inset-0"></span>
-									<span>Import subscriptions</span>
-									<span aria-hidden="true">&rarr;</span>
+									Import subscriptions <span aria-hidden="true">&rarr;</span>
 								</a>
 							</h4>
-							<p class="mt-1 text-sm text-base-content">Import multiple subscriptions using an OPML file.</p>
+							<p class="mt-1 text-sm text-base-content">
+								Import multiple subscriptions using an OPML file.
+							</p>
 						</div>
 					</div>
 				</div>
@@ -224,7 +218,9 @@ templ NewUserHome() {
 					<h2 class="mt-4 mb-2 scroll-mt-16 text-xl/7 font-semibold tracking-tight sm:mt-8 sm:mb-4 sm:text-2xl">
 						Start With Curated Subscription Sets
 					</h2>
-					<p class="py-2">Or try one or more curated starter sets (you can also add these later in settings).</p>
+					<p class="py-2">
+						Or try one or more curated starter sets (you can also add these later in settings).
+					</p>
 					<form
 						hx-post="/user/feedset"
 						hx-swap="none"
@@ -235,34 +231,61 @@ templ NewUserHome() {
 								<div class="flex gap-3">
 									<div class="flex h-6 shrink-0 items-center">
 										<div class="group grid size-4 grid-cols-1">
-											<input id="informed" type="checkbox" name="feedset" value="informed" aria-describedby="informed-description" class="checkbox checkbox-sm checkbox-primary"/>
+											<input
+												id="informed"
+												type="checkbox"
+												name="feedset"
+												value="informed"
+												aria-describedby="informed-description"
+												class="checkbox checkbox-sm checkbox-primary"
+											/>
 										</div>
 									</div>
 									<div class="text-sm/6">
 										<label for="informed" class="font-medium">Informed</label>
-										<p id="inspired-description" class="text-base-content/80">News and information sites.</p>
+										<p id="inspired-description" class="text-base-content brightness-95">
+											News and information sites.
+										</p>
 									</div>
 								</div>
 								<div class="flex gap-3">
 									<div class="flex h-6 shrink-0 items-center">
 										<div class="group grid size-4 grid-cols-1">
-											<input id="inspired" type="checkbox" name="feedset" value="inspired" aria-describedby="inspired-description" class="checkbox checkbox-sm checkbox-primary"/>
+											<input
+												id="inspired"
+												type="checkbox"
+												name="feedset"
+												value="inspired"
+												aria-describedby="inspired-description"
+												class="checkbox checkbox-sm checkbox-primary"
+											/>
 										</div>
 									</div>
 									<div class="text-sm/6">
 										<label for="inspired" class="font-medium">Inspired</label>
-										<p id="inspired-description" class="text-base-content/80">Digital art and other oddities.</p>
+										<p id="inspired-description" class="text-base-content brightness-95">
+											Digital art and other oddities.
+										</p>
 									</div>
 								</div>
 								<div class="flex gap-3">
 									<div class="flex h-6 shrink-0 items-center">
 										<div class="group grid size-4 grid-cols-1">
-											<input id="enlightened" type="checkbox" name="feedset" value="enlightened" aria-describedby="enlightened-description" class="checkbox checkbox-sm checkbox-primary"/>
+											<input
+												id="enlightened"
+												type="checkbox"
+												name="feedset"
+												value="enlightened"
+												aria-describedby="enlightened-description"
+												class="checkbox checkbox-sm checkbox-primary"
+											/>
 										</div>
 									</div>
 									<div class="text-sm/6">
 										<label for="enlightened" class="font-medium">Enlightened</label>
-										<p id="enlightened-description" class="text-base-content/80">Alternative and fringe sites.</p>
+										<p id="enlightened-description" class="text-base-content brightness-95">
+											Alternative and fringe sites.
+										</p>
 									</div>
 								</div>
 							</div>
