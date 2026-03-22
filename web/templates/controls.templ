@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 	"slices"
 	"strconv"
 	"strings"
@@ -80,7 +81,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 						</h4>
 						<el-disclosure id="mobile-view-filters" hidden class="block pt-4">
 							<div class="space-y-6 text-sm">
-								@viewFilters(path, filters)
+								@viewFilters("mobile", path, filters)
 							</div>
 						</el-disclosure>
 					</div>
@@ -101,9 +102,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 							</button>
 						</h4>
 						<el-disclosure id="mobile-sort-filters" hidden class="block pt-4">
-							<div class="space-y-6 text-sm">
-								@sortFilters(path, filters)
-							</div>
+							@sortFilters("mobile", path, filters)
 						</el-disclosure>
 					</div>
 				</el-dialog-panel>
@@ -166,9 +165,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									</svg>
 								</button>
 								<el-popover id="desktop-view-filters" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]">
-									<div class="space-y-4 text-sm">
-										@viewFilters(path, filters)
-									</div>
+									@viewFilters("desktop", path, filters)
 								</el-popover>
 							</div>
 						</div>
@@ -183,9 +180,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									</svg>
 								</button>
 								<el-popover id="desktop-sort-filters" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]">
-									<div class="space-y-4 text-sm">
-										@sortFilters(path, filters)
-									</div>
+									@sortFilters("desktop", path, filters)
 								</el-popover>
 							</div>
 						</div>
@@ -239,48 +234,15 @@ templ FilterControls(path string, filters *models.ListFilters) {
 	</nav>
 }
 
-templ viewFilters(path string, filters *models.ListFilters) {
-	<div class="flex gap-3">
-		<div class="flex h-5 shrink-0 items-center">
-			<div class="group grid grid-cols-1">
-				@viewFilterOption(path, "filter-mobile-view-unread", models.ViewUnread, filters)
-			</div>
-		</div>
-	</div>
-	<div class="flex gap-3">
-		<div class="flex h-5 shrink-0 items-center">
-			<div class="group grid grid-cols-1">
-				@viewFilterOption(path, "filter-mobile-view-unread", models.ViewRead, filters)
-			</div>
-		</div>
-	</div>
-	<div class="flex gap-3">
-		<div class="flex h-5 shrink-0 items-center">
-			<div class="group grid grid-cols-1">
-				@viewFilterOption(path, "filter-mobile-view-unread", models.ViewAll, filters)
-			</div>
-		</div>
-	</div>
-	<div class="flex gap-3">
-		<div class="flex h-5 shrink-0 items-center">
-			<div class="group grid grid-cols-1">
-				@viewFilterOptionFavorites(path, "filter-mobile-only-favorites", filters)
-			</div>
-		</div>
-	</div>
-}
-
-// viewFilter renders a checkbox for a view filter.
-templ viewFilterOption(path, id string, view models.View, filters *models.ListFilters) {
+templ viewFilters(layout, path string, filters *models.ListFilters) {
 	<form
-		id={ "view-filter-" + view }
+		id={ layout + "-view-filters" }
 		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
 		hx-trigger="change"
 	>
-		<input type="hidden" name={ models.ParamView } value={ view }/>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
 		for subscription := range slices.Values(filters.GetSubscriptions()) {
@@ -289,33 +251,44 @@ templ viewFilterOption(path, id string, view models.View, filters *models.ListFi
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		<label for={ "view-" + view } class="flex items-center gap-x-2">
-			<input
-				id={ "view-" + view }
-				type="radio"
-				if view == filters.GetView() {
-					checked
-				}
-				class="radio radio-sm"
-			/>
-			<span class="capitalize">
-				{ view }
-			</span>
-		</label>
+		<fieldset>
+			<div class="space-y-6">
+				@viewOption(layout, path, models.ViewUnread, filters)
+				@viewOption(layout, path, models.ViewRead, filters)
+				@viewOption(layout, path, models.ViewAll, filters)
+			</div>
+		</fieldset>
 	</form>
+	@viewOptionFavorites(layout, path, filters)
 }
 
-templ viewFilterOptionFavorites(path, id string, filters *models.ListFilters) {
+// viewOption renders a checkbox for a view filter.
+templ viewOption(layout, path string, view models.View, filters *models.ListFilters) {
+	<div class="flex items-center">
+		<input
+			id={ layout + "-view-" + string(view) }
+			type="radio"
+			name="view"
+			value={ string(view) }
+			if view == filters.GetView() {
+				checked
+			}
+			class="radio radio-sm"
+		/>
+		<label for={ layout + "-view-" + string(view) } class="ml-3 block text-sm/6 font-medium capitalize">{ view }</label>
+	</div>
+}
+
+templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
 	<form
-		id={ id }
+		id={ layout + "-view-filters" }
 		hx-get={ path }
 		hx-target={ ContentID.Target() }
-		hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
 		hx-replace-url="true"
 		hx-swap="innerHTML transition:true"
 		hx-trigger="change"
+		hx-vals={ templ.JSONString(map[string]any{"only_favorites": strconv.FormatBool(!filters.OnlyFavorites)}) }
 	>
-		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
 		for subscription := range slices.Values(filters.GetSubscriptions()) {
@@ -324,24 +297,23 @@ templ viewFilterOptionFavorites(path, id string, filters *models.ListFilters) {
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		<label for="view-favorites" class="flex items-center gap-x-2">
+		<div class="flex items-center mt-6 sm:border-t sm:border-t-base-300">
 			<input
-				id="view-favorites"
+				id={ layout + "-view-favorites" }
 				type="radio"
+				name="view"
 				if filters.OnlyFavorites {
 					checked
 				}
 				class="radio radio-sm"
 			/>
-			<span>
-				Favorites
-			</span>
-		</label>
+			<label for={ layout + "-view-favorites" } class="ml-3 block text-sm/6 font-medium">Favorites</label>
+		</div>
 	</form>
 }
 
-templ CategoryFilters(filters *models.CategoryFilters) {
-	if len(filters.Categories) == 0 {
+templ CategoryFilters(data *models.CategoryFilters) {
+	if len(data.Categories) == 0 {
 		<div class="flex gap-3">
 			<div class="flex h-5 shrink-0 items-center">
 				<div class="group grid grid-cols-1">
@@ -350,64 +322,62 @@ templ CategoryFilters(filters *models.CategoryFilters) {
 			</div>
 		</div>
 	} else {
-		for idx, category := range filters.Categories.Limit(10) {
-			<div class="flex gap-3">
-				<div class="flex h-5 shrink-0 items-center">
-					<div class="group grid grid-cols-1">
-						@categoryFilterOption(filters.Path, "filter-category-"+strconv.Itoa(idx), category, &filters.Filters)
-					</div>
+		<form
+			hx-get={ data.Path }
+			hx-target={ ContentID.Target() }
+			hx-replace-url="true"
+			hx-swap="innerHTML transition:true"
+			hx-trigger="change"
+			hx-params="not displayed_subscriptions,subscriptions,subscription_id"
+		>
+			<input type="hidden" name={ models.ParamCount } value={ data.Filters.GetCount() }/>
+			<input type="hidden" name={ models.ParamView } value={ data.Filters.GetView() }/>
+			<input type="hidden" name={ models.ParamSort } value={ string(data.Filters.GetSort()) }/>
+			for subscription := range slices.Values(data.Filters.GetSubscriptions()) {
+				<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+			}
+			<fieldset>
+				<div class="space-y-6">
+					for category := range slices.Values(data.Categories.Limit(10)) {
+						@categoryOption(data.Path, category.Category, &data.Filters)
+					}
 				</div>
-			</div>
-		}
-		if len(filters.Filters.GetCategories()) > 0 {
-			<div class="flex gap-3">
-				<div class="flex h-5 shrink-0 items-center">
-					<div class="group grid grid-cols-1">
-						@clearCategoryFiltersOption(filters.Path, "clear-category-filters", &filters.Filters)
-					</div>
-				</div>
-			</div>
+			</fieldset>
+		</form>
+		if len(data.Filters.GetCategories()) > 0 {
+			@clearCategoryFiltersOption(data.Path, &data.Filters)
 		}
 	}
 }
 
 // categoryFilter renders a checkbox for a category filter.
-templ categoryFilterOption(path, id string, category models.CategoryCount, filters *models.ListFilters) {
-	<form
-		id={ "filter-category-" + strings.ToLower(strings.ReplaceAll(category.Category, " ", "_")) }
-		hx-get={ path }
-		hx-target={ ContentID.Target() }
-		hx-replace-url="true"
-		hx-swap="innerHTML transition:true"
-		hx-trigger="change"
-		hx-params="not displayed_subscriptions,subscriptions,subscription_id"
-	>
-		<input type="hidden" name={ models.ParamCategories } value={ category.Category }/>
-		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
-		<input type="hidden" name={ models.ParamSort } value={ string(filters.GetSort()) }/>
-		for subscription := range slices.Values(filters.GetSubscriptions()) {
-			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
+templ categoryOption(path string, category models.Category, filters *models.ListFilters) {
+	{{
+		var id string
+		id, err := gonanoid.New()
+		if err != nil {
+			id = strings.ToLower(strings.ReplaceAll(category, " ", "-"))
+		} else {
+			id = id + "-" + strings.ToLower(strings.ReplaceAll(category, " ", "-"))
 		}
-		<label for={ id } class="flex items-center gap-x-2">
-			<input
-				id={ id }
-				type="radio"
-				if filters.GetCategories().HasCategory(category.Category) {
-					checked
-				}
-				class="radio radio-sm"
-			/>
-			<span class="capitalize">
-				{ category.Category }
-			</span>
-		</label>
-	</form>
+	}}
+	<div class="flex items-center">
+		<input
+			id={ id }
+			type="radio"
+			name="categories"
+			value={ category }
+			if filters.GetCategories().HasCategory(category) {
+				checked
+			}
+			class="radio radio-sm"
+		/>
+		<label for={ id } class="ml-3 block text-sm/6 font-medium">{ category }</label>
+	</div>
 }
 
-templ clearCategoryFiltersOption(path, id string, filters *models.ListFilters) {
+templ clearCategoryFiltersOption(path string, filters *models.ListFilters) {
 	<form
-		id={ id }
 		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
@@ -420,7 +390,12 @@ templ clearCategoryFiltersOption(path, id string, filters *models.ListFilters) {
 		for subscription := range slices.Values(filters.GetSubscriptions()) {
 			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 		}
-		<button type="submit" class="btn btn-wide">Clear</button>
+		<div class="flex items-center mt-6 sm:border-t sm:border-t-base-300">
+			<button type="submit" class="btn btn-wide btn-ghost">
+				<span class="sr-only">Clear category filters</span>
+				<span class="not-sr-only">Clear</span>
+			</button>
+		</div>
 	</form>
 }
 
@@ -452,42 +427,9 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 	</div>
 }
 
-templ sortFilters(path string, filters *models.ListFilters) {
-	<div class="flex gap-3">
-		<div class="flex h-5 shrink-0 items-center">
-			<div class="group grid grid-cols-1">
-				@sortOption(path, models.SortNewestFirst, filters)
-			</div>
-		</div>
-	</div>
-	<div class="flex gap-3">
-		<div class="flex h-5 shrink-0 items-center">
-			<div class="group grid grid-cols-1">
-				@sortOption(path, models.SortOldestFirst, filters)
-			</div>
-		</div>
-	</div>
-	if path == "/list/subscriptions" {
-		<div class="flex gap-3">
-			<div class="flex h-5 shrink-0 items-center">
-				<div class="group grid grid-cols-1">
-					@sortOption(path, models.SortMostUnread, filters)
-				</div>
-			</div>
-		</div>
-		<div class="flex gap-3">
-			<div class="flex h-5 shrink-0 items-center">
-				<div class="group grid grid-cols-1">
-					@sortOption(path, models.SortLeastUnread, filters)
-				</div>
-			</div>
-		</div>
-	}
-}
-
-templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
+templ sortFilters(layout, path string, filters *models.ListFilters) {
 	<form
-		id={ "sort-" + string(sort) }
+		id={ layout + "-sort-filters" }
 		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
@@ -496,25 +438,37 @@ templ sortOption(path string, sort models.Sort, filters *models.ListFilters) {
 	>
 		<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 		<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
-		<input type="hidden" name={ models.ParamSort } value={ string(sort) }/>
 		for subscription := range slices.Values(filters.GetSubscriptions()) {
 			<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 		}
 		for category := range slices.Values(filters.GetCategories()) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
-		<label for={ "sort-" + sort } class="flex items-center gap-x-2">
-			<input
-				id={ "sort-" + sort }
-				type="radio"
-				if sort == filters.GetSort() {
-					checked
+		<fieldset>
+			<div class="space-y-6">
+				@sortOption(layout, path, models.SortNewestFirst, filters)
+				@sortOption(layout, path, models.SortOldestFirst, filters)
+				if path == "/list/subscriptions" {
+					@sortOption(layout, path, models.SortMostUnread, filters)
+					@sortOption(layout, path, models.SortLeastUnread, filters)
 				}
-				class="radio radio-sm"
-			/>
-			<span>
-				{ sort.String() }
-			</span>
-		</label>
+			</div>
+		</fieldset>
 	</form>
+}
+
+templ sortOption(layout, path string, sort models.Sort, filters *models.ListFilters) {
+	<div class="flex items-center">
+		<input
+			id={ layout + "-sort-" + string(sort) }
+			type="radio"
+			name="sort"
+			value={ string(sort) }
+			if sort == filters.GetSort() {
+				checked
+			}
+			class="radio radio-sm"
+		/>
+		<label for={ layout + "-sort-" + string(sort) } class="ml-3 block text-sm/6 font-medium">{ sort.String() }</label>
+	</div>
 }
