@@ -273,7 +273,7 @@ templ viewOption(layout, path string, view models.View, filters *models.ListFilt
 			if view == filters.GetView() {
 				checked
 			}
-			class="radio radio-sm"
+			class="radio radio-sm radio-accent"
 		/>
 		<label for={ layout + "-view-" + string(view) } class="ml-3 block text-sm/6 font-medium capitalize">{ view }</label>
 	</div>
@@ -305,7 +305,7 @@ templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
 				if filters.OnlyFavorites {
 					checked
 				}
-				class="radio radio-sm"
+				class="radio radio-xs radio-accent"
 			/>
 			<label for={ layout + "-view-favorites" } class="ml-3 block text-sm/6 font-medium">Favorites</label>
 		</div>
@@ -370,7 +370,7 @@ templ categoryOption(path string, category models.Category, filters *models.List
 			if filters.GetCategories().HasCategory(category) {
 				checked
 			}
-			class="radio radio-sm"
+			class="radio radio-sm radio-accent"
 		/>
 		<label for={ id } class="ml-3 block text-sm/6 font-medium">{ category }</label>
 	</div>
@@ -467,7 +467,7 @@ templ sortOption(layout, path string, sort models.Sort, filters *models.ListFilt
 			if sort == filters.GetSort() {
 				checked
 			}
-			class="radio radio-sm"
+			class="radio radio-sm radio-accent"
 		/>
 		<label for={ layout + "-sort-" + string(sort) } class="ml-3 block text-sm/6 font-medium">{ sort.String() }</label>
 	</div>
