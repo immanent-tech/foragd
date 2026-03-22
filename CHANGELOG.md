@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.84.0](https://github.com/immanent-tech/foragd/compare/v0.83.1...v0.84.0) (2026-03-22)
+
+
+### Features
+
+* **templates:** :lipstick: animated icon for filter buttons ([82e3d9c](https://github.com/immanent-tech/foragd/commit/82e3d9cffdf66c9db980e430689e1f7c088ebf52))
+
+
+### Bug Fixes
+
+* **templates:** :wheelchair: add more accessibility features ([108060a](https://github.com/immanent-tech/foragd/commit/108060aeb62e126e6cb8c4ecd8877f9017c24c86))
+* **templates/home:** :bug: allow triggering going to latest updated subscription on keyboard navigation ([c311de3](https://github.com/immanent-tech/foragd/commit/c311de37f02b3eb87f4be6deaa2ac6453d0cc1af))
+
 ## [0.83.1](https://github.com/immanent-tech/foragd/compare/v0.83.0...v0.83.1) (2026-03-20)
 
 
