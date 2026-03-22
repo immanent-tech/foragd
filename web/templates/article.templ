@@ -59,6 +59,7 @@ templ (a *Article) Card() {
 			templ.KV("row-span-2", a.GetImage() != nil),
 		}
 		_="on keydown[key=='Enter' or key==' '] trigger click"
+		aria-label={ a.GetTitle() }
 	>
 		if img := a.GetImage(); img != nil {
 			{{ img := a.GetImage() }}

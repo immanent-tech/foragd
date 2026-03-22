@@ -106,6 +106,7 @@ templ (s *Subscription) Card() {
 		tabindex="0"
 		role="button"
 		_="on keydown[key=='Enter' or key==' '] trigger click"
+		aria-label={ s.GetTitle() }
 	>
 		// Hidden input used for acting on all displayed subscriptions.
 		<input type="hidden" name="displayed_subscriptions" value={ s.GetID() }/>

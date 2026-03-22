@@ -68,6 +68,7 @@ templ UserHome(data *models.HomeResponse) {
 													tabindex="0"
 													role="button"
 													_="on keydown[key=='Enter' or key==' '] trigger click"
+													aria-label={ subscription.GetTitle() }
 												>
 													<div class="card-body">
 														<div class="card-title flex items-center">
