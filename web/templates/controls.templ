@@ -37,10 +37,9 @@ templ FilterControls(path string, filters *models.ListFilters) {
 					<div class="border-t border-base-content/10 px-4 py-6">
 						<h4 class="-mx-2 -my-3 flow-root text-lg font-medium">
 							<button
-								id="filters-mobile-disclosure"
 								type="button"
 								command="--toggle"
-								commandfor="mobile-category-filters"
+								commandfor="mobile-category-filters-disclosure"
 								class="flex w-full items-center justify-between px-2 py-3 text-sm"
 							>
 								<span class="sr-only">Show category filters</span>
@@ -50,7 +49,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								</svg>
 							</button>
 						</h4>
-						<el-disclosure id="mobile-category-filters" hidden class="flex flex-col pt-4">
+						<el-disclosure id="mobile-category-filters-disclosure" hidden class="flex flex-col pt-4">
 							<div
 								id="category-filters-mobile"
 								class="space-y-6 text-sm"
@@ -69,7 +68,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 							<button
 								type="button"
 								command="--toggle"
-								commandfor="mobile-view-filters"
+								commandfor="mobile-view-filters-disclosure"
 								class="flex w-full items-center justify-between px-2 py-3 text-sm"
 							>
 								<span class="sr-only">Show view filters</span>
@@ -79,7 +78,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								</svg>
 							</button>
 						</h4>
-						<el-disclosure id="mobile-view-filters" hidden class="block pt-4">
+						<el-disclosure id="mobile-view-filters-disclosure" hidden class="block pt-4">
 							<div class="space-y-6 text-sm">
 								@viewFilters("mobile", path, filters)
 							</div>
@@ -91,7 +90,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 							<button
 								type="button"
 								command="--toggle"
-								commandfor="mobile-sort-filters"
+								commandfor="mobile-sort-filters-disclosure"
 								class="flex w-full items-center justify-between px-2 py-3 text-sm"
 							>
 								<span class="sr-only">Show sort filters</span>
@@ -101,7 +100,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								</svg>
 							</button>
 						</h4>
-						<el-disclosure id="mobile-sort-filters" hidden class="block pt-4">
+						<el-disclosure id="mobile-sort-filters-disclosure" hidden class="block pt-4">
 							@sortFilters("mobile", path, filters)
 						</el-disclosure>
 					</div>
@@ -127,9 +126,8 @@ templ FilterControls(path string, filters *models.ListFilters) {
 						<div class="relative inline-block text-left">
 							<div>
 								<button
-									id="desktop-category-filters-button"
 									class="btn inline-flex btn-wide"
-									popovertarget="desktop-category-filters"
+									popovertarget="desktop-category-filters-menu"
 								>
 									<span class="sr-only">Show category filters</span>
 									<span class="not-sr-only">Category</span>
@@ -138,7 +136,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 									</svg>
 								</button>
 								<el-popover
-									id="desktop-category-filters"
+									id="desktop-category-filters-menu"
 									anchor="bottom end"
 									popover
 									class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]"
@@ -157,14 +155,14 @@ templ FilterControls(path string, filters *models.ListFilters) {
 						// View filters (desktop).
 						<div class="relative inline-block text-left">
 							<div>
-								<button class="btn inline-flex btn-wide" popovertarget="desktop-view-filters">
+								<button class="btn inline-flex btn-wide" popovertarget="desktop-view-filters-menu">
 									<span class="sr-only">Show view filters</span>
 									<span class="not-sr-only">View</span>
 									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down -mr-1 size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 									</svg>
 								</button>
-								<el-popover id="desktop-view-filters" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]">
+								<el-popover id="desktop-view-filters-menu" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]">
 									@viewFilters("desktop", path, filters)
 								</el-popover>
 							</div>
@@ -172,14 +170,14 @@ templ FilterControls(path string, filters *models.ListFilters) {
 						// Sorting (desktop).
 						<div class="relative inline-block text-left">
 							<div>
-								<button class="btn inline-flex btn-wide" popovertarget="desktop-sort-filters">
+								<button class="btn inline-flex btn-wide" popovertarget="desktop-sort-filters-menu">
 									<span class="sr-only">Show sort filters</span>
 									<span class="not-sr-only">Sort</span>
 									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down -mr-1 size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 									</svg>
 								</button>
-								<el-popover id="desktop-sort-filters" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]">
+								<el-popover id="desktop-sort-filters-menu" anchor="bottom end" popover class="w-fit rounded-box bg-base-300 p-4 shadow-xl [--anchor-gap:4px]">
 									@sortFilters("desktop", path, filters)
 								</el-popover>
 							</div>
@@ -252,6 +250,7 @@ templ viewFilters(layout, path string, filters *models.ListFilters) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
 		<fieldset>
+			<legend class="sr-only">View</legend>
 			<div class="space-y-6">
 				@viewOption(layout, path, models.ViewUnread, filters)
 				@viewOption(layout, path, models.ViewRead, filters)
@@ -281,7 +280,7 @@ templ viewOption(layout, path string, view models.View, filters *models.ListFilt
 
 templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
 	<form
-		id={ layout + "-view-filters" }
+		id={ layout + "-view-favorites" }
 		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
@@ -337,6 +336,7 @@ templ CategoryFilters(data *models.CategoryFilters) {
 				<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 			}
 			<fieldset>
+				<legend class="sr-only">Category</legend>
 				<div class="space-y-6">
 					for category := range slices.Values(data.Categories.Limit(10)) {
 						@categoryOption(data.Path, category.Category, &data.Filters)
@@ -445,6 +445,7 @@ templ sortFilters(layout, path string, filters *models.ListFilters) {
 			<input type="hidden" name={ models.ParamCategories } value={ category }/>
 		}
 		<fieldset>
+			<legend class="sr-only">Sort</legend>
 			<div class="space-y-6">
 				@sortOption(layout, path, models.SortNewestFirst, filters)
 				@sortOption(layout, path, models.SortOldestFirst, filters)
