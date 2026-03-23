@@ -36,6 +36,7 @@ RUN <<EOF
 npm install
 npm run build:js
 npm run build:css
+npm version patch
 EOF
 
 # Set necessary environment variables and build your project.
