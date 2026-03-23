@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.85.0](https://github.com/immanent-tech/foragd/compare/v0.84.0...v0.85.0) (2026-03-23)
+
+
+### Features
+
+* **email:** :sparkles: use maizzle for email template generation ([72253e5](https://github.com/immanent-tech/foragd/commit/72253e5712400cb29ea8db66112602cf9d45c451))
+
+
+### Bug Fixes
+
+* :lock: make sure hitting back button after logging out does not show cached content ([739f672](https://github.com/immanent-tech/foragd/commit/739f67280194c3a63e331128f75573beca92facf))
+* **assets:** :bug: fix manifest ([6cd6190](https://github.com/immanent-tech/foragd/commit/6cd61907e5827d9e3aea38a2a4d45ce997bf9464))
+* **templates:** :bug: fix duplicate ids and add missing fieldset legends ([b2fc42f](https://github.com/immanent-tech/foragd/commit/b2fc42f08c3ce9c44403179a4173999f6b9d5037))
+* **templates:** :bug: fix layout of external error page ([39f7718](https://github.com/immanent-tech/foragd/commit/39f771812585a7f0fd9b9e4ef9b6e5a9fa3661c2))
+* **templates:** :wheelchair: add aria-label to all cards ([fe971bc](https://github.com/immanent-tech/foragd/commit/fe971bc2497919fde244497d4c33565cfd1bc58e))
+* **templates/landing:** :bug: fix ids ([394849b](https://github.com/immanent-tech/foragd/commit/394849b14e7bd7b9908bf867d72928cda51755db))
+
+
+### Performance Improvements
+
+* :zap: cache tweaks ([c035a6d](https://github.com/immanent-tech/foragd/commit/c035a6d010211d814573d27a9fc518d13a626ad7))
+* :zap: improve caching and history restoration ([9630505](https://github.com/immanent-tech/foragd/commit/9630505d1ff27d159a98496cee260a522b02b20c))
+
 ## [0.84.0](https://github.com/immanent-tech/foragd/compare/v0.83.1...v0.84.0) (2026-03-22)
 
 
