@@ -21,11 +21,11 @@ require (
 	github.com/go-json-experiment/json v0.0.0-20260214004413-d219187c3433
 	github.com/go-playground/form/v4 v4.3.0
 	github.com/go-playground/validator/v10 v10.30.1
-	github.com/goforj/godump v1.9.1
 	github.com/gofri/go-github-ratelimit/v2 v2.0.2
-	github.com/googleapis/gax-go/v2 v2.18.0
+	github.com/googleapis/gax-go/v2 v2.19.0
 	github.com/knadh/koanf/v2 v2.3.3
 	github.com/lmittmann/tint v1.1.3
+	github.com/matoous/go-nanoid/v2 v2.1.0
 	github.com/mattn/go-isatty v0.0.20
 	github.com/oapi-codegen/runtime v1.2.0
 	github.com/samber/slog-multi v1.7.1
@@ -35,7 +35,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.42.0
 	go.opentelemetry.io/otel/sdk/metric v1.42.0
 	golang.org/x/oauth2 v0.36.0
-	google.golang.org/genproto v0.0.0-20260226221140-a57be14db171
+	google.golang.org/genproto v0.0.0-20260316180232-0b37fe3546d5
 	google.golang.org/grpc v1.79.3
 )
 
@@ -76,7 +76,6 @@ require (
 	github.com/klauspost/compress v1.18.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
-	github.com/matoous/go-nanoid/v2 v2.1.0 // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.6.0 // indirect
 	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
@@ -99,9 +98,9 @@ require (
 	go.uber.org/nilaway v0.0.0-20260213150243-937701de96c7 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools v0.42.0 // indirect
-	google.golang.org/api v0.271.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260226221140-a57be14db171 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
+	google.golang.org/api v0.272.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260316180232-0b37fe3546d5 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260316180232-0b37fe3546d5 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 
