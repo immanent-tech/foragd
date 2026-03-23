@@ -1,62 +1,95 @@
 {
-  "name": "Foragd",
-  "lang": "en",
-  "short_name": "Foragd",
-  "description": "A beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop.",
   "background_color": "#FCFAF7",
-  "theme_color": "#7B9984",
-  "display": "standalone",
-  "orientation": "portrait",
-  "start_url": "/home",
   "categories": [
     "news",
     "magazines",
     "social"
   ],
+  "description": "A beautiful, web based, online feed reader. Keep your RSS, Atom and other syndication sources in one place. Stay up to date with news, blogs and other online sources, across your mobile, tablet, desktop and laptop.",
+  "display": "standalone",
   "icons": [
     {
+      "sizes": "512x512",
       "src": "manifest-icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "type": "image/png"
     },
     {
+      "sizes": "128x128",
       "src": "manifest-icon-128.png",
-      "type": "image/png",
-      "sizes": "128x128"
+      "type": "image/png"
     },
     {
+      "sizes": "64x64",
       "src": "manifest-icon-64.png",
-      "type": "image/png",
-      "sizes": "64x64"
+      "type": "image/png"
     },
     {
-      "src": "logo-color.svg"
+      "src": "logo-color.webp",
+      "sizes": "1323x1323"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Go to Subscriptions",
-      "description": "View your list of subscriptions",
-      "url": "/list/subscriptions"
-    },
-    {
-      "name": "Go to Articles",
-      "description": "View all articles",
-      "url": "/list/articles"
-    },
-    {
-      "name": "Go to Favorites",
-      "description": "View your list of favorites",
-      "url": "/list/favorites"
-    }
-  ],
+  "id": "/home",
+  "lang": "en",
+  "name": "Foragd",
+  "orientation": "portrait",
   "screenshots": [
     {
-      "src": "screenshots/home-desktop-mobile.png",
-      "sizes": "1920x1200",
-      "type": "image/webp",
       "form_factor": "wide",
-      "label": "Home screen comparison on desktop and mobile"
+      "label": "Home screen comparison on desktop and mobile",
+      "sizes": "1900x1440",
+      "src": "screenshots/screenshot-main-nobg.webp",
+      "type": "image/webp"
+    },
+    {
+      "label": "Home screen on mobile",
+      "sizes": "645x1398",
+      "src": "screenshots/screenshot-home-mobile.webp",
+      "type": "image/webp"
+    },
+    {
+      "form_factor": "wide",
+      "label": "Home screen on desktop",
+      "sizes": "1440x900",
+      "src": "screenshots/screenshot-main-nobg.webp",
+      "type": "image/webp"
     }
-  ]
+  ],
+  "short_name": "Foragd",
+  "shortcuts": [
+    {
+      "description": "View your list of subscriptions",
+      "name": "Go to Subscriptions",
+      "url": "/list/subscriptions",
+      "icons": [
+        {
+          "src": "/content/images/subscriptions-icon.webp",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "description": "View all articles",
+      "name": "Go to Articles",
+      "url": "/list/articles",
+      "icons": [
+        {
+          "src": "/content/images/articles-icon.webp",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "description": "View your list of favorites",
+      "name": "Go to Favorites",
+      "url": "/list/favorites",
+      "icons": [
+        {
+          "src": "/content/images/favorites-icon.webp",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "start_url": "/home",
+  "theme_color": "#7B9984"
 }

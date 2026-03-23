@@ -97,29 +97,29 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
-			<meta charset="UTF-8" hx-preserve="true"/>
-			<meta name="description" content={ p.Description } hx-preserve="true"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual" hx-preserve="true"/>
-			<meta http-equiv="X-UA-Compatible" content="ie=edge" hx-preserve="true"/>
-			<meta http-equiv="Accept-CH" content="DPR, Viewport-Width, Width" hx-preserve="true"/>
+			<meta charset="UTF-8"/>
+			<meta name="description" content={ p.Description }/>
+			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-visual"/>
+			<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+			<meta http-equiv="Accept-CH" content="DPR, Viewport-Width, Width"/>
 			if p.OpenGraph != nil {
 				@templ.Raw(p.OpenGraph.String())
 			}
 			if p.CanonicalLink != "" {
-				<link rel="canonical" href={ p.CanonicalLink } hx-preserve="true"/>
+				<link rel="canonical" href={ p.CanonicalLink }/>
 			} else {
-				<link rel="canonical" href="https://foragd.app" hx-preserve="true"/>
+				<link rel="canonical" href="https://foragd.app"/>
 			}
-			<link rel="manifest" href="/content/manifest.json" hx-preserve="true"/>
-			<link rel="apple-touch-icon" href="/content/apple-touch-icon.png" hx-preserve="true"/>
-			<link rel="icon" href="/content/favicon.svg" type="image/svg+xml" hx-preserve="true"/>
-			<link rel="icon" href="/content/favicon.png" type="image/svg+xml" hx-preserve="true"/>
-			<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon" hx-preserve="true"/>
+			<link rel="manifest" href="/content/manifest.json"/>
+			<link rel="apple-touch-icon" href="/content/apple-touch-icon.png"/>
+			<link rel="icon" href="/content/favicon.svg" type="image/svg+xml"/>
+			<link rel="icon" href="/content/favicon.png" type="image/svg+xml"/>
+			<link rel="shortcut icon" href="/content/favicon.ico" type="image/x-icon"/>
 			<link rel="alternate" type="application/rss+xml" title="Foragd RSS Feed" href="http://foragd.app/feed"/>
-			<link rel="preconnect" href="https://imgproxy.foragd.app" hx-preserve="true"/>
-			<link rel="preconnect" href="https://cdn.jsdelivr.net" hx-preserve="true"/>
-			<link rel="dns-prefetch" href="//auth.foragd.app" hx-preserve="true"/>
-			<link rel="preload" href="/content/fonts/inter/InterVariable.woff2" crossorigin as="font" hx-preserve="true"/>
+			<link rel="preconnect" href="https://imgproxy.foragd.app"/>
+			<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
+			<link rel="dns-prefetch" href="//auth.foragd.app"/>
+			<link rel="preload" href="/content/fonts/inter/InterVariable.woff2" crossorigin as="font"/>
 			// <link rel="preload" href={ "/content/fonts/inter/inter.css?v=" + config.Version } as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 			// <noscript><link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/></noscript>
 			<link rel="stylesheet" href={ "/content/fonts/inter/inter.css?v=" + config.Version }/>
@@ -131,11 +131,11 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			}
 			// Load script bundles from embedded FS.
 			for scriptFile := range slices.Values(web.GetScriptFilenames()) {
-				<script src={ filepath.Join("/content", scriptFile+"?v="+config.Version) } type="module" hx-preserve="true"></script>
+				<script src={ filepath.Join("/content", scriptFile+"?v="+config.Version) } type="module"></script>
 			}
-			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module" crossorigin="anonymous" hx-preserve="true"></script>
+			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module" crossorigin="anonymous"></script>
 			if config.CurrentEnvironment == config.EnvProduction {
-				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous" hx-preserve="true"></script>
+				<script defer src="https://cloud.umami.is/script.js" data-website-id="24250832-ccab-4bbc-bef9-6ba418e0ea51" crossorigin="anonymous"></script>
 			}
 			// Site-wide htmx config.
 			<meta
@@ -161,7 +161,6 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				GlobalViewTransitions: true,
 				HistoryCacheSize: 10,
 			}) }
-				hx-preserve="true"
 			/>
 			<title>{ p.Title }</title>
 		</head>
