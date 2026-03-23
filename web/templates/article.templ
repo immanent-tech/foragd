@@ -792,6 +792,70 @@ templ ListArticles(response *models.ListArticlesResponse) {
 								}
 							}
 						}
+						// Show some actions at the bottom of the list.
+						<nav class="my-16 flex flex-col items-center justify-center gap-2 text-sm sm:flex-row">
+							if response.Subscription == nil {
+								// Mark all articles action.
+								<form class="flex w-full items-center">
+									<li>
+										<a
+											role="button"
+											class="btn btn-wide btn-outline"
+											if response.Filters.GetView() == models.ViewUnread {
+												hx-post="/list/articles/mark/read"
+											} else {
+												hx-post="/list/articles/mark/unread"
+											}
+											hx-target={ ContentID.Target() }
+											hx-include="article > input"
+										>
+											if response.Filters.GetView() == models.ViewUnread {
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4">
+													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
+												</svg>
+												Mark Articles Read
+												<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+											} else {
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail size-4">
+													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+												</svg>
+												Mark Articles Unread
+												<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+											}
+										</a>
+									</li>
+								</form>
+							} else {
+								// Show mark read/unread action when not viewing all articles.
+								if response.Filters.GetView() != models.ViewAll {
+									// Mark subscription action.
+									<form id={ "mark-" + response.Subscription.GetID() } class="flex w-full justify-center items-center">
+										<input type="hidden" name={ models.ParamSubscriptionID } value={ response.Subscription.GetID() }/>
+										<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
+										// MarkURL returns the app URL for marking the subscription.
+										<a
+											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
+											role="button"
+											class="btn btn-wide btn-outline"
+										>
+											if response.Filters.GetView() == models.ViewUnread {
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4">
+													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14.872 14.287l6.522 6.52a2.996 2.996 0 0 1 -2.218 1.188l-.176 .005h-14a2.995 2.995 0 0 1 -2.394 -1.191l6.521 -6.522l2.318 1.545l.116 .066a1 1 0 0 0 .878 0l.116 -.066l2.317 -1.545z"></path><path d="M2 9.535l5.429 3.62l-5.429 5.43z"></path><path d="M22 9.535v9.05l-5.43 -5.43z"></path><path d="M12.44 2.102l.115 .066l8.444 5.629l-8.999 6l-9 -6l8.445 -5.63a1 1 0 0 1 .994 -.065z"></path>
+												</svg>
+												Mark Subscription Read
+												<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
+											} else {
+												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail size-4">
+													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M22 7.535v9.465a3 3 0 0 1 -2.824 2.995l-.176 .005h-14a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-9.465l9.445 6.297l.116 .066a1 1 0 0 0 .878 0l.116 -.066l9.445 -6.297z"></path><path d="M19 4c1.08 0 2.027 .57 2.555 1.427l-9.555 6.37l-9.555 -6.37a2.999 2.999 0 0 1 2.354 -1.42l.201 -.007h14z"></path>
+												</svg>
+												Mark Subscription Unread
+												<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
+											}
+										</a>
+									</form>
+								}
+							}
+						</nav>
 						@partials.LoadingIndicator("loading-articles")
 						@partials.ButtonBackToTop()
 					} else {
