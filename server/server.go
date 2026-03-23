@@ -96,7 +96,6 @@ func Start(logger *slog.Logger) error {
 		middleware.StripSlashes,
 		middlewares.Etag,
 		middlewares.Otel,
-		middlewares.SetCacheControl,
 	)
 
 	// Error handling.

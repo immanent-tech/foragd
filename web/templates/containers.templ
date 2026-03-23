@@ -89,6 +89,7 @@ templ grid(options ...element.Option) {
 	<div
 		id="grid-objects"
 		class={ "grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12", templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
+		{ e.Attributes... }
 	>
 		{ children... }
 	</div>

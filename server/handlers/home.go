@@ -95,7 +95,7 @@ func (p *Home) PartialResponse(res http.ResponseWriter, req *http.Request) {
 
 // HandleHome handles displaying the user's home page.
 func HandleHome() http.HandlerFunc {
-	return defaultHandlerChain.
+	return userContentHandlerChain.
 		ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 			data, err := getHomePageData(req.Context())
 			if err != nil && !errors.Is(err, models.ErrNotFound) {
@@ -120,7 +120,7 @@ func HandleHome() http.HandlerFunc {
 
 // WatchHome handles watching the home page content (namely, latest articles) for updates.
 func WatchHome() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
 		filters := models.NewListDisplayFilters()
 		query, err := models.BuildItemsQuery(req.Context(), &filters)

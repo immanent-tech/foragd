@@ -45,7 +45,7 @@ func (t *PageIssue) PartialResponse(res http.ResponseWriter, req *http.Request) 
 
 // HandleReportPageIssue handles presenting a form for the user to submit issues about the app.
 func HandleReportPageIssue() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get user data.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -74,7 +74,7 @@ func HandleReportPageIssue() http.HandlerFunc {
 
 // HandleSubmitPageIssue handles processing the user submitted subscription issues form.
 func HandleSubmitPageIssue() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Validate the subscription issue request.
 		request, valid, err := forms.DecodeMultiPartForm[*models.ReportIssueRequest](req)
 		if err != nil || !valid {
@@ -157,7 +157,7 @@ func (t *ObjectIssue) PartialResponse(res http.ResponseWriter, req *http.Request
 
 // HandleReportObjectIssue presents a form for entering issues about a particular object (subscription/article).
 func HandleReportObjectIssue() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Extract request parameters.
 		params := &models.ObjectParams{
 			ObjectID: chi.URLParam(req, models.ParamObjectID),
@@ -203,7 +203,7 @@ func HandleReportObjectIssue() http.HandlerFunc {
 
 // HandleSubmitObjectIssue handles processing the issue form and creating a github issue with the details.
 func HandleSubmitObjectIssue() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Extract the issue request details.
 		request, valid, err := forms.DecodeMultiPartForm[*models.ReportObjectIssueRequest](req)
 		if err != nil || !valid {

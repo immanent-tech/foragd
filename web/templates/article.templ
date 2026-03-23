@@ -624,7 +624,7 @@ templ shareArticleButton(a *Article) {
 
 // ListArticles renders the list of articles in a grid layout with filtering controls and an actions menu.
 templ ListArticles(response *models.ListArticlesResponse) {
-	@content() {
+	@content(element.WithAttribute("hx-history", "false")) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Watch for updates.

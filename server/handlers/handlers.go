@@ -36,7 +36,7 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
-var defaultHandlerChain = alice.New(storePath)
+var userContentHandlerChain = alice.New(storePath, noCache)
 
 var bufPool = sync.Pool{
 	New: func() any {
@@ -125,9 +125,17 @@ func storePath(next http.Handler) http.Handler {
 	})
 }
 
+// noCache stores the current request path in the context.
+func noCache(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Cache-Control", "no-store, must-revalidate")
+		next.ServeHTTP(res, req)
+	})
+}
+
 // WatchList handles watching a list of object for any updates and rendering a notification to the user to refresh the page.
 func WatchList() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := models.NewListDisplayFilters()
 		// // Retrieve current filters.
 		// filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)

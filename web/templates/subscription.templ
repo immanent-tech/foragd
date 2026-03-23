@@ -335,7 +335,7 @@ templ (s *Subscription) Card() {
 
 // ListSubscriptions renders the list of subscriptions in a grid layout with filtering controls and an actions menu.
 templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
-	@content() {
+	@content(element.WithAttribute("hx-history", "false")) {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Watch for updates.

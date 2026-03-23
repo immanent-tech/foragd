@@ -52,14 +52,14 @@ func (t *UserSettings) PartialResponse(res http.ResponseWriter, req *http.Reques
 
 // ShowSettings handles retrieving and rendering the user settings page.
 func ShowSettings() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		RenderInternalPage(&UserSettings{}).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
 // HandleShowDisplaySettings handles showing the settings related to the application display.
 func HandleShowDisplaySettings() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			HandleInternalError(&models.APIError{
@@ -80,7 +80,7 @@ func HandleShowDisplaySettings() http.HandlerFunc {
 
 // HandleShowAccountSettings handles showing the settings related to user accounts.
 func HandleShowAccountSettings() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
 			HandleInternalError(&models.APIError{
@@ -101,7 +101,7 @@ func HandleShowAccountSettings() http.HandlerFunc {
 
 // HandleSaveDisplaySettings handles saving user settings after user submitted changes.
 func HandleSaveDisplaySettings() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request.
 		request, valid, err := forms.DecodeForm[*models.UserSettings](req)
 		if err != nil || !valid {
@@ -153,7 +153,7 @@ func HandleSaveDisplaySettings() http.HandlerFunc {
 //
 //nolint:funlen
 func HandleSaveAccountSettings() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Decode request.
 		request, valid, err := forms.DecodeMultiPartForm[*models.EditUserRequest](req)
 		if err != nil || !valid {
@@ -300,7 +300,7 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 
 // HandleChangePassword handles a change password request from the user.
 func HandleChangePassword() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.ChangePasswordRequest](req)
 		if err != nil || !valid {
 			HandleInternalError(&models.APIError{
@@ -335,7 +335,7 @@ func HandleChangePassword() http.HandlerFunc {
 
 // HandleSetTheme handles setting a theme selected by the user.
 func HandleSetTheme() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		theme := chi.URLParam(req, "theme")
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -374,7 +374,7 @@ func HandleSetTheme() http.HandlerFunc {
 // the end of the current billing period. They can continue to log in and use the service during the current billing
 // period, after which a scheduled job will delete their account.
 func HandleDeactivateAccount() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		switch req.Method {
 		case http.MethodGet:
 			RenderPartial(&Modal{
@@ -419,7 +419,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 // HandleCancelDeactivation handles a user request to stop the pending deactivation of their account. The cancellation
 // will be reversed in Stripe and full account functionality restored.
 func HandleCancelDeactivation() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get user account details.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
@@ -455,7 +455,7 @@ func HandleCancelDeactivation() http.HandlerFunc {
 
 // HandleAddFeedset handles adding a feedset as subscriptions.
 func HandleAddFeedset(static embed.FS) http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Ignore submission without any feedset selected.
 		if req.FormValue("feedset") == "" {
 			res.WriteHeader(http.StatusNoContent)
@@ -669,7 +669,7 @@ func HandleAccountIssue() http.HandlerFunc {
 }
 
 func HandleManageAccountSubscription() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		sessionID := req.FormValue("session_id")
 		if sessionID == "" {
 			HandleExternalError(&models.APIError{
@@ -694,7 +694,7 @@ func HandleManageAccountSubscription() http.HandlerFunc {
 }
 
 func HandleGenerateSubscriptionEmail() http.HandlerFunc {
-	return defaultHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Fetch the user details from context.
 		user := models.UserFromCtx(req.Context())
 		if user == nil {
