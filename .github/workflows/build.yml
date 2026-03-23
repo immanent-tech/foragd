@@ -191,4 +191,11 @@ jobs:
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
       - name: Build email templates with maizzle
         run: |
-          cd email && npx maizzle build production
+          cd email && npm clean-install && npx maizzle build production
+      - name: Upload email templates
+        id: upload_artifacts
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v4
+        with:
+          name: email-templates-${{ env.APPVERSION }}.zip
+          path: |
+            email/build/production/*
