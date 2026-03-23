@@ -11,7 +11,7 @@ replace github.com/immanent-tech/slog-chi v0.0.0 => ./pkg/slog-chi
 replace github.com/dprotaso/go-yit v0.0.0-20260209000607-dfb86291624d => github.com/dprotaso/go-yit v0.0.0-20250513224043-18a80f8f6df4
 
 require (
-	cloud.google.com/go/pubsub/v2 v2.4.0
+	cloud.google.com/go/pubsub/v2 v2.5.0
 	github.com/ThreeDotsLabs/watermill v1.5.1
 	github.com/a-h/templ v0.3.1001
 	github.com/alexedwards/scs/v2 v2.9.0
