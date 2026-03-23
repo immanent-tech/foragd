@@ -2,24 +2,34 @@
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 // htmx
-import htmx from 'htmx.org/dist/htmx.esm'
-window.htmx = htmx
+import htmx from "htmx.org/dist/htmx.esm";
+window.htmx = htmx;
 
 // import 'htmx-ext-head-support'
-import 'htmx-ext-preload'
+import "htmx-ext-preload";
 // import 'htmx-ext-response-targets'
-import 'htmx-ext-sse'
+import "htmx-ext-sse";
 // import 'idiomorph/htmx'
 
 // hyperscript
-import _hyperscript from 'hyperscript.org/dist/_hyperscript.js'
-_hyperscript.browserInit()
+import _hyperscript from "hyperscript.org/dist/_hyperscript.js";
+_hyperscript.browserInit();
 
 // Tailwind Plus.
 // import '@tailwindplus/elements'
 
 // Relative time custom element.
-import '@github/relative-time-element'
+import "@github/relative-time-element";
 
 // custom element for youtube player.
-import './embed-youtube'
+import "./embed-youtube";
+
+// Make sure back button after logout does not show cached data.
+//
+// https://web.dev/articles/bfcache?utm_source=devtools#update-data-after-restore
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted && !document.cookie.match("foragd-session")) {
+    // Force a reload if the user has logged out.
+    location.reload();
+  }
+});
