@@ -13,7 +13,7 @@
 export default {
   build: {
     output: {
-      path: "../web/templates/email",
+      path: "build/production",
     },
   },
   css: {
