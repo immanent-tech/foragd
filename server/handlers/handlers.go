@@ -128,7 +128,7 @@ func storePath(next http.Handler) http.Handler {
 // noCache stores the current request path in the context.
 func noCache(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Cache-Control", "no-store, must-revalidate")
+		res.Header().Set("Cache-Control", "private, no-cache, max-age=0")
 		next.ServeHTTP(res, req)
 	})
 }
