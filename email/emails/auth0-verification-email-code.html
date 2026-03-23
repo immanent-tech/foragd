@@ -1,0 +1,77 @@
+---
+preheader: Auth0 email verification (code)
+---
+
+<x-main>
+  <div class="font-inter bg-base-100 sm:px-4">
+    <table align="center" class="m-0 mx-auto">
+      <tr>
+        <td class="w-[552px] max-w-full">
+          <x-spacer height="24px" />
+
+          <table class="w-full">
+            <tr>
+              <td
+                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 text-base-content sm:p-6"
+              >
+                <a href="https://foragd.app">
+                  <img
+                    src="https://foragd.app/content/logo-color.png"
+                    alt="Foragd logo"
+                    width="64"
+                  />
+                </a>
+
+                <x-spacer height="24px" />
+
+                <h1 class="m-0 mb-6 text-2xl/8 font-semibold text-base-content">
+                  Verify your identity
+                </h1>
+
+                <p class="m-0 mb-6 text-base/6 text-base-content">
+                  Please use the following code to help verify your identity:
+                </p>
+
+                <p class="m-0 mb-6 text-base/6 text-base-content">
+                  Your code is:
+                </p>
+
+                <code class="bg-primary p-4 text-primary-content">
+                  {{ code | escape }}
+                </code>
+
+                <x-spacer height="24px" />
+
+                <p class="m-0 text-base/6 text-base-content">
+                  Thanks,
+                  <br />
+                  <span class="font-semibold text-base-content">
+                    Foragd Team
+                  </span>
+                </p>
+
+                <x-divider />
+
+                <p class="mso-break-all m-0 mt-2 text-xs/5 text-base-content">
+                  Got any questions? Just reply to this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <table class="w-full">
+            <tr>
+              <td class="px-9 py-6 sm:px-6">
+                <p class="m-0 text-xs text-base-content">
+                  &copy; {{ new Date().getFullYear() }}
+                  <a href="https://immanent.tech">Immanent Tech</a>. All rights
+                  reserved.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</x-main>

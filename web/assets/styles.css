@@ -1,8 +1,8 @@
-@import 'tailwindcss' source('../templates/**/*.{html,templ}');
-@import 'tailwindcss-safe-area';
-@plugin '@tailwindcss/typography';
-@plugin 'tailwindcss-visibility';
-@plugin 'daisyui' {
+@import "tailwindcss" source("../templates/**/*.{html,templ}");
+@import "tailwindcss-safe-area";
+@plugin "@tailwindcss/typography";
+@plugin "tailwindcss-visibility";
+@plugin "daisyui" {
   themes:
     light,
     dark,
@@ -11,11 +11,11 @@
   exclude: properties;
 }
 
-@plugin './catppuccinTheme.latte.ts';
-@plugin './catppuccinTheme.mocha.ts';
+@plugin "./catppuccinTheme.latte.ts";
+@plugin "./catppuccinTheme.mocha.ts";
 
-@import './daisyui.css';
-@import 'transition-style';
+@import "./daisyui.css";
+@import "transition-style";
 
 /* Inter font styling */
 /* https://tailwindcss.com/plus/ui-blocks/documentation#add-the-inter-font-family */
@@ -23,12 +23,12 @@
 :root {
   font-family: Inter, sans-serif;
   font-feature-settings:
-    'liga' 1,
-    'calt' 1,
-    'cv02' 1,
-    'cv03' 1,
-    'cv04' 1,
-    'cv11' 1;
+    "liga" 1,
+    "calt" 1,
+    "cv02" 1,
+    "cv03" 1,
+    "cv04" 1,
+    "cv11" 1;
   --sidebar-width: var(--w-sm);
   scrollbar-gutter: stable;
   scrollbar-color: var(--color-primary);
@@ -120,19 +120,6 @@
   ::view-transition-new(notification) {
     animation-name: slide-in-from-right;
     animation-duration: 1s;
-  }
-
-  @keyframes slide-out-to-left {
-    to {
-      translate: -150px 0;
-      opacity: 0;
-      scale: 0.5;
-    }
-  }
-  @keyframes slide-in-from-right {
-    from {
-      translate: 100vi 0;
-    }
   }
 
   .htmx-indicator {

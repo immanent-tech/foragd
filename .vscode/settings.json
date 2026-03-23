@@ -30,6 +30,9 @@
   "[xml]": {
     "editor.defaultFormatter": "DotJoshJohnson.xml"
   },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "conventionalCommits.lineBreak": "\\n",
   "conventionalCommits.promptBody": false,
   "conventionalCommits.scopes": [

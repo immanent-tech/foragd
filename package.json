@@ -9,7 +9,10 @@
     "build:js": "esbuild --bundle --minify ./web/assets/scripts.js --outdir=./web/content/ --format=esm --entry-names=[name]-[hash]",
     "build:js:dev": "esbuild --bundle --sourcemap ./web/assets/scripts.js --outdir=./web/content/ --format=esm",
     "build:css": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --minify",
-    "build:css:dev": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --map"
+    "build:css:dev": "tailwindcss -i ./web/assets/styles.css -o ./web/content/styles.css --map",
+    "postinstall": "cd email && npm install",
+    "email:serve": "cd email && npx maizzle serve",
+    "email:build": "cd email && npx maizzle build production"
   },
   "dependencies": {
     "@github/relative-time-element": "^5.0.0",

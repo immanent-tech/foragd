@@ -1,0 +1,87 @@
+---
+preheader: Auth0 email verification (link)
+---
+
+<x-main>
+  <div class="font-inter bg-base-100 sm:px-4">
+    <table align="center" class="m-0 mx-auto">
+      <tr>
+        <td class="w-[552px] max-w-full">
+          <x-spacer height="24px" />
+
+          <table class="w-full">
+            <tr>
+              <td
+                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 text-base-content sm:p-6"
+              >
+                <a href="https://foragd.app">
+                  <img
+                    src="https://foragd.app/content/logo-color.png"
+                    alt="Foragd logo"
+                    width="64"
+                  />
+                </a>
+
+                <x-spacer height="24px" />
+
+                <h1 class="m-0 mb-6 text-2xl/8 font-semibold text-base-content">
+                  Hello there!
+                </h1>
+
+                <p class="m-0 mb-6 text-base/6 text-base-content">
+                  We’re happy to have you on board! Please verify your email
+                  address in order to activate your account:
+                </p>
+
+                <x-button
+                  href="{{ url | escape }}"
+                  class="bg-primary text-primary-content hover:bg-accent"
+                >
+                  Verify email
+                </x-button>
+
+                <x-spacer height="24px" />
+
+                <p class="m-0 text-base/6 text-base-content">
+                  Thanks,
+                  <br />
+                  <span class="font-semibold text-base-content">
+                    Foragd Team
+                  </span>
+                </p>
+
+                <x-divider />
+
+                <p class="mso-break-all m-0 text-xs/5 text-base-content">
+                  If you’re having trouble clicking the “Verify email” button,
+                  copy and paste the following URL into your web browser:
+                  <a
+                    href="{{ url | escape }}"
+                    class="text-base-content underline"
+                    >{{ url | escape }}</a
+                  >
+                </p>
+                <p class="mso-break-all m-0 mt-2 text-xs/5 text-base-content">
+                  Didn't create an account? Got any questions? Just reply to
+                  this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <table class="w-full">
+            <tr>
+              <td class="px-9 py-6 sm:px-6">
+                <p class="m-0 text-xs text-base-content">
+                  &copy; {{ new Date().getFullYear() }}
+                  <a href="https://immanent.tech">Immanent Tech</a>. All rights
+                  reserved.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</x-main>

@@ -31,6 +31,7 @@ exclude_dir = [
   "web/content",
   "models/generate",
   "scheduler",
+  "email",
 ]
 # Exclude specific regular expressions.
 exclude_regex = ["_test\\.go", "_templ\\.go"]

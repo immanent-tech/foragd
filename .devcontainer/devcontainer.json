@@ -40,7 +40,8 @@
         "davidlday.languagetool-linter",
         "nize.oklch-preview",
         "ms-vscode.wordcount",
-        "eliostruyf.vscode-front-matter"
+        "eliostruyf.vscode-front-matter",
+        "cossssmin.posthtml"
       ]
     }
   }
