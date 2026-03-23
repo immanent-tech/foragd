@@ -90,7 +90,8 @@
     "templates/dock",
     "templates/footer",
     "templates/landing",
-    "templates/about"
+    "templates/about",
+    "email"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
