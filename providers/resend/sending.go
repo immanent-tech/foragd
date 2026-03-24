@@ -47,8 +47,8 @@ func Bcc(bcc ...string) EmailOption {
 	}
 }
 
-// WithTemplateVariable option assigns a value to the given template variable in the email template.
-func WithTemplateVariable(key string, value any) EmailOption {
+// WithVariable option assigns a value to the given template variable in the email template.
+func WithVariable(key string, value any) EmailOption {
 	return func(e *email) {
 		e.mu.Lock()
 		defer e.mu.Unlock()

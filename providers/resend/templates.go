@@ -7,13 +7,77 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"sync"
 
 	"github.com/resend/resend-go/v3"
 )
 
+type template struct {
+	*resend.UpdateTemplateRequest
+
+	mu    sync.Mutex
+	alias string
+}
+
+// TemplateOption is a functional option applied to a template.
+type TemplateOption func(*template)
+
+// WithTemplateHTML option sets the HTML format of the template.
+func WithTemplateHTML(data []byte) TemplateOption {
+	return func(t *template) {
+		t.Html = string(data)
+	}
+}
+
+// WithTemplateText option sets the text format of the template.
+func WithTemplateText(data []byte) TemplateOption {
+	return func(t *template) {
+		t.Text = string(data)
+	}
+}
+
+// WithTemplateName option sets the name of the template.
+func WithTemplateName(name string) TemplateOption {
+	return func(t *template) {
+		t.Name = name
+	}
+}
+
+// WithTemplateSubject option sets the subject of the template.
+func WithTemplateSubject(subject string) TemplateOption {
+	return func(t *template) {
+		t.Subject = subject
+	}
+}
+
+// WithTemplateVariable option sets a variable for use within the template.
+func WithTemplateVariable(key, dataType, fallback string) TemplateOption {
+	return func(t *template) {
+		t.mu.Lock()
+		defer t.mu.Unlock()
+		t.Variables = append(t.Variables, &resend.TemplateVariable{
+			Key:           key,
+			Type:          resend.VariableType(dataType),
+			FallbackValue: fallback,
+		})
+	}
+}
+
 // UpdateTemplate will update the template with the given alias. If a template with the alias does not exist, it will be
 // created.
-func UpdateTemplate(ctx context.Context, alias string, update *resend.UpdateTemplateRequest) error {
+func UpdateTemplate(ctx context.Context, alias string, options ...TemplateOption) error {
+	template := &template{
+		alias: alias,
+		UpdateTemplateRequest: &resend.UpdateTemplateRequest{
+			Variables: make([]*resend.TemplateVariable, 0),
+		},
+	}
+	template.From = cfg.CatchAllEmail
+
+	for option := range slices.Values(options) {
+		option(template)
+	}
+
 	client, err := loadClient()
 	if err != nil {
 		return fmt.Errorf("load client: %w", err)
@@ -25,14 +89,12 @@ func UpdateTemplate(ctx context.Context, alias string, update *resend.UpdateTemp
 	}
 
 	if id == "" {
-		newTemplate := resend.CreateTemplateRequest(*update)
-		newTemplate.From = cfg.CatchAllEmail
+		newTemplate := resend.CreateTemplateRequest(*template.UpdateTemplateRequest)
 		if _, err := client.Templates.CreateWithContext(ctx, &newTemplate); err != nil {
 			return fmt.Errorf("create new template: %w", err)
 		}
 	} else {
-		update.From = cfg.CatchAllEmail
-		if _, err := client.Templates.UpdateWithContext(ctx, id, update); err != nil {
+		if _, err := client.Templates.UpdateWithContext(ctx, id, template.UpdateTemplateRequest); err != nil {
 			return fmt.Errorf("update template: %w", err)
 		}
 	}

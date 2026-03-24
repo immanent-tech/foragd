@@ -11,46 +11,24 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/resend/resend-go/v3"
-
 	"github.com/immanent-tech/foragd/logging"
-	resendext "github.com/immanent-tech/foragd/providers/resend"
+	"github.com/immanent-tech/foragd/providers/resend"
 
 	"github.com/magefile/mage/mg"
 )
 
-var templates = map[string]*resend.UpdateTemplateRequest{
-	"new-inactive-user": &resend.UpdateTemplateRequest{
-		Name:    "New Inactive User",
-		Subject: "A quick check-in from Foragd",
-		Variables: []*resend.TemplateVariable{
-			{
-				Key:           "USER_NICKNAME",
-				Type:          "string",
-				FallbackValue: "there",
-			},
-		},
+var templates = map[string][]resend.TemplateOption{
+	"new-inactive-user": []resend.TemplateOption{
+		resend.WithTemplateName("New Inactive User"),
+		resend.WithTemplateSubject("A quick check-in from Foragd"),
+		resend.WithTemplateVariable("USER_NICKNAME", "string", "there"),
 	},
-	"new-user": &resend.UpdateTemplateRequest{
-		Name:    "New User",
-		Subject: "Your Foragd account is ready",
-		Variables: []*resend.TemplateVariable{
-			{
-				Key:           "USER_NICKNAME",
-				Type:          "string",
-				FallbackValue: "Nickname",
-			},
-			{
-				Key:           "USER_EMAIL",
-				Type:          "string",
-				FallbackValue: "nickname@foragd.app",
-			},
-			{
-				Key:           "USER_AVATAR_URL",
-				Type:          "string",
-				FallbackValue: "https://foragd.app/content/images/placeholder.webp",
-			},
-		},
+	"new-user": []resend.TemplateOption{
+		resend.WithTemplateName("New User"),
+		resend.WithTemplateSubject("Your Foragd account is ready"),
+		resend.WithTemplateVariable("USER_NICKNAME", "string", "Nickname"),
+		resend.WithTemplateVariable("USER_EMAIL", "string", "nickname@foragd.app"),
+		resend.WithTemplateVariable("USER_AVATAR_URL", "string", "https://foragd.app/content/images/placeholder.webp"),
 	},
 }
 
@@ -79,7 +57,7 @@ func Install() error {
 	defer templatesFS.Close()
 
 	// Deploy templates.
-	for alias, template := range templates {
+	for alias, options := range templates {
 		// Load the html version of the template.
 		htmlData, err := templatesFS.ReadFile(filepath.Join("html", alias+".html"))
 		if err != nil {
@@ -89,7 +67,7 @@ func Install() error {
 			)
 			continue
 		}
-		template.Html = string(htmlData)
+		options = append(options, resend.WithTemplateHTML(htmlData))
 		// Load the text version of the template.
 		textData, err := templatesFS.ReadFile(filepath.Join("text", alias+".txt"))
 		if err != nil {
@@ -99,10 +77,10 @@ func Install() error {
 			)
 			continue
 		}
-		template.Text = string(textData)
+		options = append(options, resend.WithTemplateText(textData))
 
 		// Send the updated template data to resend.
-		if err := resendext.UpdateTemplate(ctx, alias, template); err != nil {
+		if err := resend.UpdateTemplate(ctx, alias, options...); err != nil {
 			slog.Warn("Failed to update template.",
 				slog.String("file", alias),
 				slog.Any("error", err),

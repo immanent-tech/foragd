@@ -98,7 +98,7 @@ func (j *inactiveNewUsersJob) Execute(ctx context.Context) error {
 			ctx,
 			"new-inactive-user",
 			resend.To(user.GetEmail()),
-			resend.WithTemplateVariable("USER_NICKNAME", user.GetNickname()),
+			resend.WithVariable("USER_NICKNAME", user.GetNickname()),
 		); err != nil {
 			return fmt.Errorf("email new inactive users: %w", err)
 		}
