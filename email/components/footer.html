@@ -1,0 +1,211 @@
+<!--
+ Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+ SPDX-License-Identifier: 	AGPL-3.0-or-later
+-->
+<script props>
+  let menuItems = props.menu || [
+    { label: "About us", href: "https://foragd.app/about" },
+    { label: "Help", href: "https://foragd.app/help" },
+  ];
+
+  let policiesMenuItems = props["polices-menu"] || [
+    { label: "Terms of Service", href: "https://foragd.app/policies/tos" },
+    {
+      label: "Acceptable Use",
+      href: "https://foragd.app/policies/acceptable-use",
+    },
+    { label: "Privacy", href: "https://foragd.app/policies/privacy" },
+  ];
+
+  module.exports = {
+    menuItems,
+    policiesMenuItems,
+    logoPosition: props["logo-position"] || "left",
+    containerClasses: props["container-class"] || "",
+    logoHref: props["logo-href"] || "https://foragd.app",
+    logoSrc: props["logo-src"] || "https://foragd.app/content/logo-color.webp",
+    logoAlt: props["logo-alt"] || "Foragd",
+    logoWidth: props["logo-width"] || 55,
+  };
+</script>
+
+<table class="w-full" style="background-color: theme(colors.base-200)">
+  <tr>
+    <td>&zwj;</td>
+    <td
+      style="background-color: theme(colors.base-200)"
+      class="w-[600px] pt-11 pb-6 max-w-full {{ containerClasses }}"
+    >
+      <table class="w-full">
+        <tr class="{{ logoPosition === 'right' ? 'sm:w-full sm:table' : '' }}">
+          <if condition="logoPosition === 'left'">
+            <!-- Logo left -->
+            <td class="w-5/12 align-top sm:block sm:w-full">
+              <table class="w-full">
+                <tr>
+                  <td class="p-6 pt-0">
+                    <if condition="logoHref">
+                      <a href="{{{ logoHref }}}">
+                        <img
+                          src="{{{ logoSrc }}}"
+                          width="{{ logoWidth }}"
+                          alt="{{{ logoAlt }}}"
+                          class="max-w-full align-middle"
+                        />
+                      </a>
+                    </if>
+                    <else>
+                      <img
+                        src="{{{ logoSrc }}}"
+                        width="{{ logoWidth }}"
+                        alt="{{{ logoAlt }}}"
+                        class="max-w-full align-middle"
+                      />
+                    </else>
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <td
+              align="right"
+              class="m-0 ml-auto sm:float-none sm:block sm:w-full sm:text-left"
+            >
+              <table>
+                <tr>
+                  <td class="p-0 px-6 align-top">
+                    <p
+                      class="m-0 mb-2.5 text-base/6 font-semibold text-base-content"
+                    >
+                      Quick Links
+                    </p>
+
+                    <each loop="item, index in menuItems">
+                      <p class="m-0 mb-2">
+                        <a
+                          href="{{{ item.href }}}"
+                          class="text-sm/5 text-base-content no-underline hover:text-accent"
+                        >
+                          {{{ item.label }}}
+                        </a>
+                      </p>
+                    </each>
+                  </td>
+                  <td class="p-0 px-6 align-top">
+                    <p
+                      class="m-0 mb-2.5 text-base/6 font-semibold text-base-content"
+                    >
+                      Policies
+                    </p>
+
+                    <each loop="item, index in policiesMenuItems">
+                      <p class="m-0 mb-2">
+                        <a
+                          href="{{{ item.href }}}"
+                          class="text-sm/5 text-base-content no-underline hover:text-accent"
+                        >
+                          {{{ item.label }}}
+                        </a>
+                      </p>
+                    </each>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </if>
+          <if condition="logoPosition === 'right'">
+            <!-- Logo right -->
+            <td class="align-top sm:table-footer-group">
+              <table class="sm:ml-auto">
+                <tr>
+                  <td class="p-0 px-6 align-top">
+                    <p
+                      class="m-0 mb-2.5 text-base/6 font-semibold text-base-content"
+                    >
+                      Quick Links
+                    </p>
+
+                    <each loop="item, index in menuItems">
+                      <p class="m-0 mb-2">
+                        <a
+                          href="{{{ item.href }}}"
+                          class="text-sm/5 text-base-content no-underline hover:text-accent"
+                        >
+                          {{{ item.label }}}
+                        </a>
+                      </p>
+                    </each>
+                  </td>
+                  <td class="p-0 px-6 align-top">
+                    <p
+                      class="m-0 mb-2.5 text-base/6 font-semibold text-base-content"
+                    >
+                      Policies
+                    </p>
+
+                    <each loop="item, index in policiesMenuItems">
+                      <p class="m-0 mb-2">
+                        <a
+                          href="{{{ item.href }}}"
+                          class="text-sm/5 text-base-content no-underline hover:text-accent"
+                        >
+                          {{{ item.label }}}
+                        </a>
+                      </p>
+                    </each>
+                  </td>
+                </tr>
+              </table>
+            </td>
+            <td class="w-5/12 align-top sm:table-header-group">
+              <table class="w-full">
+                <tr>
+                  <td class="p-6 pt-0 text-right">
+                    <if condition="logoHref">
+                      <a href="{{{ logoHref }}}">
+                        <img
+                          src="{{{ logoSrc }}}"
+                          width="{{ logoWidth }}"
+                          alt="{{{ logoAlt }}}"
+                          class="max-w-full align-middle"
+                        />
+                      </a>
+                    </if>
+                    <else>
+                      <img
+                        src="{{{ logoSrc }}}"
+                        width="{{ logoWidth }}"
+                        alt="{{{ logoAlt }}}"
+                        class="max-w-full align-middle"
+                      />
+                    </else>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </if>
+        </tr>
+      </table>
+
+      <x-spacer height="96px" />
+
+      <table class="w-full">
+        <tr>
+          <td
+            class="p-0 px-6 {{ logoPosition === 'right' ? 'sm:text-right' : '' }}"
+          >
+            <slot:copyright>
+              <p class="m-0 text-xs text-base-content">
+                &copy; {{ new Date().getFullYear() }}
+                <a href="https://immanent.tech">Immanent Tech</a>.
+              </p>
+              <p class="m-0 text-xs text-base-content">
+                PO Box 528 Hamilton Central QLD 4007 Australia
+              </p>
+            </slot:copyright>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>&zwj;</td>
+  </tr>
+</table>

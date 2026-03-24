@@ -14,6 +14,10 @@ module.exports = {
       "base-content": "#312824",
       primary: "#7B9985",
       "primary-content": "#FFFFFF",
+      secondary: "#E5B79B",
+      "secondary-content": "#312824",
+      accent: "#EDA0B5",
+      "accent-content": "#312824",
     },
   },
 };
