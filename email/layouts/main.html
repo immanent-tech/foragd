@@ -11,8 +11,6 @@
       name="format-detection"
       content="telephone=no, date=no, address=no, email=no, url=no"
     />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="supported-color-schemes" content="light dark" />
     <!--[if mso]>
       <noscript>
         <xml>
@@ -49,7 +47,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap"
       rel="stylesheet"
       media="screen"
     />
@@ -67,7 +65,12 @@
     class="m-0 p-0 w-full [word-break:break-word] [-webkit-font-smoothing:antialiased] {{ page.bodyClass || '' }}"
   >
     <if condition="page.preheader">
-      <div class="hidden">{{{ page.preheader }}}</div>
+      <div class="hidden">
+        {{{ page.preheader }}}
+        <each loop="item in Array.from(Array(150))"
+          >&#8199;&#65279;&#847;
+        </each>
+      </div>
     </if>
     <div
       role="article"
