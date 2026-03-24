@@ -815,6 +815,9 @@ templ manageFeedSubscription(action string, request *models.FeedSubscriptionRequ
 
 // AddSearchSubscription is a page for adding a new search subscription.
 templ AddSearchSubscription(request *models.SearchSubscriptionRequest) {
+	// Change the sort order to newest first as in most cases, when creating a search subscription. Users will be
+	// interested in the newest articles that match.
+	{{ request.Search.Sort = models.SortNewestFirst }}
 	@manageSearchSubscription("add", request)
 }
 
