@@ -5,13 +5,11 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/resend/resend-go/v3"
 
@@ -22,16 +20,38 @@ import (
 )
 
 var templates = map[string]*resend.UpdateTemplateRequest{
-	"new-inactive-user.html": &resend.UpdateTemplateRequest{
+	"new-inactive-user": &resend.UpdateTemplateRequest{
 		Name:    "New Inactive User",
 		Subject: "A quick check-in from Foragd",
+		Variables: []*resend.TemplateVariable{
+			{
+				Key:           "USER_NICKNAME",
+				Type:          "string",
+				FallbackValue: "there",
+			},
+		},
 	},
-}
-
-type config struct {
-	templates    *os.Root
-	apiKey       string
-	replyToEmail string
+	"new-user": &resend.UpdateTemplateRequest{
+		Name:    "New User",
+		Subject: "Your Foragd account is ready",
+		Variables: []*resend.TemplateVariable{
+			{
+				Key:           "USER_NICKNAME",
+				Type:          "string",
+				FallbackValue: "Nickname",
+			},
+			{
+				Key:           "USER_EMAIL",
+				Type:          "string",
+				FallbackValue: "nickname@foragd.app",
+			},
+			{
+				Key:           "USER_AVATAR_URL",
+				Type:          "string",
+				FallbackValue: "https://foragd.app/content/images/placeholder.webp",
+			},
+		},
+	},
 }
 
 // Build creates the email templates
@@ -51,26 +71,40 @@ func Install() error {
 
 	ctx := context.Background()
 
-	cfg, err := setupConfig()
+	// Mount the templates filesystem.
+	templatesFS, err := os.OpenRoot("build/production")
 	if err != nil {
-		return fmt.Errorf("setup config: %w", err)
+		return fmt.Errorf("open templates directory: %w", err)
 	}
-	defer cfg.templates.Close()
+	defer templatesFS.Close()
 
-	for filename, template := range templates {
-		data, err := cfg.templates.ReadFile(filename)
-		template.Html = string(data)
-		template.From = cfg.replyToEmail
+	// Deploy templates.
+	for alias, template := range templates {
+		// Load the html version of the template.
+		htmlData, err := templatesFS.ReadFile(filepath.Join("html", alias+".html"))
 		if err != nil {
-			slog.Warn("Failed to read template.",
-				slog.String("file", filename),
+			slog.Warn("Failed to read html for template.",
+				slog.String("file", alias),
 				slog.Any("error", err),
 			)
+			continue
 		}
-		alias := strings.TrimSuffix(filename, filepath.Ext(filename))
+		template.Html = string(htmlData)
+		// Load the text version of the template.
+		textData, err := templatesFS.ReadFile(filepath.Join("text", alias+".txt"))
+		if err != nil {
+			slog.Warn("Failed to read text for template.",
+				slog.String("file", alias),
+				slog.Any("error", err),
+			)
+			continue
+		}
+		template.Text = string(textData)
+
+		// Send the updated template data to resend.
 		if err := resendext.UpdateTemplate(ctx, alias, template); err != nil {
 			slog.Warn("Failed to update template.",
-				slog.String("file", filename),
+				slog.String("file", alias),
 				slog.Any("error", err),
 			)
 		} else {
@@ -93,34 +127,4 @@ func InstallDeps() error {
 func Clean() {
 	fmt.Println("Cleaning...")
 	os.RemoveAll("MyApp")
-}
-
-func openEmailTemplatesFS() (*os.Root, error) {
-	root, err := os.OpenRoot("build/production")
-	if err != nil {
-		return nil, fmt.Errorf("open templates directory: %w", err)
-	}
-	return root, nil
-}
-
-func setupConfig() (*config, error) {
-	var err error
-
-	cfg := config{}
-
-	cfg.apiKey = os.Getenv("FORAGD_RESEND_APIKEY")
-	if cfg.apiKey == "" {
-		return nil, errors.New("no api key found")
-	}
-	cfg.replyToEmail = os.Getenv("FORAGD_RESEND_CATCHALLEMAIL")
-	if cfg.replyToEmail == "" {
-		return nil, errors.New("no reply to email set")
-	}
-
-	cfg.templates, err = openEmailTemplatesFS()
-	if err != nil {
-		return nil, fmt.Errorf("get templates: %w", err)
-	}
-
-	return &cfg, nil
 }

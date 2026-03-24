@@ -11,23 +11,27 @@ import (
 	"github.com/resend/resend-go/v3"
 )
 
+// UpdateTemplate will update the template with the given alias. If a template with the alias does not exist, it will be
+// created.
 func UpdateTemplate(ctx context.Context, alias string, update *resend.UpdateTemplateRequest) error {
 	client, err := loadClient()
 	if err != nil {
 		return fmt.Errorf("load client: %w", err)
 	}
 
-	id, err := getTemplateID(ctx, alias)
+	id, err := templateAliasToID(ctx, alias)
 	if err != nil {
 		return fmt.Errorf("get template id: %w", err)
 	}
 
 	if id == "" {
 		newTemplate := resend.CreateTemplateRequest(*update)
+		newTemplate.From = cfg.CatchAllEmail
 		if _, err := client.Templates.CreateWithContext(ctx, &newTemplate); err != nil {
 			return fmt.Errorf("create new template: %w", err)
 		}
 	} else {
+		update.From = cfg.CatchAllEmail
 		if _, err := client.Templates.UpdateWithContext(ctx, id, update); err != nil {
 			return fmt.Errorf("update template: %w", err)
 		}
@@ -40,7 +44,9 @@ func UpdateTemplate(ctx context.Context, alias string, update *resend.UpdateTemp
 	return nil
 }
 
-func getTemplateID(ctx context.Context, alias string) (string, error) {
+// templateAliasToID will return the ID of the email template with the given alias. If no template exists, it will
+// return an empty string. If an error occurs, a non-nil error will also be returned.
+func templateAliasToID(ctx context.Context, alias string) (string, error) {
 	client, err := loadClient()
 	if err != nil {
 		return "", fmt.Errorf("load client: %w", err)

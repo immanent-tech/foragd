@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"maps"
 	"slices"
 	"time"
 
@@ -85,41 +84,43 @@ func (j *inactiveNewUsersJob) Execute(ctx context.Context) error {
 	}
 
 	// Check for a ping email sent already, otherwise add to a map of users to ping.
-	inactiveUsers := make(map[string]string)
-	for user := range slices.Values(users) {
-		if user.UserResponseSchema.UserMetadata != nil {
-			metadata := *user.UserResponseSchema.UserMetadata
+	for u := range slices.Values(users) {
+		user := u.UserResponseSchema
+		if user.UserMetadata != nil {
+			metadata := *user.UserMetadata
 			if _, ok := metadata["new_inactive_email_sent"].(string); ok {
 				continue
 			}
 		}
-		inactiveUsers[user.UserResponseSchema.GetUserID()] = user.UserResponseSchema.GetEmail()
-	}
 
-	// Send email to new inactive users.
-	if err := resend.SendTemplatedEmail(
-		ctx,
-		"new-inactive-user",
-		resend.Bcc(slices.Collect(maps.Values(inactiveUsers))...),
-	); err != nil {
-		return fmt.Errorf("email new inactive users: %w", err)
-	}
+		// Send email to new inactive users.
+		if err := resend.SendTemplatedEmail(
+			ctx,
+			"new-inactive-user",
+			resend.To(user.GetEmail()),
+			resend.WithTemplateVariable("USER_NICKNAME", user.GetNickname()),
+		); err != nil {
+			return fmt.Errorf("email new inactive users: %w", err)
+		}
 
-	// Update the user metadata.
-	for id := range inactiveUsers {
-		if err := auth0.UpdateUserMetadata(ctx, id, "new_inactive_email_sent", time.Now().UTC()); err != nil {
+		// Update the user metadata.
+		if err := auth0.UpdateUserMetadata(
+			ctx,
+			user.GetUserID(),
+			"new_inactive_email_sent",
+			time.Now().UTC(),
+		); err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not update inactive user.",
-				slog.String("user_id", id),
+				slog.String("user_id", user.GetUserID()),
 				slog.Any("error", err),
 			)
 		} else {
 			slogctx.FromCtx(ctx).Info("Pinged new inactive user.",
-				slog.String("user_id", id),
+				slog.String("user_id", user.GetUserID()),
 				slog.Any("error", err),
 			)
 		}
 	}
-
 	return nil
 }
 

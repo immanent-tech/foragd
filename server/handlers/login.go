@@ -147,7 +147,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 
 		if err := resend.SendTemplatedEmail(
 			req.Context(),
-			"beta-signup",
+			"new-user",
 			resend.To(user.GetEmail()),
 			resend.WithTag("category", "welcome"),
 		); err != nil {

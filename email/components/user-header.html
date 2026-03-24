@@ -1,0 +1,132 @@
+<script props>
+  let containerBaseStyles = ["background-color: #fffffe", "padding: 24px"];
+
+  let name = props.name || "John Doe";
+  let email = props.email || "jdoe@immanent.tech";
+
+  module.exports = {
+    name,
+    email: email.replace("@", "&#847;@").replace(".", "&#847;."),
+    containerBg: props["container-bg"] || "",
+    containerBaseStyles: containerBaseStyles.join("; "),
+    containerClasses: props["container-class"] || "",
+    logoPosition: props["logo-position"] || "left",
+    logoSrc: props["logo-src"] || "https://foragd.app/content/logo-color.webp",
+    logoAlt: props["logo-alt"] || "Foragd",
+    logoWidth: props["logo-width"] || 55,
+    logoHref: props["logo-href"],
+    avatarSrc:
+      props["avatar-src"] ||
+      "https://foragd.app/content/image/placeholder.webp",
+    avatarWidth: props["avatar-width"] || 32,
+  };
+</script>
+
+<table class="w-full" style="background-color: theme(colors.base-100)">
+  <tr>
+    <td>&zwj;</td>
+    <td class="w-[600px] max-w-full">
+      <table class="w-full">
+        <tr>
+          <td class="{{ containerClasses }}" style="{{ containerBaseStyles }}">
+            <table class="w-full">
+              <tr>
+                <if condition="logoPosition !== 'right'">
+                  <!-- Logo left-aligned -->
+                  <td style="width: {{ logoWidth }}px;">
+                    <if condition="logoHref">
+                      <a href="{{{ logoHref }}}">
+                        <img
+                          src="{{{ logoSrc }}}"
+                          width="{{ logoWidth }}"
+                          alt="{{{ logoAlt }}}"
+                          class="max-w-full align-middle"
+                        />
+                      </a>
+                    </if>
+                    <else>
+                      <img
+                        src="{{{ logoSrc }}}"
+                        width="{{ logoWidth }}"
+                        alt="{{{ logoAlt }}}"
+                        class="max-w-full align-middle"
+                      />
+                    </else>
+                  </td>
+                  <td>
+                    <table align="right" class="m-0 ml-auto">
+                      <tr>
+                        <td>
+                          <img
+                            src="{{{ avatarSrc }}}"
+                            width="{{ avatarWidth }}}"
+                            class="rounded-full"
+                          />
+                        </td>
+                        <td class="w-3">&zwj;</td>
+                        <td>
+                          <p class="m-0 text-xs/4 font-medium text-gray-600">
+                            {{{ name }}}
+                          </p>
+                          <p class="m-0 text-xs/4 text-gray-500">
+                            {{{ email }}}
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </if>
+                <if condition="logoPosition === 'right'">
+                  <!-- Logo right-aligned -->
+                  <td>
+                    <table>
+                      <tr>
+                        <td>
+                          <img
+                            src="{{{ avatarSrc }}}"
+                            width="{{ avatarWidth }}}"
+                            class="rounded-full"
+                          />
+                        </td>
+                        <td class="w-3">&zwj;</td>
+                        <td>
+                          <p class="m-0 text-xs/4 font-medium text-gray-600">
+                            {{{ name }}}
+                          </p>
+                          <p class="m-0 text-xs/4 text-gray-500">
+                            {{{ email }}}
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td class="text-right" style="width: {{ logoWidth }}px;">
+                    <if condition="logoHref">
+                      <a href="{{{ logoHref }}}">
+                        <img
+                          src="{{{ logoSrc }}}"
+                          width="{{ logoWidth }}"
+                          alt="{{{ logoAlt }}}"
+                          class="max-w-full align-middle"
+                        />
+                      </a>
+                    </if>
+                    <else>
+                      <img
+                        src="{{{ logoSrc }}}"
+                        width="{{ logoWidth }}"
+                        alt="{{{ logoAlt }}}"
+                        class="max-w-full align-middle"
+                      />
+                    </else>
+                  </td>
+                </if>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>&zwj;</td>
+  </tr>
+</table>

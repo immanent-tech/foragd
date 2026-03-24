@@ -1,0 +1,106 @@
+---
+preheader: New user
+---
+
+<x-main>
+  <div class="font-inter bg-base-100 sm:px-4">
+    <!-- Header with user details -->
+    <x-user-header name="{{{USER_NICKNAME}}}" email="{{{USER_EMAIL}}}" avatar-src="{{{USER_AVATAR_URL}}}" />
+
+    <table align="center" class="m-0 mx-auto">
+      <tr>
+        <td class="w-[552px] max-w-full">
+          <x-spacer height="24px" />
+
+          <table class="w-full">
+            <tr>
+              <td
+                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 text-base-content sm:p-6"
+              >
+                <h1 class="m-0 mb-6 text-2xl/8 font-semibold text-base-content">
+                  Your're in!
+                </h1>
+
+                <p class="m-0 mb-6 text-base/6 text-base-content">
+                  Welcome to
+                  <span class="font-semibold text-base-content">Foragd</span>, your one place for all your feed,
+                  newsletter, and article content. All fully searchable, always in sync, never algorithmic. Get started
+                  curating your collection.
+                </p>
+
+                <x-spacer height="24px" />
+
+                <x-three-to-one-grid>
+                  <fill:col-1>
+                    <p class="my-4 text-base/6 font-semibold text-base-content">
+                      Go to your home page →
+                    </p>
+                    <p class="my-4 text-xs text-base-content">
+                      Or go to https://foragd.app/home
+                    </p>
+                  </fill:col-1>
+                  <fill:col-2>
+                    <x-button
+                    align="center"
+                      href="https://foragd.app/home"
+                      class="bg-primary text-primary-content hover:bg-accent"
+                    >
+                      Home
+                    </x-button>
+                  </fill:col-2>
+                </x-three-to-one-grid>
+
+                <div class="flex justify-center"></div>
+
+                <x-spacer height="24px" />
+
+                <h2 class="m-0 mb-6 text-lg/8 font-semibold text-base-content">
+                  Next Steps
+                </h2>
+
+                <ul class="list-none text-base/6">
+                  <li class="my-2">
+                    1️⃣
+                    <a
+                      class="font-semibold hover:text-accent"
+                      href="https://foragd.app/subscription/add/feed"
+                      >Add</a
+                    >
+                    a feed from a URL or
+                    <a
+                      class="font-semibold hover:text-accent"
+                      href="https://foragd.app/user/import"
+                      >Import</a
+                    >
+                    your feeds from another service.
+                  </li>
+                  <li class="my-2">
+                    2️⃣
+                    <a class=font-semibold hover:text-accent" href="https://foragd.app/subscription/add/group"
+                      >Create a Group Subscription</a
+                    >
+                    to keep track of all articles from a bunch of similar
+                    sources.
+                  </li>
+                  <li class="my-2">
+                    3️⃣ Search and filter to find what you need, then save the results as a  <a class=font-semibold
+                    hover:text-accent" href="https://foragd.app/subscription/add/search" >Search Subscription</a> to keep
+                    up to date as new articles come in.</li>
+                </ul>
+
+                <x-spacer height="24px" />
+
+                <p class="mso-break-all m-0 mt-2 text-base/6 text-base-content">
+                  Check out the <a class="hover:text-accent" href="https://foragd.app/help">help documentation</a> for more information. Got any
+                  questions? Just reply to this email.
+                </p>
+                <x-divider />
+              </td>
+            </tr>
+          </table>
+          <x-footer />
+        </td>
+      </tr>
+    </table>
+  </div>
+</x-main>

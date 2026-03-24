@@ -1,0 +1,17 @@
+Your're in!
+
+Welcome to Foragd, your one place for all your feed, newsletter, and article content. All fully searchable, always in
+sync, never algorithmic. Get started curating your collection.
+
+Go to your homepage: https://foragd.app/home.
+
+Next steps:
+
+- Add a subscription: https://foragd.app/subscription/add/feed.
+- Or, import subscriptions from another service: https://foragd.app/user/import.
+- Create a group subscription to keep track of all articles from a bunch of similar sources: https://foragd.app/subscription/add/group.
+- Search and filter articles, then save the search to always keep track of articles that match: https://foragd.app/subscription/add/search.
+
+Check out the help documenation for more information: https://foragd.app/help.
+
+Got any questions? Just reply to this email.

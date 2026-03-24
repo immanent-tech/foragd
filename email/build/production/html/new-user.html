@@ -39,6 +39,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet" media="screen">
   <style>
+    .hover-bg-accent:hover {
+      background-color: #EDA0B5 !important;
+    }
     .hover-text-accent:hover {
       color: #EDA0B5 !important;
     }
@@ -67,7 +70,7 @@
 </head>
 <body style="margin: 0; width: 100%; padding: 0; -webkit-font-smoothing: antialiased; word-break: break-word;">
   <div style="display: none;">
-    Auth0 email verification (code)
+    New user
     &#8199;&#65279;&#847;
     &#8199;&#65279;&#847;
     &#8199;&#65279;&#847;
@@ -220,6 +223,44 @@
     &#8199;&#65279;&#847; </div>
   <div role="article" aria-roledescription="email" aria-label lang="en">
     <div class="sm-px-4" style="background-color: #FCFAF7; font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif">
+      <table style="background-color: #FCFAF7; width: 100%;" cellpadding="0" cellspacing="0" role="none">
+        <tr>
+          <td>&zwj;</td>
+          <td style="width: 600px; max-width: 100%;">
+            <table style="width: 100%;" cellpadding="0" cellspacing="0" role="none">
+              <tr>
+                <td style="background-color: #fffffe; padding: 24px">
+                  <table style="width: 100%;" cellpadding="0" cellspacing="0" role="none">
+                    <tr>
+                      <td style="width: 55px;"> <img src="https://foragd.app/content/logo-color.webp" width="55" alt="Foragd" style="max-width: 100%; vertical-align: middle;">
+                      </td>
+                      <td>
+                        <table align="right" style="margin: 0 0 0 auto;" cellpadding="0" cellspacing="0" role="none">
+                          <tr>
+                            <td>
+                              <img src="{{{USER_AVATAR_URL}}}" width="32}" style="max-width: 100%; vertical-align: middle; border-radius: 9999px;" alt>
+                            </td>
+                            <td style="width: 12px;">&zwj;</td>
+                            <td>
+                              <p style="margin: 0; font-size: 12px; line-height: 16px; font-weight: 500;">
+                                {{{USER_NICKNAME}}}
+                              </p>
+                              <p style="margin: 0; font-size: 12px; line-height: 16px;">
+                                {{{USER_EMAIL}}}
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+          <td>&zwj;</td>
+        </tr>
+      </table>
       <table align="center" style="margin: 0 auto;" cellpadding="0" cellspacing="0" role="none">
         <tr>
           <td style="width: 552px; max-width: 100%;">
@@ -228,29 +269,82 @@
               <tr>
                 <td class="sm-p-6" style="border-radius: 8px; border-width: 1px; border-color: #EFE9DE; background-color: #F5F3EC; padding: 24px 36px; color: #312824">
                   <h1 style="margin: 0 0 24px; font-size: 24px; line-height: 32px; font-weight: 600; color: #312824;">
-                    Verify your identity
+                    Your're in!
                   </h1>
                   <p style="margin: 0 0 24px; font-size: 16px; line-height: 24px; color: #312824;">
-                    Please use the following code to help verify your identity:
+                    Welcome to
+                    <span style="font-weight: 600; color: #312824;">Foragd</span>, your one place for all your feed,
+                    newsletter, and article content. All fully searchable, always in sync, never algorithmic. Get started
+                    curating your collection.
                   </p>
-                  <p style="margin: 0 0 24px; font-size: 16px; line-height: 24px; color: #312824;">
-                    Your code is:
-                  </p>
-                  <code style="background-color: #7B9985; padding: 16px; color: #FFFFFF;">
-                  {{ code | escape }}
-                  </code>
                   <div role="separator" style="line-height: 24px">&zwj;</div>
-                  <p style="margin: 0; font-size: 16px; line-height: 24px; color: #312824;">
-                    Thanks,
-                    <br>
-                    <span style="font-weight: 600; color: #312824;">
-                    Foragd Team
-                  </span>
+                  <table style="background-color: #FCFAF7; width: 100%;" cellpadding="0" cellspacing="0" role="none">
+                    <tr>
+                      <td>&zwj;</td>
+                      <td style="background-color: #FCFAF7; width: 600px; max-width: 100%;">
+                        <table style="width: 100%;" cellpadding="0" cellspacing="0" role="none">
+                          <tr>
+                            <td style="padding: 0 24px;">
+                              <table style="width: 100%;" cellpadding="0" cellspacing="0" role="none">
+                                <tr>
+                                  <td class="sm-w-full sm-block" style="width: 402px">
+                                    <p style="margin-top: 16px; margin-bottom: 16px; font-size: 16px; line-height: 24px; font-weight: 600; color: #312824;">
+                                      Go to your home page →
+                                    </p>
+                                    <p style="margin-top: 16px; margin-bottom: 16px; font-size: 12px; color: #312824;">
+                                      Or go to https://foragd.app/home
+                                    </p>
+                                  </td>
+                                  <td class="sm-w-full sm-block" style="width: 24px; line-height: 24px">
+                                    &zwj;
+                                  </td>
+                                  <td class="sm-w-full sm-block" style="width: 126px">
+                                    <div style="text-align: center;">
+                                      <a href="https://foragd.app/home" style="display: inline-block; text-decoration: none; padding: 16px 24px; font-size: 16px; line-height: 1; border-radius: 4px; background-color: #7B9985; color: #FFFFFF;" class="hover-bg-accent">
+                                        <!--[if mso]><i style="mso-font-width: 150%; mso-text-raise: 31px;" hidden>&emsp;</i><![endif]-->
+                                        <span style="mso-text-raise: 16px">Home</span>
+                                        <!--[if mso]><i hidden style="mso-font-width: 150%;">&emsp;&#8203;</i><![endif]-->
+                                      </a>
+                                    </div>
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td>&zwj;</td>
+                    </tr>
+                  </table>
+                  <div style="display: flex; justify-content: center;"></div>
+                  <div role="separator" style="line-height: 24px">&zwj;</div>
+                  <h2 style="margin: 0 0 24px; font-size: 18px; line-height: 32px; font-weight: 600; color: #312824;">
+                    Next Steps
+                  </h2>
+                  <ul style="list-style-type: none; font-size: 16px; line-height: 24px;">
+                    <li style="margin-top: 8px; margin-bottom: 8px;">
+                      1️⃣
+                      <a class="hover-text-accent" href="https://foragd.app/subscription/add/feed" style="font-weight: 600;">Add</a>
+                      a feed from a URL or
+                      <a class="hover-text-accent" href="https://foragd.app/user/import" style="font-weight: 600;">Import</a>
+                      your feeds from another service.
+                    </li>
+                    <li style="margin-top: 8px; margin-bottom: 8px;">
+                      2️⃣
+                      <a hover:text-accent" href="https://foragd.app/subscription/add/group" style="font-weight: 600;">Create a Group Subscription</a>
+                      to keep track of all articles from a bunch of similar
+                      sources.
+                    </li>
+                    <li style="margin-top: 8px; margin-bottom: 8px;">
+                      3️⃣ Search and filter to find what you need, then save the results as a <a hover:text-accent" href="https://foragd.app/subscription/add/search" style="font-weight: 600;">Search Subscription</a> to keep
+                      up to date as new articles come in.</li>
+                  </ul>
+                  <div role="separator" style="line-height: 24px">&zwj;</div>
+                  <p class="mso-break-all" style="margin: 8px 0 0; font-size: 16px; line-height: 24px; color: #312824;">
+                    Check out the <a class="hover-text-accent" href="https://foragd.app/help">help documentation</a> for more information. Got any
+                    questions? Just reply to this email.
                   </p>
-                  <div role="separator" style="height: 1px; line-height: 1px; background-color: #cbd5e1; margin-top: 24px; margin-bottom: 24px">&zwj;</div>
-                  <p class="mso-break-all" style="margin: 8px 0 0; font-size: 12px; line-height: 20px; color: #312824;">
-                    Got any questions? Just reply to this email.
-                  </p>
+                  <div role="separator" style="height: 1px; line-height: 1px; background-color: #4B433B; margin-top: 24px; margin-bottom: 24px">&zwj;</div>
                 </td>
               </tr>
             </table>
