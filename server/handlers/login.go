@@ -150,6 +150,9 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 			"new-user",
 			resend.To(user.GetEmail()),
 			resend.WithTag("category", "welcome"),
+			resend.WithVariable("USER_NICKNAME", user.GetNickname()),
+			resend.WithVariable("USER_EMAIL", user.GetEmail()),
+			resend.WithVariable("USER_AVATAR_URL", user.GetAvatar()),
 		); err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Unable to send welcome email.",
 				slog.String("user_id", user.GetID()),
