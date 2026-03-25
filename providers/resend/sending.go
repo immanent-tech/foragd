@@ -9,9 +9,10 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strconv"
 	"sync"
-	"time"
 
+	"github.com/cenkalti/backoff/v5"
 	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
 )
@@ -178,11 +179,11 @@ func BatchSendEmails(ctx context.Context, emails ...*Email) (BatchSendResponse, 
 			}
 			batch = append(batch, req)
 		}
-		// Send batch.
-		batchResp, err := client.Batch.SendWithOptions(
-			ctx,
-			batch,
-			&resend.BatchSendEmailOptions{BatchValidation: resend.BatchValidationPermissive},
+
+		batchResp, err := backoff.Retry(
+			context.TODO(),
+			batchOperation(ctx, client, batch),
+			backoff.WithBackOff(backoff.NewExponentialBackOff()),
 		)
 		if err != nil {
 			// On batch send error, record all emails in batch as failed with same error.
@@ -208,9 +209,6 @@ func BatchSendEmails(ctx context.Context, emails ...*Email) (BatchSendResponse, 
 				resp = append(resp, SendResponse{To: email.To})
 			}
 		}
-
-		// Wait a short amount of time to avoid hitting API rate limit.
-		time.Sleep(20 * time.Millisecond)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Batch sent emails",
@@ -218,6 +216,33 @@ func BatchSendEmails(ctx context.Context, emails ...*Email) (BatchSendResponse, 
 	)
 
 	return resp, nil
+}
+
+func batchOperation(
+	ctx context.Context,
+	client *resend.Client,
+	batch []*resend.SendEmailRequest,
+) func() (*resend.BatchEmailResponse, error) {
+	return func() (*resend.BatchEmailResponse, error) {
+		// Send batch.
+		resp, err := client.Batch.SendWithOptions(
+			ctx,
+			batch,
+			&resend.BatchSendEmailOptions{BatchValidation: resend.BatchValidationPermissive},
+		)
+
+		if rateLimitErr, ok := errors.AsType[*resend.RateLimitError](
+			err,
+		); ok &&
+			rateLimitErr.Message == "rate_limit_exceeded" {
+			if seconds, err := strconv.ParseInt(rateLimitErr.RetryAfter, 10, 64); err == nil {
+				return nil, backoff.RetryAfter(int(seconds))
+			}
+		} else {
+			return resp, fmt.Errorf("batch failed: %w", err)
+		}
+		return resp, nil
+	}
 }
 
 // SendResponse contains details about an individual email sent status.
