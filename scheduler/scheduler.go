@@ -188,7 +188,7 @@ func RunStartupTasks(ctx context.Context) error {
 
 	startupTasks.Go(func() error {
 		// Setup clear expired sessions job.
-		pingNewInactiveUsersJob, err := jobs.NewUserNewInactiveJob()
+		pingNewInactiveUsersJob, err := jobs.NewUserRetentionJob()
 		if err != nil {
 			return fmt.Errorf("ping new inactive users job: %w", err)
 		}

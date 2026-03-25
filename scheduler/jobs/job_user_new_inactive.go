@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	jobTypeUserNewInactive = "user_new_inactive"
+	jobTypeUserRetention = "user_retention"
 	// jobStateUserNewInactive = jobTypeUserNewInactive + "_state"
 )
 
@@ -29,17 +29,17 @@ const (
 // 	Checkpoint time.Time `json:"checkpoint"`
 // }
 
-type inactiveNewUsersJob struct {
+type userRetentionJob struct {
 	*ScheduledJob
 }
 
-// NewUserNewInactiveJob creates a job for pinging inactive new users.
-func NewUserNewInactiveJob() (*inactiveNewUsersJob, error) {
-	job := &inactiveNewUsersJob{
+// NewUserRetentionJob creates a job for pinging inactive new users.
+func NewUserRetentionJob() (*userRetentionJob, error) {
+	job := &userRetentionJob{
 		ScheduledJob: &ScheduledJob{
 			CreatedAt:      time.Now().UTC(),
 			JobTriggerType: jobTriggerTypePoll,
-			JobType:        jobTypeUserNewInactive,
+			JobType:        jobTypeUserRetention,
 			JobDescription: "Check for new users who are inactive.",
 		},
 	}
@@ -58,7 +58,27 @@ func NewUserNewInactiveJob() (*inactiveNewUsersJob, error) {
 	return job, nil
 }
 
-func (j *inactiveNewUsersJob) Execute(ctx context.Context) error {
+func (j *userRetentionJob) Execute(ctx context.Context) error {
+
+	// Find new inactive users and email them to check-in.
+	if err := emailNewInactiveUsers(ctx); err != nil {
+		slogctx.FromCtx(ctx).Warn("Email new inactive users failed.",
+			slog.Any("error", err),
+		)
+	}
+
+	return nil
+}
+
+func (j *userRetentionJob) JobDetail() *quartz.JobDetail {
+	return quartz.NewJobDetail(j, j.generateJobKey(jobTypeUserRetention, ""))
+}
+
+func (j *userRetentionJob) AsScheduledJob() *ScheduledJob {
+	return j.ScheduledJob
+}
+
+func emailNewInactiveUsers(ctx context.Context) error {
 	// newInactiveQuery := query.Bool(
 	// 	query.Filter(
 	// 		// Account is older than two days.
@@ -80,7 +100,7 @@ func (j *inactiveNewUsersJob) Execute(ctx context.Context) error {
 	// Get inactive users in backend.
 	users, err := auth0.GetNewInactiveUsers(ctx)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("find new inactive users: %w", err)
 	}
 
 	// Check for a ping email sent already, otherwise add to a map of users to ping.
@@ -100,7 +120,10 @@ func (j *inactiveNewUsersJob) Execute(ctx context.Context) error {
 			resend.To(user.GetEmail()),
 			resend.WithVariable("USER_NICKNAME", user.GetNickname()),
 		); err != nil {
-			return fmt.Errorf("email new inactive users: %w", err)
+			slogctx.FromCtx(ctx).Warn("Could not email new inactive user.",
+				slog.String("auth0_id", user.GetUserID()),
+			)
+			continue
 		}
 
 		// Update the user metadata.
@@ -121,13 +144,7 @@ func (j *inactiveNewUsersJob) Execute(ctx context.Context) error {
 			)
 		}
 	}
+
 	return nil
-}
 
-func (j *inactiveNewUsersJob) JobDetail() *quartz.JobDetail {
-	return quartz.NewJobDetail(j, j.generateJobKey(jobTypeUserNewInactive, ""))
-}
-
-func (j *inactiveNewUsersJob) AsScheduledJob() *ScheduledJob {
-	return j.ScheduledJob
 }
