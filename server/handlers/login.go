@@ -153,15 +153,23 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		if err := resend.SendTemplatedEmail(
-			req.Context(),
+		// Create and send a welcome email.
+		email, err := resend.NewTemplatedEmail(
 			"new-user",
 			resend.To(user.GetEmail()),
-			resend.WithTag("category", "welcome"),
+			resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
+			resend.WithTag(resend.TagUserID, user.GetID()),
 			resend.WithVariable("USER_NICKNAME", user.GetNickname()),
 			resend.WithVariable("USER_EMAIL", user.GetEmail()),
 			resend.WithVariable("USER_AVATAR_URL", user.GetAvatar()),
-		); err != nil {
+		)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Unable to create welcome email.",
+				slog.String("user_id", user.GetID()),
+				slog.Any("error", err),
+			)
+		}
+		if err := resend.SendEmail(req.Context(), email); err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Unable to send welcome email.",
 				slog.String("user_id", user.GetID()),
 				slog.Any("error", err),

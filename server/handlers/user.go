@@ -448,17 +448,27 @@ func HandleDeactivateAccount() http.HandlerFunc {
 				return
 			}
 
-			if err := resend.SendTemplatedEmail(
-				req.Context(),
+			// Creatre and send deactivation email confirmation.
+			email, err := resend.NewTemplatedEmail(
 				"user-deactivated",
 				resend.To(user.GetEmail()),
-			); err != nil {
+				resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
+				resend.WithTag(resend.TagUserID, user.GetID()),
+			)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to create deactivation email.",
+					slog.String("user_id", user.GetID()),
+					slog.Any("error", err),
+				)
+			}
+			if err := resend.SendEmail(req.Context(), email); err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to send deactivation email.",
 					slog.String("user_id", user.GetID()),
 					slog.Any("error", err),
 				)
 			}
 
+			// Pass to logout handler.
 			Logout(res, req)
 		default:
 			RenderPartial(&Modal{
