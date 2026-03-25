@@ -598,7 +598,6 @@ var (
 
 var allIndices = []string{
 	feedsIndexPrefix,
-	feedStatusIndexPrefix,
 	itemsSchemaPrefix,
 	favoriteItemsSchemaPrefix,
 	usersSchemaPrefix,
@@ -612,7 +611,8 @@ type Option[T any] func(T)
 
 // Options contains the options for performing schema migrations.
 type Options struct {
-	Indices []string `arg:"" default:"all" enum:"all,feeds,feed_status,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
+	Indices     []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
+	DataStreams []string `arg:"" default:"all" enum:"all,feed-status"`
 }
 
 // CreateIndices creates indices and appropriate read/write aliases.
@@ -640,10 +640,10 @@ func CreateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 	return nil
 }
 
-// UpdateSchemas performs all requested schema migrations.
+// UpdateIndicesSchema performs all requested schema migrations.
 //
 //nolint:maintidx // will not reduce size
-func UpdateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
+func UpdateIndicesSchema(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
 		opts.Indices = allIndices
@@ -678,15 +678,6 @@ func UpdateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 			if err := migrateIndexTemplates(ctx, api,
 				feedsComponentTemplate,
 				feedsIndexTemplate,
-			); err != nil {
-				return fmt.Errorf("could not migrate feeds: %w", err)
-			}
-		case feedStatusIndexPrefix:
-			// Create FeedStatus schemas.
-			if err := migrateIndexTemplates(ctx, api,
-				feedStatusComponentTemplate,
-				feedStatusIndexTemplate,
-				feedStatusILMPolicy,
 			); err != nil {
 				return fmt.Errorf("could not migrate feeds: %w", err)
 			}
@@ -727,7 +718,7 @@ func UpdateSchemas(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 type templatesMigration struct {
 	componentTemplates []*templates.ComponentTemplate
 	indexTemplate      *templates.IndexTemplate
-	ilmPolicy          *ilm.ILMPolicy
+	ilmPolicy          *ilm.Policy
 }
 
 type templateMigrationOption Option[*templatesMigration]
@@ -744,7 +735,7 @@ func withIndexTemplateMigration(template *templates.IndexTemplate) templateMigra
 	}
 }
 
-func withILMPolicyMigration(policy *ilm.ILMPolicy) templateMigrationOption {
+func withILMPolicyMigration(policy *ilm.Policy) templateMigrationOption {
 	return func(m *templatesMigration) {
 		m.ilmPolicy = policy
 	}
@@ -791,8 +782,8 @@ func migrateIndexTemplates(
 	return nil
 }
 
-// MigrateData performs all requested schema migrations.
-func MigrateData(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
+// MigrateIndices performs all requested schema migrations.
+func MigrateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
 		opts.Indices = allIndices

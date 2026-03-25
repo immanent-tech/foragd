@@ -34,7 +34,7 @@ func (r *UpdateSchemaCmd) Run(opts *UpdateSchemaCmd) error {
 		return fmt.Errorf("update schemas: %w", err)
 	}
 	// Perform migrations.
-	err = schema.UpdateSchemas(ctx, elasticClient.TypedClient, &opts.Options)
+	err = schema.UpdateIndicesSchema(ctx, elasticClient.TypedClient, &opts.Options)
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}
@@ -55,7 +55,7 @@ func (r *MigrateDataCmd) Run(opts *MigrateDataCmd) error {
 		return fmt.Errorf("update schemas: %w", err)
 	}
 	// Perform migrations.
-	err = schema.MigrateData(ctx, elasticClient.TypedClient, &opts.Options)
+	err = schema.MigrateIndices(ctx, elasticClient.TypedClient, &opts.Options)
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}
