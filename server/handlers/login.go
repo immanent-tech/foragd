@@ -98,6 +98,14 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if err := auth0.InitAuthenticator(req.Context()); err != nil {
+		HandleExternalError(&models.APIError{
+			InternalError: fmt.Errorf("init authenticator: %w", err),
+			StatusCode:    http.StatusInternalServerError,
+		}).ServeHTTP(res, req)
+		return
+	}
+
 	// Exchange an authorization code for a token.
 	token, err := auth0.AuthClient.Exchange(req.Context(), req.FormValue("code"))
 	if err != nil {
