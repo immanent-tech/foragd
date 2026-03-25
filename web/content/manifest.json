@@ -62,7 +62,7 @@
       "url": "/list/subscriptions",
       "icons": [
         {
-          "src": "/content/images/subscriptions-icon.webp",
+          "src": "/content/icons/subscriptions.webp",
           "sizes": "96x96"
         }
       ]
@@ -73,7 +73,7 @@
       "url": "/list/articles",
       "icons": [
         {
-          "src": "/content/images/articles-icon.webp",
+          "src": "/content/icons/articles.webp",
           "sizes": "96x96"
         }
       ]
@@ -84,7 +84,7 @@
       "url": "/list/favorites",
       "icons": [
         {
-          "src": "/content/images/favorites-icon.webp",
+          "src": "/content/icons/favorites.webp",
           "sizes": "96x96"
         }
       ]
