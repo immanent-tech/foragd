@@ -114,16 +114,27 @@ func CreateUser(ctx context.Context, profile *UserProfile) (*models.User, error)
 		return nil, fmt.Errorf("get user details: %w", err)
 	}
 
+	id := "user_" + strconv.FormatUint(xxh3.Hash([]byte(profile.GetID())), 10)
 	ts := time.Now().UTC()
+	lastLogin, err := time.Parse(time.RFC3339, auth0User.GetUserResponseContent.GetLastLogin().String)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to parse last login time from user profile data. Using unix epoch.",
+			slog.String("user_id", id),
+			slog.String("user_external_id", profile.GetID()),
+			slog.Any("error", err),
+		)
+		lastLogin = models.UnixEpoch
+	}
 	user := &models.User{
 		CreatedAt:      ts,
 		UpdatedAt:      &ts,
 		ExternalUserID: profile.GetID(),
 		Provider:       strings.Split(profile.GetID(), "|")[0],
-		Email:          new(auth0User.GetUserResponseContent.GetEmail()),
-		UserID:         "user_" + strconv.FormatUint(xxh3.Hash([]byte(profile.GetID())), 10),
+		Email:          auth0User.GetUserResponseContent.GetEmail(),
+		UserID:         id,
 		AvatarURL:      new(auth0User.GetUserResponseContent.GetPicture()),
-		LoginCount:     auth0User.GetUserResponseContent.LoginsCount,
+		LoginCount:     *auth0User.GetUserResponseContent.LoginsCount,
+		LastLogin:      lastLogin,
 		Metadata: models.UserMetadata{
 			EmailVerified: auth0User.GetUserResponseContent.GetEmailVerified(),
 		},
@@ -136,13 +147,6 @@ func CreateUser(ctx context.Context, profile *UserProfile) (*models.User, error)
 	}
 	if accepted, ok := auth0User.GetUserResponseContent.GetAppMetadata()["policies_accepted"].(bool); ok {
 		user.Metadata.PoliciesAccepted = accepted
-	}
-	if lastLogin, err := time.Parse(time.RFC3339, auth0User.GetUserResponseContent.GetLastLogin().String); err != nil {
-		slogctx.FromCtx(ctx).Warn("Could not parse last login.",
-			slog.Any("error", err),
-		)
-	} else {
-		user.LastLogin = &lastLogin
 	}
 
 	if err := elastic.CreateDoc(ctx, schema.UsersIndexRW, user.GetID(), user); err != nil {
@@ -228,8 +232,8 @@ func UpdateUserCustomisation(ctx context.Context, request *models.EditUserReques
 	updates := &UpdateUserData{
 		ID: user.GetExternalID(),
 		UpdateUserRequestContent: &management.UpdateUserRequestContent{
-			Nickname:    request.Nickname,
-			Email:       request.Email,
+			Nickname:    &request.Nickname,
+			Email:       &request.Email,
 			Picture:     request.AvatarURL,
 			VerifyEmail: &verifyEmail,
 		},
@@ -296,25 +300,24 @@ func SyncUser(ctx context.Context, localUser *models.User) {
 	// Overwrite local nickname with remote nickname if different
 	if nickname := auth0User.GetUserResponseContent.GetNickname(); localUser.GetNickname() != nickname {
 		updates["nickname"] = nickname
-		localUser.Nickname = &nickname
+		localUser.Nickname = nickname
 	}
 	// Overwrite local email with remote email if different
 	if email := auth0User.GetUserResponseContent.GetEmail(); localUser.GetEmail() != email {
 		updates["email"] = email
-		localUser.Email = &email
+		localUser.Email = email
 	}
-	// Update last login timestamp
+	// Update login count.
+	localUser.LoginCount = auth0User.GetUserResponseContent.GetLoginsCount()
+	// Update last login timestamp.
 	if lastLogin, err := time.Parse(time.RFC3339, auth0User.GetUserResponseContent.GetLastLogin().String); err != nil {
-		slogctx.FromCtx(ctx).Warn("Could not parse last login.",
+		slogctx.FromCtx(ctx).Warn("Unable to parse last login time from user profile data.",
+			slog.String("user_id", localUser.GetID()),
 			slog.Any("error", err),
 		)
 	} else {
-		localUser.LastLogin = &lastLogin
-		updates["last_login"] = lastLogin
+		localUser.LastLogin = lastLogin
 	}
-	// Update login count.
-	localUser.LoginCount = new(auth0User.GetUserResponseContent.GetLoginsCount())
-	updates["login_count"] = auth0User.GetUserResponseContent.GetLoginsCount()
 	// Update user metadata.
 	metadata := localUser.Metadata
 	if accepted, ok := auth0User.GetUserResponseContent.GetAppMetadata()["policies_accepted"].(bool); ok &&

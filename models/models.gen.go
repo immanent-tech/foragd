@@ -1255,7 +1255,7 @@ type User struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Email is the email address of the user.
-	Email *string `form:"email" json:"email,omitempty" validate:"omitempty,email"`
+	Email string `form:"email" json:"email" validate:"required,email"`
 
 	// ExternalUserID is the ID of the user on the external backend that was used to create the account.
 	ExternalUserID string `json:"external_user_id" validate:"required"`
@@ -1264,22 +1264,25 @@ type User struct {
 	ItemFavorites []ItemID `json:"item_favorites,omitempty" validate:"omitempty,dive,startswith=item_"`
 
 	// LastLogin is the timestamp of when the user last logged in to the app.
-	LastLogin *time.Time `json:"last_login,omitempty"`
+	LastLogin time.Time `json:"last_login"`
 
 	// LoginCount is the total number of logins of the user.
-	LoginCount *int `json:"login_count,omitempty"`
+	LoginCount int `json:"login_count"`
 
 	// Metadata contains metadata related to the user's account.
-	Metadata UserMetadata `json:"metadata" validate:"omitempty"`
+	Metadata UserMetadata `json:"metadata"`
 
 	// Nickname is a nickname for the user.
-	Nickname *string `form:"nickname" json:"nickname,omitempty"`
+	Nickname string `form:"nickname" json:"nickname" validate:"required"`
 
 	// Provider is the backend provider that was used to create the account.
 	Provider string `json:"provider" validate:"required"`
 
 	// Settings contains user-specific settings for the application.
 	Settings UserSettings `json:"settings"`
+
+	// Subscription contains details about the user's paid subscription.
+	Subscription *UserSubscription `json:"subscription,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -1294,10 +1297,10 @@ type UserCustomisation struct {
 	AvatarURL *string `form:"avatar_url" json:"avatar_url,omitempty" validate:"omitempty,url"`
 
 	// Email is the email address of the user.
-	Email *string `form:"email" json:"email,omitempty" validate:"omitempty,email"`
+	Email string `form:"email" json:"email" validate:"required,email"`
 
 	// Nickname is a nickname for the user.
-	Nickname *string `form:"nickname" json:"nickname,omitempty"`
+	Nickname string `form:"nickname" json:"nickname" validate:"required"`
 }
 
 // UserID is the unique ID of a user.
@@ -1323,38 +1326,14 @@ type UserMetadata struct {
 	// Blocked indicates whether the user is blocked from the app.
 	Blocked bool `json:"blocked"`
 
-	// CancelAt is a date in the future at which the subscription will automatically get canceled.
-	CancelAt *time.Time `json:"cancel_at,omitempty"`
-
 	// EmailVerified indicates whether the user has verfied their email address.
 	EmailVerified bool `json:"email_verified" validate:"required"`
-
-	// Plan is the name of the subscription plan that the user is paying for.
-	// Possible values will come from the product defined in Stripe.
-	Plan *string `json:"plan,omitempty" validate:"required"`
-
-	// PlanID is the unique identifier for the plan.
-	// Possible values will come from the product defined in Stripe.
-	PlanID *string `json:"plan_id,omitempty" validate:"required"`
-
-	// PlanStatus is the name current status of the subscription plan.
-	// Possible values come directly from the Stripe API:
-	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-status
-	PlanStatus *stripe.SubscriptionStatus `json:"plan_status,omitempty" validate:"required"`
 
 	// PoliciesAccepted indicates whether the user has accepted the app policies.
 	PoliciesAccepted bool `json:"policies_accepted" validate:"required"`
 
-	// StripeCustomerID is the stripe customer id of the user.
-	// https://docs.stripe.com/api/customers/object?api-version=2025-11-17.preview#customer_object-id
-	StripeCustomerID *string `json:"stripe_customer_id,omitempty" validate:"required"`
-
-	// StripeSubscriptionID is the stripe subscription id of the user's plan.
-	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-id
-	StripeSubscriptionID *string `json:"stripe_subscription_id,omitempty" validate:"required"`
-
-	// TrialEnd is the date when the trial for the subscription ended.
-	TrialEnd *time.Time `json:"trial_end,omitempty"`
+	// PromotionalEmail is a flag indicating whether the user is accepting promotional (non-account/administrative) emails.
+	PromotionalEmail bool `json:"promotional_email" validate:"required"`
 }
 
 // UserSession tracks a user session.
@@ -1391,6 +1370,36 @@ type UserSettings struct {
 
 	// UpdatesInterval is the interval on which to check for new updates.
 	UpdatesInterval time.Duration `form:"update_interval" json:"updates_interval" validate:"gte=0"`
+}
+
+// UserSubscription contains details about the user's paid subscription.
+type UserSubscription struct {
+	// CancelAt is a date in the future at which the subscription will automatically get canceled.
+	CancelAt *time.Time `json:"cancel_at,omitempty"`
+
+	// Plan is the name of the subscription plan that the user is paying for.
+	// Possible values will come from the product defined in Stripe.
+	Plan *string `json:"plan,omitempty" validate:"required"`
+
+	// PlanID is the unique identifier for the plan.
+	// Possible values will come from the product defined in Stripe.
+	PlanID *string `json:"plan_id,omitempty" validate:"required"`
+
+	// PlanStatus is the name current status of the subscription plan.
+	// Possible values come directly from the Stripe API:
+	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-status
+	PlanStatus *stripe.SubscriptionStatus `json:"plan_status,omitempty" validate:"required"`
+
+	// StripeCustomerID is the stripe customer id of the user.
+	// https://docs.stripe.com/api/customers/object?api-version=2025-11-17.preview#customer_object-id
+	StripeCustomerID *string `json:"stripe_customer_id,omitempty" validate:"required"`
+
+	// StripeSubscriptionID is the stripe subscription id of the user's plan.
+	// https://docs.stripe.com/api/subscriptions/object?api-version=2025-11-17.preview#subscription_object-id
+	StripeSubscriptionID *string `json:"stripe_subscription_id,omitempty" validate:"required"`
+
+	// TrialEnd is the date when the trial for the subscription ended.
+	TrialEnd *time.Time `json:"trial_end,omitempty"`
 }
 
 // View The state of objects to view.

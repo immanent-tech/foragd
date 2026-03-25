@@ -137,7 +137,7 @@ func CancelSubscription(user *models.User) error {
 	}
 
 	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(true)}
-	_, err = subscription.Update(*user.Metadata.StripeSubscriptionID, params)
+	_, err = subscription.Update(*user.Subscription.StripeSubscriptionID, params)
 	if err != nil {
 		return fmt.Errorf("update subscription cancel period: %w", err)
 	}
@@ -155,7 +155,7 @@ func StopPendingCancellation(user *models.User) error {
 	}
 
 	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(false)}
-	_, err = subscription.Update(*user.Metadata.StripeSubscriptionID, params)
+	_, err = subscription.Update(*user.Subscription.StripeSubscriptionID, params)
 	if err != nil {
 		return fmt.Errorf("stop pending subscription cancellation: %w", err)
 	}
@@ -291,13 +291,13 @@ func handleSubscriptionDeleted(ctx context.Context, subscription stripe.Subscrip
 	}
 
 	// Update subscription plan status.
-	metadata := user.Metadata
+	metadata := user.Subscription
 	metadata.PlanStatus = new(subscription.Status)
 	metadata.CancelAt = new(time.Unix(subscription.CancelAt, 0))
 
 	// Update the user object with the new metadata.
 	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
-		"metadata": metadata,
+		"subscription": metadata,
 	})
 	if err != nil {
 		return fmt.Errorf("subscription deleted: %w", err)
@@ -325,7 +325,7 @@ func handleSubscriptionUpdated(ctx context.Context, subscription stripe.Subscrip
 	}
 
 	// Set base metadata
-	metadata := models.UserMetadata{
+	metadata := models.UserSubscription{
 		Plan:                 &prod.Name,
 		PlanStatus:           &subscription.Status,
 		PlanID:               &prod.ID,
@@ -335,7 +335,7 @@ func handleSubscriptionUpdated(ctx context.Context, subscription stripe.Subscrip
 
 	// Update the user object with the new metadata.
 	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
-		"metadata": metadata,
+		"subscription": metadata,
 	})
 	if err != nil {
 		return fmt.Errorf("update user: %w", err)
@@ -363,7 +363,7 @@ func handleSubscriptionCreated(ctx context.Context, subscription stripe.Subscrip
 	}
 
 	// Set base metadata
-	metadata := models.UserMetadata{
+	metadata := models.UserSubscription{
 		Plan:                 &prod.Name,
 		PlanStatus:           &subscription.Status,
 		PlanID:               &prod.ID,
@@ -374,7 +374,7 @@ func handleSubscriptionCreated(ctx context.Context, subscription stripe.Subscrip
 
 	// Update the user object with the new metadata.
 	err = models.UpdateUser(ctx, user.GetID(), map[string]any{
-		"metadata": metadata,
+		"subscription": metadata,
 	})
 	if err != nil {
 		return fmt.Errorf("update user: %w", err)

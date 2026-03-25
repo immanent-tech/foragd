@@ -53,7 +53,7 @@ func GetUserByExternalID(ctx context.Context, externalID string) (*User, error) 
 	}
 }
 
-// GetUserByExternalID will search for and return a user that matches the given external ID, if exists.
+// GetUserBySubscriptionEmail will retrieve a user from their emails.
 func GetUserBySubscriptionEmail(ctx context.Context, emails ...string) (*User, error) {
 	// Get the user.
 	users, _, err := elastic.Search[*User](
@@ -125,18 +125,12 @@ func (u *User) GetAvatar() string {
 
 // GetNickname retrieves the nickname of the user.
 func (u *User) GetNickname() string {
-	if u.Nickname != nil {
-		return *u.Nickname
-	}
-	return ""
+	return u.Nickname
 }
 
 // GetEmail retrieves the email of the user.
 func (u *User) GetEmail() string {
-	if u.Email != nil {
-		return *u.Email
-	}
-	return ""
+	return u.Email
 }
 
 // GetMaxHistory returns a timestamp in the past from which the user can view items. If there is an issue retrieving and
@@ -161,9 +155,9 @@ func (u *User) GetUpdatesFrequency() time.Duration {
 // OnTrial returns a boolean indicating whether the user is currently in a trial period and if so, a timestamp
 // indicating when the trial will end.
 func (u *User) OnTrial() (bool, time.Time) {
-	if u.Metadata.PlanStatus != nil {
-		if *u.Metadata.PlanStatus == stripe.SubscriptionStatusTrialing {
-			return true, *u.Metadata.TrialEnd
+	if u.Subscription.PlanStatus != nil {
+		if *u.Subscription.PlanStatus == stripe.SubscriptionStatusTrialing {
+			return true, *u.Subscription.TrialEnd
 		}
 	}
 	return false, time.Time{}
@@ -172,13 +166,13 @@ func (u *User) OnTrial() (bool, time.Time) {
 // Cancelled returns a boolean indicating whether the user has cancelled their subscription plan and if so, a timestamp
 // indicating when the cancellation will apply.
 func (u *User) Cancelled() (bool, time.Time) {
-	if u.Metadata.PlanStatus != nil {
-		if *u.Metadata.PlanStatus == stripe.SubscriptionStatusCanceled {
-			if u.Metadata.CancelAt == nil {
+	if u.Subscription.PlanStatus != nil {
+		if *u.Subscription.PlanStatus == stripe.SubscriptionStatusCanceled {
+			if u.Subscription.CancelAt == nil {
 				return true, time.Now().UTC()
 			}
-			if u.Metadata.CancelAt.After(time.Now().UTC()) {
-				return true, *u.Metadata.CancelAt
+			if u.Subscription.CancelAt.After(time.Now().UTC()) {
+				return true, *u.Subscription.CancelAt
 			}
 		}
 	}
@@ -201,8 +195,8 @@ func (u *User) Active() bool {
 
 // GetSubscriptionPlan returns the name of the subscription plan of the user.
 func (u *User) GetSubscriptionPlan() string {
-	if u.Metadata.Plan != nil {
-		return *u.Metadata.Plan
+	if u.Subscription.Plan != nil {
+		return *u.Subscription.Plan
 	}
 	return ""
 }
@@ -261,10 +255,8 @@ func (s *EditUserRequest) Valid() error {
 
 // Sanitise will sanitise the user input for a SubscriptionCustomisation.
 func (s *EditUserRequest) Sanitise() error {
-	if s.Nickname != nil {
-		cleanNickname := validation.SanitizeString(*s.Nickname)
-		s.Nickname = &cleanNickname
-	}
+	s.Nickname = validation.SanitizeString(s.Nickname)
+	s.Email = validation.SanitizeString(s.Email)
 	return nil
 }
 

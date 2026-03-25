@@ -209,6 +209,9 @@ components:
       description: >
         contains account fields that a user can customize.
       type: object
+      required:
+        - nickname
+        - email
       properties:
         nickname:
           description: >
@@ -216,13 +219,14 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'nickname'
+            validate: 'required'
         email:
           description: >
             is the email address of the user.
           type: string
           x-oapi-codegen-extra-tags:
             form: 'email'
-            validate: 'omitempty,email'
+            validate: 'required,email'
         avatar_url:
           description: >
             is a link to an image file to user as an avatar for the user.
@@ -312,6 +316,38 @@ components:
           x-omitzero: false
           x-omitempty: false
           x-go-type-skip-optional-pointer: true
+        policies_accepted:
+          description: >
+            indicates whether the user has accepted the app policies.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        promotional_email:
+          description: >
+            is a flag indicating whether the user is accepting promotional (non-account/administrative) emails.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        email_verified:
+          description: >
+            indicates whether the user has verfied their email address.
+          type: boolean
+          x-omitzero: false
+          x-omitempty: false
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+    UserSubscription:
+      description: >
+        contains details about the user's paid subscription.
+      type: object
+      properties:
         stripe_customer_id:
           description: >
             is the stripe customer id of the user.
@@ -367,26 +403,6 @@ components:
           description: >
             is the date when the trial for the subscription ended.
           x-go-type: time.Time
-        policies_accepted:
-          description: >
-            indicates whether the user has accepted the app policies.
-          type: boolean
-          x-omitzero: false
-          x-omitempty: false
-          x-go-type-skip-optional-pointer: true
-          x-oapi-codegen-extra-tags:
-            validate: 'required'
-        email_verified:
-          description: >
-            indicates whether the user has verfied their email address.
-          type: boolean
-          x-omitzero: false
-          x-omitempty: false
-          x-go-type-skip-optional-pointer: true
-          x-oapi-codegen-extra-tags:
-            validate: 'required'
-      x-oapi-codegen-extra-tags:
-        validate: 'omitempty'
     User:
       description: is a user of the application.
       allOf:
@@ -397,6 +413,8 @@ components:
             - user_id
             - external_user_id
             - provider
+            - login_count
+            - last_login
             - settings
             - metadata
           properties:
@@ -404,14 +422,6 @@ components:
               $ref: '#/components/schemas/CreatedAt'
             updated_at:
               $ref: '#/components/schemas/UpdatedAt'
-            last_login:
-              description: >
-                is the timestamp of when the user last logged in to the app.
-              x-go-type: 'time.Time'
-            login_count:
-              description: >
-                is the total number of logins of the user.
-              type: integer
             user_id:
               $ref: '#/components/schemas/UserID'
             external_user_id:
@@ -427,10 +437,20 @@ components:
               type: string
               x-oapi-codegen-extra-tags:
                 validate: 'required'
+            last_login:
+              description: >
+                is the timestamp of when the user last logged in to the app.
+              x-go-type: 'time.Time'
+            login_count:
+              description: >
+                is the total number of logins of the user.
+              type: integer
             settings:
               $ref: '#/components/schemas/UserSettings'
             metadata:
               $ref: '#/components/schemas/UserMetadata'
+            subscription:
+              $ref: '#/components/schemas/UserSubscription'
             item_favorites:
               description: >
                 is the IDs of items (articles) the user has favorited.
