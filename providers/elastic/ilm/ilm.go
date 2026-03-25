@@ -31,7 +31,7 @@ func WithRolloverMaxSize(size string) Option[*types.IlmActions] {
 			action.Rollover = types.NewRolloverAction()
 		}
 
-		action.Rollover.MaxSize = types.ByteSize(size)
+		action.Rollover.MaxPrimaryShardSize = types.ByteSize(size)
 	}
 }
 
@@ -122,16 +122,16 @@ func WithPhase(name string, options ...Option[*types.Phase]) Option[*types.IlmPo
 	}
 }
 
-// ILMPolicy represents an index lifecycle management policy.
-type ILMPolicy struct {
+// Policy represents an index lifecycle management policy.
+type Policy struct {
 	*putlifecycle.Request
 
 	Name string
 }
 
 // NewILMPolicy creates a new ILM policy with the given options and encapsulates it in an appropriate request object.
-func NewILMPolicy(name string, options ...Option[*types.IlmPolicy]) *ILMPolicy {
-	policy := &ILMPolicy{
+func NewILMPolicy(name string, options ...Option[*types.IlmPolicy]) *Policy {
+	policy := &Policy{
 		Name: name,
 		Request: &putlifecycle.Request{
 			Policy: types.NewIlmPolicy(),
@@ -144,7 +144,7 @@ func NewILMPolicy(name string, options ...Option[*types.IlmPolicy]) *ILMPolicy {
 }
 
 // Put will send a request to create the index template in the cluster.
-func (p *ILMPolicy) Put(ctx context.Context, api *elasticsearch.TypedClient) error {
+func (p *Policy) Put(ctx context.Context, api *elasticsearch.TypedClient) error {
 	if _, err := api.Ilm.PutLifecycle(p.Name).Request(p.Request).Do(ctx); err != nil {
 		return fmt.Errorf("unable to put ILM policy: %w", err)
 	}
