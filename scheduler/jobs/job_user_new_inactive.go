@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"maps"
 	"slices"
 	"time"
 
@@ -21,14 +20,7 @@ import (
 
 const (
 	jobTypeUserRetention = "user_retention"
-	// jobStateUserNewInactive = jobTypeUserNewInactive + "_state"
 )
-
-// // UserNewInactiveState represents the state required by this job type.
-// type UserNewInactiveState struct {
-// 	// Checkpoint is the timestamp when the job last checked for new and inactive users.
-// 	Checkpoint time.Time `json:"checkpoint"`
-// }
 
 type userRetentionJob struct {
 	*ScheduledJob
@@ -134,18 +126,32 @@ func emailNewInactiveUsers(ctx context.Context) error {
 	}
 
 	// Send out the emails.
-	resp, err := resend.BatchSendEmails(ctx, emails...)
+	batchResp, err := resend.BatchSendEmails(ctx, emails...)
 	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Errors occurred sending batch emails.",
-			slog.Any("error", err),
-		)
+		return fmt.Errorf("batch send emails: %w", err)
 	}
 
-	failedEmails := resp.GetFailed()
-
-	// Update user metadata for successful requests.
-	for u := range slices.Values(users) {
-		if user := u.UserResponseSchema; !slices.Contains(slices.Collect(maps.Keys(failedEmails)), user.GetEmail()) {
+	// Handle individual responses.
+	for resp := range slices.Values(batchResp) {
+		// Correlate the to address from the sent email with a user's address.
+		idx := slices.IndexFunc(users, func(e *auth0.UserData) bool {
+			return slices.Contains(resp.To, e.UserResponseSchema.GetEmail())
+		})
+		if idx == -1 {
+			// This should never happen but, well, just in case...
+			slogctx.FromCtx(ctx).Warn("Unexpected batch response found.")
+			continue
+		}
+		switch {
+		case resp.Error != nil:
+			// Failed to ping user.
+			slogctx.FromCtx(ctx).Error("Unable to ping new inactive user.",
+				slog.String("user_id", users[idx].UserResponseSchema.GetUserID()),
+				slog.Any("error", resp.Error),
+			)
+		default:
+			// Extract the user data.
+			user := users[idx].UserResponseSchema
 			// Update the user metadata.
 			if err := auth0.UpdateUserMetadata(
 				ctx,
@@ -163,18 +169,6 @@ func emailNewInactiveUsers(ctx context.Context) error {
 					slog.Any("error", err),
 				)
 			}
-		}
-	}
-
-	// Log failed requests.
-	for email, err := range failedEmails {
-		if idx := slices.IndexFunc(users, func(e *auth0.UserData) bool {
-			return e.UserResponseSchema.GetEmail() == email
-		}); idx != -1 {
-			slogctx.FromCtx(ctx).Error("Failed to ping new inactive user.",
-				slog.String("user_id", users[idx].UserResponseSchema.GetUserID()),
-				slog.Any("error", err),
-			)
 		}
 	}
 

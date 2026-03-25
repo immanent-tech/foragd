@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
@@ -152,53 +153,78 @@ func SendEmail(ctx context.Context, email *Email) error {
 }
 
 // BatchSendEmails sends the given emails in a batch request.
-func BatchSendEmails(ctx context.Context, emails ...*Email) (*BatchEmailResponse, error) {
+func BatchSendEmails(ctx context.Context, emails ...*Email) (BatchSendResponse, error) {
 	client, err := loadClient()
 	if err != nil {
 		return nil, fmt.Errorf("load client: %w", err)
 	}
 
-	// Create email batch.
-	batch := make([]*resend.SendEmailRequest, 0, len(emails))
-	for email := range slices.Values(emails) {
-		req, err := email.createRequest()
+	const maxBatchSize = 100
+	resp := make(BatchSendResponse, 0, len(emails))
+
+	// Send emails in batches up to maxBatchSize.
+	for idx := 0; idx < len(emails); idx += maxBatchSize {
+		// Generate batch.
+		j := min(idx+maxBatchSize, len(emails))
+		batch := make([]*resend.SendEmailRequest, 0)
+		for email := range slices.Values(emails[idx:j]) {
+			req, err := email.createRequest()
+			if err != nil {
+				resp = append(resp, SendResponse{
+					To:    email.To,
+					Error: err,
+				})
+				continue
+			}
+			batch = append(batch, req)
+		}
+		// Send batch.
+		batchResp, err := client.Batch.SendWithOptions(
+			ctx,
+			batch,
+			&resend.BatchSendEmailOptions{BatchValidation: resend.BatchValidationPermissive},
+		)
 		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not create email request",
-				slog.Any("error", err),
-			)
+			// On batch send error, record all emails in batch as failed with same error.
+			for email := range slices.Values(batch) {
+				resp = append(resp, SendResponse{
+					To:    email.To,
+					Error: err,
+				})
+			}
+			continue
 		}
 
-		batch = append(batch, req)
-	}
+		// Record any failures results.
+		for idx, email := range batch {
+			if slices.ContainsFunc(batchResp.Errors, func(e resend.BatchError) bool {
+				return e.Index == idx
+			}) {
+				resp = append(resp, SendResponse{
+					To:    email.To,
+					Error: errors.New(batchResp.Errors[idx].Message),
+				})
+			} else {
+				resp = append(resp, SendResponse{To: email.To})
+			}
+		}
 
-	// Send batch.
-	resp, err := client.Batch.SendWithContext(ctx, batch)
-	if err != nil {
-		return nil, fmt.Errorf("batch send emails: %w", err)
+		// Wait a short amount of time to avoid hitting API rate limit.
+		time.Sleep(20 * time.Millisecond)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Batch sent emails",
-		slog.Int("count", len(resp.Data)),
+		slog.Int("count", len(resp)),
 	)
 
-	return &BatchEmailResponse{batch: batch, BatchEmailResponse: resp}, nil
+	return resp, nil
 }
 
-// BatchEmailResponse contains data related to a batch email request.
-type BatchEmailResponse struct {
-	*resend.BatchEmailResponse
-
-	batch []*resend.SendEmailRequest
+// SendResponse contains details about an individual email sent status.
+type SendResponse struct {
+	To    []string
+	Error error
 }
 
-// GetFailed returns a map of email addresses that were not sent an email in the batch and reason.
-func (r *BatchEmailResponse) GetFailed() map[string]error {
-	errs := make(map[string]error)
-	for batchErr := range slices.Values(r.Errors) {
-		email := r.batch[batchErr.Index]
-		for to := range slices.Values(email.To) {
-			errs[to] = errors.New(batchErr.Message)
-		}
-	}
-	return errs
-}
+// BatchSendResponse contains data related to a batch email request.
+type BatchSendResponse []SendResponse
