@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"maps"
 	"slices"
 	"time"
 
@@ -103,7 +104,8 @@ func emailNewInactiveUsers(ctx context.Context) error {
 		return fmt.Errorf("find new inactive users: %w", err)
 	}
 
-	// Check for a ping email sent already, otherwise add to a map of users to ping.
+	// Create emails to send to users who are inactive and haven't already been emailed.
+	emails := make([]*resend.Email, 0, len(users))
 	for u := range slices.Values(users) {
 		user := u.UserResponseSchema
 		if user.UserMetadata != nil {
@@ -114,37 +116,67 @@ func emailNewInactiveUsers(ctx context.Context) error {
 		}
 
 		// Send email to new inactive users.
-		if err := resend.SendTemplatedEmail(
-			ctx,
+		email, err := resend.NewTemplatedEmail(
 			"new-inactive-user",
 			resend.To(user.GetEmail()),
+			resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
 			resend.WithVariable("USER_NICKNAME", user.GetNickname()),
-		); err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not email new inactive user.",
+		)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not create email.",
 				slog.String("auth0_id", user.GetUserID()),
+				slog.Any("error", err),
 			)
 			continue
 		}
 
-		// Update the user metadata.
-		if err := auth0.UpdateUserMetadata(
-			ctx,
-			user.GetUserID(),
-			"new_inactive_email_sent",
-			time.Now().UTC(),
-		); err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not update inactive user.",
-				slog.String("user_id", user.GetUserID()),
-				slog.Any("error", err),
-			)
-		} else {
-			slogctx.FromCtx(ctx).Info("Pinged new inactive user.",
-				slog.String("user_id", user.GetUserID()),
+		emails = append(emails, email)
+	}
+
+	// Send out the emails.
+	resp, err := resend.BatchSendEmails(ctx, emails...)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Errors occurred sending batch emails.",
+			slog.Any("error", err),
+		)
+	}
+
+	failedEmails := resp.GetFailed()
+
+	// Update user metadata for successful requests.
+	for u := range slices.Values(users) {
+		if user := u.UserResponseSchema; !slices.Contains(slices.Collect(maps.Keys(failedEmails)), user.GetEmail()) {
+			// Update the user metadata.
+			if err := auth0.UpdateUserMetadata(
+				ctx,
+				user.GetUserID(),
+				"new_inactive_email_sent",
+				time.Now().UTC(),
+			); err != nil {
+				slogctx.FromCtx(ctx).Warn("Could not update inactive user.",
+					slog.String("user_id", user.GetUserID()),
+					slog.Any("error", err),
+				)
+			} else {
+				slogctx.FromCtx(ctx).Info("Pinged new inactive user.",
+					slog.String("user_id", user.GetUserID()),
+					slog.Any("error", err),
+				)
+			}
+		}
+	}
+
+	// Log failed requests.
+	for email, err := range failedEmails {
+		if idx := slices.IndexFunc(users, func(e *auth0.UserData) bool {
+			return e.UserResponseSchema.GetEmail() == email
+		}); idx != -1 {
+			slogctx.FromCtx(ctx).Error("Failed to ping new inactive user.",
+				slog.String("user_id", users[idx].UserResponseSchema.GetUserID()),
 				slog.Any("error", err),
 			)
 		}
 	}
 
 	return nil
-
 }
