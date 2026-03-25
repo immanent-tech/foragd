@@ -30,6 +30,10 @@ var templates = map[string][]resend.TemplateOption{
 		resend.WithTemplateVariable("USER_EMAIL", "string", "nickname@foragd.app"),
 		resend.WithTemplateVariable("USER_AVATAR_URL", "string", "https://foragd.app/content/images/placeholder.webp"),
 	},
+	"user-deactivated": []resend.TemplateOption{
+		resend.WithTemplateName("User Deactivated"),
+		resend.WithTemplateSubject("Your Foragd account has been deactivated"),
+	},
 }
 
 // Build creates the email templates
