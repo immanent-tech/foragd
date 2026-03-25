@@ -86,15 +86,14 @@ templ DeactivateAccountModal() {
 		<div class="mt-5 sm:mt-4 sm:flex sm:justify-end gap-x-2">
 			<button
 				type="button"
-				_={ "on click remove #el-dialog-" + id + " then halt the event's bubbling" }
+				_={ "on htmx:afterRequest(successful) close() on #" + id }
 				class="btn btn-ghost"
 			>Cancel</button>
-			<button
-				type="button"
-				hx-post={ models.RouteUserDeactivateAccount }
-				hx-swap="none"
+			<a
+				role="button"
+				href="/user/deactivate?confirmed=yes"
 				class="btn btn-error"
-			>Yes</button>
+			>Yes</a>
 		</div>
 	}
 }

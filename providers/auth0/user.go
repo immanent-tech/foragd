@@ -81,8 +81,9 @@ type UserData struct {
 }
 
 type UpdateUserData struct {
-	ID string
 	*management.UpdateUserRequestContent
+
+	ID string
 }
 
 // DeleteUser will delete the given user from the Auth0 backend.
@@ -92,12 +93,13 @@ func DeleteUser(ctx context.Context, id string) error {
 		return fmt.Errorf("unable to connect to auth0 management API: %w", err)
 	}
 
-	// Delete the user's active sessions.
-	if err := mgmt.Users.Sessions.Delete(ctx, id); err != nil {
-		slogctx.FromCtx(ctx).Warn("Could not remove active sessions for user while deleting account.",
-			slog.Any("error", err),
-		)
-	}
+	// ! Only supported with Auth0 enterprise subscription.
+	// // Delete the user's active sessions.
+	// if err := mgmt.Users.Sessions.Delete(ctx, id); err != nil {
+	// 	slogctx.FromCtx(ctx).Warn("Could not remove active sessions for user while deleting account.",
+	// 		slog.Any("error", err),
+	// 	)
+	// }
 
 	if err := mgmt.Users.Delete(ctx, id); err != nil {
 		return fmt.Errorf("unable to delete user account on backend: %w", err)

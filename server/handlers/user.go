@@ -23,7 +23,11 @@ import (
 	"github.com/immanent-tech/go-syndication/opml"
 
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/auth0"
+	"github.com/immanent-tech/foragd/providers/elastic"
+	"github.com/immanent-tech/foragd/providers/elastic/query"
+	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/forms"
 	"github.com/immanent-tech/foragd/server/session"
@@ -375,12 +379,8 @@ func HandleSetTheme() http.HandlerFunc {
 // period, after which a scheduled job will delete their account.
 func HandleDeactivateAccount() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		switch req.Method {
-		case http.MethodGet:
-			RenderPartial(&Modal{
-				template: templates.DeactivateAccountModal(),
-			}).ServeHTTP(res, req)
-		case http.MethodPost:
+		switch req.FormValue("confirmed") {
+		case "yes":
 			// Get user account details.
 			user := models.UserFromCtx(req.Context())
 			if user == nil {
@@ -394,24 +394,76 @@ func HandleDeactivateAccount() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
-			// Delete Stripe subscription.
-			if err := stripe.CancelSubscription(user); err != nil {
+			// ! Uncomment after beta.
+			// // Delete Stripe subscription.
+			// if err := stripe.CancelSubscription(user); err != nil {
+			// 	HandleInternalError(&models.APIError{
+			// 		InternalError: fmt.Errorf("cancel subscription: %w", err),
+			// 		StatusCode:    http.StatusInternalServerError,
+			// 		UserMessage: models.NewErrorMessage(
+			// 			"Unable to deactivate account",
+			// 			"This might be a temporary error, please try again.",
+			// 		),
+			// 	}).ServeHTTP(res, req)
+			// 	return
+			// }
+			// Delete the user.
+			if err := elastic.DeleteDoc(req.Context(), schema.UsersIndexRW, user.GetID()); err != nil {
 				HandleInternalError(&models.APIError{
-					InternalError: fmt.Errorf("cancel subscription: %w", err),
+					InternalError: fmt.Errorf("delete user: %w", err),
 					StatusCode:    http.StatusInternalServerError,
 					UserMessage: models.NewErrorMessage(
 						"Unable to deactivate account",
-						"This might be a temporary error, please try again.",
+						"If this issue persists, please email support@foragd.app.",
 					),
 				}).ServeHTTP(res, req)
 				return
 			}
-			// Show notification.
-			RenderPartial(&Notification{
-				msg: models.NewInfoMessage("Account cancelled", ""),
+			// Delete the user's subscriptions.
+			if err := elastic.DeleteDocs(
+				req.Context(),
+				schema.SubscriptionsIndexRW,
+				query.Term("user_id", user.GetID()),
+			); err != nil {
+				HandleInternalError(&models.APIError{
+					InternalError: fmt.Errorf("delete user subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to deactivate account",
+						"If this issue persists, please email support@foragd.app.",
+					),
+				}).ServeHTTP(res, req)
+				return
+			}
+			// Delete from Auth0 backend
+			if err := auth0.DeleteUser(req.Context(), user.GetExternalID()); err != nil {
+				HandleInternalError(&models.APIError{
+					InternalError: fmt.Errorf("delete auth0 user: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Unable to deactivate account",
+						"If this issue persists, please email support@foragd.app.",
+					),
+				}).ServeHTTP(res, req)
+				return
+			}
+
+			if err := resend.SendTemplatedEmail(
+				req.Context(),
+				"user-deactivated",
+				resend.To(user.GetEmail()),
+			); err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to send deactivation email.",
+					slog.String("user_id", user.GetID()),
+					slog.Any("error", err),
+				)
+			}
+
+			Logout(res, req)
+		default:
+			RenderPartial(&Modal{
+				template: templates.DeactivateAccountModal(),
 			}).ServeHTTP(res, req)
-			// Refresh the page
-			res.Header().Set(htmx.HeaderRefresh, "true")
 		}
 	}).ServeHTTP
 }

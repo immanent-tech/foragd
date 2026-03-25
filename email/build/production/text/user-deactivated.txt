@@ -1,0 +1,13 @@
+Account deactivated
+
+We've deactivated your Foragd account. All of your data has been deleted.
+
+If you have an active subscription, it will be terminated at the end of the current billing period, and no more charges
+will be applied.
+
+We're sorry to see you go. If you ever want to start using Foragd again, you are welcome to create a new account. Got
+any questions or issues, just reply to this email.
+
+Thanks,
+
+Foragd Team
