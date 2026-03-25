@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.86.0](https://github.com/immanent-tech/foragd/compare/v0.85.0...v0.86.0) (2026-03-25)
+
+
+### Features
+
+* **email:** :sparkles: add badge component ([e2ee0b5](https://github.com/immanent-tech/foragd/commit/e2ee0b5f72030bf5398da24ce0c673b5d6ad4644))
+* **email:** :sparkles: add email template management on resend backend with mage ([aa372fc](https://github.com/immanent-tech/foragd/commit/aa372fc0c4015aa8aaba49dc6f236a6843cee14f))
+* **email:** :sparkles: add header component for highlighting a feature ([4c667e2](https://github.com/immanent-tech/foragd/commit/4c667e2a8d82a7605a244cbc1ef4ec558eda23be))
+* **email:** :sparkles: add new inactive user email template ([b357f29](https://github.com/immanent-tech/foragd/commit/b357f29ecec81f9e13d264dc33d1d72bf3cc58a8))
+* **email:** :sparkles: more email improvements ([5f7752c](https://github.com/immanent-tech/foragd/commit/5f7752c68690f6d8702c61d81a11c00a441af990))
+* **resend:** :sparkles: add ability to update email templates ([47f87fe](https://github.com/immanent-tech/foragd/commit/47f87fe7532915d25d12080abb1117b17bc2e629))
+* **templates:** :sparkles: add action buttons at bottom of subscription/article lists ([bc5798e](https://github.com/immanent-tech/foragd/commit/bc5798ed5fec463abecdcdb9d8495a5b476b6a33))
+
+
+### Bug Fixes
+
+* :bug: fix user deactivation ([3092a04](https://github.com/immanent-tech/foragd/commit/3092a04153104f013b621798de8e60dac1ea0abe))
+* **handlers:** :bug: fix login callback logic ([b0edd3a](https://github.com/immanent-tech/foragd/commit/b0edd3a9fa90c754479b53ff2baf842a89ffa858))
+* **handlers:** :bug: make sure variables are set correctly when sending new user email ([a02d631](https://github.com/immanent-tech/foragd/commit/a02d6310d599e458a98fa5650d2cd867f33b8944))
+* **resend:** :bug: fix validation of to/cc/bcc when sending an email ([494ace8](https://github.com/immanent-tech/foragd/commit/494ace847b9cabc44d702d1f7f91625a0ffa3ca2))
+* **templates:** :bug: pass parameter for controlling account deactivation ([ad516e0](https://github.com/immanent-tech/foragd/commit/ad516e00fa19d3f7157f93df05f5dec4afa329ea))
+* **templates/subscriptions:** :recycle: when creating a search subscription, default to sorting by newest first ([0df58f1](https://github.com/immanent-tech/foragd/commit/0df58f129e6efd481328f40acc5649c346b2a053))
+* update compiled templ template ([e66683b](https://github.com/immanent-tech/foragd/commit/e66683b4aaa835a8e431355a0fa2b11b812675e8))
+
 ## [0.85.0](https://github.com/immanent-tech/foragd/compare/v0.84.0...v0.85.0) (2026-03-23)
 
 
