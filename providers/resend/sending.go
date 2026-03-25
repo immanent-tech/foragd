@@ -82,7 +82,7 @@ func SendTemplatedEmail(ctx context.Context, templateID string, options ...Email
 
 	// Check validity.
 	switch {
-	case len(template.To) == 0 || len(template.Bcc) == 0 || len(template.Cc) == 0:
+	case len(template.To) == 0 && len(template.Bcc) == 0 && len(template.Cc) == 0:
 		// Must have a To, Cc, or Bcc.
 		return fmt.Errorf("%w: no address(es) specified", ErrInvalidEmail)
 	case template.template.Id == "":
