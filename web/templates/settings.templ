@@ -304,6 +304,7 @@ templ AccountSettings(user *models.User) {
 						<form
 							hx-get={ models.RouteUserDeactivateAccount }
 							hx-target={ partials.ModalContainerID.Target() }
+							hx-vals={ templ.JSONString(map[string]string{"confirmed": "no"}) }
 							class="flex items-start md:col-span-2"
 						>
 							<button type="submit" class="btn btn-error">
