@@ -155,7 +155,7 @@ func (u *User) GetUpdatesFrequency() time.Duration {
 // OnTrial returns a boolean indicating whether the user is currently in a trial period and if so, a timestamp
 // indicating when the trial will end.
 func (u *User) OnTrial() (bool, time.Time) {
-	if u.Subscription.PlanStatus != nil {
+	if u.Subscription != nil {
 		if *u.Subscription.PlanStatus == stripe.SubscriptionStatusTrialing {
 			return true, *u.Subscription.TrialEnd
 		}
@@ -166,7 +166,7 @@ func (u *User) OnTrial() (bool, time.Time) {
 // Cancelled returns a boolean indicating whether the user has cancelled their subscription plan and if so, a timestamp
 // indicating when the cancellation will apply.
 func (u *User) Cancelled() (bool, time.Time) {
-	if u.Subscription.PlanStatus != nil {
+	if u.Subscription != nil {
 		if *u.Subscription.PlanStatus == stripe.SubscriptionStatusCanceled {
 			if u.Subscription.CancelAt == nil {
 				return true, time.Now().UTC()
