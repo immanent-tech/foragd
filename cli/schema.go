@@ -21,7 +21,7 @@ type SchemaCmd struct {
 }
 
 type UpdateSchemaCmd struct {
-	schema.Options
+	schema.IndicesOptions
 }
 
 func (r *UpdateSchemaCmd) Run(opts *UpdateSchemaCmd) error {
@@ -34,7 +34,7 @@ func (r *UpdateSchemaCmd) Run(opts *UpdateSchemaCmd) error {
 		return fmt.Errorf("update schemas: %w", err)
 	}
 	// Perform migrations.
-	err = schema.UpdateIndicesSchema(ctx, elasticClient.TypedClient, &opts.Options)
+	err = schema.UpdateIndicesSchema(ctx, elasticClient.TypedClient, &opts.IndicesOptions)
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}
@@ -42,7 +42,7 @@ func (r *UpdateSchemaCmd) Run(opts *UpdateSchemaCmd) error {
 }
 
 type MigrateDataCmd struct {
-	schema.Options
+	schema.IndicesOptions
 }
 
 func (r *MigrateDataCmd) Run(opts *MigrateDataCmd) error {
@@ -55,7 +55,7 @@ func (r *MigrateDataCmd) Run(opts *MigrateDataCmd) error {
 		return fmt.Errorf("update schemas: %w", err)
 	}
 	// Perform migrations.
-	err = schema.MigrateIndices(ctx, elasticClient.TypedClient, &opts.Options)
+	err = schema.MigrateIndices(ctx, elasticClient.TypedClient, &opts.IndicesOptions)
 	if err != nil {
 		return fmt.Errorf("update schemas: %w", err)
 	}
@@ -63,7 +63,7 @@ func (r *MigrateDataCmd) Run(opts *MigrateDataCmd) error {
 }
 
 type CreateIndciesCmd struct {
-	schema.Options
+	schema.IndicesOptions
 }
 
 func (r *CreateIndciesCmd) Run(opts *CreateIndciesCmd) error {
@@ -76,7 +76,7 @@ func (r *CreateIndciesCmd) Run(opts *CreateIndciesCmd) error {
 		return fmt.Errorf("connect to elasticsearch: %w", err)
 	}
 	// Perform migrations.
-	err = schema.CreateIndices(ctx, elasticClient.TypedClient, &opts.Options)
+	err = schema.CreateIndices(ctx, elasticClient.TypedClient, &opts.IndicesOptions)
 	if err != nil {
 		return fmt.Errorf("create indices: %w", err)
 	}

@@ -609,14 +609,13 @@ var allIndices = []string{
 // Option is a reusable generic function for applying options to a type.
 type Option[T any] func(T)
 
-// Options contains the options for performing schema migrations.
-type Options struct {
-	Indices     []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
-	DataStreams []string `arg:"" default:"all" enum:"all,feed-status"`
+// IndicesOptions contains the options for performing schema migrations.
+type IndicesOptions struct {
+	Indices []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
 }
 
 // CreateIndices creates indices and appropriate read/write aliases.
-func CreateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
+func CreateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *IndicesOptions) error {
 	// If no indices are specified, create indices for all items.
 	if slices.Contains(opts.Indices, "all") {
 		opts.Indices = allIndices
@@ -643,7 +642,7 @@ func CreateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *Op
 // UpdateIndicesSchema performs all requested schema migrations.
 //
 //nolint:maintidx // will not reduce size
-func UpdateIndicesSchema(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
+func UpdateIndicesSchema(ctx context.Context, api *elasticsearch.TypedClient, opts *IndicesOptions) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
 		opts.Indices = allIndices
@@ -783,7 +782,7 @@ func migrateIndexTemplates(
 }
 
 // MigrateIndices performs all requested schema migrations.
-func MigrateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *Options) error {
+func MigrateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *IndicesOptions) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(opts.Indices, "all") {
 		opts.Indices = allIndices
