@@ -195,8 +195,10 @@ func (u *User) Active() bool {
 
 // GetSubscriptionPlan returns the name of the subscription plan of the user.
 func (u *User) GetSubscriptionPlan() string {
-	if u.Subscription.Plan != nil {
-		return *u.Subscription.Plan
+	if u.Subscription != nil {
+		if u.Subscription.Plan != nil {
+			return *u.Subscription.Plan
+		}
 	}
 	return ""
 }
