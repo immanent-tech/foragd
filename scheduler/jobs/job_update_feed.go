@@ -110,7 +110,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		feed, err = models.NewFeedFromURL(ctx, feedURL, jobData.FeedID, false)
 		if err != nil {
 			var httpErr feeds.ParseError
-			logRecord := &feedStatusLogRecord{
+			logMsg := &feedStatusLogMsg{
 				FeedStatus: &models.FeedStatus{
 					Timestamp: time.Now().UTC(),
 					FeedID:    details.GetID(),
@@ -123,13 +123,13 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			}
 
 			if errors.Is(err, &httpErr) {
-				logRecord.StatusCode = httpErr.Code
-				logRecord.StatusMessage = new(httpErr.Error())
+				logMsg.StatusCode = httpErr.Code
+				logMsg.StatusMessage = new(httpErr.Error())
 			} else {
-				logRecord.StatusCode = http.StatusInternalServerError
-				logRecord.StatusMessage = new(err.Error())
+				logMsg.StatusCode = http.StatusInternalServerError
+				logMsg.StatusMessage = new(err.Error())
 			}
-			if _, err := elastic.BulkAdd(ctx, "logs", logRecord); err != nil {
+			if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 					slog.Any("error", err),
 				)
@@ -150,7 +150,7 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
 	// Create a new FeedStatus for this update.
-	logRecord := &feedStatusLogRecord{
+	logMsg := &feedStatusLogMsg{
 		FeedStatus: &models.FeedStatus{
 			Timestamp: time.Now().UTC(),
 			FeedID:    details.GetID(),
@@ -187,18 +187,14 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 			return fmt.Errorf("update feed: %w", err)
 		}
 		// Update FeedStatus.
-
-		logRecord.StatusCode = http.StatusOK
-		logRecord.StatusMessage = new(
-			fmt.Sprintf("added %d new items: %s", len(newItems), strings.Join(newItems.GetIDs(), ",")),
-		)
+		logMsg.StatusCode = http.StatusOK
+		logMsg.Items = newItems.GetIDs()
 	} else {
 		// Update FeedStatus.
-		logRecord.StatusCode = http.StatusNoContent
-		logRecord.StatusMessage = new("no new items")
+		logMsg.StatusCode = http.StatusNoContent
 	}
 	// Index FeedStatus for this update.
-	if _, err := elastic.BulkAdd(ctx, "logs", logRecord); err != nil {
+	if _, err := elastic.BulkAdd(ctx, "logs", logMsg); err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 			slog.Any("error", err),
 		)
@@ -234,7 +230,7 @@ var updateFeedBufPool = sync.Pool{
 	},
 }
 
-type feedStatusLogRecord struct {
+type feedStatusLogMsg struct {
 	*models.FeedStatus
 
 	Labels map[string]string `json:"labels"`

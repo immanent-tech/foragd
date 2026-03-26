@@ -343,6 +343,23 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             validate: 'required'
+    UserEmailStatus:
+      description: >
+        contains status information about when an email was sent to a user.
+      type: object
+      required:
+        - email_id
+        - last_sent
+      properties:
+        email_id:
+          description: >
+            identifies the email that was sent.
+          type: string
+          x-go-name: EmailID
+        last_sent:
+          description: >
+            is the timestamp when the email was last sent.
+          x-go-type: time.Time
     UserSubscription:
       description: >
         contains details about the user's paid subscription.
@@ -629,6 +646,13 @@ components:
           $ref: '#/components/schemas/Timestamp'
         feed_id:
           $ref: '#/components/schemas/FeedID'
+        items:
+          description: >
+            is a list of IDs of items that were added.
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemID'
+          x-go-type-skip-optional-pointer: true
         url:
           $ref: '#/components/schemas/URL'
         status_code:

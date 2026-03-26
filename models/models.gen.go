@@ -565,6 +565,9 @@ type FeedStatus struct {
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
+	// Items is a list of IDs of items that were added.
+	Items []ItemID `json:"items,omitempty"`
+
 	// StatusCode is the HTTP status code returned when fetching.
 	StatusCode int `json:"status_code"`
 
@@ -1301,6 +1304,15 @@ type UserCustomisation struct {
 
 	// Nickname is a nickname for the user.
 	Nickname string `form:"nickname" json:"nickname" validate:"required"`
+}
+
+// UserEmailStatus contains status information about when an email was sent to a user.
+type UserEmailStatus struct {
+	// EmailID identifies the email that was sent.
+	EmailID string `json:"email_id"`
+
+	// LastSent is the timestamp when the email was last sent.
+	LastSent time.Time `json:"last_sent"`
 }
 
 // UserID is the unique ID of a user.
