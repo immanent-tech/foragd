@@ -71,6 +71,17 @@ func WithShrinkToShards(shards int) Option[*types.IlmActions] {
 	}
 }
 
+// WithAllowWriteAfterShrink option configures whether writes are allowed after applying a shrink action.
+func WithAllowWriteAfterShrink(value bool) Option[*types.IlmActions] {
+	return func(action *types.IlmActions) {
+		if action.Shrink == nil {
+			action.Shrink = types.NewShrinkAction()
+		}
+
+		action.Shrink.AllowWriteAfterShrink = &value
+	}
+}
+
 // NewILMAction creates a new ILM action for with the given options.
 func NewILMAction(options ...Option[*types.IlmActions]) *types.IlmActions {
 	actions := &types.IlmActions{}
@@ -103,6 +114,7 @@ func WithMinAge(age string) Option[*types.Phase] {
 func WithPhase(name string, options ...Option[*types.Phase]) Option[*types.IlmPolicy] {
 	return func(ilm *types.IlmPolicy) {
 		phase := types.NewPhase()
+		phase.Actions = types.NewIlmActions()
 		for _, option := range options {
 			option(phase)
 		}
