@@ -15,11 +15,30 @@ const (
 	defaultCronJobTrigger = "0 */5 * * * *"
 	defaultPollInterval   = time.Minute
 	defaultPollJitter     = 5 * time.Second
+	defaultRunOnceDelay   = time.Hour
 	pollTriggerID         = "PollTrigger"
+
+	jobTriggerTypeCron    = "cron"
+	jobTriggerTypePoll    = "poll"
+	jobTriggerTypeOneShot = "oneshot"
 )
 
-// Verify PollTrigger satisfies the Trigger interface.
+// cronTrigger represents a trigger that runs on a Cron schedule.
+type cronTrigger struct {
+	Schedule string `json:"schedule" validate:"required,cron"`
+}
+
+// pollTrigger represents a polling trigger for a job.
+type pollTrigger struct {
+	Interval time.Duration `json:"interval" validate:"required"`
+	Jitter   time.Duration `json:"jitter"   validate:"required,len"`
+}
+
 var _ quartz.Trigger = (*pollTrigger)(nil)
+
+type oneShotTrigger struct {
+	Delay time.Duration `json:"delay" validate:"required"`
+}
 
 // newPollTrigger returns a new polling job using the given interval and jitter.
 func newPollTrigger(interval, jitter any) *pollTrigger {

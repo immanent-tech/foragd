@@ -4,11 +4,11 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
@@ -18,6 +18,8 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/providers/auth0"
 	"github.com/immanent-tech/foragd/providers/resend"
+	"github.com/immanent-tech/foragd/scheduler"
+	"github.com/immanent-tech/foragd/scheduler/jobs"
 	"github.com/immanent-tech/foragd/server/session"
 	"github.com/immanent-tech/foragd/web/templates"
 )
@@ -92,7 +94,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	}
 	if req.FormValue("state") != state {
 		HandleExternalError(&models.APIError{
-			InternalError: fmt.Errorf("invalid state"),
+			InternalError: errors.New("invalid state"),
 			StatusCode:    http.StatusInternalServerError,
 		}).ServeHTTP(res, req)
 		return
@@ -145,35 +147,13 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	switch {
 	case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
 		// Create a new local account for the user
-		if user, err = auth0.CreateUser(req.Context(), &profile); err != nil {
+		_, err = createNewLocalUser(req.Context(), profile)
+		if err != nil {
 			HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("create user: %w", err),
 				StatusCode:    http.StatusInternalServerError,
 			}).ServeHTTP(res, req)
 			return
-		}
-
-		// Create and send a welcome email.
-		email, err := resend.NewTemplatedEmail(
-			"new-user",
-			resend.To(user.GetEmail()),
-			resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
-			resend.WithTag(resend.TagUserID, user.GetID()),
-			resend.WithVariable("USER_NICKNAME", user.GetNickname()),
-			resend.WithVariable("USER_EMAIL", user.GetEmail()),
-			resend.WithVariable("USER_AVATAR_URL", user.GetAvatar()),
-		)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Unable to create welcome email.",
-				slog.String("user_id", user.GetID()),
-				slog.Any("error", err),
-			)
-		}
-		if err := resend.SendEmail(req.Context(), email); err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Unable to send welcome email.",
-				slog.String("user_id", user.GetID()),
-				slog.Any("error", err),
-			)
 		}
 	case err != nil: // Backend error.
 		HandleExternalError(&models.APIError{
@@ -220,15 +200,16 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 		http.Redirect(res, req.WithContext(ctx), models.RouteUserAccountIssue, http.StatusSeeOther)
 		return
 	}
-	if cancelled, endAt := user.Cancelled(); cancelled && endAt.Before(time.Now().UTC()) {
-		slogctx.FromCtx(req.Context()).Error("User has cancelled plan.",
-			slog.String("user_id", user.GetID()),
-			slog.Any("error", err),
-		)
-		// Account has been cancelled and past cancellation date; redirect to home page.
-		http.Redirect(res, req.WithContext(ctx), "/", http.StatusSeeOther)
-		return
-	}
+	// ! Uncomment after beta.
+	// if cancelled, endAt := user.Cancelled(); cancelled && endAt.Before(time.Now().UTC()) {
+	// 	slogctx.FromCtx(req.Context()).Error("User has cancelled plan.",
+	// 		slog.String("user_id", user.GetID()),
+	// 		slog.Any("error", err),
+	// 	)
+	// 	// Account has been cancelled and past cancellation date; redirect to home page.
+	// 	http.Redirect(res, req.WithContext(ctx), "/", http.StatusSeeOther)
+	// 	return
+	// }
 	// Active user; redirect to home page.
 	slogctx.FromCtx(ctx).Info("User logged in.",
 		slog.String("user_id", user.GetID()),
@@ -258,4 +239,58 @@ func HandleLoginError(res http.ResponseWriter, req *http.Request) {
 		InternalError: errors.New("login failed"),
 		StatusCode:    http.StatusForbidden,
 	}).ServeHTTP(res, req)
+}
+
+func createNewLocalUser(ctx context.Context, profile auth0.UserProfile) (*models.User, error) {
+	// Create user object.
+	user, err := auth0.CreateUserFromProfileData(ctx, &profile)
+	if err != nil {
+		return nil, fmt.Errorf("create user from profile: %w", err)
+	}
+
+	// Create and send a welcome email.
+	email, err := resend.NewTemplatedEmail(
+		"new-user",
+		resend.To(user.GetEmail()),
+		resend.WithTag(resend.TagCategory, resend.TagCategoryAccount),
+		resend.WithTag(resend.TagUserID, user.GetID()),
+		resend.WithVariable("USER_NICKNAME", user.GetNickname()),
+		resend.WithVariable("USER_EMAIL", user.GetEmail()),
+		resend.WithVariable("USER_AVATAR_URL", user.GetAvatar()),
+	)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to create welcome email.",
+			slog.String("user_id", user.GetID()),
+			slog.Any("error", err),
+		)
+	}
+	if err := resend.SendEmail(ctx, email); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to send welcome email.",
+			slog.String("user_id", user.GetID()),
+			slog.Any("error", err),
+		)
+	}
+
+	// Load the scheduler (but don't start it).
+	if err := scheduler.LoadManager(ctx); err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not load scheduler, cannot schedule new user jobs.",
+			slog.Any("error", err),
+		)
+	} else {
+		// Create a new job, scheduled to run in ~2 days, that checks if the user has logged in yet, and sends them a
+		// ping email if they haven't.
+		job, err := jobs.NewInactiveUserJob(user.GetID())
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not create a job to ping new inactive user later.",
+				slog.Any("error", err),
+			)
+		}
+		if err := scheduler.Manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
+			slogctx.FromCtx(ctx).Warn("Unable to schedule job to ping new inactive user later.",
+				slog.Any("error", err),
+			)
+		}
+	}
+
+	return user, nil
 }

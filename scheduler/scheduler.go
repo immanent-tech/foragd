@@ -126,6 +126,15 @@ func NewManager(ctx context.Context) error {
 	return nil
 }
 
+func LoadManager(ctx context.Context) error {
+	return sync.OnceValue(func() error {
+		if err := NewManager(ctx); err != nil {
+			return fmt.Errorf("init scheduler: %w", err)
+		}
+		return nil
+	})()
+}
+
 // RunStartupTasks will run a bunch of tasks that should be done when the scheduler first starts. Effectively, this
 // seeds the job queue with some required jobs for scheduler functionality and maintenance.
 func RunStartupTasks(ctx context.Context) error {
@@ -181,22 +190,6 @@ func RunStartupTasks(ctx context.Context) error {
 			err = Manager.ScheduleJob(clearExpiredSessionsJob.JobDetail(), clearExpiredSessionsJob.Trigger())
 			if err != nil {
 				return fmt.Errorf("check get new feeds job: %w", err)
-			}
-		}
-		return nil
-	})
-
-	startupTasks.Go(func() error {
-		// Setup clear expired sessions job.
-		pingNewInactiveUsersJob, err := jobs.NewUserRetentionJob()
-		if err != nil {
-			return fmt.Errorf("ping new inactive users job: %w", err)
-		}
-		_, err = Manager.GetScheduledJob(pingNewInactiveUsersJob.JobDetail().JobKey())
-		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
-			err = Manager.ScheduleJob(pingNewInactiveUsersJob.JobDetail(), pingNewInactiveUsersJob.Trigger())
-			if err != nil {
-				return fmt.Errorf("ping new inactive users job: %w", err)
 			}
 		}
 		return nil

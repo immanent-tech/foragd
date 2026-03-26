@@ -12,15 +12,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/goforj/godump"
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/immanent-tech/foragd/models"
 	gcp "github.com/immanent-tech/foragd/providers/google"
-)
-
-var (
-	_ quartz.Job          = (*ScheduledJob)(nil)
-	_ quartz.ScheduledJob = (*ScheduledJob)(nil)
 )
 
 var (
@@ -33,9 +29,6 @@ var (
 
 const (
 	defaultJobTimeout = 60 * time.Second
-
-	jobTriggerTypeCron = "cron"
-	jobTriggerTypePoll = "poll"
 
 	schedulerAPICtxKey contextKey = "scheduler_api"
 
@@ -59,17 +52,6 @@ func SchedulerAPIToCtx(ctx context.Context, schedulerAPI SchedulerAPI) context.C
 	return context.WithValue(ctx, schedulerAPICtxKey, schedulerAPI)
 }
 
-// cronTrigger represents a trigger that runs on a Cron schedule.
-type cronTrigger struct {
-	Schedule string `json:"schedule" validate:"required,cron"`
-}
-
-// pollTrigger represents a polling trigger for a job.
-type pollTrigger struct {
-	Interval time.Duration `json:"interval" validate:"required"`
-	Jitter   time.Duration `json:"jitter"   validate:"required,len"`
-}
-
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {
 	// CreatedAt records when the object was created in the database.
@@ -89,6 +71,11 @@ type ScheduledJob struct {
 	// JobType is the type of job.
 	JobType jobType `json:"job_type" validate:"required"`
 }
+
+var (
+	_ quartz.Job          = (*ScheduledJob)(nil)
+	_ quartz.ScheduledJob = (*ScheduledJob)(nil)
+)
 
 // Description returns the description of the Job.
 func (job *ScheduledJob) Description() string {
@@ -146,6 +133,7 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 		}
 		return quartz.NewJobDetail(job, job.generateJobKey(data.FeedID, string(job.JobType)))
 	default:
+		godump.Dump("here")
 		return quartz.NewJobDetail(job, job.generateJobKey(string(job.JobType), ""))
 	}
 }
@@ -167,6 +155,12 @@ func (job *ScheduledJob) Trigger() quartz.Trigger {
 			return newPollTrigger(defaultPollInterval, defaultPollJitter)
 		}
 		return newPollTrigger(body.Interval, body.Jitter)
+	case jobTriggerTypeOneShot:
+		var body oneShotTrigger
+		if err := json.Unmarshal(job.JobTrigger, &body); err != nil {
+			return quartz.NewRunOnceTrigger(defaultRunOnceDelay)
+		}
+		return quartz.NewRunOnceTrigger(body.Delay)
 	}
 	return newPollTrigger(defaultPollInterval, defaultPollJitter)
 }
@@ -199,15 +193,3 @@ func (job *ScheduledJob) generateJobKey(jobID, group string) *quartz.JobKey {
 	}
 	return quartz.NewJobKey(jobID)
 }
-
-// // MarshalJob takes a quartz.ScheduledJob object and marshals it back into a ScheduledJob, updating fields as
-// // appropriate.
-// func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
-// 	// Extract serialized job as models.ScheduledJob
-// 	serialized, ok := job.JobDetail().Job().(SerializedJob)
-// 	if !ok {
-// 		return nil, errors.Join(ErrMarshalJobFailed, ErrInvalidJob)
-// 	}
-
-// 	return serialized, nil
-// }
