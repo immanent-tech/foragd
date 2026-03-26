@@ -30,7 +30,6 @@ import (
 
 const (
 	feedsIndexPrefix          = "feeds"
-	feedStatusIndexPrefix     = "feed_status"
 	itemsSchemaPrefix         = "items"
 	favoriteItemsSchemaPrefix = "favorite-items"
 	usersSchemaPrefix         = "users"
@@ -320,64 +319,6 @@ var (
 )
 
 var (
-	FeedStatusIndex = "logs-" + feedStatusIndexPrefix + "-" + config.Version
-	// feedStatusComponentTemplate contains the field mappings for FeedStatus.
-	feedStatusComponentTemplate = withComponentTemplatesMigration(
-		templates.NewComponentTemplate(
-			"feed_status_component_template",
-			templates.NewTemplate(
-				templates.WithTemplateMapping(
-					templates.WithProperties(
-						templates.WithDatetimeMapping("@timestamp"),
-						templates.WithKeywordMapping("feed_id"),
-						templates.WithKeywordMapping("url"),
-						templates.WithInt64Mapping("status_code"),
-						templates.WithTextMapping("status_message", &types.TextProperty{
-							Type: "text",
-						}),
-					),
-					templates.WithDynamicProperties(false),
-				),
-				templates.WithTemplateSettings(
-					templates.WithLifecycle("feed_status_ilm_policy", FeedStatusIndex),
-					templates.WithMode("logsdb"),
-				),
-			),
-		),
-	)
-	// feedStatusIndexTemplate contains the settings for FeedStatus indices.
-	feedStatusIndexTemplate = withIndexTemplateMigration(
-		templates.NewIndexTemplate(
-			"feed_status_index_template",
-			templates.WithComponentTemplates("feed_status_component_template"),
-			templates.WithIndexPatterns(FeedStatusIndex),
-			templates.WithIndexTemplateMetadata(defaultMetadata),
-			templates.AsDatastream(true),
-			templates.WithPriority(201),
-		),
-	)
-	// feedStatusILMPolicy is the ILM policy for FeedStatus indices.
-	feedStatusILMPolicy = withILMPolicyMigration(
-		ilm.NewILMPolicy(
-			"feed_status_ilm_policy",
-			ilm.WithPhase("hot",
-				ilm.WithActions(ilm.WithRolloverMaxSize("50gb")),
-			),
-			ilm.WithPhase("warm",
-				ilm.WithActions(
-					ilm.WithShrinkToShards(1),
-					ilm.WithForceMergeSegments(1),
-				),
-			),
-			ilm.WithPhase("delete",
-				ilm.WithMinAge("30d"),
-				ilm.WithActions(ilm.WithDelete()),
-			),
-		),
-	)
-)
-
-var (
 	// usersComponentTemplate contains the field mappings for Users indicies.
 	usersComponentTemplate = withComponentTemplatesMigration(
 		templates.NewComponentTemplate(
@@ -587,6 +528,32 @@ var (
 )
 
 var (
+	// logsILMPolicy is a general-purpose ILM policy for logs indices. Indices are quickly moved through the phases from
+	// hot to cold and then kept indefinitely in the cold phase.
+	logsILMPolicy = ilm.NewILMPolicy(
+		"logs_ilm_policy",
+		ilm.WithPhase("hot",
+			ilm.WithMinAge("0ms"),
+			ilm.WithActions(
+				ilm.WithRolloverMaxAge("30d"),
+				ilm.WithRolloverMaxSize("50gb"),
+			),
+		),
+		ilm.WithPhase("warm",
+			ilm.WithMinAge("2d"),
+			ilm.WithActions(
+				ilm.WithShrinkToShards(1),
+				ilm.WithAllowWriteAfterShrink(false),
+				ilm.WithForceMergeSegments(1),
+			),
+		),
+		ilm.WithPhase("cold",
+			ilm.WithMinAge("30d"),
+		),
+	)
+)
+
+var (
 	englishExactAnalyzerName = "english_exact"
 	lowercaseNormalizerName  = "keyword_lowercase"
 	// defaultMetadata defines default metadata.
@@ -595,6 +562,50 @@ var (
 		"created_at": json.RawMessage(fmt.Sprintf("%q", time.Now().UTC().String())),
 	}
 )
+
+// Option is a reusable generic function for applying options to a type.
+type Option[T any] func(T)
+
+var allILMPolicies = map[string]*ilm.Policy{
+	"logs": logsILMPolicy,
+}
+
+// ILMOptions contains the options for performing ILM schema operations.
+type ILMOptions struct {
+	Policies []string `arg:"" default:"all" enum:"all,logs"`
+}
+
+// UpdateILMPolicies will update all the specified ILM policies.
+func UpdateILMPolicies(ctx context.Context, api *elasticsearch.TypedClient, opts *ILMOptions) error {
+	// If no migrations are specified, perform migrations for all items.
+	if slices.Contains(opts.Policies, "all") {
+		for name, policy := range allILMPolicies {
+			if err := policy.Put(ctx, api); err != nil {
+				return fmt.Errorf("update ILM policy %s: %w", name, err)
+			}
+			slogctx.FromCtx(ctx).Info("Updated ILM Policy.",
+				slog.String("policy_name", name),
+			)
+		}
+	} else {
+		for name := range slices.Values(opts.Policies) {
+			if policy, found := allILMPolicies[name]; !found {
+				slogctx.FromCtx(ctx).Warn("No ILM policy with that name found.",
+					slog.String("policy_name", name),
+				)
+			} else {
+				if err := policy.Put(ctx, api); err != nil {
+					return fmt.Errorf("update ILM policy %s: %w", name, err)
+				}
+				slogctx.FromCtx(ctx).Info("Updated ILM Policy.",
+					slog.String("policy_name", name),
+				)
+			}
+		}
+	}
+
+	return nil
+}
 
 var allIndices = []string{
 	feedsIndexPrefix,
@@ -606,10 +617,7 @@ var allIndices = []string{
 	sessionsSchemaPrefix,
 }
 
-// Option is a reusable generic function for applying options to a type.
-type Option[T any] func(T)
-
-// IndicesOptions contains the options for performing schema migrations.
+// IndicesOptions contains the options for performing index schema operations.
 type IndicesOptions struct {
 	Indices []string `arg:"" default:"all" enum:"all,feeds,items,favorites,users,subscriptions,scheduler,sessions" help:"List of indicies to perform command on."`
 }

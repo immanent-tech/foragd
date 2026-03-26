@@ -21,7 +21,7 @@ var CLI struct {
 	logging.Options
 
 	Serve        cli.ServeCmd         `cmd:"" help:"Run server."`
-	Schema       cli.SchemaCmd        `cmd:"" help:"Perform schema operations."`
+	Elastic      cli.ElasticCmd       `cmd:"" help:"Elastic operations."`
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
 	Data         cli.DataCmd          `cmd:"" help:"Manipulate data."`
 	User         cli.UserCmd          `cmd:"" help:"Manipulate users."`

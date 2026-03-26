@@ -14,17 +14,24 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic"
 )
 
-type SchemaCmd struct {
-	Update  UpdateSchemaCmd  `cmd:"update"  help:"Update schema(s)"`
-	Migrate MigrateDataCmd   `cmd:"migrate" help:"Migrate data"`
-	Create  CreateIndciesCmd `cmd:"create"  help:"Create indices"`
+// ElasticCmd contains commands for manipulating Elasticsearch.
+type ElasticCmd struct {
+	Indices IndicesCmd `cmd:"indices" help:"Perform operations on indices."`
+	ILM     ILMCmd     `cmd:"ilm"     help:"Perform ILM operations."`
 }
 
-type UpdateSchemaCmd struct {
+// IndicesCmd contains commands for manipulating Elasticsearch indices.
+type IndicesCmd struct {
+	Update  UpdateIndexSchemaCmd `cmd:"update"  help:"Update schema(s)"`
+	Migrate MigrateIndexCmd      `cmd:"migrate" help:"Migrate data"`
+	Create  CreateIndexCmd       `cmd:"create"  help:"Create indices"`
+}
+
+type UpdateIndexSchemaCmd struct {
 	schema.IndicesOptions
 }
 
-func (r *UpdateSchemaCmd) Run(opts *UpdateSchemaCmd) error {
+func (r *UpdateIndexSchemaCmd) Run(opts *UpdateIndexSchemaCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
@@ -41,11 +48,11 @@ func (r *UpdateSchemaCmd) Run(opts *UpdateSchemaCmd) error {
 	return nil
 }
 
-type MigrateDataCmd struct {
+type MigrateIndexCmd struct {
 	schema.IndicesOptions
 }
 
-func (r *MigrateDataCmd) Run(opts *MigrateDataCmd) error {
+func (r *MigrateIndexCmd) Run(opts *MigrateIndexCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
@@ -62,11 +69,11 @@ func (r *MigrateDataCmd) Run(opts *MigrateDataCmd) error {
 	return nil
 }
 
-type CreateIndciesCmd struct {
+type CreateIndexCmd struct {
 	schema.IndicesOptions
 }
 
-func (r *CreateIndciesCmd) Run(opts *CreateIndciesCmd) error {
+func (r *CreateIndexCmd) Run(opts *CreateIndexCmd) error {
 	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
@@ -81,4 +88,30 @@ func (r *CreateIndciesCmd) Run(opts *CreateIndciesCmd) error {
 		return fmt.Errorf("create indices: %w", err)
 	}
 	return nil
+}
+
+type ILMCmd struct {
+	Update UpdateILMPoliciesCmd `cmd:"update" help:"Update ILM policies."`
+}
+
+type UpdateILMPoliciesCmd struct {
+	schema.ILMOptions
+}
+
+func (r *UpdateILMPoliciesCmd) Run(opts *UpdateILMPoliciesCmd) error {
+	// Set up context.
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
+	// Load the Elastic backend
+	elasticClient, err := elastic.NewConnection()
+	if err != nil {
+		return fmt.Errorf("connect to elasticsearch: %w", err)
+	}
+	// Perform migrations.
+	err = schema.UpdateILMPolicies(ctx, elasticClient.TypedClient, &opts.ILMOptions)
+	if err != nil {
+		return fmt.Errorf("create indices: %w", err)
+	}
+	return nil
+
 }
