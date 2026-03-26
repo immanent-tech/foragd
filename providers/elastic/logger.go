@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -22,6 +23,8 @@ type Logger struct {
 	EnableRequestBody  bool
 	EnableResponseBody bool
 }
+
+var quoteReplacer = strings.NewReplacer(`"`, `'`)
 
 // LogRoundTrip should not modify the request or response, except for consuming and closing the body.
 // Implementations have to check for nil values in request and response.
@@ -88,7 +91,7 @@ func (l *Logger) LogRoundTrip(
 			buf.ReadFrom(req.Body) //nolint:errcheck
 		}
 
-		requestAttributes = append(requestAttributes, slog.String("body", buf.String()))
+		requestAttributes = append(requestAttributes, slog.String("body", quoteReplacer.Replace(buf.String())))
 	}
 	// Set response attributes.
 	responseAttributes := []slog.Attr{
