@@ -36,6 +36,10 @@ const (
 
 type Environment string
 
+func (e Environment) String() string {
+	return string(e)
+}
+
 var (
 	ErrLoadConfig    = errors.New("error loading config")
 	ErrInvalidConfig = errors.New("invalid config")
