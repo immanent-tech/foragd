@@ -54,6 +54,12 @@ func BulkAdd[T ~string, O Object[T]](
 
 	bulkOps, respCh := bulk.NewRequest(ctx, api.TypedClient)
 
+	// Always require operating against an index alias for non logs bulk requests.
+	var requireAlias bool
+	if index != "logs" {
+		requireAlias = true
+	}
+
 	go func() {
 		defer close(bulkOps)
 
@@ -61,6 +67,7 @@ func BulkAdd[T ~string, O Object[T]](
 			bulkOps <- bulk.NewOperation(object,
 				bulk.SetDocID(string(object.GetID())),
 				bulk.ToIndex(index),
+				bulk.RequireIndexAlias(requireAlias),
 			)
 		}
 	}()

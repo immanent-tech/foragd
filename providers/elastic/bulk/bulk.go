@@ -73,19 +73,21 @@ func WithIndex(index string) Option {
 // AddOperation adds document operations to the bulk request.
 func (r *Request) AddOperation(operation Operation) error {
 	var err error
-	requireIndexAlias := true
-	retryOnConflict := 3
 
 	switch operation.opType {
 	case BulkCreate:
 		if operation.id != "" {
 			err = r.CreateOp(
-				types.CreateOperation{Index_: &operation.index, Id_: &operation.id, RequireAlias: &requireIndexAlias},
+				types.CreateOperation{
+					Index_:       &operation.index,
+					Id_:          &operation.id,
+					RequireAlias: &operation.requireAlias,
+				},
 				operation.document,
 			)
 		} else {
 			err = r.CreateOp(
-				types.CreateOperation{Index_: &operation.index, RequireAlias: &requireIndexAlias},
+				types.CreateOperation{Index_: &operation.index, RequireAlias: &operation.requireAlias},
 				operation.document,
 			)
 		}
@@ -101,8 +103,8 @@ func (r *Request) AddOperation(operation Operation) error {
 			types.UpdateOperation{
 				Index_:          &operation.index,
 				Id_:             &operation.id,
-				RequireAlias:    &requireIndexAlias,
-				RetryOnConflict: &retryOnConflict,
+				RequireAlias:    &operation.requireAlias,
+				RetryOnConflict: &operation.retries,
 			},
 			operation.document,
 			action,
@@ -180,11 +182,13 @@ func (r *OperationResponse) State() (string, error) {
 
 // Operation represents an individual document's bulk operation.
 type Operation struct {
-	document any
-	index    string
-	opType   OpType
-	id       string
-	upsert   bool
+	document     any
+	index        string
+	opType       OpType
+	id           string
+	upsert       bool
+	requireAlias bool
+	retries      int
 }
 
 // SetDocID option sets the doc id for the operation.
@@ -216,10 +220,26 @@ func ToIndex(index string) OperationOption {
 	}
 }
 
+// RequireIndexAlias option indicates whether the index should be an alias or whether it is okay to perform the bulk
+// operation directly against an index.
+func RequireIndexAlias(value bool) OperationOption {
+	return func(operation *Operation) {
+		operation.requireAlias = value
+	}
+}
+
+// Retries option is the number of retries on an operation failure.
+func Retries(count int) OperationOption {
+	return func(operation *Operation) {
+		operation.retries = count
+	}
+}
+
 // NewOperation creates a new bulk operation for a document with the given options.
 func NewOperation(doc any, options ...OperationOption) Operation {
 	operation := &Operation{
 		document: doc,
+		retries:  3,
 	}
 	for _, option := range options {
 		option(operation)
