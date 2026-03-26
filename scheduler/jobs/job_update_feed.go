@@ -19,6 +19,7 @@ import (
 
 	feeds "github.com/immanent-tech/go-syndication"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -109,19 +110,26 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 		feed, err = models.NewFeedFromURL(ctx, feedURL, jobData.FeedID, false)
 		if err != nil {
 			var httpErr feeds.ParseError
-			status := &models.FeedStatus{
-				Timestamp: time.Now().UTC(),
-				FeedID:    details.GetID(),
-				URL:       feedURL,
+			logRecord := &feedStatusLogRecord{
+				FeedStatus: &models.FeedStatus{
+					Timestamp: time.Now().UTC(),
+					FeedID:    details.GetID(),
+					URL:       feedURL,
+				},
+				Labels: map[string]string{
+					"env":  config.CurrentEnvironment.String(),
+					"type": "feed-status",
+				},
 			}
+
 			if errors.Is(err, &httpErr) {
-				status.StatusCode = httpErr.Code
-				status.StatusMessage = new(httpErr.Error())
+				logRecord.StatusCode = httpErr.Code
+				logRecord.StatusMessage = new(httpErr.Error())
 			} else {
-				status.StatusCode = http.StatusInternalServerError
-				status.StatusMessage = new(err.Error())
+				logRecord.StatusCode = http.StatusInternalServerError
+				logRecord.StatusMessage = new(err.Error())
 			}
-			if err := models.AddFeedStatus(ctx, status); err != nil {
+			if _, err := elastic.BulkAdd(ctx, "logs", logRecord); err != nil {
 				slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
 					slog.Any("error", err),
 				)
@@ -142,50 +150,58 @@ func executeUpdateFeedJob(ctx context.Context, job *ScheduledJob) error {
 	ctx = slogctx.With(ctx, "feed_url", feedURL)
 
 	// Create a new FeedStatus for this update.
-	status := &models.FeedStatus{
-		Timestamp: time.Now().UTC(),
-		FeedID:    details.GetID(),
+	logRecord := &feedStatusLogRecord{
+		FeedStatus: &models.FeedStatus{
+			Timestamp: time.Now().UTC(),
+			FeedID:    details.GetID(),
+			URL:       feedURL,
+		},
+		Labels: map[string]string{
+			"env":  config.CurrentEnvironment.String(),
+			"type": "feed-status",
+		},
 	}
 
 	// Add any new items since the last feed update.
-	if len(feed.GetItems()) > 0 {
-		slogctx.FromCtx(ctx).Debug("Checking for new items.",
-			slog.Time("since", details.LastFetched),
-			slog.Int("total_items", len(feed.GetItems())),
-			slog.Duration("interval", time.Duration(details.UpdateInterval)),
+	if len(feed.GetItems()) == 0 {
+		return nil
+	}
+	slogctx.FromCtx(ctx).Debug("Checking for new items.",
+		slog.Time("since", details.LastFetched),
+		slog.Int("total_items", len(feed.GetItems())),
+		slog.Duration("interval", time.Duration(details.UpdateInterval)),
+	)
+	if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
+		// Add any new items.
+		if err := models.AddItems(ctx, newItems...); err != nil {
+			return fmt.Errorf("add new items: %w", err)
+		}
+		slogctx.FromCtx(ctx).Debug("Added new items.",
+			slog.Int("count", len(newItems)),
 		)
-		if newItems := feed.GetItems().FilterSince(details.LastFetched); len(newItems) > 0 {
-			// Add any new items.
-			if err := models.AddItems(ctx, newItems...); err != nil {
-				return fmt.Errorf("add new items: %w", err)
-			}
-			slogctx.FromCtx(ctx).Debug("Added new items.",
-				slog.Int("count", len(newItems)),
-			)
-			// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
-			// newer articles where a feed lags behind real-time.
-			updates := generateFeedUpdates(feed, details)
-			updates["last_fetched"] = newItems.SortByTimestamp()[0].GetTimestamp()
-			if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, updates); err != nil {
-				return fmt.Errorf("update feed: %w", err)
-			}
-			// Update FeedStatus.
+		// Update the last fetched field of the feed to the latest article timestamp. This will ensure we always fetch
+		// newer articles where a feed lags behind real-time.
+		updates := generateFeedUpdates(feed, details)
+		updates["last_fetched"] = newItems.SortByTimestamp()[0].GetTimestamp()
+		if err := elastic.UpdateDoc(ctx, schema.FeedsIndexRW, jobData.FeedID, updates); err != nil {
+			return fmt.Errorf("update feed: %w", err)
+		}
+		// Update FeedStatus.
 
-			status.StatusCode = http.StatusOK
-			status.StatusMessage = new(
-				fmt.Sprintf("added %d new items: %s", len(newItems), strings.Join(newItems.GetIDs(), ",")),
-			)
-		} else {
-			// Update FeedStatus.
-			status.StatusCode = http.StatusNoContent
-			status.StatusMessage = new("no new items")
-		}
-		// Index FeedStatus for this update.
-		if err := models.AddFeedStatus(ctx, status); err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
-				slog.Any("error", err),
-			)
-		}
+		logRecord.StatusCode = http.StatusOK
+		logRecord.StatusMessage = new(
+			fmt.Sprintf("added %d new items: %s", len(newItems), strings.Join(newItems.GetIDs(), ",")),
+		)
+	} else {
+		// Update FeedStatus.
+		logRecord.StatusCode = http.StatusNoContent
+		logRecord.StatusMessage = new("no new items")
+	}
+	// Index FeedStatus for this update.
+	if _, err := elastic.BulkAdd(ctx, "logs", logRecord); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to record feed status.",
+			slog.Any("error", err),
+		)
 	}
 
 	return nil
@@ -216,4 +232,10 @@ var updateFeedBufPool = sync.Pool{
 	New: func() any {
 		return &UpdateFeedJobData{}
 	},
+}
+
+type feedStatusLogRecord struct {
+	*models.FeedStatus
+
+	Labels map[string]string `json:"labels"`
 }

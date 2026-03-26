@@ -190,14 +190,6 @@ func (s *FeedStatus) GetID() string {
 	return strconv.FormatUint(xxh3.Hash([]byte(s.FeedID+s.Timestamp.String())), 10)
 }
 
-// AddFeedStatus adds a FeedStatus document to the index.
-func AddFeedStatus(ctx context.Context, status *FeedStatus) error {
-	if err := elastic.CreateDoc(ctx, schema.FeedStatusIndex, status.GetID(), status); err != nil {
-		return ElasticsearchToAPIError(err)
-	}
-	return nil
-}
-
 func getFeedUnreadCounts(
 	ctx context.Context,
 	subscriptions Subscriptions,
