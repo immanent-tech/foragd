@@ -36,7 +36,7 @@ func NewInactiveUserJob(userID models.UserID) (*newInactiveUserJob, error) {
 	job := &newInactiveUserJob{
 		ScheduledJob: &ScheduledJob{
 			CreatedAt:      time.Now().UTC(),
-			JobTriggerType: jobTriggerTypePoll,
+			JobTriggerType: jobTriggerTypeOneShot,
 			JobType:        jobTypeNewInactiveUser,
 			JobDescription: "Send email to new but inactive user.",
 		},

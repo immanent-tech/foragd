@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/goforj/godump"
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/immanent-tech/foragd/models"
@@ -132,8 +131,10 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 			)
 		}
 		return quartz.NewJobDetail(job, job.generateJobKey(data.FeedID, string(job.JobType)))
+	case jobTypeNewInactiveUser:
+		j := &newInactiveUserJob{ScheduledJob: job}
+		return j.JobDetail()
 	default:
-		godump.Dump("here")
 		return quartz.NewJobDetail(job, job.generateJobKey(string(job.JobType), ""))
 	}
 }
