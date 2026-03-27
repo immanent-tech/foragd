@@ -74,13 +74,13 @@ func (e *Email) createRequest() (*resend.SendEmailRequest, error) {
 	if slices.ContainsFunc(e.tags, func(t resend.Tag) bool {
 		return t.Name == "category" && t.Value == "promotional"
 	}) {
-		encoded, err := EncodeEmail(e.To[0], cfg.Key, cfg.Salt)
+		encoded, err := EncodeEmail(e.To[0])
 		if err != nil {
 			return nil, fmt.Errorf("encode email: %w", err)
 		}
 		req.Headers = map[string]string{
 			"List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-			"List-Unsubscribe":      "https://foragd.app/email/unsubscribe/" + encoded,
+			"List-Unsubscribe":      "https://foragd.app/unsubscribe/" + encoded,
 		}
 	}
 

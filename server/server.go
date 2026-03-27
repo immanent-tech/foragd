@@ -161,6 +161,9 @@ func Start(logger *slog.Logger) error {
 				slogctx.FromCtx(ctx).Warn("Logins have been BLOCKED by configuration.")
 			}
 		})
+		// User routes that don't required authentication.
+		r.Get("/unsubscribe/{token}", handlers.HandleUserUnsubscribe())
+		r.Post("/unsubscribe/{token}", handlers.HandleUserUnsubscribe())
 	})
 
 	// Authenticated routes.

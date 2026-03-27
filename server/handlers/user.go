@@ -17,6 +17,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
+	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 	"github.com/zeebo/xxh3"
 
@@ -792,5 +793,127 @@ func HandleGenerateSubscriptionEmail() http.HandlerFunc {
 		RenderPartial(&PartialTemplate{
 			template: templates.ShowSubscriptionEmail(*settings.SubscriptionEmail),
 		}).ServeHTTP(res, req)
+	}).ServeHTTP
+}
+
+// Unsubscribe represents an unsubscribe request.
+type Unsubscribe struct {
+	Token string
+}
+
+func (p *Unsubscribe) FullResponse(res http.ResponseWriter, req *http.Request) {
+	title := "Unsubscribe Options"
+	description := "Unsubscribe from promotional emails from Foragd."
+	templ.Handler(
+		templates.CreatePage(
+			templates.Unsubscribe(p.Token),
+			templates.WithPageTitle(title),
+			templates.WithPageDescription(description),
+		),
+	).ServeHTTP(res, req)
+}
+
+// UnsubscribeResult represents an unsubscribe result.
+type UnsubscribeResult struct {
+	Msg *models.UserMessage
+}
+
+func (p *UnsubscribeResult) FullResponse(res http.ResponseWriter, req *http.Request) {
+	title := "Unsubscribe Result"
+	description := "Unsubscribe from promotional emails from Foragd."
+	templ.Handler(
+		templates.CreatePage(
+			templates.UnsubscribeResult(p.Msg),
+			templates.WithPageTitle(title),
+			templates.WithPageDescription(description),
+		),
+	).ServeHTTP(res, req)
+}
+
+func (p *UnsubscribeResult) PartialResponse(res http.ResponseWriter, req *http.Request) {
+	templ.Handler(templates.UnsubscribeResult(p.Msg), templ.WithFragments(templates.ContentFragment)).
+		ServeHTTP(res, req)
+}
+
+// HandleUserUnsubscribe handles requests from users to unsubscribe from promotional emails. It handles both interactive
+// (user manually goes to page) and non-interactive (as per RFC 8058).
+func HandleUserUnsubscribe() http.HandlerFunc {
+	return alice.New().ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		token := chi.RouteContext(req.Context()).URLParam("token")
+		if token == "" {
+			HandleExternalError(&models.APIError{
+				InternalError: errors.New("invalid or empty email token"),
+				StatusCode:    http.StatusUnprocessableEntity,
+				UserMessage: models.NewErrorMessage(
+					"Invalid unsubscribe link",
+					"The link is invalid. Please check and try again or contact support.",
+				),
+			}).ServeHTTP(res, req)
+			return
+		}
+
+		switch req.Method {
+		case http.MethodGet:
+			RenderExternalPage(&Unsubscribe{
+				Token: token,
+			}).ServeHTTP(res, req)
+		case http.MethodPost:
+			// Closure used to display results.
+			displayResults := func(err error) {
+				var msg *models.UserMessage
+				if err != nil {
+					res.WriteHeader(http.StatusInternalServerError)
+					slogctx.FromCtx(req.Context()).Error("Failed to decode user email.",
+						slog.Any("error", err),
+					)
+					msg = models.NewErrorMessage(
+						"Failed to complete unsubscribe request",
+						"The server encountered an unexpected issue. Please try again.",
+					)
+				} else {
+					msg = models.NewErrorMessage(
+						"Unsubscribe successful",
+						"You have been unsubscribed from promotional emails.",
+					)
+				}
+				switch {
+				case htmx.IsHTMX(req):
+					RenderPartial(&UnsubscribeResult{
+						Msg: msg,
+					}).ServeHTTP(res, req)
+				default:
+					RenderExternalPage(&UnsubscribeResult{
+						Msg: msg,
+					}).ServeHTTP(res, req)
+				}
+			}
+
+			// Decode the user email address.
+			email, err := resend.DecodeEmail(token)
+			if err != nil {
+				displayResults(err)
+				return
+			}
+
+			// Retrieve the user details.
+			user, err := models.GetUserByEmail(req.Context(), email)
+			if err != nil {
+				displayResults(err)
+				return
+			}
+
+			// Mark in the user's metadata that they do not want to receive promotional emails.
+			user.Metadata.PromotionalEmail = false
+			// Update the user.
+			if err := models.UpdateUser(req.Context(), user.GetID(), map[string]any{
+				"metadata": user.Metadata,
+			}); err != nil {
+				displayResults(err)
+				return
+			}
+
+			displayResults(nil)
+		}
+
 	}).ServeHTTP
 }

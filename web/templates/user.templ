@@ -108,3 +108,40 @@ templ UserAvatar(user *models.User, attributes templ.Attributes) {
 		element.WithAttributes(attributes),
 	)
 }
+
+templ Unsubscribe(token string) {
+	@content() {
+		@container() {
+			<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Unsubscribe</h1>
+			<p>
+				If you wish to unsubscribe from promotional emails from Foragd, click the following button.
+			</p>
+			<p>
+				You will still recieve important administrative and account-related emails.
+			</p>
+			<div id="unsubscribe" class="mt-8 min-h-fill-safe">
+				<button
+					class="btn btn-primary hover:btn-success"
+					hx-post={ "/unsubscribe/" + token }
+					hx-target="#unsubscribe"
+					hx-swap="innerHTML transition:true"
+				>
+					Unsubscribe
+				</button>
+			</div>
+		}
+	}
+}
+
+templ UnsubscribeResult(msg *models.UserMessage) {
+	@content() {
+		@container() {
+			@templ.Fragment(ContentFragment) {
+				<span class="font-semibold tracking-tight text-pretty">{ msg.Summary }</span>
+				if msg.HasDetails() {
+					<p>{ *msg.Details }</p>
+				}
+			}
+		}
+	}
+}
