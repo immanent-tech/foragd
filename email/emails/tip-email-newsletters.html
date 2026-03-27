@@ -1,0 +1,149 @@
+---
+preheader: Email Newsletters Tip
+---
+
+<x-main>
+  <div class="font-inter bg-base-100 sm:px-4">
+    <!-- Header with user details -->
+    <x-header-feature />
+
+    <table align="center" class="m-0 mx-auto">
+      <tr>
+        <td class="w-[552px] max-w-full">
+          <x-spacer height="24px" />
+
+          <table class="w-full">
+            <tr>
+              <td
+                class="rounded-lg border border-base-300 bg-base-200 px-9 py-6 text-base-content sm:p-6"
+              >
+                <h1 class="m-0 mb-6 text-2xl/8 font-semibold text-base-content">
+                  Hey {{{USER_NICKNAME}}}.
+                </h1>
+
+                <p class="m-0 mb-6 text-base/6 text-base-content">
+                  Did you know you can get your email newsletters delivered to
+                  Foragd. This has many advantages:
+                </p>
+
+                <x-three-column-grid flush="true" gap="false">
+                  <fill:col-1>
+                    <div class="p-2 align-top">
+                      <img
+                        src="https://foragd.app/content/icons/shield-lock-filled.webp"
+                        alt="Shield with lock icon"
+                        width="32"
+                        height="32"
+                        class="mx-auto w-full"
+                      />
+                      <p class="text-sm/6 font-semibold">
+                        Protect your identity.
+                      </p>
+                      <p class="text-xs text-balance">
+                        Foragd generates a unique masked email for you to use.
+                      </p>
+                    </div>
+                  </fill:col-1>
+                  <fill:col-2>
+                    <div class="p-2 align-top">
+                      <img
+                        src="https://foragd.app/content/icons/category-filled.webp"
+                        alt="Categories icon"
+                        width="32"
+                        height="32"
+                        class="mx-auto w-full"
+                      />
+                      <p class="text-sm/6 font-semibold">Keep organised.</p>
+                      <p class="text-xs text-balance">
+                        Manage your email newsletters like your feed
+                        subscriptions.
+                      </p>
+                    </div>
+                  </fill:col-2>
+                  <fill:col-3>
+                    <div class="align-top">
+                      <img
+                        src="https://foragd.app/content/icons/filter-filled.webp"
+                        alt="Filter icon"
+                        width="32"
+                        height="32"
+                        class="mx-auto w-full"
+                      />
+                      <p class="text-sm/6 font-semibold">Filter and Search.</p>
+                      <p class="text-xs text-balance">
+                        Filter emails and use full-text search on their contents
+                        to cut through the noise.
+                      </p>
+                    </div>
+                  </fill:col-3>
+                </x-three-column-grid>
+
+                <x-spacer height="24px" />
+
+                <x-container>
+                  <div class="p-2">
+                    <h2
+                      class="m-0 mb-6 text-lg/8 font-semibold text-base-content"
+                    >
+                      Get started:
+                    </h2>
+
+                    <ol>
+                      <li>
+                        Go to your
+                        <a href="https://foragd.app/user/settings">Settings</a
+                        >->Account tab.
+                      </li>
+                      <li>
+                        Scroll down to
+                        <span class="font-semibold"
+                          >Subscribe to Email Newsletters</span
+                        >.
+                      </li>
+                      <li>
+                        Click the
+                        <span class="font-semibold"
+                          >Generate email address</span
+                        >
+                        button.
+                      </li>
+                      <li>Copy the email that is displayed.</li>
+                    </ol>
+
+                    <p class="m-0 mb-6 text-base/6 text-base-content">
+                      Use this email when subscribing to newsletters and get all
+                      the benefits of content management in Foragd and protect
+                      your own email.
+                    </p>
+                  </div>
+                </x-container>
+
+                <x-spacer height="24px" />
+
+                <p class="mso-break-all m-0 mt-2 text-sm/6 text-base-content">
+                  Check out the
+                  <a class="hover:text-accent" href="https://foragd.app/help"
+                    >help documentation</a
+                  >
+                  for more information. Got any questions? Just reply to this
+                  email.
+                </p>
+
+                <x-container container-class="bg-base-200">
+                  <div class="text-center">
+                    <p class="mso-break-all m-0 mt-2 text-xs text-base-content">
+                      <a href="{{{USER_UNSUBSCRIBE_LINK}}}">Unsubscribe</a> from
+                      these emails.
+                    </p>
+                  </div>
+                </x-container>
+              </td>
+            </tr>
+          </table>
+          <x-divider />
+          <x-footer />
+        </td>
+      </tr>
+    </table>
+  </div>
+</x-main>

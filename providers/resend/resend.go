@@ -36,8 +36,8 @@ var cfg Config
 type Config struct {
 	WebHookSecret string `koanf:"webhooksecret" validate:"required"`
 	APIKey        string `koanf:"apikey"        validate:"required"`
-	CatchAllEmail string `koanf:"catchallemail" validate:"required,email"`
 	AdminEmail    string `koanf:"adminemail"    validate:"required,email"`
+	ReplyToEmail  string `koanf:"replyto"       validate:"required,email"`
 	Key           string `koanf:"key"           validate:"required"`
 	Salt          string `koanf:"salt"          validate:"required"`
 }

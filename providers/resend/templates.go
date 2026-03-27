@@ -66,21 +66,21 @@ func WithTemplateVariable(key, dataType, fallback string) TemplateOption {
 // UpdateTemplate will update the template with the given alias. If a template with the alias does not exist, it will be
 // created.
 func UpdateTemplate(ctx context.Context, alias string, options ...TemplateOption) error {
+	client, err := loadClient()
+	if err != nil {
+		return fmt.Errorf("load client: %w", err)
+	}
+
 	template := &template{
 		alias: alias,
 		UpdateTemplateRequest: &resend.UpdateTemplateRequest{
 			Variables: make([]*resend.TemplateVariable, 0),
 		},
 	}
-	template.From = cfg.CatchAllEmail
+	template.From = cfg.ReplyToEmail
 
 	for option := range slices.Values(options) {
 		option(template)
-	}
-
-	client, err := loadClient()
-	if err != nil {
-		return fmt.Errorf("load client: %w", err)
 	}
 
 	id, err := templateAliasToID(ctx, alias)

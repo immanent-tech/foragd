@@ -131,8 +131,8 @@ func (job *ScheduledJob) JobDetail() *quartz.JobDetail {
 			)
 		}
 		return quartz.NewJobDetail(job, job.generateJobKey(data.FeedID, string(job.JobType)))
-	case jobTypeNewInactiveUser:
-		j := &newInactiveUserJob{ScheduledJob: job}
+	case jobTypeUserTips:
+		j := &userTipsJob{ScheduledJob: job}
 		return j.JobDetail()
 	default:
 		return quartz.NewJobDetail(job, job.generateJobKey(string(job.JobType), ""))

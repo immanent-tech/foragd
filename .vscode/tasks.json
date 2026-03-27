@@ -98,15 +98,38 @@
       }
     },
     {
-      "label": "run: email testing server",
+      "label": "email: run server",
       "type": "shell",
-      "command": "cd email && npx maizzle serve",
+      "command": "npx maizzle serve",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
-        "panel": "dedicated",
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/email",
+        "shell": {
+          "executable": "/bin/bash",
+          "args": [
+            "-c"
+          ]
+        }
+      }
+    },
+    {
+      "label": "email: build",
+      "type": "shell",
+      "command": "dotenv -e ../.env.development -- mage build",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
         "showReuseMessage": true,
         "clear": false
       },
@@ -115,8 +138,32 @@
           "executable": "/bin/bash",
           "args": [
             "-c"
-          ]
-        }
+          ],
+        },
+        "cwd": "${workspaceFolder}/email"
+      }
+    },
+    {
+      "label": "email: install",
+      "type": "shell",
+      "command": "dotenv -e ../.env.development -- mage install",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": [
+            "-c"
+          ],
+        },
+        "cwd": "${workspaceFolder}/email"
       }
     }
   ],

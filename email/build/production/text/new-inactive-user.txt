@@ -5,6 +5,10 @@ It looks like you have signed up for a Foragd account, but haven't yet logged in
 I just wanted to check in to make sure there are no issues with your account or logging in, or any other troubles. Got
 any questions or issues, just reply to this email. Otherwise, all good.
 
+Login: https://foragd.app/login
+
 Thanks,
 
 Foragd Team
+
+Unsubscribe from these emails: {{{USER_UNSUBSCRIBE_LINK}}}

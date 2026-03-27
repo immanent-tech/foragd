@@ -1,0 +1,78 @@
+<script props>
+  const gap = props.gap ?? true;
+  const flush = props.flush;
+  const reverse = props.reverse;
+
+  /**
+   * Calculate column width based on `gap` and `flush` props
+   */
+  const colWidthClass = () => {
+    if (flush && !gap) return "w-[200px]";
+    if (flush && gap) return "w-[184px]";
+    if (!flush && !gap) return "w-[168px]";
+
+    // With gap and not flush
+    return "w-[168px]";
+  };
+
+  module.exports = {
+    containerClasses: props["container-class"] || "",
+    gap,
+    flush,
+    reverse,
+    colWidthClass: colWidthClass(),
+  };
+</script>
+
+<table class="w-full" style="background-color: theme(colors.base-200)">
+  <tr>
+    <td>&zwj;</td>
+    <td
+      style="background-color: theme(colors.base-300)"
+      class="w-[600px] max-w-full {{ containerClasses }}"
+    >
+      <table class="w-full">
+        <tr>
+          <td class="{{ flush ? '' : 'p-0 px-6' }}">
+            <x-spacer height="44px" />
+
+            <table class="w-full">
+              <tr class="{{ reverse ? 'sm:w-full sm:table' : '' }}">
+                <td
+                  class="{{ colWidthClass }} {{ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' }}"
+                >
+                  <slot:col-1>Column 1</slot:col-1>
+                </td>
+                <if condition="gap">
+                  <td
+                    class="w-6 leading-6 {{ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' }}"
+                  >
+                    &zwj;
+                  </td>
+                </if>
+                <td
+                  class="{{ colWidthClass }} {{ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' }}"
+                >
+                  <slot:col-2>Column 2</slot:col-2>
+                </td>
+                <if condition="gap">
+                  <td
+                    class="w-6 leading-6 {{ reverse ? 'sm:table-footer-group' : 'sm:w-full sm:block' }}"
+                  >
+                    &zwj;
+                  </td>
+                </if>
+                <td
+                  class="sm:w-full {{ colWidthClass }} {{ reverse ? 'sm:table-caption' : 'sm:block' }}"
+                >
+                  <slot:col-3>Column 3</slot:col-3>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>&zwj;</td>
+  </tr>
+</table>

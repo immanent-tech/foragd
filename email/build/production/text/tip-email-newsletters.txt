@@ -1,0 +1,23 @@
+Hey {{{USER_NICKNAME}}}.
+
+Did you know you can get your email newsletters delivered to Foragd. This has many advantages:
+
+- Protect your identity. Foragd generates a unique masked email for you to use.
+- Keep organised. Manage your email newsletters like your feed subscriptions.
+- Filter and Search. Filter emails and use full-text search on their contents to cut through the noise.
+
+Get started:
+
+1. Go to your Settings->Account tab: https://foragd.app/user/settings.
+2. Scroll down to Subscribe to Email Newsletters.
+3. Click the Generate email address button.
+4. Copy the email that is displayed.
+
+Use this email when subscribing to newsletters and get all the benefits of content management in Foragd and protect your
+own email.
+
+Check out the help documenation for more information: https://foragd.app/help.
+
+Got any questions? Just reply to this email.
+
+Unsubscribe from these emails: {{{USER_UNSUBSCRIBE_LINK}}}

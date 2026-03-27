@@ -1,0 +1,27 @@
+<script props>
+  module.exports = {
+    containerClasses: props["container-class"] || "",
+    flush: props.flush,
+  };
+</script>
+
+<table class="w-full" style="background-color: theme(colors.base-200)">
+  <tr>
+    <td class="{{ flush ? '' : 'sm:w-6'}}">&zwj;</td>
+    <td
+      style="background-color: theme(colors.base-300)"
+      class="w-[600px] max-w-full {{ containerClasses }}"
+    >
+      <table class="w-full">
+        <tr>
+          <td>
+            <x-spacer height="44px" />
+
+            <yield />
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td class="{{ flush ? '' : 'sm:w-6'}}">&zwj;</td>
+  </tr>
+</table>

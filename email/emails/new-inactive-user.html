@@ -48,15 +48,18 @@ preheader: New but inactive user
                   </span>
                 </p>
 
-                <x-divider />
-
-                <p class="mso-break-all m-0 mt-2 text-xs text-base-content">
-                  <a href="{{{USER_UNSUBSCRIBE_LINK}}}">Unsubscribe</a> from
-                  these emails.
-                </p>
+                <x-container container-class="bg-base-200">
+                  <div class="text-center">
+                    <p class="mso-break-all m-0 mt-2 text-xs text-base-content">
+                      <a href="{{{USER_UNSUBSCRIBE_LINK}}}">Unsubscribe</a> from
+                      these emails.
+                    </p>
+                  </div>
+                </x-container>
               </td>
             </tr>
           </table>
+          <x-divider />
           <x-footer />
         </td>
       </tr>

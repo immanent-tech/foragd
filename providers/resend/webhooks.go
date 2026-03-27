@@ -163,8 +163,12 @@ func handleRecievedEmail(ctx context.Context, client *resend.Client, details Ema
 // handleNonUserEmail handles emails not addressed to user addresses. If they are addressed to our catch-all/admin
 // address, they are forwarded to that address. Otherwise, they are ignored.
 func handleNonUserEmail(ctx context.Context, client *resend.Client, details EmailRecieved) error {
+	if err := loadConfig(); err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+
 	// Ignore emails not explicitly addressed to our admin/catch-all address.
-	if !slices.Contains(details.To, cfg.CatchAllEmail) {
+	if !slices.Contains(details.To, cfg.ReplyToEmail) {
 		return nil
 	}
 

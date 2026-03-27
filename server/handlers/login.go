@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
 	"net/http"
 
 	"github.com/a-h/templ"
@@ -147,7 +148,7 @@ func HandleLoginCallback(res http.ResponseWriter, req *http.Request) {
 	switch {
 	case err != nil && models.HTTPStatus(err) == http.StatusNotFound: // No local user.
 		// Create a new local account for the user
-		_, err = createNewLocalUser(req.Context(), profile)
+		user, err = createNewLocalUser(req.Context(), profile)
 		if err != nil {
 			HandleExternalError(&models.APIError{
 				InternalError: fmt.Errorf("create user: %w", err),
@@ -279,16 +280,21 @@ func createNewLocalUser(ctx context.Context, profile auth0.UserProfile) (*models
 	} else {
 		// Create a new job, scheduled to run in ~2 days, that checks if the user has logged in yet, and sends them a
 		// ping email if they haven't.
-		job, err := jobs.NewInactiveUserJob(user.GetID())
-		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not create a job to ping new inactive user later.",
-				slog.Any("error", err),
-			)
-		}
-		if err := scheduler.Manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
-			slogctx.FromCtx(ctx).Warn("Unable to schedule job to ping new inactive user later.",
-				slog.Any("error", err),
-			)
+		for tip := range maps.Keys(jobs.UserTipsJobs) {
+			job, err := jobs.NewUserTipsJob(user.GetID(), tip)
+			if err != nil {
+				slogctx.FromCtx(ctx).Warn("Could not create user tips job.",
+					slog.String("tip", tip),
+					slog.Any("error", err),
+				)
+			}
+			if err := scheduler.Manager.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
+				slogctx.FromCtx(ctx).Warn("Unable to schedule user tip job.",
+					slog.String("tip", tip),
+					slog.Any("error", err),
+				)
+			}
+
 		}
 	}
 
