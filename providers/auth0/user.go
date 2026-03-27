@@ -136,7 +136,8 @@ func CreateUserFromProfileData(ctx context.Context, profile *UserProfile) (*mode
 		LoginCount:     *auth0User.GetUserResponseContent.LoginsCount,
 		LastLogin:      lastLogin,
 		Metadata: models.UserMetadata{
-			EmailVerified: auth0User.GetUserResponseContent.GetEmailVerified(),
+			EmailVerified:    auth0User.GetUserResponseContent.GetEmailVerified(),
+			PromotionalEmail: true,
 		},
 		Settings: models.UserSettings{
 			Theme:                 models.DefaultUserTheme,

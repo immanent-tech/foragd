@@ -1278,6 +1278,9 @@ type User struct {
 	// Nickname is a nickname for the user.
 	Nickname string `form:"nickname" json:"nickname" validate:"required"`
 
+	// PromotionalEmail is a flag indicating whether the user is accepting promotional (non-account/administrative) emails.
+	PromotionalEmail bool `form:"promotional_email" json:"promotional_email" validate:"required"`
+
 	// Provider is the backend provider that was used to create the account.
 	Provider string `json:"provider" validate:"required"`
 
@@ -1304,15 +1307,9 @@ type UserCustomisation struct {
 
 	// Nickname is a nickname for the user.
 	Nickname string `form:"nickname" json:"nickname" validate:"required"`
-}
 
-// UserEmailStatus contains status information about when an email was sent to a user.
-type UserEmailStatus struct {
-	// EmailID identifies the email that was sent.
-	EmailID string `json:"email_id"`
-
-	// LastSent is the timestamp when the email was last sent.
-	LastSent time.Time `json:"last_sent"`
+	// PromotionalEmail is a flag indicating whether the user is accepting promotional (non-account/administrative) emails.
+	PromotionalEmail bool `form:"promotional_email" json:"promotional_email" validate:"required"`
 }
 
 // UserID is the unique ID of a user.

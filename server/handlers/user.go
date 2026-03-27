@@ -261,6 +261,12 @@ func HandleSaveAccountSettings() http.HandlerFunc {
 		if user.Email != request.Email {
 			updates["email"] = request.Email
 		}
+		// Update promotional email metadata flag.
+		if user.Metadata.PromotionalEmail != request.PromotionalEmail {
+			user.Metadata.PromotionalEmail = request.PromotionalEmail
+			updates["metadata"] = user.Metadata
+		}
+
 		// If no updates are necessary, bail early.
 		if len(updates) == 0 {
 			res.WriteHeader(http.StatusNoContent)

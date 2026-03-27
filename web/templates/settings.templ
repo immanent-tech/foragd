@@ -172,6 +172,28 @@ templ AccountSettings(user *models.User) {
 					</div>
 				</div>
 				<input type="hidden" name="avatar_url" value={ user.GetAvatar() }/>
+				<div class="sm:col-span-full">
+					<label for="settings-account-promotional-emails" class="block text-sm/6 font-medium">Promotional Emails</label>
+					<p
+						class="text-sm/6 text-base-content/80"
+					>
+						Allow promotional emails. Even if this setting is off, you
+						will still receive important administrative and account emails.
+					</p>
+					<div
+						class="mt-2 flex items-center space-x-2"
+					>
+						<input
+							id="settings-account-promotional-emails"
+							type="checkbox"
+							name="promotional_email"
+							if user.Metadata.PromotionalEmail {
+								checked
+							}
+							class="toggle col-start-1 row-start-1 toggle-primary toggle-sm"
+						/>
+					</div>
+				</div>
 				<div class="col-span-full place-self-end">
 					<div id="processing" class="htmx-indicator">
 						Processing...
