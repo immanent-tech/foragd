@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v9"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/conflicts"
 	slogctx "github.com/veqryn/slog-context"
@@ -799,11 +798,11 @@ func MigrateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *I
 	for index := range slices.Values(opts.Indices) {
 		switch index {
 		case itemsSchemaPrefix:
-			if err := migrateIndexData(ctx, api, itemsSchemaPrefix, nil); err != nil {
+			if err := migrateIndexData(ctx, api, itemsSchemaPrefix); err != nil {
 				return fmt.Errorf("migrate items: %w", err)
 			}
 		case usersSchemaPrefix:
-			if err := migrateIndexData(ctx, api, usersSchemaPrefix, nil); err != nil {
+			if err := migrateIndexData(ctx, api, usersSchemaPrefix); err != nil {
 				return fmt.Errorf("migrate users: %w", err)
 			}
 			// ingest.NewIngestPipeline(
@@ -821,21 +820,21 @@ func MigrateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *I
 			// 	}),
 			// ),
 		case schedulerIndexPrefix:
-			if err := migrateIndexData(ctx, api, schedulerIndexPrefix, nil); err != nil {
+			if err := migrateIndexData(ctx, api, schedulerIndexPrefix); err != nil {
 				return fmt.Errorf("migrate scheduler: %w", err)
 			}
 		// case feedStatusIndexPrefix:
 		// 	err = migrateIndexData(ctx, api, feedStatusIndexPrefix, nil)
 		case feedsIndexPrefix:
-			if err := migrateIndexData(ctx, api, feedsIndexPrefix, nil); err != nil {
+			if err := migrateIndexData(ctx, api, feedsIndexPrefix); err != nil {
 				return fmt.Errorf("migrate feeds: %w", err)
 			}
 		case subscriptionsSchemaPrefix:
-			if err := migrateIndexData(ctx, api, subscriptionsSchemaPrefix, nil); err != nil {
+			if err := migrateIndexData(ctx, api, subscriptionsSchemaPrefix); err != nil {
 				return fmt.Errorf("migrated subscriptions: %w", err)
 			}
 		case sessionsSchemaPrefix:
-			if err := migrateIndexData(ctx, api, sessionsSchemaPrefix, nil); err != nil {
+			if err := migrateIndexData(ctx, api, sessionsSchemaPrefix); err != nil {
 				return fmt.Errorf("migrate sessions: %w", err)
 			}
 		}
@@ -847,25 +846,16 @@ func migrateIndexData(
 	ctx context.Context,
 	api *elasticsearch.TypedClient,
 	prefix string,
-	pipeline *putpipeline.Request,
 ) error {
 	index := generateIndexName(prefix)
 	writeAlias := prefix + indexWriteSuffix
 	readAlias := prefix + indexReadSuffix
 
-	// If a pipeline is specified, create it.
-	var pipelineName string
-	if pipeline != nil {
-		pipelineName = "pipeline-" + index
-		if _, err := api.Ingest.PutPipeline(pipelineName).Request(pipeline).Do(ctx); err != nil {
-			return fmt.Errorf("migrate index %s: put pipeline: %w", index, err)
-		}
-	}
-
 	// Create index.
 	if _, err := createIndexIfNotExists(ctx, api, prefix); err != nil {
 		return fmt.Errorf("could not create index %s: %w", index, err)
 	}
+
 	// Update the write alias.
 	if err := updateAlias(ctx, api, writeAlias, index); err != nil {
 		return fmt.Errorf("migration failed: %w", err)
@@ -874,7 +864,7 @@ func migrateIndexData(
 	if found, err := api.Indices.Exists(readAlias).Do(ctx); err != nil || !found {
 		return fmt.Errorf("could not determine %s index state: %w", readAlias, err)
 	}
-	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index, pipelineName)).
+	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index, "")).
 		WaitForCompletion(true).
 		Conflicts(conflicts.Proceed).
 		Do(ctx)
@@ -971,12 +961,11 @@ func createIndexIfNotExists(ctx context.Context, api *elasticsearch.TypedClient,
 }
 
 func generateIndexName(prefix string) string {
-	return strings.Join([]string{prefix, config.Version, time.Now().Format("20060102150405")}, "-")
+	return strings.Join([]string{prefix, time.Now().Format("20060102150405"), "000000"}, "-")
 }
 
 func getStatusCode(err error) int {
-	var esErr *types.ElasticsearchError
-	if errors.As(err, &esErr) {
+	if esErr, ok := errors.AsType[types.ElasticsearchError](err); ok {
 		return esErr.Status
 	}
 	return http.StatusInternalServerError
