@@ -282,7 +282,6 @@ templ viewOption(layout, path string, view models.View, filters *models.ListFilt
 
 templ viewOptionFavorites(layout, path string, filters *models.ListFilters) {
 	<form
-		id={ layout + "-view-favorites" }
 		hx-get={ path }
 		hx-target={ ContentID.Target() }
 		hx-replace-url="true"
