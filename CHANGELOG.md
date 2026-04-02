@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.87.0](https://github.com/immanent-tech/foragd/compare/v0.86.0...v0.87.0) (2026-04-02)
+
+
+### Features
+
+* :sparkles: add unsubscribe routes to allow users to unsubscribe from promotional emails ([47a782d](https://github.com/immanent-tech/foragd/commit/47a782d0c492b98f7d258f94ce23297917d7ac9d))
+* :sparkles: allow toggling receiving promotional emails in account settings ([4454403](https://github.com/immanent-tech/foragd/commit/4454403b0559de86aca18629dd0c729320c3b4cb))
+* :sparkles: improved new user flow ([304f6a3](https://github.com/immanent-tech/foragd/commit/304f6a33b86c15bcac01ecff8c670b352ae41411))
+* **config:** :sparkles: add String() method for Environment type ([146ac84](https://github.com/immanent-tech/foragd/commit/146ac8432f27a979ccb8883395e770f883946759))
+* **elastic:** :sparkles: add ILM option for allowing write after shrinking ([6fb88ff](https://github.com/immanent-tech/foragd/commit/6fb88ff4e1e1c4ca98fd6795e59d040262bab469))
+* **elastic:** :sparkles: more bulk control ([8569171](https://github.com/immanent-tech/foragd/commit/85691718821119c87a752b16fa118cd1f0c70ee8))
+* **elastic:** :sparkles: replace quote characters for better display of logs ([aa5e36e](https://github.com/immanent-tech/foragd/commit/aa5e36e312ffd2fbc9d6c5a6b2db62d5499ebd97))
+* **email:** :sparkles: add unsubscribe link to new inactive user email ([591b5a7](https://github.com/immanent-tech/foragd/commit/591b5a7dd6ec950aa1f45f973b0eb2a0b74af6de))
+* **email:** :sparkles: new email templates and fixes ([b2340b5](https://github.com/immanent-tech/foragd/commit/b2340b57d067bcd3a131902347ca78e5b72e8f8a))
+* **models:** :sparkles: add cli commands and methods for updating ILM policies independently from indices ([e527330](https://github.com/immanent-tech/foragd/commit/e52733035fc28f5b47ac1c2a960b315990eaffa1))
+* **scheduler:** :sparkles: improve feed update status logging ([e7fa524](https://github.com/immanent-tech/foragd/commit/e7fa524e67b89ed2dfba8ad85bde7c5a6e35e543))
+* **templates/search:** :sparkles: return add subscription actions as search suggestions ([42d9784](https://github.com/immanent-tech/foragd/commit/42d978488053b579a47f8d8fe7a4986afbd0dcce))
+
+
+### Bug Fixes
+
+* **elastic:** :wastebasket: fix deprecated ilm action ([7540277](https://github.com/immanent-tech/foragd/commit/754027730ec6731345e9ce261cfe315c40b759cf))
+* **models:** :bug: fix user subscription fields access after recent changes ([d8e0d0f](https://github.com/immanent-tech/foragd/commit/d8e0d0f8c9ecc27d75f028826e895b30747cf585))
+* **models:** :bug: user subscription plan checks ([fc3a8ec](https://github.com/immanent-tech/foragd/commit/fc3a8ecd020b028596e69d969d2b3ea4cd6a4e3a))
+* **scheduler:** :bug: fix generating jobdetail for already scheduler new inactive user job ([cb5f174](https://github.com/immanent-tech/foragd/commit/cb5f17476ea5cf7c09566716fccf04d8d0898caa))
+* **templates:** :recycle: fix spelling and capitalization ([6dfa833](https://github.com/immanent-tech/foragd/commit/6dfa8337b3d2bf28769c2f1ea4f46e4d249e6610))
+
+
+### Performance Improvements
+
+* **resend:** :zap: support backoff for rate limits when batch sending emails ([eff644c](https://github.com/immanent-tech/foragd/commit/eff644c1f9c55002afc6ee547a8460a07aa57b74))
+
 ## [0.86.0](https://github.com/immanent-tech/foragd/compare/v0.85.0...v0.86.0) (2026-03-25)
 
 
