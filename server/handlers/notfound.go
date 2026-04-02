@@ -25,6 +25,6 @@ func (p *NotFoundPage) FullResponse(w http.ResponseWriter, r *http.Request) {
 
 func (p *NotFoundPage) PartialResponse(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	templ.Handler(templates.CreatePage(templates.NotFound()), templ.WithFragments(templates.BodyFragment)).
+	templ.Handler(templates.CreatePage(templates.NotFound()), templ.WithFragments(templates.ContentFragment)).
 		ServeHTTP(w, r)
 }
