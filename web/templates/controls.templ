@@ -41,6 +41,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								command="--toggle"
 								commandfor="mobile-category-filters-disclosure"
 								class="flex w-full items-center justify-between px-2 py-3 text-sm"
+								id="filters-mobile-disclosure-button"
 							>
 								<span class="sr-only">Show category filters</span>
 								<span class="not-sr-only font-medium">Category</span>
@@ -56,7 +57,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								hx-get={ path + "/categories" }
 								hx-include="[name='displayed_subscriptions']"
 								hx-vals={ generateHXVals(filters.Values()) }
-								hx-trigger="click from:#filters-mobile-disclosure"
+								hx-trigger="click from:#filters-mobile-disclosure-button"
 								hx-indicator="#load-categories-mobile"
 							></div>
 							<span id="load-categories-mobile" class="htmx-indicator loading loading-sm loading-spinner"></span>
@@ -128,6 +129,7 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								<button
 									class="btn inline-flex btn-wide"
 									popovertarget="desktop-category-filters-menu"
+									id="desktop-category-filters-button"
 								>
 									<span class="sr-only">Show category filters</span>
 									<span class="not-sr-only">Category</span>
