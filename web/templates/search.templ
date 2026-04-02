@@ -216,7 +216,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 						class="group flex items-center"
 						tabindex="0"
 						type="submit"
-						hx-get="/user/subscription/add/feed"
+						hx-get="/subscription/add/feed"
 						hx-target={ ContentID.Target() }
 						hx-push-url="true"
 						hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
@@ -236,7 +236,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 						class="group flex items-center"
 						tabindex="0"
 						type="submit"
-						hx-get="/user/subscription/add/group"
+						hx-get="/subscription/add/group"
 						hx-target={ ContentID.Target() }
 						hx-push-url="true"
 						hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
@@ -256,7 +256,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 						class="group flex items-center"
 						tabindex="0"
 						type="submit"
-						hx-get="/user/subscription/add/search"
+						hx-get="/subscription/add/search"
 						hx-target={ ContentID.Target() }
 						hx-push-url="true"
 						hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"

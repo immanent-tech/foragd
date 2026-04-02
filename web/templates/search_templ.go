@@ -376,7 +376,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if (strings.Contains(substr, "add") || strings.Contains(substr, "feed")) && (!strings.Contains(substr, "group") && !strings.Contains(substr, "search")) {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<li role=\"option\"><button class=\"group flex items-center\" tabindex=\"0\" type=\"submit\" hx-get=\"/user/subscription/add/feed\" hx-target=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<li role=\"option\"><button class=\"group flex items-center\" tabindex=\"0\" type=\"submit\" hx-get=\"/subscription/add/feed\" hx-target=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -399,7 +399,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if (strings.Contains(substr, "add") || strings.Contains(substr, "group")) && (!strings.Contains(substr, "feed") && !strings.Contains(substr, "search")) {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<li role=\"option\"><button class=\"group flex items-center\" tabindex=\"0\" type=\"submit\" hx-get=\"/user/subscription/add/group\" hx-target=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<li role=\"option\"><button class=\"group flex items-center\" tabindex=\"0\" type=\"submit\" hx-get=\"/subscription/add/group\" hx-target=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -422,7 +422,7 @@ func SearchSuggestions(suggestions *models.SearchResults) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if (strings.Contains(substr, "add") || strings.Contains(substr, "search")) && (!strings.Contains(substr, "feed") && !strings.Contains(substr, "group")) {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<li role=\"option\"><button class=\"group flex items-center\" tabindex=\"0\" type=\"submit\" hx-get=\"/user/subscription/add/search\" hx-target=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<li role=\"option\"><button class=\"group flex items-center\" tabindex=\"0\" type=\"submit\" hx-get=\"/subscription/add/search\" hx-target=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
