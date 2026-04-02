@@ -86,12 +86,13 @@ func HandleListSubscriptions() http.HandlerFunc {
 		}
 
 		// Redirect to include query parameters in address bar.
-		if req.URL.Path != "/list/subscriptions/paginate" {
+		if !strings.HasSuffix(req.URL.Path, "/paginate") {
 			switch {
 			case htmx.IsHTMX(req):
 				res.Header().Set(htmx.HeaderReplaceUrl, req.URL.Path+"?"+request.Filters.QueryString())
-			case len(req.URL.Query()) == 0:
-				http.Redirect(res, req, req.URL.Path+"?"+request.Filters.QueryString(), http.StatusSeeOther)
+			case req.URL.RawQuery == "":
+				req.URL.RawQuery = request.Filters.QueryParams().Encode()
+				http.Redirect(res, req, req.URL.String(), http.StatusSeeOther)
 			}
 		}
 
