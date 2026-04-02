@@ -136,11 +136,20 @@ func noCache(next http.Handler) http.Handler {
 // WatchList handles watching a list of object for any updates and rendering a notification to the user to refresh the page.
 func WatchList() http.HandlerFunc {
 	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		filters := models.NewListDisplayFilters()
-		// // Retrieve current filters.
-		// filters := models.PageFiltersFromCtx(req.Context(), req.URL.Path)
+		// Extract request filters.
+		var filters *models.ListFilters
+		switch {
+		case strings.Contains(req.URL.Path, "subscriptions"):
+			filters = getListSubscriptionsFilters(req)
+		case strings.Contains(req.URL.Path, "articles"):
+			filters = getListArticleFilters(req)
+		default:
+			res.WriteHeader(http.StatusNotAcceptable)
+			return
+		}
+
 		// Create a query to find new items.
-		query, err := models.BuildItemsQuery(req.Context(), &filters)
+		query, err := models.BuildItemsQuery(req.Context(), filters)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
 				slog.Any("error", err))
@@ -168,7 +177,7 @@ func watchForUpdates(watch query.Option) http.Handler {
 		res.Header().Set("Content-Type", "text/event-stream")
 		res.Header().Set("Cache-Control", "no-cache")
 		res.Header().Set("Connection", "keep-alive")
-		res.Header().Set("X-Accel-Buffering", "no")
+		// res.Header().Set("X-Accel-Buffering", "no")
 		if f, ok := res.(http.Flusher); ok {
 			f.Flush()
 		} else {
@@ -194,12 +203,12 @@ func watchForUpdates(watch query.Option) http.Handler {
 		}
 
 		// Set up updatesTicker.
-		updatesTicker := time.NewTicker(user.GetUpdatesFrequency())
+		updatesTicker := time.NewTicker(time.Minute)
 		defer updatesTicker.Stop()
-		keepAliveTicker := time.NewTicker(20 * time.Second)
-		defer keepAliveTicker.Stop()
+		// keepAliveTicker := time.NewTicker(20 * time.Second)
+		// defer keepAliveTicker.Stop()
 		slogctx.FromCtx(req.Context()).Debug("Checking for updates...",
-			slog.Duration("interval", user.GetUpdatesFrequency()),
+			slog.Duration("interval", time.Minute),
 			slog.Group("request",
 				slog.String("path", req.URL.Path),
 			),
@@ -219,7 +228,7 @@ func watchForUpdates(watch query.Option) http.Handler {
 				if f, ok := res.(http.Flusher); ok {
 					f.Flush()
 				}
-				keepAliveTicker.Stop()
+				// keepAliveTicker.Stop()
 				updatesTicker.Stop()
 				return
 			case <-updatesTicker.C:
@@ -262,23 +271,23 @@ func watchForUpdates(watch query.Option) http.Handler {
 
 				slogctx.FromCtx(req.Context()).Debug("No updates")
 				prevCount = currentCount
-			case <-keepAliveTicker.C:
-				slogctx.FromCtx(req.Context()).Debug("Sending keep-alive message on SSE stream.",
-					slog.Group("request",
-						slog.String("path", req.URL.Path),
-					),
-				)
-				if _, err = fmt.Fprint(res, ": keep-alive\n\n"); err != nil {
-					slogctx.FromCtx(req.Context()).Error("Failed to send keep-alive SSE message.",
-						slog.Any("error", err),
-						slog.Group("request",
-							slog.String("path", req.URL.Path),
-						),
-					)
-				}
-				if f, ok := res.(http.Flusher); ok {
-					f.Flush()
-				}
+				// case <-keepAliveTicker.C:
+				// 	slogctx.FromCtx(req.Context()).Debug("Sending keep-alive message on SSE stream.",
+				// 		slog.Group("request",
+				// 			slog.String("path", req.URL.Path),
+				// 		),
+				// 	)
+				// 	if _, err = fmt.Fprint(res, ": keep-alive\n\n"); err != nil {
+				// 		slogctx.FromCtx(req.Context()).Error("Failed to send keep-alive SSE message.",
+				// 			slog.Any("error", err),
+				// 			slog.Group("request",
+				// 				slog.String("path", req.URL.Path),
+				// 			),
+				// 		)
+				// 	}
+				// 	if f, ok := res.(http.Flusher); ok {
+				// 		f.Flush()
+				// 	}
 			}
 		}
 	})

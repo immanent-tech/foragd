@@ -192,7 +192,7 @@ func Start(logger *slog.Logger) error {
 			r.With(middlewares.RequireHTMX).
 				Post("/subscription/suggestions", handlers.GetSubscriptionFilterSuggestions())
 			r.With(middlewares.RequireHTMX).Post("/subscription", handlers.AddSubscriptionFilter())
-			// r.Get("/search/updates", handlers.WatchSearchResults())
+			r.Get("/search/updates", handlers.WatchSearchResults())
 		})
 		r.Route("/action", func(r chi.Router) {
 			r.With(middlewares.RequireHTMX).
@@ -206,7 +206,7 @@ func Start(logger *slog.Logger) error {
 			r.Get("/", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.HandleMarkSubscriptions())
-			// r.Get("/updates", handlers.WatchList())
+			r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).
@@ -250,7 +250,7 @@ func Start(logger *slog.Logger) error {
 			r.Get("/", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/paginate", handlers.HandleListArticles())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handlers.MarkArticles())
-			// r.Get("/updates", handlers.WatchList())
+			r.Get("/updates", handlers.WatchList())
 			r.With(middlewares.RequireHTMX).Get("/categories", handlers.ListCategories())
 		})
 		r.With(middlewares.RequireHTMX).Post("/mark/article/{item_id}", handlers.MarkArticle())
@@ -302,11 +302,11 @@ func Start(logger *slog.Logger) error {
 
 	h2s := &http2.Server{}
 	svr := &http.Server{
-		Handler:      h2c.NewHandler(router, h2s),
-		Addr:         net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
-		ReadTimeout:  cfg.ReadTimeout.Duration(),
-		WriteTimeout: cfg.WriteTimeout.Duration(),
-		IdleTimeout:  cfg.IdleTimeout.Duration(),
+		Handler: h2c.NewHandler(router, h2s),
+		Addr:    net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
+		// ReadTimeout:  cfg.ReadTimeout.Duration(),
+		// WriteTimeout: cfg.WriteTimeout.Duration(),
+		// IdleTimeout:  cfg.IdleTimeout.Duration(),
 		BaseContext: func(_ net.Listener) context.Context {
 			return ctx
 		},

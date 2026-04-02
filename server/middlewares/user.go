@@ -24,6 +24,11 @@ import (
 // RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
 func RequireUserAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if strings.HasPrefix(req.URL.Path, "/updates") {
+			next.ServeHTTP(res, req)
+			return
+		}
+
 		ctx := req.Context()
 
 		// Validate the access token stored in the session.
