@@ -76,6 +76,28 @@
       }
     },
     {
+      "label": "run: elastic|indices|create",
+      "type": "shell",
+      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file elastic indices create ${input:objects}",
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "shell": {
+          "executable": "/bin/bash",
+          "args": [
+            "-c"
+          ]
+        }
+      }
+    },
+    {
       "label": "run: elastic|ilm|update",
       "type": "shell",
       "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file elastic ilm update ${input:objects}",

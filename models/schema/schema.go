@@ -30,7 +30,7 @@ import (
 const (
 	feedsIndexPrefix          = "feeds"
 	itemsSchemaPrefix         = "items"
-	favoriteItemsSchemaPrefix = "favorite-items"
+	favoritesSchemaPrefix     = "favorites"
 	usersSchemaPrefix         = "users"
 	subscriptionsSchemaPrefix = "subscriptions"
 	schedulerIndexPrefix      = "scheduler"
@@ -51,10 +51,10 @@ const (
 	SubscriptionsIndexRO = subscriptionsSchemaPrefix + indexReadSuffix
 	// SubscriptionsIndexRW is the index alias for read-write access to subscriptions.
 	SubscriptionsIndexRW = subscriptionsSchemaPrefix + indexWriteSuffix
-	// FavoriteArticlesIndexRO is the index alias for read-only access to subscriptions.
-	FavoriteArticlesIndexRO = favoriteItemsSchemaPrefix + indexReadSuffix
-	// FavoriteArticlesIndexRW is the index alias for read-only access to subscriptions.
-	FavoriteArticlesIndexRW = favoriteItemsSchemaPrefix + indexWriteSuffix
+	// FavoritesIndexRO is the index alias for read-only access to subscriptions.
+	FavoritesIndexRO = favoritesSchemaPrefix + indexReadSuffix
+	// FavoritesIndexRW is the index alias for read-only access to subscriptions.
+	FavoritesIndexRW = favoritesSchemaPrefix + indexWriteSuffix
 	// UsersIndexRO is the index alias for read-only access to users.
 	UsersIndexRO = usersSchemaPrefix + indexReadSuffix
 	// UsersIndexRW is the index alias for read-write access to users.
@@ -238,7 +238,7 @@ var (
 	// favoriteItemsComponentTemplate contains the field mappings for Favorites indices.
 	favoriteItemsComponentTemplate = withComponentTemplatesMigration(
 		templates.NewComponentTemplate(
-			"favorite_items_component_template",
+			"favorites_component_template",
 			templates.NewTemplate(
 				templates.WithTemplateMapping(
 					templates.WithProperties(
@@ -268,9 +268,9 @@ var (
 	// favoriteItemsIndexTemplate contains the settings for Favorites indices.
 	favoriteItemsIndexTemplate = withIndexTemplateMigration(
 		templates.NewIndexTemplate(
-			"favorite_items_index_template",
-			templates.WithComponentTemplates("feed_items_common", "favorite_items_component_template"),
-			templates.WithIndexPatterns(favoriteItemsSchemaPrefix+"-*"),
+			"favorites_index_template",
+			templates.WithComponentTemplates("feed_items_common", "favorites_component_template"),
+			templates.WithIndexPatterns(favoritesSchemaPrefix+"-*"),
 			templates.WithIndexTemplateMetadata(defaultMetadata),
 		),
 	)
@@ -609,7 +609,7 @@ func UpdateILMPolicies(ctx context.Context, api *elasticsearch.TypedClient, opts
 var allIndices = []string{
 	feedsIndexPrefix,
 	itemsSchemaPrefix,
-	favoriteItemsSchemaPrefix,
+	favoritesSchemaPrefix,
 	usersSchemaPrefix,
 	subscriptionsSchemaPrefix,
 	schedulerIndexPrefix,
@@ -671,7 +671,7 @@ func UpdateIndicesSchema(ctx context.Context, api *elasticsearch.TypedClient, op
 			); err != nil {
 				return fmt.Errorf("could not migrate items: %w", err)
 			}
-		case favoriteItemsSchemaPrefix:
+		case favoritesSchemaPrefix:
 			// Create Favorites schemas.
 			if err := migrateIndexTemplates(ctx, api,
 				favoriteItemsComponentTemplate,
@@ -819,6 +819,10 @@ func MigrateIndices(ctx context.Context, api *elasticsearch.TypedClient, opts *I
 			// 		},
 			// 	}),
 			// ),
+		case favoritesSchemaPrefix:
+			if err := migrateIndexData(ctx, api, favoritesSchemaPrefix); err != nil {
+				return fmt.Errorf("migrate favorites: %w", err)
+			}
 		case schedulerIndexPrefix:
 			if err := migrateIndexData(ctx, api, schedulerIndexPrefix); err != nil {
 				return fmt.Errorf("migrate scheduler: %w", err)
@@ -961,7 +965,10 @@ func createIndexIfNotExists(ctx context.Context, api *elasticsearch.TypedClient,
 }
 
 func generateIndexName(prefix string) string {
-	return strings.Join([]string{prefix, time.Now().Format("20060102150405"), "000000"}, "-")
+	return strings.Join(
+		[]string{prefix, config.CurrentEnvironment.String(), time.Now().Format("20060102150405"), "000000"},
+		"-",
+	)
 }
 
 func getStatusCode(err error) int {
