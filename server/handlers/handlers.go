@@ -36,7 +36,7 @@ var (
 	ErrInvalidRequestParams = errors.New("invalid request parameters")
 )
 
-var userContentHandlerChain = alice.New(storePath, noCache)
+var userContentHandlerChain = alice.New(storePath, noCache, refreshOnHistoryRestore)
 
 var bufPool = sync.Pool{
 	New: func() any {
