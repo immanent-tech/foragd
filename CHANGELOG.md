@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.88.1](https://github.com/immanent-tech/foragd/compare/v0.88.0...v0.88.1) (2026-04-03)
+
+
+### Performance Improvements
+
+* **handlers:** :zap: switch back to refreshing on history restore requests ([7d310a1](https://github.com/immanent-tech/foragd/commit/7d310a13398d61ee11a6c05f3509f605672917b0))
+
 ## [0.88.0](https://github.com/immanent-tech/foragd/compare/v0.87.0...v0.88.0) (2026-04-03)
 
 
