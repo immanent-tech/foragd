@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.88.2](https://github.com/immanent-tech/foragd/compare/v0.88.1...v0.88.2) (2026-04-03)
+
+
+### Bug Fixes
+
+* :bug: set theme with canonical daisyui attributes and remove flash on dark theme ([3c7391f](https://github.com/immanent-tech/foragd/commit/3c7391fa63663170e0cffaad38811143aa4721f5))
+
+
+### Performance Improvements
+
+* **models:** :zap: add a max requests per second for schema migrations involving reindex operations ([c5e5da3](https://github.com/immanent-tech/foragd/commit/c5e5da3f43e0673e7b5349e9c1cce79bebc20564))
+
 ## [0.88.1](https://github.com/immanent-tech/foragd/compare/v0.88.0...v0.88.1) (2026-04-03)
 
 
