@@ -871,6 +871,7 @@ func migrateIndexData(
 	reindexResp, err := reindex.NewReindexOperation(api, reindex.NewSource(readAlias), reindex.NewDest(index, "")).
 		WaitForCompletion(true).
 		Conflicts(conflicts.Proceed).
+		RequestsPerSecond("500").
 		Do(ctx)
 	const statusCodeErrLevel = 500
 	switch {
