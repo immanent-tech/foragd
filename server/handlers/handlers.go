@@ -111,6 +111,7 @@ func setRedirect(res http.ResponseWriter, request htmxext.HXLocationRequest) err
 func refreshOnHistoryRestore(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if htmx.IsHistoryRestoreRequest(req) {
+			slogctx.FromCtx(req.Context()).Debug("Is history restore")
 			res.Header().Set(htmx.HeaderRefresh, "true")
 		}
 		next.ServeHTTP(res, req)

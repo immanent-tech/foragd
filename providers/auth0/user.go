@@ -140,7 +140,6 @@ func CreateUserFromProfileData(ctx context.Context, profile *UserProfile) (*mode
 			PromotionalEmail: true,
 		},
 		Settings: models.UserSettings{
-			Theme:                 models.DefaultUserTheme,
 			ShowOnboarding:        true,
 			ShowSubscriptionStats: false,
 			MarkArticleReadOnView: true,

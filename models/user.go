@@ -22,8 +22,6 @@ import (
 )
 
 const (
-	// DefaultUserTheme is the default theme for the app.
-	DefaultUserTheme = "greenhouse"
 	// DefaultMaxHistory is a default maximum history value for when the user has not specified one.
 	DefaultMaxHistory = 31 * 24 * time.Hour
 	// DefaultUpdateInterval is the default interval on which to check for updates.
@@ -253,18 +251,6 @@ func (s *UserMetadata) Valid() error {
 		return fmt.Errorf("invalid user metadata: %w", err)
 	}
 	return nil
-}
-
-// GetUserTheme returns the current user's theme or the default theme if no user theme is set.
-func GetUserTheme(ctx context.Context) string {
-	user := UserFromCtx(ctx)
-	if user == nil {
-		return DefaultUserTheme
-	}
-	if theme := user.GetSettings().Theme; theme != "" {
-		return theme
-	}
-	return DefaultUserTheme
 }
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data

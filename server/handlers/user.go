@@ -344,43 +344,6 @@ func HandleChangePassword() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// HandleSetTheme handles setting a theme selected by the user.
-func HandleSetTheme() http.HandlerFunc {
-	return userContentHandlerChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		theme := chi.URLParam(req, "theme")
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("get user data: %w", models.ErrCtxValueNotFound),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to set theme",
-					"This might be a temporary error, please try again.",
-				),
-			}).ServeHTTP(res, req)
-			return
-		}
-		settings := user.GetSettings()
-		settings.Theme = theme
-		if err := models.UpdateUser(req.Context(), user.GetID(), map[string]any{
-			"settings": settings,
-		}); err != nil {
-			HandleInternalError(&models.APIError{
-				InternalError: fmt.Errorf("update user: %w", err),
-				StatusCode:    http.StatusInternalServerError,
-				UserMessage: models.NewErrorMessage(
-					"Unable to set theme",
-					"This might be a temporary error, please try again.",
-				),
-			}).ServeHTTP(res, req)
-			return
-		}
-		RenderPartial(&PartialTemplate{
-			template: templates.DisplaySettings(user),
-		}).ServeHTTP(res, req)
-	}).ServeHTTP
-}
-
 // HandleDeactivateAccount handles a user request to deactivate their account. Their subscription in Stripe will be cancelled at
 // the end of the current billing period. They can continue to log in and use the service during the current billing
 // period, after which a scheduled job will delete their account.

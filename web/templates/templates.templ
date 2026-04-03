@@ -95,7 +95,12 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 	}}
 	// Render page.
 	<!DOCTYPE html>
-	<html lang="en">
+	<html
+		lang="en"
+		_="on load
+             set theme to localStorage.getItem('theme')
+             if theme set @data-theme of me to theme else set @data-theme of me to 'greenhouse' end"
+	>
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="description" content={ p.Description }/>
@@ -169,12 +174,10 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			hx-ext="preload,sse"
 			_="
 			on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end
+			on htmx:historyRestore call window.location.reload() end
 			"
 		>
-			// on htmx:historyRestore call window.location.reload()
 			<noscript>Foragd requires Javascript to function. Please enable or allow Javascript to run for the foragd.app domain.</noscript>
-			// Hidden input controller for theme.
-			<input id="page-theme" type="checkbox" value={ models.GetUserTheme(ctx) } class="toggle theme-controller hidden" checked="checked"/>
 			// Hidden input to get and store user timezone from browser.
 			<input id="timezone" type="hidden" name="timezone" _="init set my value to Intl.DateTimeFormat().resolvedOptions().timeZone"/>
 			// Container for modals.

@@ -250,20 +250,12 @@ components:
         contains user-specific settings for the application.
       type: object
       required:
-        - theme
         - show_onboarding
         - show_subscription_stats
         - mark_article_read_on_view
         - max_view_history
         - updates_interval
       properties:
-        theme:
-          description: >
-            the user interface theme chosen by the user.
-          type: string
-          default: greenhouse
-          x-oapi-codegen-extra-tags:
-            form: 'theme'
         show_onboarding:
           description: >
             indicates whether to show onboarding information (i.e., for a new user).

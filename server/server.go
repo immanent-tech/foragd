@@ -268,11 +268,6 @@ func Start(logger *slog.Logger) error {
 
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
-			// r.Get("/updates", func(res http.ResponseWriter, req *http.Request) {
-			// 	updater := &handlers.UpdatesHandler{}
-			// 	updater.Handle(req)
-			// 	updatesHandler(res, req)
-			// })
 			r.Get("/account-issue", handlers.HandleAccountIssue())
 			r.Post("/feedset", handlers.HandleAddFeedset(web.StaticContentFS))
 			// Import/export.
@@ -289,9 +284,6 @@ func Start(logger *slog.Logger) error {
 				r.With(middlewares.RequireHTMX).Post("/account", handlers.HandleSaveAccountSettings())
 				r.Get("/subscription", handlers.HandleManageAccountSubscription())
 				r.With(middlewares.RequireHTMX).Post("/password", handlers.HandleChangePassword())
-				r.Route("/theme", func(r chi.Router) {
-					r.With(middlewares.RequireHTMX).Put("/{theme}", handlers.HandleSetTheme())
-				})
 				r.With(middlewares.RequireHTMX).Post("/subscriptionemail", handlers.HandleGenerateSubscriptionEmail())
 			})
 			r.Get("/deactivate", handlers.HandleDeactivateAccount())
@@ -302,8 +294,10 @@ func Start(logger *slog.Logger) error {
 
 	h2s := &http2.Server{}
 	svr := &http.Server{
-		Handler: h2c.NewHandler(router, h2s),
-		Addr:    net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
+		Handler:           h2c.NewHandler(router, h2s),
+		Addr:              net.JoinHostPort(cfg.Host, strconv.FormatUint(cfg.Port, 10)),
+		ReadHeaderTimeout: cfg.ReadTimeout.Duration(),
+		// ! Setting timeouts will break SSE.
 		// ReadTimeout:  cfg.ReadTimeout.Duration(),
 		// WriteTimeout: cfg.WriteTimeout.Duration(),
 		// IdleTimeout:  cfg.IdleTimeout.Duration(),
