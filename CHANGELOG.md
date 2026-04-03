@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.88.0](https://github.com/immanent-tech/foragd/compare/v0.87.0...v0.88.0) (2026-04-03)
+
+
+### Features
+
+* :sparkles: re-add update notifications ([c06092b](https://github.com/immanent-tech/foragd/commit/c06092b2a0d6a918e3c2aafd01199f5c0dc5be6e))
+
+
+### Bug Fixes
+
+* **handlers:** :bug: fix template fragment reference for 404 responses ([01583e6](https://github.com/immanent-tech/foragd/commit/01583e65db28e18cf1168b40363596d2475c15e1))
+* **templates:** :bug: fix label for view filter ([3ec8c24](https://github.com/immanent-tech/foragd/commit/3ec8c24161b7531e5782a3d5cd5f2ef79958d618))
+* **templates:** :bug: fix triggers for loading category filters ([169f75d](https://github.com/immanent-tech/foragd/commit/169f75d814c6567ddb671ebf9ae72dcff7e20429))
+* **templates/search:** :bug: fix paths to add subscriptions ([fff59d1](https://github.com/immanent-tech/foragd/commit/fff59d1d0fae19d66ffdcb44cfd5e837d6c32cce))
+
 ## [0.87.0](https://github.com/immanent-tech/foragd/compare/v0.86.0...v0.87.0) (2026-04-02)
 
 
