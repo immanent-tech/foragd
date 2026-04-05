@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.88.3](https://github.com/immanent-tech/foragd/compare/v0.88.2...v0.88.3) (2026-04-05)
+
+
+### Performance Improvements
+
+* **templates:** :zap: improve history restore state ([c273ac9](https://github.com/immanent-tech/foragd/commit/c273ac9e8bcea00dde93a8cb0a637ceb91c8f5e5))
+
 ## [0.88.2](https://github.com/immanent-tech/foragd/compare/v0.88.1...v0.88.2) (2026-04-03)
 
 
