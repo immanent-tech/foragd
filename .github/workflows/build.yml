@@ -113,21 +113,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get Docker metadata
-        id: meta
-        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
-        with:
-          images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
-
       - name: Build and push container image
         id: build_and_push
         uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v5
         with:
           file: ${{ matrix.service }}.Dockerfile
           context: .
-          labels: ${{ steps.meta.outputs.labels }}
-          tags: ${{ steps.meta.outputs.tags }}
+          sbom: true
+          provenance: mode=max
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
@@ -225,7 +218,8 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=${{ env.APPVERSION }}
           labels: |
-            org.opencontainers.image.title=${{ github.repository }}
+            org.opencontainers.image.title=${{ github.repository }}-${{ matrix.service }}
+            org.opencontainers.image.description=Foragd ${{ matrix.service }} component
             org.opencontainers.image.vendor=${{ github.repository_owner }}
 
       # -----------------------------------------------------------------------
