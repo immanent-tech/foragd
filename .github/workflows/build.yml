@@ -44,6 +44,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   build_container:
+    name: Build container (${{ matrix.service }})
     needs: check_release
     runs-on: ubuntu-22.04
 
@@ -153,7 +154,7 @@ jobs:
 
 
   merge:
-    name: Merge manifests & Sign
+    name: Merge manifests & Sign (${{ matrix.service }})
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     needs: build_container
@@ -177,6 +178,14 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+
+      - name: Set up environment
+        run: |
+          echo "APPVERSION=$(git describe --tags --always --dirty)" >> $GITHUB_ENV
+
+      - name: Set app version for release
+        if: ${{ needs.check_release.outputs.release_created }}
+        run: echo "APPVERSION=${{ needs.check_release.outputs.release_tag }}" >> $GITHUB_ENV
 
       - name: Download all digest artifacts
         uses: actions/download-artifact@v4
@@ -214,9 +223,9 @@ jobs:
             type=semver,pattern={{major}}
             type=sha,prefix=sha-,format=short
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ env.APPVERSION }}
           labels: |
             org.opencontainers.image.title=${{ github.repository }}
-            org.opencontainers.image.description=Multi-arch image built by GitHub Actions
             org.opencontainers.image.vendor=${{ github.repository_owner }}
 
       # -----------------------------------------------------------------------
