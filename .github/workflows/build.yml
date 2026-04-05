@@ -45,18 +45,24 @@ jobs:
 
   build_container:
     needs: check_release
+    runs-on: ubuntu-22.04
+
     permissions:
       contents: write
       packages: write
-    runs-on: ubuntu-22.04
+      id-token: write
+      attestations: write
+
     strategy:
       matrix:
         include:
           - service: scheduler
           - service: server
+
     env:
       REGISTRY: ghcr.io
-      IMAGE: ${{ github.repository }}
+      IMAGE_NAME: ${{ github.repository }}
+
     steps:
       # - name: Harden Runner
       #   uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
@@ -88,8 +94,14 @@ jobs:
         if: ${{ needs.check_release.outputs.release_created }}
         run: echo "APPVERSION=${{ needs.check_release.outputs.release_tag }}" >> $GITHUB_ENV
 
-      - name: Check and install cosign
-        uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        with:
+          driver-opts: |
+            image=moby/buildkit:latest
 
       - name: Log in to the Container registry
         if: github.event_name != 'pull_request'
@@ -101,40 +113,194 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get Docker metadata
-        id: docker_metadata
+        id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
           images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE }}-${{ matrix.service }}
-          tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=tag
-            type=ref,event=pr
-            type=sha,format=long
-            type=raw,value=${{ env.APPVERSION }}
-          flavor: |
-            latest=auto
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
 
       - name: Build and push container image
         id: build_and_push
         uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v5
         with:
-          push: ${{ github.event_name != 'pull_request' }}
           file: ${{ matrix.service }}.Dockerfile
           context: .
-          labels: ${{ steps.docker_metadata.outputs.labels }}
-          annotations: ${{ steps.docker_metadata.outputs.annotations }}
-          tags: ${{ steps.docker_metadata.outputs.tags }}
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE }}-${{ matrix.service }},push=true
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           build-args: |
             APPVERSION=${{ env.APPVERSION }}
+
+      - name: Export digest to artifact
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p /tmp/digests
+          # Sanitise platform name to use as a filename  (e.g. linux_amd64)
+          SAFE_PLATFORM=$(echo "${{ matrix.service }}" | tr '/' '_')
+          echo "${{ steps.build.outputs.digest }}" > /tmp/digests/${SAFE_PLATFORM}
+          echo "Saved digest ${{ steps.build.outputs.digest }} for ${{ matrix.service }}"
+
+      - name: Upload digest artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ strategy.job-index }}
+          path: /tmp/digests/
+          if-no-files-found: error
+          retention-days: 1
+
+
+  merge:
+    name: Merge manifests & Sign
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    needs: build_container
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+
+    strategy:
+      matrix:
+        include:
+          - service: scheduler
+          - service: server
+
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+
+      - name: Download all digest artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # -----------------------------------------------------------------------
+      # Generate the full set of tags for the final manifest list.
+      # -----------------------------------------------------------------------
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr,prefix=pr-
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+          labels: |
+            org.opencontainers.image.title=${{ github.repository }}
+            org.opencontainers.image.description=Multi-arch image built by GitHub Actions
+            org.opencontainers.image.vendor=${{ github.repository_owner }}
+
+      # -----------------------------------------------------------------------
+      # Build the `docker buildx imagetools create` arguments from every digest
+      # file uploaded by the matrix legs, then push the manifest list.
+      # -----------------------------------------------------------------------
+      - name: Create and push multi-arch manifest list
+        id: merge
+        run: |
+          # Collect every digest file and build the source list
+          SOURCES=""
+          for f in /tmp/digests/*; do
+            [ -f "$f" ] || continue
+            DIGEST=$(cat "$f")
+            SOURCES="${SOURCES} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}@${DIGEST}"
+          done
+
+          echo "Sources:${SOURCES}"
+
+          # Build --tag flags from metadata-action output
+          TAG_FLAGS=$(echo "${{ steps.meta.outputs.tags }}" \
+            | tr '\n' '\0' \
+            | xargs -0 -I{} echo "--tag {}" \
+            | tr '\n' ' ')
+
+          echo "Tags: ${TAG_FLAGS}"
+
+          # Create the manifest list and push it
+          eval docker buildx imagetools create ${TAG_FLAGS} ${SOURCES}
+
+          # Retrieve the digest of the newly created manifest list for signing
+          MANIFEST_DIGEST=$(docker buildx imagetools inspect \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}:${{ steps.meta.outputs.version }}" \
+            --format '{{json .Manifest.Digest}}' | tr -d '"')
+
+          echo "manifest_digest=${MANIFEST_DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "Manifest digest: ${MANIFEST_DIGEST}"
+
+      - name: Sign manifest list with cosign
+        env:
+          DIGEST: ${{ steps.merge.outputs.manifest_digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          echo "${TAGS}" | while IFS= read -r tag; do
+            [ -z "$tag" ] && continue
+            IMAGE_REF="${tag}@${DIGEST}"
+            echo "Signing: ${IMAGE_REF}"
+            cosign sign --yes --key cosign.key "${IMAGE_REF}"
+          done
+
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}@${{ steps.merge.outputs.manifest_digest }}
+          format: cyclonedx-json
+          output-file: sbom.cyclonedx.json
+
+      - name: Attest SBOM with cosign
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          cosign attest --yes --key cosign.key \
+            --predicate sbom.cyclonedx.json \
+            --type cyclonedx \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}@${{ steps.merge.outputs.manifest_digest }}
+
+      # -----------------------------------------------------------------------
+      - name: Print cosign verify command
+        env:
+          DIGEST: ${{ steps.merge.outputs.manifest_digest }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo ""
+          echo "╔══════════════════════════════════════════════════════════════╗"
+          echo "║  Verify this image with:                                     ║"
+          echo "╚══════════════════════════════════════════════════════════════╝"
+          echo ""
+          echo "  cosign verify \\"
+          echo "    --certificate-identity-regexp=\"https://github.com/${REPO}/\" \\"
+          echo "    --certificate-oidc-issuer=\"https://token.actions.githubusercontent.com\" \\"
+          echo "    ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}@${DIGEST}"
+          echo ""
+
 
       - name: Sign image with a key
         run: |
@@ -144,8 +310,7 @@ jobs:
           done
           cosign sign --yes --key cosign.key ${images}
         env:
-          TAGS: ${{ steps.docker_metadata.outputs.tags }}
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          TAGS: ${{ steps.meta.outputs.tags }}
           DIGEST: ${{ steps.build_and_push.outputs.digest }}
 
   build_emails:
