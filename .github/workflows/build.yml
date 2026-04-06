@@ -145,7 +145,7 @@ jobs:
           labels: ${{ steps.docker_metadata.outputs.labels }}
           annotations: ${{ steps.docker_metadata.outputs.annotations }}
           tags: ${{ steps.docker_metadata.outputs.tags }}
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE }}-${{ matrix.service }},push=true
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }},push=true
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           build-args: |
