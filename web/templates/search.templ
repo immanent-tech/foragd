@@ -554,7 +554,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					type="text"
 					name="text"
 					placeholder={ `+keyword -"some phrase"` }
-					class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+					class="textarea max-h-40 overflow-y-auto mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
 					_="on change set #global-search's value to my value"
 				>
 					if request.Text != "" {
@@ -570,7 +570,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					type="text"
 					name="categories"
 					placeholder="favorite-category -unwanted-category"
-					class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+					class="textarea max-h-40 overflow-y-auto mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
 				>
 					if request.Categories != nil {
 						{ *request.Categories }
@@ -585,7 +585,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					type="text"
 					name="authors"
 					placeholder="bob +jenny@blog.me"
-					class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+					class="textarea max-h-40 overflow-y-auto mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
 				>
 					if request.Authors != nil {
 						{ *request.Authors }
