@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.89.0](https://github.com/immanent-tech/foragd/compare/v0.88.3...v0.89.0) (2026-04-06)
+
+
+### Features
+
+* **templates/search:** :sparkles: switch back to popovers for search suggestions and advanced filtering ([b50ca01](https://github.com/immanent-tech/foragd/commit/b50ca01e7989c65a4fcbd363fba2f45b54153157))
+
+
+### Bug Fixes
+
+* **assets:** :bug: fix style settings ([d1b319f](https://github.com/immanent-tech/foragd/commit/d1b319f37e91e4c501eaf7d8644a94be93c97ca5))
+* **templates/search:** :bug: hitting enter on search suggestion won't trigger global search ([d2e8d3b](https://github.com/immanent-tech/foragd/commit/d2e8d3be4847f02035b90a9ec18859025dc62470))
+* **templates/search:** :sparkles: improved search suggestions navigation ([d31efe0](https://github.com/immanent-tech/foragd/commit/d31efe0134f852351e60819d5560090cb4faf2f6))
+
 ## [0.88.3](https://github.com/immanent-tech/foragd/compare/v0.88.2...v0.88.3) (2026-04-05)
 
 
