@@ -164,7 +164,7 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 				IncludeIndicatorStyles: false,
 				HistoryRestoreAsHxRequest: false,
 				GlobalViewTransitions: true,
-				HistoryCacheSize: 0,
+				HistoryCacheSize: 10,
 			}) }
 			/>
 			<title>{ p.Title }</title>
@@ -174,24 +174,6 @@ templ CreatePage(template templ.Component, options ...PageOption) {
 			hx-ext="preload,sse"
 			_="
 			on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad end
-
-			on scroll from document
-		      js
-		        clearTimeout(window._scrollSave);
-		        window._scrollSave = setTimeout(() =>
-      				sessionStorage.setItem('scrollPos:' + location.pathname + location.search, scrollY)
-	  		    , 100);
-		      end
-
-		    on htmx:afterSettle from document
- 			  set savedY to sessionStorage.getItem('scrollPos:' + location.pathname + location.search)
-    		  if savedY
-			  	wait 50ms
-				log 'restoring scroll pos to '+savedY
-				js(savedY)
-					scrollTo({ top: parseInt(savedY), behavior: 'instant' })
-				end
-		    end
 			"
 		>
 			// log 'restoring scroll to ' + savedY

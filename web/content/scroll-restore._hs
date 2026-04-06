@@ -1,0 +1,20 @@
+-- Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
+-- SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+def saveScrollPos()
+  js
+    clearTimeout(window._scrollSave);
+    window._scrollSave = setTimeout(() =>
+      sessionStorage.setItem('scrollPos:' + location.pathname + location.search, scrollY), 100);
+  end
+end
+
+def restoreScrollPos()
+  set savedY to sessionStorage.getItem('scrollPos:' + location.pathname + location.search)
+  if savedY
+    wait 50ms
+	js(savedY)
+		scrollTo({ top: parseInt(savedY), behavior: 'instant' })
+	end
+  end
+end
