@@ -104,6 +104,9 @@ jobs:
           driver-opts: |
             image=moby/buildkit:latest
 
+      - name: Set up cosign
+        uses: sigstore/cosign-installer@v3
+
       - name: Log in to the Container registry
         if: github.event_name != 'pull_request'
         id: registry_login
