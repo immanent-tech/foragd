@@ -135,6 +135,8 @@ jobs:
             org.opencontainers.image.title=${{ github.repository }}-${{ matrix.service }}
             org.opencontainers.image.description=Foragd ${{ matrix.service }} component
             org.opencontainers.image.vendor=${{ github.repository_owner }}
+          flavor: |
+            latest=auto
 
       - name: Build and push container image
         id: build
@@ -145,9 +147,9 @@ jobs:
           context: .
           sbom: true
           provenance: mode=max
-          labels: ${{ steps.docker_metadata.outputs.labels }}
-          annotations: ${{ steps.docker_metadata.outputs.annotations }}
-          tags: ${{ steps.docker_metadata.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          tags: ${{ steps.meta.outputs.tags }}
           outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }},push=true
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
