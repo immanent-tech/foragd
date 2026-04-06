@@ -1,18 +1,17 @@
-@plugin 'daisyui/theme' {
-  name: 'latte';
+@plugin "daisyui/theme" {
+  name: "latte";
   --color-primary: #4a65fc;
   --color-accent: #c64e33;
   --color-neutral: #70748a;
 }
 
-@plugin 'daisyui/theme' {
-  name: 'light';
-  default: true;
+@plugin "daisyui/theme" {
+  name: "light";
   --color-secondary: #d82b87;
 }
 
-@plugin 'daisyui/theme' {
-  name: 'greenhouse';
+@plugin "daisyui/theme" {
+  name: "greenhouse";
   default: true; /* set as default */
   prefersdark: false; /* set as default dark mode (prefers-color-scheme:dark) */
   color-scheme: light; /* color of browser-provided UI */
@@ -55,8 +54,8 @@
   --noise: 0;
 }
 
-@plugin 'daisyui/theme' {
-  name: 'solarized-dark';
+@plugin "daisyui/theme" {
+  name: "solarized-dark";
   default: false; /* set as default */
   prefersdark: false; /* set as default dark mode (prefers-color-scheme:dark) */
   color-scheme: dark; /* color of browser-provided UI */

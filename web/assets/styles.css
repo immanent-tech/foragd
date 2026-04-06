@@ -3,11 +3,7 @@
 @plugin "@tailwindcss/typography";
 @plugin "tailwindcss-visibility";
 @plugin "daisyui" {
-  themes:
-    light,
-    dark,
-    dracula --prefersdark,
-    nord;
+  themes: light, dark, dracula, nord;
   exclude: properties;
 }
 
