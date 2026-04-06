@@ -41,95 +41,105 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 }
 
 templ Search() {
-	<div class="input w-full bg-base-300 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6">
-		<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search pointer-events-none flex-none text-primary">
-			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
-		</svg>
-		//   on keydown from body if the event's key is 'q' and event.altKey then focus() me end
-		<input
-			hx-get="/search"
-			hx-target={ ContentID.Target() }
-			hx-include="#search-filters,[id='timezone']"
-			hx-trigger="keyup[key=='Enter'] consume"
-			hx-sync="#search-suggestions-popover:drop"
-			id="global-search"
-			type="search"
-			name="text"
-			placeholder="Search..."
-			spellcheck="false"
-			autocomplete="off"
-			aria-label="Search"
-		/>
-		// _="
-		//   on keydown
-		// 	set items to the <[tabindex='-1']/>  in #search-suggestions-popover
-		// 	if items's length is 0 then exit end
-		// 	if event.key is 'ArrowDown'
-		// 	  halt the event
-		// 	  call items[0].focus()
-		// 	end
-		// 	if event.key is 'Escape'
-		// 	  call #search-suggestions-popover.hidePopover()
-		// 	  call me.focus()
-		// 	end
-		//   "
-		<button
-			hx-post="/search/suggestions"
-			hx-target="#search-suggestions-popover"
-			hx-include="#search-filters,[id='timezone'],[id='global-search']"
-			hx-trigger="keyup[key!='Enter'] delay:500ms from:#global-search"
-			hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
-			_="on htmx:trigger if event.detail.triggeringEvent.key == 'Enter' then halt the event end"
-			popovertarget="search-suggestions-popover"
-			type="button"
-			aria-label="Search suggestions"
-			class="focus:outline-primary"
-		>
-			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down pointer-events-none flex-none text-primary transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
-				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+	<el-popover-group class="flex items-center justify-center w-full">
+		<div class="input w-full bg-base-300 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6">
+			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search pointer-events-none flex-none text-primary">
+				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
 			</svg>
-		</button>
-		// _="on keydown
-		// set items to the <[role='option']/>  in me
-		// log items
-		// set active to document.activeElement
-		// log active
-		// if active is not null and items is not null
-		// 	set idx to indexOf(items, active)
-		// end
-		// if event.key is 'ArrowDown'
-		//   halt the event
-		//   if idx < (items's length - 1)
-		//   	log 'next element' + items[idx + 1]
-		// 	call items[idx + 1].focus()
-		//   else
-		//     call items[0].focus()
-		//   end
-		// end
-		// if event.key is 'ArrowUp'
-		//   halt the event
-		//   if idx is 0
-		//     call #global-search.focus()
-		//   else
-		//     call items[idx - 1].focus()
-		//   end
-		// end
-		// if event.key is 'Escape'
-		//   call me.hidePopover()
-		//   call #global-search.focus()
-		// end
-		// if event.key is 'Enter'
-		//   halt the event
-		//   call document.activeElement.click()
-		// end"
-		<el-popover
-			id="search-suggestions-popover"
-			anchor="bottom end"
-			popover
-			role="listbox"
-			class="h-fit max-h-9/10 w-full divide-y divide-primary/80 rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px]"
-		></el-popover>
-		<script>
+			<input
+				hx-get="/search"
+				hx-target={ ContentID.Target() }
+				hx-include="#search-filters,[id='timezone']"
+				hx-trigger="keyup[key=='Enter'] consume"
+				hx-sync="#search-suggestions-popover:drop"
+				id="global-search"
+				type="search"
+				name="text"
+				placeholder="Search..."
+				spellcheck="false"
+				autocomplete="off"
+				aria-label="Search"
+				_="
+					on keydown from body if the event's key is 'q' and event.altKey then focus() me end
+					on toggle from #search-advanced-popover
+       					if event.newState is 'open'
+       					  set me.disabled to true
+       					else
+       					  set me.disabled to false
+       					end
+					on change set #search-text's value to my value
+				"
+			/>
+			// _="
+			//   on keydown
+			// 	set items to the <[tabindex='-1']/>  in #search-suggestions-popover
+			// 	if items's length is 0 then exit end
+			// 	if event.key is 'ArrowDown'
+			// 	  halt the event
+			// 	  call items[0].focus()
+			// 	end
+			// 	if event.key is 'Escape'
+			// 	  call #search-suggestions-popover.hidePopover()
+			// 	  call me.focus()
+			// 	end
+			//   "
+			<button
+				hx-post="/search/suggestions"
+				hx-target="#search-suggestions-popover"
+				hx-include="#search-filters,[id='timezone'],[id='global-search']"
+				hx-trigger="keyup[key!='Enter'] delay:500ms changed from:#global-search"
+				hx-on::after-request="document.getElementById('search-suggestions-popover').showPopover()"
+				_="on htmx:trigger if event.detail.triggeringEvent.key == 'Enter' then halt the event end"
+				popovertarget="search-suggestions-popover"
+				type="button"
+				aria-label="Search suggestions"
+				class="focus:outline-primary"
+			>
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down pointer-events-none flex-none text-primary transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
+				</svg>
+			</button>
+			// _="on keydown
+			// set items to the <[role='option']/>  in me
+			// log items
+			// set active to document.activeElement
+			// log active
+			// if active is not null and items is not null
+			// 	set idx to indexOf(items, active)
+			// end
+			// if event.key is 'ArrowDown'
+			//   halt the event
+			//   if idx < (items's length - 1)
+			//   	log 'next element' + items[idx + 1]
+			// 	call items[idx + 1].focus()
+			//   else
+			//     call items[0].focus()
+			//   end
+			// end
+			// if event.key is 'ArrowUp'
+			//   halt the event
+			//   if idx is 0
+			//     call #global-search.focus()
+			//   else
+			//     call items[idx - 1].focus()
+			//   end
+			// end
+			// if event.key is 'Escape'
+			//   call me.hidePopover()
+			//   call #global-search.focus()
+			// end
+			// if event.key is 'Enter'
+			//   halt the event
+			//   call document.activeElement.click()
+			// end"
+			<el-popover
+				id="search-suggestions-popover"
+				anchor="bottom end"
+				popover
+				role="listbox"
+				class="overflow-y-auto max-h-[90dvh] w-full divide-y divide-primary/80 rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px]"
+			></el-popover>
+			<script>
   const input   = document.getElementById('global-search');
   const popover = document.getElementById('search-suggestions-popover');
 
@@ -189,32 +199,32 @@ templ Search() {
     }
   });
 </script>
-		<button
-			command="show-modal"
-			commandfor="advanced-search-dialog"
-			aria-label="Show advanced search dialog"
+			<button
+				popovertarget="search-advanced-popover"
+				type="button"
+				class="focus:outline-primary"
+				aria-label="Show advanced search dialog"
+			>
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-adjustments text-primary">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 10a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M6 4v4"></path><path d="M6 12v8"></path><path d="M10 16a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12 4v10"></path><path d="M12 18v2"></path><path d="M16 7a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M18 4v1"></path><path d="M18 9v11"></path>
+				</svg>
+			</button>
+		</div>
+		<el-popover
+			id="search-advanced-popover"
+			anchor="bottom end"
+			popover
+			class="overflow-y-auto max-h-[90dvh] w-full divide-y divide-primary/80 rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:12px]"
 		>
-			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-adjustments text-primary">
-				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 10a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M6 4v4"></path><path d="M6 12v8"></path><path d="M10 16a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M12 4v10"></path><path d="M12 18v2"></path><path d="M16 7a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M18 4v1"></path><path d="M18 9v11"></path>
-			</svg>
-		</button>
-	</div>
-	<el-dialog>
-		<dialog id="advanced-search-dialog" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
-			<el-dialog-backdrop></el-dialog-backdrop>
-			<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-left focus:outline-none sm:items-center sm:p-0">
-				<el-dialog-panel class="relative w-full transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:max-w-3xl sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
-					@AdvancedSearch(models.NewSearchRequest(), nil)
-				</el-dialog-panel>
-			</div>
-		</dialog>
-	</el-dialog>
+			@AdvancedSearch(models.NewSearchRequest(), nil)
+		</el-popover>
+	</el-popover-group>
 }
 
 // SearchSuggestions will render suggestions for a given search.
 templ SearchSuggestions(suggestions *models.SearchResults) {
 	<ul
-		class="w-full"
+		class="w-full p-4"
 		role="listbox"
 	>
 		<li
@@ -531,7 +541,7 @@ templ SearchResults(results *models.SearchResults) {
 
 templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes) {
 	// Search form.
-	<div id="search-filters" { attributes... }>
+	<div id="search-filters" { attributes... } class="p-4">
 		<h3 id="search-filters-dialog-title" class="text-base font-semibold">Advanced Search</h3>
 		<div class="grid w-full grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-6 sm:gap-y-8 md:col-span-2">
 			// Full text search filter.
@@ -544,6 +554,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					name="text"
 					placeholder={ `+keyword -"some phrase"` }
 					class="textarea mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+					_="on change set #global-search's value to my value"
 				>
 					if request.Text != "" {
 						{ request.Text }
@@ -691,24 +702,24 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 				</select>
 			</fieldset>
 			<div class="col-span-full mt-6 flex items-center justify-end gap-x-6">
-				<button
-					type="button"
-					class="btn btn-sm btn-secondary hover:btn-error"
-					command="close"
-					commandfor="advanced-search-dialog"
-				>Cancel</button>
+				// <button
+				// 	type="button"
+				// 	class="btn btn-sm btn-secondary hover:btn-error"
+				// 	command="close"
+				// 	commandfor="advanced-search-dialog"
+				// >Cancel</button>
 				<form
 					id="search-results"
 					hx-get="/search"
 					hx-target={ ContentID.Target() }
 					hx-include="[id='timezone'],#search-filters"
 					hx-params="not subscription-text"
-					hx-on::before-request="document.getElementById('advanced-search-dialog').close()"
+					_="on htmx:beforeRequest call #search-advanced-popover.hidePopover()"
 				>
 					<button
 						type="submit"
 						class="btn btn-sm btn-primary"
-					>Search</button>
+					>Apply</button>
 				</form>
 			</div>
 			// Help dialog.
