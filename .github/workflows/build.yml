@@ -140,7 +140,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: digest-${{ strategy.job-index }}
+          name: digest-${{ matrix.service }}
           path: /tmp/digests/
           if-no-files-found: error
           retention-days: 1
@@ -184,7 +184,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
-          pattern: digest-*
+          pattern: digest-${{ matrix.service }}
           merge-multiple: true
 
       - name: Set up Docker Buildx
