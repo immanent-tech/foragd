@@ -50,7 +50,7 @@ templ Search() {
 				hx-get="/search"
 				hx-target={ ContentID.Target() }
 				hx-include="#search-filters,[id='timezone']"
-				hx-trigger="keyup[key=='Enter'] consume"
+				hx-trigger="keydown[key=='Enter'] consume"
 				hx-sync="#search-suggestions-popover:drop"
 				id="global-search"
 				type="search"
@@ -182,7 +182,7 @@ templ Search() {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (idx === 0) {
-        input.focus(); // return focus to input from top of list
+        input.focus();
       } else {
         items[idx - 1].focus();
       }
@@ -195,6 +195,7 @@ templ Search() {
 
     if (e.key === 'Enter') {
       e.preventDefault();
+  	  e.stopPropagation();
       document.activeElement.click();
     }
   });
