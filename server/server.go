@@ -21,6 +21,7 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/providers/resend"
 	"github.com/immanent-tech/foragd/providers/stripe"
 	"github.com/immanent-tech/foragd/server/handlers"
@@ -331,6 +332,7 @@ func Start(logger *slog.Logger) error {
 
 	logger.Info("Starting server...",
 		slog.String("address", svr.Addr),
+		slog.String("version", config.Version),
 		slog.Time("start_time", time.Now()),
 	)
 
@@ -361,14 +363,16 @@ func Start(logger *slog.Logger) error {
 	defer cancel()
 
 	// Trigger graceful shutdown
-	logger.Info("Shutting down server...")
 	if err := svr.Shutdown(shutdownCtx); err != nil {
 		logger.Error("Server failed to shutdown gracefully.",
 			slog.Any("error", err),
+			slog.Time("stop_time", time.Now()),
 		)
 	}
 
-	logger.Info("Server shutdown gracefully")
+	logger.Info("Server shutdown gracefully",
+		slog.Time("stop_time", time.Now()),
+	)
 
 	return nil
 }

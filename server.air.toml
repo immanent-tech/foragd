@@ -14,7 +14,7 @@ args_bin = [
   "serve",
 ]
 # Just plain old shell command. You could use `make` as well.
-cmd = 'go build -ldflags="-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)" -o ./tmp/foragd .'
+cmd = 'go build -o ./tmp/foragd .'
 # Binary file yields from 'cmd', will be deprecated soon, recommend using entrypoint.
 bin = "tmp/foragd"
 # Entrypoint binary relative to root. First item is the executable, more items are default arguments.

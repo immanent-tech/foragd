@@ -34,7 +34,7 @@
     {
       "label": "run: elastic|indices|update",
       "type": "shell",
-      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file elastic indices update ${input:objects}",
+      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic indices update ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -56,7 +56,7 @@
     {
       "label": "run: elastic|indices|migrate",
       "type": "shell",
-      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file elastic indices migrate ${input:objects}",
+      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic indices migrate ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -78,7 +78,7 @@
     {
       "label": "run: elastic|indices|create",
       "type": "shell",
-      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file elastic indices create ${input:objects}",
+      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic indices create ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -100,7 +100,7 @@
     {
       "label": "run: elastic|ilm|update",
       "type": "shell",
-      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run -ldflags=\"-X github.com/immanent-tech/foragd/config.Version=$(git describe --tags --always --long --dirty)\" main.go --log-level=debug --no-log-file elastic ilm update ${input:objects}",
+      "command": "node_modules/.bin/dotenv -e .env.${input:environment} -- go run main.go --log-level=debug --no-log-file elastic ilm update ${input:objects}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,

@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
@@ -18,6 +19,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/models/schema"
 	"github.com/immanent-tech/foragd/providers/elastic"
@@ -87,13 +89,18 @@ func Run(ctx context.Context) error {
 
 	Manager.Start(ctx)
 
-	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler starting.")
+	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler starting.",
+		slog.String("version", config.Version),
+		slog.Time("start_time", time.Now()),
+	)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
 
-	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler stopping.")
+	slogctx.FromCtx(ctx).DebugContext(ctx, "Scheduler stopping.",
+		slog.Time("stop_time", time.Now()),
+	)
 	Manager.Stop()
 
 	return nil
