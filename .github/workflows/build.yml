@@ -169,11 +169,9 @@ jobs:
       - name: Generate SBOM with Syft
         uses: anchore/sbom-action@v0
         with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}@${DIGEST}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}@${{ steps.build.outputs.digest }}
           format: cyclonedx-json
           output-file: sbom.cyclonedx.json
-        env:
-          DIGEST: ${{ steps.build.outputs.digest }}
 
       - name: Attest SBOM with cosign
         env:
