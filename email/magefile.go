@@ -59,7 +59,8 @@ func Build(env string) error {
 func Install(env string) error {
 	logging.New(logging.Options{})
 
-	mg.Deps(Build)
+	mg.Deps(mg.F(Build, env))
+
 	slog.Info("Installing...",
 		slog.String("environment", env),
 	)
