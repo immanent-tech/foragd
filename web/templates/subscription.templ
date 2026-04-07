@@ -385,10 +385,10 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 					<div class="min-w-0 flex-1">
 						<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Subscriptions</h1>
 					</div>
-					<output class="mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4">
+					<p aria-live="polite" class="mt-4 mb-2 flex space-x-4 sm:mt-8 sm:mb-4 md:ml-4">
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetView() }</span>
 						<span class="text-lg font-medium capitalize">{ response.Filters.GetSort().String() }</span>
-					</output>
+					</p>
 				</div>
 				@FilterControls("/list/subscriptions", &response.Filters) {
 					// Subscriptions actions menu.
