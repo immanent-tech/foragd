@@ -5,11 +5,8 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
-	"github.com/immanent-tech/foragd/web/templates/helpers/mailto"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"os"
 	"strings"
-	"time"
 )
 
 templ UserSettings() {
@@ -48,35 +45,35 @@ templ UserSettings() {
 
 templ AccountSettings(user *models.User) {
 	<div id="account-settings" class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-		<div>
-			<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
-				Subscription Plan
-			</h3>
-			<p class="mt-1 text-sm/6">
-				if trial, endDate := user.OnTrial(); trial {
-					{ user.GetSubscriptionPlan() +" (trial, ending on "+endDate.Format(time.DateOnly)+")" }
-				} else if cancelled, endDate := user.Cancelled(); cancelled {
-					{ user.GetSubscriptionPlan() +" (cancelled, ending on "+endDate.Format(time.DateOnly)+")" }
-				} else {
-					{ user.GetSubscriptionPlan() }
-				}
-			</p>
-		</div>
-		<div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
-			<div class="gap-4 sm:col-span-full">
-				if mgmtLink := os.Getenv("FORAGD_STRIPE_SUBCRIPTIONMGMTURL"); mgmtLink != "" {
-					<a role="button" class="btn btn-primary" href={ mgmtLink }>Manage Subscription Plan</a>
-				} else {
-					<a
-						role="button"
-						href={ mailto.Build("support@immanent.tech", mailto.WithSubject("Foragd Subscription Question")) }
-						class="btn btn-primary"
-					>
-						Email support to manage your subscription
-					</a>
-				}
-			</div>
-		</div>
+		// <div>
+		// 	<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
+		// 		Subscription Plan
+		// 	</h3>
+		// 	<p class="mt-1 text-sm/6">
+		// 		if trial, endDate := user.OnTrial(); trial {
+		// 			{ user.GetSubscriptionPlan() +" (trial, ending on "+endDate.Format(time.DateOnly)+")" }
+		// 		} else if cancelled, endDate := user.Cancelled(); cancelled {
+		// 			{ user.GetSubscriptionPlan() +" (cancelled, ending on "+endDate.Format(time.DateOnly)+")" }
+		// 		} else {
+		// 			{ user.GetSubscriptionPlan() }
+		// 		}
+		// 	</p>
+		// </div>
+		// <div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
+		// 	<div class="gap-4 sm:col-span-full">
+		// 		if mgmtLink := os.Getenv("FORAGD_STRIPE_SUBCRIPTIONMGMTURL"); mgmtLink != "" {
+		// 			<a role="button" class="btn btn-primary" href={ mgmtLink }>Manage Subscription Plan</a>
+		// 		} else {
+		// 			<a
+		// 				role="button"
+		// 				href={ mailto.Build("support@immanent.tech", mailto.WithSubject("Foragd Subscription Question")) }
+		// 				class="btn btn-primary"
+		// 			>
+		// 				Email support to manage your subscription
+		// 			</a>
+		// 		}
+		// 	</div>
+		// </div>
 		<div>
 			<h3 class="mt-4 mb-2 scroll-mt-1.5 text-lg font-medium sm:mt-8 sm:mb-4">
 				Import/Export
