@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.91.0](https://github.com/immanent-tech/foragd/compare/v0.90.0...v0.91.0) (2026-04-07)
+
+
+### Features
+
+* **templates:** :sparkles: card improvements ([91f4283](https://github.com/immanent-tech/foragd/commit/91f42833db9d6c1ffbd31c4f76fe5c8488b21212))
+* **templates:** :sparkles: category badge improvements ([353b231](https://github.com/immanent-tech/foragd/commit/353b23182d41ad0f26ee46771d17a89e20702db7))
+
+
+### Bug Fixes
+
+* **templates:** :bug: better feedback for filter changes on list subscriptions/articles pages ([73f1400](https://github.com/immanent-tech/foragd/commit/73f14000e7013b8612fd2becfe088abda32ec8d2))
+* **templates:** :lipstick: consistent card actions styling on subscription/article cards ([854a128](https://github.com/immanent-tech/foragd/commit/854a1289d24044ac8a86239bb691e0cc444eb755))
+
+
+### Performance Improvements
+
+* **styles:** :zap: cap card entry animation delay ([4323af3](https://github.com/immanent-tech/foragd/commit/4323af3c06fec8e52da1747c5a7f9769623b0da9))
+* **templates:** :zap: improve animations ([3670af8](https://github.com/immanent-tech/foragd/commit/3670af86dd78885d90e63173dcc76875670146a2))
+
 ## [0.90.0](https://github.com/immanent-tech/foragd/compare/v0.89.0...v0.90.0) (2026-04-07)
 
 
