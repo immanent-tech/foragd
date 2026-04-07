@@ -87,6 +87,17 @@
     }
   }
 
+  .card {
+    /* Ensure <figure/> inherits top corner rounding of card. */
+    figure {
+      @apply rounded-t-[inherit];
+    }
+    /* Give images consistent depth and prevent them from bleeding visually into very light or very dark backgrounds. */
+    img {
+      @apply ring-1 ring-neutral/10;
+    }
+  }
+
   article.card {
     /* Only animate these two — never use transition: all */
     animation: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;

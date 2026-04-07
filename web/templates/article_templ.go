@@ -140,7 +140,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 			if img.GetTitle() == "" {
 				img.Title = new(article.GetTitle())
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <figure class=\"rounded-t-box\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <figure>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
