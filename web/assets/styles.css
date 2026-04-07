@@ -25,6 +25,8 @@
     "cv03" 1,
     "cv04" 1,
     "cv11" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   --sidebar-width: var(--w-sm);
   scrollbar-gutter: stable;
   scrollbar-color: var(--color-primary);
