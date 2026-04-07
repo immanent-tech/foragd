@@ -45,24 +45,29 @@ var templates = map[string][]resend.TemplateOption{
 }
 
 // Build creates the email templates
-func Build() error {
+func Build(env string) error {
+	logging.New(logging.Options{})
 	mg.Deps(InstallDeps)
-	fmt.Println("Building...")
-	cmd := exec.Command("npx", "maizzle", "build", "production")
+	slog.Info("Building...",
+		slog.String("environment", env),
+	)
+	cmd := exec.Command("npx", "maizzle", "build", env)
 	return cmd.Run()
 }
 
 // A custom install step if you need your bin someplace other than go/bin
-func Install() error {
+func Install(env string) error {
 	logging.New(logging.Options{})
 
 	mg.Deps(Build)
-	fmt.Println("Installing...")
+	slog.Info("Installing...",
+		slog.String("environment", env),
+	)
 
 	ctx := context.Background()
 
 	// Mount the templates filesystem.
-	templatesFS, err := os.OpenRoot("build/production")
+	templatesFS, err := os.OpenRoot(filepath.Join("build", env))
 	if err != nil {
 		return fmt.Errorf("open templates directory: %w", err)
 	}
@@ -111,10 +116,4 @@ func InstallDeps() error {
 	fmt.Println("Installing Deps...")
 	cmd := exec.Command("npm", "clean-install")
 	return cmd.Run()
-}
-
-// Clean up after yourself
-func Clean() {
-	fmt.Println("Cleaning...")
-	os.RemoveAll("MyApp")
 }

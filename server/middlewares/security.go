@@ -32,7 +32,7 @@ func GeneralSecurity(next http.Handler) http.Handler {
 // CrossOriginProtection middleware adds Cross Origin related security headers.
 func CrossOriginProtection(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Explicitly allow loading from any domain.
+		// Only allow loading resources from same-site by default.
 		//
 		// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#cross-origin-resource-policy-corp
 		res.Header().Set("Cross-Origin-Resource-Policy", "same-site")

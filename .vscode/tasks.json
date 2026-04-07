@@ -144,7 +144,7 @@
     {
       "label": "email: run server",
       "type": "shell",
-      "command": "npx maizzle serve",
+      "command": "dotenv -e ../.env.${input:environment} -- npx maizzle serve ${input:environment}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -167,7 +167,7 @@
     {
       "label": "email: build",
       "type": "shell",
-      "command": "dotenv -e ../.env.development -- mage build",
+      "command": "dotenv -e ../.env.${input:environment} -- mage build ${input:environment}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -190,7 +190,7 @@
     {
       "label": "email: install",
       "type": "shell",
-      "command": "dotenv -e ../.env.development -- mage install",
+      "command": "dotenv -e ../.env.${input:environment} -- mage install ${input:environment}",
       "problemMatcher": [],
       "presentation": {
         "echo": true,

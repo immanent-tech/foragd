@@ -11,13 +11,11 @@
     containerBaseStyles: containerBaseStyles.join("; "),
     containerClasses: props["container-class"] || "",
     logoPosition: props["logo-position"] || "left",
-    logoSrc: props["logo-src"] || "https://foragd.app/content/logo-color.webp",
+    logoSrc: props["logo-src"] || "/content/logo-color.webp",
     logoAlt: props["logo-alt"] || "Foragd",
-    logoWidth: props["logo-width"] || 55,
+    logoWidth: props["logo-width"] || 64,
     logoHref: props["logo-href"],
-    avatarSrc:
-      props["avatar-src"] ||
-      "https://foragd.app/content/image/placeholder.webp",
+    avatarSrc: props["avatar-src"] || "/content/image/placeholder.webp",
     avatarWidth: props["avatar-width"] || 32,
   };
 </script>
@@ -40,7 +38,7 @@
                           src="{{{ logoSrc }}}"
                           width="{{ logoWidth }}"
                           alt="{{{ logoAlt }}}"
-                          class="max-w-full align-middle"
+                          class="mx-auto flex align-middle"
                         />
                       </a>
                     </if>
@@ -49,7 +47,7 @@
                         src="{{{ logoSrc }}}"
                         width="{{ logoWidth }}"
                         alt="{{{ logoAlt }}}"
-                        class="max-w-full align-middle"
+                        class="mx-auto flex align-middle"
                       />
                     </else>
                   </td>
@@ -107,7 +105,7 @@
                           src="{{{ logoSrc }}}"
                           width="{{ logoWidth }}"
                           alt="{{{ logoAlt }}}"
-                          class="max-w-full align-middle"
+                          class="mx-auto flex align-middle"
                         />
                       </a>
                     </if>
@@ -116,7 +114,7 @@
                         src="{{{ logoSrc }}}"
                         width="{{ logoWidth }}"
                         alt="{{{ logoAlt }}}"
-                        class="max-w-full align-middle"
+                        class="mx-auto flex align-middle"
                       />
                     </else>
                   </td>

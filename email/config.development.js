@@ -12,16 +12,10 @@
 /** @type {import('@maizzle/framework').Config} */
 export default {
   baseURL: process.env.FORAGD_BASEURL,
-  minify: true,
   build: {
     output: {
-      path: "build/production/html",
+      path: "build/development/html",
     },
   },
-  css: {
-    inline: true,
-    purge: true,
-    shorthand: true,
-  },
-  prettify: false,
+  prettify: true,
 };

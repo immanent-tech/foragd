@@ -84,6 +84,7 @@ func StaticFileHandler(fs http.FileSystem) http.Handler {
 		case strings.HasSuffix(req.URL.Path, "webp"):
 			fallthrough
 		case strings.HasSuffix(req.URL.Path, "svg"):
+			res.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
 			res.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		default:
 			// Default is to cache for 1 week.

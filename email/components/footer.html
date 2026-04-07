@@ -1,20 +1,22 @@
-<!--
- Copyright 2026 Joshua Rich <joshua.rich@gmail.com>.
- SPDX-License-Identifier: 	AGPL-3.0-or-later
--->
 <script props>
   let menuItems = props.menu || [
-    { label: "About us", href: "https://foragd.app/about" },
-    { label: "Help", href: "https://foragd.app/help" },
+    { label: "About us", href: "/about" },
+    { label: "Help", href: "/help" },
   ];
 
   let policiesMenuItems = props["polices-menu"] || [
-    { label: "Terms of Service", href: "https://foragd.app/policies/tos" },
+    {
+      label: "Terms of Service",
+      href: "/policies/tos",
+    },
     {
       label: "Acceptable Use",
-      href: "https://foragd.app/policies/acceptable-use",
+      href: "/policies/acceptable-use",
     },
-    { label: "Privacy", href: "https://foragd.app/policies/privacy" },
+    {
+      label: "Privacy",
+      href: "/policies/privacy",
+    },
   ];
 
   module.exports = {
@@ -22,10 +24,10 @@
     policiesMenuItems,
     logoPosition: props["logo-position"] || "left",
     containerClasses: props["container-class"] || "",
-    logoHref: props["logo-href"] || "https://foragd.app",
-    logoSrc: props["logo-src"] || "https://foragd.app/content/logo-color.webp",
+    logoHref: props["logo-href"] || "/",
+    logoSrc: props["logo-src"] || "/content/logo-color.webp",
     logoAlt: props["logo-alt"] || "Foragd",
-    logoWidth: props["logo-width"] || 55,
+    logoWidth: props["logo-width"] || 128,
   };
 </script>
 
@@ -50,7 +52,7 @@
                           src="{{{ logoSrc }}}"
                           width="{{ logoWidth }}"
                           alt="{{{ logoAlt }}}"
-                          class="max-w-full align-middle"
+                          class="align-middle"
                         />
                       </a>
                     </if>
@@ -59,7 +61,7 @@
                         src="{{{ logoSrc }}}"
                         width="{{ logoWidth }}"
                         alt="{{{ logoAlt }}}"
-                        class="max-w-full align-middle"
+                        class="align-middle"
                       />
                     </else>
                   </td>
@@ -166,7 +168,7 @@
                           src="{{{ logoSrc }}}"
                           width="{{ logoWidth }}"
                           alt="{{{ logoAlt }}}"
-                          class="max-w-full align-middle"
+                          class="align-middle"
                         />
                       </a>
                     </if>
@@ -175,7 +177,7 @@
                         src="{{{ logoSrc }}}"
                         width="{{ logoWidth }}"
                         alt="{{{ logoAlt }}}"
-                        class="max-w-full align-middle"
+                        class="align-middle"
                       />
                     </else>
                   </td>

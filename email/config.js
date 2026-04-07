@@ -12,11 +12,10 @@
 /** @type {import('@maizzle/framework').Config} */
 export default {
   build: {
-    minify: true,
     content: ["emails/**/*.html"],
-    // static: {
-    //   source: ["../web/content/**/*.*"],
-    //   destination: "content",
-    // },
+    static: {
+      source: ["../web/content/**/*"],
+      destination: "content",
+    },
   },
 };
