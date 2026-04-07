@@ -14,7 +14,7 @@ templ SideBar(attributes templ.Attributes) {
 		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 px-6 pb-4">
 			<div class="flex flex-1 flex-col place-items-center">
 				<ul role="list" class="my-auto flex flex-1 flex-col gap-y-8 py-16">
-					<li>
+					<li class={ templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/home") }>
 						<a
 							hx-trigger="click,globalShortcutHome"
 							hx-get="/home"
@@ -24,14 +24,14 @@ templ SideBar(attributes templ.Attributes) {
 							_="on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome"
 						>
 							<span class="sr-only">Go to Home Page</span>
-							<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-home size-10 shrink-0 text-primary" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+							<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-home size-10 shrink-0 text-primary active:scale-[0.96] hover:scale-[0.96]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12.707 2.293l9 9c.63 .63 .184 1.707 -.707 1.707h-1v6a3 3 0 0 1 -3 3h-1v-7a3 3 0 0 0 -2.824 -2.995l-.176 -.005h-2a3 3 0 0 0 -3 3v7h-1a3 3 0 0 1 -3 -3v-6h-1c-.89 0 -1.337 -1.077 -.707 -1.707l9 -9a1 1 0 0 1 1.414 0m.293 11.707a1 1 0 0 1 1 1v7h-4v-7a1 1 0 0 1 .883 -.993l.117 -.007z"></path>
 							</svg>
-							<span class={ "not-sr-only text-primary", templ.KV("underline underline-offset-4 decoration-4",PathFromCtx(ctx) == models.RouteHome) }>Home</span>
+							<span class="not-sr-only text-primary">Home</span>
 						</a>
 					</li>
 					{{ filters := models.NewListDisplayFilters() }}
-					<li>
+					<li class={ templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/list/subscriptions") }>
 						<a
 							hx-trigger="click,globalShortcutSubscriptions"
 							hx-get="/list/subscriptions"
@@ -42,13 +42,13 @@ templ SideBar(attributes templ.Attributes) {
 							_="on keydown from body if the event's key is 's' and event.altKey then send globalShortcutSubscriptions"
 						>
 							<span class="sr-only">Go to Subscriptions</span>
-							<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-rss size-10 shrink-0 text-primary" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-rss size-10 shrink-0 text-primary active:scale-[0.96] hover:scale-[0.96]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path><path d="M4 4a16 16 0 0 1 16 16"></path><path d="M4 11a9 9 0 0 1 9 9"></path>
 							</svg>
-							<span class={ "not-sr-only text-primary", templ.KV("underline underline-offset-4 decoration-4",PathFromCtx(ctx) == models.RouteListSubscriptions) }>Subscriptions</span>
+							<span class="not-sr-only text-primary">Subscriptions</span>
 						</a>
 					</li>
-					<li>
+					<li class={ templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/list/articles") }>
 						<a
 							hx-trigger="click,globalShortcutArticles"
 							hx-get="/list/articles"
@@ -59,13 +59,13 @@ templ SideBar(attributes templ.Attributes) {
 							_="on keydown from body if the event's key is 'a' and event.altKey then send globalShortcutArticles"
 						>
 							<span class="sr-only">Go to Articles</span>
-							<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-file-rss size-10 shrink-0 text-primary" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+							<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-file-rss size-10 shrink-0 text-primary active:scale-[0.96] hover:scale-[0.96]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 2l.117 .007a1 1 0 0 1 .876 .876l.007 .117v4l.005 .15a2 2 0 0 0 1.838 1.844l.157 .006h4l.117 .007a1 1 0 0 1 .876 .876l.007 .117v9a3 3 0 0 1 -2.824 2.995l-.176 .005h-10a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-14a3 3 0 0 1 2.824 -2.995l.176 -.005zm-3 11a1 1 0 0 0 0 2a2 2 0 0 1 1.995 1.85l.005 .15a1 1 0 0 0 2 0a4 4 0 0 0 -4 -4m0 -3a1 1 0 0 0 0 2a5 5 0 0 1 5 5a1 1 0 0 0 2 0a7 7 0 0 0 -7 -7m.01 6h-.01a1 1 0 0 0 -.117 1.993l.127 .007a1 1 0 0 0 0 -2m5.989 -13.001l4.001 4.001h-4z"></path>
 							</svg>
-							<span class={ "not-sr-only text-primary", templ.KV("underline underline-offset-4 decoration-4",PathFromCtx(ctx) == models.RouteListArticles) }>Articles</span>
+							<span class="not-sr-only text-primary">Articles</span>
 						</a>
 					</li>
-					<li>
+					<li class={ templ.KV("bg-primary/10 rounded-lg", PathFromCtx(ctx) == "/list/favorites") }>
 						<a
 							hx-trigger="click,globalShortcutFavorites"
 							hx-get="/list/favorites"
@@ -75,10 +75,10 @@ templ SideBar(attributes templ.Attributes) {
 							_="on keydown from body if the event's key is 'f' and event.altKey then send globalShortcutFavorites"
 						>
 							<span class="sr-only">Go to Favorites</span>
-							<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-heart size-10 shrink-0 text-primary" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+							<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-heart size-10 shrink-0 text-primary active:scale-[0.96] hover:scale-[0.96]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"></path>
 							</svg>
-							<span class={ "not-sr-only text-primary", templ.KV("underline underline-offset-4 decoration-4",PathFromCtx(ctx) == models.RouteListFavorites) }>Favorites</span>
+							<span class="not-sr-only text-primary">Favorites</span>
 						</a>
 					</li>
 				</ul>
