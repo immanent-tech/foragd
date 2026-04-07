@@ -174,51 +174,54 @@ templ (s *Subscription) Card() {
 				</div>
 				// Favorite action.
 				<div class="flex flex-1 items-center justify-end space-x-2">
-					<form>
-						<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
-						<label class="swap touch-manipulation" _="on click halt the event's bubbling">
-							<input
-								hx-post={ "/favorite/subscription/" + s.GetID() }
-								hx-swap="none"
-								id={ s.GetID() + "-favorite-state" }
-								type="checkbox"
-								if s.IsFavorite() {
-									checked
-								}
-								_="on htmx:afterRequest(failed) toggle @checked on me"
-								aria-label={ "Toggle favorite status for " + s.GetTitle() }
-							/>
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-heart swap-on size-5 text-primary">
-								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"></path>
-							</svg>
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart swap-off size-5 text-primary">
-								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
-							</svg>
-						</label>
-					</form>
-					// Mark action.
-					if s.GetSubscriptionType() != models.SubscriptionTypeSearch {
+					<button class="btn btn-square btn-ghost btn-md">
 						<form>
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
-							<input
-								type="hidden"
-								name={ models.ParamMark }
-								if s.GetStats().IsUnread() {
-									value={ models.MarkRead }
-								} else {
-									value={ models.MarkUnread }
-								}
-							/>
 							<label class="swap touch-manipulation" _="on click halt the event's bubbling">
 								<input
-									hx-post={ "/mark/subscription/" + s.GetID() }
+									hx-post={ "/favorite/subscription/" + s.GetID() }
 									hx-swap="none"
-									id={ s.GetID() + "-read-state" }
+									id={ s.GetID() + "-favorite-state" }
 									type="checkbox"
-									if !s.GetStats().IsUnread() {
+									if s.IsFavorite() {
 										checked
 									}
-									_="
+									_="on htmx:afterRequest(failed) toggle @checked on me"
+									aria-label={ "Toggle favorite status for " + s.GetTitle() }
+								/>
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-heart swap-on size-5 text-primary">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"></path>
+								</svg>
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart swap-off size-5 text-primary">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
+								</svg>
+							</label>
+						</form>
+					</button>
+					// Mark action.
+					if s.GetSubscriptionType() != models.SubscriptionTypeSearch {
+						<button class="btn btn-square btn-ghost btn-md">
+							<form>
+								<input type="hidden" name={ models.ParamSubscriptionID } value={ s.GetID() }/>
+								<input
+									type="hidden"
+									name={ models.ParamMark }
+									if s.GetStats().IsUnread() {
+										value={ models.MarkRead }
+									} else {
+										value={ models.MarkUnread }
+									}
+								/>
+								<label class="swap touch-manipulation" _="on click halt the event's bubbling">
+									<input
+										hx-post={ "/mark/subscription/" + s.GetID() }
+										hx-swap="none"
+										id={ s.GetID() + "-read-state" }
+										type="checkbox"
+										if !s.GetStats().IsUnread() {
+											checked
+										}
+										_="
 					on htmx:afterRequest(successful)
 					tell the previous <input />
 						get your value
@@ -229,16 +232,17 @@ templ (s *Subscription) Card() {
 						end
 					on htmx:afterRequest(failed) toggle @checked on me
 					"
-									aria-label={ "Toggle read status for " + s.GetTitle() }
-								/>
-								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened swap-on size-5 text-primary">
-									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
-								</svg>
-								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail swap-off size-5 text-primary">
-									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
-								</svg>
-							</label>
-						</form>
+										aria-label={ "Toggle read status for " + s.GetTitle() }
+									/>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened swap-on size-5 text-primary">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
+									</svg>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail swap-off size-5 text-primary">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
+									</svg>
+								</label>
+							</form>
+						</button>
 					}
 					// Context menu actions.
 					<div class="flex flex-none">
