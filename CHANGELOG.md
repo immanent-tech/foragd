@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.90.0](https://github.com/immanent-tech/foragd/compare/v0.89.0...v0.90.0) (2026-04-07)
+
+
+### Features
+
+* :sparkles: automatically set an appropriate version if one isn't specified at build time ([6937c73](https://github.com/immanent-tech/foragd/commit/6937c733e2fb9baed62f0c89d2ff520d968ef7e9))
+* **email:** :sparkles: email improvements ([5663b31](https://github.com/immanent-tech/foragd/commit/5663b318d62ae6cf048a846a4c0b4ffdc9eada2a))
+* **templates:** :sparkles: save scroll position between page navigations ([085181e](https://github.com/immanent-tech/foragd/commit/085181e7bb54db4ea06ad223359bb0eacf76d3a2))
+
+
+### Bug Fixes
+
+* **email:** :bug: fix passing arguments to build deps ([7626498](https://github.com/immanent-tech/foragd/commit/762649822392f8d651a8145e4d76ba335d1bc7ed))
+
 ## [0.89.0](https://github.com/immanent-tech/foragd/compare/v0.88.3...v0.89.0) (2026-04-06)
 
 
