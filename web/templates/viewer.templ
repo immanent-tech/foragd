@@ -16,11 +16,11 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 		@container() {
 			<section id="viewer">
 				<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">Feed Viewer</h1>
-				<p>
+				<p class="mt-4">
 					Enter a URL in the input below to search for syndicated content (RSS, Atom, JSONFeed feeds) on the site.
 					The feed content, if found, will be displayed below.
 				</p>
-				<p>
+				<p class="mt-4">
 					<span class="font-semibold text-primary">Tip:</span> You can directly search for feed content for any website from the browser bar by navigating to
 					<span
 						class="font-mono"
@@ -37,7 +37,7 @@ templ Viewer(feed *models.Feed, errMsg *models.UserMessage) {
 						Bookmarklet
 					</a> (drag to your bookmarks then use on any site).
 				</p>
-				<p>
+				<p class="mt-4">
 					Want to keep track of feeds and email newsletters in one place? Search across content and discover
 					topics and interests? Try out <a href="https://foragd.app" class="link">Foragd</a>.
 				</p>
@@ -148,7 +148,7 @@ templ ViewerResults(feed *models.Feed) {
 								if img := feed.GetImage(); img != nil {
 									// If the source has an image, use that as the avatar.
 									<div class="avatar">
-										<div class="rounded-box size-12 border border-base-content">
+										<div class="rounded-box">
 											// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
 											// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
 											// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
