@@ -140,7 +140,7 @@ func (s *Subscription) Card() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"card mx-auto h-full w-full max-w-prose cursor-pointer touch-manipulation bg-base-200 card-shadow active:scale-[0.98] hover:scale-[0.98]\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"card mx-auto h-full w-full max-w-prose cursor-pointer touch-manipulation bg-base-200 card-shadow hover:scale-[0.98] focus:outline-primary active:scale-[0.98]\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -174,7 +174,7 @@ func (s *Subscription) Card() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><div class=\"card-body\"><div class=\"card-title flex items-center line-clamp-3 tracking-tight text-balance\"><div class=\"mr-4 shrink-0 self-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><div class=\"card-body\"><div class=\"card-title line-clamp-3 flex items-center tracking-tight text-balance\"><div class=\"mr-4 shrink-0 self-center\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
