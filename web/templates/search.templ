@@ -719,7 +719,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 				>
 					<button
 						type="submit"
-						class="btn btn-sm btn-primary"
+						class="btn btn-md btn-primary"
 					>Apply</button>
 				</form>
 			</div>
@@ -729,7 +729,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					id="filter-operators-help-button"
 					popovertarget="filter-operators-help"
 					type="button"
-					class="btn btn-circle text-info btn-ghost btn-xs"
+					class="btn btn-circle text-info btn-ghost btn-md"
 					aria-label="Search filters help"
 				>
 					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-info-circle size-6 text-info">
@@ -737,7 +737,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					</svg>
 				</button>
 				<el-popover popover="hint" id="filter-operators-help" anchor="bottom end" class="[--anchor-gap:4px]">
-					<div class="card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap shadow-md">
+					<div class="card-body max-w-full rounded-box border border-primary bg-base-300 text-xs text-wrap card-shadow">
 						<p>By default words are matched with OR (i.e., cats dogs will match cats OR dogs). The following operators can be used for more refined searches:</p>
 						<ul>
 							<li>+ signifies AND operation (i.e., food AND beverages)</li>
