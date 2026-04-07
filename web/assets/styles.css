@@ -101,8 +101,7 @@
   article.card {
     /* Only animate these two — never use transition: all */
     animation: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
-    animation-delay: calc(var(--i, 0) * 80ms);
-
+    animation-delay: calc(min(var(--i), 15) * 80ms);
     /* Hint the GPU ahead of time */
     will-change: opacity, transform;
   }
