@@ -10,62 +10,36 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"html"
-	"slices"
 	"strconv"
 	"strings"
 )
 
-type Article struct {
-	*models.Article
-}
-
-// NewArticleView wraps an Article object with additional methods for templates involving the article.
-func NewArticleView(a *models.Article) *Article {
-	return &Article{Article: a}
-}
-
-func (a *Article) SimilarArticlesAttributes() templ.Attributes {
-	attrs := make(templ.Attributes)
-	attrs["hx-get"] = "/view/article/" + a.GetID() + "/similar"
-	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-trigger"] = "click consume"
-	return attrs
-}
-
-func (a *Article) ReportIssueAttributes() templ.Attributes {
-	attrs := make(templ.Attributes)
-	attrs["hx-get"] = "/issue/article/" + a.GetID()
-	attrs["hx-target"] = ContentID.Target()
-	attrs["hx-replace-url"] = "true"
-	attrs["hx-trigger"] = "click consume"
-	return attrs
-}
-
 // Card renders an article as a card, for displaying in a list.
-templ (a *Article) Card() {
+templ ArticleCard(idx int, article *models.Article) {
 	<article
-		hx-get={ "/view/article/" + a.GetID() }
+		style={ "--i: " + strconv.Itoa(idx) }
+		hx-get={ "/view/article/" + article.GetID() }
 		hx-target={ ContentID.Target() }
 		hx-swap="innerHTML show:window:top transition:true"
 		hx-trigger="click"
 		hx-push-url="true"
 		hx-disinherit="*"
 		tabindex="0"
-		id={ a.GetID() }
+		id={ article.GetID() }
 		class={
 			"card bg-base-200 h-full w-full max-w-prose card-shadow cursor-pointer touch-manipulation focus:outline-primary active:scale-[0.98] hover:scale-[0.98]",
-			templ.KV("row-span-1", a.GetImage() == nil),
-			templ.KV("row-span-2", a.GetImage() != nil),
+			templ.KV("row-span-1", article.GetImage() == nil),
+			templ.KV("row-span-2", article.GetImage() != nil),
 		}
 		_="on keydown[key=='Enter' or key==' '] trigger click"
-		aria-label={ a.GetTitle() }
+		aria-label={ article.GetTitle() }
 	>
-		if img := a.GetImage(); img != nil {
-			{{ img := a.GetImage() }}
+		if img := article.GetImage(); img != nil {
+			{{ img := article.GetImage() }}
 			if img.GetTitle() == "" {
-				{{ img.Title = new(a.GetTitle()) }}
+				{{ img.Title = new(article.GetTitle()) }}
 			}
-			<figure>
+			<figure class="rounded-t-box">
 				@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 					element.WithAttribute("width", "400"),
 					element.WithAttribute("height", "300"),
@@ -74,20 +48,20 @@ templ (a *Article) Card() {
 			</figure>
 		}
 		// Hidden inputs used for some group article actions.
-		<input type="hidden" name={ "displayed_articles[" + a.GetSubscriptionID() + "]" } value={ a.GetID() }/>
+		<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
 		<div class="card-body">
 			<div class="mt-auto card-title line-clamp-3 tracking-tight text-balance">
-				if a.GetTitle() != "" {
-					{ a.GetTitle() }
+				if article.GetTitle() != "" {
+					{ article.GetTitle() }
 				} else {
 					(no title)
 				}
 			</div>
 			// Author and subscription details.
 			<div class="mb-4 grid grid-flow-row grid-cols-1">
-				if len(a.GetAuthors()) > 0 {
+				if len(article.GetAuthors()) > 0 {
 					<p class="inline-block truncate text-xs/4 italic">
-						{ strings.Join(a.GetAuthors(),",") }
+						{ strings.Join(article.GetAuthors(),",") }
 					</p>
 				}
 				<p class="inline-block truncate text-xs/4">
@@ -96,17 +70,17 @@ templ (a *Article) Card() {
 						hx-target={ ContentID.Target() }
 						hx-swap="innerHTML show:window:top transition:true"
 						hx-trigger="click consume"
-						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: a.GetSubscriptionID()}) }
+						hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: article.GetSubscriptionID()}) }
 						class="link truncate link-hover"
 					>
-						{ a.GetFeedTitle() }
+						{ article.GetFeedTitle() }
 					</a>
 				</p>
 			</div>
 			// Add summarised description if article has one.
-			if a.GetDescription() != "" {
+			if article.GetDescription() != "" {
 				<div class="prose-summary">
-					@templ.Raw(a.GetDescription())
+					@templ.Raw(article.GetDescription())
 				</div>
 			}
 			<div class="mt-auto card-actions items-center justify-between">
@@ -115,28 +89,28 @@ templ (a *Article) Card() {
 					<span class="label text-xs/4 capitalize">
 						Updated&nbsp;
 						<relative-time
-							datetime={ a.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+							datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 							format="relative"
 						>
-							{ a.GetUpdatedDate().Format("ANSIC") }
+							{ article.GetUpdatedDate().Format("ANSIC") }
 						</relative-time>
 					</span>
 				</div>
 				<button class="btn btn-square btn-ghost btn-md">
 					<form>
-						<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-						<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
+						<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+						<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
 						<label class="swap touch-manipulation" _="on click halt the event's bubbling">
 							<input
-								hx-post={ "/favorite/article/" + a.GetID() }
+								hx-post={ "/favorite/article/" + article.GetID() }
 								hx-swap="none"
-								id={ a.GetID() + "-favorite-state" }
+								id={ article.GetID() + "-favorite-state" }
 								type="checkbox"
-								if a.IsFavorite() {
+								if article.IsFavorite() {
 									checked
 								}
 								_="on htmx:afterRequest(failed) toggle @checked on me"
-								aria-label={ "Toggle favorite status for " + a.GetTitle() }
+								aria-label={ "Toggle favorite status for " + article.GetTitle() }
 							/>
 							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-heart swap-on size-5 text-primary">
 								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"></path>
@@ -149,12 +123,12 @@ templ (a *Article) Card() {
 				</button>
 				<button class="btn btn-square btn-ghost btn-md">
 					<form>
-						<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-						<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
+						<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+						<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
 						<input
 							type="hidden"
 							name={ models.ParamMark }
-							if a.IsUnread() {
+							if article.IsUnread() {
 								value={ models.MarkRead }
 							} else {
 								value={ models.MarkUnread }
@@ -162,11 +136,11 @@ templ (a *Article) Card() {
 						/>
 						<label class="swap touch-manipulation" _="on click halt the event's bubbling">
 							<input
-								hx-post={ "/mark/article/" + a.GetID() }
+								hx-post={ "/mark/article/" + article.GetID() }
 								hx-swap="none"
-								id={ a.GetID() + "-read-state" }
+								id={ article.GetID() + "-read-state" }
 								type="checkbox"
-								if !a.IsUnread() {
+								if !article.IsUnread() {
 									checked
 								}
 								_="
@@ -180,7 +154,7 @@ templ (a *Article) Card() {
 						end
 					on htmx:afterRequest(failed) toggle @checked on me
 					"
-								aria-label={ "Toggle read status for " + a.GetTitle() }
+								aria-label={ "Toggle read status for " + article.GetTitle() }
 							/>
 							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened swap-on size-5 text-primary">
 								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
@@ -195,7 +169,7 @@ templ (a *Article) Card() {
 				<div class="flex flex-none">
 					<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
 						<button class="btn btn-square btn-ghost btn-md">
-							<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
+							<span class="sr-only">{ article.GetTitle() + " Actions" }</span>
 							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 size-5 text-primary">
 								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
 							</svg>
@@ -210,7 +184,7 @@ templ (a *Article) Card() {
 								// View original article action.
 								<li>
 									<a
-										href={ a.GetLink() }
+										href={ article.GetLink() }
 										target="_blank"
 										rel="noopener"
 										_="on click halt the event's bubbling"
@@ -228,7 +202,9 @@ templ (a *Article) Card() {
 									<a
 										role="menuitem"
 										tabindex="-1"
-										{ a.SimilarArticlesAttributes()... }
+										hx-get={ "/view/article/" + article.GetID() + "/similar" }
+										hx-target={ ContentID.Target() }
+										hx-trigger="click consume"
 									>
 										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-search size-4">
 											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M12 21h-5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v4.5"></path><path d="M14 17.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M18.5 19.5l2.5 2.5"></path>
@@ -241,7 +217,7 @@ templ (a *Article) Card() {
 									<a
 										role="menuitem"
 										tabindex="-1"
-										_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
+										_={ "on click " + fmt.Sprintf("navigator.share({title: %q, url: %q})", article.GetTitle(), article.GetLink()) + "then halt the event's bubbling" }
 									>
 										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
 											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
@@ -252,13 +228,13 @@ templ (a *Article) Card() {
 								// Desktop share action with modal and options.
 								<li _="init if navigator.share then hide me">
 									<form>
-										<input type="hidden" name="item_id" value={ a.GetID() }/>
-										<input type="hidden" name="title" value={ a.GetTitle() }/>
-										<input type="hidden" name="link" value={ a.GetLink() }/>
+										<input type="hidden" name="item_id" value={ article.GetID() }/>
+										<input type="hidden" name="title" value={ article.GetTitle() }/>
+										<input type="hidden" name="link" value={ article.GetLink() }/>
 										<a
 											role="menuitem"
 											tabindex="-1"
-											hx-post={ "/share/article/" + a.GetID() }
+											hx-post={ "/share/article/" + article.GetID() }
 											hx-target={ partials.ModalContainerID.Target() }
 											hx-trigger="click consume"
 											class="flex items-center gap-x-2"
@@ -275,7 +251,10 @@ templ (a *Article) Card() {
 									<a
 										role="menuitem"
 										tabindex="-1"
-										{ a.ReportIssueAttributes()... }
+										hx-get={ "/issue/article/" + article.GetID() }
+										hx-target={ ContentID.Target() }
+										hx-replace-url="true"
+										hx-trigger="click consume"
 									>
 										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-flag-2 size-4">
 											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z"></path>
@@ -293,26 +272,26 @@ templ (a *Article) Card() {
 }
 
 // ArticleContent renders the complete content of an article.
-templ (a *Article) Content() {
+templ ArticleContent(article *models.Article) {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
 				// Add the subscription ID as a hidden input that htmx can use for actions.
-				<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
-				<article id={ a.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
+				<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
+				<article id={ article.GetID() } class="w-full sm:mx-auto sm:max-w-prose">
 					// Article title.
 					<div class="flex flex-1 pb-2">
-						if a.SourceType != models.SourceTypeEmail {
+						if article.SourceType != models.SourceTypeEmail {
 							<a
-								href={ a.GetLink() }
+								href={ article.GetLink() }
 								target="_blank"
 								rel="noopener"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
-								<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ a.GetTitle() }</h1>
+								<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
 							</a>
 						} else {
-							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ a.GetTitle() }</h1>
+							<h1 class="mt-4 mb-2 scroll-mt-16 text-2xl/7 font-bold tracking-tight text-balance sm:mt-8 sm:mb-4 sm:text-3xl">{ article.GetTitle() }</h1>
 						}
 					</div>
 					// Subscription link.
@@ -322,26 +301,26 @@ templ (a *Article) Content() {
 							<input type="hidden" name={ models.ParamView } value={ filters.GetView() }/>
 							<input type="hidden" name={ models.ParamCount } value={ filters.GetCount() }/>
 							<input type="hidden" name={ models.ParamSort } value={ filters.GetSort() }/>
-							<input type="hidden" name={ models.ParamSubscriptions } value={ a.GetSubscriptionID() }/>
-							<input type="hidden" name={ models.ParamSubscriptionName } value={ a.GetFeedTitle() }/>
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
+							<input type="hidden" name={ models.ParamSubscriptions } value={ article.GetSubscriptionID() }/>
+							<input type="hidden" name={ models.ParamSubscriptionName } value={ article.GetFeedTitle() }/>
+							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 							<a
 								hx-post="/list/articles"
 								hx-target={ ContentID.Target() }
 								hx-swap="innerHTML show:window:top transition:true"
 								class="link link-hover focus:text-primary focus:outline-hidden"
 							>
-								{  a.GetFeedTitle() }
+								{  article.GetFeedTitle() }
 							</a>
 						</form>
 					</div>
 					<div class="flex items-center">
 						<div class="inline-grid flex-1">
-							if a.SourceType != models.SourceTypeEmail {
+							if article.SourceType != models.SourceTypeEmail {
 								// Show authors if found.
-								if len(a.GetAuthors()) > 0 {
+								if len(article.GetAuthors()) > 0 {
 									<p class="col-span-full truncate text-sm/6 italic">
-										{ strings.Join(a.GetAuthors(),",") }
+										{ strings.Join(article.GetAuthors(),",") }
 									</p>
 								}
 							}
@@ -349,23 +328,23 @@ templ (a *Article) Content() {
 							<p class="col-span-full text-sm/6 capitalize">
 								Updated&nbsp;
 								<relative-time
-									datetime={ a.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+									datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 									format="relative"
 								>
-									{ a.GetUpdatedDate().Format("ANSIC") }
+									{ article.GetUpdatedDate().Format("ANSIC") }
 								</relative-time>
 							</p>
 						</div>
 						<form class="p-2">
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-							<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
+							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+							<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
 							<label class="swap" _="on click halt the event's bubbling">
 								<input
-									hx-post={ "/favorite/article/" + a.GetID() }
+									hx-post={ "/favorite/article/" + article.GetID() }
 									hx-swap="none"
-									id={ a.GetID() + "-favorite-state" }
+									id={ article.GetID() + "-favorite-state" }
 									type="checkbox"
-									if a.IsFavorite() {
+									if article.IsFavorite() {
 										checked
 									}
 									_="on htmx:afterRequest(failed) toggle @checked on me"
@@ -380,12 +359,12 @@ templ (a *Article) Content() {
 							</label>
 						</form>
 						<form class="p-2">
-							<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
-							<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
+							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
+							<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
 							<input
 								type="hidden"
 								name={ models.ParamMark }
-								if a.IsUnread() {
+								if article.IsUnread() {
 									value={ models.MarkRead }
 								} else {
 									value={ models.MarkUnread }
@@ -393,11 +372,11 @@ templ (a *Article) Content() {
 							/>
 							<label class="swap" _="on click halt the event's bubbling">
 								<input
-									hx-post={ "/mark/article/" + a.GetID() }
+									hx-post={ "/mark/article/" + article.GetID() }
 									hx-swap="none"
-									id={ a.GetID() + "-read-state" }
+									id={ article.GetID() + "-read-state" }
 									type="checkbox"
-									if !a.IsUnread() {
+									if !article.IsUnread() {
 										checked
 									}
 									_="
@@ -440,7 +419,12 @@ templ (a *Article) Content() {
 									<ul class="menu">
 										// Find similar action.
 										<li>
-											<a { a.SimilarArticlesAttributes()... } role="menuitem">
+											<a
+												hx-get={ "/view/article/" + article.GetID() + "/similar" }
+												hx-target={ ContentID.Target() }
+												hx-trigger="click consume"
+												role="menuitem"
+											>
 												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-search size-4">
 													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M12 21h-5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v4.5"></path><path d="M14 17.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M18.5 19.5l2.5 2.5"></path>
 												</svg>
@@ -449,7 +433,13 @@ templ (a *Article) Content() {
 										</li>
 										// Report article issue action.
 										<li>
-											<a { a.ReportIssueAttributes()... } role="menuitem">
+											<a
+												hx-get={ "/issue/article/" + article.GetID() }
+												hx-target={ ContentID.Target() }
+												hx-replace-url="true"
+												hx-trigger="click consume"
+												role="menuitem"
+											>
 												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-flag-2 size-4">
 													<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z"></path>
 												</svg>
@@ -463,18 +453,18 @@ templ (a *Article) Content() {
 					</div>
 					// Content.
 					switch  {
-						case a.SourceType == models.SourceTypeEmail:
+						case article.SourceType == models.SourceTypeEmail:
 							// Article from email newsletter.
 							<div
 								class="prose-email mt-4 forced-width"
 								data-disable-scripting
 								hx-disable
 							>
-								@templ.Raw(a.GetContent())
+								@templ.Raw(article.GetContent())
 							</div>
-						case a.Item.ExtensionType != nil && *a.Item.ExtensionType == models.ItemExtensionTypeYoutube:
+						case article.Item.ExtensionType != nil && *article.Item.ExtensionType == models.ItemExtensionTypeYoutube:
 							// Youtube video.
-							if youtubeData, err := a.Item.ExtensionData.AsItemExtensionYoutube(); err == nil {
+							if youtubeData, err := article.Item.ExtensionData.AsItemExtensionYoutube(); err == nil {
 								<div class="mt-8">
 									<embed-youtube
 										video-id={ youtubeData.VideoId }
@@ -485,41 +475,79 @@ templ (a *Article) Content() {
 									></embed-youtube>
 								</div>
 							}
-							if a.GetDescription() != "" {
+							if article.GetDescription() != "" {
 								<div
 									data-disable-scripting
 									hx-disable
 									class="prose-article mt-4 forced-width"
 								>
-									@templ.Raw(a.GetDescription())
+									@templ.Raw(article.GetDescription())
 								</div>
 							}
 							<nav class="my-16 flex flex-col items-center justify-center gap-2 text-sm sm:flex-row">
-								@shareArticleButton(a)
+								@shareArticleButton(article)
 							</nav>
 						default:
 							// Try to display content or description.
-							if a.GetContent() != "" || a.GetDescription() != "" {
+							if article.GetContent() != "" || article.GetDescription() != "" {
 								<div
 									data-disable-scripting
 									hx-disable
 									class="prose-article mt-4 forced-width"
-									if a.ShowFullContent {
+									if article.ShowFullContent {
 										transition-style="in:wipe:down"
 									}
 								>
 									switch  {
-										case a.GetContent() != "":
-											@templ.Raw(a.GetContent())
-										case a.GetDescription() != "":
-											@templ.Raw(a.GetDescription())
+										case article.GetContent() != "":
+											@templ.Raw(article.GetContent())
+										case article.GetDescription() != "":
+											@templ.Raw(article.GetDescription())
 									}
 								</div>
 							}
 							<nav class="my-16 flex flex-col items-center justify-center gap-2 text-sm sm:flex-row">
-								@getRemoteContentButton(a)
-								@viewRemoteContentButton(a)
-								@shareArticleButton(a)
+								// Show a toggle for fetching full content where it appears the feed content is only a summary
+								// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
+								<a
+									role="button"
+									class="btn btn-wide btn-outline"
+									hx-get={ "/view/article/" + article.GetID() }
+									hx-target={ ContentID.Target() }
+									hx-swap="innerHTML transition:true"
+									hx-replace-url="true"
+									hx-trigger="click consume"
+									hx-indicator="#content-loading"
+									hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!article.IsRemoteContent())}) }
+								>
+									// _="on htmx:afterResponse[detail.failed] add @disabled to me"
+									if article.IsRemoteContent() {
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17a3 3 0 0 0 -3 -3"></path><path d="M15 17a6 6 0 0 0 -6 -6"></path><path d="M9 17h.01"></path>
+										</svg>
+										Show Feed Content
+									} else {
+										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-download">
+											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17v-6"></path><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
+										</svg>
+										Get Remote Content
+									}
+								</a>
+								// View original article action.
+								<a
+									role="button"
+									class="btn btn-wide btn-outline"
+									href={ article.GetLink() }
+									target="_blank"
+									rel="noopener"
+									_="on click halt the event's bubbling"
+								>
+									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link size-4">
+										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
+									</svg>
+									View Remote
+								</a>
+								@shareArticleButton(article)
 							</nav>
 					}
 				</article>
@@ -527,18 +555,18 @@ templ (a *Article) Content() {
 				@partials.ButtonBackToTop()
 				// If the article is unread, after a delay or when the user scrolls this div into view, assume the article is
 				// read and mark it so (when the user has set this option).
-				if a.IsUnread() && a.MarkArticleReadOnView {
+				if article.IsUnread() && article.MarkArticleReadOnView {
 					<form
 						id="auto-mark-read"
 						hx-target="#auto-mark-read"
-						hx-post={ "/mark/article/" + a.GetID() }
+						hx-post={ "/mark/article/" + article.GetID() }
 						hx-swap="delete transition:false"
 						hx-trigger="intersect once delay:5s,load delay:5s"
 						aria-hidden="true"
-						_={ "on htmx:afterRequest(successful) toggle @checked on #" + a.GetID() + "-read-state" }
+						_={ "on htmx:afterRequest(successful) toggle @checked on #" + article.GetID() + "-read-state" }
 					>
-						<input type="hidden" name={ models.ParamItemID } value={ a.GetID() }/>
-						<input type="hidden" name={ models.ParamSubscriptionID } value={ a.GetSubscriptionID() }/>
+						<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
+						<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 						<input type="hidden" name={ models.ParamMark } value={ models.MarkRead }/>
 					</form>
 				}
@@ -547,58 +575,12 @@ templ (a *Article) Content() {
 	}
 }
 
-templ getRemoteContentButton(a *Article) {
-	// Show a toggle for fetching full content where it appears the feed content is only a summary
-	// if len(strings.Fields(a.GetContent())) < 100 && !a.IsRemoteContent() {
-	<a
-		role="button"
-		class="btn btn-wide btn-outline"
-		hx-get={ "/view/article/" + a.GetID() }
-		hx-target={ ContentID.Target() }
-		hx-swap="innerHTML transition:true"
-		hx-replace-url="true"
-		hx-trigger="click consume"
-		hx-indicator="#content-loading"
-		hx-vals={ generateHXVals(map[string]any{models.ParamFullArticleContent: strconv.FormatBool(!a.IsRemoteContent())}) }
-	>
-		// _="on htmx:afterResponse[detail.failed] add @disabled to me"
-		if a.IsRemoteContent() {
-			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-rss">
-				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17a3 3 0 0 0 -3 -3"></path><path d="M15 17a6 6 0 0 0 -6 -6"></path><path d="M9 17h.01"></path>
-			</svg>
-			Show Feed Content
-		} else {
-			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-download">
-				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"></path><path d="M12 17v-6"></path><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
-			</svg>
-			Get Remote Content
-		}
-	</a>
-}
-
-templ viewRemoteContentButton(a *Article) {
-	// View original article action.
-	<a
-		role="button"
-		class="btn btn-wide btn-outline"
-		href={ a.GetLink() }
-		target="_blank"
-		rel="noopener"
-		_="on click halt the event's bubbling"
-	>
-		<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link size-4">
-			<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
-		</svg>
-		View Remote
-	</a>
-}
-
-templ shareArticleButton(a *Article) {
+templ shareArticleButton(a *models.Article) {
 	// Mobile share action via navigator API.
 	<div class="flex w-full justify-center" _="init if not navigator.share then hide me">
 		<button
 			class="btn btn-wide btn-outline"
-			_={ "on click " + shareAPIDialog(a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
+			_={ "on click " + fmt.Sprintf("navigator.share({title: %q, url: %q})", a.GetTitle(), a.GetLink()) + "then halt the event's bubbling" }
 		>
 			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
@@ -773,8 +755,8 @@ templ ListArticles(response *models.ListArticlesResponse) {
 							element.WithClasses("content-auto"),
 						) {
 							@templ.Fragment(PaginateFragment) {
-								for article := range slices.Values(response.Articles) {
-									@NewArticleView(article).Card()
+								for idx, article := range response.Articles {
+									@ArticleCard(idx, article)
 								}
 								// Add pagination element if pagination is required.
 								if response.Pagination != "" && len(response.Articles) == response.Filters.GetCount() {
@@ -916,8 +898,4 @@ templ ShareArticleModal(request *models.ShareArticleRequest) {
 			</div>
 		</div>
 	}
-}
-
-func shareAPIDialog(title, link string) string {
-	return fmt.Sprintf("navigator.share({title: %q, url: %q})", title, link)
 }

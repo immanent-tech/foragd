@@ -15,7 +15,6 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"slices"
 )
 
 // ListFavorites renders subscription and article favorites in a grid layout.
@@ -102,8 +101,8 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								for subscription := range slices.Values(response.Subscriptions) {
-									templ_7745c5c3_Err = NewSubscriptionView(subscription).Card().Render(ctx, templ_7745c5c3_Buffer)
+								for idx, subscription := range response.Subscriptions {
+									templ_7745c5c3_Err = SubscriptionCard(idx, subscription).Render(ctx, templ_7745c5c3_Buffer)
 									if templ_7745c5c3_Err != nil {
 										return templ_7745c5c3_Err
 									}
@@ -144,8 +143,8 @@ func ListFavorites(response *models.ListFavoritesResponse) templ.Component {
 									}()
 								}
 								ctx = templ.InitializeContext(ctx)
-								for article := range slices.Values(response.Articles) {
-									templ_7745c5c3_Err = NewArticleView(article).Card().Render(ctx, templ_7745c5c3_Buffer)
+								for idx, article := range response.Articles {
+									templ_7745c5c3_Err = ArticleCard(idx, article).Render(ctx, templ_7745c5c3_Buffer)
 									if templ_7745c5c3_Err != nil {
 										return templ_7745c5c3_Err
 									}

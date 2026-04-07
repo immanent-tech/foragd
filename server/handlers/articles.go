@@ -327,7 +327,7 @@ func HandleViewArticle() http.HandlerFunc {
 		// Render article content.
 		RenderInternalPage(&ArticleContent{
 			title:    article.GetTitle() + " | " + article.GetFeedTitle(),
-			template: templates.NewArticleView(article).Content(),
+			template: templates.ArticleContent(article),
 		}).ServeHTTP(res, req)
 	}).ServeHTTP
 }

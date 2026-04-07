@@ -509,9 +509,9 @@ templ SearchResults(results *models.SearchResults) {
 					<section class="mt-4">
 						@grid() {
 							@templ.Fragment(PaginateFragment) {
-								for article := range slices.Values(results.Articles) {
+								for idx, article := range results.Articles {
 									<input type="hidden" name={ "metadata[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
-									@NewArticleView(article).Card()
+									@ArticleCard(idx, article)
 								}
 								if results.Pagination != nil && len(results.Articles) == 15 {
 									<form
@@ -819,8 +819,8 @@ templ SimilarArticles(articles models.Articles) {
 					// Show results.
 					<section class="mt-4">
 						@grid() {
-							for article := range slices.Values(articles) {
-								@NewArticleView(article).Card()
+							for idx, article := range articles {
+								@ArticleCard(idx, article)
 							}
 						}
 						@partials.ButtonBackToTop()
