@@ -100,18 +100,17 @@ func (s *Subscription) ReportIssueAttributes() templ.Attributes {
 templ (s *Subscription) Card() {
 	<article
 		id={ s.Subscription.GetID() }
-		class="card mx-auto h-full w-full max-w-prose cursor-pointer touch-manipulation bg-base-200 shadow-md"
+		class="card mx-auto h-full w-full max-w-prose cursor-pointer touch-manipulation bg-base-200 card-shadow active:scale-[0.98] hover:scale-[0.98]"
 		{ s.ViewArticlesAttributes()... }
 		hx-disinherit="*"
 		tabindex="0"
-		role="button"
 		_="on keydown[key=='Enter' or key==' '] trigger click"
 		aria-label={ s.GetTitle() }
 	>
 		// Hidden input used for acting on all displayed subscriptions.
 		<input type="hidden" name="displayed_subscriptions" value={ s.GetID() }/>
 		<div class="card-body">
-			<div class="card-title flex items-center">
+			<div class="card-title flex items-center line-clamp-3 tracking-tight text-balance">
 				<div class="mr-4 shrink-0 self-center">
 					if s.GetImage() == "" {
 						@subscriptionThumbnail(nil, s.GetTitle())

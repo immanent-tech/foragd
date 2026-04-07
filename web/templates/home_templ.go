@@ -146,7 +146,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								if idx >= 6 {
 									break
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " <div class=\"card mx-auto h-fit w-full max-w-prose cursor-pointer bg-base-200 shadow-md card-sm\"")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " <div class=\"card mx-auto h-fit w-full max-w-prose cursor-pointer bg-base-200 card-shadow card-sm\"")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
@@ -167,7 +167,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"><div class=\"card-body\"><div class=\"card-title flex items-center\"><div class=\"mr-4 shrink-0 self-center\">")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"><div class=\"card-body\"><div class=\"card-title flex items-center line-clamp-3 tracking-tight text-balance\"><div class=\"mr-4 shrink-0 self-center\">")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}

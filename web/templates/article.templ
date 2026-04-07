@@ -51,10 +51,9 @@ templ (a *Article) Card() {
 		hx-push-url="true"
 		hx-disinherit="*"
 		tabindex="0"
-		role="button"
 		id={ a.GetID() }
 		class={
-			"card bg-base-200 h-full w-full max-w-prose shadow-md cursor-pointer touch-manipulation",
+			"card bg-base-200 h-full w-full max-w-prose card-shadow cursor-pointer touch-manipulation active:scale-[0.98]",
 			templ.KV("row-span-1", a.GetImage() == nil),
 			templ.KV("row-span-2", a.GetImage() != nil),
 		}
@@ -77,7 +76,7 @@ templ (a *Article) Card() {
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + a.GetSubscriptionID() + "]" } value={ a.GetID() }/>
 		<div class="card-body">
-			<div class="mt-auto card-title line-clamp-3 tracking-tight text-pretty">
+			<div class="mt-auto card-title line-clamp-3 tracking-tight text-balance">
 				if a.GetTitle() != "" {
 					{ a.GetTitle() }
 				} else {

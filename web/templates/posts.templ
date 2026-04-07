@@ -31,7 +31,7 @@ templ PostsIndex(posts []*models.MarkdownFile) {
 									</figure>
 								}
 								<div class="card-body">
-									<h2 class="card-title">{ post.Frontmatter.Title }</h2>
+									<h2 class="card-title tracking-tight text-balance">{ post.Frontmatter.Title }</h2>
 									if post.Frontmatter.Author != nil {
 										<span class="label text-sm">{ *post.Frontmatter.Author }</span>
 									}
