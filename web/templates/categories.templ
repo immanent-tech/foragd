@@ -34,12 +34,12 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 				<div class="space-y-8 border-b border-base-300 sm:space-y-0 sm:divide-y sm:divide-base-300 sm:border-t sm:border-t-base-300">
 					@partials.FormField() {
 						<label for="category-suggestion" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Add category</label>
-						<div class="mt-2 sm:col-span-2 sm:mt-0 join">
-							<el-autocomplete class="sm:col-span-4 join join-item">
+						<div class="join mt-2 sm:col-span-2 sm:mt-0">
+							<el-autocomplete class="join join-item sm:col-span-4">
 								<input
 									id="category-suggestion"
 									name="category"
-									class="input input-primary bg-base-300 brightness-95 join-item"
+									class="input join-item bg-base-300 brightness-95 input-primary"
 									placeholder="Category..."
 									_="on keydown[key=='Enter'] send categorySuggestionSelected then halt the event"
 								/>
@@ -48,7 +48,7 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 									if len(suggested) == 0 {
 										disabled
 									}
-									class="btn bg-base-100 brightness-95 join-item"
+									class="btn join-item bg-base-100 brightness-95"
 								>
 									<span class="sr-only">Show category suggestions</span>
 									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-down">
@@ -68,7 +68,7 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 								hx-swap="beforeend"
 								hx-trigger="click, categorySuggestionSelected from:body"
 								type="button"
-								class="btn btn-primary join-item"
+								class="btn join-item btn-primary"
 								_="on htmx:afterRequest if event.detail.successful then set #category-suggestion.value to ''"
 							>
 								<span class="sr-only">Add category</span>
@@ -80,7 +80,7 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 					}
 					@partials.FormField() {
 						<label for="categories" class="block text-sm/6 font-medium text-base-content sm:pt-1.5">Categories</label>
-						<div id="current-categories" class="mt-2 sm:col-span-2 sm:mt-0 flex flex-row flex-wrap p-2 gap-2">
+						<div id="current-categories" class="mt-2 flex flex-row flex-wrap gap-2 p-2 sm:col-span-2 sm:mt-0">
 							for category := range slices.Values(existing) {
 								@AddCategory(category)
 							}
@@ -94,7 +94,7 @@ templ CategoryManagement(suggested []models.Category, existing []models.Category
 
 // AddCategory renders a new category item to the list of categories of a subscription.
 templ AddCategory(category models.Category) {
-	<div class="badge badge-outline m-1 flex items-center">
+	<div class="m-1 badge flex items-center badge-outline">
 		<input type="hidden" name={ models.ParamCustomisationCategories } value={ category }/>
 		{ category }
 		<button
@@ -125,7 +125,7 @@ templ CategoryBadge(category models.Category, categoryType string, filters *mode
 		hx-get={ href }
 		hx-target={ ContentID.Target() }
 		hx-vals={ templ.JSONString(filters.Values()) }
-		class="link link-hover active:scale-[0.96] hover:scale-[0.96]"
+		class="link link-hover hover:scale-[0.99] active:scale-[0.96]"
 	>
 		<span class="badge line-clamp-1 badge-lg badge-secondary">
 			{ category }

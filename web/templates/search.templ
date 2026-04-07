@@ -41,7 +41,7 @@ templ ActionSuggestionSubscriptions(subscriptions models.Subscriptions) {
 }
 
 templ Search() {
-	<el-popover-group class="flex items-center justify-center w-full">
+	<el-popover-group class="flex w-full items-center justify-center">
 		<div class="input w-full bg-base-300 text-base brightness-95 input-primary placeholder:text-base-content/80 sm:max-w-3xl sm:text-sm/6">
 			<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search pointer-events-none flex-none text-primary">
 				<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path>
@@ -95,7 +95,7 @@ templ Search() {
 				aria-label="Search suggestions"
 				class="focus:outline-primary"
 			>
-				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down pointer-events-none flex-none text-primary transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
+				<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down pointer-events-none flex-none transform text-primary transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
 					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 				</svg>
 			</button>
@@ -137,7 +137,7 @@ templ Search() {
 				anchor="bottom end"
 				popover
 				role="listbox"
-				class="overflow-y-auto max-h-[90dvh] w-full divide-y divide-primary/80 rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px]"
+				class="max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:42px]"
 			></el-popover>
 			<script>
   const input   = document.getElementById('global-search');
@@ -215,7 +215,7 @@ templ Search() {
 			id="search-advanced-popover"
 			anchor="bottom end"
 			popover
-			class="overflow-y-auto max-h-[90dvh] w-full divide-y divide-primary/80 rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:12px]"
+			class="max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:10px] sm:max-w-3xl sm:[--anchor-offset:12px]"
 		>
 			@AdvancedSearch(models.NewSearchRequest(), nil)
 		</el-popover>
@@ -236,7 +236,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 			hx-include="#search-filters,[id='timezone']"
 			hx-sync="#search-suggestions-popover:drop"
 			hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
-			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:outline-hidden focus:bg-primary focus:text-primary-content"
+			class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 		>
 			// _="on htmx:afterRequest[detail.successful] set #search-suggestions-popover.innerHTML to ''"
 			<input type="hidden" name="text" value={ suggestions.Search.Text }/>
@@ -256,7 +256,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					{ subscriptionViewArticlesAttributes(subscription)... }
 					hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
 					hx-sync="#global-search:drop"
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:outline-hidden focus:bg-primary focus:text-primary-content"
+					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 				>
 					<div class="group flex items-center">
 						if subscription.GetImage() != "" {
@@ -269,7 +269,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 								"size-6",
 							)
 						} else {
-							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-rss group-hover:text-primary size-6">
+							<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-rss size-6 group-hover:text-primary">
 								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path><path d="M4 4a16 16 0 0 1 16 16"></path><path d="M4 11a9 9 0 0 1 9 9"></path>
 							</svg>
 						}
@@ -293,7 +293,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					hx-push-url="true"
 					hx-on::before-request="document.getElementById('search-suggestions-popover').hidePopover()"
 					hx-sync="#global-search:drop"
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:outline-hidden focus:bg-primary focus:text-primary-content"
+					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 				>
 					if article.GetImage() != nil {
 						@partials.Thumbnail(
@@ -305,7 +305,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 							"size-6",
 						)
 					} else {
-						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-file-rss group-hover:text-primary size-6">
+						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-file-rss size-6 group-hover:text-primary">
 							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 2l.117 .007a1 1 0 0 1 .876 .876l.007 .117v4l.005 .15a2 2 0 0 0 1.838 1.844l.157 .006h4l.117 .007a1 1 0 0 1 .876 .876l.007 .117v9a3 3 0 0 1 -2.824 2.995l-.176 .005h-10a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-14a3 3 0 0 1 2.824 -2.995l.176 -.005zm-3 11a1 1 0 0 0 0 2a2 2 0 0 1 1.995 1.85l.005 .15a1 1 0 0 0 2 0a4 4 0 0 0 -4 -4m0 -3a1 1 0 0 0 0 2a5 5 0 0 1 5 5a1 1 0 0 0 2 0a7 7 0 0 0 -7 -7m.01 6h-.01a1 1 0 0 0 -.117 1.993l.127 .007a1 1 0 0 0 0 -2m5.989 -13.001l4.001 4.001h-4z"></path>
 						</svg>
 					}
@@ -330,7 +330,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					hx-target={ ContentID.Target() }
 					hx-push-url="true"
 					hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:outline-hidden focus:bg-primary focus:text-primary-content"
+					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 				>
 					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-plus size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
 						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M9 12h6"></path><path d="M12 9v6"></path>
@@ -348,7 +348,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					hx-target={ ContentID.Target() }
 					hx-push-url="true"
 					hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:outline-hidden focus:bg-primary focus:text-primary-content"
+					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 				>
 					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-plus size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
 						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M9 12h6"></path><path d="M12 9v6"></path>
@@ -366,7 +366,7 @@ templ SearchSuggestions(suggestions *models.SearchResults) {
 					hx-target={ ContentID.Target() }
 					hx-push-url="true"
 					hx-on::before-request=" document.getElementById('search-suggestions-popover').hidePopover()"
-					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:outline-hidden focus:bg-primary focus:text-primary-content"
+					class="group flex cursor-default items-center rounded-md px-3 py-2 select-none hover:bg-primary hover:text-primary-content focus:bg-primary focus:text-primary-content focus:outline-hidden"
 				>
 					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-circle-plus size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]">
 						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M9 12h6"></path><path d="M12 9v6"></path>
@@ -387,7 +387,7 @@ templ SearchResults(results *models.SearchResults) {
 				if len(results.Articles) == 0 {
 					<div class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
 						<div class="text-center">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-zoom-question mx-auto text-accent size-12">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-zoom-question mx-auto size-12 text-accent">
 								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path><path d="M10 13l0 .01"></path><path d="M10 10a1.5 1.5 0 1 0 -1.14 -2.474"></path>
 							</svg>
 							<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Nothing found</h1>
@@ -495,7 +495,7 @@ templ SearchResults(results *models.SearchResults) {
 										hx-get="/search"
 										hx-target={ ContentID.Target() }
 										hx-vals={ search.HXVals() }
-										class="link link-hover active:scale-[0.96] hover:scale-[0.96]"
+										class="link link-hover hover:scale-[0.99] active:scale-[0.96]"
 									>
 										<span class="badge line-clamp-1 badge-lg badge-secondary">
 											{ category }
@@ -554,7 +554,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					type="text"
 					name="text"
 					placeholder={ `+keyword -"some phrase"` }
-					class="textarea max-h-40 overflow-y-auto mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 textarea-sm brightness-95 textarea-primary"
 					_="on change set #global-search's value to my value"
 				>
 					if request.Text != "" {
@@ -570,7 +570,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					type="text"
 					name="categories"
 					placeholder="favorite-category -unwanted-category"
-					class="textarea max-h-40 overflow-y-auto mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 textarea-sm brightness-95 textarea-primary"
 				>
 					if request.Categories != nil {
 						{ *request.Categories }
@@ -585,7 +585,7 @@ templ AdvancedSearch(request *models.SearchRequest, attributes templ.Attributes)
 					type="text"
 					name="authors"
 					placeholder="bob +jenny@blog.me"
-					class="textarea max-h-40 overflow-y-auto mt-2 w-full bg-base-300 textarea-sm brightness-95 textarea-primary"
+					class="textarea mt-2 max-h-40 w-full overflow-y-auto bg-base-300 textarea-sm brightness-95 textarea-primary"
 				>
 					if request.Authors != nil {
 						{ *request.Authors }
@@ -808,7 +808,7 @@ templ SimilarArticles(articles models.Articles) {
 				if len(articles) == 0 {
 					<div class="grid min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
 						<div class="text-center">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-zoom-question mx-auto text-accent size-12">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-zoom-question mx-auto size-12 text-accent">
 								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path><path d="M10 13l0 .01"></path><path d="M10 10a1.5 1.5 0 1 0 -1.14 -2.474"></path>
 							</svg>
 							<h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance sm:text-7xl">Nothing found</h1>

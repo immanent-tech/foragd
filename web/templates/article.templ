@@ -27,7 +27,7 @@ templ ArticleCard(idx int, article *models.Article) {
 		tabindex="0"
 		id={ article.GetID() }
 		class={
-			"card bg-base-200 h-full w-full max-w-prose card-shadow cursor-pointer touch-manipulation focus:outline-primary active:scale-[0.98] hover:scale-[0.98]",
+			"card bg-base-200 h-full w-full max-w-prose card-shadow cursor-pointer touch-manipulation focus:outline-primary active:scale-[0.96] hover:scale-[0.99] transition-transform duration-150",
 			templ.KV("row-span-1", article.GetImage() == nil),
 			templ.KV("row-span-2", article.GetImage() != nil),
 		}
@@ -644,7 +644,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 						<el-dropdown class="inline-block flex-none">
 							<button id="articles-actions-button" class="btn inline-flex btn-wide">
 								Actions
-								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down -mr-1 size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
+								<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-chevron-down -mr-1 size-5 transform transition-transform duration-200 not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180">
 									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1 -1.414 0l-6 -6a1 1 0 0 1 1.414 -1.414l5.293 5.293l5.293 -5.293a1 1 0 0 1 1.414 0"></path>
 								</svg>
 							</button>
@@ -818,10 +818,10 @@ templ ListArticles(response *models.ListArticlesResponse) {
 										<input type="hidden" name={ models.ParamSubscriptionID } value={ response.Subscription.GetID() }/>
 										<input type="hidden" name={ models.ParamView } value={ response.Filters.GetView() }/>
 										// MarkURL returns the app URL for marking the subscription.
-										<a
+										<button
 											hx-post={ "/mark/subscription/" + response.Subscription.GetID() }
-											role="button"
 											class="btn btn-wide btn-outline"
+											type="submit"
 										>
 											if response.Filters.GetView() == models.ViewUnread {
 												<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail-opened size-4">
@@ -836,7 +836,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 												Mark Subscription Unread
 												<input type="hidden" name={ models.ParamMark } value={ models.MarkUnread }/>
 											}
-										</a>
+										</button>
 									</form>
 								}
 							}
