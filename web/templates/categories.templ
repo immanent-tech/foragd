@@ -109,3 +109,26 @@ templ AddCategory(category models.Category) {
 		</button>
 	</div>
 }
+
+templ CategoryBadge(category models.Category, categoryType string, filters *models.ListFilters) {
+	{{
+		filters.Categories = append(filters.Categories, category)
+		var href string
+		switch categoryType {
+		case "subscriptions":
+			href = "/list/subscriptions"
+		case "articles":
+			href = "/list/articles"
+		}
+	}}
+	<a
+		hx-get={ href }
+		hx-target={ ContentID.Target() }
+		hx-vals={ templ.JSONString(filters.Values()) }
+		class="link link-hover active:scale-[0.96] hover:scale-[0.96]"
+	>
+		<span class="badge line-clamp-1 badge-lg badge-secondary">
+			{ category }
+		</span>
+	</a>
+}

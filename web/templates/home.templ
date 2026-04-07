@@ -76,18 +76,7 @@ templ UserHome(data *models.HomeResponse) {
 										</h2>
 										<div id="top-categories" class="m-2 flex flex-row flex-wrap justify-center gap-2 p-2">
 											for category := range data.TopCategories {
-												{{ params := models.NewListDisplayFilters() }}
-												{{ params.Categories = append(params.Categories, category.Category) }}
-												<a
-													hx-get="/list/articles"
-													hx-target={ ContentID.Target() }
-													hx-vals={ templ.JSONString(params) }
-													class="link link-hover"
-												>
-													<span class="badge line-clamp-1 badge-lg badge-secondary">
-														{ category.Category }
-													</span>
-												</a>
+												@CategoryBadge(category.Category, "articles", new(models.NewListDisplayFilters()))
 											}
 										</div>
 									</section>

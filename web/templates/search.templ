@@ -495,7 +495,7 @@ templ SearchResults(results *models.SearchResults) {
 										hx-get="/search"
 										hx-target={ ContentID.Target() }
 										hx-vals={ search.HXVals() }
-										class="link link-hover"
+										class="link link-hover active:scale-[0.96] hover:scale-[0.96]"
 									>
 										<span class="badge line-clamp-1 badge-lg badge-secondary">
 											{ category }

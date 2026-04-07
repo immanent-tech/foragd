@@ -722,7 +722,7 @@ func SearchResults(results *models.SearchResults) templ.Component {
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
-								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\" class=\"link link-hover\"><span class=\"badge line-clamp-1 badge-lg badge-secondary\">")
+								templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "\" class=\"link link-hover active:scale-[0.96] hover:scale-[0.96]\"><span class=\"badge line-clamp-1 badge-lg badge-secondary\">")
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}
