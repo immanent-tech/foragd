@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.93.0](https://github.com/immanent-tech/foragd/compare/v0.92.0...v0.93.0) (2026-04-08)
+
+
+### Features
+
+* **server:** :lock: add "Permissions-Policy" header ([8abcf46](https://github.com/immanent-tech/foragd/commit/8abcf462e5f05c8f5cb6eb87fa583263c4006d47))
+* **templates:** :lock: add hash to external script for tailwind plus ([f25b881](https://github.com/immanent-tech/foragd/commit/f25b8815a6c13c9636c3af4e7d51ccf2c915b77f))
+* **templates/footer:** :sparkles: add producthunt embed ([0faff75](https://github.com/immanent-tech/foragd/commit/0faff75fa517f63a61d7a86fd254d72054029974))
+* **templates/landing:** :sparkles: landing page improvements ([8d6cd7f](https://github.com/immanent-tech/foragd/commit/8d6cd7fa0b8cf2c7fb7db5d627629c05432665ce))
+
 ## [0.92.0](https://github.com/immanent-tech/foragd/compare/v0.91.1...v0.92.0) (2026-04-08)
 
 
