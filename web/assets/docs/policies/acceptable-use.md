@@ -155,7 +155,7 @@ advance notice—to delete repositories that we determine to be placing undue st
 certain limitations, so Foragd does not become a spam haven. No one wants that._
 
 You may not promote or distribute content or activity that is illegal or otherwise prohibited by our [Terms of
-Service](/tos), including excessive automated bulk activity (for example, spamming), get-rich-quick schemes, and
+Service](/polices/tos), including excessive automated bulk activity (for example, spamming), get-rich-quick schemes, and
 misrepresentation or deception related to your promotion.
 
 ## 11. User Protection
