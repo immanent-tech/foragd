@@ -335,7 +335,7 @@ templ ArticleContent(article *models.Article) {
 								</relative-time>
 							</p>
 						</div>
-						<form class="p-2">
+						<form class="p-2 btn btn-ghost btn-square">
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 							<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
 							<label class="swap" _="on click halt the event's bubbling">
@@ -358,7 +358,7 @@ templ ArticleContent(article *models.Article) {
 								</svg>
 							</label>
 						</form>
-						<form class="p-2">
+						<form class="p-2 btn btn-ghost btn-square">
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 							<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
 							<input
