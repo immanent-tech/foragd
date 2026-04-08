@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/cenkalti/backoff/v5"
-	"github.com/goforj/godump"
 	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
 )
@@ -213,7 +212,6 @@ func SendEmail(ctx context.Context, options ...EmailOption) error {
 	if err != nil {
 		return fmt.Errorf("create email request: %w", err)
 	}
-	godump.Dump(req)
 
 	_, err = client.Emails.SendWithContext(ctx, req)
 	if err != nil {
