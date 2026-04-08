@@ -195,9 +195,7 @@
   }
 }
 
-/* For formatting a short summary of article content. */
-@utility prose-summary {
-  @apply prose prose-sm line-clamp-3 dark:prose-invert prose-headings:text-sm prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
+@utility hide-media {
   img {
     @apply hidden;
   }
@@ -209,8 +207,15 @@
   }
 }
 
+/* For formatting a short summary of article content. */
+@utility prose-summary {
+  @apply prose prose-sm line-clamp-3 hide-media dark:prose-invert prose-headings:text-sm prose-figure:hidden prose-table:hidden prose-img:hidden prose-video:hidden;
+}
+
 /* For formatting email newsletters. */
 @utility prose-email {
+  @apply overflow-x-hidden wrap-break-word;
+
   :where(p) {
     @apply prose mt-4 mb-6;
   }
@@ -233,6 +238,27 @@
 
   :where(a) {
     @apply link;
+  }
+
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  td {
+    width: auto !important;
+  }
+
+  img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Kill the preheader overflow */
+  [style*="display:none"],
+  [style*="display: none"] {
+    display: none !important;
   }
 }
 
