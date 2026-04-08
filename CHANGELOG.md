@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.91.1](https://github.com/immanent-tech/foragd/compare/v0.91.0...v0.91.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* :bug: don't show subscription settings (not used) ([4692ede](https://github.com/immanent-tech/foragd/commit/4692ede81ffa61cd73c8915fd15093be5caef112))
+* **resend:** :recycle: sending email tweaks ([e5a3b54](https://github.com/immanent-tech/foragd/commit/e5a3b540ede16fa9094a23b1b661ce04730e129b))
+* **templates/home:** :bug: fix path for adding feed subscription ([3953851](https://github.com/immanent-tech/foragd/commit/39538516c8f0f54ad9c5e50044970714c0a8aa08))
+* **templates/settings:** :bug: cancel button working on deactivate account modal ([94e8c90](https://github.com/immanent-tech/foragd/commit/94e8c90f01c3decb367503ec17ca5de8b0390d30))
+* **templates/settings:** :bug: fix alignment of loading indicator ([325dd82](https://github.com/immanent-tech/foragd/commit/325dd820d7fb8e4ec3d258648e159737b46ac1ee))
+
 ## [0.91.0](https://github.com/immanent-tech/foragd/compare/v0.90.0...v0.91.0) (2026-04-07)
 
 
