@@ -18,8 +18,8 @@ templ UserChooseSubscriptionPlan(user *models.User, planID string) {
 	@container() {
 		if user != nil && user.Active() {
 			// User has an active plan, show them an action to manage it.
-			<div class="mx-auto max-w-4xl text-center mb-16">
-				<h1 id="pricing" class="text-lg sm:text-xl/8 font-semibold text-primary mb-16">You already have an active plan.</h1>
+			<div class="mx-auto mb-16 max-w-4xl text-center">
+				<h1 id="pricing" class="mb-16 text-lg font-semibold text-primary sm:text-xl/8">You already have an active plan.</h1>
 				if mgmtLink := os.Getenv("FORAGD_STRIPE_SUBCRIPTIONMGMTURL"); mgmtLink != "" {
 					<a role="button" class="btn btn-primary" href={ mgmtLink }>Manage Subscription Plan</a>
 				} else {
@@ -34,12 +34,12 @@ templ UserChooseSubscriptionPlan(user *models.User, planID string) {
 			</div>
 		} else {
 			// Show the user the plan options.
-			<div class="mx-auto max-w-4xl text-center mb-16">
-				<h1 id="pricing" class="text-lg sm:text-xl/8 font-semibold text-primary mb-16">Choose your plan.</h1>
+			<div class="mx-auto mb-16 max-w-4xl text-center">
+				<h1 id="pricing" class="mb-16 text-lg font-semibold text-primary sm:text-xl/8">Choose your plan.</h1>
 				<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">You'll be taken to Stripe to finalise your account.</p>
 				<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">Entering payment details is optional. You can start a trial today and pay later.</p>
 			</div>
-			@pricingGrid(models.RouteCheckout, "post", planID, "Selected")
+			@pricing()
 		}
 	}
 }
@@ -49,8 +49,8 @@ templ UserChooseSubscriptionPlan(user *models.User, planID string) {
 // manual intervention.
 templ UserAccountIssue() {
 	@container() {
-		<div class="mx-auto max-w-4xl text-center mb-16">
-			<h1 class="text-lg sm:text-xl/8 font-semibold text-primary mb-16">There is a problem with your account.</h1>
+		<div class="mx-auto mb-16 max-w-4xl text-center">
+			<h1 class="mb-16 text-lg font-semibold text-primary sm:text-xl/8">There is a problem with your account.</h1>
 			<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">We cannot log you in as there is a problem with your account details.</p>
 			<p class="mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80">Please contact us to resolve all issues.</p>
 			<div class="mt-10 flex items-center justify-center gap-x-6">
@@ -83,7 +83,7 @@ templ DeactivateAccountModal() {
 				</div>
 			</div>
 		</div>
-		<div class="mt-5 sm:mt-4 sm:flex sm:justify-end gap-x-2">
+		<div class="mt-5 gap-x-2 sm:mt-4 sm:flex sm:justify-end">
 			<button
 				type="button"
 				_={ "on click close() on #" + id }

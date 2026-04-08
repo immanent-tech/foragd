@@ -57,7 +57,7 @@ func UserChooseSubscriptionPlan(user *models.User, planID string) templ.Componen
 			}
 			ctx = templ.InitializeContext(ctx)
 			if user != nil && user.Active() {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"mx-auto max-w-4xl text-center mb-16\"><h1 id=\"pricing\" class=\"text-lg sm:text-xl/8 font-semibold text-primary mb-16\">You already have an active plan.</h1>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"mx-auto mb-16 max-w-4xl text-center\"><h1 id=\"pricing\" class=\"mb-16 text-lg font-semibold text-primary sm:text-xl/8\">You already have an active plan.</h1>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -103,11 +103,11 @@ func UserChooseSubscriptionPlan(user *models.User, planID string) templ.Componen
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <div class=\"mx-auto max-w-4xl text-center mb-16\"><h1 id=\"pricing\" class=\"text-lg sm:text-xl/8 font-semibold text-primary mb-16\">Choose your plan.</h1><p class=\"mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80\">You'll be taken to Stripe to finalise your account.</p><p class=\"mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80\">Entering payment details is optional. You can start a trial today and pay later.</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <div class=\"mx-auto mb-16 max-w-4xl text-center\"><h1 id=\"pricing\" class=\"mb-16 text-lg font-semibold text-primary sm:text-xl/8\">Choose your plan.</h1><p class=\"mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80\">You'll be taken to Stripe to finalise your account.</p><p class=\"mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80\">Entering payment details is optional. You can start a trial today and pay later.</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = pricingGrid(models.RouteCheckout, "post", planID, "Selected").Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = pricing().Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -158,7 +158,7 @@ func UserAccountIssue() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"mx-auto max-w-4xl text-center mb-16\"><h1 class=\"text-lg sm:text-xl/8 font-semibold text-primary mb-16\">There is a problem with your account.</h1><p class=\"mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80\">We cannot log you in as there is a problem with your account details.</p><p class=\"mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80\">Please contact us to resolve all issues.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"mx-auto mb-16 max-w-4xl text-center\"><h1 class=\"mb-16 text-lg font-semibold text-primary sm:text-xl/8\">There is a problem with your account.</h1><p class=\"mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80\">We cannot log you in as there is a problem with your account details.</p><p class=\"mx-auto max-w-2xl text-center text-base/7 text-pretty text-base-content/80\">Please contact us to resolve all issues.</p><div class=\"mt-10 flex items-center justify-center gap-x-6\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -227,7 +227,7 @@ func DeactivateAccountModal() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"sm:flex sm:items-start\"><span class=\"mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle size-12\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 9v4\"></path><path d=\"M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0\"></path><path d=\"M12 16h.01\"></path></svg></span><div class=\"mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left\"><h3 id=\"dialog-title\" class=\"text-lg font-medium\">Deactivate Account Confirmation</h3><div class=\"mt-2\"><p class=\"text-sm\">Are you sure you want to deactivate your account?</p></div></div></div><div class=\"mt-5 sm:mt-4 sm:flex sm:justify-end gap-x-2\"><button type=\"button\" _=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"sm:flex sm:items-start\"><span class=\"mx-auto flex size-12 shrink-0 items-center justify-center rounded-full sm:mx-0 sm:size-10\"><svg aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-alert-triangle size-12\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 9v4\"></path><path d=\"M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0\"></path><path d=\"M12 16h.01\"></path></svg></span><div class=\"mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left\"><h3 id=\"dialog-title\" class=\"text-lg font-medium\">Deactivate Account Confirmation</h3><div class=\"mt-2\"><p class=\"text-sm\">Are you sure you want to deactivate your account?</p></div></div></div><div class=\"mt-5 gap-x-2 sm:mt-4 sm:flex sm:justify-end\"><button type=\"button\" _=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
