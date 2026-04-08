@@ -25,6 +25,10 @@ func GeneralSecurity(next http.Handler) http.Handler {
 		// https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#referrer-policy
 		res.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 
+		// Disable all permissions (none needed).
+		res.Header().
+			Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=()")
+
 		next.ServeHTTP(res, req)
 	})
 }
