@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.92.0](https://github.com/immanent-tech/foragd/compare/v0.91.1...v0.92.0) (2026-04-08)
+
+
+### Features
+
+* **cli:** :sparkles: when deleting a user, also delete any scheduled jobs for the user ([4e47128](https://github.com/immanent-tech/foragd/commit/4e4712883f0997e7adeaae067e7ceddc082b571a))
+* **server:** :sparkles: handle well-known url paths and add security.txt inside it ([3eab7a7](https://github.com/immanent-tech/foragd/commit/3eab7a745a7040eacac76edf50a1739974d4dd43))
+
+
+### Bug Fixes
+
+* **resend:** :bug: remove debugging statement ([c1c99bc](https://github.com/immanent-tech/foragd/commit/c1c99bc1d988f5646a1c5648f881ac0b37388aba))
+* **search:** :bug: handle new user search requests gracefully ([0eb0cb4](https://github.com/immanent-tech/foragd/commit/0eb0cb43f032219e7bae612a7819ec9f8e2f1537))
+
 ## [0.91.1](https://github.com/immanent-tech/foragd/compare/v0.91.0...v0.91.1) (2026-04-08)
 
 
