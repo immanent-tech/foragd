@@ -116,6 +116,7 @@
     animation: none;
   }
 
+  /* Don't animate if user has requested reduced motion. */
   @media screen and (prefers-reduced-motion: reduce) {
     * {
       animation-duration: 0.001ms !important;
@@ -176,11 +177,21 @@
 /* For formatting articles.  */
 @utility prose-article {
   @apply prose max-w-none text-base-content sm:prose-lg dark:prose-invert prose-headings:tracking-tight prose-img:rounded-box;
+
+  /* Forced fixed width for pre and scrollable elements. */
   pre {
     overflow-x: auto;
   }
   .scrollable {
     overflow-x: auto;
+  }
+
+  /* Apply some useful CSS styling for video embeds */
+  iframe[src*="youtube.com"],
+  iframe[src*="youtu.be"],
+  iframe[src*="vimeo.com"],
+  iframe[allowfullscreen] {
+    @apply relative aspect-video h-auto max-w-full overflow-hidden p-8;
   }
 }
 
