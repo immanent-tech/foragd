@@ -109,6 +109,7 @@ func Start(logger *slog.Logger) error {
 	router.Handle("/robots.txt", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	router.Handle("/favicon.ico", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 	router.Handle("/content/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
+	router.Handle("/.well-known/*", handlers.StaticFileHandler(http.FS(web.StaticContentFS)))
 
 	// Avatars
 	router.Get("/img/avatar/*", handlers.LoadCachedImage)

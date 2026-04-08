@@ -1,0 +1,3 @@
+Contact: https://github.com/immanent-tech/foragd/security
+Expires: 2027-12-31T14:00:00.000Z
+Preferred-Languages: en

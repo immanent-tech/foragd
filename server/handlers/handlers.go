@@ -48,15 +48,15 @@ var bufPool = sync.Pool{
 // etc.).
 func StaticFileHandler(fs http.FileSystem) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Extract the file as the URL param.
-		file := chi.URLParam(req, "*")
-		if file == "" {
-			// If no URL param, treat the last path element as a file.
-			file = filepath.Base(req.URL.Path)
+		var file string
+		switch {
+		case strings.HasPrefix(req.URL.Path, "/content"):
+			file = req.URL.Path
+		case strings.HasPrefix(req.URL.Path, "/.well-known"):
+			file = filepath.Join("/content", req.URL.Path)
+		default:
+			file = filepath.Join("/content", chi.URLParam(req, "*"))
 		}
-
-		// Recreate the path to the file in the virtual FS.
-		file = filepath.Join("/content", file)
 
 		// Check, if the requested file is existing.
 		if _, err := fs.Open(file); err != nil {
