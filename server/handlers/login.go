@@ -265,7 +265,7 @@ func createNewLocalUser(ctx context.Context, profile auth0.UserProfile) (*models
 			slog.Any("error", err),
 		)
 	}
-	if err := resend.SendEmail(ctx, email); err != nil {
+	if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to send welcome email.",
 			slog.String("user_id", user.GetID()),
 			slog.Any("error", err),

@@ -431,7 +431,7 @@ func HandleDeactivateAccount() http.HandlerFunc {
 					slog.Any("error", err),
 				)
 			}
-			if err := resend.SendEmail(req.Context(), email); err != nil {
+			if err := resend.SendEmail(req.Context(), resend.WithExistingEmail(email)); err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Unable to send deactivation email.",
 					slog.String("user_id", user.GetID()),
 					slog.Any("error", err),

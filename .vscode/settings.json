@@ -92,7 +92,8 @@
     "templates/landing",
     "templates/about",
     "email",
-    "styles"
+    "styles",
+    "templates/settings"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

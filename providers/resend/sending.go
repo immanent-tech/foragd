@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/cenkalti/backoff/v5"
+	"github.com/goforj/godump"
 	"github.com/resend/resend-go/v3"
 	slogctx "github.com/veqryn/slog-context"
 )
@@ -53,21 +54,31 @@ func (e *Email) Valid() error {
 		// Must have a To, Cc, or Bcc.
 		return fmt.Errorf("%w: no address(es) specified", ErrInvalidEmail)
 	}
-	if e.template.Id == "" {
-		// Must specify a template ID.
-		return fmt.Errorf("%w: no template specified", ErrInvalidEmail)
-	}
+	// if e.template.Id == "" {
+	// 	// Must specify a template ID.
+	// 	return fmt.Errorf("%w: no template specified", ErrInvalidEmail)
+	// }
 
 	return nil
 }
 
 func (e *Email) createRequest() (*resend.SendEmailRequest, error) {
 	req := &resend.SendEmailRequest{
-		To:       e.To,
-		Cc:       e.Cc,
-		Bcc:      e.Bcc,
-		Template: e.template,
-		Tags:     e.tags,
+		To:   e.To,
+		Cc:   e.Cc,
+		Bcc:  e.Bcc,
+		Tags: e.tags,
+	}
+	if e.template != nil && e.template.Id != "" {
+		// If there is a template, use that.
+		req.Template = e.template
+	} else {
+		// Manually fill out required fields.
+		req.From = e.From
+		req.ReplyTo = e.ReplyTo[0]
+		req.Subject = e.Subject
+		req.Text = e.Text
+		req.Html = e.Html
 	}
 
 	// If the email has a category tag with the value "promotional" and appropriate unsubscribe headers.
@@ -90,6 +101,20 @@ func (e *Email) createRequest() (*resend.SendEmailRequest, error) {
 // EmailOption is a functional option to apply to an email.
 type EmailOption func(*Email)
 
+// From option sets the from address of an email.
+func From(from string) EmailOption {
+	return func(e *Email) {
+		e.From = from
+	}
+}
+
+// ReplyTo option sets the reply-to address of an email.
+func ReplyTo(replyto string) EmailOption {
+	return func(e *Email) {
+		e.ReplyTo = []string{replyto}
+	}
+}
+
 // To option sets the to address of an email.
 func To(to ...string) EmailOption {
 	return func(e *Email) {
@@ -111,6 +136,28 @@ func Bcc(bcc ...string) EmailOption {
 	}
 }
 
+// Subject option sets the subject of an email.
+func Subject(subject string) EmailOption {
+	return func(e *Email) {
+		e.Subject = subject
+	}
+}
+
+// WithTextContent option sets the text content of the email (shown in clients that don't support HTML emails).
+func WithTextContent(text string) EmailOption {
+	return func(e *Email) {
+		e.Text = text
+	}
+}
+
+// WithHTMLContent option sets the html content of the email. When using this option, it is advised to also use the
+// WithTextContent option to set the text content of the email shown to clients that don't support html emails.
+func WithHTMLContent(html string) EmailOption {
+	return func(e *Email) {
+		e.Html = html
+	}
+}
+
 // WithVariable option assigns a value to the given template variable in the email template.
 func WithVariable(key string, value any) EmailOption {
 	return func(e *Email) {
@@ -129,17 +176,44 @@ func WithTag(key string, value string) EmailOption {
 	}
 }
 
+func WithExistingEmail(email *Email) EmailOption {
+	return func(e *Email) {
+		if email.Email != nil {
+			e.Email = email.Email
+		}
+		if email.template != nil {
+			e.template = email.template
+		}
+		if len(email.tags) > 0 {
+			e.tags = email.tags
+		}
+	}
+}
+
 // SendEmail sends the given email.
-func SendEmail(ctx context.Context, email *Email) error {
+func SendEmail(ctx context.Context, options ...EmailOption) error {
 	client, err := loadClient()
 	if err != nil {
 		return fmt.Errorf("load client: %w", err)
+	}
+
+	email := &Email{
+		Email:    &resend.Email{},
+		template: &resend.EmailTemplate{},
+	}
+	for option := range slices.Values(options) {
+		option(email)
+	}
+
+	if err := email.Valid(); err != nil {
+		return fmt.Errorf("email is not valid: %w", err)
 	}
 
 	req, err := email.createRequest()
 	if err != nil {
 		return fmt.Errorf("create email request: %w", err)
 	}
+	godump.Dump(req)
 
 	_, err = client.Emails.SendWithContext(ctx, req)
 	if err != nil {

@@ -99,7 +99,7 @@ func (j *userTipsJob) Execute(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("create new tip email %s: %w", data.EmailID, err)
 	}
-	if err := resend.SendEmail(ctx, email); err != nil {
+	if err := resend.SendEmail(ctx, resend.WithExistingEmail(email)); err != nil {
 		return fmt.Errorf("send tip email %s: %w", data.EmailID, err)
 	}
 

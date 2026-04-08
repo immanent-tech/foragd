@@ -122,7 +122,8 @@ func (e *ReceivedEmail) Forward(ctx context.Context, to ...string) error {
 	}
 	params := &resend.SendEmailRequest{
 		To:          to,
-		From:        e.From,
+		From:        "no-reply@foragd.app",
+		ReplyTo:     e.From,
 		Subject:     e.Subject,
 		Html:        e.Html,
 		Text:        e.Text,
