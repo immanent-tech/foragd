@@ -20,7 +20,7 @@ import (
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 )
 
-type Args struct {
+type UserArgs struct {
 	UserID models.UserID `arg:"" help:"ID of object to delete"`
 }
 
@@ -31,11 +31,12 @@ type UserCmd struct {
 }
 
 type DeleteUserCmd struct {
-	Args
+	UserArgs
 }
 
 type BlockUserCmd struct {
-	Args
+	UserArgs
+
 	Value bool `help:"Block status."`
 }
 
@@ -57,6 +58,18 @@ func (c *DeleteUserCmd) Run() error {
 	if err := elastic.DeleteDocs(ctx, schema.SubscriptionsIndexRW, query.Term("user_id", user.GetID())); err != nil {
 		return fmt.Errorf("unable to delete user %s: %w", user.GetID(), err)
 	}
+	// Delete any scheduled jobs for the user.
+	if err := elastic.DeleteDocs(
+		ctx,
+		schema.SchedulerIndexRW,
+		query.Term("job_data.user_id", user.GetID()),
+	); err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not delete scheduled jobs for user.",
+			slog.String("user_id", user.GetID()),
+			slog.Any("error", err),
+		)
+	}
+
 	// Delete from Auth0 backend
 	if err := auth0.DeleteUser(ctx, user.GetExternalID()); err != nil {
 		return fmt.Errorf("unable to delete user %s: %w", user.GetID(), err)
