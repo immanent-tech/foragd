@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.94.0](https://github.com/immanent-tech/foragd/compare/v0.93.0...v0.94.0) (2026-04-09)
+
+
+### Features
+
+* **templates/articles:** :lipstick: make quick actions on article content look and act like buttons ([99663c4](https://github.com/immanent-tech/foragd/commit/99663c4551e05780ece6fa36a54ac1ba18cc784e))
+
+
+### Bug Fixes
+
+* **assets:** :memo: fix link to terms of services in acceptable use policy ([a876bb5](https://github.com/immanent-tech/foragd/commit/a876bb5af4321cee063e532472218dd66b53eb54))
+* **assets:** :wrench: add additional blocks in robots.txt ([bed6d6e](https://github.com/immanent-tech/foragd/commit/bed6d6e598c102eab7e346375701c978800463f0))
+* **scheduler:** :bug: fix unsubscribe link sent to user tips email template ([1143d30](https://github.com/immanent-tech/foragd/commit/1143d30bc55c2a51665b6c77ba50a4cfd25868f4))
+* **styles:** :bug: fix email newsletter tables not respecting css container widths ([bce8fda](https://github.com/immanent-tech/foragd/commit/bce8fdae7146271825a00bdfdd41f133169fc577))
+* **styles:** :lipstick: ensure embedded video iframes are displayed appropriately ([8aad4aa](https://github.com/immanent-tech/foragd/commit/8aad4aa78e891e02a29d0df6ac7daea15e6bfcfc))
+* **templates/viewer:** :bug: fix subscription thumbnail size ([cdf120f](https://github.com/immanent-tech/foragd/commit/cdf120fc2eda5b0526d0b47a0ab936a4f0eda009))
+
 ## [0.93.0](https://github.com/immanent-tech/foragd/compare/v0.92.0...v0.93.0) (2026-04-08)
 
 
