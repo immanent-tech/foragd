@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.95.0](https://github.com/immanent-tech/foragd/compare/v0.94.0...v0.95.0) (2026-04-09)
+
+
+### Features
+
+* :sparkles: add dedicated Foragd vs other services pages ([3e7434c](https://github.com/immanent-tech/foragd/commit/3e7434cdb1015e6fae95c478d3b02fedf7101ab7))
+
+
+### Bug Fixes
+
+* **models:** :bug: fix missing return on error ([1cbcc2b](https://github.com/immanent-tech/foragd/commit/1cbcc2bc216e312ac97c704502d150dbe5342254))
+* **templates/comparison:** :bug: fix table header for inoreader comparison ([c78e9d0](https://github.com/immanent-tech/foragd/commit/c78e9d0727d4ddd120c9c71c1ea9f09e49f18792))
+* **templates/partials:** :bug: fix thumbnail mask styling ([1ae3ec9](https://github.com/immanent-tech/foragd/commit/1ae3ec94716085a1c95067baccdd63b60bf10151))
+
 ## [0.94.0](https://github.com/immanent-tech/foragd/compare/v0.93.0...v0.94.0) (2026-04-09)
 
 
