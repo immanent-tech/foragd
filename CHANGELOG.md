@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.96.0](https://github.com/immanent-tech/foragd/compare/v0.95.0...v0.96.0) (2026-04-09)
+
+
+### Features
+
+* **styles:** :sparkles: add new theme, "forest" ([a2f9d14](https://github.com/immanent-tech/foragd/commit/a2f9d14f00a463bfaa40501bae2e0c4f4cf28e38))
+* **styles:** :sparkles: add new theme, "grove" ([bc17fb8](https://github.com/immanent-tech/foragd/commit/bc17fb8da9f9b0816de0c42d36bc19cc7af1acd4))
+* **templates:** :lipstick: card styling improvements ([09ed582](https://github.com/immanent-tech/foragd/commit/09ed582ed16fd60e308b5ec94b2307246427ac79))
+* **templates:** :lipstick: small logo uses primary color of theme ([5048e97](https://github.com/immanent-tech/foragd/commit/5048e97e88444accbaa5f6d38c1d41c8eab477bd))
+
 ## [0.95.0](https://github.com/immanent-tech/foragd/compare/v0.94.0...v0.95.0) (2026-04-09)
 
 
