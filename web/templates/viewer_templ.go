@@ -155,7 +155,7 @@ func ViewerResults(feed *models.Feed) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if img := feed.GetImage(); img != nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <div class=\"avatar\"><div class=\"rounded-box\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " <div class=\"avatar\"><div class=\"mask mask-squircle w-12\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

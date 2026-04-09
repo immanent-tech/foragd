@@ -251,7 +251,7 @@ func Thumbnail(img *models.RemoteImage, name string, size string) templ.Componen
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(name[0:1])
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 103, Col: 50}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/partials/images.templ`, Line: 102, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {

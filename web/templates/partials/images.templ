@@ -41,7 +41,6 @@ templ NewProxiedImage(img *models.RemoteImage, props string, options ...element.
 		class={ templ.KV(elem.GetClasses(), elem.GetClasses() != "") }
 		{ elem.GetAttributes()... }
 	/>
-	// src={ generateImageProxyURL(ctx, img.GetURL(), props) }
 }
 
 func GenerateImageProxyURL(ctx context.Context, url, props string) string {
