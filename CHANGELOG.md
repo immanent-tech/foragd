@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.97.0](https://github.com/immanent-tech/foragd/compare/v0.96.0...v0.97.0) (2026-04-09)
+
+
+### Features
+
+* **assets:** :sparkles: dark/light theme adaptable svg favicon ([55e67f7](https://github.com/immanent-tech/foragd/commit/55e67f79717912418e93878d194b2668fa59057a))
+* **templates/landing:** :sparkles: add comparison links to landing page ([0946b37](https://github.com/immanent-tech/foragd/commit/0946b373acfd50b8b39e495898654feca1c5ce90))
+
+
+### Bug Fixes
+
+* **session:** :bug: make sure session gets committed to store after getting a new refresh token ([60e2853](https://github.com/immanent-tech/foragd/commit/60e285368b0fb0e8d7cd1d59b1aa2d1b9be1421f))
+
 ## [0.96.0](https://github.com/immanent-tech/foragd/compare/v0.95.0...v0.96.0) (2026-04-09)
 
 
