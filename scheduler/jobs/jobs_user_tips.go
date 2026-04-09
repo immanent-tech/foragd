@@ -77,15 +77,15 @@ func (j *userTipsJob) Execute(ctx context.Context) error {
 		return fmt.Errorf("get user: %w", err)
 	}
 
+	// Don't send tips if user has requested not to receive promotional emails.
+	if !user.Metadata.PromotionalEmail {
+		return nil
+	}
+
 	// Generate token for unsubscribe link.
 	unsubscribeToken, err := resend.EncodeEmail(user.GetEmail())
 	if err != nil {
 		return fmt.Errorf("generate unsubscribe token: %w", err)
-	}
-
-	// Don't send tips if user has requested not to receive promotional emails.
-	if !user.Metadata.PromotionalEmail {
-		return nil
 	}
 
 	// Create and send email to user.
@@ -94,7 +94,7 @@ func (j *userTipsJob) Execute(ctx context.Context) error {
 		resend.To(user.GetEmail()),
 		resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
 		resend.WithVariable("USER_NICKNAME", user.GetNickname()),
-		resend.WithVariable("USER_UNSUBSCRIBE_LINK", "https://foragd.app/unsubscribe/"+unsubscribeToken),
+		resend.WithVariable("USER_UNSUBSCRIBE_LINK", "/unsubscribe/"+unsubscribeToken),
 	)
 	if err != nil {
 		return fmt.Errorf("create new tip email %s: %w", data.EmailID, err)
