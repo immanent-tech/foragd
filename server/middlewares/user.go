@@ -161,6 +161,15 @@ func RefreshTokenIfNeeded(next http.Handler) http.Handler {
 					slog.Any("error", err),
 				)
 			}
+
+			// Commit the session to the store.
+			if err := session.Commit(req.Context()); err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to commit session data.",
+					slog.Any("error", err),
+				)
+				http.Redirect(res, req, "/login", http.StatusSeeOther)
+				return
+			}
 		}
 
 		next.ServeHTTP(res, req)

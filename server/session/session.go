@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	sessionLifetime = 24 * time.Hour
+	sessionLifetime = 4320 * time.Minute
 
 	listSubscriptionFiltersKey = "listSubscriptionFilters"
 	listArticleFiltersKey      = "listArticleFilters"
@@ -58,6 +58,13 @@ func Restore[T any](ctx context.Context, key string) (T, error) {
 		return value, fmt.Errorf("unable to restore session data as %T (data %v)", value, value)
 	}
 	return value, nil
+}
+
+func Commit(ctx context.Context) error {
+	if _, _, err := manager.Commit(ctx); err != nil {
+		return fmt.Errorf("unable to commit session to store: %w", err)
+	}
+	return nil
 }
 
 // Renew updates the session data to have a new session token while retaining the current session data. The session
