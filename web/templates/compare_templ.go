@@ -87,35 +87,30 @@ func Comparison(service string) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				case "Inoreader", "Innoreader":
-					service = "Inoreader"
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " ")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
 					templ_7745c5c3_Err = VsInoreader().Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				default:
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p class=\"mt-16 text-center font-semibold text-lg/8\">We don't have a comparison of ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"mt-16 text-center font-semibold text-lg/8\">We don't have a comparison of ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var5 string
 					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(service)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/compare.templ`, Line: 26, Col: 46}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/compare.templ`, Line: 25, Col: 46}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " yet. <a class=\"link\" href=\"mailto:hello@foragd.app?subject=Service Comparison Request\">Email us</a> to request it!</p>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " yet. <a class=\"link\" href=\"mailto:hello@foragd.app?subject=Service Comparison Request\">Email us</a> to request it!</p>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " <div class=\"mt-10 flex items-center justify-center gap-x-6\"><a class=\"btn text-sm/6 font-semibold btn-outline\" href=\"/#features\">More Foragd features</a> <a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a></div><div class=\"mt-10 text-center\"><h2 class=\"my-4 text-lg/8\">Compare Foragd with more services:</h2><ul><li><a class=\"link\" href=\"/compare/feedly\">Foragd vs Feedly</a></li><li><a class=\"link\" href=\"/compare/inoreader\">Foragd vs Inoreader</a></li></ul><p class=\"my-4\">See also: <a class=\"link\" href=\"/posts/foragd-vs-inoreader-vs-feedly\">Foragd vs Inoreader vs Feedly: a feed reader comparison</a>.</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " <div class=\"mt-10 flex items-center justify-center gap-x-6\"><a class=\"btn text-sm/6 font-semibold btn-outline\" href=\"/#features\">More Foragd features</a> <a class=\"btn text-sm/6 font-semibold btn-primary\" href=\"/signup\">Start a free trial</a></div><div class=\"mt-10 text-center\"><h2 class=\"my-4 text-lg/8\">Compare Foragd with more services:</h2><ul><li><a class=\"link\" href=\"/compare/feedly\">Foragd vs Feedly</a></li><li><a class=\"link\" href=\"/compare/inoreader\">Foragd vs Inoreader</a></li></ul><p class=\"my-4\">See also: <a class=\"link\" href=\"/posts/foragd-vs-inoreader-vs-feedly\">Foragd vs Inoreader vs Feedly: a feed reader comparison</a>.</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -129,7 +124,7 @@ func Comparison(service string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</main>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -164,7 +159,7 @@ func VsFeedly() templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"mx-auto mt-10 max-w-2xl\"><div class=\"overflow-x-auto\"><table class=\"table w-full\"><thead><tr><th>Feature</th><th>Foragd</th><th>Feedly</th></tr></thead> <tbody><tr><td colspan=\"3\" class=\"font-semibold\">Pricing and Plans</td></tr><tr><td>Price (USD)</td><td>Single plan $4.92/mo billed annually or $7.00/mo billed monthly</td><td>Starting at $6.99/mo billed annually for base plan</td></tr><tr><td>Trial Period</td><td>Free access during beta period. 14 days when launched.</td><td>None</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Inclusions and Limits</td></tr><tr><td>Subscription Limit</td><td>3000</td><td>1000</td></tr><tr><td>Email Newsletters</td><td>50</td><td>None in base plan</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Core Features</td></tr><tr><td>Full-text search</td><td>Yes</td><td>Yes</td></tr><tr><td>Article filtering</td><td>Unlimited per subscription filters</td><td><span class=\"italic\">Limited in base plan</span></td></tr><tr><td>Topic monitoring</td><td>Unlimited saved searches</td><td><span class=\"italic\">Limited</span></td></tr><tr><td>Fetch remote content</td><td>Yes</td><td>No</td></tr><tr><td>Android/iOS Apps</td><td>Not needed. Fully responsive web app</td><td>Yes</td></tr><tr><td colspan=\"3\" class=\"italic\">Last updated: 2026-04-09</td></tr></tbody></table></div></div><div class=\"mx-auto mt-10 max-w-2xl\"><p>Based on this, we believe Foragd is better priced with more inclusions at a single subscription price.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"mx-auto mt-10 max-w-2xl\"><div class=\"overflow-x-auto\"><table class=\"table w-full\"><thead><tr><th>Feature</th><th>Foragd</th><th>Feedly</th></tr></thead> <tbody><tr><td colspan=\"3\" class=\"font-semibold\">Pricing and Plans</td></tr><tr><td>Price (USD)</td><td>Single plan $4.92/mo billed annually or $7.00/mo billed monthly</td><td>Starting at $6.99/mo billed annually for base plan</td></tr><tr><td>Trial Period</td><td>Free access during beta period. 14 days when launched.</td><td>None</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Inclusions and Limits</td></tr><tr><td>Subscription Limit</td><td>3000</td><td>1000</td></tr><tr><td>Email Newsletters</td><td>50</td><td>None in base plan</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Core Features</td></tr><tr><td>Full-text search</td><td>Yes</td><td>Yes</td></tr><tr><td>Article filtering</td><td>Unlimited per subscription filters</td><td><span class=\"italic\">Limited in base plan</span></td></tr><tr><td>Topic monitoring</td><td>Unlimited saved searches</td><td><span class=\"italic\">Limited</span></td></tr><tr><td>Fetch remote content</td><td>Yes</td><td>No</td></tr><tr><td>Android/iOS Apps</td><td>Not needed. Fully responsive web app</td><td>Yes</td></tr><tr><td colspan=\"3\" class=\"italic\">Last updated: 2026-04-09</td></tr></tbody></table></div></div><div class=\"mx-auto mt-10 max-w-2xl\"><p>Based on this, we believe Foragd is better priced with more inclusions at a single subscription price.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -193,7 +188,7 @@ func VsInoreader() templ.Component {
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<div class=\"mx-auto mt-10 max-w-2xl\"><div class=\"overflow-x-auto\"><table class=\"table w-full\"><thead><tr><th>Feature</th><th>Inoreader</th><th>Feedly</th></tr></thead> <tbody><tr><td colspan=\"3\" class=\"font-semibold\">Pricing and Plans</td></tr><tr><td>Price (USD)</td><td>$4.92/mo billed annually or $7.00/mo billed monthly</td><td>$7.50/mo billed annually or $9.99/mo billed monthly</td></tr><tr><td>Trial Period</td><td>Free access during beta period. 14 days when launched.</td><td>15 days</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Inclusions and Limits</td></tr><tr><td>Subscription Limit</td><td>3000</td><td>2500</td></tr><tr><td>Email Newsletters</td><td>50</td><td>20</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Core Features</td></tr><tr><td>Full-text search</td><td>Yes</td><td>Yes</td></tr><tr><td>Article filtering</td><td>Unlimited per subscription filters</td><td>Up to 30 filters across all subscriptions</td></tr><tr><td>Topic monitoring</td><td>Saved searches (up to subscription limit)</td><td>Up to 30 topic monitors</td></tr><tr><td>Fetch remote content</td><td>Yes</td><td>Yes</td></tr><tr><td>Android/iOS Apps</td><td>Not needed. Fully responsive web app</td><td>Yes</td></tr><tr><td colspan=\"3\" class=\"italic\">Last updated: 2026-04-09</td></tr></tbody></table></div></div><div class=\"mx-auto mt-10 max-w-2xl\"><p>Based on this, we believe Foragd is better priced with more inclusions at a single subscription price.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"mx-auto mt-10 max-w-2xl\"><div class=\"overflow-x-auto\"><table class=\"table w-full\"><thead><tr><th>Feature</th><th>Foragd</th><th></th></tr></thead> <tbody><tr><td colspan=\"3\" class=\"font-semibold\">Pricing and Plans</td></tr><tr><td>Price (USD)</td><td>$4.92/mo billed annually or $7.00/mo billed monthly</td><td>$7.50/mo billed annually or $9.99/mo billed monthly</td></tr><tr><td>Trial Period</td><td>Free access during beta period. 14 days when launched.</td><td>15 days</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Inclusions and Limits</td></tr><tr><td>Subscription Limit</td><td>3000</td><td>2500</td></tr><tr><td>Email Newsletters</td><td>50</td><td>20</td></tr><tr><td colspan=\"3\" class=\"font-semibold\">Core Features</td></tr><tr><td>Full-text search</td><td>Yes</td><td>Yes</td></tr><tr><td>Article filtering</td><td>Unlimited per subscription filters</td><td>Up to 30 filters across all subscriptions</td></tr><tr><td>Topic monitoring</td><td>Saved searches (up to subscription limit)</td><td>Up to 30 topic monitors</td></tr><tr><td>Fetch remote content</td><td>Yes</td><td>Yes</td></tr><tr><td>Android/iOS Apps</td><td>Not needed. Fully responsive web app</td><td>Yes</td></tr><tr><td colspan=\"3\" class=\"italic\">Last updated: 2026-04-09</td></tr></tbody></table></div></div><div class=\"mx-auto mt-10 max-w-2xl\"><p>Based on this, we believe Foragd is better priced with more inclusions at a single subscription price.</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -19,7 +19,6 @@ templ Comparison(service string) {
 					case "Feedly":
 						@VsFeedly()
 					case "Inoreader","Innoreader":
-						{{ service = "Inoreader" }} // Fix spelling.
 						@VsInoreader()
 					default:
 						<p class="mt-16 text-center font-semibold text-lg/8">
@@ -133,8 +132,8 @@ templ VsInoreader() {
 				<thead>
 					<tr>
 						<th>Feature</th>
-						<th>Inoreader</th>
-						<th>Feedly</th>
+						<th>Foragd</th>
+						<th></th>
 					</tr>
 				</thead>
 				<tbody>
