@@ -96,7 +96,7 @@ func DecodeEmail(token string) (string, error) {
 	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
 	if err != nil {
 		// Deliberately vague: wrong key/salt or tampered data.
-		return "", errors.New("decryption failed: invalid token, key, or salt")
+		return "", fmt.Errorf("decryption failed: %w", err)
 	}
 
 	return string(plaintext), nil

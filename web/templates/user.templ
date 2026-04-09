@@ -141,6 +141,9 @@ templ UnsubscribeResult(msg *models.UserMessage) {
 				if msg.HasDetails() {
 					<p>{ *msg.Details }</p>
 				}
+				if msg.Status != models.UserMessageStatusSuccess {
+					<p>Problems? <a class="link" href="mailto:hello@foragd.app">Email us</a></p>
+				}
 			}
 		}
 	}
