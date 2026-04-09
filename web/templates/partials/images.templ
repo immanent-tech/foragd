@@ -82,17 +82,18 @@ templ Thumbnail(img *models.RemoteImage, name string, size string) {
 	if img != nil {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar" aria-hidden="true">
-			// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
-			// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
-			// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
-			// sm:1 - strip metadata
-			// kcr:1 - keep copyright
-			// scp:1 - convert color profile to sRGB
-			@NewProxiedImage(img, "rs:auto:"+px+":"+px+"/q:80/sm:1/kcr:1/scp:1/ext:webp",
-				element.WithAttribute("width", px),
-				element.WithAttribute("height", px),
-				element.WithClasses("mask", "mask-squircle", size),
-			)
+			<div class={ "mask", "mask-squircle", size }>
+				// rs:auto:48:48 - resize to 48x48 https://docs.imgproxy.net/usage/processing#resize
+				// sh:0.5 - sharpen https://docs.imgproxy.net/usage/processing#sharpen
+				// q:80 - quality https://docs.imgproxy.net/usage/processing#quality
+				// sm:1 - strip metadata
+				// kcr:1 - keep copyright
+				// scp:1 - convert color profile to sRGB
+				@NewProxiedImage(img, "rs:auto:"+px+":"+px+"/q:80/sm:1/kcr:1/scp:1/ext:webp",
+					element.WithAttribute("width", px),
+					element.WithAttribute("height", px),
+				)
+			</div>
 		</div>
 	} else {
 		// Otherwise, take the first letter of the subscription name and create a placeholder avatar.
