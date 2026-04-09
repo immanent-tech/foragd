@@ -143,6 +143,8 @@ func Start(logger *slog.Logger) error {
 		// Individual posts.
 		r.Get("/posts/*", handlers.HandlePosts())
 		r.Get("/blog/*", handlers.HandlePosts())
+		// Comparison pages.
+		r.Get("/compare/{service}", handlers.HandleComparison())
 		// Posts RSS feed.
 		r.Get("/feed", handlers.HandlePostsFeed())
 		// Sign-up/Login routes.

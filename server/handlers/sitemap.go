@@ -37,7 +37,15 @@ var loadSitemapXML = sync.OnceValues(func() ([]byte, error) {
 		},
 		sitemap.URL{
 			Loc:      "https://foragd.app/help",
-			Priority: 0.75,
+			Priority: 0.6,
+		},
+		sitemap.URL{
+			Loc:      "https://foragd.app/compare/feedly",
+			Priority: 0.8,
+		},
+		sitemap.URL{
+			Loc:      "https://foragd.app/compare/inoreader",
+			Priority: 0.8,
 		},
 	)
 	// Add all posts.

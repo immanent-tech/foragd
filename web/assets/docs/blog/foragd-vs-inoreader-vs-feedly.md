@@ -2,7 +2,7 @@
 title = "Foragd vs Inoreader vs Feedly: a feed reader comparison"
 description = "An in-depth comparison to help you choose the best RSS reader for your needs."
 created_at = "2026-02-18"
-updated_at = "2026-02-18"
+updated_at = "2026-04-09"
 image = "/content/images/blog/scribe-comparing-manuscripts.webp"
 author = "Joshua Rich <joshua.rich@gmail.com>"
 +++
@@ -52,19 +52,21 @@ Most of these services offer a number of different subscription tiers. In this c
 
 | Feature                        | Foragd                                                 | Feedly                   | Inoreader                                           |
 | ------------------------------ | ------------------------------------------------------ | ------------------------ | --------------------------------------------------- |
-| **Pricing and Plans**          |                                                        |                          |
-| Price (USD)                    | $4.92/mo billed annually or $7.00/mo billed monthly    | $6.99/mo billed annually | $7.50/mo billed annually or $9.99/mo billed monthly |  |
-| Trial Period?                  | Free access during beta period. 14 days when launched. | None.                    | 15 days                                             |
-| **Inclusions and Limits**      |                                                        |                          |
-| Subscription Limit             | 3000                                                   | 1000                     | 2500                                                |
-| Email Newsletter Subscriptions | 50                                                     | No.                      | 20                                                  |
+| **Pricing and Plans**          |                                                        |                          |                                                     |
+| Price (USD)                    | $4.92/mo billed annually or $7.00/mo billed monthly    | $6.99/mo billed annually | $7.50/mo billed annually or $9.99/mo billed monthly |
+| Trial period?                  | Free access during beta period. 14 days when launched. | None.                    | 15 days                                             |
+| **Inclusions and Limits**      |                                                        |                          |                                                     |
+| Subscription limit             | 3000                                                   | 1000                     | 2500                                                |
+| Email newsletter subscriptions | 50                                                     | No.                      | 20                                                  |
 | **Core Features**              |                                                        |                          |                                                     |
-| Search                         | Yes.                                                   | Yes.                     | Yes.                                                |
-| Article Filtering              | Unlimited per subscription filters.                    | N/A                      | Up to 30 filters across all subscriptions           |
+| Full-text search               | Yes.                                                   | Yes.                     | Yes.                                                |
+| Article filtering              | Unlimited per subscription filters.                    | N/A                      | Up to 30 filters across all subscriptions           |
 | Organization                   | Groups and categories.                                 | Limited.                 | Folders and tags.                                   |
-| Topic Monitoring               | Unlimited saved search subscriptions.                  | No                       | Up to 30 topic monitors.                            |
+| Topic monitoring               | Saved search subscriptions (up to subscription limit). | No                       | Up to 30 topic monitors.                            |
 | Fetch remote content           | Yes.                                                   | No.                      | Yes.                                                |
 | Android/iOS Apps               | N/A (web based and works anywhere).                    | Yes.                     | Yes.                                                |
+| **Other Factors**              |                                                        |                          |                                                     |
+| Open source                    | Yes                                                    | No                       | No                                                  |
 
 Feedly and Inoreader both have features around update frequency boosting, which supposedly provides updates from sources
 faster. But really, you are bound by how regularly the source is updated; if it only updates every hour, a boost will
