@@ -53,7 +53,7 @@ func (c *FetchFeedCmd) Run() error {
 		}
 		results, err = models.NewFeedFromURL(ctx, feedURL.String(), "", c.Validate)
 		if err != nil {
-			return fmt.Errorf("get feed by id: %w", err)
+			return fmt.Errorf("get feed by url: %w", err)
 		}
 	default:
 		return errors.New("no ID or URL provided")

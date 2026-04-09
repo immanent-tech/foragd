@@ -557,7 +557,7 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 	// Parse the raw URL and make any adjustments based on the domain for specific canonical sources.
 	feedURL, err := feedURLParser(ctx, rawURL)
 	if err != nil {
-		fmt.Errorf("parse url: %w", err)
+		return nil, fmt.Errorf("parse url: %w", err)
 	}
 
 	var feed *Feed
