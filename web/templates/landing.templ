@@ -3,6 +3,8 @@
 
 package templates
 
+import "github.com/immanent-tech/foragd/web/templates/partials"
+
 // Landing is the landing page layout.
 templ Landing() {
 	<div class="bg-base-100">
@@ -33,7 +35,7 @@ templ Landing() {
 							<div class="flex items-center justify-between">
 								<a href="#" class="-m-1.5 p-1.5">
 									<div class="flex items-center">
-										<img src="/content/favicon.svg" width="64" height="64" alt="Foragd logo" fetchpriority="high"/>
+										@partials.LogoSmall()
 										<p class="hidden font-bold text-primary lg:flex">Foragd</p>
 									</div>
 								</a>
@@ -76,25 +78,15 @@ templ Landing() {
 							<h1 class="text-5xl font-semibold tracking-tight text-balance sm:text-7xl">
 								Foragd&nbsp;<sup class="text-sm uppercase badge badge-accent">beta</sup>
 							</h1>
-							<p
-								class="mt-8 text-lg font-medium text-pretty sm:text-xl/8"
-							>
+							<p class="mt-8 text-lg font-medium text-pretty sm:text-xl/8">
 								Tired of algorithmic feeds deciding what you see? Take back control of your reading.
 								Follow any website, blog, or newsletter in one place.
 							</p>
-							<div
-								class="mt-10 flex items-center justify-center gap-x-6"
-							>
-								<a
-									class="btn text-sm/6 font-semibold btn-outline"
-									_="on click go to #features smoothly"
-								>
+							<div class="mt-10 flex items-center justify-center gap-x-6">
+								<a class="btn text-sm/6 font-semibold btn-outline" _="on click go to #features smoothly">
 									See features
 								</a>
-								<a
-									class="btn text-sm/6 font-semibold btn-primary"
-									href="/signup"
-								>
+								<a class="btn text-sm/6 font-semibold btn-primary" href="/signup">
 									Start a free trial
 								</a>
 							</div>
