@@ -163,5 +163,8 @@
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000,
   "xmlTools.enforcePrettySelfClosingTagOnFormat": true,
-  "xmlTools.splitAttributesOnFormat": true
+  "xmlTools.splitAttributesOnFormat": true,
+  "git.autofetch": true,
+  "git.followTagsWhenSync": true,
+  "git.enableSmartCommit": true
 }
