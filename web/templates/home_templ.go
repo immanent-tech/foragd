@@ -165,7 +165,7 @@ func UserHome(data *models.HomeResponse) templ.Component {
 								return templ_7745c5c3_Err
 							}
 							for category := range data.TopCategories {
-								templ_7745c5c3_Err = CategoryBadge(category.Category, "articles", new(models.NewListDisplayFilters())).Render(ctx, templ_7745c5c3_Buffer)
+								templ_7745c5c3_Err = CategoryBadge(category.Category, "articles", new(models.NewListDisplayFilters()), "").Render(ctx, templ_7745c5c3_Buffer)
 								if templ_7745c5c3_Err != nil {
 									return templ_7745c5c3_Err
 								}

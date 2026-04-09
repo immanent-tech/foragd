@@ -76,7 +76,7 @@ templ UserHome(data *models.HomeResponse) {
 										</h2>
 										<div id="top-categories" class="m-2 flex flex-row flex-wrap justify-center gap-2 p-2">
 											for category := range data.TopCategories {
-												@CategoryBadge(category.Category, "articles", new(models.NewListDisplayFilters()))
+												@CategoryBadge(category.Category, "articles", new(models.NewListDisplayFilters()), "")
 											}
 										</div>
 									</section>

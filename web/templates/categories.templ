@@ -110,7 +110,7 @@ templ AddCategory(category models.Category) {
 	</div>
 }
 
-templ CategoryBadge(category models.Category, categoryType string, filters *models.ListFilters) {
+templ CategoryBadge(category models.Category, categoryType string, filters *models.ListFilters, params string) {
 	{{
 		filters.Categories = append(filters.Categories, category)
 		var href string
@@ -125,9 +125,13 @@ templ CategoryBadge(category models.Category, categoryType string, filters *mode
 		hx-get={ href }
 		hx-target={ ContentID.Target() }
 		hx-vals={ templ.JSONString(filters.Values()) }
-		class="link link-hover hover:scale-[0.99] active:scale-[0.96]"
+		if params != "" {
+			hx-params={ params }
+		}
+		class="hover:scale-[0.99] active:scale-[0.96]"
+		_="on click halt the event's bubbling"
 	>
-		<span class="badge line-clamp-1 badge-lg badge-secondary">
+		<span class="badge line-clamp-1 badge-secondary">
 			{ category }
 		</span>
 	</a>

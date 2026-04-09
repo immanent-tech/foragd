@@ -45,7 +45,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var2 = []any{"card bg-base-200 h-full w-full max-w-prose card-shadow cursor-pointer touch-manipulation focus:outline-primary active:scale-[0.96] hover:scale-[0.99] transition-transform duration-150",
+		var templ_7745c5c3_Var2 = []any{"card bg-base-200 h-full w-full max-w-prose cursor-pointer touch-manipulation focus:outline-primary active:scale-[0.96] hover:scale-[0.99] transition-transform duration-150",
 			templ.KV("row-span-1", article.GetImage() == nil),
 			templ.KV("row-span-2", article.GetImage() != nil),
 		}

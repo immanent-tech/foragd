@@ -127,7 +127,7 @@ templ SubscriptionCard(idx int, s *models.Subscription, options ...SubscriptionC
 	<article
 		style={ "--i: " + strconv.Itoa(idx) }
 		id={ s.GetID() }
-		class="card mx-auto h-full w-full max-w-prose cursor-pointer touch-manipulation bg-base-200 card-shadow transition-transform duration-150 hover:scale-[0.99] focus:outline-primary active:scale-[0.96]"
+		class="card mx-auto h-full w-full max-w-prose cursor-pointer touch-manipulation bg-base-200 transition-transform duration-150 hover:scale-[0.99] focus:outline-primary active:scale-[0.96]"
 		{ generateSubscriptionViewArticlesAttributes(s)... }
 		hx-disinherit="*"
 		tabindex="0"
@@ -154,21 +154,8 @@ templ SubscriptionCard(idx int, s *models.Subscription, options ...SubscriptionC
 						<div class="flex flex-row flex-wrap gap-2 p-2">
 							for category := range slices.Values(s.GetCategories(5)) {
 								{{ filters := models.NewListDisplayFilters() }}
-								{{ filters.Categories = append(filters.Categories, category) }}
-								<form
-									hx-get="/list/subscriptions"
-									hx-target={ ContentID.Target() }
-									hx-vals={ templ.JSONString(filters.Values()) }
-									hx-params="not subscriptions,subscription_id"
-								>
-									<button
-										type="submit"
-										class="link link-hover"
-										_="on click halt the event's bubbling"
-									>
-										<span class="badge badge-outline badge-sm">{ category }</span>
-									</button>
-								</form>
+								{{ filters.Subscriptions = nil }}
+								@CategoryBadge(category, "subscriptions", &filters, "not subscription_id")
 							}
 						</div>
 					</div>
