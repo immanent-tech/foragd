@@ -156,7 +156,7 @@ func Landing() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Beta pricing. Sign up to lock in the price before launch. Got questions about pricing or features? <a href=\"mailto:hello@immanent.tech&subject=Pricing\" class=\"link text-base-content/80\">Email Us.</a></p></div></div></div><div id=\"faq\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-4xl\"><h2 class=\"text-4xl font-semibold tracking-tight sm:text-5xl\">Frequently asked questions</h2><dl class=\"mt-16 divide-y divide-accent\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div><div class=\"mx-auto max-w-4xl text-center\"><p class=\"mx-auto mt-6 max-w-2xl text-center text-lg/8 text-pretty text-base-content/80\">Beta pricing. Sign up to lock in the price before launch. Got questions about pricing or features? <a href=\"mailto:hello@immanent.tech&subject=Pricing\" class=\"link text-base-content/80\">Email Us.</a></p></div></div></div><div id=\"compare\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-4xl text-center\"><h2 id=\"compare\" class=\"text-base/7 font-semibold text-primary\">Compare the market.</h2><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Feed reader comparisons</p></div><div class=\"mx-auto flex mt-10 max-w-lg items-center justify-center space-x-8 sm:max-w-xl sm:space-x-10 lg:mx-0 lg:max-w-none\"><div class=\"text-2xl\">vs <a class=\"link link-hover font-semibold\" href=\"/compare/feedly\">Feedly</a></div><div class=\"text-2xl\">vs <a class=\"link link-hover font-semibold\" href=\"/compare/feedly\">Inoreader</a></div></div></div><div id=\"faq\" class=\"mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8 lg:py-40\"><div class=\"mx-auto max-w-4xl text-center\"><h2 id=\"compare\" class=\"text-base/7 font-semibold text-primary\">Frequently asked questions.</h2><p class=\"mt-2 text-4xl font-semibold tracking-tight text-balance sm:text-5xl\">Got questions? Get answers.</p></div><div class=\"mx-auto max-w-4xl\"><dl class=\"mt-16 divide-y divide-accent\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -310,7 +310,7 @@ func landingFAQEntry(id, question string) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("faq-" + id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 435, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 456, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -323,7 +323,7 @@ func landingFAQEntry(id, question string) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(question)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 438, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 459, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -336,7 +336,7 @@ func landingFAQEntry(id, question string) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("faq-" + id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 446, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 467, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -386,7 +386,7 @@ func imagePopup(id string) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(id)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 458, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/landing.templ`, Line: 479, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
