@@ -1766,9 +1766,9 @@ type AddSubscriptionResult struct {
 func (s *SubscriptionStats) UpdateFrequency() string {
 	switch {
 	case s.AvgDailyUpdates > 1:
-		return fmt.Sprintf("%.0f articles/day", s.AvgDailyUpdates)
+		return fmt.Sprintf("%.0f items/day", s.AvgDailyUpdates)
 	case s.AvgDailyUpdates < 1 && s.AvgDailyUpdates > 0.5:
-		return "A few times a week"
+		return fmt.Sprintf("%.0f items/week", s.AvgDailyUpdates*7)
 	case s.AvgDailyUpdates < 0.5 && s.AvgDailyUpdates > 0.25:
 		return "About weekly"
 	default:
