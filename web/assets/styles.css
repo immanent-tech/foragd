@@ -88,32 +88,41 @@
   }
 
   .card {
-    /* Ensure <figure/> inherits top corner rounding of card. */
-    figure {
-      @apply rounded-t-[inherit];
+    @apply border border-neutral/15;
+    /* Subtle image outline */
+    img::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: inset 0 0 0 1px rgba(26, 23, 20, 0.1);
+      pointer-events: none;
     }
-    /* Give images consistent depth and prevent them from bleeding visually into very light or very dark backgrounds. */
-    img {
-      @apply ring-1 ring-neutral/10;
-    }
-  }
-
-  article.card {
     /* Only animate these two — never use transition: all */
     animation: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
     animation-delay: calc(min(var(--i), 15) * 80ms);
     /* Hint the GPU ahead of time */
     will-change: opacity, transform;
+
+    transition-property: box-shadow;
+    transition-duration: 250ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
   }
 
   /* Remove will-change after animation completes to free GPU memory */
-  article.card.animation-done {
+  .card.animation-done {
     will-change: auto;
   }
 
   /* Skip animation if content was restored from cache */
-  [data-htmx-history-restored] article.card {
+  [data-htmx-history-restored] .card {
     animation: none;
+  }
+
+  .card:has(.card-actions:hover),
+  .card:has(.card-actions:active) {
+    scale: 1;
+    transition: none;
   }
 
   /* Don't animate if user has requested reduced motion. */
@@ -129,11 +138,6 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
-  .card.htmx-swapping {
-    opacity: 0;
-    transition: opacity 1s ease-out;
-  }
-
   .toast {
     & > .alert {
       transition:
@@ -268,12 +272,6 @@
   }
 }
 
-@utility card-shadow {
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.06);
-}
-
 @utility soft-gradient-top {
   @apply relative left-[calc(50%-11rem)] aspect-1155/678 w-144.5 -translate-x-1/2 rotate-30 bg-linear-to-tr from-(--color-primary) to-(--color-secondary) opacity-30 sm:left-[calc(50%-30rem)] sm:w-288.75 dark:opacity-20;
   clip-path: polygon(
@@ -316,4 +314,12 @@
     76.1% 97.7%,
     74.1% 44.1%
   );
+}
+
+@utility link {
+  transition-property: scale, color;
+  transition-duration: 150ms;
+  :active {
+    @apply scale-[0.96];
+  }
 }
