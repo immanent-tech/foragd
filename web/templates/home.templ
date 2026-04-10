@@ -21,7 +21,7 @@ templ UserHome(data *models.HomeResponse) {
 						// User has no unread content, show a message and link to favorites.
 						@partials.NoContent()
 					} else {
-						<div class="grid grid-cols-1 items-start gap-4 lg:grid-cols-3 lg:gap-8">
+						<div class="grid grid-cols-1 items-start gap-4 lg:grid-cols-3 lg:gap-8 px-2">
 							// Left column
 							<div class="grid grid-cols-1 gap-4 lg:col-span-2">
 								<section aria-labelledby="section-latest-articles">
@@ -49,6 +49,7 @@ templ UserHome(data *models.HomeResponse) {
 							// Right column
 							<div class="grid grid-cols-1 gap-4">
 								if len(data.Subscriptions) > 0 {
+									// List of subscriptions by last updated.
 									<section aria-labelledby="section-last-updated-subscriptions">
 										<h2
 											id="section-last-updated-subscriptions"
@@ -56,14 +57,38 @@ templ UserHome(data *models.HomeResponse) {
 										>
 											Last Updated Subscriptions
 										</h2>
-										<div class="inline-grid w-full grid-flow-row grid-cols-1 gap-y-4 px-4 py-6 sm:px-6 lg:px-8">
+										<ul role="list" class="divide-y divide-neutral/15">
 											for idx, subscription := range data.Subscriptions {
 												if idx >= 6 {
 													{{ break }}
 												}
-												@SubscriptionCard(idx, subscription, SubscriptionCardShowActions(false), SubscriptionCardShowCategories(false))
+												<li
+													class="group py-4 flex hover:hover-shadow active:scale-[0.96] transition cursor-pointer touch-manipulation"
+													style={ "--i: " + strconv.Itoa(idx) }
+													id={ subscription.GetID() }
+													{ generateSubscriptionViewArticlesAttributes(subscription)... }
+												>
+													<div class="mr-4 shrink-0">
+														if subscription.GetImage() == "" {
+															@subscriptionThumbnail(nil, subscription.GetTitle())
+														} else {
+															@subscriptionThumbnail(models.NewRemoteImage(subscription.GetImage(), subscription.GetTitle()), subscription.GetTitle())
+														}
+													</div>
+													<div>
+														<h4 class="text-lg font-bold group-hover:scale-[1.04]">{ subscription.GetTitle() }</h4>
+														<span class="mt-1 text-neutral text-sm/6">
+															<relative-time
+																datetime={ subscription.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
+																format="relative"
+															>
+																{ subscription.GetUpdatedDate().Format("Jan _2, 2006") }
+															</relative-time>
+														</span>
+													</div>
+												</li>
 											}
-										</div>
+										</ul>
 									</section>
 								}
 								if len(data.TopCategories) > 0 {
