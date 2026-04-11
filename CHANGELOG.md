@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.98.0](https://github.com/immanent-tech/foragd/compare/v0.97.0...v0.98.0) (2026-04-11)
+
+
+### Features
+
+* **templates:** :sparkles: improved card fit in grid layouts ([5d3c280](https://github.com/immanent-tech/foragd/commit/5d3c280e2d2409cf4a78a0c4d4ae8e4f076a63ee))
+* **templates:** :sparkles: improved cards ([4f8cf4a](https://github.com/immanent-tech/foragd/commit/4f8cf4a1eb42b536b021eb15b0e33e750b40bd5d))
+* **templates/articles:** :lipstick: improved article card styling ([1726191](https://github.com/immanent-tech/foragd/commit/1726191e741cc8f01e3b2bbb85321b6cae48708a))
+* **templates/home:** :sparkles: use a list with dividers instead of cards for latest subscriptions on home page ([87439c8](https://github.com/immanent-tech/foragd/commit/87439c8ea4e04e6e28acf6e4921f4dce02eadb48))
+* **templates/partials:** :sparkles: add a customisable card partial template ([416da31](https://github.com/immanent-tech/foragd/commit/416da312ec6811d97b78afad340ac8ece245c1ac))
+
+
+### Bug Fixes
+
+* **scripts:** :bug: improved loading of masonry library ([ce827d8](https://github.com/immanent-tech/foragd/commit/ce827d8b374dcca1dbfc6e96c06e470642140fba))
+* **scripts:** :bug: tweak masonry ponyfill init ([d003ff2](https://github.com/immanent-tech/foragd/commit/d003ff2dd40b461f2f72ee3d6068422fbd638ba9))
+* **templates:** :bug: add padding to grid ([d9dc235](https://github.com/immanent-tech/foragd/commit/d9dc23596826c901443e9c8e4cce747eb0d23314))
+
 ## [0.97.0](https://github.com/immanent-tech/foragd/compare/v0.96.0...v0.97.0) (2026-04-09)
 
 
