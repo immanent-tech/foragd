@@ -11,20 +11,16 @@ import (
 	"encoding/hex"
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
-	"slices"
 	"strconv"
 	"strings"
 )
 
 type ProxiedImage struct {
-	*element.Element
+	*element.Properties
 }
 
-templ NewProxiedImage(img *models.RemoteImage, props string, options ...element.Option) {
-	{{ elem := &ProxiedImage{Element: element.New()} }}
-	for option := range slices.Values(options) {
-		{{ option(elem.Element) }}
-	}
+templ NewProxiedImage(img *models.RemoteImage, props string, options ...element.PropertiesOption) {
+	{{ elem := &ProxiedImage{Properties: element.NewProperties(options...)} }}
 	// Set some reasonable defaults for important attributes.
 	if !elem.HasAttribute("loading") {
 		{{ elem.SetAttribute("loading", "lazy") }}
@@ -33,13 +29,13 @@ templ NewProxiedImage(img *models.RemoteImage, props string, options ...element.
 		{{ elem.SetAttribute("decoding", "async") }}
 	}
 	<img
-		if elem.GetID() != "" {
-			id={ elem.GetID() }
+		if elem.ID() != "" {
+			id={ elem.ID() }
 		}
 		src={ GenerateImageProxyURL(ctx, img.GetURL(), props) }
 		alt={ img.GetTitle() }
-		class={ templ.KV(elem.GetClasses(), elem.GetClasses() != "") }
-		{ elem.GetAttributes()... }
+		class={ elem.Classes() }
+		{ elem.Attributes()... }
 	/>
 }
 

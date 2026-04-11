@@ -113,7 +113,7 @@ func SearchItems(
 	}
 	// Perform search.
 	items, newSearchAfter, err := elastic.Search[Item](ctx, schema.ItemsIndexRO, query, count,
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](newItemSortOptions(sort)...),
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](NewItemSortOptions(sort)...),
 		elastic.WithSearchAfter[*search.Search, elastic.SearchRequest](searchAfter...),
 	)
 	if err != nil {
@@ -492,7 +492,7 @@ func (s *ItemSorting) SortCombinationsCaster() *estypes.SortCombinations {
 	return &c
 }
 
-func newItemSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
+func NewItemSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
 	if sort == nil {
 		return []estypes.SortCombinationsVariant{&estypes.SortOptions{Doc_: estypes.NewScoreSort()}}
 	}
@@ -531,7 +531,7 @@ func newItemSortOptions(sort *Sort) []estypes.SortCombinationsVariant {
 	return opts
 }
 
-func newItemSortCombinations(sort *Sort) []estypes.SortCombinations {
+func NewItemSortCombinations(sort *Sort) []estypes.SortCombinations {
 	var opts []estypes.SortCombinations
 	switch *sort {
 	case SortNewestFirst:

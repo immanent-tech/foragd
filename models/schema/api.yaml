@@ -203,3 +203,51 @@ components:
           x-oapi-codegen-extra-tags:
             form: subscription_suggestions
           x-go-type-skip-optional-pointer: true
+    ListSubscriptionsResponse:
+      description: >
+        contains the data retrieved and relevant for listing subscriptions.
+      type: object
+      required:
+        - subscriptions
+        - filters
+        - pagination
+      properties:
+        subscriptions:
+          description: >
+            is the list of subscriptions.
+          x-go-type: Subscriptions
+        latest_articles:
+          description: >
+            is a map of the latest articles for each subscription in the result.
+          x-go-type: map[SubscriptionID]Items
+          x-go-type-skip-optional-pointer: true
+        filters:
+          $ref: 'models.yaml#/components/schemas/ListFilters'
+        pagination:
+          $ref: 'models.yaml#/components/schemas/Pagination'
+    ListArticlesResponse:
+      description: >
+        contains the data retrieved and relevant for listing articles.
+      type: object
+      required:
+        - articles
+        - category_counts
+        - filters
+        - pagination
+      properties:
+        subscription:
+          allOf:
+            - $ref: 'models.yaml#/components/schemas/Subscription'
+          x-go-type-skip-optional-pointer: false
+        articles:
+          x-go-type: Articles
+          # description: >
+          #   is a list of subscriptions.
+          # type: array
+          # items:
+          #   $ref: '#/components/schemas/Subscription'
+          # x-go-type-skip-optional-pointer: true
+        filters:
+          $ref: 'models.yaml#/components/schemas/ListFilters'
+        pagination:
+          $ref: 'models.yaml#/components/schemas/Pagination'

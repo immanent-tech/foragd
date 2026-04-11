@@ -1410,53 +1410,6 @@ components:
           x-go-type-import:
             path: 'github.com/immanent-tech/foragd/providers/elastic/query'
           x-go-type-skip-optional-pointer: true
-    ListSubscriptionsResponse:
-      description: >
-        contains the data retrieved and relevant for listing subscriptions.
-      type: object
-      required:
-        - subscriptions
-        - filters
-        - pagination
-      properties:
-        subscriptions:
-          x-go-type: Subscriptions
-          # description: >
-          #   is a list of subscriptions.
-          # type: array
-          # items:
-          #   $ref: '#/components/schemas/Subscription'
-          # x-go-type-skip-optional-pointer: true
-        filters:
-          $ref: '#/components/schemas/ListFilters'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-    ListArticlesResponse:
-      description: >
-        contains the data retrieved and relevant for listing articles.
-      type: object
-      required:
-        - articles
-        - category_counts
-        - filters
-        - pagination
-      properties:
-        subscription:
-          allOf:
-            - $ref: '#/components/schemas/Subscription'
-          x-go-type-skip-optional-pointer: false
-        articles:
-          x-go-type: Articles
-          # description: >
-          #   is a list of subscriptions.
-          # type: array
-          # items:
-          #   $ref: '#/components/schemas/Subscription'
-          # x-go-type-skip-optional-pointer: true
-        filters:
-          $ref: '#/components/schemas/ListFilters'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
     ListSubscriptionCategoriesRequest:
       description: >
         contains data for listing categories for a list of subscriptions.

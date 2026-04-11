@@ -16,7 +16,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"slices"
 )
 
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
@@ -99,7 +98,7 @@ func Document(data []byte) templ.Component {
 }
 
 // content renders children wrapped with appropriate header/footer navigation.
-func content(options ...element.Option) templ.Component {
+func content(options ...element.PropertiesOption) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -120,10 +119,7 @@ func content(options ...element.Option) templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		e := element.New()
-		for option := range slices.Values(options) {
-			option(e)
-		}
+		props := element.NewProperties(options...)
 		user := models.UserFromCtx(ctx)
 		templ_7745c5c3_Err = header(user).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
@@ -139,7 +135,7 @@ func content(options ...element.Option) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		var templ_7745c5c3_Var5 = []any{"mb-24 scroll-mt-16 pt-16 min-h-svh-safe", templ.KV("lg:pl-36", user != nil), templ.KV(e.GetClasses(), len(e.GetClasses()) > 0)}
+		var templ_7745c5c3_Var5 = []any{"mb-24 scroll-mt-16 pt-16 min-h-svh-safe", templ.KV("lg:pl-36", user != nil), props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -151,7 +147,7 @@ func content(options ...element.Option) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/containers.templ`, Line: 51, Col: 25}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/containers.templ`, Line: 47, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -174,7 +170,7 @@ func content(options ...element.Option) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, e.GetAttributes())
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, props.Attributes())
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -214,7 +210,7 @@ func content(options ...element.Option) templ.Component {
 }
 
 // container constrains children to a nominal width and adds some padding.
-func container(options ...element.Option) templ.Component {
+func container(options ...element.PropertiesOption) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -235,11 +231,8 @@ func container(options ...element.Option) templ.Component {
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		e := element.New()
-		for option := range slices.Values(options) {
-			option(e)
-		}
-		var templ_7745c5c3_Var9 = []any{"mx-auto max-w-7xl px-4 sm:px-6", templ.KV(e.GetClasses(), len(e.GetClasses()) > 0)}
+		props := element.NewProperties(options...)
+		var templ_7745c5c3_Var9 = []any{"mx-auto max-w-7xl px-4 sm:px-6", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var9...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -261,7 +254,7 @@ func container(options ...element.Option) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, e.GetAttributes())
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, props.Attributes())
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -281,7 +274,7 @@ func container(options ...element.Option) templ.Component {
 	})
 }
 
-func grid(options ...element.Option) templ.Component {
+func grid(options ...element.PropertiesOption) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -302,11 +295,8 @@ func grid(options ...element.Option) templ.Component {
 			templ_7745c5c3_Var11 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		e := element.New()
-		for option := range slices.Values(options) {
-			option(e)
-		}
-		var templ_7745c5c3_Var12 = []any{"grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12", templ.KV(e.GetClasses(), len(e.GetClasses()) > 0)}
+		props := element.NewProperties(options...)
+		var templ_7745c5c3_Var12 = []any{"grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12", props.Classes()}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var12...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -328,7 +318,7 @@ func grid(options ...element.Option) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, e.Attributes)
+		templ_7745c5c3_Err = templ.RenderAttributes(ctx, templ_7745c5c3_Buffer, props.Attributes())
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

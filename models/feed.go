@@ -269,7 +269,7 @@ func getFeedLastUpdates(ctx context.Context, ids ...FeedID) (map[FeedID]time.Tim
 		query.Terms("feed_id", ids...),
 		len(ids),
 		elastic.WithCollapseField("feed_id"),
-		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](newItemSortOptions(&sort)...),
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](NewItemSortOptions(&sort)...),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get feed last updates: %w", err)

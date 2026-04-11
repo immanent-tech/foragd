@@ -93,7 +93,8 @@
     "templates/about",
     "email",
     "styles",
-    "templates/settings"
+    "templates/settings",
+    "templates/comparison"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

@@ -745,18 +745,6 @@ type JobState struct {
 // LastFetched indicates when an object was last fetched.
 type LastFetched = time.Time
 
-// ListArticlesResponse contains the data retrieved and relevant for listing articles.
-type ListArticlesResponse struct {
-	Articles Articles `json:"articles"`
-
-	// Filters contains filters for altering the display of objects.
-	Filters ListFilters `json:"filters" validate:"required"`
-
-	// Pagination contains data for paginating through results.
-	Pagination   Pagination    `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
-	Subscription *Subscription `json:"subscription,omitempty"`
-}
-
 // ListFavoritesResponse contains the data for displaying the favorites page.
 type ListFavoritesResponse struct {
 	Articles      Articles      `json:"articles,omitempty"`
@@ -800,16 +788,6 @@ type ListRequest struct {
 type ListSubscriptionCategoriesRequest struct {
 	// Subscriptions is a list of subscription IDs.
 	Subscriptions []SubscriptionID `form:"displayed_subscriptions" json:"subscriptions,omitempty" validate:"omitempty,dive,startswith=sub_"`
-}
-
-// ListSubscriptionsResponse contains the data retrieved and relevant for listing subscriptions.
-type ListSubscriptionsResponse struct {
-	// Filters contains filters for altering the display of objects.
-	Filters ListFilters `json:"filters" validate:"required"`
-
-	// Pagination contains data for paginating through results.
-	Pagination    Pagination    `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
-	Subscriptions Subscriptions `json:"subscriptions"`
 }
 
 // Mark applies the given mark action to objects.

@@ -7,7 +7,6 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
-	"slices"
 )
 
 // Document renders the given raw HTML data as full-page prose content. Used primarily for hosted markdown documents
@@ -24,12 +23,9 @@ templ Document(data []byte) {
 }
 
 // content renders children wrapped with appropriate header/footer navigation.
-templ content(options ...element.Option) {
+templ content(options ...element.PropertiesOption) {
 	{{
-		e := element.New()
-		for option := range slices.Values(options) {
-			option(e)
-		}
+		props := element.NewProperties(options...)
 		user := models.UserFromCtx(ctx)
 	}}
 	// Header.
@@ -49,8 +45,8 @@ templ content(options ...element.Option) {
 	// }
 	<div
 		id={ ContentID.String() }
-		class={ "mb-24 scroll-mt-16 pt-16 min-h-svh-safe", templ.KV("lg:pl-36",user!=nil),  templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
-		{ e.GetAttributes()... }
+		class={ "mb-24 scroll-mt-16 pt-16 min-h-svh-safe", templ.KV("lg:pl-36",user!=nil),  props.Classes() }
+		{ props.Attributes()... }
 	>
 		{ children... }
 	</div>
@@ -64,32 +60,22 @@ templ content(options ...element.Option) {
 }
 
 // container constrains children to a nominal width and adds some padding.
-templ container(options ...element.Option) {
-	{{
-		e := element.New()
-		for option := range slices.Values(options) {
-			option(e)
-		}
-	}}
+templ container(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
 	<div
-		class={ "mx-auto max-w-7xl px-4 sm:px-6", templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
-		{ e.GetAttributes()... }
+		class={ "mx-auto max-w-7xl px-4 sm:px-6", props.Classes() }
+		{ props.Attributes()... }
 	>
 		{ children... }
 	</div>
 }
 
-templ grid(options ...element.Option) {
-	{{
-		e := element.New()
-		for option := range slices.Values(options) {
-			option(e)
-		}
-	}}
+templ grid(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
 	<div
 		id="grid-objects"
-		class={ "grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12", templ.KV(e.GetClasses(),len(e.GetClasses())>0) }
-		{ e.Attributes... }
+		class={ "grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12", props.Classes() }
+		{ props.Attributes()... }
 	>
 		{ children... }
 	</div>

@@ -18,6 +18,7 @@ import (
 templ ArticleCard(idx int, article *models.Article) {
 	{{
 		var rowSpanClass string
+		// Smaller card sizes when there is no image.
 		if article.GetImage() == nil {
 			rowSpanClass = "row-span-1"
 		} else {
@@ -25,15 +26,15 @@ templ ArticleCard(idx int, article *models.Article) {
 		}
 	}}
 	@partials.Card(
-		partials.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
-		partials.WithAttribute("hx-get", "/view/article/"+article.GetID()),
-		partials.WithAttribute("hx-target", ContentID.Target()),
-		partials.WithAttribute("hx-swap", "innerHTML show:window:top transition:true"),
-		partials.WithAttribute("hx-trigger", "click"),
-		partials.WithAttribute("hx-push-url", "true"),
-		partials.WithAttribute("hx-disinherit", "*"),
-		partials.WithAttribute("id", article.GetID()),
-		partials.WithClasses("group", rowSpanClass),
+		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
+		element.WithAttribute("hx-get", "/view/article/"+article.GetID()),
+		element.WithAttribute("hx-target", ContentID.Target()),
+		element.WithAttribute("hx-swap", "innerHTML show:window:top transition:true"),
+		element.WithAttribute("hx-trigger", "click"),
+		element.WithAttribute("hx-push-url", "true"),
+		element.WithAttribute("hx-disinherit", "*"),
+		element.WithAttribute("id", article.GetID()),
+		element.WithClasses("group", rowSpanClass),
 	) {
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
@@ -42,7 +43,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			if img.GetTitle() == "" {
 				{{ img.Title = new(article.GetTitle()) }}
 			}
-			<figure class="rounded-t-[inherit] ring ring-neutral transition-transform duration-400 ease-[cubic-bezier(0.2, 0, 0, 1)] group-hover:scale-[1.04]">
+			<figure class="rounded-t-[inherit] transition-transform duration-400 ease-[cubic-bezier(0.2, 0, 0, 1)] group-hover:scale-[1.04]">
 				@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 					element.WithAttribute("width", "400"),
 					element.WithAttribute("height", "300"),
@@ -66,7 +67,7 @@ templ ArticleCard(idx int, article *models.Article) {
 				</div>
 			}
 		}
-		@partials.CardFooter(partials.WithClasses("items-center")) {
+		@partials.CardFooter(element.WithClasses("items-center")) {
 			<div
 				class="flex items-center justify-between mt-auto pt-3 border-t border-neutral/15 text-xs/4"
 			>
@@ -262,259 +263,6 @@ templ ArticleCard(idx int, article *models.Article) {
 			</div>
 		}
 	}
-	// <article
-	// 	style={ "--i: " + strconv.Itoa(idx) }
-	// 	hx-get={ "/view/article/" + article.GetID() }
-	// 	hx-target={ ContentID.Target() }
-	// 	hx-swap="innerHTML show:window:top transition:true"
-	// 	hx-trigger="click"
-	// 	hx-push-url="true"
-	// 	hx-disinherit="*"
-	// 	tabindex="0"
-	// 	id={ article.GetID() }
-	// 	class={
-	// 		"card bg-base-200 h-full w-full max-w-prose cursor-pointer touch-manipulation focus:outline-primary active:scale-[0.96] hover:scale-[0.99] transition-transform duration-150",
-	// 		templ.KV("row-span-1", article.GetImage() == nil),
-	// 		templ.KV("row-span-2", article.GetImage() != nil),
-	// 	}
-	// 	_="on keydown[key=='Enter' or key==' '] trigger click"
-	// 	aria-label={ article.GetTitle() }
-	// >
-	// 	if img := article.GetImage(); img != nil {
-	// 		{{ img := article.GetImage() }}
-	// 		if img.GetTitle() == "" {
-	// 			{{ img.Title = new(article.GetTitle()) }}
-	// 		}
-	// 		<figure>
-	// 			@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
-	// 				element.WithAttribute("width", "400"),
-	// 				element.WithAttribute("height", "300"),
-	// 				element.WithClasses("card-img"),
-	// 			)
-	// 		</figure>
-	// 	}
-	// 	// Hidden inputs used for some group article actions.
-	// 	<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
-	// 	<div class="card-body">
-	// 		<div class="mt-auto card-title line-clamp-3 tracking-tight text-balance">
-	// 			if article.GetTitle() != "" {
-	// 				{ article.GetTitle() }
-	// 			} else {
-	// 				(no title)
-	// 			}
-	// 		</div>
-	// 		// Author and subscription details.
-	// 		<div class="mb-4 grid grid-flow-row grid-cols-1">
-	// 			if len(article.GetAuthors()) > 0 {
-	// 				<p class="inline-block truncate text-xs/4 italic">
-	// 					{ strings.Join(article.GetAuthors(),",") }
-	// 				</p>
-	// 			}
-	// 			<p class="inline-block truncate text-xs/4">
-	// 				<a
-	// 					hx-get="/list/articles"
-	// 					hx-target={ ContentID.Target() }
-	// 					hx-swap="innerHTML show:window:top transition:true"
-	// 					hx-trigger="click consume"
-	// 					hx-vals={ generateHXVals(map[string]any{models.ParamView: models.ViewUnread, models.ParamSubscriptions: article.GetSubscriptionID()}) }
-	// 					class="link truncate link-hover"
-	// 				>
-	// 					{ article.GetFeedTitle() }
-	// 				</a>
-	// 			</p>
-	// 		</div>
-	// 		// Add summarised description if article has one.
-	// 		if article.GetDescription() != "" {
-	// 			<div class="prose-summary">
-	// 				@templ.Raw(article.GetDescription())
-	// 			</div>
-	// 		}
-	// 		<div class="mt-auto card-actions items-center justify-between">
-	// 			// Timestamp.
-	// 			<div class="flex flex-1 gap-x-2">
-	// 				<span class="label text-xs/4 capitalize">
-	// 					Updated&nbsp;
-	// 					<relative-time
-	// 						datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
-	// 						format="relative"
-	// 					>
-	// 						{ article.GetUpdatedDate().Format("ANSIC") }
-	// 					</relative-time>
-	// 				</span>
-	// 			</div>
-	// 			<button class="btn btn-square btn-ghost btn-md">
-	// 				<form>
-	// 					<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-	// 					<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
-	// 					<label class="swap touch-manipulation" _="on click halt the event's bubbling">
-	// 						<input
-	// 							hx-post={ "/favorite/article/" + article.GetID() }
-	// 							hx-swap="none"
-	// 							id={ article.GetID() + "-favorite-state" }
-	// 							type="checkbox"
-	// 							if article.IsFavorite() {
-	// 								checked
-	// 							}
-	// 							_="on htmx:afterRequest(failed) toggle @checked on me"
-	// 							aria-label={ "Toggle favorite status for " + article.GetTitle() }
-	// 						/>
-	// 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-heart swap-on size-5 text-primary">
-	// 							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z"></path>
-	// 						</svg>
-	// 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-heart swap-off size-5 text-primary">
-	// 							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
-	// 						</svg>
-	// 					</label>
-	// 				</form>
-	// 			</button>
-	// 			<button class="btn btn-square btn-ghost btn-md">
-	// 				<form>
-	// 					<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
-	// 					<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
-	// 					<input
-	// 						type="hidden"
-	// 						name={ models.ParamMark }
-	// 						if article.IsUnread() {
-	// 							value={ models.MarkRead }
-	// 						} else {
-	// 							value={ models.MarkUnread }
-	// 						}
-	// 					/>
-	// 					<label class="swap touch-manipulation" _="on click halt the event's bubbling">
-	// 						<input
-	// 							hx-post={ "/mark/article/" + article.GetID() }
-	// 							hx-swap="none"
-	// 							id={ article.GetID() + "-read-state" }
-	// 							type="checkbox"
-	// 							if !article.IsUnread() {
-	// 								checked
-	// 							}
-	// 							_="
-	// 				on htmx:afterRequest(successful)
-	// 				tell the previous <input />
-	// 					get your value
-	// 					if your value equals 'read'
-	// 					set your value to 'unread'
-	// 					else
-	// 					set your value to 'read'
-	// 					end
-	// 				on htmx:afterRequest(failed) toggle @checked on me
-	// 				"
-	// 							aria-label={ "Toggle read status for " + article.GetTitle() }
-	// 						/>
-	// 						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail-opened swap-on size-5 text-primary">
-	// 							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 9l9 6l9 -6l-9 -6l-9 6"></path><path d="M21 9v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 19l6 -6"></path><path d="M15 13l6 6"></path>
-	// 						</svg>
-	// 						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-mail swap-off size-5 text-primary">
-	// 							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10"></path><path d="M3 7l9 6l9 -6"></path>
-	// 						</svg>
-	// 					</label>
-	// 				</form>
-	// 			</button>
-	// 			// Actions menu.
-	// 			<div class="flex flex-none">
-	// 				<el-dropdown class="relative ml-auto touch-manipulation" _="on click halt the event's bubbling">
-	// 					<button class="btn btn-square btn-ghost btn-md">
-	// 						<span class="sr-only">{ article.GetTitle() + " Actions" }</span>
-	// 						<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2 size-5 text-primary">
-	// 							<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path>
-	// 						</svg>
-	// 					</button>
-	// 					<el-menu
-	// 						anchor="bottom end"
-	// 						popover
-	// 						_="on htmx:afterRequest(successful) hidePopover() on me"
-	// 						class="w-fit"
-	// 					>
-	// 						<ul class="menu">
-	// 							// View original article action.
-	// 							<li>
-	// 								<a
-	// 									href={ article.GetLink() }
-	// 									target="_blank"
-	// 									rel="noopener"
-	// 									_="on click halt the event's bubbling"
-	// 									role="menuitem"
-	// 									tabindex="-1"
-	// 								>
-	// 									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-external-link size-4">
-	// 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path>
-	// 									</svg>
-	// 									Go To Article
-	// 								</a>
-	// 							</li>
-	// 							// Find similar action.
-	// 							<li>
-	// 								<a
-	// 									role="menuitem"
-	// 									tabindex="-1"
-	// 									hx-get={ "/view/article/" + article.GetID() + "/similar" }
-	// 									hx-target={ ContentID.Target() }
-	// 									hx-trigger="click consume"
-	// 								>
-	// 									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-search size-4">
-	// 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M12 21h-5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v4.5"></path><path d="M14 17.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M18.5 19.5l2.5 2.5"></path>
-	// 									</svg>
-	// 									Find similar...
-	// 								</a>
-	// 							</li>
-	// 							// Mobile share action via navigator API.
-	// 							<li _="init if not navigator.share then hide me">
-	// 								<a
-	// 									role="menuitem"
-	// 									tabindex="-1"
-	// 									_={ "on click " + fmt.Sprintf("navigator.share({title: %q, url: %q})", article.GetTitle(), article.GetLink()) + "then halt the event's bubbling" }
-	// 								>
-	// 									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
-	// 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
-	// 									</svg>
-	// 									Share
-	// 								</a>
-	// 							</li>
-	// 							// Desktop share action with modal and options.
-	// 							<li _="init if navigator.share then hide me">
-	// 								<form>
-	// 									<input type="hidden" name="item_id" value={ article.GetID() }/>
-	// 									<input type="hidden" name="title" value={ article.GetTitle() }/>
-	// 									<input type="hidden" name="link" value={ article.GetLink() }/>
-	// 									<a
-	// 										role="menuitem"
-	// 										tabindex="-1"
-	// 										hx-post={ "/share/article/" + article.GetID() }
-	// 										hx-target={ partials.ModalContainerID.Target() }
-	// 										hx-trigger="click consume"
-	// 										class="flex items-center gap-x-2"
-	// 									>
-	// 										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-share size-4">
-	// 											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M15 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M8.7 10.7l6.6 -3.4"></path><path d="M8.7 13.3l6.6 3.4"></path>
-	// 										</svg>
-	// 										Share
-	// 									</a>
-	// 								</form>
-	// 							</li>
-	// 							// Report issue action.
-	// 							<li>
-	// 								<a
-	// 									role="menuitem"
-	// 									tabindex="-1"
-	// 									hx-get={ "/issue/article/" + article.GetID() }
-	// 									hx-target={ ContentID.Target() }
-	// 									hx-replace-url="true"
-	// 									hx-trigger="click consume"
-	// 								>
-	// 									<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-flag-2 size-4">
-	// 										<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M19 4a1 1 0 0 1 .993 .883l.007 .117v9a1 1 0 0 1 -.883 .993l-.117 .007h-13v6a1 1 0 0 1 -.883 .993l-.117 .007a1 1 0 0 1 -.993 -.883l-.007 -.117v-16a1 1 0 0 1 .883 -.993l.117 -.007h14z"></path>
-	// 									</svg>
-	// 									Report an issue
-	// 								</a>
-	// 							</li>
-	// 						</ul>
-	// 					</el-menu>
-	// 				</el-dropdown>
-	// 			</div>
-	// 		</div>
-	// 	</div>
-	// </article>
 }
 
 // ArticleContent renders the complete content of an article.

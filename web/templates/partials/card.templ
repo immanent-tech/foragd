@@ -3,15 +3,10 @@
 
 package partials
 
-import "slices"
+import "github.com/immanent-tech/foragd/web/templates/element"
 
-templ Card(options ...PropertiesOption) {
-	{{
-		props := NewProperties()
-		for option := range slices.Values(options) {
-			option(props)
-		}
-	}}
+templ Card(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
 	<div
 		class={ "card size-full overflow-hidden rounded-lg", props.Classes() }
 		{ props.Attributes()... }
@@ -20,27 +15,30 @@ templ Card(options ...PropertiesOption) {
 	</div>
 }
 
-templ CardHeader() {
-	<div class="px-4 py-5 sm:px-6">
-		{ children... }
-	</div>
-}
-
-templ CardBody() {
-	<div class="card-body">
-		{ children... }
-	</div>
-}
-
-templ CardFooter(options ...PropertiesOption) {
-	{{
-		props := NewProperties()
-		for option := range slices.Values(options) {
-			option(props)
-		}
-	}}
+templ CardHeader(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
 	<div
-		class={ "px-4 py-4 sm:px-6", props.Classes() }
+		class={ "px-4 pt-5 pb-2 sm:px-6", props.Classes() }
+		{ props.Attributes()... }
+	>
+		{ children... }
+	</div>
+}
+
+templ CardBody(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
+	<div
+		class={ "px-4 py-5 sm:p-6", props.Classes() }
+		{ props.Attributes()... }
+	>
+		{ children... }
+	</div>
+}
+
+templ CardFooter(options ...element.PropertiesOption) {
+	{{ props := element.NewProperties(options...) }}
+	<div
+		class={ "px-4 pb-4 pt-2 sm:px-6 mt-auto", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }

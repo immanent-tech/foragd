@@ -102,6 +102,33 @@ type GroupSubscriptionRequest struct {
 	SuggestedSubscriptions Subscriptions `form:"-" json:"-"`
 }
 
+// ListArticlesResponse contains the data retrieved and relevant for listing articles.
+type ListArticlesResponse struct {
+	Articles Articles `json:"articles"`
+
+	// Filters contains filters for altering the display of objects.
+	Filters ListFilters `json:"filters" validate:"required"`
+
+	// Pagination contains data for paginating through results.
+	Pagination   Pagination    `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
+	Subscription *Subscription `json:"subscription,omitempty"`
+}
+
+// ListSubscriptionsResponse contains the data retrieved and relevant for listing subscriptions.
+type ListSubscriptionsResponse struct {
+	// Filters contains filters for altering the display of objects.
+	Filters ListFilters `json:"filters" validate:"required"`
+
+	// LatestArticles is a map of the latest articles for each subscription in the result.
+	LatestArticles map[SubscriptionID]Items `json:"latest_articles,omitempty"`
+
+	// Pagination contains data for paginating through results.
+	Pagination Pagination `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`
+
+	// Subscriptions is the list of subscriptions.
+	Subscriptions Subscriptions `json:"subscriptions"`
+}
+
 // Getter for additional properties for APIError. Returns the specified
 // element and whether it was found
 func (a APIError) Get(fieldName string) (value interface{}, found bool) {
