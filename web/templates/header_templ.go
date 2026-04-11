@@ -36,7 +36,7 @@ func header(user *models.User) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header aria-label=\"Header\" class=\"fixed top-0 z-50 flex h-16 w-full items-center border-b border-base-content/30 bg-base-200 pt-safe\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header aria-label=\"Header\" class=\"fixed top-0 z-50 flex h-16 w-full items-center border-b border-neutral/10 bg-base-200 pt-safe\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

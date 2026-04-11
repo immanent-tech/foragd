@@ -1148,7 +1148,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 													return templ_7745c5c3_Err
 												}
 											}
-											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "</h3><ul class=\"list-disc\">")
+											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "</h3><ul role=\"list\" class=\"list-disc marker:text-accent\">")
 											if templ_7745c5c3_Err != nil {
 												return templ_7745c5c3_Err
 											}

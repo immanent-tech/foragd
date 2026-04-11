@@ -489,7 +489,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 														Latest Articles
 													}
 												</h3>
-												<ul class="list-disc">
+												<ul role="list" class="list-disc marker:text-accent">
 													for item := range slices.Values(items) {
 														<li
 															hx-get={ "/view/article/" + item.GetID() }
