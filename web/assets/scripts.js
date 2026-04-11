@@ -27,17 +27,29 @@ import "./embed-youtube";
 import { Masonry } from "grid-rows-masonry";
 // import imagesLoaded from "imagesloaded";
 
+var masonry;
+
 function initMasonry() {
   const grid = document.getElementById("grid-objects");
   if (!grid) return;
 
   // imagesLoaded(grid, () => {
-  new Masonry(grid);
+  masonry = new Masonry(grid);
   // });
 }
 
-// Initial load
-document.addEventListener("DOMContentLoaded", initMasonry);
+htmx.onLoad(function (target) {
+  initMasonry();
+});
+
+// After every HTMX swap into #grid-objects (infinite scroll, filter changes)
+htmx.on("htmx:afterSwap", function (event) {
+  if (event.detail.target?.id === "grid-objects") initMasonry();
+});
+
+htmx.on("htmx:beforeHistorySave", function () {
+  if (masonry) masonry.destroy;
+});
 
 // // After every HTMX swap into #grid-objects (infinite scroll, filter changes)
 // document.addEventListener("htmx:afterSwap", (e) => {
