@@ -140,6 +140,7 @@ templ Search() {
 				class="max-h-[90dvh] w-full divide-y divide-primary/80 overflow-y-auto rounded-box bg-base-300 shadow-sm outline-1 -outline-offset-1 outline-base-content/15 [--anchor-gap:22px] sm:max-w-3xl sm:[--anchor-offset:42px]"
 			></el-popover>
 			<script>
+			{
   const input   = document.getElementById('global-search');
   const popover = document.getElementById('search-suggestions-popover');
 
@@ -199,6 +200,7 @@ templ Search() {
       document.activeElement.click();
     }
   });
+			}
 </script>
 			<button
 				popovertarget="search-advanced-popover"
