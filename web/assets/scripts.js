@@ -30,11 +30,21 @@ function initMasonry() {
   const grid = document.getElementById("grid-objects");
   if (!grid) return;
 
-  // Store instance on the element so we can destroy/recreate on HTMX swaps
+  // Force layout recalc before Masonry checks computed style.
+  void grid.offsetHeight; // triggers reflow.
+
+  const computed = window.getComputedStyle(grid);
+  if (computed.display !== "grid") {
+    requestAnimationFrame(updateLayout);
+    return;
+  }
+
+  // Store instance on the element so we can destroy/recreate on HTMX swaps.
   if (grid._masonryInstance) {
     grid._masonryInstance.destroy();
   }
 
+  // Create instance.
   grid._masonryInstance = new GridRowsMasonry(grid);
 }
 
