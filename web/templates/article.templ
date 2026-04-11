@@ -10,21 +10,22 @@ import (
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"html"
+	"slices"
 	"strconv"
 	"strings"
 )
 
 // Card renders an article as a card, for displaying in a list.
 templ ArticleCard(idx int, article *models.Article) {
-	{{
-		var rowSpanClass string
-		// Smaller card sizes when there is no image.
-		if article.GetImage() == nil {
-			rowSpanClass = "row-span-1"
-		} else {
-			rowSpanClass = "row-span-2"
-		}
-	}}
+	// {{
+	// 	var rowSpanClass string
+	// 	// Smaller card sizes when there is no image.
+	// 	if article.GetImage() == nil {
+	// 		rowSpanClass = "row-span-1"
+	// 	} else {
+	// 		rowSpanClass = "row-span-2"
+	// 	}
+	// }}
 	@partials.Card(
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithAttribute("hx-get", "/view/article/"+article.GetID()),
@@ -34,7 +35,7 @@ templ ArticleCard(idx int, article *models.Article) {
 		element.WithAttribute("hx-push-url", "true"),
 		element.WithAttribute("hx-disinherit", "*"),
 		element.WithAttribute("id", article.GetID()),
-		element.WithClasses("group", rowSpanClass),
+		// element.WithClasses("group", rowSpanClass),
 	) {
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>
@@ -60,6 +61,26 @@ templ ArticleCard(idx int, article *models.Article) {
 			</div>
 		}
 		@partials.CardBody() {
+			if len(article.GetCategories(0)) > 0 {
+				<div class="mb-4 flex flex-row flex-wrap gap-2 self-start">
+					for category := range slices.Values(article.GetCategories(5)) {
+						{{
+							filters := models.NewListDisplayFilters()
+							filters.Categories = append(filters.Categories, category)
+						}}
+						<span
+							hx-get="/list/articles"
+							hx-target={ ContentID.Target() }
+							hx-vals={ templ.JSONString(filters.Values()) }
+							hx-params="not subscription_id"
+							_="on click halt the event's bubbling"
+							class="inline-flex items-center rounded-md bg-accent px-2 py-1 text-xs font-medium text-accent-content transition-transform duration-400 hover:scale-[1.04]"
+						>
+							{ category }
+						</span>
+					}
+				</div>
+			}
 			// Add summarised description if article has one.
 			if article.GetDescription() != "" {
 				<div class="prose-summary">
@@ -69,7 +90,7 @@ templ ArticleCard(idx int, article *models.Article) {
 		}
 		@partials.CardFooter(element.WithClasses("items-center")) {
 			<div
-				class="flex items-center justify-between mt-auto pt-3 border-t border-neutral/15 text-xs/4"
+				class="flex items-center justify-between pt-3 border-t border-neutral/15 text-xs/4"
 			>
 				if len(article.GetAuthors()) > 0 {
 					<span>
@@ -746,7 +767,7 @@ templ ListArticles(response *models.ListArticlesResponse) {
 					if len(response.Articles) > 0 {
 						@grid(
 							element.WithAttribute("hx-indicator", ""),
-							element.WithClasses("content-auto"),
+							// element.WithClasses("content-auto"),
 						) {
 							@templ.Fragment(PaginateFragment) {
 								for idx, article := range response.Articles {

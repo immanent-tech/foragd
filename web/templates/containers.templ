@@ -74,7 +74,7 @@ templ grid(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
 		id="grid-objects"
-		class={ "grid grid-cols-1 place-items-center gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12", props.Classes() }
+		class={ "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12 grid-rows-[masonry]", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }

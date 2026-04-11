@@ -24,6 +24,26 @@ import "@github/relative-time-element";
 // custom element for youtube player.
 import "./embed-youtube";
 
+import { Masonry } from "grid-rows-masonry";
+// import imagesLoaded from "imagesloaded";
+
+function initMasonry() {
+  const grid = document.getElementById("grid-objects");
+  if (!grid) return;
+
+  // imagesLoaded(grid, () => {
+  new Masonry(grid);
+  // });
+}
+
+// Initial load
+document.addEventListener("DOMContentLoaded", initMasonry);
+
+// // After every HTMX swap into #grid-objects (infinite scroll, filter changes)
+// document.addEventListener("htmx:afterSwap", (e) => {
+//   if (e.detail.target?.id === "grid-objects") initMasonry();
+// });
+
 // Make sure back button after logout does not show cached data.
 //
 // https://web.dev/articles/bfcache?utm_source=devtools#update-data-after-restore
