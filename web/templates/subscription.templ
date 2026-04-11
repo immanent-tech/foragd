@@ -482,14 +482,14 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 										{{ items, ok := response.LatestArticles[subscription.GetID()] }}
 										if ok {
 											<div class="mt-auto h-full">
-												<h3 class="mb-2 text-xs/4 font-semibold">
+												<h3 class="mb-2 text-base font-semibold">
 													if subscription.Type == models.SubscriptionTypeSearch {
 														Top Results
 													} else {
 														Latest Articles
 													}
 												</h3>
-												<ul class="list-disc space-y-2">
+												<ul class="list-disc">
 													for item := range slices.Values(items) {
 														<li
 															hx-get={ "/view/article/" + item.GetID() }
@@ -498,7 +498,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 															hx-trigger="click"
 															hx-push-url="true"
 															_="on click halt the event's bubbling"
-															class="line-clamp-1 link truncate text-xs/4 link-hover"
+															class="line-clamp-1 link cursor-pointer touch-manipulation truncate rounded-sm px-3 py-2 text-sm/6 link-hover select-none hover:bg-primary hover:text-primary-content"
 														>{ item.GetTitle() }</li>
 													}
 												</ul>

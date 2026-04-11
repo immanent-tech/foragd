@@ -1133,7 +1133,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 										ctx = templ.InitializeContext(ctx)
 										items, ok := response.LatestArticles[subscription.GetID()]
 										if ok {
-											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "<div class=\"mt-auto h-full\"><h3 class=\"mb-2 text-xs/4 font-semibold\">")
+											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 87, "<div class=\"mt-auto h-full\"><h3 class=\"mb-2 text-base font-semibold\">")
 											if templ_7745c5c3_Err != nil {
 												return templ_7745c5c3_Err
 											}
@@ -1148,7 +1148,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 													return templ_7745c5c3_Err
 												}
 											}
-											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "</h3><ul class=\"list-disc space-y-2\">")
+											templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 90, "</h3><ul class=\"list-disc\">")
 											if templ_7745c5c3_Err != nil {
 												return templ_7745c5c3_Err
 											}
@@ -1179,7 +1179,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 												if templ_7745c5c3_Err != nil {
 													return templ_7745c5c3_Err
 												}
-												templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"line-clamp-1 link truncate text-xs/4 link-hover\">")
+												templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"line-clamp-1 link cursor-pointer touch-manipulation truncate rounded-sm px-3 py-2 text-sm/6 link-hover select-none hover:bg-primary hover:text-primary-content\">")
 												if templ_7745c5c3_Err != nil {
 													return templ_7745c5c3_Err
 												}
