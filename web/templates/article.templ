@@ -44,7 +44,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			if img.GetTitle() == "" {
 				{{ img.Title = new(article.GetTitle()) }}
 			}
-			<figure class="rounded-t-[inherit] transition-transform duration-400 ease-[cubic-bezier(0.2, 0, 0, 1)] group-hover:scale-[1.04]">
+			<figure class="ease-[cubic-bezier(0.2, 0, 0, 1)] rounded-t-[inherit] transition-transform duration-400 group-hover:scale-[1.04]">
 				@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 					element.WithAttribute("width", "400"),
 					element.WithAttribute("height", "300"),
@@ -52,7 +52,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			</figure>
 		}
 		@partials.CardHeader() {
-			<div class="mt-auto card-title line-clamp-3 tracking-tight text-balance group-active:scale-[0.96] transition-transform duration-150">
+			<div class="mt-auto card-title line-clamp-3 tracking-tight text-balance transition-transform duration-150 group-active:scale-[0.96]">
 				if article.GetTitle() != "" {
 					{ article.GetTitle() }
 				} else {
@@ -90,7 +90,7 @@ templ ArticleCard(idx int, article *models.Article) {
 		}
 		@partials.CardFooter(element.WithClasses("items-center")) {
 			<div
-				class="flex items-center justify-between pt-3 border-t border-neutral/15 text-xs/4"
+				class="flex items-center justify-between border-t border-neutral/15 pt-3 text-xs/4"
 			>
 				if len(article.GetAuthors()) > 0 {
 					<span>
@@ -98,7 +98,7 @@ templ ArticleCard(idx int, article *models.Article) {
 					</span>
 				}
 				<div class="flex items-center gap-2">
-					<span class="text-neutral text-xs/4 capitalize text-wrap">
+					<span class="text-xs/4 text-wrap text-neutral capitalize">
 						<relative-time
 							datetime={ article.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }
 							format="relative"
@@ -110,7 +110,7 @@ templ ArticleCard(idx int, article *models.Article) {
 					//   <span>{{ .ReadTime }}</span>
 				</div>
 			</div>
-			<div class="flex flex-1 justify-end mt-2">
+			<div class="mt-2 flex flex-1 justify-end">
 				<button class="btn btn-square btn-ghost btn-md">
 					<form>
 						<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
@@ -350,7 +350,7 @@ templ ArticleContent(article *models.Article) {
 								</relative-time>
 							</p>
 						</div>
-						<form class="p-2 btn btn-ghost btn-square">
+						<form class="btn btn-square p-2 btn-ghost">
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 							<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
 							<label class="swap" _="on click halt the event's bubbling">
@@ -373,7 +373,7 @@ templ ArticleContent(article *models.Article) {
 								</svg>
 							</label>
 						</form>
-						<form class="p-2 btn btn-ghost btn-square">
+						<form class="btn btn-square p-2 btn-ghost">
 							<input type="hidden" name={ models.ParamSubscriptionID } value={ article.GetSubscriptionID() }/>
 							<input type="hidden" name={ models.ParamItemID } value={ article.GetID() }/>
 							<input

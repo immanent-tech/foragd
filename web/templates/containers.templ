@@ -14,7 +14,7 @@ import (
 templ Document(data []byte) {
 	@content() {
 		@container() {
-			<article class="prose sm:prose-lg prose-img:shadow-md my-4 mx-auto">
+			<article class="mx-auto my-4 prose sm:prose-lg prose-img:shadow-md">
 				@templ.Raw(string(data))
 			</article>
 			@partials.ButtonBackToTop()
@@ -74,7 +74,8 @@ templ grid(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
 		id="grid-objects"
-		class={ "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12 grid-rows-[masonry] p-2", props.Classes() }
+		class={ "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-8 xl:grid-cols-3 xl:gap-12 p-2 items-start", props.Classes() }
+		style="grid-template-rows: masonry;"
 		{ props.Attributes()... }
 	>
 		{ children... }

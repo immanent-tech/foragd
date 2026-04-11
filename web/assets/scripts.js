@@ -24,18 +24,18 @@ import "@github/relative-time-element";
 // custom element for youtube player.
 import "./embed-youtube";
 
-import { Masonry } from "grid-rows-masonry";
-// import imagesLoaded from "imagesloaded";
-
-var masonry;
+import { GridRowsMasonry } from "grid-rows-masonry";
 
 function initMasonry() {
   const grid = document.getElementById("grid-objects");
   if (!grid) return;
 
-  // imagesLoaded(grid, () => {
-  masonry = new Masonry(grid);
-  // });
+  // Store instance on the element so we can destroy/recreate on HTMX swaps
+  if (grid._masonryInstance) {
+    grid._masonryInstance.destroy();
+  }
+
+  grid._masonryInstance = new GridRowsMasonry(grid);
 }
 
 htmx.onLoad(function (target) {
@@ -47,9 +47,11 @@ htmx.on("htmx:afterSwap", function (event) {
   if (event.detail.target?.id === "grid-objects") initMasonry();
 });
 
-htmx.on("htmx:beforeHistorySave", function () {
-  if (masonry) masonry.destroy;
-});
+// htmx.on("htmx:beforeHistorySave", function () {
+//   if (grid._masonryInstance) {
+//     grid._masonryInstance.destroy();
+//   }
+// });
 
 // // After every HTMX swap into #grid-objects (infinite scroll, filter changes)
 // document.addEventListener("htmx:afterSwap", (e) => {

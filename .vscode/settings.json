@@ -94,7 +94,8 @@
     "email",
     "styles",
     "templates/settings",
-    "templates/comparison"
+    "templates/comparison",
+    "scripts"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
