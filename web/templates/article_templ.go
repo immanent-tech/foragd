@@ -93,7 +93,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 				if img.GetTitle() == "" {
 					img.Title = new(article.GetTitle())
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " <figure class=\"ease-[cubic-bezier(0.2, 0, 0, 1)] rounded-t-[inherit] transition-transform duration-400 group-hover:scale-[1.04]\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " <figure class=\"ease-in-out rounded-t-[inherit] transition-transform duration-400 group-hover:scale-[1.04]\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -125,7 +125,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"mt-auto card-title line-clamp-3 tracking-tight text-balance\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"mt-auto card-title line-clamp-3 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96]\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

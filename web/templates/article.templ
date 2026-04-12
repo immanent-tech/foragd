@@ -44,7 +44,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			if img.GetTitle() == "" {
 				{{ img.Title = new(article.GetTitle()) }}
 			}
-			<figure class="ease-[cubic-bezier(0.2, 0, 0, 1)] rounded-t-[inherit] transition-transform duration-400 group-hover:scale-[1.04]">
+			<figure class="ease-in-out rounded-t-[inherit] transition-transform duration-400 group-hover:scale-[1.04]">
 				@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 					element.WithAttribute("width", "400"),
 					element.WithAttribute("height", "300"),
@@ -52,7 +52,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			</figure>
 		}
 		@partials.CardHeader() {
-			<div class="mt-auto card-title line-clamp-3 tracking-tight text-balance">
+			<div class="mt-auto card-title line-clamp-3 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96]">
 				if article.GetTitle() != "" {
 					{ article.GetTitle() }
 				} else {

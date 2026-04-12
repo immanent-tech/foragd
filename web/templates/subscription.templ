@@ -106,7 +106,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 		// Card header.
 		@partials.CardHeader() {
 			<div class="flex items-center">
-				<div class="ease-[cubic-bezier(0.2, 0, 0, 1)] mr-4 shrink-0 self-center transition-transform duration-400 group-hover:scale-[1.1]">
+				<div class="ease-in-out mr-4 shrink-0 self-center transition-transform duration-400 group-hover:scale-[1.1]">
 					if s.GetImage() == "" {
 						@subscriptionThumbnail(nil, s.GetTitle())
 					} else {
@@ -114,7 +114,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 					}
 				</div>
 				<div>
-					<h2 class="card-title line-clamp-3 tracking-tight text-pretty transition-transform duration-150 group-active:scale-[0.96]">
+					<h2 class="card-title line-clamp-3 tracking-tight text-pretty transition-transform duration-150 ease-in-out group-active:scale-[0.96]">
 						{ s.GetTitle() }
 					</h2>
 				</div>
