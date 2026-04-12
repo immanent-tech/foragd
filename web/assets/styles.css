@@ -335,7 +335,7 @@
 }
 
 @utility card {
-  @apply bg-base-200 transition-shadow duration-250 ease-in-out will-change-[opacity,transform] hover:shadow-md;
+  @apply bg-base-200 transition-shadow duration-250 ease-in-out will-change-[opacity,transform] hover:shadow-lg;
 }
 
 @utility animation-delay-none {
