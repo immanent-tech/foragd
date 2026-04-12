@@ -298,6 +298,13 @@ func performHomePageAggs(ctx context.Context, data *models.HomeResponse) error {
 			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()...),
 			query.Bool(
 				query.Should(models.BuildItemQueries(user, filters.GetView(), data.Subscriptions)...),
+				// On the home page, only show articles which have an image (looks nicer).
+				query.Must(
+					query.Exists("image.url"),
+				),
+				query.MustNot(
+					query.Term("image.url", ""),
+				),
 			),
 		),
 	), 0, aggs)
