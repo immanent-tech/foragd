@@ -761,7 +761,7 @@ func SubscriptionCard(idx int, s *models.Subscription) templ.Component {
 		})
 		templ_7745c5c3_Err = partials.Card(
 			element.MergeAttributes(attrs),
-			element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "bg-base-200", "transition-transform", "duration-150", "hover:shadow-md"),
+			element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -1179,7 +1179,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 												if templ_7745c5c3_Err != nil {
 													return templ_7745c5c3_Err
 												}
-												templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"line-clamp-1 link cursor-pointer touch-manipulation truncate rounded-sm px-3 py-2 text-sm/6 link-hover select-none hover:bg-primary hover:text-primary-content\">")
+												templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"line-clamp-1 link link-hover my-2\">")
 												if templ_7745c5c3_Err != nil {
 													return templ_7745c5c3_Err
 												}

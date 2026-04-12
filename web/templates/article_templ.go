@@ -125,7 +125,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"mt-auto card-title line-clamp-3 tracking-tight text-balance transition-transform duration-150 group-active:scale-[0.96]\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"mt-auto card-title line-clamp-3 tracking-tight text-balance\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -750,7 +750,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 			element.WithAttribute("hx-push-url", "true"),
 			element.WithAttribute("hx-disinherit", "*"),
 			element.WithAttribute("id", article.GetID()),
-			// element.WithClasses("group", rowSpanClass),
+			element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

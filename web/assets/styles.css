@@ -11,7 +11,6 @@
 @plugin "./catppuccinTheme.mocha.ts";
 
 @import "./daisyui.css";
-@import "transition-style";
 
 /* Inter font styling */
 /* https://tailwindcss.com/plus/ui-blocks/documentation#add-the-inter-font-family */
@@ -27,9 +26,9 @@
     "cv11" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --sidebar-width: var(--w-sm);
   scrollbar-gutter: stable;
   scrollbar-color: var(--color-primary);
+  --sidebar-width: var(--w-sm);
 }
 
 @supports (font-variation-settings: normal) {
@@ -39,12 +38,44 @@
   }
 }
 
+/* @theme inline {
+  --sidebar-width: var(--w-sm);
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  --animate-fadeinup: theme-fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
+} */
+
 /* Use page view transitions. */
 @view-transition {
   navigation: auto;
 }
 
 @layer base {
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  [data-loading] {
+    display: none;
+  }
+
   el-menu {
     @apply origin-top-right rounded-md bg-base-300 shadow-lg outline-1 -outline-offset-1 outline-base-content/15 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
   }
@@ -76,19 +107,7 @@
     @apply relative h-auto max-w-full overflow-hidden p-8;
   }
 
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      translate: 0 8px;
-    }
-    to {
-      opacity: 1;
-      translate: 0 0;
-    }
-  }
-
   .card {
-    @apply border border-neutral/15;
     /* Subtle image outline */
     img::after {
       content: "";
@@ -98,15 +117,6 @@
       box-shadow: inset 0 0 0 1px rgba(26, 23, 20, 0.1);
       pointer-events: none;
     }
-    /* Only animate these two — never use transition: all */
-    animation: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
-    animation-delay: calc(min(var(--i), 15) * 80ms);
-    /* Hint the GPU ahead of time */
-    will-change: opacity, transform;
-
-    transition-property: box-shadow;
-    transition-duration: 250ms;
-    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
   }
 
   /* Remove will-change after animation completes to free GPU memory */
@@ -322,4 +332,37 @@
   :active {
     @apply scale-[0.96];
   }
+}
+
+@utility card {
+  @apply bg-base-200 transition-shadow duration-250 ease-in-out will-change-[opacity,transform] hover:shadow-md;
+}
+
+@utility animation-delay-none {
+  animation-delay: 0s;
+}
+@utility animation-delay-inherit {
+  animation-delay: inherit;
+}
+@utility animation-delay-initial {
+  animation-delay: initial;
+}
+@utility animation-delay-revert {
+  animation-delay: revert;
+}
+@utility animation-delay-revert-layer {
+  animation-delay: revert-layer;
+}
+@utility animation-delay-unset {
+  animation-delay: unset;
+}
+@utility animation-delay-* {
+  animation-delay: --value([*]);
+  animation-delay: calc(--value(integer) * 1ms);
+}
+
+@utility animate-fadeinup {
+  /* Only animate these two — never use transition: all */
+  animation: fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
+  animation-delay: calc(min(var(--i), 15) * 80ms);
 }
