@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.99.1](https://github.com/immanent-tech/foragd/compare/v0.99.0...v0.99.1) (2026-04-12)
+
+
+### Bug Fixes
+
+* **templates/home:** :bug: fix grid display masonry on home page ([d356a4c](https://github.com/immanent-tech/foragd/commit/d356a4ca6f7a33998cc1a12befa9d64ad3aa81ee))
+
 ## [0.99.0](https://github.com/immanent-tech/foragd/compare/v0.98.0...v0.99.0) (2026-04-12)
 
 
