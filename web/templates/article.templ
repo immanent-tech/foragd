@@ -17,15 +17,6 @@ import (
 
 // Card renders an article as a card, for displaying in a list.
 templ ArticleCard(idx int, article *models.Article) {
-	// {{
-	// 	var rowSpanClass string
-	// 	// Smaller card sizes when there is no image.
-	// 	if article.GetImage() == nil {
-	// 		rowSpanClass = "row-span-1"
-	// 	} else {
-	// 		rowSpanClass = "row-span-2"
-	// 	}
-	// }}
 	@partials.Card(
 		element.WithAttribute("style", "--i: "+strconv.Itoa(idx)),
 		element.WithAttribute("hx-get", "/view/article/"+article.GetID()),
@@ -48,6 +39,7 @@ templ ArticleCard(idx int, article *models.Article) {
 				@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 					element.WithAttribute("width", "400"),
 					element.WithAttribute("height", "300"),
+					element.WithClasses("after:content-none", "after:absolute", "after:inset-0", "after:border-radius-[inherit]", "after:shadow-lg", "after:pointer-events-none"),
 				)
 			</figure>
 		}
