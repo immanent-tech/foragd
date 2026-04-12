@@ -18,7 +18,7 @@ templ Card(options ...element.PropertiesOption) {
 templ CardHeader(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
-		class={ "px-4 pt-5 pb-2 sm:px-6", props.Classes() }
+		class={ "card-header px-4 pt-5 pb-2 sm:px-6", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }
@@ -38,7 +38,7 @@ templ CardBody(options ...element.PropertiesOption) {
 templ CardFooter(options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<div
-		class={ "px-4 pb-4 pt-2 sm:px-6 mt-auto", props.Classes() }
+		class={ "card-footer px-4 pb-4 pt-2 sm:px-6 mt-auto", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ children... }
