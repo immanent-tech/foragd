@@ -165,7 +165,7 @@ func SubscriptionCard(idx int, s *models.Subscription) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"flex items-center\"><div class=\"ease-in-out mr-4 shrink-0 self-center transition-transform duration-400 group-hover:scale-[1.1]\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"flex items-center\"><div class=\"mr-4 shrink-0 self-center transition-transform duration-400 ease-in-out group-hover:scale-[1.1]\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1179,7 +1179,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 												if templ_7745c5c3_Err != nil {
 													return templ_7745c5c3_Err
 												}
-												templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"line-clamp-1 link link-hover my-2\">")
+												templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 93, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"my-2 line-clamp-1 link link-hover\">")
 												if templ_7745c5c3_Err != nil {
 													return templ_7745c5c3_Err
 												}

@@ -44,7 +44,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			if img.GetTitle() == "" {
 				{{ img.Title = new(article.GetTitle()) }}
 			}
-			<figure class="ease-in-out rounded-t-[inherit] transition-transform duration-400 group-hover:scale-[1.04]">
+			<figure class="rounded-t-[inherit] transition-transform duration-400 ease-in-out group-hover:scale-[1.04]">
 				@partials.NewProxiedImage(img, "rs:auto:400:300/sh:0.5/q:80/el:1/ex:1/gravity:sm/sm:1/kcr:1/scp:1/ext:webp",
 					element.WithAttribute("width", "400"),
 					element.WithAttribute("height", "300"),

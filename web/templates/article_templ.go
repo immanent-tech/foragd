@@ -93,7 +93,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 				if img.GetTitle() == "" {
 					img.Title = new(article.GetTitle())
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " <figure class=\"ease-in-out rounded-t-[inherit] transition-transform duration-400 group-hover:scale-[1.04]\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " <figure class=\"rounded-t-[inherit] transition-transform duration-400 ease-in-out group-hover:scale-[1.04]\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
