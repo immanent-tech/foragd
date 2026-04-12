@@ -7,6 +7,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"net/http"
 	"slices"
 	"strconv"
 )
@@ -131,16 +132,15 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 							filters.Subscriptions = nil
 							filters.Categories = append(filters.Categories, category)
 						}}
-						<span
-							hx-get="/list/subscriptions"
-							hx-target={ ContentID.Target() }
-							hx-vals={ templ.JSONString(filters.Values()) }
-							hx-params="not subscription_id"
-							_="on click halt the event's bubbling"
-							class="inline-flex items-center rounded-md bg-accent px-2 py-1 text-xs font-medium text-accent-content transition-transform duration-400 hover:scale-[1.04]"
-						>
-							{ category }
-						</span>
+						@CategoryBadge(category,
+							element.WithHXOptions(
+								element.WithHXMethod(http.MethodGet, "/list/subscriptions"),
+								element.WithHXTarget(ContentID.Target()),
+								element.WithHXValues(filters.Values()),
+								element.WithHXParams("not subscription_id,subscriptions"),
+							),
+							element.WithAttribute("_", "on click halt the event's bubbling"),
+						)
 					}
 				</div>
 			}

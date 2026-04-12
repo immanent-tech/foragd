@@ -214,14 +214,13 @@ templ FilterControls(path string, filters *models.ListFilters) {
 								for category := range slices.Values(filters.GetCategories()) {
 									<input type="hidden" name={ models.ParamCategories } value={ category }/>
 								}
-								<div class="m-1 badge flex items-center badge-secondary">
-									Favorites
+								@CategoryBadge("Favorites") {
 									<button type="submit" aria-label="Clear favorites filter">
 										<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4">
 											<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
 										</svg>
 									</button>
-								</div>
+								}
 							</form>
 						}
 						if len(filters.GetCategories()) > 0 {
@@ -416,14 +415,13 @@ templ activeCategoryFilterBadge(path string, category models.Category, filters *
 			for subscription := range slices.Values(filters.GetSubscriptions()) {
 				<input type="hidden" name={ models.ParamSubscriptions } value={ subscription }/>
 			}
-			<div class="m-1 badge flex items-center badge-secondary">
-				{ category }
+			@CategoryBadge(category) {
 				<button type="submit" aria-label={ "Clear category filter " + category }>
 					<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x size-4">
 						<path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path>
 					</svg>
 				</button>
-			</div>
+			}
 		</form>
 	</div>
 }
