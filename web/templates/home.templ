@@ -36,7 +36,7 @@ templ UserHome(data *models.HomeResponse) {
 											}
 										</div>
 										// Carousel of latest articles on small displays.
-										<div class="carousel w-full carousel-center space-x-4 p-4 content-auto sm:hidden">
+										<div class="carousel w-full carousel-center space-x-4 p-4 content-auto sm:hidden items-center">
 											for idx, article := range data.LatestArticles {
 												<div id={ "article" + strconv.Itoa(idx+1) } class="carousel-item max-w-9/10">
 													@ArticleCard(idx, article)
