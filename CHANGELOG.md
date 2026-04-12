@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.99.2](https://github.com/immanent-tech/foragd/compare/v0.99.1...v0.99.2) (2026-04-12)
+
+
+### Bug Fixes
+
+* **templates/home:** :recycle: only show articles with images on home page latest articles selection ([25b5022](https://github.com/immanent-tech/foragd/commit/25b502252f8d5f4842ea2db1e79e5e95fd1caace))
+
 ## [0.99.1](https://github.com/immanent-tech/foragd/compare/v0.99.0...v0.99.1) (2026-04-12)
 
 
