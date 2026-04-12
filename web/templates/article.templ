@@ -52,7 +52,7 @@ templ ArticleCard(idx int, article *models.Article) {
 			</figure>
 		}
 		@partials.CardHeader() {
-			<div class="mt-auto card-title line-clamp-3 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96]">
+			<div class="mt-auto card-title line-clamp-3 tracking-tight text-balance transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none">
 				if article.GetTitle() != "" {
 					{ article.GetTitle() }
 				} else {

@@ -129,12 +129,6 @@
     animation: none;
   }
 
-  .card:has(.card-actions:hover),
-  .card:has(.card-actions:active) {
-    scale: 1;
-    transition: none;
-  }
-
   /* Don't animate if user has requested reduced motion. */
   @media screen and (prefers-reduced-motion: reduce) {
     * {
