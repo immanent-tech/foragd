@@ -30,7 +30,11 @@ templ UserHome(data *models.HomeResponse) {
 									</h2>
 									<div>
 										// Grid of latest articles on large displays.
-										<div class="hidden grid-cols-1 place-items-center gap-4 content-auto sm:inline-grid sm:grid-cols-2 sm:gap-8">
+										<div
+											id="grid-objects"
+											style="display: grid;grid-template-rows: masonry;"
+											class="hidden grid-cols-1 gap-4 content-auto sm:inline-grid sm:grid-cols-2 sm:gap-8"
+										>
 											for idx, article := range data.LatestArticles {
 												@ArticleCard(idx, article)
 											}
