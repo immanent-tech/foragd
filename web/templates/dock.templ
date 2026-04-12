@@ -18,8 +18,8 @@ templ Dock(attributes templ.Attributes) {
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/home")) }
 			_="
-			on htmx:beforeRequest add .animate-pulse to me
-			on htmx:afterRequest remove .animate-pulse from me
+			on htmx:beforeRequest add .animate-pulse .bg-secondary .rounded-lg to me
+			on htmx:afterRequest remove .animate-pulse .bg-secondary .rounded-lg from me
 			"
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-home size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.1] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -37,8 +37,8 @@ templ Dock(attributes templ.Attributes) {
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/subscriptions")) }
 			_="
-			on htmx:beforeRequest add .animate-pulse to me
-			on htmx:afterRequest remove .animate-pulse from me
+			on htmx:beforeRequest add .animate-pulse .bg-secondary .rounded-lg to me
+			on htmx:afterRequest remove .animate-pulse .bg-secondary .rounded-lg from me
 			"
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline icon-tabler-rss size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.1] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -54,8 +54,8 @@ templ Dock(attributes templ.Attributes) {
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles")) }
 			_="
-			on htmx:beforeRequest add .animate-pulse to me
-			on htmx:afterRequest remove .animate-pulse from me
+			on htmx:beforeRequest add .animate-pulse .bg-secondary .rounded-lg to me
+			on htmx:afterRequest remove .animate-pulse .bg-secondary .rounded-lg from me
 			"
 			if strings.HasPrefix(pageURL, "/view/article") {
 				hx-include="[name='subscriptions']"
@@ -73,8 +73,8 @@ templ Dock(attributes templ.Attributes) {
 			hx-swap="innerHTML show:window:top transition:true"
 			class={ templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/favorites")) }
 			_="
-			on htmx:beforeRequest add .animate-pulse to me
-			on htmx:afterRequest remove .animate-pulse from me
+			on htmx:beforeRequest add .animate-pulse .bg-secondary .rounded-lg to me
+			on htmx:afterRequest remove .animate-pulse .bg-secondary .rounded-lg from me
 			"
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-filled icon-tabler-heart size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-hover:scale-[1.1] group-active:scale-[0.9]" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
