@@ -51,7 +51,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/home"))}
+		var templ_7745c5c3_Var2 = []any{templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/home"))}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -82,12 +82,12 @@ func Dock(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" _=\"on keydown from body if the event's key is 'h' and event.altKey then send globalShortcutHome\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-home size-6 shrink-0 text-primary hover:scale-[1.1]\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12.707 2.293l9 9c.63 .63 .184 1.707 -.707 1.707h-1v6a3 3 0 0 1 -3 3h-1v-7a3 3 0 0 0 -2.824 -2.995l-.176 -.005h-2a3 3 0 0 0 -3 3v7h-1a3 3 0 0 1 -3 -3v-6h-1c-.89 0 -1.337 -1.077 -.707 -1.707l9 -9a1 1 0 0 1 1.414 0m.293 11.707a1 1 0 0 1 1 1v7h-4v-7a1 1 0 0 1 .883 -.993l.117 -.007z\"></path></svg> <span class=\"sr-only\">Go to Home Page</span> <span class=\"dock-label not-sr-only\">Home</span></a>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" _=\"\n\t\t\ton htmx:beforeRequest add .animate-pulse to me\n\t\t\ton htmx:afterRequest remove .animate-pulse from me\n\t\t\t\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-home size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-active:scale-[0.9] group-hover:scale-[1.1]\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12.707 2.293l9 9c.63 .63 .184 1.707 -.707 1.707h-1v6a3 3 0 0 1 -3 3h-1v-7a3 3 0 0 0 -2.824 -2.995l-.176 -.005h-2a3 3 0 0 0 -3 3v7h-1a3 3 0 0 1 -3 -3v-6h-1c-.89 0 -1.337 -1.077 -.707 -1.707l9 -9a1 1 0 0 1 1.414 0m.293 11.707a1 1 0 0 1 1 1v7h-4v-7a1 1 0 0 1 .883 -.993l.117 -.007z\"></path></svg> <span class=\"sr-only\">Go to Home Page</span> <span class=\"dock-label not-sr-only\">Home</span></a>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		filters := models.NewListDisplayFilters()
-		var templ_7745c5c3_Var5 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/subscriptions"))}
+		var templ_7745c5c3_Var5 = []any{templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/subscriptions"))}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -99,7 +99,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 31, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 34, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -112,7 +112,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(filters.Values()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 32, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 35, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -125,7 +125,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs("not " + models.ParamSubscriptions)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 33, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 36, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -144,11 +144,11 @@ func Dock(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-rss size-6 shrink-0 text-primary hover:scale-[1.1]\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"></path><path d=\"M4 4a16 16 0 0 1 16 16\"></path><path d=\"M4 11a9 9 0 0 1 9 9\"></path></svg> <span class=\"sr-only\">Go to Subscriptions</span> <span class=\"dock-label not-sr-only\">Subscriptions</span></a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" _=\"\n\t\t\ton htmx:beforeRequest add .animate-pulse to me\n\t\t\ton htmx:afterRequest remove .animate-pulse from me\n\t\t\t\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-outline icon-tabler-rss size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-active:scale-[0.9] group-hover:scale-[1.1]\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M4 19a1 1 0 1 0 2 0a1 1 0 1 0 -2 0\"></path><path d=\"M4 4a16 16 0 0 1 16 16\"></path><path d=\"M4 11a9 9 0 0 1 9 9\"></path></svg> <span class=\"sr-only\">Go to Subscriptions</span> <span class=\"dock-label not-sr-only\">Subscriptions</span></a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var10 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles"))}
+		var templ_7745c5c3_Var10 = []any{templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/articles"))}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var10...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -160,7 +160,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 45, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 52, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -173,7 +173,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(filters.Values()))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 46, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 53, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -192,7 +192,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" _=\"\n\t\t\ton htmx:beforeRequest add .animate-pulse to me\n\t\t\ton htmx:afterRequest remove .animate-pulse from me\n\t\t\t\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -202,11 +202,11 @@ func Dock(attributes templ.Attributes) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-file-rss size-6 shrink-0 text-primary hover:scale-[1.1]\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 2l.117 .007a1 1 0 0 1 .876 .876l.007 .117v4l.005 .15a2 2 0 0 0 1.838 1.844l.157 .006h4l.117 .007a1 1 0 0 1 .876 .876l.007 .117v9a3 3 0 0 1 -2.824 2.995l-.176 .005h-10a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-14a3 3 0 0 1 2.824 -2.995l.176 -.005zm-3 11a1 1 0 0 0 0 2a2 2 0 0 1 1.995 1.85l.005 .15a1 1 0 0 0 2 0a4 4 0 0 0 -4 -4m0 -3a1 1 0 0 0 0 2a5 5 0 0 1 5 5a1 1 0 0 0 2 0a7 7 0 0 0 -7 -7m.01 6h-.01a1 1 0 0 0 -.117 1.993l.127 .007a1 1 0 0 0 0 -2m5.989 -13.001l4.001 4.001h-4z\"></path></svg> <span class=\"sr-only\">Go to Articles</span> <span class=\"dock-label not-sr-only\">Articles</span></a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-file-rss size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-active:scale-[0.9] group-hover:scale-[1.1]\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M12 2l.117 .007a1 1 0 0 1 .876 .876l.007 .117v4l.005 .15a2 2 0 0 0 1.838 1.844l.157 .006h4l.117 .007a1 1 0 0 1 .876 .876l.007 .117v9a3 3 0 0 1 -2.824 2.995l-.176 .005h-10a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-14a3 3 0 0 1 2.824 -2.995l.176 -.005zm-3 11a1 1 0 0 0 0 2a2 2 0 0 1 1.995 1.85l.005 .15a1 1 0 0 0 2 0a4 4 0 0 0 -4 -4m0 -3a1 1 0 0 0 0 2a5 5 0 0 1 5 5a1 1 0 0 0 2 0a7 7 0 0 0 -7 -7m.01 6h-.01a1 1 0 0 0 -.117 1.993l.127 .007a1 1 0 0 0 0 -2m5.989 -13.001l4.001 4.001h-4z\"></path></svg> <span class=\"sr-only\">Go to Articles</span> <span class=\"dock-label not-sr-only\">Articles</span></a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var14 = []any{"transition ease-in-out delay-150 duration-400", templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/favorites"))}
+		var templ_7745c5c3_Var14 = []any{templ.KV("bg-primary/10 rounded-lg", strings.HasPrefix(pageURL, "/list/favorites"))}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var14...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -218,7 +218,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 61, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/dock.templ`, Line: 72, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -237,7 +237,7 @@ func Dock(attributes templ.Attributes) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-heart size-6 shrink-0 text-primary hover:scale-[1.1]\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z\"></path></svg> <span class=\"sr-only\">Go to Favorites</span> <span class=\"dock-label not-sr-only\">Favorites</span></a></footer>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\" _=\"\n\t\t\ton htmx:beforeRequest add .animate-pulse to me\n\t\t\ton htmx:afterRequest remove .animate-pulse from me\n\t\t\t\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"icon icon-tabler icons-tabler-filled icon-tabler-heart size-6 shrink-0 text-primary transition-transform duration-150 ease-in-out group-active:scale-[0.9] group-hover:scale-[1.1]\" aria-hidden=\"true\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"></path><path d=\"M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 3.176 -10.215z\"></path></svg> <span class=\"sr-only\">Go to Favorites</span> <span class=\"dock-label not-sr-only\">Favorites</span></a></footer>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
