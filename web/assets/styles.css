@@ -119,11 +119,6 @@
     }
   }
 
-  /* Remove will-change after animation completes to free GPU memory */
-  .card.animation-done {
-    will-change: auto;
-  }
-
   /* Skip animation if content was restored from cache */
   [data-htmx-history-restored] .card {
     animation: none;

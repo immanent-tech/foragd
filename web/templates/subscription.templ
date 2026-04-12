@@ -100,7 +100,7 @@ templ SubscriptionCard(idx int, s *models.Subscription) {
 	}}
 	@partials.Card(
 		element.MergeAttributes(attrs),
-		element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup"),
+		element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
 	) {
 		<input type="hidden" name="displayed_subscriptions" value={ s.GetID() }/>
 		// Card header.

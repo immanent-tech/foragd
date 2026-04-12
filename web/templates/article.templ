@@ -35,7 +35,7 @@ templ ArticleCard(idx int, article *models.Article) {
 		element.WithAttribute("hx-push-url", "true"),
 		element.WithAttribute("hx-disinherit", "*"),
 		element.WithAttribute("id", article.GetID()),
-		element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup"),
+		element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
 	) {
 		// Hidden inputs used for some group article actions.
 		<input type="hidden" name={ "displayed_articles[" + article.GetSubscriptionID() + "]" } value={ article.GetID() }/>

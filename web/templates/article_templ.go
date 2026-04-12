@@ -750,7 +750,7 @@ func ArticleCard(idx int, article *models.Article) templ.Component {
 			element.WithAttribute("hx-push-url", "true"),
 			element.WithAttribute("hx-disinherit", "*"),
 			element.WithAttribute("id", article.GetID()),
-			element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup"),
+			element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
 		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
