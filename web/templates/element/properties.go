@@ -4,7 +4,9 @@
 package element
 
 import (
+	"encoding/json"
 	"maps"
+	"net/http"
 	"slices"
 	"sync"
 
@@ -110,5 +112,59 @@ func WithClasses(classes ...string) PropertiesOption {
 func MergeAttributes(attributes templ.Attributes) PropertiesOption {
 	return func(p *Properties) {
 		p.mergeAttributes(attributes)
+	}
+}
+
+// HXOption is a functional option to set a HTMX attribute.
+type HXOption func(*Properties)
+
+// WithHXOptions option is a way to set all HX options at once.
+func WithHXOptions(options ...HXOption) PropertiesOption {
+	return func(p *Properties) {
+		for option := range slices.Values(options) {
+			option(p)
+		}
+	}
+}
+
+// WithHXMethod sets a "hx-{get,post,put,delete}" attribute.
+func WithHXMethod(method, value string) HXOption {
+	return func(p *Properties) {
+		switch method {
+		case http.MethodGet:
+			p.SetAttribute("hx-get", value)
+		case http.MethodPost:
+			p.SetAttribute("hx-post", value)
+		case http.MethodPut:
+			p.SetAttribute("hx-put", value)
+		case http.MethodDelete:
+			p.SetAttribute("hx-delete", value)
+		}
+	}
+}
+
+// WithHXValues sets a "hx-vals" attribute. Note that the given map is marshaled to JSON and any marshaling error will
+// silently result in no attribute being set.
+func WithHXValues(values map[string]any) HXOption {
+	return func(p *Properties) {
+		data, err := json.Marshal(values)
+		if err != nil {
+			return
+		}
+		p.SetAttribute("hx-vals", string(data))
+	}
+}
+
+// WithHXParams sets a "hx-params" attribute.
+func WithHXParams(params string) HXOption {
+	return func(p *Properties) {
+		p.SetAttribute("hx-params", params)
+	}
+}
+
+// WithHXTarget sets a "hx-target" attribute.
+func WithHXTarget(target string) HXOption {
+	return func(p *Properties) {
+		p.SetAttribute("hx-target", target)
 	}
 }
