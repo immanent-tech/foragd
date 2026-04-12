@@ -166,8 +166,7 @@ func WatchList() http.HandlerFunc {
 //nolint:gocognit
 func watchForUpdates(watch query.Option) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		user := models.UserFromCtx(req.Context())
-		if user == nil {
+		if user := models.UserFromCtx(req.Context()); user == nil {
 			res.WriteHeader(http.StatusNoContent)
 			slogctx.FromCtx(req.Context()).Error("Unable to watch for updates.",
 				slog.Any("error", models.ErrCtxValueNotFound),
@@ -204,9 +203,12 @@ func watchForUpdates(watch query.Option) http.Handler {
 			return
 		}
 
-		// Set up updatesTicker.
+		// Create a ticker for checking and sending updates.
 		updatesTicker := time.NewTicker(time.Minute)
 		defer updatesTicker.Stop()
+		// Create a ticker for sending keepalive packets.
+		keepAliveTicker := time.NewTicker(25 * time.Second)
+		defer keepAliveTicker.Stop()
 		// keepAliveTicker := time.NewTicker(20 * time.Second)
 		// defer keepAliveTicker.Stop()
 		slogctx.FromCtx(req.Context()).Debug("Checking for updates...",
@@ -230,9 +232,17 @@ func watchForUpdates(watch query.Option) http.Handler {
 				if f, ok := res.(http.Flusher); ok {
 					f.Flush()
 				}
-				// keepAliveTicker.Stop()
+				keepAliveTicker.Stop()
 				updatesTicker.Stop()
 				return
+			case <-keepAliveTicker.C:
+				if _, err = fmt.Fprintf(res, ": keepalive\n\n"); err != nil {
+					slogctx.FromCtx(req.Context()).Error("Failed to send keepalive SSE message.",
+						slog.Any("error", err))
+				}
+				if f, ok := res.(http.Flusher); ok {
+					f.Flush()
+				}
 			case <-updatesTicker.C:
 				currentCount, err = models.CountItems(req.Context(), watch)
 				if err != nil {
