@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.99.0](https://github.com/immanent-tech/foragd/compare/v0.98.0...v0.99.0) (2026-04-12)
+
+
+### Features
+
+* **templates/partials:** :sparkles: add custom css classes for card components ([efea97e](https://github.com/immanent-tech/foragd/commit/efea97e15a34d49be2204297106a07aa39739e51))
+
+
+### Bug Fixes
+
+* **templates:** :bug: more fixes/tweaks for masonry library usage ([aec3e83](https://github.com/immanent-tech/foragd/commit/aec3e838be0b226de7fb408b1fcce4b9d72865d4))
+* **templates:** :lipstick: consistent styling between dock/sidebar and less obvious borders on sidebar/header ([95cbc4d](https://github.com/immanent-tech/foragd/commit/95cbc4dc548b745b626188d310529e95f1815bbf))
+* **templates:** :lipstick: don't animate title on active when clicking on actions in card footer ([9d287db](https://github.com/immanent-tech/foragd/commit/9d287db00cab0b22e12e0a9709a6e18ded263909))
+* **templates:** :lipstick: fix active animation on subscription/article cards ([5896ba2](https://github.com/immanent-tech/foragd/commit/5896ba2f3c21a8ea9a670a1ca7c912441fb25625))
+* **templates:** :lipstick: fix animations for hover/active on sidebar/dock buttons ([9f5d38a](https://github.com/immanent-tech/foragd/commit/9f5d38aaf624b415765ab8a8263d5753376e66ab))
+* **templates:** :lipstick: fix subscription/article card animations and transitions ([86aba4e](https://github.com/immanent-tech/foragd/commit/86aba4e612a9999574c5a7489ff9b270862e130e))
+* **templates/home:** :lipstick: align cards in carousel in center ([464b7ad](https://github.com/immanent-tech/foragd/commit/464b7addb93361b48d2eb2d55ac8e43d2e487cd1))
+* **templates/partials:** :lipstick: adjust card border ([30b792b](https://github.com/immanent-tech/foragd/commit/30b792b4baf8daaf63c5daf81879a17054adfa1f))
+* **templates/search:** :bug: fix scope of inline script variables ([e827802](https://github.com/immanent-tech/foragd/commit/e8278023f0fab0582f0e68b9b2c52d56b34fbc43))
+* **templates/sidebar:** :bug: add missing end in hyperscript snippet ([6ca5d7e](https://github.com/immanent-tech/foragd/commit/6ca5d7e34c4ebf03a1fd61fd5d93d6bdf9c5467c))
+* **templates/subscriptions:** :lipstick: increase font size of latest/top article links and highlight on hover ([56a2669](https://github.com/immanent-tech/foragd/commit/56a2669f82cd47d09581a9ac6de98e16b0f31ff0))
+
+
+### Performance Improvements
+
+* **models:** :zap: reduce number of cards loaded in list down further ([522f51d](https://github.com/immanent-tech/foragd/commit/522f51d4d9d0c60befb65828c719e28194be99e9))
+* **models:** :zap: reduce number of subscriptions/articles requested for lists based on number visible on screen ([3ee8df1](https://github.com/immanent-tech/foragd/commit/3ee8df1ca583380ccfaa1b8491b5c707532a0b8e))
+* **templates:** :zap: free up gpu resources after subscription/article card animations complete ([2e01875](https://github.com/immanent-tech/foragd/commit/2e018750d2e399eed6a54bcfc77598d6bc1c9682))
+
 ## [0.98.0](https://github.com/immanent-tech/foragd/compare/v0.97.0...v0.98.0) (2026-04-11)
 
 
