@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.100.0](https://github.com/immanent-tech/foragd/compare/v0.99.2...v0.100.0) (2026-04-13)
+
+
+### Features
+
+* **templates:** :sparkles: add ability to set htmx attributes on elements ([ca966c7](https://github.com/immanent-tech/foragd/commit/ca966c77a6d96eda9ad96d2d18e95b3546853fc8))
+* **templates:** :sparkles: make loading more obvious on dock/sidebar buttons ([64cadeb](https://github.com/immanent-tech/foragd/commit/64cadeb6d2589d6750a488467f3ab86ed7fae7c1))
+
+
+### Bug Fixes
+
+* **email:** :bug: use png over webp in email templates for better client support ([5813718](https://github.com/immanent-tech/foragd/commit/58137183b408a649f71f37c0e0c23449921d13f3))
+* **scheduler:** :bug: extend default job timeout to allow update feed jobs to run longer ([5831b5b](https://github.com/immanent-tech/foragd/commit/5831b5b0bcd77484caf32880ddac9dedec382b72))
+* **templates:** :bug: fix specifying HXMethod option ([f3ee182](https://github.com/immanent-tech/foragd/commit/f3ee1826868e96c07188ecf10dea0fbe50f69eb0))
+* **templates:** :lipstick: consistent category badge styling everywhere ([8418910](https://github.com/immanent-tech/foragd/commit/8418910594a6152f1ce30829f5a6d9dbe7795fc9))
+* **templates:** :lipstick: don't trigger effects on card when category badge is active ([8671f73](https://github.com/immanent-tech/foragd/commit/8671f731faa7e2a8b5c798f1b8ad101acfcd3490))
+
+
+### Performance Improvements
+
+* **handlers:** :zap: send keepalive SSE packets to workaround cloudflare and SSE issues ([b9feaf5](https://github.com/immanent-tech/foragd/commit/b9feaf59d0343af1a5f607a7cfa489c8c3efad7f))
+
 ## [0.99.2](https://github.com/immanent-tech/foragd/compare/v0.99.1...v0.99.2) (2026-04-12)
 
 
