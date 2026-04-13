@@ -27,7 +27,7 @@ var (
 )
 
 const (
-	defaultJobTimeout = 60 * time.Second
+	defaultJobTimeout = 2 * time.Minute
 
 	schedulerAPICtxKey contextKey = "scheduler_api"
 
