@@ -45,7 +45,7 @@
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
-    "globals": "^17.4.0",
+    "globals": "^17.5.0",
     "hono": "^4.12.12",
     "prettier": "^3.8.1",
     "prettier-plugin-organize-imports": "^4.3.0",
