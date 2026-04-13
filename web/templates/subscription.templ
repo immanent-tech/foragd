@@ -479,30 +479,35 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 							@templ.Fragment(PaginateFragment) {
 								for idx, subscription := range response.Subscriptions {
 									@SubscriptionCard(idx, subscription) {
-										{{ items, ok := response.LatestArticles[subscription.GetID()] }}
-										if ok {
-											<div class="mt-auto h-full">
-												<h3 class="mb-2 text-base font-semibold">
-													if subscription.Type == models.SubscriptionTypeSearch {
-														Top Results
-													} else {
-														Latest Articles
-													}
-												</h3>
-												<ul role="list" class="list-disc marker:text-accent">
-													for item := range slices.Values(items) {
-														<li
-															hx-get={ "/view/article/" + item.GetID() }
-															hx-target={ ContentID.Target() }
-															hx-swap="innerHTML show:window:top transition:true"
-															hx-trigger="click"
-															hx-push-url="true"
-															_="on click halt the event's bubbling"
-															class="my-2 line-clamp-1 link link-hover"
-														>{ item.GetTitle() }</li>
-													}
-												</ul>
-											</div>
+										if response.LatestArticles != nil {
+											{{ itemsData, ok := response.LatestArticles.Load(subscription.GetID()) }}
+											if ok {
+												{{ items, ok := itemsData.(models.Items) }}
+												if ok {
+													<div class="mt-auto h-full">
+														<h3 class="mb-2 text-base font-semibold">
+															if subscription.Type == models.SubscriptionTypeSearch {
+																Top Results
+															} else {
+																Latest Articles
+															}
+														</h3>
+														<ul role="list" class="list-disc marker:text-accent">
+															for item := range slices.Values(items) {
+																<li
+																	hx-get={ "/view/article/" + item.GetID() }
+																	hx-target={ ContentID.Target() }
+																	hx-swap="innerHTML show:window:top transition:true"
+																	hx-trigger="click"
+																	hx-push-url="true"
+																	_="on click halt the event's bubbling"
+																	class="my-2 line-clamp-1 link link-hover"
+																>{ item.GetTitle() }</li>
+															}
+														</ul>
+													</div>
+												}
+											}
 										}
 									}
 								}

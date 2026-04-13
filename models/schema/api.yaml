@@ -219,8 +219,7 @@ components:
         latest_articles:
           description: >
             is a map of the latest articles for each subscription in the result.
-          x-go-type: map[SubscriptionID]Items
-          x-go-type-skip-optional-pointer: true
+          x-go-type: sync.Map
         filters:
           $ref: 'models.yaml#/components/schemas/ListFilters'
         pagination:

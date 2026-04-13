@@ -6,6 +6,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 )
 
 // APIError represents an error returned from any API within the service/application.
@@ -120,7 +121,7 @@ type ListSubscriptionsResponse struct {
 	Filters ListFilters `json:"filters" validate:"required"`
 
 	// LatestArticles is a map of the latest articles for each subscription in the result.
-	LatestArticles map[SubscriptionID]Items `json:"latest_articles,omitempty"`
+	LatestArticles *sync.Map `json:"latest_articles,omitempty"`
 
 	// Pagination contains data for paginating through results.
 	Pagination Pagination `form:"pagination" json:"pagination" validate:"omitempty,url_encoded"`

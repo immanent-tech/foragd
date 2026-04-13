@@ -122,10 +122,9 @@ func HandleListSubscriptions() http.HandlerFunc {
 		}
 		request.Pagination = &next
 
-		subscriptionsLatestItems := make(map[models.SubscriptionID]models.Items)
 		var (
-			wg sync.WaitGroup
-			mu sync.Mutex
+			subscriptionsLatestItems sync.Map
+			wg                       sync.WaitGroup
 		)
 		wg.Go(func() {
 			// For feed/email subscriptions, get the latest 3 items from each.
@@ -139,9 +138,9 @@ func HandleListSubscriptions() http.HandlerFunc {
 					slog.Any("error", err),
 				)
 			}
-			mu.Lock()
-			maps.Copy(subscriptionsLatestItems, feedsLatestItems)
-			mu.Unlock()
+			for key, value := range feedsLatestItems {
+				subscriptionsLatestItems.Store(key, value)
+			}
 		})
 
 		wg.Go(func() {
@@ -156,9 +155,9 @@ func HandleListSubscriptions() http.HandlerFunc {
 					slog.Any("error", err),
 				)
 			}
-			mu.Lock()
-			maps.Copy(subscriptionsLatestItems, groupsLatestItems)
-			mu.Unlock()
+			for key, value := range groupsLatestItems {
+				subscriptionsLatestItems.Store(key, value)
+			}
 		})
 
 		wg.Go(func() {
@@ -173,9 +172,9 @@ func HandleListSubscriptions() http.HandlerFunc {
 					slog.Any("error", err),
 				)
 			}
-			mu.Lock()
-			maps.Copy(subscriptionsLatestItems, searchLatestItems)
-			mu.Unlock()
+			for key, value := range searchLatestItems {
+				subscriptionsLatestItems.Store(key, value)
+			}
 		})
 
 		wg.Wait()
@@ -189,7 +188,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 					Filters:        request.Filters,
 					Pagination:     *request.Pagination,
 					Subscriptions:  subscriptions,
-					LatestArticles: subscriptionsLatestItems,
+					LatestArticles: &subscriptionsLatestItems,
 				}),
 			}).ServeHTTP(res, req)
 		case http.MethodPost:
@@ -199,7 +198,7 @@ func HandleListSubscriptions() http.HandlerFunc {
 					Filters:        request.Filters,
 					Pagination:     *request.Pagination,
 					Subscriptions:  subscriptions,
-					LatestArticles: subscriptionsLatestItems,
+					LatestArticles: &subscriptionsLatestItems,
 				}),
 			}).ServeHTTP(res, req)
 		}
