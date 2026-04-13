@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@catppuccin/daisyui": "^2.1.1",
-    "@cloudflare/containers": "^0.2.2",
+    "@cloudflare/containers": "^0.3.0",
     "@eslint/js": "^10.0.1",
     "@prettier/plugin-xml": "^3.4.2",
     "@tailwindcss/cli": "^4.2.2",
