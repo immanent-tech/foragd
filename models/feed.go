@@ -580,14 +580,12 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 			// On validation errors, try again without validation.
 			return NewFeedFromURL(ctx, feedURL.String(), id, false)
 		}
-		// If the error is StatusForbidden, try proxying the request.
-		if httpErr, ok := errors.AsType[feeds.ParseError](
-			err,
-		); ok &&
-			(httpErr.Code == http.StatusForbidden || httpErr.Code == http.StatusTooManyRequests) {
+		parseErr, ok := errors.AsType[feeds.ParseError](err)
+		if ok && (parseErr.Code == http.StatusForbidden || parseErr.Code == http.StatusTooManyRequests) {
+			// If the error is StatusForbidden, or TooManyRequests, try proxying the request.
 			if !strings.HasPrefix(feedURL.String(), os.Getenv("FORAGD_REVERSEPROXY_BASEURL")) {
 				slogctx.FromCtx(ctx).Warn("Error response, trying with proxy",
-					slog.Int("response_code", httpErr.Code),
+					slog.Int("response_code", parseErr.Code),
 					slog.String("url", feedURL.String()),
 				)
 				// Generate a proxied URL.
@@ -595,7 +593,6 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 				if err != nil {
 					return nil, fmt.Errorf("proxy url: %w", err)
 				}
-				// Try to fetch the feed through the proxy.
 				if feed, err = NewFeedFromURL(ctx, proxiedURL, id, validate); err != nil {
 					return nil, err
 				}
@@ -615,9 +612,12 @@ func NewFeedFromURL(ctx context.Context, rawURL string, id FeedID, validate bool
 				feed.SourceURLs = append(feed.SourceURLs, feedURL.String())
 				return feed, err
 			}
+		} else if ok {
+			return nil, fmt.Errorf("could not create feed from URL %s: %w", feedURL.String(), parseErr)
 		}
 		return nil, fmt.Errorf("could not create feed from URL %s: %w", feedURL.String(), err)
 	}
+
 	feed = newSyndicationFeed(ctx, feedURL.String(), id, result)
 
 	// Try to find an image for the feed if it does not supply one.
