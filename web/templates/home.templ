@@ -8,6 +8,7 @@ import (
 	"github.com/immanent-tech/foragd/models"
 	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
+	"net/http"
 	"strconv"
 )
 
@@ -111,7 +112,7 @@ templ UserHome(data *models.HomeResponse) {
 												}}
 												@CategoryBadge(category.Category,
 													element.WithHXOptions(
-														element.WithHXMethod("hx-get", "/list/articles"),
+														element.WithHXMethod(http.MethodGet, "/list/articles"),
 														element.WithHXTarget(ContentID.Target()),
 														element.WithHXValues(filters.Values()),
 													),

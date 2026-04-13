@@ -13,6 +13,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"net/http"
 )
 
 // Card renders an article as a card, for displaying in a list.
@@ -62,7 +63,7 @@ templ ArticleCard(idx int, article *models.Article) {
 						}}
 						@CategoryBadge(category,
 							element.WithHXOptions(
-								element.WithHXMethod("hx-get", "/list/articles"),
+								element.WithHXMethod(http.MethodGet, "/list/articles"),
 								element.WithHXTarget(ContentID.Target()),
 								element.WithHXValues(filters.Values()),
 								element.WithHXParams("not subscription_id"),
