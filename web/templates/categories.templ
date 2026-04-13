@@ -116,7 +116,7 @@ templ AddCategory(category models.Category) {
 templ CategoryBadge(category models.Category, options ...element.PropertiesOption) {
 	{{ props := element.NewProperties(options...) }}
 	<span
-		class={ "inline-flex items-center rounded-md bg-accent px-2 py-1 text-xs font-medium text-accent-content transition-transform duration-400 hover:scale-[1.04]", props.Classes() }
+		class={ "category-badge inline-flex items-center rounded-md bg-accent px-2 py-1 text-xs font-medium text-accent-content transition-transform ease-in-out duration-400 active:bg-secondary active:text-secondary-content hover:scale-[1.1]", props.Classes() }
 		{ props.Attributes()... }
 	>
 		{ category }
