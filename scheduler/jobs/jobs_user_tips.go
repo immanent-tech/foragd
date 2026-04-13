@@ -88,12 +88,17 @@ func (j *userTipsJob) Execute(ctx context.Context) error {
 		return fmt.Errorf("generate unsubscribe token: %w", err)
 	}
 
+	nickname := user.GetNickname()
+	if nickname == "" {
+		nickname = "there"
+	}
+
 	// Create and send email to user.
 	email, err := resend.NewTemplatedEmail(
 		data.EmailID,
 		resend.To(user.GetEmail()),
 		resend.WithTag(resend.TagCategory, resend.TagCategoryPromotional),
-		resend.WithVariable("USER_NICKNAME", user.GetNickname()),
+		resend.WithVariable("USER_NICKNAME", nickname),
 		resend.WithVariable("USER_UNSUBSCRIBE_LINK", "/unsubscribe/"+unsubscribeToken),
 	)
 	if err != nil {
