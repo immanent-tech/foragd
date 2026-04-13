@@ -47,7 +47,7 @@
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.5.0",
     "hono": "^4.12.12",
-    "prettier": "^3.8.1",
+    "prettier": "^3.8.2",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "prettier-plugin-tailwindcss-extra-plus": "^0.3.1",
