@@ -19,7 +19,7 @@
     "@tailwindplus/elements": "^1.0.22",
     "daisyui": "^5.5.19",
     "date-fns": "^4.1.0",
-    "dotenv": "^17.4.1",
+    "dotenv": "^17.4.2",
     "dotenv-cli": "^11.0.0",
     "grid-rows-masonry": "^1.2.9",
     "htmx-ext-head-support": "^2.0.5",
