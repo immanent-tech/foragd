@@ -492,7 +492,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 																Latest Articles
 															}
 														</h3>
-														<ul role="list" class="list-disc marker:text-accent">
+														<ul role="list" class="list-disc marker:text-accent pl-5">
 															for item := range slices.Values(items) {
 																<li
 																	hx-get={ "/view/article/" + item.GetID() }
@@ -501,7 +501,7 @@ templ ListSubscriptions(response *models.ListSubscriptionsResponse) {
 																	hx-trigger="click"
 																	hx-push-url="true"
 																	_="on click halt the event's bubbling"
-																	class="my-2 line-clamp-1 link link-hover"
+																	class="my-2 link link-hover"
 																>{ item.GetTitle() }</li>
 															}
 														</ul>

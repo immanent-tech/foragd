@@ -1121,7 +1121,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 															return templ_7745c5c3_Err
 														}
 													}
-													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</h3><ul role=\"list\" class=\"list-disc marker:text-accent\">")
+													templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 86, "</h3><ul role=\"list\" class=\"list-disc marker:text-accent pl-5\">")
 													if templ_7745c5c3_Err != nil {
 														return templ_7745c5c3_Err
 													}
@@ -1152,7 +1152,7 @@ func ListSubscriptions(response *models.ListSubscriptionsResponse) templ.Compone
 														if templ_7745c5c3_Err != nil {
 															return templ_7745c5c3_Err
 														}
-														templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"my-2 line-clamp-1 link link-hover\">")
+														templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 89, "\" hx-swap=\"innerHTML show:window:top transition:true\" hx-trigger=\"click\" hx-push-url=\"true\" _=\"on click halt the event's bubbling\" class=\"my-2 link link-hover\">")
 														if templ_7745c5c3_Err != nil {
 															return templ_7745c5c3_Err
 														}
