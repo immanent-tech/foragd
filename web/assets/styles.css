@@ -28,7 +28,6 @@
   -moz-osx-font-smoothing: grayscale;
   scrollbar-gutter: stable;
   scrollbar-color: var(--color-primary);
-  --sidebar-width: var(--w-sm);
 }
 
 @supports (font-variation-settings: normal) {
@@ -38,22 +37,11 @@
   }
 }
 
-/* @theme inline {
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "TexGyrePagella", serif;
   --sidebar-width: var(--w-sm);
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      translate: 0 8px;
-    }
-    to {
-      opacity: 1;
-      translate: 0 0;
-    }
-  }
-
-  --animate-fadeinup: theme-fadeInUp 0.3s cubic-bezier(0.2, 0, 0, 1) both;
-} */
+}
 
 /* Use page view transitions. */
 @view-transition {
