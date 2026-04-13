@@ -16,7 +16,6 @@
 /* https://tailwindcss.com/plus/ui-blocks/documentation#add-the-inter-font-family */
 /* https://rsms.me/inter/#usage */
 :root {
-  font-family: Inter, sans-serif;
   font-feature-settings:
     "liga" 1,
     "calt" 1,
