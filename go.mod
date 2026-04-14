@@ -28,7 +28,7 @@ require (
 	github.com/lmittmann/tint v1.1.3
 	github.com/magefile/mage v1.17.1
 	github.com/matoous/go-nanoid/v2 v2.1.0
-	github.com/mattn/go-isatty v0.0.20
+	github.com/mattn/go-isatty v0.0.21
 	github.com/oapi-codegen/runtime v1.3.1
 	github.com/samber/slog-multi v1.8.0
 	github.com/stripe/stripe-go/v83 v83.2.1
