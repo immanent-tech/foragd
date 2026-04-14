@@ -12,33 +12,16 @@
 
 @import "./daisyui.css";
 
-/* Inter font styling */
-/* https://tailwindcss.com/plus/ui-blocks/documentation#add-the-inter-font-family */
-/* https://rsms.me/inter/#usage */
-:root {
-  font-feature-settings:
-    "liga" 1,
-    "calt" 1,
-    "cv02" 1,
-    "cv03" 1,
-    "cv04" 1,
-    "cv11" 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  scrollbar-gutter: stable;
-  scrollbar-color: var(--color-primary);
-}
-
-@supports (font-variation-settings: normal) {
-  :root {
-    font-family: InterVariable, sans-serif;
-    font-optical-sizing: auto;
-  }
-}
-
+/* Global custom theme values. */
 @theme {
   --font-sans: "Inter", sans-serif;
+  --font-sans--font-feature-settings:
+    "liga" 1, "ccmp" 1, "calt" 1, "ss01" 1, "ss02" 1, "ss03" 1, "cv02" 1,
+    "cv03" 1, "cv04" 1, "cv11" 1;
   --font-serif: "TexGyrePagella", serif;
+  --font-serif--font-feature-settings:
+    "liga" 1, "ccmp" 1, "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, "ss10" 1,
+    "kern" 1;
   --sidebar-width: var(--w-sm);
 }
 
@@ -48,6 +31,18 @@
 }
 
 @layer base {
+  :root {
+    scrollbar-gutter: stable;
+    scrollbar-color: var(--color-primary) transparent;
+  }
+
+  @supports (font-variation-settings: normal) {
+    :root {
+      font-family: InterVariable, sans-serif;
+      font-optical-sizing: auto;
+    }
+  }
+
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -100,11 +95,14 @@
   }
 
   /* Don't animate if user has requested reduced motion. */
-  @media screen and (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0.001ms !important;
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important; /* 0.001ms over 0 for htmx */
       animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important; /* 0.001ms over 0 for htmx */
+      scroll-behavior: auto !important;
     }
   }
 }
