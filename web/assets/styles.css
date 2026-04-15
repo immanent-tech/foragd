@@ -12,6 +12,11 @@
 
 @import "./daisyui.css";
 
+:root {
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--color-primary) transparent;
+}
+
 /* Global custom theme values. */
 @theme {
   --font-sans: "Inter", sans-serif;
@@ -31,11 +36,6 @@
 }
 
 @layer base {
-  :root {
-    scrollbar-gutter: stable;
-    scrollbar-color: var(--color-primary) transparent;
-  }
-
   @supports (font-variation-settings: normal) {
     :root {
       font-family: InterVariable, sans-serif;
