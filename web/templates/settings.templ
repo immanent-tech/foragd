@@ -5,6 +5,7 @@ package templates
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"strings"
 )
@@ -475,38 +476,43 @@ templ ShowSubscriptionEmail(email string) {
 }
 
 templ themePreview(theme string) {
-	<div
-		_={ "on click set @data-theme of <html/> to '" + theme + "' then localStorage.setItem('theme','" + theme + "') then send themeChanged end" }
-		class="overflow-hidden rounded-lg border border-base-content/20 outline-2 outline-offset-2 outline-transparent hover:border-base-content/40"
-	>
-		<div class="w-full cursor-pointer bg-base-100 font-sans text-base-content" data-theme={ theme }>
-			<div class="grid grid-cols-5 grid-rows-3">
-				<div class="col-start-1 row-span-2 row-start-1 bg-base-200"></div>
-				<div class="col-start-1 row-start-3 bg-base-300"></div>
-				<div class="col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 bg-base-100 p-2">
-					<div
-						id={ "theme-label-" + theme }
-						class="font-bold capitalize"
-						_={ "on load set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end on themeChanged from <body/> set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end" }
-					>
-						{ theme }
-					</div>
-					<div class="flex flex-wrap gap-1">
-						<div class="flex aspect-square w-5 items-center justify-center rounded bg-primary lg:w-6">
-							<div class="text-sm font-bold text-primary-content">A</div>
-						</div>
-						<div class="flex aspect-square w-5 items-center justify-center rounded bg-secondary lg:w-6">
-							<div class="text-sm font-bold text-secondary-content">A</div>
-						</div>
-						<div class="flex aspect-square w-5 items-center justify-center rounded bg-accent lg:w-6">
-							<div class="text-sm font-bold text-accent-content">A</div>
-						</div>
-						<div class="flex aspect-square w-5 items-center justify-center rounded bg-neutral lg:w-6">
-							<div class="text-sm font-bold text-neutral-content">A</div>
+	@partials.Card(
+		element.WithAttribute("data-theme", theme),
+		element.WithAttribute("_", "on click set @data-theme of <html/> to '"+theme+"' then localStorage.setItem('theme','"+theme+"') then send themeChanged end"),
+		element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
+	) {
+		@partials.CardHeader() {
+			<div class="flex items-center">
+				<div class="mr-4 shrink-0 self-center transition-transform duration-400 ease-in-out group-hover:scale-[1.1]">
+					<div class="avatar avatar-placeholder" aria-hidden="true">
+						<div class="mask w-12 bg-primary text-primary-content  mask-squircle">
+							<span class="text-3xl capitalize">{ theme[0:1] }</span>
 						</div>
 					</div>
 				</div>
+				<div>
+					<h2
+						class="card-title line-clamp-3 tracking-tight text-pretty transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none capitalize"
+						_={ "on load set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end on themeChanged from <body/> set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end" }
+					>
+						{ theme }
+					</h2>
+				</div>
 			</div>
-		</div>
-	</div>
+		}
+		@partials.CardBody() {
+			<div class="grid grid-cols-5 grid-rows-3 items-center">
+				<div class="col-start-1 row-span-2 row-start-1 bg-base-200"></div>
+				<div class="col-start-1 row-start-3 bg-base-300"></div>
+				<div class="col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 bg-base-100 p-2">
+					<div class="mb-4 flex flex-row flex-wrap gap-2 self-start items-center">
+						<span class="badge badge-primary">A</span>
+						<span class="badge badge-secondary">B</span>
+						<span class="badge badge-accent">C</span>
+						<span class="badge badge-neutral">D</span>
+					</div>
+				</div>
+			</div>
+		}
+	}
 }

@@ -14,6 +14,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/web/templates/element"
 	"github.com/immanent-tech/foragd/web/templates/partials"
 	"strings"
 )
@@ -129,7 +130,7 @@ func AccountSettings(user *models.User) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 90, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 91, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -142,7 +143,7 @@ func AccountSettings(user *models.User) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(ContentID.Target())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 97, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 98, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -165,7 +166,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(user.GetNickname())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 137, Col: 33}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 138, Col: 33}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -178,7 +179,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(user.GetEmail())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 152, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 153, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -199,7 +200,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(user.GetAvatar())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 171, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 172, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -247,7 +248,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(models.RouteUserCancelDeactivationAccount)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 281, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 282, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -260,7 +261,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ModalContainerID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 282, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 283, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -278,7 +279,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(models.RouteUserDeactivateAccount)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 324, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 325, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -291,7 +292,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(partials.ModalContainerID.Target())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 325, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 326, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -304,7 +305,7 @@ func AccountSettings(user *models.User) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(map[string]string{"confirmed": "no"}))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 326, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 327, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -470,7 +471,7 @@ func ShowSubscriptionEmail(email string) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 459, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 460, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -483,7 +484,7 @@ func ShowSubscriptionEmail(email string) templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs("on click set currentValue to (my innerHTML) then writeText('" + email + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 462, Col: 162}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 463, Col: 162}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -518,72 +519,112 @@ func themePreview(theme string) templ.Component {
 			templ_7745c5c3_Var20 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<div _=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var21 string
-		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("on click set @data-theme of <html/> to '" + theme + "' then localStorage.setItem('theme','" + theme + "') then send themeChanged end")
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 479, Col: 140}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\" class=\"overflow-hidden rounded-lg border border-base-content/20 outline-2 outline-offset-2 outline-transparent hover:border-base-content/40\"><div class=\"w-full cursor-pointer bg-base-100 font-sans text-base-content\" data-theme=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var22 string
-		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 482, Col: 95}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\"><div class=\"grid grid-cols-5 grid-rows-3\"><div class=\"col-start-1 row-span-2 row-start-1 bg-base-200\"></div><div class=\"col-start-1 row-start-3 bg-base-300\"></div><div class=\"col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 bg-base-100 p-2\"><div id=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var23 string
-		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs("theme-label-" + theme)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 488, Col: 33}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "\" class=\"font-bold capitalize\" _=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var24 string
-		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs("on load set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end on themeChanged from <body/> set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end")
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 490, Col: 382}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var25 string
-		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 492, Col: 13}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</div><div class=\"flex flex-wrap gap-1\"><div class=\"flex aspect-square w-5 items-center justify-center rounded bg-primary lg:w-6\"><div class=\"text-sm font-bold text-primary-content\">A</div></div><div class=\"flex aspect-square w-5 items-center justify-center rounded bg-secondary lg:w-6\"><div class=\"text-sm font-bold text-secondary-content\">A</div></div><div class=\"flex aspect-square w-5 items-center justify-center rounded bg-accent lg:w-6\"><div class=\"text-sm font-bold text-accent-content\">A</div></div><div class=\"flex aspect-square w-5 items-center justify-center rounded bg-neutral lg:w-6\"><div class=\"text-sm font-bold text-neutral-content\">A</div></div></div></div></div></div></div>")
+		templ_7745c5c3_Var21 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			templ_7745c5c3_Var22 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<div class=\"flex items-center\"><div class=\"mr-4 shrink-0 self-center transition-transform duration-400 ease-in-out group-hover:scale-[1.1]\"><div class=\"avatar avatar-placeholder\" aria-hidden=\"true\"><div class=\"mask w-12 bg-primary text-primary-content mask-squircle\"><span class=\"text-3xl capitalize\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var23 string
+				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(theme[0:1])
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 489, Col: 53}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "</span></div></div></div><div><h2 class=\"card-title line-clamp-3 tracking-tight text-pretty transition-transform duration-150 ease-in-out group-active:scale-[0.96] group-has-[.card-footer:active]:scale-none group-has-[.card-footer:active]:transition-none group-has-[.category-badge:active]:scale-none group-has-[.category-badge:active]:transition-none group-has-[.latest-items:active]:scale-none group-has-[.latest-items:active]:transition-none capitalize\" _=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var24 string
+				templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs("on load set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end on themeChanged from <body/> set theme to localStorage.getItem('theme') if theme == '" + theme + "' then set my innerText to '" + theme + " (current)' else set my innerText to '" + theme + "' end")
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 496, Col: 382}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var25 string
+				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(theme)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/settings.templ`, Line: 498, Col: 13}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</h2></div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				return nil
+			})
+			templ_7745c5c3_Err = partials.CardHeader().Render(templ.WithChildren(ctx, templ_7745c5c3_Var22), templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, " ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Var26 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"grid grid-cols-5 grid-rows-3 items-center\"><div class=\"col-start-1 row-span-2 row-start-1 bg-base-200\"></div><div class=\"col-start-1 row-start-3 bg-base-300\"></div><div class=\"col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 bg-base-100 p-2\"><div class=\"mb-4 flex flex-row flex-wrap gap-2 self-start items-center\"><span class=\"badge badge-primary\">A</span> <span class=\"badge badge-secondary\">B</span> <span class=\"badge badge-accent\">C</span> <span class=\"badge badge-neutral\">D</span></div></div></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				return nil
+			})
+			templ_7745c5c3_Err = partials.CardBody().Render(templ.WithChildren(ctx, templ_7745c5c3_Var26), templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			return nil
+		})
+		templ_7745c5c3_Err = partials.Card(
+			element.WithAttribute("data-theme", theme),
+			element.WithAttribute("_", "on click set @data-theme of <html/> to '"+theme+"' then localStorage.setItem('theme','"+theme+"') then send themeChanged end"),
+			element.WithClasses("group", "max-w-prose", "cursor-pointer", "touch-manipulation", "animate-fadeinup", "has-[.animation-done]:will-change-auto"),
+		).Render(templ.WithChildren(ctx, templ_7745c5c3_Var21), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
