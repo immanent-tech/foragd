@@ -61,6 +61,24 @@ components:
           type: string
         url:
           $ref: '#/components/schemas/URL'
+    Author:
+      description: >
+        represents a person who contributed to a feed or item.
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          description: >
+            is the name of the person. Can be any combination of first name and last name, in any order.
+          type: string
+        url:
+          $ref: '#/components/schemas/URL'
+        email:
+          description: is an email address.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty,email'
     Mark:
       description: >
         applies the given mark action to objects.

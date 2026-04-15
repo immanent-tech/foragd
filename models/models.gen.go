@@ -419,6 +419,18 @@ type ArticleState struct {
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
+// Author represents a person who contributed to a feed or item.
+type Author struct {
+	// Email is an email address.
+	Email *string `json:"email,omitempty" validate:"omitempty,email"`
+
+	// Name is the name of the person. Can be any combination of first name and last name, in any order.
+	Name string `json:"name"`
+
+	// URL is a URL.
+	URL *URL `json:"url" validate:"omitempty,url"`
+}
+
 // Category represents a taxonomy applied to an object.
 type Category = string
 

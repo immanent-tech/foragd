@@ -306,13 +306,13 @@ func (i *Item) GetDescription() string {
 }
 
 // GetAuthors returns a slice of the item's authors, if any.
-func (i *Item) GetAuthors() []string {
-	return i.Authors
+func (i *Item) GetAuthors() []Author {
+	return generateAuthors(i.Authors)
 }
 
 // GetContributors returns a slice of the item's contributors, if any.
-func (i *Item) GetContributors() []string {
-	return i.Contributors
+func (i *Item) GetContributors() []Author {
+	return generateAuthors(i.Contributors)
 }
 
 // GetCategories returns a slice of the item's categories, if any.

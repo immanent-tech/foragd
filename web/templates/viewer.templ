@@ -268,9 +268,15 @@ templ viewerItemCard(item models.Item) {
 			<div class="flex-1 inline-grid">
 				// Author(s) and Published Time.
 				if len(item.GetAuthors()) > 0 {
-					<p class="col-span-full text-sm/6 italic truncate">
-						{ strings.Join(item.GetAuthors(),",") }
-					</p>
+					{{
+						authors := make([]string, 0)
+						for author := range slices.Values(item.GetAuthors()) {
+							authors = append(authors, author.String())
+						}
+					}}
+					<strong class="truncate text-sm/6">
+						{ strings.Join(authors,",") }
+					</strong>
 				}
 				<p class="col-span-full text-sm/6 capitalize">
 					Updated&nbsp;

@@ -85,9 +85,15 @@ templ ArticleCard(idx int, article *models.Article) {
 				class="flex items-center justify-between border-t border-neutral/15 pt-3 text-xs/4"
 			>
 				if len(article.GetAuthors()) > 0 {
-					<span>
-						{ strings.Join(article.GetAuthors(),",") }
-					</span>
+					{{
+						authors := make([]string, 0)
+						for author := range slices.Values(article.GetAuthors()) {
+							authors = append(authors, author.String())
+						}
+					}}
+					<strong class="truncate text-sm/6">
+						{ strings.Join(authors,",") }
+					</strong>
 				}
 				<div class="flex items-center gap-2">
 					<span class="text-xs/4 text-wrap text-neutral capitalize">
@@ -356,8 +362,14 @@ templ ArticleContent(article *models.Article) {
 						if article.SourceType != models.SourceTypeEmail {
 							// Show authors if found.
 							if len(article.GetAuthors()) > 0 {
+								{{
+									authors := make([]string, 0)
+									for author := range slices.Values(article.GetAuthors()) {
+										authors = append(authors, author.String())
+									}
+								}}
 								<strong class="truncate text-sm/6">
-									{ strings.Join(article.GetAuthors(),",") }
+									{ strings.Join(authors,",") }
 								</strong>
 							}
 						}

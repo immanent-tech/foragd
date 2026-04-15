@@ -430,7 +430,7 @@ func (a *Article) GetImage() *RemoteImage {
 }
 
 // GetAuthors returns a slice of authors (if any) of the article.
-func (a *Article) GetAuthors() []string {
+func (a *Article) GetAuthors() []Author {
 	return a.Item.GetAuthors()
 }
 
