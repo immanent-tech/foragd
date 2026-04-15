@@ -31,6 +31,8 @@ import (
 
 	"github.com/immanent-tech/foragd/config"
 	"github.com/immanent-tech/foragd/models"
+	"github.com/immanent-tech/foragd/models/schema"
+	"github.com/immanent-tech/foragd/providers/elastic"
 	"github.com/immanent-tech/foragd/providers/elastic/aggregations"
 	"github.com/immanent-tech/foragd/providers/elastic/query"
 	"github.com/immanent-tech/foragd/providers/elastic/results"
@@ -1487,8 +1489,18 @@ func HandleExportSubscriptions() http.HandlerFunc {
 				},
 			).ServeHTTP(res, req)
 		case http.MethodPost:
+			var (
+				subscriptions models.Subscriptions
+				err           error
+			)
 			// Get all subscriptions.
-			subscriptions, err := models.GetSubscriptions(req.Context())
+			subscriptions, err = elastic.SearchAll[*models.Subscription](
+				req.Context(),
+				schema.SubscriptionsIndexRO,
+				query.Term("user_id", user.GetID()),
+				models.DefaultPaginationSize,
+				elastic.WithTrackTotalHits(false),
+			)
 			if err != nil {
 				HandleInternalError(&models.APIError{
 					InternalError: fmt.Errorf("filter subscriptions: %w", err),
@@ -1500,18 +1512,38 @@ func HandleExportSubscriptions() http.HandlerFunc {
 				}).ServeHTTP(res, req)
 				return
 			}
+			// Get all feeds for subscriptions.
+			var feeds models.Feeds
+			feeds, err = elastic.SearchAll[*models.Feed](
+				req.Context(),
+				schema.FeedsIndexRO,
+				query.Terms("feed_id", subscriptions.GetFeedIDs()...),
+				models.DefaultPaginationSize,
+				elastic.WithTrackTotalHits(false),
+			)
+			if err != nil {
+				HandleInternalError(&models.APIError{
+					InternalError: fmt.Errorf("filter subscriptions: %w", err),
+					StatusCode:    http.StatusInternalServerError,
+					UserMessage: models.NewErrorMessage(
+						"Failed to export.",
+						"The backend produced an error. This might be temporary, please try again.",
+					),
+				}).ServeHTTP(res, req)
+				return
+			}
+
 			// Create outlines for all subscriptions.
 			outlines := make([]opml.Outline, 0, len(subscriptions))
-			for subscription := range slices.Values(subscriptions) {
-				if subscription.GetSubscriptionType() == models.SubscriptionTypeFeed {
-					outlines = append(
-						outlines,
-						*opml.NewSubscriptionOutline(subscription.Customisation.GetNickname(), subscription.GetLink(),
-							opml.WithHTMLURL(subscription.GetLink()),
-							opml.WithOutlineTitle(subscription.Customisation.GetNickname()),
-						),
-					)
-				}
+			for feed := range slices.Values(feeds) {
+				subscription := subscriptions.GetByFeedID(feed.GetID())
+				outlines = append(
+					outlines,
+					*opml.NewSubscriptionOutline(subscription.Customisation.GetNickname(), feed.GetSourceURLs()[0],
+						opml.WithHTMLURL(feed.GetLink()),
+						opml.WithOutlineTitle(subscription.Customisation.GetNickname()),
+					),
+				)
 			}
 			// Generate the opml file from the outlines.
 			title := config.AppName + " subscriptions export for " + user.GetNickname()
