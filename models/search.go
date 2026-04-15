@@ -91,6 +91,28 @@ func (r *SearchRequest) HXVals() string {
 	return string(data)
 }
 
+func (r *SearchRequest) Values() map[string]any {
+	params := make(map[string]any)
+	params["text"] = r.Text
+	if r.Authors != nil {
+		params["authors"] = *r.Authors
+	}
+	if r.Categories != nil {
+		params[ParamCategories] = *r.Categories
+	}
+	if len(r.Subscriptions) > 0 {
+		params[ParamSubscriptions] = strings.Join(r.Subscriptions, ",")
+	}
+	params[ParamView] = string(r.View)
+	params["published_within"] = string(r.PublishedWithin)
+	params[ParamSort] = string(r.Sort)
+	params["timezone"] = r.Timezone
+	if r.SubscriptionID != nil {
+		params[ParamSubscriptionID] = *r.SubscriptionID
+	}
+	return params
+}
+
 func (r *SearchRequest) params() url.Values {
 	params := make(url.Values)
 	params.Set("text", r.Text)
