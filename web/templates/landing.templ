@@ -3,6 +3,9 @@
 
 package templates
 
+import "github.com/immanent-tech/foragd/web/templates/partials"
+import "github.com/immanent-tech/foragd/web/templates/element"
+
 // Landing is the landing page layout.
 templ Landing() {
 	<div class="bg-base-100">
@@ -24,7 +27,7 @@ templ Landing() {
 								Take back control of your reading. Follow any website, blog, or newsletter in one place.
 							</h2>
 							<div class="mx-auto items-center flow-root space-12 my-20">
-								<img src="/content/favicon.png" width="200" height="200" alt="Foragd logo" fetchpriority="high" class="mx-auto"/>
+								@partials.LogoSmall(element.WithClasses("size-64", "mx-auto"))
 								<span class="text-3xl sm:text-5xl font-semibold">Foragd&nbsp;<sup class="text-sm uppercase badge badge-accent">beta</sup></span>
 							</div>
 							<div class="mt-10 flex items-center justify-center gap-x-6">
@@ -59,8 +62,8 @@ templ Landing() {
 						<button command="show-modal" commandfor="main-screenshot" type="button">
 							<img
 								src="/content/screenshots/screenshot-main.webp"
-								width="1900"
-								height="1440"
+								width="1920"
+								height="1200"
 								decoding="async"
 								fetchpriority="high"
 								alt="Foragd desktop/mobile screenshots"
@@ -70,8 +73,8 @@ templ Landing() {
 						@imagePopup("main-screenshot") {
 							<img
 								src="/content/screenshots/screenshot-main-nobg.webp"
-								width="1900"
-								height="1440"
+								width="1920"
+								height="1200"
 								decoding="async"
 								alt="Foragd desktop/mobile screenshots"
 								class="mx-auto w-full object-scale-down sm:max-w-360"
