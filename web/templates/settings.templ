@@ -14,31 +14,103 @@ templ UserSettings() {
 	@content() {
 		@templ.Fragment(ContentFragment) {
 			@container() {
-				<div
-					class="tabs-box mt-8 tabs"
-					hx-trigger="load once"
-					hx-get="/user/settings/display"
-					hx-target="#current-settings"
-				>
-					<input
-						type="radio"
-						name="settings_tabs"
-						class="tab"
-						aria-label="Display"
-						checked="checked"
-						hx-get="/user/settings/display"
-						hx-target="#current-settings"
-					/>
-					<input
-						type="radio"
-						name="settings_tabs"
-						class="tab"
-						aria-label="Account"
-						hx-get="/user/settings/account"
-						hx-target="#current-settings"
-					/>
-				</div>
-				<section id="current-settings"></section>
+				<script type="module">
+  const tabGroup = document.getElementById('settings-tabs');
+
+  // Map hash → tab index
+  const tabMap = {
+    '#display': 0,
+    '#account': 1,
+  };
+
+  function activateTabFromHash() {
+    const index = tabMap[window.location.hash];
+    if (index !== undefined) {
+      tabGroup.setActiveTab(index);
+    }
+  }
+
+  // Activate on initial load
+  activateTabFromHash();
+
+  // Also handle back/forward navigation
+  window.addEventListener('hashchange', activateTabFromHash);
+</script>
+				<el-tab-group id="settings-tabs">
+					<el-tab-list class="flex mt-8 mb-12 gap-x-8 py-2 text-base">
+						<button
+							id="settings-display-button"
+							type="button"
+							class="btn"
+							onclick="location.hash = '#display'"
+						>Display</button>
+						<button
+							id="settings-account-button"
+							type="button"
+							class="btn"
+							onclick="location.hash = '#account'"
+						>Account</button>
+					</el-tab-list>
+					<el-tab-panels class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+						<div
+							id="display"
+							hx-get="/user/settings/display"
+							hx-trigger="load, settings-display-revealed"
+							_="on load
+                           	set hash to window.location.hash.replace('#', '')
+                            if hash is 'display'
+                              add .btn-primary to #settings-display-button
+                        	else
+                              remove .btn-primary from #settings-display-
+                            end
+                           end
+                           on hashchange from window
+                            set hash to window.location.hash.replace('#', '')
+                            if hash is 'display'
+                              add .btn-primary to #settings-display-button
+                              else
+                                remove .btn-primary from #settings-display-button
+                              end
+                            end
+						   on mutation of @hidden
+       					     if not @hidden and my innerHTML is ''
+         					   htmx.trigger(me, 'settings-display-revealed')
+       						 end
+						   end
+						"
+							class="content-auto"
+						></div>
+						<div
+							id="account"
+							hx-get="/user/settings/account"
+							hx-trigger="settings-account-revealed"
+							_="on load
+                                set hash to window.location.hash.replace('#', '')
+                                if hash is 'account'
+                                  add .btn-primary to #settings-account-button
+            					  if my innerHTML is '' then htmx.trigger(me, 'settings-account-revealed') end
+                                else
+                                  remove .btn-primary from #settings-account-button
+                                end
+                               end
+                               on hashchange from window
+                                set hash to window.location.hash.replace('#', '')
+                                if hash is 'account'
+                                  add .btn-primary to #settings-account-button
+                                else
+                                  remove .btn-primary from #settings-account-button
+                                end
+                               end
+  						   on mutation of @hidden
+       					     if not @hidden and my innerHTML is ''
+         					   htmx.trigger(me, 'settings-account-revealed')
+       						 end
+						   end
+                             "
+							class="content-auto"
+						></div>
+					</el-tab-panels>
+				</el-tab-group>
 			}
 		}
 	}
