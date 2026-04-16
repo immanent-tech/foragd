@@ -281,6 +281,9 @@ func (i *Item) GetLink() URL {
 
 // GetTitle returns the item's title.
 func (i *Item) GetTitle() string {
+	if i.Title == "" {
+		return "(no title)"
+	}
 	return i.Title
 }
 
